@@ -43,7 +43,8 @@ def main():
             match = [json.loads(gh("project", "item-add", NUMBER, "--owner", ORG, "--url", url,
                                    "--format", "json"))]
     else:
-        match = [i for i in items if a.target.lower() in i["title"].lower()]
+        match = [i for i in items if i["title"].lower() == a.target.lower()]
+        match = match or [i for i in items if a.target.lower() in i["title"].lower()]
     if len(match) != 1:
         sys.exit(f"{len(match)} cards match {a.target!r}: {[i['title'] for i in match]}")
     item = match[0]
