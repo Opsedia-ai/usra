@@ -74,7 +74,12 @@ class EmergencyCardScreen extends ConsumerWidget {
                 value: surgeries.isEmpty
                     ? null
                     : surgeries.map((e) => _surgeryLine(e)).join('\n'),
-                emptyText: l.emergencyNoneRecorded,
+                // Never claim "nothing" before the records have loaded.
+                emptyText: switch (timeline) {
+                  AsyncData() => l.emergencyNoneRecorded,
+                  AsyncError() => l.emergencyLoadFailed,
+                  _ => l.emergencyLoading,
+                },
               ),
               if (p.bloodType == null || p.allergies == null) ...[
                 const SizedBox(height: 4),

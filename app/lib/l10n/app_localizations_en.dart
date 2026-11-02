@@ -389,4 +389,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeEmergencyHint => 'Open fast if someone needs an ambulance';
+
+  @override
+  String get emergencyLoading => 'Loading…';
+
+  @override
+  String get emergencyLoadFailed => 'Couldn\'t read the records';
 }

@@ -805,6 +805,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open fast if someone needs an ambulance'**
   String get homeEmergencyHint;
+
+  /// No description provided for @emergencyLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get emergencyLoading;
+
+  /// No description provided for @emergencyLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the records'**
+  String get emergencyLoadFailed;
 }
 
 class _AppLocalizationsDelegate

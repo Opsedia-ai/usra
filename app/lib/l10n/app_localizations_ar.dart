@@ -391,4 +391,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeEmergencyHint => 'افتحها بسرعة لو حد احتاج إسعاف';
+
+  @override
+  String get emergencyLoading => 'بنحمّل…';
+
+  @override
+  String get emergencyLoadFailed => 'مقدرناش نقرا السجلات';
 }

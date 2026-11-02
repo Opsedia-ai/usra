@@ -145,5 +145,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "emergencyLoading": "Loading…",
+  "emergencyLoadFailed": "Couldn't read the records"
 }
