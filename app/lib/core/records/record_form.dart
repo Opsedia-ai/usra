@@ -42,6 +42,13 @@ class DoctorChoice {
   final String name;
   final String? specialty;
   final int? feeMinor;
+
+  // By id, so a rebuilt list still matches the picked doctor.
+  @override
+  bool operator ==(Object other) => other is DoctorChoice && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 /// What the user entered, ready to store as a `MedicalEvent`.
@@ -102,6 +109,10 @@ class _RecordFormState extends State<RecordForm> {
   bool _submitting = false;
   DoctorChoice? _doctor;
 
+  /// The fee text last filled in from a doctor, so switching doctors can
+  /// replace it without overwriting a cost the user typed.
+  String? _autoFee;
+
   @override
   void initState() {
     super.initState();
@@ -125,10 +136,11 @@ class _RecordFormState extends State<RecordForm> {
     setState(() => _doctor = d);
     if (d == null) return;
     _doctorText?.text = d.name;
-    if (widget.type.hasCost &&
-        _cost.text.trim().isEmpty &&
-        d.feeMinor != null) {
-      _cost.text = formatMoneyInput(d.feeMinor!);
+    final current = _cost.text.trim();
+    final untouched = current.isEmpty || current == _autoFee;
+    if (widget.type.hasCost && untouched) {
+      _autoFee = d.feeMinor == null ? null : formatMoneyInput(d.feeMinor!);
+      _cost.text = _autoFee ?? '';
     }
   }
 
