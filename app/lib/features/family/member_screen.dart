@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -210,7 +208,7 @@ class _EventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final data = _decode(event.dataJson);
+    final data = decodeRecordData(event.dataJson);
     final titleField = type?.titleField;
     final title = titleField == null ? null : data[titleField.key];
     final currency = event.currency;
@@ -253,13 +251,4 @@ class _EventCard extends StatelessWidget {
       field.kind == FieldKind.choice
       ? field.choiceLabelOf(context, '$value')
       : '$value';
-
-  static Map<String, Object?> _decode(String json) {
-    try {
-      final v = jsonDecode(json);
-      return v is Map<String, Object?> ? v : const {};
-    } catch (_) {
-      return const {};
-    }
-  }
 }

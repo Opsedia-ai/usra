@@ -1117,6 +1117,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name}, birth dose'**
   String vaccineZeroDose(String name);
+
+  /// No description provided for @growthUnderFiveOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth charts and the vaccination schedule are for children under 5 with a birth date in their profile.'**
+  String get growthUnderFiveOnly;
 }
 
 class _AppLocalizationsDelegate

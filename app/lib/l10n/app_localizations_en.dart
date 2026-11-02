@@ -582,4 +582,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String vaccineZeroDose(String name) {
     return '$name, birth dose';
   }
+
+  @override
+  String get growthUnderFiveOnly =>
+      'Growth charts and the vaccination schedule are for children under 5 with a birth date in their profile.';
 }

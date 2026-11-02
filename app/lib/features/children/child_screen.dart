@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +9,7 @@ import 'package:intl/intl.dart' show DateFormat, NumberFormat;
 import '../../core/database/app_database.dart';
 import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
+import '../../core/records/record_type.dart' show decodeRecordData;
 import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import 'egypt_vaccines.dart';
@@ -27,7 +28,7 @@ List<GrowthPoint> growthPoints(
   return [
     for (final e in events.reversed)
       if (e.type == 'growth')
-        if (_decode(e.dataJson)[key] case final num v when v > 0)
+        if (decodeRecordData(e.dataJson)[key] case final num v when v > 0)
           if (ageInMonths(birthDate, e.occurredAt) case final m
               when m >= 0 && m <= whoMaxMonths)
             (months: m, value: v.toDouble(), date: e.occurredAt),
@@ -38,23 +39,17 @@ List<GrowthPoint> growthPoints(
 List<VaccineRecord> vaccineRecords(List<MedicalEvent> events) => [
   for (final e in events)
     if (e.type == 'vaccine')
-      if (_decode(e.dataJson) case final data)
+      if (decodeRecordData(e.dataJson) case final data)
         if (data['vaccine'] case final String name)
           (
             name: name,
-            dose: (data['dose'] as num?)?.toInt(),
+            dose: switch (data['dose']) {
+              final num d => d.toInt(),
+              _ => null,
+            },
             date: e.occurredAt,
           ),
 ];
-
-Map<String, Object?> _decode(String json) {
-  try {
-    final v = jsonDecode(json);
-    return v is Map<String, Object?> ? v : const {};
-  } catch (_) {
-    return const {};
-  }
-}
 
 /// Growth charts and the vaccination schedule for a child under five.
 ///
@@ -85,10 +80,12 @@ class ChildScreen extends ConsumerWidget {
       body: switch ((profile, timeline)) {
         (AsyncError(:final error), _) ||
         (_, AsyncError(:final error)) => Center(child: Text('$error')),
-        (AsyncData(value: final p), AsyncData(value: final events)) =>
-          p == null || !isUnderFive(p.birthDate, DateTime.now())
-              ? Center(child: Text(l.profileNotFound))
-              : _Body(profile: p, events: events),
+        // `.value` keeps the last data while a stream reloads.
+        (AsyncValue(value: final p?), AsyncValue(value: final events?)) =>
+          isUnderFive(p.birthDate, DateTime.now())
+              ? _Body(profile: p, events: events)
+              : Center(child: Text(l.growthUnderFiveOnly)),
+        (AsyncData(value: null), _) => Center(child: Text(l.profileNotFound)),
         _ => const Center(child: CircularProgressIndicator()),
       },
     );
@@ -411,7 +408,7 @@ class _ChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_ChartPainter old) =>
-      old.points != points ||
+      !listEquals(old.points, points) ||
       old.maxMonths != maxMonths ||
       old.male != male ||
       old.indicator != indicator;

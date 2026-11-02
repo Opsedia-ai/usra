@@ -77,6 +77,9 @@ const _aliases = <(Set<VaccineKind>, List<String>)>[
   ({VaccineKind.bcg}, ['bcg', 'tuberculosis', 'درن', 'بي سي جي']),
 ];
 
+const _polioWords = ['شلل', 'polio'];
+const _injectionWords = ['حقن', 'inject', 'shot'];
+
 /// Lower case, no Arabic diacritics or tatweel, one form of alef, yeh and
 /// teh marbuta, and single spaces.
 String normalizeVaccineName(String raw) => raw
@@ -93,6 +96,11 @@ String normalizeVaccineName(String raw) => raw
 Set<VaccineKind> vaccineKindsOf(String name) {
   final n = normalizeVaccineName(name);
   if (n.isEmpty) return const {};
+  // "شلل الأطفال بالحقن", "polio injection": the injected (IPV) one, however
+  // the words are ordered.
+  if (_polioWords.any(n.contains) && _injectionWords.any(n.contains)) {
+    return const {VaccineKind.ipv};
+  }
   for (final (kinds, words) in _aliases) {
     if (words.any(n.contains)) return kinds;
   }

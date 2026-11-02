@@ -211,5 +211,6 @@
   "vaccinePenta": "الخماسي",
   "vaccineMmr": "الثلاثي الفيروسي (MMR)",
   "vaccineDtp": "الثلاثي البكتيري (منشّط)",
-  "vaccineZeroDose": "{name}، الجرعة الصفرية"
+  "vaccineZeroDose": "{name}، الجرعة الصفرية",
+  "growthUnderFiveOnly": "منحنيات النمو وجدول التطعيمات للأطفال أقل من ٥ سنين اللي تاريخ ميلادهم متسجل."
 }

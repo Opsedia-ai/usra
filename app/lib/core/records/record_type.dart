@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/widgets.dart';
 
 /// The kind of value a record field holds; drives the form and validation.
@@ -46,6 +48,7 @@ class RecordTypeDefinition {
     this.hasCost = true,
     this.label,
     this.doctorField,
+    this.requireOneOf = const [],
   });
 
   final String key;
@@ -60,6 +63,10 @@ class RecordTypeDefinition {
   /// Key of the text field holding the doctor's name. When set, the form
   /// offers saved doctors and links the record to the one picked.
   final String? doctorField;
+
+  /// Keys of fields of which at least one must be filled (for example a
+  /// measurement needs a weight or a height, not necessarily both).
+  final List<String> requireOneOf;
 
   String labelOf(BuildContext context) => label?.call(context) ?? key;
 
@@ -93,7 +100,22 @@ class RecordTypeDefinition {
       };
       if (!ok) problems.add(field.key);
     }
+    final noneFilled = requireOneOf.every((k) {
+      final v = data[k];
+      return v == null || (v is String && v.trim().isEmpty);
+    });
+    if (requireOneOf.isNotEmpty && noneFilled) problems.addAll(requireOneOf);
     return problems;
+  }
+}
+
+/// A record's `dataJson` as a map; empty when missing or malformed.
+Map<String, Object?> decodeRecordData(String json) {
+  try {
+    final v = jsonDecode(json);
+    return v is Map<String, Object?> ? v : const {};
+  } catch (_) {
+    return const {};
   }
 }
 

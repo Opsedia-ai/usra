@@ -62,6 +62,13 @@ void main() {
         occurredAt: birth,
         dataJson: jsonEncode({'vaccine': 'شلل الأطفال'}),
       );
+      // Malformed data from elsewhere must not break the page.
+      await db.addEvent(
+        profileId: kid,
+        type: 'vaccine',
+        occurredAt: birth,
+        dataJson: jsonEncode({'vaccine': 'BCG', 'dose': '1'}),
+      );
       return (kid, adult);
     }))!;
     await tester.pumpWidget(app());
@@ -72,6 +79,9 @@ void main() {
     router.go('/family/$adult');
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('member-growth')), findsNothing);
+    router.go('/family/$adult/growth');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('أقل من ٥ سنين'), findsOneWidget);
 
     router.go('/family/$kid');
     await tester.pumpAndSettle();
@@ -79,19 +89,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('التطعيمات الإجبارية'), findsOneWidget);
-    expect(chipText('growth-status-weight', 'في المدى المعتاد'), findsOneWidget);
+    expect(
+      chipText('growth-status-weight', 'في المدى المعتاد'),
+      findsOneWidget,
+    );
     expect(
       chipText('growth-status-height', 'اتكلم مع دكتور الأطفال'),
       findsOneWidget,
     );
     expect(chipText('dose-opv-0', 'اتاخد'), findsOneWidget);
     expect(chipText('dose-hepB-0', 'متأخر'), findsOneWidget);
+    expect(chipText('dose-bcg-1', 'اتاخد'), findsOneWidget);
     expect(chipText('dose-mmr-1', 'معاده'), findsNothing);
     expect(find.textContaining('كارت التطعيم'), findsOneWidget);
 
     // A new measurement goes through the generic record form.
     await tester.tap(find.byKey(const ValueKey('growth-add')));
     await tester.pumpAndSettle();
+    // An empty measurement isn't saved.
+    await tester.tap(find.byKey(const ValueKey('record-save')));
+    await tester.pumpAndSettle();
+    expect(find.text('مطلوب'), findsNWidgets(3));
     await tester.enterText(find.byKey(const ValueKey('field-weightKg')), '٨');
     await tester.tap(find.byKey(const ValueKey('record-save')));
     await tester.pumpAndSettle();

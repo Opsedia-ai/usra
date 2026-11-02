@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:usra/core/design/tokens.dart';
+import 'package:usra/features/children/children_module.dart';
 import 'package:usra/features/children/egypt_vaccines.dart';
 import 'package:usra/features/children/growth.dart';
 import 'package:usra/features/children/who_growth_data.dart' show Lms;
@@ -80,6 +81,12 @@ void main() {
     });
   });
 
+  test('a growth record needs at least one measurement', () {
+    final growth = const ChildrenModule().recordTypes.single;
+    expect(growth.validate({}), isNotEmpty);
+    expect(growth.validate({'heightCm': 70}), isEmpty);
+  });
+
   group('dates', () {
     test('addMonths keeps the day, or the month end', () {
       expect(addMonths(DateTime(2026, 1, 31), 1), DateTime(2026, 2, 28));
@@ -114,6 +121,9 @@ void main() {
       expect(vaccineKindsOf('الالتهاب الكبدي ب'), {VaccineKind.hepB});
       expect(vaccineKindsOf('بي سي جي'), {VaccineKind.bcg});
       expect(vaccineKindsOf('BCG'), {VaccineKind.bcg});
+      expect(vaccineKindsOf('شلل الأطفال بالحقن'), {VaccineKind.ipv});
+      expect(vaccineKindsOf('شلل اطفال حقن'), {VaccineKind.ipv});
+      expect(vaccineKindsOf('Polio injection'), {VaccineKind.ipv});
       expect(vaccineKindsOf('Flu'), isEmpty);
       expect(vaccineKindsOf('  '), isEmpty);
     });

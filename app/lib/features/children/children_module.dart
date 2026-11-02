@@ -30,6 +30,11 @@ class ChildrenModule extends FeatureModule {
       icon: Icons.straighten_outlined,
       label: (c) => _l(c).recordGrowth,
       hasCost: false,
+      requireOneOf: const [
+        GrowthFields.weightKg,
+        GrowthFields.heightCm,
+        GrowthFields.headCm,
+      ],
       fields: [
         FieldSpec(
           key: GrowthFields.weightKg,

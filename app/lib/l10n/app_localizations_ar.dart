@@ -586,4 +586,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String vaccineZeroDose(String name) {
     return '$name، الجرعة الصفرية';
   }
+
+  @override
+  String get growthUnderFiveOnly =>
+      'منحنيات النمو وجدول التطعيمات للأطفال أقل من ٥ سنين اللي تاريخ ميلادهم متسجل.';
 }
