@@ -100,6 +100,9 @@ class TutorialController extends Notifier<bool> {
     return _reopened || !seen;
   }
 
+  /// Opened again from Settings, rather than the first-run tour.
+  bool get reopened => _reopened;
+
   void reopen() {
     _reopened = true;
     state = true;

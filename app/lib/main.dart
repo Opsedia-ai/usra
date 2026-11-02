@@ -14,8 +14,10 @@ Future<void> main() async {
   final file = await defaultDatabaseFile();
   final outcome = prepareDatabaseFile(file, key);
   final database = AppDatabase(openEncryptedDatabase(file, key));
-  final preferences = await SharedPreferencesStore.open();
-  final cardPhotos = await CardPhotoStore.open();
+  final (preferences, cardPhotos) = await (
+    SharedPreferencesStore.open(),
+    CardPhotoStore.open(),
+  ).wait;
   runApp(
     ProviderScope(
       overrides: [

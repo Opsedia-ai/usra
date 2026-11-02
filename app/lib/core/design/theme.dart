@@ -24,11 +24,14 @@ ThemeData buildUsraTheme({bool simple = false}) {
   return ThemeData(
     colorScheme: scheme,
     scaffoldBackgroundColor: UsraColors.background,
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: UsraColors.background,
       foregroundColor: UsraColors.text,
       elevation: 0,
       centerTitle: false,
+      // Room for the bigger back and action buttons.
+      toolbarHeight: simple ? simpleTapTarget + 8 : null,
+      leadingWidth: simple ? simpleTapTarget + 8 : null,
     ),
     cardTheme: CardThemeData(
       color: UsraColors.surface,

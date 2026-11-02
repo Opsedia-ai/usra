@@ -67,6 +67,11 @@ void main() {
     expect(find.text('١ من ٥'), findsNothing);
     expect(find.text('1 من 5'), findsOneWidget);
     expect(tabs(), findsNothing);
+
+    // A stray back press doesn't skip the first-run tour for good.
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('1 من 5'), findsOneWidget);
     await finishTour(tester);
 
     expect(find.text('أهلاً! أنا دكتور أسرة'), findsOneWidget);
@@ -253,5 +258,24 @@ void main() {
     await openMoreFromSimpleHome(tester);
     expect(find.byKey(const ValueKey('settings-simple-mode')), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a phone with text above 2.6× keeps its own size', (
+    tester,
+  ) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 3;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    store = MemoryKeyValueStore({
+      PrefKeys.simpleMode: true,
+      PrefKeys.elderTutorialSeen: true,
+    });
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    expect(
+      MediaQuery.textScalerOf(
+        tester.element(find.byKey(const ValueKey('simple-greeting'))),
+      ).scale(10),
+      closeTo(30, 0.01),
+    );
   });
 }

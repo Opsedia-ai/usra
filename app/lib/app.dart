@@ -7,8 +7,8 @@ import 'core/providers.dart';
 import 'core/routing/app_router.dart';
 import 'l10n/app_localizations.dart';
 
-/// Simple Mode never makes text bigger than this, so screens still fit
-/// when the phone's own text size is already at 2×.
+/// Simple Mode grows text up to this, so screens still fit when the phone's
+/// own text size is already at 2×. A phone set larger keeps its own size.
 const maxSimpleTextScale = 2.6;
 
 class UsraApp extends ConsumerWidget {
@@ -25,21 +25,25 @@ class UsraApp extends ConsumerWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       routerConfig: ref.watch(routerProvider),
-      builder: simple ? _biggerText : null,
+      // Always wrapped, so switching modes doesn't rebuild the page stack.
+      builder: (context, child) => _textScale(context, child!, simple: simple),
     );
   }
 }
 
-/// Grows text by [simpleTextScale] on top of the phone's own text size.
-Widget _biggerText(BuildContext context, Widget? child) {
+/// In Simple Mode, grows text by [simpleTextScale] on top of the phone's
+/// own text size, up to [maxSimpleTextScale], but never below the phone's.
+Widget _textScale(BuildContext context, Widget child, {required bool simple}) {
   final media = MediaQuery.of(context);
   final system = media.textScaler.scale(16) / 16;
-  final scale = (system * simpleTextScale).clamp(
+  final grown = (system * simpleTextScale).clamp(
     simpleTextScale,
     maxSimpleTextScale,
   );
   return MediaQuery(
-    data: media.copyWith(textScaler: TextScaler.linear(scale)),
-    child: child!,
+    data: simple && grown > system
+        ? media.copyWith(textScaler: TextScaler.linear(grown))
+        : media,
+    child: child,
   );
 }

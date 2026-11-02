@@ -19,7 +19,8 @@ class SimpleHome extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    final people = ref.watch(profilesProvider).value ?? const <Profile>[];
+    final family = ref.watch(profilesProvider);
+    final people = family.value ?? const <Profile>[];
     // The person marked as using Simple Mode is the one holding the phone.
     final me = people.where((p) => p.simpleMode).firstOrNull;
     return ListView(
@@ -92,7 +93,10 @@ class SimpleHome extends ConsumerWidget {
           icon: Icons.emergency_outlined,
           label: l.simpleEmergency,
           style: _Look.emergency,
-          onPressed: () => _openEmergency(context, l, people, me),
+          // Not before the family has loaded, or it would look empty.
+          onPressed: family.hasValue
+              ? () => _openEmergency(context, l, people, me)
+              : () {},
         ),
         const SizedBox(height: 24),
         Center(

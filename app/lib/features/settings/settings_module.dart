@@ -64,7 +64,15 @@ class SettingsScreen extends ConsumerWidget {
                 SwitchListTile(
                   key: const ValueKey('settings-simple-mode'),
                   value: ref.watch(simpleModeProvider),
-                  onChanged: ref.read(simpleModeProvider.notifier).set,
+                  onChanged: (on) async {
+                    try {
+                      await ref.read(simpleModeProvider.notifier).set(on);
+                    } catch (_) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text(l.saveFailed)));
+                    }
+                  },
                   secondary: const Icon(Icons.accessibility_new),
                   title: Text(l.settingsSimpleMode),
                   subtitle: Text(l.settingsSimpleModeHint),

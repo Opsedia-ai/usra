@@ -133,10 +133,16 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
     final text = Theme.of(context).textTheme;
     return PopScope(
       canPop: false,
-      // The system back button steps back through the pages, then skips.
+      // The system back button steps back through the pages. On the first
+      // page it closes a reopened tour; the first-run one needs Skip, so a
+      // stray press can't hide it for good.
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        _index == 0 ? _finish() : _goTo(_index - 1);
+        if (_index > 0) {
+          _goTo(_index - 1);
+        } else if (ref.read(tutorialProvider.notifier).reopened) {
+          _finish();
+        }
       },
       child: Scaffold(
         body: SafeArea(
