@@ -72,5 +72,34 @@
   "scanMri": "رنين مغناطيسي",
   "scanUltrasound": "سونار",
   "scanOther": "تانية",
-  "saveFailed": "حصلت مشكلة في الحفظ، جرّب تاني"
+  "saveFailed": "حصلت مشكلة في الحفظ، جرّب تاني",
+  "navDoctors": "الدكاترة",
+  "doctorsTitle": "دكاترة العيلة",
+  "doctorsEmpty": "لسه مفيش دكاترة. ضيف دكتور العيلة عشان تكلّمه بلمسة واحدة.",
+  "doctorsAdd": "ضيف دكتور",
+  "doctorNew": "دكتور جديد",
+  "doctorEdit": "تعديل الدكتور",
+  "doctorName": "اسم الدكتور",
+  "doctorSpecialty": "التخصص",
+  "doctorPhone": "رقم التليفون",
+  "doctorClinic": "العيادة أو المستشفى",
+  "doctorAddress": "العنوان",
+  "doctorFee": "سعر الكشف",
+  "doctorNotes": "ملاحظات",
+  "doctorCall": "اتصل",
+  "doctorWhatsapp": "واتساب",
+  "doctorDelete": "امسح",
+  "doctorDeleteConfirm": "نمسح {name} من القائمة؟ الزيارات القديمة هتفضل زي ما هي.",
+  "doctorVisits": "الزيارات",
+  "doctorNoVisits": "مفيش زيارات متسجلة مع الدكتور ده لسه.",
+  "doctorNotFound": "الدكتور ده مش موجود",
+  "chooseDoctor": "اختار من دكاترة العيلة",
+  "contactFailed": "مقدرناش نفتح التطبيق ده على الموبايل",
+  "@doctorDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

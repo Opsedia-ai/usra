@@ -535,6 +535,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not save. Please try again.'**
   String get saveFailed;
+
+  /// No description provided for @navDoctors.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctors'**
+  String get navDoctors;
+
+  /// No description provided for @doctorsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family doctors'**
+  String get doctorsTitle;
+
+  /// No description provided for @doctorsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No doctors yet. Add your family doctor to call them in one tap.'**
+  String get doctorsEmpty;
+
+  /// No description provided for @doctorsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add doctor'**
+  String get doctorsAdd;
+
+  /// No description provided for @doctorNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New doctor'**
+  String get doctorNew;
+
+  /// No description provided for @doctorEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit doctor'**
+  String get doctorEdit;
+
+  /// No description provided for @doctorName.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor\'s name'**
+  String get doctorName;
+
+  /// No description provided for @doctorSpecialty.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialty'**
+  String get doctorSpecialty;
+
+  /// No description provided for @doctorPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get doctorPhone;
+
+  /// No description provided for @doctorClinic.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinic or hospital'**
+  String get doctorClinic;
+
+  /// No description provided for @doctorAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get doctorAddress;
+
+  /// No description provided for @doctorFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit fee'**
+  String get doctorFee;
+
+  /// No description provided for @doctorNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get doctorNotes;
+
+  /// No description provided for @doctorCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get doctorCall;
+
+  /// No description provided for @doctorWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get doctorWhatsapp;
+
+  /// No description provided for @doctorDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get doctorDelete;
+
+  /// No description provided for @doctorDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from your doctors? Past visits stay as they are.'**
+  String doctorDeleteConfirm(String name);
+
+  /// No description provided for @doctorVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Visits'**
+  String get doctorVisits;
+
+  /// No description provided for @doctorNoVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'No visits recorded with this doctor yet.'**
+  String get doctorNoVisits;
+
+  /// No description provided for @doctorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor not found'**
+  String get doctorNotFound;
+
+  /// No description provided for @chooseDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick from family doctors'**
+  String get chooseDoctor;
+
+  /// No description provided for @contactFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open that app on this phone'**
+  String get contactFailed;
 }
 
 class _AppLocalizationsDelegate

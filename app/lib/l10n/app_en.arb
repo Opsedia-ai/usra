@@ -79,5 +79,34 @@
       }
     }
   },
-  "saveFailed": "Could not save. Please try again."
+  "saveFailed": "Could not save. Please try again.",
+  "navDoctors": "Doctors",
+  "doctorsTitle": "Family doctors",
+  "doctorsEmpty": "No doctors yet. Add your family doctor to call them in one tap.",
+  "doctorsAdd": "Add doctor",
+  "doctorNew": "New doctor",
+  "doctorEdit": "Edit doctor",
+  "doctorName": "Doctor's name",
+  "doctorSpecialty": "Specialty",
+  "doctorPhone": "Phone number",
+  "doctorClinic": "Clinic or hospital",
+  "doctorAddress": "Address",
+  "doctorFee": "Visit fee",
+  "doctorNotes": "Notes",
+  "doctorCall": "Call",
+  "doctorWhatsapp": "WhatsApp",
+  "doctorDelete": "Delete",
+  "doctorDeleteConfirm": "Remove {name} from your doctors? Past visits stay as they are.",
+  "doctorVisits": "Visits",
+  "doctorNoVisits": "No visits recorded with this doctor yet.",
+  "doctorNotFound": "Doctor not found",
+  "chooseDoctor": "Pick from family doctors",
+  "contactFailed": "Couldn't open that app on this phone",
+  "@doctorDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

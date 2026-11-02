@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/providers.dart';
 import '../../core/records/record_form.dart';
 import '../../l10n/app_localizations.dart';
+import '../doctors/doctors_providers.dart';
 
 /// Adds a record of [typeKey] for one person, using the generic [RecordForm].
 class RecordFormScreen extends ConsumerWidget {
@@ -29,10 +30,22 @@ class RecordFormScreen extends ConsumerWidget {
         body: Center(child: Text(l.profileNotFound)),
       );
     }
+    final doctors = type.doctorField == null
+        ? const <DoctorChoice>[]
+        : [
+            for (final d in ref.watch(doctorsProvider).value ?? const [])
+              DoctorChoice(
+                id: d.id,
+                name: d.name,
+                specialty: d.specialty,
+                feeMinor: d.feeMinor,
+              ),
+          ];
     return Scaffold(
       appBar: AppBar(title: Text(type.labelOf(context))),
       body: RecordForm(
         type: type,
+        doctors: doctors,
         strings: RecordFormStrings(
           date: l.recordDate,
           cost: l.recordCost,
@@ -41,6 +54,7 @@ class RecordFormScreen extends ConsumerWidget {
           required: l.fieldRequired,
           invalid: l.fieldInvalid,
           pickDate: l.pickDate,
+          chooseDoctor: l.chooseDoctor,
         ),
         onSubmit: (result) async {
           try {
@@ -53,6 +67,7 @@ class RecordFormScreen extends ConsumerWidget {
                   dataJson: jsonEncode(result.data),
                   costMinor: result.costMinor,
                   currency: result.costMinor == null ? null : 'EGP',
+                  doctorId: result.doctorId,
                 );
           } catch (_) {
             if (context.mounted) {

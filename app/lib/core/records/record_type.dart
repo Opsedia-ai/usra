@@ -45,6 +45,7 @@ class RecordTypeDefinition {
     this.fields = const [],
     this.hasCost = true,
     this.label,
+    this.doctorField,
   });
 
   final String key;
@@ -55,6 +56,10 @@ class RecordTypeDefinition {
   /// counted in spending), so types don't each add their own "fee" field.
   final bool hasCost;
   final LabelBuilder? label;
+
+  /// Key of the text field holding the doctor's name. When set, the form
+  /// offers saved doctors and links the record to the one picked.
+  final String? doctorField;
 
   String labelOf(BuildContext context) => label?.call(context) ?? key;
 
