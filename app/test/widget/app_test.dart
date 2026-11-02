@@ -208,17 +208,18 @@ void main() {
     expect(total(), contains('450'));
     expect(find.byKey(const ValueKey('spending-by-person')), findsNothing);
 
-    // The year holds this month's spending; the year before is empty and
-    // the current year can't go forward.
+    // The year holds this month's spending; the years around it are empty.
     await tester.tap(find.text('سنة'));
     await tester.pumpAndSettle();
     expect(total(), contains('450'));
-    final next = find.byKey(const ValueKey('spending-next'));
-    expect(tester.widget<IconButton>(next).onPressed, isNull);
     await tester.tap(find.byKey(const ValueKey('spending-previous')));
     await tester.pumpAndSettle();
     expect(total(), startsWith('0'));
     expect(find.textContaining('مفيش مصاريف'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('spending-next')));
+    await tester.tap(find.byKey(const ValueKey('spending-next')));
+    await tester.pumpAndSettle();
+    expect(total(), startsWith('0'));
 
     // A person's page links to their spending.
     final router = tester.element(find.byType(Scaffold).first);

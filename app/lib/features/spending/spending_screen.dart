@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
+import '../../core/util/localized_numbers.dart';
 import '../../core/util/periods.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/family_screen.dart';
@@ -26,12 +27,17 @@ class SpendingScreen extends ConsumerStatefulWidget {
 }
 
 class _SpendingScreenState extends ConsumerState<SpendingScreen> {
-  late final DateTime _now = widget.now ?? DateTime.now();
+  // Read each time, so a screen left open past midnight stays right.
+  DateTime get _now => widget.now ?? DateTime.now();
   var _period = SpendingPeriod.month;
   late DateTime _start = _period.startOf(_now);
   late String? _profileId = widget.profileId;
 
-  bool get _isCurrent => !_start.isBefore(_period.startOf(_now));
+  /// The last totals shown, kept on screen while another period loads so
+  /// the page doesn't jump on every tap.
+  List<int>? _shownTotals;
+
+  bool get _isCurrent => _start == _period.startOf(_now);
 
   void _setPeriod(SpendingPeriod period) => setState(() {
     // Keep today in view when looking at the current period, otherwise the
@@ -43,11 +49,20 @@ class _SpendingScreenState extends ConsumerState<SpendingScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final people = ref.watch(profilesProvider).value ?? const <Profile>[];
+    final peopleAsync = ref.watch(profilesProvider);
+    if (!peopleAsync.hasValue && !peopleAsync.hasError) {
+      // Wait for the family, or a person's link would show everyone first.
+      return Scaffold(
+        appBar: AppBar(title: Text(l.spendingTitle)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    final people = peopleAsync.value ?? const <Profile>[];
     // A removed person's link falls back to the whole family.
     final profileId = people.any((p) => p.id == _profileId) ? _profileId : null;
     final view = (period: _period, start: _start, profileId: profileId);
     final trend = ref.watch(spendingTrendProvider(view));
+    final totals = _shownTotals = trend.value ?? _shownTotals;
 
     return Scaffold(
       appBar: AppBar(title: Text(l.spendingTitle)),
@@ -106,9 +121,9 @@ class _SpendingScreenState extends ConsumerState<SpendingScreen> {
                 tooltip: l.spendingNext,
                 iconSize: 32,
                 icon: const Icon(Icons.chevron_right),
-                onPressed: _isCurrent
-                    ? null
-                    : () => setState(() => _start = _period.shift(_start, 1)),
+                // Not limited to today: records can be dated ahead.
+                onPressed: () =>
+                    setState(() => _start = _period.shift(_start, 1)),
               ),
             ],
           ),
@@ -116,17 +131,17 @@ class _SpendingScreenState extends ConsumerState<SpendingScreen> {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: trend.when(
-                loading: () => const SizedBox(
+              child: switch (totals) {
+                null when trend.hasError => Text('${trend.error}'),
+                null => const SizedBox(
                   height: 220,
                   child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (e, _) => Text('$e'),
-                data: (totals) => Column(
+                final totals => Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      formatMoney(context, totals.last),
+                      _money(context, totals.last),
                       key: const ValueKey('spending-total'),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.displaySmall?.copyWith(
@@ -151,10 +166,10 @@ class _SpendingScreenState extends ConsumerState<SpendingScreen> {
                     ),
                   ],
                 ),
-              ),
+              },
             ),
           ),
-          if (trend.value?.last == 0)
+          if (totals?.last == 0)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: Text(
@@ -164,10 +179,17 @@ class _SpendingScreenState extends ConsumerState<SpendingScreen> {
               ),
             )
           else ...[
-            _Split(group: SpendingGroup.type, view: view),
-            if (profileId == null)
-              _Split(group: SpendingGroup.person, view: view),
-            _Split(group: SpendingGroup.doctor, view: view),
+            for (final group in [
+              SpendingGroup.type,
+              if (profileId == null) SpendingGroup.person,
+              SpendingGroup.doctor,
+            ])
+              _Split(
+                key: ValueKey(group),
+                group: group,
+                view: view,
+                total: totals?.last,
+              ),
           ],
         ],
       ),
@@ -175,15 +197,11 @@ class _SpendingScreenState extends ConsumerState<SpendingScreen> {
   }
 }
 
-/// "350" or "350.50" with the currency, in the app's language.
-String formatMoney(BuildContext context, int minor) {
-  final locale = Localizations.localeOf(context).toLanguageTag();
-  final amount = NumberFormat.decimalPatternDigits(
-    locale: locale,
-    decimalDigits: minor % 100 == 0 ? 0 : 2,
-  ).format(minor / 100);
-  return '$amount ${AppLocalizations.of(context).currencyEgp}';
-}
+String _money(BuildContext context, int minor) => formatMoney(
+  minor,
+  locale: Localizations.localeOf(context).toLanguageTag(),
+  currency: AppLocalizations.of(context).currencyEgp,
+);
 
 String _periodLabel(BuildContext context, SpendingPeriod p, DateTime start) {
   final locale = Localizations.localeOf(context).toLanguageTag();
@@ -266,7 +284,7 @@ class _TrendBars extends StatelessWidget {
               child: Semantics(
                 button: true,
                 label:
-                    '${label.format(starts[i])}: ${formatMoney(context, totals[i])}',
+                    '${label.format(starts[i])}: ${_money(context, totals[i])}',
                 excludeSemantics: true,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(8),
@@ -277,14 +295,15 @@ class _TrendBars extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Expanded(
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: FractionallySizedBox(
-                              heightFactor: highest == 0
-                                  ? 0
-                                  : totals[i] / highest,
+                          child: LayoutBuilder(
+                            builder: (_, box) => Align(
+                              alignment: Alignment.bottomCenter,
                               child: Container(
-                                constraints: const BoxConstraints(minHeight: 3),
+                                // Empty periods still get a thin stub.
+                                height: highest == 0
+                                    ? 3
+                                    : (box.maxHeight * totals[i] / highest)
+                                          .clamp(3, box.maxHeight),
                                 decoration: BoxDecoration(
                                   color: i == totals.length - 1
                                       ? UsraColors.primary
@@ -315,19 +334,39 @@ class _TrendBars extends StatelessWidget {
 }
 
 /// The shown period's spending split by type, person or doctor.
-class _Split extends ConsumerWidget {
-  const _Split({required this.group, required this.view});
+class _Split extends ConsumerStatefulWidget {
+  const _Split({
+    super.key,
+    required this.group,
+    required this.view,
+    required this.total,
+  });
 
   final SpendingGroup group;
   final SpendingView view;
 
+  /// The period's whole total. Shares are of this, since the doctor split
+  /// leaves out records without a linked doctor.
+  final int? total;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_Split> createState() => _SplitState();
+}
+
+class _SplitState extends ConsumerState<_Split> {
+  /// Kept on screen while another period loads.
+  List<SpendingSlice>? _shown;
+
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final slices = ref.watch(spendingSplitProvider((group, view))).value;
+    final group = widget.group;
+    final slices = _shown =
+        ref.watch(spendingSplitProvider((group, widget.view))).value ?? _shown;
     if (slices == null || slices.isEmpty) return const SizedBox.shrink();
     final types = ref.watch(moduleRegistryProvider).recordTypes;
-    final sum = slices.fold(0, (a, s) => a + s.totalMinor);
+    final whole =
+        widget.total ?? slices.fold<int>(0, (a, s) => a + s.totalMinor);
 
     return Padding(
       padding: const EdgeInsets.only(top: 20),
@@ -370,7 +409,9 @@ class _Split extends ConsumerWidget {
                         Text(l.spendingRecords(s.count)),
                         const SizedBox(height: 6),
                         LinearProgressIndicator(
-                          value: sum == 0 ? 0 : s.totalMinor / sum,
+                          value: whole == 0
+                              ? 0
+                              : (s.totalMinor / whole).clamp(0, 1),
                           minHeight: 6,
                           borderRadius: BorderRadius.circular(3),
                           color: UsraColors.primary,
@@ -379,7 +420,7 @@ class _Split extends ConsumerWidget {
                       ],
                     ),
                     trailing: Text(
-                      formatMoney(context, s.totalMinor),
+                      _money(context, s.totalMinor),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),

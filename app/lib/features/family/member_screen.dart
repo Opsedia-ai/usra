@@ -10,6 +10,7 @@ import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../core/records/record_type.dart';
+import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
 import 'family_screen.dart';
 
@@ -198,10 +199,16 @@ class _EventCard extends StatelessWidget {
     final data = _decode(event.dataJson);
     final titleField = type?.titleField;
     final title = titleField == null ? null : data[titleField.key];
+    final currency = event.currency;
     final money = event.costMinor == null
         ? null
-        : '${NumberFormat.decimalPattern(locale).format(event.costMinor! / 100)} ${event.currency ?? ''}'
-              .trim();
+        : formatMoney(
+            event.costMinor!,
+            locale: locale,
+            currency: currency == null || currency == 'EGP'
+                ? AppLocalizations.of(context).currencyEgp
+                : currency,
+          );
 
     return Card(
       child: ListTile(
