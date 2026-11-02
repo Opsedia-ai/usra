@@ -101,5 +101,20 @@
         "type": "String"
       }
     }
-  }
+  },
+  "navMoney": "الفلوس",
+  "spendingTitle": "مصاريف العلاج",
+  "spendingWeek": "أسبوع",
+  "spendingMonth": "شهر",
+  "spendingYear": "سنة",
+  "spendingWholeFamily": "العيلة كلها",
+  "spendingPrevious": "اللي قبله",
+  "spendingNext": "اللي بعده",
+  "spendingByType": "حسب النوع",
+  "spendingByPerson": "حسب الشخص",
+  "spendingByDoctor": "حسب الدكتور",
+  "spendingEmpty": "مفيش مصاريف متسجلة في الفترة دي.",
+  "spendingRecent": "آخر الفترات",
+  "spendingRecords": "{count, plural, =1{سجل واحد} =2{سجلين} few{{count} سجلات} other{{count} سجل}}",
+  "memberSpending": "المصاريف"
 }

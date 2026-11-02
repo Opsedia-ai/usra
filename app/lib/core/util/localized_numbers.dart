@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 /// Arabic-Indic (٠-٩) and Persian (۰-۹) digits become 0-9, and the Arabic
 /// decimal separator becomes a dot. Everything else is kept.
 String toWesternDigits(String raw) {
@@ -40,4 +42,18 @@ String formatMoneyInput(int minor) {
       ? '${cents ~/ 10}'
       : cents.toString().padLeft(2, '0');
   return '$whole.$frac';
+}
+
+/// Minor units as an amount for reading, in [locale]'s digits and grouping,
+/// followed by [currency]: 35000 → "350 EGP", 123450 → "1,234.50 EGP".
+String formatMoney(
+  int minor, {
+  required String locale,
+  required String currency,
+}) {
+  final amount = NumberFormat.decimalPatternDigits(
+    locale: locale,
+    decimalDigits: minor % 100 == 0 ? 0 : 2,
+  ).format(minor / 100);
+  return '$amount $currency';
 }

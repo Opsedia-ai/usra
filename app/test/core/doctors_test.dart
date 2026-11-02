@@ -38,6 +38,8 @@ void main() {
     expect(formatMoneyInput(35000), '350');
     expect(formatMoneyInput(35050), '350.5');
     expect(formatMoneyInput(35005), '350.05');
+    expect(formatMoney(35000, locale: 'en', currency: 'EGP'), '350 EGP');
+    expect(formatMoney(123450, locale: 'en', currency: 'EGP'), '1,234.50 EGP');
   });
 
   test('doctors can be added, edited and removed; visits stay', () async {
