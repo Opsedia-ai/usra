@@ -1,0 +1,16 @@
+{
+  "tasks": {
+    "test": "deno test --allow-env tests/functions/",
+    "check": "deno check functions/*/index.ts tests/functions/*.ts",
+    "fmt": "deno fmt functions tests/functions",
+    "lint": "deno lint functions tests/functions"
+  },
+  "fmt": {
+    "lineWidth": 120
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["no-import-prefix"]
+    }
+  }
+}
