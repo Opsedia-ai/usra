@@ -3,19 +3,35 @@ import 'package:flutter/widgets.dart';
 /// The kind of value a record field holds; drives the form and validation.
 enum FieldKind { text, number, date, money, choice, boolean }
 
-/// One field of a record type (for example "fee" on a doctor visit).
+/// Translates a label in the current language. Modules pass these so the
+/// core never depends on a feature's strings.
+typedef LabelBuilder = String Function(BuildContext context);
+typedef ChoiceLabelBuilder = String Function(
+  BuildContext context,
+  String choice,
+);
+
+/// One field of a record type (for example "doctor" on a visit).
 class FieldSpec {
   const FieldSpec({
     required this.key,
     required this.kind,
     this.required = false,
     this.choices = const [],
+    this.label,
+    this.choiceLabel,
   });
 
   final String key;
   final FieldKind kind;
   final bool required;
   final List<String> choices;
+  final LabelBuilder? label;
+  final ChoiceLabelBuilder? choiceLabel;
+
+  String labelOf(BuildContext context) => label?.call(context) ?? key;
+  String choiceLabelOf(BuildContext context, String choice) =>
+      choiceLabel?.call(context, choice) ?? choice;
 }
 
 /// A kind of medical record: visit, scan, lab, vaccine, surgery...
@@ -28,12 +44,27 @@ class RecordTypeDefinition {
     required this.icon,
     this.fields = const [],
     this.hasCost = true,
+    this.label,
   });
 
   final String key;
   final IconData icon;
   final List<FieldSpec> fields;
+
+  /// Whether the record has a cost (stored in the event's money columns and
+  /// counted in spending), so types don't each add their own "fee" field.
   final bool hasCost;
+  final LabelBuilder? label;
+
+  String labelOf(BuildContext context) => label?.call(context) ?? key;
+
+  /// The field shown as the record's title in lists: the first required one.
+  FieldSpec? get titleField {
+    for (final f in fields) {
+      if (f.required) return f;
+    }
+    return fields.isEmpty ? null : fields.first;
+  }
 
   /// Returns the keys of fields that are missing or have the wrong kind.
   List<String> validate(Map<String, Object?> data) {

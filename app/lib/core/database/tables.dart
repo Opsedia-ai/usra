@@ -11,6 +11,14 @@ class Profiles extends Table {
   DateTimeColumn get birthDate => dateTime().nullable()();
   TextColumn get sex => text().nullable()();
   BoolColumn get simpleMode => boolean().withDefault(const Constant(false))();
+
+  /// One of A+, A-, B+, B-, AB+, AB-, O+, O- (schema v2).
+  TextColumn get bloodType => text().nullable()();
+
+  /// Free text, shown on the emergency card (schema v2).
+  TextColumn get allergies => text().nullable()();
+  TextColumn get conditions => text().nullable()();
+
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 

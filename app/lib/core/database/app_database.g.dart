@@ -63,6 +63,39 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _bloodTypeMeta = const VerificationMeta(
+    'bloodType',
+  );
+  @override
+  late final GeneratedColumn<String> bloodType = GeneratedColumn<String>(
+    'blood_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _allergiesMeta = const VerificationMeta(
+    'allergies',
+  );
+  @override
+  late final GeneratedColumn<String> allergies = GeneratedColumn<String>(
+    'allergies',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _conditionsMeta = const VerificationMeta(
+    'conditions',
+  );
+  @override
+  late final GeneratedColumn<String> conditions = GeneratedColumn<String>(
+    'conditions',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -92,6 +125,9 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
     birthDate,
     sex,
     simpleMode,
+    bloodType,
+    allergies,
+    conditions,
     updatedAt,
     deletedAt,
   ];
@@ -141,6 +177,24 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
         simpleMode.isAcceptableOrUnknown(data['simple_mode']!, _simpleModeMeta),
       );
     }
+    if (data.containsKey('blood_type')) {
+      context.handle(
+        _bloodTypeMeta,
+        bloodType.isAcceptableOrUnknown(data['blood_type']!, _bloodTypeMeta),
+      );
+    }
+    if (data.containsKey('allergies')) {
+      context.handle(
+        _allergiesMeta,
+        allergies.isAcceptableOrUnknown(data['allergies']!, _allergiesMeta),
+      );
+    }
+    if (data.containsKey('conditions')) {
+      context.handle(
+        _conditionsMeta,
+        conditions.isAcceptableOrUnknown(data['conditions']!, _conditionsMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -184,6 +238,18 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
         DriftSqlType.bool,
         data['${effectivePrefix}simple_mode'],
       )!,
+      bloodType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}blood_type'],
+      ),
+      allergies: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}allergies'],
+      ),
+      conditions: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}conditions'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -207,6 +273,13 @@ class Profile extends DataClass implements Insertable<Profile> {
   final DateTime? birthDate;
   final String? sex;
   final bool simpleMode;
+
+  /// One of A+, A-, B+, B-, AB+, AB-, O+, O- (schema v2).
+  final String? bloodType;
+
+  /// Free text, shown on the emergency card (schema v2).
+  final String? allergies;
+  final String? conditions;
   final DateTime updatedAt;
   final DateTime? deletedAt;
   const Profile({
@@ -215,6 +288,9 @@ class Profile extends DataClass implements Insertable<Profile> {
     this.birthDate,
     this.sex,
     required this.simpleMode,
+    this.bloodType,
+    this.allergies,
+    this.conditions,
     required this.updatedAt,
     this.deletedAt,
   });
@@ -230,6 +306,15 @@ class Profile extends DataClass implements Insertable<Profile> {
       map['sex'] = Variable<String>(sex);
     }
     map['simple_mode'] = Variable<bool>(simpleMode);
+    if (!nullToAbsent || bloodType != null) {
+      map['blood_type'] = Variable<String>(bloodType);
+    }
+    if (!nullToAbsent || allergies != null) {
+      map['allergies'] = Variable<String>(allergies);
+    }
+    if (!nullToAbsent || conditions != null) {
+      map['conditions'] = Variable<String>(conditions);
+    }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
@@ -246,6 +331,15 @@ class Profile extends DataClass implements Insertable<Profile> {
           : Value(birthDate),
       sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
       simpleMode: Value(simpleMode),
+      bloodType: bloodType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bloodType),
+      allergies: allergies == null && nullToAbsent
+          ? const Value.absent()
+          : Value(allergies),
+      conditions: conditions == null && nullToAbsent
+          ? const Value.absent()
+          : Value(conditions),
       updatedAt: Value(updatedAt),
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
@@ -264,6 +358,9 @@ class Profile extends DataClass implements Insertable<Profile> {
       birthDate: serializer.fromJson<DateTime?>(json['birthDate']),
       sex: serializer.fromJson<String?>(json['sex']),
       simpleMode: serializer.fromJson<bool>(json['simpleMode']),
+      bloodType: serializer.fromJson<String?>(json['bloodType']),
+      allergies: serializer.fromJson<String?>(json['allergies']),
+      conditions: serializer.fromJson<String?>(json['conditions']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
@@ -277,6 +374,9 @@ class Profile extends DataClass implements Insertable<Profile> {
       'birthDate': serializer.toJson<DateTime?>(birthDate),
       'sex': serializer.toJson<String?>(sex),
       'simpleMode': serializer.toJson<bool>(simpleMode),
+      'bloodType': serializer.toJson<String?>(bloodType),
+      'allergies': serializer.toJson<String?>(allergies),
+      'conditions': serializer.toJson<String?>(conditions),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
@@ -288,6 +388,9 @@ class Profile extends DataClass implements Insertable<Profile> {
     Value<DateTime?> birthDate = const Value.absent(),
     Value<String?> sex = const Value.absent(),
     bool? simpleMode,
+    Value<String?> bloodType = const Value.absent(),
+    Value<String?> allergies = const Value.absent(),
+    Value<String?> conditions = const Value.absent(),
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
   }) => Profile(
@@ -296,6 +399,9 @@ class Profile extends DataClass implements Insertable<Profile> {
     birthDate: birthDate.present ? birthDate.value : this.birthDate,
     sex: sex.present ? sex.value : this.sex,
     simpleMode: simpleMode ?? this.simpleMode,
+    bloodType: bloodType.present ? bloodType.value : this.bloodType,
+    allergies: allergies.present ? allergies.value : this.allergies,
+    conditions: conditions.present ? conditions.value : this.conditions,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
@@ -310,6 +416,11 @@ class Profile extends DataClass implements Insertable<Profile> {
       simpleMode: data.simpleMode.present
           ? data.simpleMode.value
           : this.simpleMode,
+      bloodType: data.bloodType.present ? data.bloodType.value : this.bloodType,
+      allergies: data.allergies.present ? data.allergies.value : this.allergies,
+      conditions: data.conditions.present
+          ? data.conditions.value
+          : this.conditions,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
@@ -323,6 +434,9 @@ class Profile extends DataClass implements Insertable<Profile> {
           ..write('birthDate: $birthDate, ')
           ..write('sex: $sex, ')
           ..write('simpleMode: $simpleMode, ')
+          ..write('bloodType: $bloodType, ')
+          ..write('allergies: $allergies, ')
+          ..write('conditions: $conditions, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
           ..write(')'))
@@ -336,6 +450,9 @@ class Profile extends DataClass implements Insertable<Profile> {
     birthDate,
     sex,
     simpleMode,
+    bloodType,
+    allergies,
+    conditions,
     updatedAt,
     deletedAt,
   );
@@ -348,6 +465,9 @@ class Profile extends DataClass implements Insertable<Profile> {
           other.birthDate == this.birthDate &&
           other.sex == this.sex &&
           other.simpleMode == this.simpleMode &&
+          other.bloodType == this.bloodType &&
+          other.allergies == this.allergies &&
+          other.conditions == this.conditions &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
 }
@@ -358,6 +478,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
   final Value<DateTime?> birthDate;
   final Value<String?> sex;
   final Value<bool> simpleMode;
+  final Value<String?> bloodType;
+  final Value<String?> allergies;
+  final Value<String?> conditions;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
   final Value<int> rowid;
@@ -367,6 +490,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     this.birthDate = const Value.absent(),
     this.sex = const Value.absent(),
     this.simpleMode = const Value.absent(),
+    this.bloodType = const Value.absent(),
+    this.allergies = const Value.absent(),
+    this.conditions = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -377,6 +503,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     this.birthDate = const Value.absent(),
     this.sex = const Value.absent(),
     this.simpleMode = const Value.absent(),
+    this.bloodType = const Value.absent(),
+    this.allergies = const Value.absent(),
+    this.conditions = const Value.absent(),
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -389,6 +518,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     Expression<DateTime>? birthDate,
     Expression<String>? sex,
     Expression<bool>? simpleMode,
+    Expression<String>? bloodType,
+    Expression<String>? allergies,
+    Expression<String>? conditions,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
@@ -399,6 +531,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
       if (birthDate != null) 'birth_date': birthDate,
       if (sex != null) 'sex': sex,
       if (simpleMode != null) 'simple_mode': simpleMode,
+      if (bloodType != null) 'blood_type': bloodType,
+      if (allergies != null) 'allergies': allergies,
+      if (conditions != null) 'conditions': conditions,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
@@ -411,6 +546,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     Value<DateTime?>? birthDate,
     Value<String?>? sex,
     Value<bool>? simpleMode,
+    Value<String?>? bloodType,
+    Value<String?>? allergies,
+    Value<String?>? conditions,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
     Value<int>? rowid,
@@ -421,6 +559,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
       birthDate: birthDate ?? this.birthDate,
       sex: sex ?? this.sex,
       simpleMode: simpleMode ?? this.simpleMode,
+      bloodType: bloodType ?? this.bloodType,
+      allergies: allergies ?? this.allergies,
+      conditions: conditions ?? this.conditions,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
@@ -445,6 +586,15 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     if (simpleMode.present) {
       map['simple_mode'] = Variable<bool>(simpleMode.value);
     }
+    if (bloodType.present) {
+      map['blood_type'] = Variable<String>(bloodType.value);
+    }
+    if (allergies.present) {
+      map['allergies'] = Variable<String>(allergies.value);
+    }
+    if (conditions.present) {
+      map['conditions'] = Variable<String>(conditions.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -465,6 +615,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
           ..write('birthDate: $birthDate, ')
           ..write('sex: $sex, ')
           ..write('simpleMode: $simpleMode, ')
+          ..write('bloodType: $bloodType, ')
+          ..write('allergies: $allergies, ')
+          ..write('conditions: $conditions, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
@@ -1459,6 +1612,9 @@ typedef $$ProfilesTableCreateCompanionBuilder = ProfilesCompanion Function({
   Value<DateTime?> birthDate,
   Value<String?> sex,
   Value<bool> simpleMode,
+  Value<String?> bloodType,
+  Value<String?> allergies,
+  Value<String?> conditions,
   required DateTime updatedAt,
   Value<DateTime?> deletedAt,
   Value<int> rowid,
@@ -1469,6 +1625,9 @@ typedef $$ProfilesTableUpdateCompanionBuilder = ProfilesCompanion Function({
   Value<DateTime?> birthDate,
   Value<String?> sex,
   Value<bool> simpleMode,
+  Value<String?> bloodType,
+  Value<String?> allergies,
+  Value<String?> conditions,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
   Value<int> rowid,
@@ -1528,6 +1687,21 @@ class $$ProfilesTableFilterComposer
 
   ColumnFilters<bool> get simpleMode => $composableBuilder(
     column: $table.simpleMode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bloodType => $composableBuilder(
+    column: $table.bloodType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get allergies => $composableBuilder(
+    column: $table.allergies,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get conditions => $composableBuilder(
+    column: $table.conditions,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1601,6 +1775,21 @@ class $$ProfilesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get bloodType => $composableBuilder(
+    column: $table.bloodType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get allergies => $composableBuilder(
+    column: $table.allergies,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get conditions => $composableBuilder(
+    column: $table.conditions,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -1637,6 +1826,17 @@ class $$ProfilesTableAnnotationComposer
 
   GeneratedColumn<bool> get simpleMode => $composableBuilder(
     column: $table.simpleMode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get bloodType =>
+      $composableBuilder(column: $table.bloodType, builder: (column) => column);
+
+  GeneratedColumn<String> get allergies =>
+      $composableBuilder(column: $table.allergies, builder: (column) => column);
+
+  GeneratedColumn<String> get conditions => $composableBuilder(
+    column: $table.conditions,
     builder: (column) => column,
   );
 
@@ -1705,6 +1905,9 @@ class $$ProfilesTableTableManager
                 Value<DateTime?> birthDate = const Value.absent(),
                 Value<String?> sex = const Value.absent(),
                 Value<bool> simpleMode = const Value.absent(),
+                Value<String?> bloodType = const Value.absent(),
+                Value<String?> allergies = const Value.absent(),
+                Value<String?> conditions = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -1714,6 +1917,9 @@ class $$ProfilesTableTableManager
                 birthDate: birthDate,
                 sex: sex,
                 simpleMode: simpleMode,
+                bloodType: bloodType,
+                allergies: allergies,
+                conditions: conditions,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
                 rowid: rowid,
@@ -1725,6 +1931,9 @@ class $$ProfilesTableTableManager
                 Value<DateTime?> birthDate = const Value.absent(),
                 Value<String?> sex = const Value.absent(),
                 Value<bool> simpleMode = const Value.absent(),
+                Value<String?> bloodType = const Value.absent(),
+                Value<String?> allergies = const Value.absent(),
+                Value<String?> conditions = const Value.absent(),
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -1734,6 +1943,9 @@ class $$ProfilesTableTableManager
                 birthDate: birthDate,
                 sex: sex,
                 simpleMode: simpleMode,
+                bloodType: bloodType,
+                allergies: allergies,
+                conditions: conditions,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
                 rowid: rowid,

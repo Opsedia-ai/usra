@@ -247,6 +247,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Usra is not a medical device. Always ask your doctor before medical decisions.'**
   String get notMedicalDevice;
+
+  /// No description provided for @familyNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New person'**
+  String get familyNew;
+
+  /// No description provided for @familyEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get familyEdit;
+
+  /// No description provided for @profileBirthDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth'**
+  String get profileBirthDate;
+
+  /// No description provided for @profileSex.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get profileSex;
+
+  /// No description provided for @sexFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get sexFemale;
+
+  /// No description provided for @sexMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get sexMale;
+
+  /// No description provided for @profileBloodType.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood type'**
+  String get profileBloodType;
+
+  /// No description provided for @profileAllergies.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergies'**
+  String get profileAllergies;
+
+  /// No description provided for @profileConditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Chronic conditions'**
+  String get profileConditions;
+
+  /// No description provided for @profileNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Not found'**
+  String get profileNotFound;
+
+  /// No description provided for @pickDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a date'**
+  String get pickDate;
+
+  /// No description provided for @ageYears.
+  ///
+  /// In en, this message translates to:
+  /// **'{age} years'**
+  String ageYears(int age);
+
+  /// No description provided for @timelineEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No records yet. Add the first visit, scan or vaccine.'**
+  String get timelineEmpty;
+
+  /// No description provided for @addRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Add record'**
+  String get addRecord;
+
+  /// No description provided for @chooseRecordType.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to add?'**
+  String get chooseRecordType;
+
+  /// No description provided for @recordDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get recordDate;
+
+  /// No description provided for @recordCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost'**
+  String get recordCost;
+
+  /// No description provided for @currencyEgp.
+  ///
+  /// In en, this message translates to:
+  /// **'EGP'**
+  String get currencyEgp;
+
+  /// No description provided for @fieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get fieldRequired;
+
+  /// No description provided for @fieldInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Check this value'**
+  String get fieldInvalid;
+
+  /// No description provided for @recordVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor visit'**
+  String get recordVisit;
+
+  /// No description provided for @recordScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan or X-ray'**
+  String get recordScan;
+
+  /// No description provided for @recordLab.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab test'**
+  String get recordLab;
+
+  /// No description provided for @recordVaccine.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine'**
+  String get recordVaccine;
+
+  /// No description provided for @recordSurgery.
+  ///
+  /// In en, this message translates to:
+  /// **'Surgery'**
+  String get recordSurgery;
+
+  /// No description provided for @fieldDoctorName.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor'**
+  String get fieldDoctorName;
+
+  /// No description provided for @fieldReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get fieldReason;
+
+  /// No description provided for @fieldDiagnosis.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnosis'**
+  String get fieldDiagnosis;
+
+  /// No description provided for @fieldNextVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Next visit'**
+  String get fieldNextVisit;
+
+  /// No description provided for @fieldScanKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Type of scan'**
+  String get fieldScanKind;
+
+  /// No description provided for @fieldCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan centre'**
+  String get fieldCenter;
+
+  /// No description provided for @fieldResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get fieldResult;
+
+  /// No description provided for @fieldTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test'**
+  String get fieldTest;
+
+  /// No description provided for @fieldValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get fieldValue;
+
+  /// No description provided for @fieldUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get fieldUnit;
+
+  /// No description provided for @fieldVaccine.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine'**
+  String get fieldVaccine;
+
+  /// No description provided for @fieldDose.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose number'**
+  String get fieldDose;
+
+  /// No description provided for @fieldNextDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Next dose'**
+  String get fieldNextDue;
+
+  /// No description provided for @fieldProcedure.
+  ///
+  /// In en, this message translates to:
+  /// **'Procedure'**
+  String get fieldProcedure;
+
+  /// No description provided for @fieldHospital.
+  ///
+  /// In en, this message translates to:
+  /// **'Hospital'**
+  String get fieldHospital;
+
+  /// No description provided for @fieldFilmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Filmed'**
+  String get fieldFilmed;
+
+  /// No description provided for @fieldDaysInHospital.
+  ///
+  /// In en, this message translates to:
+  /// **'Days in hospital'**
+  String get fieldDaysInHospital;
+
+  /// No description provided for @scanXray.
+  ///
+  /// In en, this message translates to:
+  /// **'X-ray'**
+  String get scanXray;
+
+  /// No description provided for @scanCt.
+  ///
+  /// In en, this message translates to:
+  /// **'CT'**
+  String get scanCt;
+
+  /// No description provided for @scanMri.
+  ///
+  /// In en, this message translates to:
+  /// **'MRI'**
+  String get scanMri;
+
+  /// No description provided for @scanUltrasound.
+  ///
+  /// In en, this message translates to:
+  /// **'Ultrasound'**
+  String get scanUltrasound;
+
+  /// No description provided for @scanOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get scanOther;
 }
 
 class _AppLocalizationsDelegate
