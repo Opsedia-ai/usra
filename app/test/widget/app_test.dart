@@ -109,13 +109,15 @@ void main() {
     addTearDown(tester.view.reset);
     // Database calls outside the widgets run on real time, not fake time.
     final kid = (await tester.runAsync(() => db.addProfile('عمر')))!;
+    await tester.runAsync(
+      () => db.saveDoctor(name: 'د. هاني', feeMinor: 60000),
+    );
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
     // Add the doctor.
     await tester.tap(find.text('الدكاترة'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('لسه مفيش دكاترة'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('doctor-add')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('doctor-name')), 'د. منى');
@@ -137,25 +139,35 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('د. منى').last);
     await tester.pumpAndSettle();
-    expect(
-      tester
-          .widget<TextField>(
-            find.descendant(
-              of: find.byKey(const ValueKey('field-cost')),
-              matching: find.byType(TextField),
-            ),
-          )
-          .controller!
-          .text,
-      '450',
-    );
+    String costText() => tester
+        .widget<TextField>(
+          find.descendant(
+            of: find.byKey(const ValueKey('field-cost')),
+            matching: find.byType(TextField),
+          ),
+        )
+        .controller!
+        .text;
+    expect(costText(), '450');
+    // Switching to another doctor replaces the auto-filled fee.
+    await tester.tap(find.byKey(const ValueKey('field-doctorPick')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('د. هاني').last);
+    await tester.pumpAndSettle();
+    expect(costText(), '600');
+    await tester.tap(find.byKey(const ValueKey('field-doctorPick')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('د. منى').last);
+    await tester.pumpAndSettle();
+    expect(costText(), '450');
+
     await tester.tap(find.byKey(const ValueKey('record-save')));
     await tester.pumpAndSettle();
     expect(find.text('زيارة دكتور · د. منى'), findsOneWidget);
 
     // The doctor's page lists the visit, with who it was for.
     final doctors = (await tester.runAsync(() => db.watchDoctors().first))!;
-    final doctorId = doctors.single.id;
+    final doctorId = doctors.singleWhere((d) => d.name == 'د. منى').id;
     GoRouter.of(router).go('/doctors/$doctorId');
     await tester.pumpAndSettle();
     expect(find.text('عمر · زيارة دكتور'), findsOneWidget);
