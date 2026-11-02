@@ -454,4 +454,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareFailed => 'Couldn\'t open sharing';
+
+  @override
+  String get recordPhotos => 'Photos';
+
+  @override
+  String recordPhotoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get recordNotFound => 'This record was deleted';
+
+  @override
+  String get recordShare => 'Send';
+
+  @override
+  String get recordDelete => 'Delete';
+
+  @override
+  String get recordDeleteConfirm =>
+      'Delete this record? Its photos will be removed from this phone.';
+
+  @override
+  String get photoShare => 'Send photo';
+
+  @override
+  String get photoDelete => 'Delete photo';
+
+  @override
+  String get photoDeleteConfirm => 'Delete this photo from the record?';
+
+  @override
+  String photoPosition(int index, int total) {
+    return 'Photo $index of $total';
+  }
+
+  @override
+  String get fieldYes => 'Yes';
+
+  @override
+  String get fieldNo => 'No';
 }

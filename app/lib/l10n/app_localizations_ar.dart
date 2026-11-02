@@ -456,4 +456,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get shareFailed => 'مقدرناش نفتح المشاركة';
+
+  @override
+  String get recordPhotos => 'صور';
+
+  @override
+  String recordPhotoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة',
+      few: '$count صور',
+      two: 'صورتين',
+      one: 'صورة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get recordNotFound => 'السجل ده اتمسح';
+
+  @override
+  String get recordShare => 'ابعت';
+
+  @override
+  String get recordDelete => 'امسح';
+
+  @override
+  String get recordDeleteConfirm => 'نمسح السجل ده؟ صوره هتتمسح من الموبايل.';
+
+  @override
+  String get photoShare => 'ابعت الصورة';
+
+  @override
+  String get photoDelete => 'امسح الصورة';
+
+  @override
+  String get photoDeleteConfirm => 'نمسح الصورة دي من السجل؟';
+
+  @override
+  String photoPosition(int index, int total) {
+    return 'صورة $index من $total';
+  }
+
+  @override
+  String get fieldYes => 'أيوه';
+
+  @override
+  String get fieldNo => 'لأ';
 }

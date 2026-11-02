@@ -10,6 +10,7 @@ import 'family_screen.dart';
 import 'member_screen.dart';
 import 'profile_form_screen.dart';
 import 'record_form_screen.dart';
+import 'record_screen.dart';
 
 export 'family_screen.dart' show initialOf;
 
@@ -50,6 +51,13 @@ class FamilyModule extends FeatureModule {
               builder: (_, s) => RecordFormScreen(
                 profileId: s.pathParameters['id']!,
                 typeKey: s.pathParameters['type']!,
+              ),
+            ),
+            GoRoute(
+              path: 'record/:eventId',
+              builder: (_, s) => RecordScreen(
+                profileId: s.pathParameters['id']!,
+                eventId: s.pathParameters['eventId']!,
               ),
             ),
             GoRoute(

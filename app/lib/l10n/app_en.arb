@@ -192,5 +192,34 @@
         "type": "String"
       }
     }
-  }
+  },
+  "recordPhotos": "Photos",
+  "recordPhotoCount": "{count, plural, =1{1 photo} other{{count} photos}}",
+  "recordNotFound": "This record was deleted",
+  "recordShare": "Send",
+  "recordDelete": "Delete",
+  "recordDeleteConfirm": "Delete this record? Its photos will be removed from this phone.",
+  "photoShare": "Send photo",
+  "photoDelete": "Delete photo",
+  "photoDeleteConfirm": "Delete this photo from the record?",
+  "photoPosition": "Photo {index} of {total}",
+  "@recordPhotoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photoPosition": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fieldYes": "Yes",
+  "fieldNo": "No"
 }

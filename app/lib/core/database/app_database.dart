@@ -6,7 +6,14 @@ import 'tables.dart';
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [Profiles, MedicalEvents, Doctors, InsuranceCards, OutboxEntries],
+  tables: [
+    Profiles,
+    MedicalEvents,
+    Doctors,
+    InsuranceCards,
+    Attachments,
+    OutboxEntries,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
@@ -14,7 +21,7 @@ class AppDatabase extends _$AppDatabase {
   static const _uuid = Uuid();
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -29,6 +36,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) {
         await m.createTable(insuranceCards);
+      }
+      if (from < 5) {
+        await m.createTable(attachments);
       }
     },
     beforeOpen: (details) async {
@@ -121,9 +131,10 @@ class AppDatabase extends _$AppDatabase {
     return id;
   }
 
-  /// Marks a profile and all its records and insurance cards deleted (kept
-  /// for sync) instead of erasing them. Card photos are files: prune them
-  /// with `CardPhotoStore.prune(liveInsurancePhotos())` afterwards.
+  /// Marks a profile and all its records, their attachments and insurance
+  /// cards deleted (kept for sync) instead of erasing them. Photos are
+  /// files: prune them with `PhotoStore.prune(liveInsurancePhotos())` and
+  /// `PhotoStore.prune(liveAttachmentPaths())` afterwards.
   Future<void> softDeleteProfile(String id) async {
     final now = DateTime.now().toUtc();
     await transaction(() async {
@@ -146,6 +157,7 @@ class AppDatabase extends _$AppDatabase {
       for (final eventId in eventIds) {
         await _queue('medical_event', eventId, 'delete');
       }
+      await _softDeleteAttachments(attachments.eventId.isIn(eventIds), now);
 
       final liveCards =
           insuranceCards.profileId.equals(id) &
@@ -185,6 +197,7 @@ class AppDatabase extends _$AppDatabase {
     int? costMinor,
     String? currency,
     String? doctorId,
+    List<String> photos = const [],
   }) async {
     final id = _uuid.v7();
     await transaction(() async {
@@ -202,6 +215,9 @@ class AppDatabase extends _$AppDatabase {
         ),
       );
       await _queue('medical_event', id, 'upsert');
+      for (final path in photos) {
+        await _insertAttachment(id, path);
+      }
     });
     return id;
   }
@@ -209,6 +225,14 @@ class AppDatabase extends _$AppDatabase {
   static String? _clean(String? v) =>
       (v == null || v.trim().isEmpty) ? null : v.trim();
 
+  Stream<MedicalEvent?> watchEvent(String id) {
+    return (select(medicalEvents)
+          ..where((e) => e.id.equals(id) & e.deletedAt.isNull()))
+        .watchSingleOrNull();
+  }
+
+  /// Marks a record and its attachments deleted. Prune the photo files with
+  /// `PhotoStore.prune(liveAttachmentPaths())` afterwards.
   Future<void> softDeleteEvent(String id) async {
     final now = DateTime.now().toUtc();
     await transaction(() async {
@@ -216,7 +240,113 @@ class AppDatabase extends _$AppDatabase {
         MedicalEventsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
       );
       await _queue('medical_event', id, 'delete');
+      await _softDeleteAttachments(attachments.eventId.equals(id), now);
     });
+  }
+
+  /// A record's live attachments, in the order they were added.
+  Stream<List<Attachment>> watchAttachments(String eventId) {
+    final query = select(attachments)
+      ..where((a) => a.eventId.equals(eventId) & a.deletedAt.isNull())
+      ..orderBy([(a) => OrderingTerm.asc(a.id)]);
+    return query.watch();
+  }
+
+  /// How many live attachments each of a person's records has; records
+  /// without any are left out.
+  Stream<Map<String, int>> watchAttachmentCounts(String profileId) {
+    final count = attachments.id.count();
+    final query =
+        selectOnly(attachments).join([
+            innerJoin(
+              medicalEvents,
+              medicalEvents.id.equalsExp(attachments.eventId),
+              useColumns: false,
+            ),
+          ])
+          ..addColumns([attachments.eventId, count])
+          ..where(
+            medicalEvents.profileId.equals(profileId) &
+                attachments.deletedAt.isNull(),
+          )
+          ..groupBy([attachments.eventId]);
+    return query.watch().map(
+      (rows) => {
+        for (final r in rows) r.read(attachments.eventId)!: r.read(count)!,
+      },
+    );
+  }
+
+  /// Attaches already-stored files to a live record. Returns their ids.
+  Future<List<String>> addAttachments(String eventId, List<String> paths) {
+    return transaction(() async {
+      final live =
+          await (select(medicalEvents)
+                ..where((e) => e.id.equals(eventId) & e.deletedAt.isNull()))
+              .getSingleOrNull();
+      if (live == null) throw StateError('Record $eventId not found');
+      return [for (final path in paths) await _insertAttachment(eventId, path)];
+    });
+  }
+
+  Future<void> softDeleteAttachment(String id) async {
+    await transaction(
+      () => _softDeleteAttachments(
+        attachments.id.equals(id),
+        DateTime.now().toUtc(),
+      ),
+    );
+  }
+
+  /// Attachment files still used by a live record; any other file in the
+  /// attachments folder can go.
+  Future<Set<String>> liveAttachmentPaths() async {
+    final query = selectOnly(attachments)
+      ..addColumns([attachments.path])
+      ..where(attachments.deletedAt.isNull());
+    return {for (final r in await query.get()) r.read(attachments.path)!};
+  }
+
+  Future<String> _insertAttachment(
+    String eventId,
+    String path, {
+    String kind = 'photo',
+  }) async {
+    final id = _uuid.v7();
+    final now = DateTime.now().toUtc();
+    await into(attachments).insert(
+      AttachmentsCompanion.insert(
+        id: id,
+        eventId: eventId,
+        path: path,
+        kind: Value(kind),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await _queue('attachment', id, 'upsert');
+    return id;
+  }
+
+  /// Soft-deletes the live attachments matching [where]; call in a
+  /// transaction.
+  Future<void> _softDeleteAttachments(
+    Expression<bool> where,
+    DateTime now,
+  ) async {
+    final live = where & attachments.deletedAt.isNull();
+    final ids =
+        await (selectOnly(attachments)
+              ..addColumns([attachments.id])
+              ..where(live))
+            .map((row) => row.read(attachments.id)!)
+            .get();
+    await (update(attachments)..where((_) => live)).write(
+      AttachmentsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+    );
+    for (final id in ids) {
+      await _queue('attachment', id, 'delete');
+    }
   }
 
   /// Doctors that are not deleted, by name.

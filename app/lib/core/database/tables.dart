@@ -87,6 +87,26 @@ class InsuranceCards extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// A file attached to a record, e.g. a photo of a prescription or a lab
+/// report (schema v5).
+class Attachments extends Table {
+  TextColumn get id => text()();
+  TextColumn get eventId => text().references(MedicalEvents, #id)();
+
+  /// The file, relative to the app's private folder (see `PhotoStore`).
+  TextColumn get path => text()();
+
+  /// `photo` for now; `pdf` later.
+  TextColumn get kind => text().withDefault(const Constant('photo'))();
+  TextColumn get caption => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Local changes waiting to be synced (used once sync is switched on).
 class OutboxEntries extends Table {
   IntColumn get id => integer().autoIncrement()();

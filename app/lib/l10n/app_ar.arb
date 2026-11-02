@@ -178,5 +178,34 @@
         "type": "String"
       }
     }
-  }
+  },
+  "recordPhotos": "صور",
+  "recordPhotoCount": "{count, plural, =1{صورة} =2{صورتين} few{{count} صور} other{{count} صورة}}",
+  "recordNotFound": "السجل ده اتمسح",
+  "recordShare": "ابعت",
+  "recordDelete": "امسح",
+  "recordDeleteConfirm": "نمسح السجل ده؟ صوره هتتمسح من الموبايل.",
+  "photoShare": "ابعت الصورة",
+  "photoDelete": "امسح الصورة",
+  "photoDeleteConfirm": "نمسح الصورة دي من السجل؟",
+  "photoPosition": "صورة {index} من {total}",
+  "@recordPhotoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photoPosition": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fieldYes": "أيوه",
+  "fieldNo": "لأ"
 }
