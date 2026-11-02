@@ -109,6 +109,28 @@
       }
     }
   },
+  "navMoney": "Money",
+  "spendingTitle": "Medical spending",
+  "spendingWeek": "Week",
+  "spendingMonth": "Month",
+  "spendingYear": "Year",
+  "spendingWholeFamily": "Whole family",
+  "spendingPrevious": "Previous",
+  "spendingNext": "Next",
+  "spendingByType": "By type",
+  "spendingByPerson": "By person",
+  "spendingByDoctor": "By doctor",
+  "spendingEmpty": "No costs recorded in this period.",
+  "spendingRecent": "Recent periods",
+  "spendingRecords": "{count, plural, =1{1 record} other{{count} records}}",
+  "@spendingRecords": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "memberSpending": "Spending",
   "insuranceTitle": "Insurance cards",
   "insuranceEmpty": "No insurance cards yet.",
   "insuranceAdd": "Add insurance card",

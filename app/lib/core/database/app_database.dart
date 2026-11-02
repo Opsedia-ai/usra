@@ -393,6 +393,114 @@ class AppDatabase extends _$AppDatabase {
     };
   }
 
+  /// Spending in [currency] for each period between consecutive [bounds]
+  /// (each from inclusive, to exclusive), for the family or one person.
+  /// Records with no currency count as [currency].
+  Stream<List<int>> watchSpendingTotals(
+    List<DateTime> bounds, {
+    String? profileId,
+    String currency = 'EGP',
+  }) {
+    if (bounds.length < 2) {
+      throw ArgumentError.value(bounds, 'bounds', 'needs at least two dates');
+    }
+    final bucket = CaseWhenExpression<int>(
+      cases: [
+        for (var i = 1; i < bounds.length; i++)
+          CaseWhen(
+            medicalEvents.occurredAt.isSmallerThanValue(bounds[i]),
+            then: Constant(i - 1),
+          ),
+      ],
+    );
+    final total = medicalEvents.costMinor.sum();
+    final query = _spendingQuery(bounds.first, bounds.last, profileId, currency)
+      ..addColumns([bucket, total])
+      ..groupBy([bucket]);
+    return query.watch().map((rows) {
+      final totals = List.filled(bounds.length - 1, 0);
+      for (final r in rows) {
+        totals[r.read(bucket)!] = r.read(total) ?? 0;
+      }
+      return totals;
+    });
+  }
+
+  /// Spending between [from] (inclusive) and [to] (exclusive), split by
+  /// record type, person or doctor, biggest first. Records without a linked
+  /// doctor are left out of the doctor split.
+  Stream<List<SpendingSlice>> watchSpendingBy(
+    SpendingGroup group, {
+    required DateTime from,
+    required DateTime to,
+    String? profileId,
+    String currency = 'EGP',
+  }) {
+    final (Expression<String> key, Expression<String>? label) = switch (group) {
+      SpendingGroup.type => (medicalEvents.type, null),
+      SpendingGroup.person => (medicalEvents.profileId, profiles.displayName),
+      SpendingGroup.doctor => (medicalEvents.doctorId, doctors.name),
+    };
+    final total = medicalEvents.costMinor.sum();
+    final count = medicalEvents.id.count();
+    final query = _spendingQuery(from, to, profileId, currency)
+      ..addColumns([key, ?label, total, count])
+      ..groupBy([key, ?label])
+      ..orderBy([OrderingTerm.desc(total), OrderingTerm.asc(key)]);
+    if (group == SpendingGroup.doctor) {
+      query
+        ..join([
+          leftOuterJoin(
+            doctors,
+            doctors.id.equalsExp(medicalEvents.doctorId),
+            useColumns: false,
+          ),
+        ])
+        ..where(medicalEvents.doctorId.isNotNull());
+    }
+    return query.watch().map(
+      (rows) => [
+        for (final r in rows)
+          SpendingSlice(
+            key: r.read(key)!,
+            label: label == null ? null : r.read(label),
+            totalMinor: r.read(total) ?? 0,
+            count: r.read(count) ?? 0,
+          ),
+      ],
+    );
+  }
+
+  /// Live records with a cost in [from, to), of people still in the family.
+  JoinedSelectStatement<HasResultSet, dynamic> _spendingQuery(
+    DateTime from,
+    DateTime to,
+    String? profileId,
+    String currency,
+  ) {
+    return selectOnly(medicalEvents).join([
+        innerJoin(
+          profiles,
+          profiles.id.equalsExp(medicalEvents.profileId),
+          useColumns: false,
+        ),
+      ])
+      ..where(
+        medicalEvents.deletedAt.isNull() &
+            profiles.deletedAt.isNull() &
+            medicalEvents.costMinor.isNotNull() &
+            (medicalEvents.currency.isNull() |
+                medicalEvents.currency.equals(currency)) &
+            medicalEvents.occurredAt.isBiggerOrEqualValue(from) &
+            medicalEvents.occurredAt.isSmallerThanValue(to),
+      )
+      ..where(
+        profileId == null
+            ? const Constant(true)
+            : medicalEvents.profileId.equals(profileId),
+      );
+  }
+
   Future<void> _queue(String entity, String id, String operation) {
     return into(outboxEntries).insert(
       OutboxEntriesCompanion.insert(
@@ -411,4 +519,27 @@ class DoctorVisit {
 
   final MedicalEvent event;
   final Profile person;
+}
+
+/// How spending is split on the Money tab.
+enum SpendingGroup { type, person, doctor }
+
+/// One line of a spending split: a record type, person or doctor.
+class SpendingSlice {
+  const SpendingSlice({
+    required this.key,
+    required this.label,
+    required this.totalMinor,
+    required this.count,
+  });
+
+  /// The record type key, profile id or doctor id.
+  final String key;
+
+  /// The person's or doctor's name; null for record types.
+  final String? label;
+  final int totalMinor;
+
+  /// How many records add up to [totalMinor].
+  final int count;
 }

@@ -312,6 +312,59 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contactFailed => 'Couldn\'t open that app on this phone';
 
   @override
+  String get navMoney => 'Money';
+
+  @override
+  String get spendingTitle => 'Medical spending';
+
+  @override
+  String get spendingWeek => 'Week';
+
+  @override
+  String get spendingMonth => 'Month';
+
+  @override
+  String get spendingYear => 'Year';
+
+  @override
+  String get spendingWholeFamily => 'Whole family';
+
+  @override
+  String get spendingPrevious => 'Previous';
+
+  @override
+  String get spendingNext => 'Next';
+
+  @override
+  String get spendingByType => 'By type';
+
+  @override
+  String get spendingByPerson => 'By person';
+
+  @override
+  String get spendingByDoctor => 'By doctor';
+
+  @override
+  String get spendingEmpty => 'No costs recorded in this period.';
+
+  @override
+  String get spendingRecent => 'Recent periods';
+
+  @override
+  String spendingRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count records',
+      one: '1 record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get memberSpending => 'Spending';
+
+  @override
   String get insuranceTitle => 'Insurance cards';
 
   @override

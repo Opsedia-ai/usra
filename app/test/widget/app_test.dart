@@ -173,6 +173,81 @@ void main() {
     expect(find.text('عمر · زيارة دكتور'), findsOneWidget);
   });
 
+  testWidgets('the Money tab adds up spending for the family and a person', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 3000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    final today = DateTime.now();
+    final omar = (await tester.runAsync(() async {
+      final omar = await db.addProfile('عمر');
+      final mona = await db.addProfile('منى');
+      final doctor = await db.saveDoctor(name: 'د. هاني');
+      await db.addEvent(
+        profileId: omar,
+        type: 'visit',
+        occurredAt: today,
+        costMinor: 45000,
+        currency: 'EGP',
+        doctorId: doctor,
+      );
+      await db.addEvent(
+        profileId: mona,
+        type: 'lab',
+        occurredAt: today,
+        costMinor: 10050,
+        currency: 'EGP',
+      );
+      return omar;
+    }))!;
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+
+    String total() =>
+        tester.widget<Text>(find.byKey(const ValueKey('spending-total'))).data!;
+
+    await tester.tap(find.text('الفلوس'));
+    await tester.pumpAndSettle();
+    expect(total(), contains('550.50'));
+    expect(find.byKey(const ValueKey('spending-by-type')), findsOneWidget);
+    expect(find.byKey(const ValueKey('spending-by-person')), findsOneWidget);
+    expect(find.text('د. هاني'), findsOneWidget);
+
+    // Only Omar.
+    await tester.tap(find.byKey(ValueKey('spending-person-$omar')));
+    await tester.pumpAndSettle();
+    expect(total(), contains('450'));
+    expect(find.byKey(const ValueKey('spending-by-person')), findsNothing);
+
+    // The year holds this month's spending; the years around it are empty.
+    await tester.tap(find.text('سنة'));
+    await tester.pumpAndSettle();
+    expect(total(), contains('450'));
+    await tester.tap(find.byKey(const ValueKey('spending-previous')));
+    await tester.pumpAndSettle();
+    expect(total(), startsWith('0'));
+    expect(find.textContaining('مفيش مصاريف'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('spending-next')));
+    await tester.tap(find.byKey(const ValueKey('spending-next')));
+    await tester.pumpAndSettle();
+    expect(total(), startsWith('0'));
+
+    // A person's page links to their spending.
+    final router = tester.element(find.byType(Scaffold).first);
+    GoRouter.of(router).go('/family/$omar');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('member-spending')));
+    await tester.pumpAndSettle();
+    expect(total(), contains('450'));
+    expect(
+      tester
+          .widget<ChoiceChip>(find.byKey(ValueKey('spending-person-$omar')))
+          .selected,
+      isTrue,
+    );
+  });
+
   testWidgets('every Dr. Usra pose paints without errors', (tester) async {
     await tester.pumpWidget(
       Directionality(

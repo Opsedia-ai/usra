@@ -10,6 +10,7 @@ import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../core/records/record_type.dart';
+import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
 import '../insurance/insurance_section.dart';
 import 'family_screen.dart';
@@ -61,6 +62,16 @@ class MemberScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
             children: [
               _Header(profile: p),
+              const SizedBox(height: 12),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: OutlinedButton.icon(
+                  key: const ValueKey('member-spending'),
+                  onPressed: () => context.go('/money?person=$profileId'),
+                  icon: const Icon(Icons.payments_outlined),
+                  label: Text(l.memberSpending),
+                ),
+              ),
               const SizedBox(height: 20),
               InsuranceSection(profileId: profileId),
               const SizedBox(height: 28),
@@ -191,10 +202,16 @@ class _EventCard extends StatelessWidget {
     final data = _decode(event.dataJson);
     final titleField = type?.titleField;
     final title = titleField == null ? null : data[titleField.key];
+    final currency = event.currency;
     final money = event.costMinor == null
         ? null
-        : '${NumberFormat.decimalPattern(locale).format(event.costMinor! / 100)} ${event.currency ?? ''}'
-              .trim();
+        : formatMoney(
+            event.costMinor!,
+            locale: locale,
+            currency: currency == null || currency == 'EGP'
+                ? AppLocalizations.of(context).currencyEgp
+                : currency,
+          );
 
     return Card(
       child: ListTile(
