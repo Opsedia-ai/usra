@@ -4,6 +4,7 @@ import 'features/family/family_module.dart';
 import 'features/home/home_module.dart';
 import 'features/settings/settings_module.dart';
 import 'features/spending/spending_module.dart';
+import 'features/tutorial/tutorial_module.dart';
 
 /// Every feature in the app. To add one: create `features/<name>/`,
 /// implement [FeatureModule], and add it here.
@@ -13,4 +14,5 @@ const List<FeatureModule> appModules = [
   DoctorsModule(),
   SpendingModule(),
   SettingsModule(),
+  TutorialModule(),
 ];

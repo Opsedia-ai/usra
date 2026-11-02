@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../../core/database/app_database.dart';
 import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
+import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../core/records/record_type.dart';
 import '../../core/util/localized_numbers.dart';
@@ -62,15 +63,17 @@ class MemberScreen extends ConsumerWidget {
             children: [
               _Header(profile: p),
               const SizedBox(height: 12),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: OutlinedButton.icon(
-                  key: const ValueKey('member-spending'),
-                  onPressed: () => context.go('/money?person=$profileId'),
-                  icon: const Icon(Icons.payments_outlined),
-                  label: Text(l.memberSpending),
+              // No spending charts in Simple Mode.
+              if (!ref.watch(simpleModeProvider))
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: OutlinedButton.icon(
+                    key: const ValueKey('member-spending'),
+                    onPressed: () => context.go('/money?person=$profileId'),
+                    icon: const Icon(Icons.payments_outlined),
+                    label: Text(l.memberSpending),
+                  ),
                 ),
-              ),
               const SizedBox(height: 20),
               ...timeline.when(
                 loading: () => [

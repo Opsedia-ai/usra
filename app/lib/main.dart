@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
 import 'core/database/app_database.dart';
 import 'core/database/connection.dart';
+import 'core/preferences.dart';
 import 'core/providers.dart';
 
 Future<void> main() async {
@@ -12,10 +13,12 @@ Future<void> main() async {
   final file = await defaultDatabaseFile();
   final outcome = prepareDatabaseFile(file, key);
   final database = AppDatabase(openEncryptedDatabase(file, key));
+  final preferences = await SharedPreferencesStore.open();
   runApp(
     ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(database),
+        keyValueStoreProvider.overrideWithValue(preferences),
         databaseRecoveredProvider.overrideWithValue(
           outcome == DatabaseOpenOutcome.recoveredFromUnreadableFile,
         ),

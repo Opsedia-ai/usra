@@ -2,7 +2,16 @@ import 'package:flutter/material.dart';
 
 import 'tokens.dart';
 
-ThemeData buildUsraTheme() {
+/// Height of buttons and rows in Simple Mode: big enough for shaky hands.
+const simpleTapTarget = 64.0;
+
+/// Text grows by this much in Simple Mode, on top of the phone's own size.
+const simpleTextScale = 1.3;
+
+/// The app theme. [simple] makes every button and row at least
+/// [simpleTapTarget] tall for Simple Mode.
+ThemeData buildUsraTheme({bool simple = false}) {
+  final tap = simple ? const Size(simpleTapTarget, simpleTapTarget) : null;
   final scheme = ColorScheme.fromSeed(
     seedColor: UsraColors.primary,
     primary: UsraColors.primary,
@@ -29,14 +38,28 @@ ThemeData buildUsraTheme() {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(52),
+        minimumSize: Size.fromHeight(simple ? simpleTapTarget : 52),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
       ),
     ),
-    navigationBarTheme: const NavigationBarThemeData(
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(minimumSize: tap),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(minimumSize: tap),
+    ),
+    iconButtonTheme: IconButtonThemeData(
+      style: IconButton.styleFrom(minimumSize: tap),
+    ),
+    listTileTheme: ListTileThemeData(minTileHeight: simple ? 72 : null),
+    navigationBarTheme: NavigationBarThemeData(
       backgroundColor: UsraColors.surface,
       indicatorColor: UsraColors.primaryTint,
+      height: simple ? 88 : null,
+      iconTheme: simple
+          ? const WidgetStatePropertyAll(IconThemeData(size: 32))
+          : null,
     ),
     textTheme: const TextTheme(
       headlineSmall: TextStyle(

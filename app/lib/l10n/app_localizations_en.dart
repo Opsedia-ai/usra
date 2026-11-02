@@ -363,4 +363,123 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get memberSpending => 'Spending';
+
+  @override
+  String get navCall => 'Call';
+
+  @override
+  String get settingsSimpleMode => 'Simple Mode';
+
+  @override
+  String get settingsSimpleModeHint =>
+      'Bigger text and buttons, fewer tabs. Good for grandparents using the phone on their own.';
+
+  @override
+  String get settingsTutorial => 'Show the tour again';
+
+  @override
+  String get profileSimpleMode => 'Uses Simple Mode';
+
+  @override
+  String get profileSimpleModeHint =>
+      'The phone in their hand: Home greets them by name. Turn Simple Mode on in More on that phone.';
+
+  @override
+  String get simpleHello => 'Hello!';
+
+  @override
+  String simpleHelloName(String name) {
+    return 'Hello, $name';
+  }
+
+  @override
+  String get simpleMedicines => 'My medicines';
+
+  @override
+  String get simpleMedicinesSoon => 'Medicine reminders are coming soon.';
+
+  @override
+  String get comingSoon => 'Coming soon';
+
+  @override
+  String get simpleCallDoctor => 'Call my doctor';
+
+  @override
+  String get simpleFamily => 'My family';
+
+  @override
+  String get simpleEmergency => 'Emergency card';
+
+  @override
+  String get simplePickPerson => 'Whose emergency card?';
+
+  @override
+  String get tutorialSkip => 'Skip';
+
+  @override
+  String get tutorialNext => 'Next';
+
+  @override
+  String get tutorialBack => 'Back';
+
+  @override
+  String get tutorialStart => 'Let\'s start';
+
+  @override
+  String tutorialStep(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get tutorialWelcomeTitle => 'Hi, I\'m Dr. Usra';
+
+  @override
+  String get tutorialWelcomeBody =>
+      'Usra keeps your family\'s health in one place: doctor visits, tests, medicines and your doctors\' numbers.';
+
+  @override
+  String get tutorialPrivacyTitle => 'Your data stays with you';
+
+  @override
+  String get tutorialPrivacyBody =>
+      'Everything is saved on this phone, encrypted. No account needed.';
+
+  @override
+  String get tutorialFamilyTitle => 'Add your family';
+
+  @override
+  String get tutorialFamilyBody =>
+      'Add everyone you care for: kids, parents, grandparents. Each person gets their own page.';
+
+  @override
+  String get tutorialColorsTitle => 'Colours mean urgency';
+
+  @override
+  String get tutorialColorsBody =>
+      'Every colour comes with a word, so you always know what it means.';
+
+  @override
+  String get tutorialEmergencyTitle => 'An emergency card for everyone';
+
+  @override
+  String get tutorialEmergencyBody =>
+      'Blood type, allergies and illnesses on one card, one tap from Home. Show it to a doctor or paramedic.';
+
+  @override
+  String get tutorialElderWelcomeBody =>
+      'I\'m here to help you. Everything on the screen is big and clear.';
+
+  @override
+  String get tutorialElderButtonsTitle => 'Big buttons on Home';
+
+  @override
+  String get tutorialElderButtonsBody =>
+      'Press «Call my doctor» to call your doctor with one tap.';
+
+  @override
+  String get tutorialElderEmergencyTitle => 'If you feel unwell';
+
+  @override
+  String get tutorialElderEmergencyBody =>
+      'Press the red «Emergency card» button and show it to whoever is helping you.';
 }

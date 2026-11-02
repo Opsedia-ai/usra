@@ -24,6 +24,7 @@ class FamilyModule extends FeatureModule {
       icon: Icons.groups_outlined,
       label: (c) => AppLocalizations.of(c).navFamily,
       order: 10,
+      simple: true,
     ),
   ];
 

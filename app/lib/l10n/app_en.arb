@@ -130,5 +130,57 @@
       }
     }
   },
-  "memberSpending": "Spending"
+  "memberSpending": "Spending",
+  "navCall": "Call",
+  "settingsSimpleMode": "Simple Mode",
+  "settingsSimpleModeHint": "Bigger text and buttons, fewer tabs. Good for grandparents using the phone on their own.",
+  "settingsTutorial": "Show the tour again",
+  "profileSimpleMode": "Uses Simple Mode",
+  "profileSimpleModeHint": "The phone in their hand: Home greets them by name. Turn Simple Mode on in More on that phone.",
+  "simpleHello": "Hello!",
+  "simpleHelloName": "Hello, {name}",
+  "@simpleHelloName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "simpleMedicines": "My medicines",
+  "simpleMedicinesSoon": "Medicine reminders are coming soon.",
+  "comingSoon": "Coming soon",
+  "simpleCallDoctor": "Call my doctor",
+  "simpleFamily": "My family",
+  "simpleEmergency": "Emergency card",
+  "simplePickPerson": "Whose emergency card?",
+  "tutorialSkip": "Skip",
+  "tutorialNext": "Next",
+  "tutorialBack": "Back",
+  "tutorialStart": "Let's start",
+  "tutorialStep": "{current} of {total}",
+  "@tutorialStep": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tutorialWelcomeTitle": "Hi, I'm Dr. Usra",
+  "tutorialWelcomeBody": "Usra keeps your family's health in one place: doctor visits, tests, medicines and your doctors' numbers.",
+  "tutorialPrivacyTitle": "Your data stays with you",
+  "tutorialPrivacyBody": "Everything is saved on this phone, encrypted. No account needed.",
+  "tutorialFamilyTitle": "Add your family",
+  "tutorialFamilyBody": "Add everyone you care for: kids, parents, grandparents. Each person gets their own page.",
+  "tutorialColorsTitle": "Colours mean urgency",
+  "tutorialColorsBody": "Every colour comes with a word, so you always know what it means.",
+  "tutorialEmergencyTitle": "An emergency card for everyone",
+  "tutorialEmergencyBody": "Blood type, allergies and illnesses on one card, one tap from Home. Show it to a doctor or paramedic.",
+  "tutorialElderWelcomeBody": "I'm here to help you. Everything on the screen is big and clear.",
+  "tutorialElderButtonsTitle": "Big buttons on Home",
+  "tutorialElderButtonsBody": "Press «Call my doctor» to call your doctor with one tap.",
+  "tutorialElderEmergencyTitle": "If you feel unwell",
+  "tutorialElderEmergencyBody": "Press the red «Emergency card» button and show it to whoever is helping you."
 }

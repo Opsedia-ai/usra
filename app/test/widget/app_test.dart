@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/design/dr_usra.dart';
+import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 
 void main() {
@@ -23,7 +24,13 @@ void main() {
   tearDown(() => db.close());
 
   Widget app() => ProviderScope(
-    overrides: [databaseProvider.overrideWithValue(db)],
+    overrides: [
+      databaseProvider.overrideWithValue(db),
+      // The first-run tour is tested in simple_mode_test.dart.
+      keyValueStoreProvider.overrideWithValue(
+        MemoryKeyValueStore({PrefKeys.tutorialSeen: true}),
+      ),
+    ],
     child: const UsraApp(),
   );
 
