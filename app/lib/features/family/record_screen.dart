@@ -39,11 +39,14 @@ class RecordScreen extends ConsumerWidget {
         title: Text(e == null ? '' : type?.labelOf(context) ?? e.type),
         actions: [
           if (e != null) ...[
-            IconButton(
-              key: const ValueKey('record-share'),
-              tooltip: l.recordShare,
-              icon: const Icon(Icons.share_outlined),
-              onPressed: () => _share(context, ref, e, type, photos),
+            // Its own context, so the iPad share sheet points at it.
+            Builder(
+              builder: (button) => IconButton(
+                key: const ValueKey('record-share'),
+                tooltip: l.recordShare,
+                icon: const Icon(Icons.share_outlined),
+                onPressed: () => _share(button, ref, e, type, photos),
+              ),
             ),
             IconButton(
               key: const ValueKey('record-delete'),
@@ -136,14 +139,19 @@ class RecordScreen extends ConsumerWidget {
       'record-delete-confirm',
     );
     if (yes != true) return;
-    final db = ref.read(databaseProvider);
-    await db.softDeleteEvent(eventId);
+    try {
+      await ref.read(databaseProvider).softDeleteEvent(eventId);
+    } catch (_) {
+      if (context.mounted) _saveFailed(context);
+      return;
+    }
     await _prunePhotos(ref);
     if (context.mounted) context.go('/family/$profileId');
   }
 }
 
-/// Opens the share sheet with [photos] that are still on the phone.
+/// Opens the share sheet with [photos] that are still on the phone,
+/// anchored (on iPad) to the widget [context] belongs to.
 Future<void> sharePhotos(
   BuildContext context,
   WidgetRef ref,
@@ -156,8 +164,8 @@ Future<void> sharePhotos(
   final store = ref.read(attachmentStoreProvider);
   final files = [
     for (final a in photos)
-      if (store.fileOf(a.path).existsSync())
-        XFile(store.fileOf(a.path).path, mimeType: photoMimeOf(a.path)),
+      if (store.fileOf(a.path) case final f when f.existsSync())
+        XFile(f.path, mimeType: photoMimeOf(a.path)),
   ];
   try {
     await ref.read(shareProvider)(
@@ -201,6 +209,11 @@ Future<bool?> _confirm(
     ),
   );
 }
+
+void _saveFailed(BuildContext context) => ScaffoldMessenger.of(context)
+    .showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context).saveFailed)),
+    );
 
 /// Deletes photo files no live record uses any more.
 Future<void> _prunePhotos(WidgetRef ref) async {
@@ -309,7 +322,12 @@ class _PhotoViewerState extends ConsumerState<_PhotoViewer> {
       'photo-delete-confirm',
     );
     if (yes != true || !mounted) return;
-    await ref.read(databaseProvider).softDeleteAttachment(photo.id);
+    try {
+      await ref.read(databaseProvider).softDeleteAttachment(photo.id);
+    } catch (_) {
+      if (mounted) _saveFailed(context);
+      return;
+    }
     await _prunePhotos(ref);
     if (mounted) Navigator.of(context).pop();
   }
@@ -331,11 +349,13 @@ class _PhotoViewerState extends ConsumerState<_PhotoViewer> {
             : Text(l.photoPosition(index + 1, photos.length)),
         actions: [
           if (photos.isNotEmpty) ...[
-            IconButton(
-              key: const ValueKey('photo-share'),
-              tooltip: l.photoShare,
-              icon: const Icon(Icons.share_outlined),
-              onPressed: () => sharePhotos(context, ref, [photos[index]]),
+            Builder(
+              builder: (button) => IconButton(
+                key: const ValueKey('photo-share'),
+                tooltip: l.photoShare,
+                icon: const Icon(Icons.share_outlined),
+                onPressed: () => sharePhotos(button, ref, [photos[index]]),
+              ),
             ),
             IconButton(
               key: const ValueKey('photo-delete'),

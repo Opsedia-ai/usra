@@ -157,7 +157,14 @@ class AppDatabase extends _$AppDatabase {
       for (final eventId in eventIds) {
         await _queue('medical_event', eventId, 'delete');
       }
-      await _softDeleteAttachments(attachments.eventId.isIn(eventIds), now);
+      await _softDeleteAttachments(
+        attachments.eventId.isInQuery(
+          selectOnly(medicalEvents)
+            ..addColumns([medicalEvents.id])
+            ..where(medicalEvents.profileId.equals(id)),
+        ),
+        now,
+      );
 
       final liveCards =
           insuranceCards.profileId.equals(id) &
@@ -248,7 +255,11 @@ class AppDatabase extends _$AppDatabase {
   Stream<List<Attachment>> watchAttachments(String eventId) {
     final query = select(attachments)
       ..where((a) => a.eventId.equals(eventId) & a.deletedAt.isNull())
-      ..orderBy([(a) => OrderingTerm.asc(a.id)]);
+      // Photos saved together share a millisecond, where UUID v7 isn't
+      // monotonic; rowid keeps the order they were picked in.
+      ..orderBy([
+        (_) => OrderingTerm.asc(const CustomExpression<int>('rowid')),
+      ]);
     return query.watch();
   }
 
