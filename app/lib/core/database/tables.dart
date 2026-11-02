@@ -63,6 +63,30 @@ class Doctors extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// A health insurance card; one person can have several (schema v4).
+class InsuranceCards extends Table {
+  TextColumn get id => text()();
+  TextColumn get profileId => text().references(Profiles, #id)();
+
+  /// The name the family gives the card, e.g. "نقابة" or "شغل 1".
+  TextColumn get label => text()();
+  TextColumn get insurer => text().nullable()();
+  TextColumn get memberNumber => text().nullable()();
+
+  /// The last day the card is valid (a date, stored as UTC midnight).
+  DateTimeColumn get expiresOn => dateTime().nullable()();
+  TextColumn get notes => text().nullable()();
+
+  /// Photos of the card, relative to the app's private photo folder.
+  TextColumn get frontPhoto => text().nullable()();
+  TextColumn get backPhoto => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Local changes waiting to be synced (used once sync is switched on).
 class OutboxEntries extends Table {
   IntColumn get id => integer().autoIncrement()();
