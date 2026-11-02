@@ -1,0 +1,38 @@
+name: Backend CI
+
+on:
+  pull_request:
+    paths: ["supabase/**", ".github/workflows/backend-ci.yml"]
+  push:
+    branches: [main]
+    paths: ["supabase/**", ".github/workflows/backend-ci.yml"]
+
+jobs:
+  functions:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: supabase
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno fmt --check functions tests/functions
+      - run: deno task lint
+      - run: deno task check
+      - run: deno task test
+
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start Postgres and apply migrations
+        run: supabase db start
+      - name: Lint schema
+        run: supabase db lint --level warning
+      - name: pgTAP tests (credits and row-level security)
+        run: supabase test db
