@@ -12,14 +12,61 @@ class AppDatabase extends _$AppDatabase {
   static const _uuid = Uuid();
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.addColumn(profiles, profiles.bloodType);
+        await m.addColumn(profiles, profiles.allergies);
+        await m.addColumn(profiles, profiles.conditions);
+      }
+    },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
     },
   );
+
+  Stream<Profile?> watchProfile(String id) {
+    return (select(profiles)
+          ..where((p) => p.id.equals(id) & p.deletedAt.isNull()))
+        .watchSingleOrNull();
+  }
+
+  /// Updates a profile's details and records the change in the outbox.
+  Future<void> updateProfile(
+    String id, {
+    required String displayName,
+    DateTime? birthDate,
+    String? sex,
+    String? bloodType,
+    String? allergies,
+    String? conditions,
+  }) async {
+    final name = displayName.trim();
+    if (name.isEmpty) {
+      throw ArgumentError.value(
+        displayName,
+        'displayName',
+        'must not be empty',
+      );
+    }
+    await transaction(() async {
+      await (update(profiles)..where((p) => p.id.equals(id))).write(
+        ProfilesCompanion(
+          displayName: Value(name),
+          birthDate: Value(birthDate),
+          sex: Value(_clean(sex)),
+          bloodType: Value(_clean(bloodType)),
+          allergies: Value(_clean(allergies)),
+          conditions: Value(_clean(conditions)),
+          updatedAt: Value(DateTime.now().toUtc()),
+        ),
+      );
+      await _queue('profile', id, 'upsert');
+    });
+  }
 
   /// Profiles that are not deleted, in the order they were added.
   /// UUID v7 ids sort by creation time, so editing never reorders the list.
@@ -31,7 +78,14 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Creates a profile and records the change in the outbox.
-  Future<String> addProfile(String displayName, {DateTime? birthDate}) async {
+  Future<String> addProfile(
+    String displayName, {
+    DateTime? birthDate,
+    String? sex,
+    String? bloodType,
+    String? allergies,
+    String? conditions,
+  }) async {
     final name = displayName.trim();
     if (name.isEmpty) {
       throw ArgumentError.value(
@@ -47,6 +101,10 @@ class AppDatabase extends _$AppDatabase {
           id: id,
           displayName: name,
           birthDate: Value(birthDate),
+          sex: Value(_clean(sex)),
+          bloodType: Value(_clean(bloodType)),
+          allergies: Value(_clean(allergies)),
+          conditions: Value(_clean(conditions)),
           updatedAt: DateTime.now().toUtc(),
         ),
       );
@@ -85,7 +143,12 @@ class AppDatabase extends _$AppDatabase {
   Stream<List<MedicalEvent>> watchTimeline(String profileId) {
     final query = select(medicalEvents)
       ..where((e) => e.profileId.equals(profileId) & e.deletedAt.isNull())
-      ..orderBy([(e) => OrderingTerm.desc(e.occurredAt)]);
+      ..orderBy([
+        (e) => OrderingTerm.desc(e.occurredAt),
+        // Same-day records: newest insert first. UUID v7 isn't monotonic
+        // within one millisecond, rowid is.
+        (e) => OrderingTerm.desc(const CustomExpression<int>('rowid')),
+      ]);
     return query.watch();
   }
 
@@ -114,6 +177,19 @@ class AppDatabase extends _$AppDatabase {
       await _queue('medical_event', id, 'upsert');
     });
     return id;
+  }
+
+  static String? _clean(String? v) =>
+      (v == null || v.trim().isEmpty) ? null : v.trim();
+
+  Future<void> softDeleteEvent(String id) async {
+    final now = DateTime.now().toUtc();
+    await transaction(() async {
+      await (update(medicalEvents)..where((e) => e.id.equals(id))).write(
+        MedicalEventsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+      );
+      await _queue('medical_event', id, 'delete');
+    });
   }
 
   Future<void> _queue(String entity, String id, String operation) {

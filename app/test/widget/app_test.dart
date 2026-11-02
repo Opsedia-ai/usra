@@ -52,7 +52,13 @@ void main() {
     );
   });
 
-  testWidgets('adding a family member shows them in the list', (tester) async {
+  testWidgets('add a person, then a doctor visit appears on their timeline', (
+    tester,
+  ) async {
+    // A tall phone screen so the whole form is built at once.
+    tester.view.physicalSize = const Size(1170, 3000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
@@ -60,11 +66,38 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('ضيف شخص'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'فاطمة');
-    await tester.tap(find.text('حفظ'));
+
+    await tester.enterText(find.byKey(const ValueKey('profile-name')), 'فاطمة');
+    await tester.ensureVisible(find.byKey(const ValueKey('profile-save')));
+    await tester.tap(find.byKey(const ValueKey('profile-save')));
     await tester.pumpAndSettle();
 
-    expect(find.text('فاطمة'), findsOneWidget);
+    // Now on Fatma's page, with an empty timeline.
+    expect(find.text('فاطمة'), findsWidgets);
+    expect(find.textContaining('مفيش سجلات لسه'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('add-record')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('type-visit')));
+    await tester.pumpAndSettle();
+
+    // Saving without the required doctor shows an error and stays on the form.
+    await tester.ensureVisible(find.byKey(const ValueKey('record-save')));
+    await tester.tap(find.byKey(const ValueKey('record-save')));
+    await tester.pumpAndSettle();
+    expect(find.text('مطلوب'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('field-doctorName')),
+      'د. هاني',
+    );
+    await tester.enterText(find.byKey(const ValueKey('field-cost')), '٦٠٠');
+    await tester.ensureVisible(find.byKey(const ValueKey('record-save')));
+    await tester.tap(find.byKey(const ValueKey('record-save')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('زيارة دكتور · د. هاني'), findsOneWidget);
+    expect(find.textContaining('600'), findsOneWidget);
   });
 
   testWidgets('every Dr. Usra pose paints without errors', (tester) async {

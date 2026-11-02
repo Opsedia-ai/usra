@@ -87,4 +87,158 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notMedicalDevice =>
       'Usra is not a medical device. Always ask your doctor before medical decisions.';
+
+  @override
+  String get familyNew => 'New person';
+
+  @override
+  String get familyEdit => 'Edit';
+
+  @override
+  String get profileBirthDate => 'Date of birth';
+
+  @override
+  String get profileSex => 'Sex';
+
+  @override
+  String get sexFemale => 'Female';
+
+  @override
+  String get sexMale => 'Male';
+
+  @override
+  String get profileBloodType => 'Blood type';
+
+  @override
+  String get profileAllergies => 'Allergies';
+
+  @override
+  String get profileConditions => 'Chronic conditions';
+
+  @override
+  String get profileNotFound => 'Not found';
+
+  @override
+  String get pickDate => 'Choose a date';
+
+  @override
+  String ageYears(int age) {
+    String _temp0 = intl.Intl.pluralLogic(
+      age,
+      locale: localeName,
+      other: '$age years',
+      one: '1 year',
+      zero: 'Under 1 year',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get timelineEmpty =>
+      'No records yet. Add the first visit, scan or vaccine.';
+
+  @override
+  String get addRecord => 'Add record';
+
+  @override
+  String get chooseRecordType => 'What do you want to add?';
+
+  @override
+  String get recordDate => 'Date';
+
+  @override
+  String get recordCost => 'Cost';
+
+  @override
+  String get currencyEgp => 'EGP';
+
+  @override
+  String get fieldRequired => 'Required';
+
+  @override
+  String get fieldInvalid => 'Check this value';
+
+  @override
+  String get recordVisit => 'Doctor visit';
+
+  @override
+  String get recordScan => 'Scan or X-ray';
+
+  @override
+  String get recordLab => 'Lab test';
+
+  @override
+  String get recordVaccine => 'Vaccine';
+
+  @override
+  String get recordSurgery => 'Surgery';
+
+  @override
+  String get fieldDoctorName => 'Doctor';
+
+  @override
+  String get fieldReason => 'Reason';
+
+  @override
+  String get fieldDiagnosis => 'Diagnosis';
+
+  @override
+  String get fieldNextVisit => 'Next visit';
+
+  @override
+  String get fieldScanKind => 'Type of scan';
+
+  @override
+  String get fieldCenter => 'Scan centre';
+
+  @override
+  String get fieldResult => 'Result';
+
+  @override
+  String get fieldTest => 'Test';
+
+  @override
+  String get fieldValue => 'Value';
+
+  @override
+  String get fieldUnit => 'Unit';
+
+  @override
+  String get fieldVaccine => 'Vaccine';
+
+  @override
+  String get fieldDose => 'Dose number';
+
+  @override
+  String get fieldNextDue => 'Next dose';
+
+  @override
+  String get fieldProcedure => 'Procedure';
+
+  @override
+  String get fieldHospital => 'Hospital';
+
+  @override
+  String get fieldFilmed => 'Filmed';
+
+  @override
+  String get fieldDaysInHospital => 'Days in hospital';
+
+  @override
+  String get scanXray => 'X-ray';
+
+  @override
+  String get scanCt => 'CT';
+
+  @override
+  String get scanMri => 'MRI';
+
+  @override
+  String get scanUltrasound => 'Ultrasound';
+
+  @override
+  String get scanOther => 'Other';
+
+  @override
+  String get saveFailed => 'Could not save. Please try again.';
 }
