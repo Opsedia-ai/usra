@@ -7,7 +7,7 @@ abstract class KeyValueStore {
   Future<void> setBool(String key, bool value);
 }
 
-/// Kept only while the app runs; the default, and what tests use.
+/// Kept only while the app runs; what tests use.
 class MemoryKeyValueStore implements KeyValueStore {
   MemoryKeyValueStore([Map<String, bool>? values]) : _values = {...?values};
 
@@ -49,9 +49,14 @@ abstract final class PrefKeys {
   static const all = {simpleMode, tutorialSeen, elderTutorialSeen};
 }
 
-/// Overridden in `main.dart` with [SharedPreferencesStore].
+/// Overridden in `main.dart` with [SharedPreferencesStore]. The default,
+/// used by tests, starts with the tours already seen so they don't cover the
+/// app; tests of the tours pass an empty [MemoryKeyValueStore].
 final keyValueStoreProvider = Provider<KeyValueStore>(
-  (ref) => MemoryKeyValueStore(),
+  (ref) => MemoryKeyValueStore({
+    PrefKeys.tutorialSeen: true,
+    PrefKeys.elderTutorialSeen: true,
+  }),
 );
 
 /// Simple Mode: bigger text and buttons, three tabs, a plain Home. For

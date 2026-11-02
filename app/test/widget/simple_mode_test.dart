@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/preferences.dart';
@@ -173,13 +174,53 @@ void main() {
     expect(saved.single.simpleMode, isTrue);
 
     // Simple Mode on this phone: no spending link, a named greeting.
+    final fatma = saved.single.id;
+    expect(find.byKey(const ValueKey('member-spending')), findsOneWidget);
     await tester.tap(find.text('المزيد').last);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('settings-simple-mode')));
     await tester.pumpAndSettle();
+    final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
+    router.go('/family/$fatma');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('member-spending')), findsNothing);
     await tester.tap(find.text('الرئيسية'));
     await tester.pumpAndSettle();
     expect(find.text('أهلاً يا فاطمة'), findsOneWidget);
+
+    // Her emergency card is one tap away, even with others in the family.
+    await tester.runAsync(() => db.addProfile('عمر'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('simple-emergency')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('emergency-blood')), findsOneWidget);
+    expect(find.text('فاطمة'), findsWidgets);
+  });
+
+  testWidgets('with several people and none marked, Emergency asks whose', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 3000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    store = MemoryKeyValueStore({
+      PrefKeys.simpleMode: true,
+      PrefKeys.elderTutorialSeen: true,
+    });
+    final omar = (await tester.runAsync(() async {
+      await db.addProfile('فاطمة');
+      return db.addProfile('عمر');
+    }))!;
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+
+    expect(find.text('أهلاً بيك!'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('simple-emergency')));
+    await tester.pumpAndSettle();
+    expect(find.text('كارت الطوارئ بتاع مين؟'), findsOneWidget);
+    await tester.tap(find.byKey(ValueKey('simple-emergency-$omar')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('emergency-blood')), findsOneWidget);
   });
 
   testWidgets('Simple Mode screens fit with 2× phone text', (tester) async {

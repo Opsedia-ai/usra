@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Usra uses the camera to photograph insurance cards. Photos stay on this phone.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Usra lets you pick a photo of an insurance card. Photos stay on this phone.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
