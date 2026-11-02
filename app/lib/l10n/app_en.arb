@@ -131,6 +131,68 @@
     }
   },
   "memberSpending": "Spending",
+  "insuranceTitle": "Insurance cards",
+  "insuranceEmpty": "No insurance cards yet.",
+  "insuranceAdd": "Add insurance card",
+  "insuranceNew": "New insurance card",
+  "insuranceEdit": "Edit card",
+  "insuranceLabel": "Card name (e.g. Union, Work)",
+  "insuranceCard": "Card",
+  "insuranceInsurer": "Insurance company",
+  "insuranceMemberNumber": "Member number",
+  "insuranceExpiry": "Expiry date",
+  "insuranceNotes": "Notes",
+  "insuranceFront": "Front of card",
+  "insuranceBack": "Back of card",
+  "insuranceShare": "Send on WhatsApp",
+  "insuranceShareHeader": "{name}'s insurance card",
+  "insuranceExpired": "Expired {date}",
+  "insuranceExpiresSoon": "Expires {date}",
+  "insuranceValidUntil": "Valid until {date}",
+  "insuranceDelete": "Delete",
+  "insuranceDeleteConfirm": "Delete the {label} card? Its photos will be removed from this phone.",
+  "insuranceNotFound": "Card not found",
+  "clearDate": "Clear date",
+  "photoCamera": "Take photo",
+  "photoGallery": "From photos",
+  "photoRemove": "Remove photo",
+  "photoFailed": "Couldn't get the photo",
+  "shareFailed": "Couldn't open sharing",
+  "@insuranceShareHeader": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@insuranceExpired": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@insuranceExpiresSoon": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@insuranceValidUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@insuranceDeleteConfirm": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "recordGrowth": "Growth measurement",
   "fieldWeightKg": "Weight (kg)",
   "fieldHeightCm": "Length / height (cm)",

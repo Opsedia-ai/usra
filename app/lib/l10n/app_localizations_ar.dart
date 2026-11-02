@@ -367,6 +367,97 @@ class AppLocalizationsAr extends AppLocalizations {
   String get memberSpending => 'المصاريف';
 
   @override
+  String get insuranceTitle => 'كروت التأمين';
+
+  @override
+  String get insuranceEmpty => 'مفيش كروت تأمين لسه.';
+
+  @override
+  String get insuranceAdd => 'ضيف كارت تأمين';
+
+  @override
+  String get insuranceNew => 'كارت تأمين جديد';
+
+  @override
+  String get insuranceEdit => 'تعديل الكارت';
+
+  @override
+  String get insuranceLabel => 'اسم الكارت (مثلاً: نقابة، شغل)';
+
+  @override
+  String get insuranceCard => 'الكارت';
+
+  @override
+  String get insuranceInsurer => 'شركة التأمين';
+
+  @override
+  String get insuranceMemberNumber => 'رقم العضوية';
+
+  @override
+  String get insuranceExpiry => 'تاريخ الانتهاء';
+
+  @override
+  String get insuranceNotes => 'ملاحظات';
+
+  @override
+  String get insuranceFront => 'وش الكارت';
+
+  @override
+  String get insuranceBack => 'ضهر الكارت';
+
+  @override
+  String get insuranceShare => 'ابعت على واتساب';
+
+  @override
+  String insuranceShareHeader(String name) {
+    return 'كارت التأمين بتاع $name';
+  }
+
+  @override
+  String insuranceExpired(String date) {
+    return 'انتهى $date';
+  }
+
+  @override
+  String insuranceExpiresSoon(String date) {
+    return 'بينتهي $date';
+  }
+
+  @override
+  String insuranceValidUntil(String date) {
+    return 'ساري لحد $date';
+  }
+
+  @override
+  String get insuranceDelete => 'امسح';
+
+  @override
+  String insuranceDeleteConfirm(String label) {
+    return 'نمسح كارت $label؟ صوره هتتمسح من الموبايل.';
+  }
+
+  @override
+  String get insuranceNotFound => 'الكارت ده مش موجود';
+
+  @override
+  String get clearDate => 'امسح التاريخ';
+
+  @override
+  String get photoCamera => 'صوّر';
+
+  @override
+  String get photoGallery => 'من الصور';
+
+  @override
+  String get photoRemove => 'شيل الصورة';
+
+  @override
+  String get photoFailed => 'مقدرناش نجيب الصورة';
+
+  @override
+  String get shareFailed => 'مقدرناش نفتح المشاركة';
+
+  @override
   String get recordGrowth => 'قياس نمو';
 
   @override

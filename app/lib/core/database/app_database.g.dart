@@ -1847,6 +1847,681 @@ class DoctorsCompanion extends UpdateCompanion<Doctor> {
   }
 }
 
+class $InsuranceCardsTable extends InsuranceCards
+    with TableInfo<$InsuranceCardsTable, InsuranceCard> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $InsuranceCardsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _profileIdMeta = const VerificationMeta(
+    'profileId',
+  );
+  @override
+  late final GeneratedColumn<String> profileId = GeneratedColumn<String>(
+    'profile_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES profiles (id)',
+    ),
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _insurerMeta = const VerificationMeta(
+    'insurer',
+  );
+  @override
+  late final GeneratedColumn<String> insurer = GeneratedColumn<String>(
+    'insurer',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _memberNumberMeta = const VerificationMeta(
+    'memberNumber',
+  );
+  @override
+  late final GeneratedColumn<String> memberNumber = GeneratedColumn<String>(
+    'member_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _expiresOnMeta = const VerificationMeta(
+    'expiresOn',
+  );
+  @override
+  late final GeneratedColumn<DateTime> expiresOn = GeneratedColumn<DateTime>(
+    'expires_on',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _frontPhotoMeta = const VerificationMeta(
+    'frontPhoto',
+  );
+  @override
+  late final GeneratedColumn<String> frontPhoto = GeneratedColumn<String>(
+    'front_photo',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _backPhotoMeta = const VerificationMeta(
+    'backPhoto',
+  );
+  @override
+  late final GeneratedColumn<String> backPhoto = GeneratedColumn<String>(
+    'back_photo',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    profileId,
+    label,
+    insurer,
+    memberNumber,
+    expiresOn,
+    notes,
+    frontPhoto,
+    backPhoto,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'insurance_cards';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<InsuranceCard> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('profile_id')) {
+      context.handle(
+        _profileIdMeta,
+        profileId.isAcceptableOrUnknown(data['profile_id']!, _profileIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_profileIdMeta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    if (data.containsKey('insurer')) {
+      context.handle(
+        _insurerMeta,
+        insurer.isAcceptableOrUnknown(data['insurer']!, _insurerMeta),
+      );
+    }
+    if (data.containsKey('member_number')) {
+      context.handle(
+        _memberNumberMeta,
+        memberNumber.isAcceptableOrUnknown(
+          data['member_number']!,
+          _memberNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('expires_on')) {
+      context.handle(
+        _expiresOnMeta,
+        expiresOn.isAcceptableOrUnknown(data['expires_on']!, _expiresOnMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('front_photo')) {
+      context.handle(
+        _frontPhotoMeta,
+        frontPhoto.isAcceptableOrUnknown(data['front_photo']!, _frontPhotoMeta),
+      );
+    }
+    if (data.containsKey('back_photo')) {
+      context.handle(
+        _backPhotoMeta,
+        backPhoto.isAcceptableOrUnknown(data['back_photo']!, _backPhotoMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  InsuranceCard map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return InsuranceCard(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      profileId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}profile_id'],
+      )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      )!,
+      insurer: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}insurer'],
+      ),
+      memberNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}member_number'],
+      ),
+      expiresOn: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires_on'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      frontPhoto: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}front_photo'],
+      ),
+      backPhoto: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}back_photo'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $InsuranceCardsTable createAlias(String alias) {
+    return $InsuranceCardsTable(attachedDatabase, alias);
+  }
+}
+
+class InsuranceCard extends DataClass implements Insertable<InsuranceCard> {
+  final String id;
+  final String profileId;
+
+  /// The name the family gives the card, e.g. "نقابة" or "شغل 1".
+  final String label;
+  final String? insurer;
+  final String? memberNumber;
+
+  /// The last day the card is valid (a date, stored as UTC midnight).
+  final DateTime? expiresOn;
+  final String? notes;
+
+  /// Photos of the card, relative to the app's private photo folder.
+  final String? frontPhoto;
+  final String? backPhoto;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const InsuranceCard({
+    required this.id,
+    required this.profileId,
+    required this.label,
+    this.insurer,
+    this.memberNumber,
+    this.expiresOn,
+    this.notes,
+    this.frontPhoto,
+    this.backPhoto,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['profile_id'] = Variable<String>(profileId);
+    map['label'] = Variable<String>(label);
+    if (!nullToAbsent || insurer != null) {
+      map['insurer'] = Variable<String>(insurer);
+    }
+    if (!nullToAbsent || memberNumber != null) {
+      map['member_number'] = Variable<String>(memberNumber);
+    }
+    if (!nullToAbsent || expiresOn != null) {
+      map['expires_on'] = Variable<DateTime>(expiresOn);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || frontPhoto != null) {
+      map['front_photo'] = Variable<String>(frontPhoto);
+    }
+    if (!nullToAbsent || backPhoto != null) {
+      map['back_photo'] = Variable<String>(backPhoto);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  InsuranceCardsCompanion toCompanion(bool nullToAbsent) {
+    return InsuranceCardsCompanion(
+      id: Value(id),
+      profileId: Value(profileId),
+      label: Value(label),
+      insurer: insurer == null && nullToAbsent
+          ? const Value.absent()
+          : Value(insurer),
+      memberNumber: memberNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(memberNumber),
+      expiresOn: expiresOn == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiresOn),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      frontPhoto: frontPhoto == null && nullToAbsent
+          ? const Value.absent()
+          : Value(frontPhoto),
+      backPhoto: backPhoto == null && nullToAbsent
+          ? const Value.absent()
+          : Value(backPhoto),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory InsuranceCard.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return InsuranceCard(
+      id: serializer.fromJson<String>(json['id']),
+      profileId: serializer.fromJson<String>(json['profileId']),
+      label: serializer.fromJson<String>(json['label']),
+      insurer: serializer.fromJson<String?>(json['insurer']),
+      memberNumber: serializer.fromJson<String?>(json['memberNumber']),
+      expiresOn: serializer.fromJson<DateTime?>(json['expiresOn']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      frontPhoto: serializer.fromJson<String?>(json['frontPhoto']),
+      backPhoto: serializer.fromJson<String?>(json['backPhoto']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'profileId': serializer.toJson<String>(profileId),
+      'label': serializer.toJson<String>(label),
+      'insurer': serializer.toJson<String?>(insurer),
+      'memberNumber': serializer.toJson<String?>(memberNumber),
+      'expiresOn': serializer.toJson<DateTime?>(expiresOn),
+      'notes': serializer.toJson<String?>(notes),
+      'frontPhoto': serializer.toJson<String?>(frontPhoto),
+      'backPhoto': serializer.toJson<String?>(backPhoto),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  InsuranceCard copyWith({
+    String? id,
+    String? profileId,
+    String? label,
+    Value<String?> insurer = const Value.absent(),
+    Value<String?> memberNumber = const Value.absent(),
+    Value<DateTime?> expiresOn = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    Value<String?> frontPhoto = const Value.absent(),
+    Value<String?> backPhoto = const Value.absent(),
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => InsuranceCard(
+    id: id ?? this.id,
+    profileId: profileId ?? this.profileId,
+    label: label ?? this.label,
+    insurer: insurer.present ? insurer.value : this.insurer,
+    memberNumber: memberNumber.present ? memberNumber.value : this.memberNumber,
+    expiresOn: expiresOn.present ? expiresOn.value : this.expiresOn,
+    notes: notes.present ? notes.value : this.notes,
+    frontPhoto: frontPhoto.present ? frontPhoto.value : this.frontPhoto,
+    backPhoto: backPhoto.present ? backPhoto.value : this.backPhoto,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  InsuranceCard copyWithCompanion(InsuranceCardsCompanion data) {
+    return InsuranceCard(
+      id: data.id.present ? data.id.value : this.id,
+      profileId: data.profileId.present ? data.profileId.value : this.profileId,
+      label: data.label.present ? data.label.value : this.label,
+      insurer: data.insurer.present ? data.insurer.value : this.insurer,
+      memberNumber: data.memberNumber.present
+          ? data.memberNumber.value
+          : this.memberNumber,
+      expiresOn: data.expiresOn.present ? data.expiresOn.value : this.expiresOn,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      frontPhoto: data.frontPhoto.present
+          ? data.frontPhoto.value
+          : this.frontPhoto,
+      backPhoto: data.backPhoto.present ? data.backPhoto.value : this.backPhoto,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InsuranceCard(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('label: $label, ')
+          ..write('insurer: $insurer, ')
+          ..write('memberNumber: $memberNumber, ')
+          ..write('expiresOn: $expiresOn, ')
+          ..write('notes: $notes, ')
+          ..write('frontPhoto: $frontPhoto, ')
+          ..write('backPhoto: $backPhoto, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    profileId,
+    label,
+    insurer,
+    memberNumber,
+    expiresOn,
+    notes,
+    frontPhoto,
+    backPhoto,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is InsuranceCard &&
+          other.id == this.id &&
+          other.profileId == this.profileId &&
+          other.label == this.label &&
+          other.insurer == this.insurer &&
+          other.memberNumber == this.memberNumber &&
+          other.expiresOn == this.expiresOn &&
+          other.notes == this.notes &&
+          other.frontPhoto == this.frontPhoto &&
+          other.backPhoto == this.backPhoto &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class InsuranceCardsCompanion extends UpdateCompanion<InsuranceCard> {
+  final Value<String> id;
+  final Value<String> profileId;
+  final Value<String> label;
+  final Value<String?> insurer;
+  final Value<String?> memberNumber;
+  final Value<DateTime?> expiresOn;
+  final Value<String?> notes;
+  final Value<String?> frontPhoto;
+  final Value<String?> backPhoto;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const InsuranceCardsCompanion({
+    this.id = const Value.absent(),
+    this.profileId = const Value.absent(),
+    this.label = const Value.absent(),
+    this.insurer = const Value.absent(),
+    this.memberNumber = const Value.absent(),
+    this.expiresOn = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.frontPhoto = const Value.absent(),
+    this.backPhoto = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  InsuranceCardsCompanion.insert({
+    required String id,
+    required String profileId,
+    required String label,
+    this.insurer = const Value.absent(),
+    this.memberNumber = const Value.absent(),
+    this.expiresOn = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.frontPhoto = const Value.absent(),
+    this.backPhoto = const Value.absent(),
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       profileId = Value(profileId),
+       label = Value(label),
+       updatedAt = Value(updatedAt);
+  static Insertable<InsuranceCard> custom({
+    Expression<String>? id,
+    Expression<String>? profileId,
+    Expression<String>? label,
+    Expression<String>? insurer,
+    Expression<String>? memberNumber,
+    Expression<DateTime>? expiresOn,
+    Expression<String>? notes,
+    Expression<String>? frontPhoto,
+    Expression<String>? backPhoto,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (profileId != null) 'profile_id': profileId,
+      if (label != null) 'label': label,
+      if (insurer != null) 'insurer': insurer,
+      if (memberNumber != null) 'member_number': memberNumber,
+      if (expiresOn != null) 'expires_on': expiresOn,
+      if (notes != null) 'notes': notes,
+      if (frontPhoto != null) 'front_photo': frontPhoto,
+      if (backPhoto != null) 'back_photo': backPhoto,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  InsuranceCardsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? profileId,
+    Value<String>? label,
+    Value<String?>? insurer,
+    Value<String?>? memberNumber,
+    Value<DateTime?>? expiresOn,
+    Value<String?>? notes,
+    Value<String?>? frontPhoto,
+    Value<String?>? backPhoto,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return InsuranceCardsCompanion(
+      id: id ?? this.id,
+      profileId: profileId ?? this.profileId,
+      label: label ?? this.label,
+      insurer: insurer ?? this.insurer,
+      memberNumber: memberNumber ?? this.memberNumber,
+      expiresOn: expiresOn ?? this.expiresOn,
+      notes: notes ?? this.notes,
+      frontPhoto: frontPhoto ?? this.frontPhoto,
+      backPhoto: backPhoto ?? this.backPhoto,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (profileId.present) {
+      map['profile_id'] = Variable<String>(profileId.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (insurer.present) {
+      map['insurer'] = Variable<String>(insurer.value);
+    }
+    if (memberNumber.present) {
+      map['member_number'] = Variable<String>(memberNumber.value);
+    }
+    if (expiresOn.present) {
+      map['expires_on'] = Variable<DateTime>(expiresOn.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (frontPhoto.present) {
+      map['front_photo'] = Variable<String>(frontPhoto.value);
+    }
+    if (backPhoto.present) {
+      map['back_photo'] = Variable<String>(backPhoto.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InsuranceCardsCompanion(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('label: $label, ')
+          ..write('insurer: $insurer, ')
+          ..write('memberNumber: $memberNumber, ')
+          ..write('expiresOn: $expiresOn, ')
+          ..write('notes: $notes, ')
+          ..write('frontPhoto: $frontPhoto, ')
+          ..write('backPhoto: $backPhoto, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $OutboxEntriesTable extends OutboxEntries
     with TableInfo<$OutboxEntriesTable, OutboxEntry> {
   @override
@@ -2203,6 +2878,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ProfilesTable profiles = $ProfilesTable(this);
   late final $MedicalEventsTable medicalEvents = $MedicalEventsTable(this);
   late final $DoctorsTable doctors = $DoctorsTable(this);
+  late final $InsuranceCardsTable insuranceCards = $InsuranceCardsTable(this);
   late final $OutboxEntriesTable outboxEntries = $OutboxEntriesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -2212,6 +2888,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     profiles,
     medicalEvents,
     doctors,
+    insuranceCards,
     outboxEntries,
   ];
 }
@@ -2260,6 +2937,24 @@ final class $$ProfilesTableReferences
     ).filter((f) => f.profileId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_medicalEventsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$InsuranceCardsTable, List<InsuranceCard>>
+  _insuranceCardsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.insuranceCards,
+    aliasName: 'profiles__id__insurance_cards__profile_id',
+  );
+
+  $$InsuranceCardsTableProcessedTableManager get insuranceCardsRefs {
+    final manager = $$InsuranceCardsTableTableManager(
+      $_db,
+      $_db.insuranceCards,
+    ).filter((f) => f.profileId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_insuranceCardsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -2341,6 +3036,31 @@ class $$ProfilesTableFilterComposer
           }) => $$MedicalEventsTableFilterComposer(
             $db: $db,
             $table: $db.medicalEvents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> insuranceCardsRefs(
+    Expression<bool> Function($$InsuranceCardsTableFilterComposer f) f,
+  ) {
+    final $$InsuranceCardsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.insuranceCards,
+      getReferencedColumn: (t) => t.profileId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InsuranceCardsTableFilterComposer(
+            $db: $db,
+            $table: $db.insuranceCards,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2480,6 +3200,31 @@ class $$ProfilesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> insuranceCardsRefs<T extends Object>(
+    Expression<T> Function($$InsuranceCardsTableAnnotationComposer a) f,
+  ) {
+    final $$InsuranceCardsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.insuranceCards,
+      getReferencedColumn: (t) => t.profileId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InsuranceCardsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.insuranceCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ProfilesTableTableManager
@@ -2495,7 +3240,10 @@ class $$ProfilesTableTableManager
           $$ProfilesTableUpdateCompanionBuilder,
           (Profile, $$ProfilesTableReferences),
           Profile,
-          PrefetchHooks Function({bool medicalEventsRefs})
+          PrefetchHooks Function({
+            bool medicalEventsRefs,
+            bool insuranceCardsRefs,
+          })
         > {
   $$ProfilesTableTableManager(_$AppDatabase db, $ProfilesTable table)
     : super(
@@ -2568,38 +3316,61 @@ class $$ProfilesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({medicalEventsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (medicalEventsRefs) db.medicalEvents,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (medicalEventsRefs)
-                    await $_getPrefetchedDataByColumns<
-                      Profile,
-                      $ProfilesTable,
-                      MedicalEvent,
-                      $MedicalEventsTable
-                    >(
-                      currentTable: table,
-                      referencedTable: $$ProfilesTableReferences
-                          ._medicalEventsRefsTable(db),
-                      managerFromTypedResult: (p0) => $$ProfilesTableReferences(
-                        db,
-                        table,
-                        p0,
-                      ).medicalEventsRefs,
-                      currentColumn: 'id',
-                      referencedColumn: 'profile_id',
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({medicalEventsRefs = false, insuranceCardsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (medicalEventsRefs) db.medicalEvents,
+                    if (insuranceCardsRefs) db.insuranceCards,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (medicalEventsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Profile,
+                          $ProfilesTable,
+                          MedicalEvent,
+                          $MedicalEventsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ProfilesTableReferences
+                              ._medicalEventsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ProfilesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).medicalEventsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'profile_id',
+                          typedResults: items,
+                        ),
+                      if (insuranceCardsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Profile,
+                          $ProfilesTable,
+                          InsuranceCard,
+                          $InsuranceCardsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ProfilesTableReferences
+                              ._insuranceCardsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ProfilesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).insuranceCardsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'profile_id',
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -2616,7 +3387,7 @@ typedef $$ProfilesTableProcessedTableManager =
       $$ProfilesTableUpdateCompanionBuilder,
       (Profile, $$ProfilesTableReferences),
       Profile,
-      PrefetchHooks Function({bool medicalEventsRefs})
+      PrefetchHooks Function({bool medicalEventsRefs, bool insuranceCardsRefs})
     >;
 typedef $$MedicalEventsTableCreateCompanionBuilder =
     MedicalEventsCompanion Function({
@@ -3330,6 +4101,445 @@ typedef $$DoctorsTableProcessedTableManager =
       Doctor,
       PrefetchHooks Function()
     >;
+typedef $$InsuranceCardsTableCreateCompanionBuilder =
+    InsuranceCardsCompanion Function({
+      required String id,
+      required String profileId,
+      required String label,
+      Value<String?> insurer,
+      Value<String?> memberNumber,
+      Value<DateTime?> expiresOn,
+      Value<String?> notes,
+      Value<String?> frontPhoto,
+      Value<String?> backPhoto,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$InsuranceCardsTableUpdateCompanionBuilder =
+    InsuranceCardsCompanion Function({
+      Value<String> id,
+      Value<String> profileId,
+      Value<String> label,
+      Value<String?> insurer,
+      Value<String?> memberNumber,
+      Value<DateTime?> expiresOn,
+      Value<String?> notes,
+      Value<String?> frontPhoto,
+      Value<String?> backPhoto,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+final class $$InsuranceCardsTableReferences
+    extends BaseReferences<_$AppDatabase, $InsuranceCardsTable, InsuranceCard> {
+  $$InsuranceCardsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $ProfilesTable _profileIdTable(_$AppDatabase db) =>
+      db.profiles.createAlias('insurance_cards__profile_id__profiles__id');
+
+  $$ProfilesTableProcessedTableManager get profileId {
+    final $_column = $_itemColumn<String>('profile_id')!;
+
+    final manager = $$ProfilesTableTableManager(
+      $_db,
+      $_db.profiles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_profileIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$InsuranceCardsTableFilterComposer
+    extends Composer<_$AppDatabase, $InsuranceCardsTable> {
+  $$InsuranceCardsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get insurer => $composableBuilder(
+    column: $table.insurer,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get memberNumber => $composableBuilder(
+    column: $table.memberNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get expiresOn => $composableBuilder(
+    column: $table.expiresOn,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get frontPhoto => $composableBuilder(
+    column: $table.frontPhoto,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get backPhoto => $composableBuilder(
+    column: $table.backPhoto,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ProfilesTableFilterComposer get profileId {
+    final $$ProfilesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.profiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProfilesTableFilterComposer(
+            $db: $db,
+            $table: $db.profiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$InsuranceCardsTableOrderingComposer
+    extends Composer<_$AppDatabase, $InsuranceCardsTable> {
+  $$InsuranceCardsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get insurer => $composableBuilder(
+    column: $table.insurer,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get memberNumber => $composableBuilder(
+    column: $table.memberNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get expiresOn => $composableBuilder(
+    column: $table.expiresOn,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get frontPhoto => $composableBuilder(
+    column: $table.frontPhoto,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get backPhoto => $composableBuilder(
+    column: $table.backPhoto,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ProfilesTableOrderingComposer get profileId {
+    final $$ProfilesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.profiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProfilesTableOrderingComposer(
+            $db: $db,
+            $table: $db.profiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$InsuranceCardsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $InsuranceCardsTable> {
+  $$InsuranceCardsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get insurer =>
+      $composableBuilder(column: $table.insurer, builder: (column) => column);
+
+  GeneratedColumn<String> get memberNumber => $composableBuilder(
+    column: $table.memberNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get expiresOn =>
+      $composableBuilder(column: $table.expiresOn, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get frontPhoto => $composableBuilder(
+    column: $table.frontPhoto,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get backPhoto =>
+      $composableBuilder(column: $table.backPhoto, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$ProfilesTableAnnotationComposer get profileId {
+    final $$ProfilesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.profiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProfilesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.profiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$InsuranceCardsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $InsuranceCardsTable,
+          InsuranceCard,
+          $$InsuranceCardsTableFilterComposer,
+          $$InsuranceCardsTableOrderingComposer,
+          $$InsuranceCardsTableAnnotationComposer,
+          $$InsuranceCardsTableCreateCompanionBuilder,
+          $$InsuranceCardsTableUpdateCompanionBuilder,
+          (InsuranceCard, $$InsuranceCardsTableReferences),
+          InsuranceCard,
+          PrefetchHooks Function({bool profileId})
+        > {
+  $$InsuranceCardsTableTableManager(
+    _$AppDatabase db,
+    $InsuranceCardsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$InsuranceCardsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$InsuranceCardsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$InsuranceCardsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> profileId = const Value.absent(),
+                Value<String> label = const Value.absent(),
+                Value<String?> insurer = const Value.absent(),
+                Value<String?> memberNumber = const Value.absent(),
+                Value<DateTime?> expiresOn = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> frontPhoto = const Value.absent(),
+                Value<String?> backPhoto = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InsuranceCardsCompanion(
+                id: id,
+                profileId: profileId,
+                label: label,
+                insurer: insurer,
+                memberNumber: memberNumber,
+                expiresOn: expiresOn,
+                notes: notes,
+                frontPhoto: frontPhoto,
+                backPhoto: backPhoto,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String profileId,
+                required String label,
+                Value<String?> insurer = const Value.absent(),
+                Value<String?> memberNumber = const Value.absent(),
+                Value<DateTime?> expiresOn = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> frontPhoto = const Value.absent(),
+                Value<String?> backPhoto = const Value.absent(),
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InsuranceCardsCompanion.insert(
+                id: id,
+                profileId: profileId,
+                label: label,
+                insurer: insurer,
+                memberNumber: memberNumber,
+                expiresOn: expiresOn,
+                notes: notes,
+                frontPhoto: frontPhoto,
+                backPhoto: backPhoto,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$InsuranceCardsTable, InsuranceCard>(table),
+                  $$InsuranceCardsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({profileId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (profileId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.profileId,
+                        referencedTable: $$InsuranceCardsTableReferences
+                            ._profileIdTable(db),
+                        referencedColumn: $$InsuranceCardsTableReferences
+                            ._profileIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$InsuranceCardsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $InsuranceCardsTable,
+      InsuranceCard,
+      $$InsuranceCardsTableFilterComposer,
+      $$InsuranceCardsTableOrderingComposer,
+      $$InsuranceCardsTableAnnotationComposer,
+      $$InsuranceCardsTableCreateCompanionBuilder,
+      $$InsuranceCardsTableUpdateCompanionBuilder,
+      (InsuranceCard, $$InsuranceCardsTableReferences),
+      InsuranceCard,
+      PrefetchHooks Function({bool profileId})
+    >;
 typedef $$OutboxEntriesTableCreateCompanionBuilder =
     OutboxEntriesCompanion Function({
       Value<int> id,
@@ -3543,6 +4753,8 @@ class $AppDatabaseManager {
       $$MedicalEventsTableTableManager(_db, _db.medicalEvents);
   $$DoctorsTableTableManager get doctors =>
       $$DoctorsTableTableManager(_db, _db.doctors);
+  $$InsuranceCardsTableTableManager get insuranceCards =>
+      $$InsuranceCardsTableTableManager(_db, _db.insuranceCards);
   $$OutboxEntriesTableTableManager get outboxEntries =>
       $$OutboxEntriesTableTableManager(_db, _db.outboxEntries);
 }

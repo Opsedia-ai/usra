@@ -13,6 +13,7 @@ import '../../core/records/record_type.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
 import '../children/growth.dart' show isUnderFive;
+import '../insurance/insurance_section.dart';
 import 'family_screen.dart';
 
 final profileProvider = StreamProvider.family<Profile?, String>(
@@ -83,6 +84,8 @@ class MemberScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 20),
+              InsuranceSection(profileId: profileId),
+              const SizedBox(height: 28),
               ...timeline.when(
                 loading: () => [
                   const Center(child: CircularProgressIndicator()),

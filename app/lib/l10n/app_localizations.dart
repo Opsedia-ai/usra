@@ -758,6 +758,168 @@ abstract class AppLocalizations {
   /// **'Spending'**
   String get memberSpending;
 
+  /// No description provided for @insuranceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance cards'**
+  String get insuranceTitle;
+
+  /// No description provided for @insuranceEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No insurance cards yet.'**
+  String get insuranceEmpty;
+
+  /// No description provided for @insuranceAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add insurance card'**
+  String get insuranceAdd;
+
+  /// No description provided for @insuranceNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New insurance card'**
+  String get insuranceNew;
+
+  /// No description provided for @insuranceEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit card'**
+  String get insuranceEdit;
+
+  /// No description provided for @insuranceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Card name (e.g. Union, Work)'**
+  String get insuranceLabel;
+
+  /// No description provided for @insuranceCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get insuranceCard;
+
+  /// No description provided for @insuranceInsurer.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance company'**
+  String get insuranceInsurer;
+
+  /// No description provided for @insuranceMemberNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Member number'**
+  String get insuranceMemberNumber;
+
+  /// No description provided for @insuranceExpiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry date'**
+  String get insuranceExpiry;
+
+  /// No description provided for @insuranceNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get insuranceNotes;
+
+  /// No description provided for @insuranceFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Front of card'**
+  String get insuranceFront;
+
+  /// No description provided for @insuranceBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back of card'**
+  String get insuranceBack;
+
+  /// No description provided for @insuranceShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Send on WhatsApp'**
+  String get insuranceShare;
+
+  /// No description provided for @insuranceShareHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s insurance card'**
+  String insuranceShareHeader(String name);
+
+  /// No description provided for @insuranceExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired {date}'**
+  String insuranceExpired(String date);
+
+  /// No description provided for @insuranceExpiresSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires {date}'**
+  String insuranceExpiresSoon(String date);
+
+  /// No description provided for @insuranceValidUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until {date}'**
+  String insuranceValidUntil(String date);
+
+  /// No description provided for @insuranceDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get insuranceDelete;
+
+  /// No description provided for @insuranceDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the {label} card? Its photos will be removed from this phone.'**
+  String insuranceDeleteConfirm(String label);
+
+  /// No description provided for @insuranceNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Card not found'**
+  String get insuranceNotFound;
+
+  /// No description provided for @clearDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear date'**
+  String get clearDate;
+
+  /// No description provided for @photoCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get photoCamera;
+
+  /// No description provided for @photoGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'From photos'**
+  String get photoGallery;
+
+  /// No description provided for @photoRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get photoRemove;
+
+  /// No description provided for @photoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t get the photo'**
+  String get photoFailed;
+
+  /// No description provided for @shareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open sharing'**
+  String get shareFailed;
+
   /// No description provided for @recordGrowth.
   ///
   /// In en, this message translates to:
