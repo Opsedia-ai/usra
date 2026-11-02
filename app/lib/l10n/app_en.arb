@@ -130,5 +130,114 @@
       }
     }
   },
-  "memberSpending": "Spending"
+  "memberSpending": "Spending",
+  "recordGrowth": "Growth measurement",
+  "fieldWeightKg": "Weight (kg)",
+  "fieldHeightCm": "Length / height (cm)",
+  "fieldHeadCm": "Head circumference (cm)",
+  "memberGrowth": "Growth and vaccines",
+  "growthTitle": "Growth and vaccines",
+  "growthAdd": "Add measurement",
+  "growthWeightForAge": "Weight for age",
+  "growthHeightForAge": "Length / height for age",
+  "growthAgeAxis": "Age (months)",
+  "growthNoSex": "Add the child's sex to their profile to see the growth charts.",
+  "growthNoData": "No measurements yet.",
+  "growthLatest": "Latest: {value} on {date}",
+  "@growthLatest": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "growthWithinRange": "Percentile {percentile}: within the usual range for this age.",
+  "@growthWithinRange": {
+    "placeholders": {
+      "percentile": {
+        "type": "String"
+      }
+    }
+  },
+  "growthOutsideRange": "Percentile {percentile}: outside the usual range. Talk to your pediatrician.",
+  "@growthOutsideRange": {
+    "placeholders": {
+      "percentile": {
+        "type": "String"
+      }
+    }
+  },
+  "growthSource": "Curves: WHO Child Growth Standards (3rd, 15th, 50th, 85th and 97th percentiles). For information only; your pediatrician reads your child's growth.",
+  "vaccinesTitle": "Mandatory vaccinations",
+  "vaccinesDisclaimer": "Based on the Egyptian Ministry of Health and Population's mandatory schedule. Schedules change, so the child's health office card is the official record.",
+  "vaccineAtBirth": "At birth",
+  "vaccineAtMonths": "{months, plural, =1{At 1 month} other{At {months} months}}",
+  "@vaccineAtMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "vaccineDone": "Done {date}",
+  "@vaccineDone": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineDue": "Due {date}",
+  "@vaccineDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineOverdue": "Overdue since {date}",
+  "@vaccineOverdue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineLater": "On {date}",
+  "@vaccineLater": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineDoseName": "{name}, dose {dose}",
+  "@vaccineDoseName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "dose": {
+        "type": "int"
+      }
+    }
+  },
+  "vaccineHepB": "Hepatitis B",
+  "vaccineBcg": "BCG (tuberculosis)",
+  "vaccineOpv": "Oral polio (drops)",
+  "vaccineIpv": "Polio injection (IPV)",
+  "vaccinePenta": "Pentavalent",
+  "vaccineMmr": "MMR (measles, mumps, rubella)",
+  "vaccineDtp": "DTP booster",
+  "vaccineZeroDose": "{name}, birth dose",
+  "@vaccineZeroDose": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }
