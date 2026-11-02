@@ -193,6 +193,23 @@
       }
     }
   },
+  "emergencyTitle": "Emergency card",
+  "emergencyUnknown": "Not recorded",
+  "emergencyNoneRecorded": "Nothing recorded",
+  "emergencySurgeries": "Past surgeries",
+  "emergencyComplete": "Complete emergency details",
+  "emergencyCallAmbulance": "Call ambulance {number}",
+  "@emergencyCallAmbulance": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "homeEmergencyTitle": "Emergency cards",
+  "homeEmergencyHint": "Open fast if someone needs an ambulance",
+  "emergencyLoading": "Loading…",
+  "emergencyLoadFailed": "Couldn't read the records",
   "recordGrowth": "Growth measurement",
   "fieldWeightKg": "Weight (kg)",
   "fieldHeightCm": "Length / height (cm)",
