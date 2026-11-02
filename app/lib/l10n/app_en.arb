@@ -36,7 +36,7 @@
   "profileConditions": "Chronic conditions",
   "profileNotFound": "Not found",
   "pickDate": "Choose a date",
-  "ageYears": "{age} years",
+  "ageYears": "{age, plural, =0{Under 1 year} =1{1 year} other{{age} years}}",
   "timelineEmpty": "No records yet. Add the first visit, scan or vaccine.",
   "addRecord": "Add record",
   "chooseRecordType": "What do you want to add?",
@@ -78,5 +78,6 @@
         "type": "int"
       }
     }
-  }
+  },
+  "saveFailed": "Could not save. Please try again."
 }

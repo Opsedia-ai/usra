@@ -122,7 +122,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String ageYears(int age) {
-    return '$age سنة';
+    String _temp0 = intl.Intl.pluralLogic(
+      age,
+      locale: localeName,
+      other: '$age سنة',
+      few: '$age سنين',
+      two: 'سنتين',
+      one: 'سنة',
+      zero: 'أقل من سنة',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -229,4 +238,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get scanOther => 'تانية';
+
+  @override
+  String get saveFailed => 'حصلت مشكلة في الحفظ، جرّب تاني';
 }

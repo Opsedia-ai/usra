@@ -143,7 +143,12 @@ class AppDatabase extends _$AppDatabase {
   Stream<List<MedicalEvent>> watchTimeline(String profileId) {
     final query = select(medicalEvents)
       ..where((e) => e.profileId.equals(profileId) & e.deletedAt.isNull())
-      ..orderBy([(e) => OrderingTerm.desc(e.occurredAt)]);
+      ..orderBy([
+        (e) => OrderingTerm.desc(e.occurredAt),
+        // Same-day records: newest insert first. UUID v7 isn't monotonic
+        // within one millisecond, rowid is.
+        (e) => OrderingTerm.desc(const CustomExpression<int>('rowid')),
+      ]);
     return query.watch();
   }
 

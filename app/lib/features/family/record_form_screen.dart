@@ -43,16 +43,24 @@ class RecordFormScreen extends ConsumerWidget {
           pickDate: l.pickDate,
         ),
         onSubmit: (result) async {
-          await ref
-              .read(databaseProvider)
-              .addEvent(
-                profileId: profileId,
-                type: type.key,
-                occurredAt: result.occurredAt,
-                dataJson: jsonEncode(result.data),
-                costMinor: result.costMinor,
-                currency: result.costMinor == null ? null : 'EGP',
-              );
+          try {
+            await ref
+                .read(databaseProvider)
+                .addEvent(
+                  profileId: profileId,
+                  type: type.key,
+                  occurredAt: result.occurredAt,
+                  dataJson: jsonEncode(result.data),
+                  costMinor: result.costMinor,
+                  currency: result.costMinor == null ? null : 'EGP',
+                );
+          } catch (_) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text(l.saveFailed)));
+            }
+            return;
+          }
           if (context.mounted) context.go('/family/$profileId');
         },
       ),

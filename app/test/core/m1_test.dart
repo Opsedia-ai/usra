@@ -1,8 +1,10 @@
 import 'package:drift/native.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/features/family/family_screen.dart';
+import 'package:usra/l10n/app_localizations.dart';
 
 void main() {
   group('ageInYears', () {
@@ -16,6 +18,30 @@ void main() {
       expect(ageInYears(null, now), isNull);
       expect(ageInYears(DateTime(2027, 1, 1), now), isNull);
     });
+  });
+
+  test('Arabic age labels use the right plural form', () async {
+    final ar = await AppLocalizations.delegate.load(const Locale('ar'));
+    expect([0, 1, 2, 5, 72].map(ar.ageYears).toList(), [
+      'أقل من سنة',
+      'سنة',
+      'سنتين',
+      '5 سنين',
+      '72 سنة',
+    ]);
+  });
+
+  test('same-day records come back newest first', () async {
+    final db = AppDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    final id = await db.addProfile('Mona');
+    final day = DateTime.utc(2026, 10, 20);
+    final ids = [
+      for (final t in ['lab', 'scan', 'visit'])
+        await db.addEvent(profileId: id, type: t, occurredAt: day),
+    ];
+    final timeline = await db.watchTimeline(id).first;
+    expect(timeline.map((e) => e.id), ids.reversed);
   });
 
   test(

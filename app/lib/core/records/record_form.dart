@@ -52,7 +52,9 @@ class RecordForm extends StatefulWidget {
 
   final RecordTypeDefinition type;
   final RecordFormStrings strings;
-  final ValueChanged<RecordFormResult> onSubmit;
+
+  /// Awaited; the Save button stays disabled until it completes.
+  final Future<void> Function(RecordFormResult) onSubmit;
   final DateTime? initialDate;
 
   @override
@@ -69,6 +71,7 @@ class _RecordFormState extends State<RecordForm> {
   final _cost = TextEditingController();
   Set<String> _problems = {};
   bool _costInvalid = false;
+  bool _submitting = false;
 
   @override
   void initState() {
@@ -120,7 +123,8 @@ class _RecordFormState extends State<RecordForm> {
     return data;
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (_submitting) return;
     final data = _collect();
     final problems = widget.type.validate(data).toSet();
 
@@ -141,13 +145,18 @@ class _RecordFormState extends State<RecordForm> {
     });
     if (problems.isNotEmpty || costInvalid) return;
 
-    widget.onSubmit(
-      RecordFormResult(
-        occurredAt: _occurredAt,
-        data: data,
-        costMinor: costMinor,
-      ),
-    );
+    setState(() => _submitting = true);
+    try {
+      await widget.onSubmit(
+        RecordFormResult(
+          occurredAt: _occurredAt,
+          data: data,
+          costMinor: costMinor,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   String? _errorFor(FieldSpec f) {
@@ -259,7 +268,7 @@ class _RecordFormState extends State<RecordForm> {
         const SizedBox(height: 28),
         FilledButton(
           key: const ValueKey('record-save'),
-          onPressed: _submit,
+          onPressed: _submitting ? null : _submit,
           child: Text(widget.strings.save),
         ),
       ],

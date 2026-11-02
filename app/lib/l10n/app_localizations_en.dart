@@ -123,7 +123,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String ageYears(int age) {
-    return '$age years';
+    String _temp0 = intl.Intl.pluralLogic(
+      age,
+      locale: localeName,
+      other: '$age years',
+      one: '1 year',
+      zero: 'Under 1 year',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -231,4 +238,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanOther => 'Other';
+
+  @override
+  String get saveFailed => 'Could not save. Please try again.';
 }

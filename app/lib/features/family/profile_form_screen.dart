@@ -71,28 +71,38 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
     setState(() => _saving = true);
     final db = ref.read(databaseProvider);
     final id = widget.profileId;
-    if (id == null) {
-      final newId = await db.addProfile(
-        _name.text,
-        birthDate: _birthDate,
-        sex: _sex,
-        bloodType: _bloodType,
-        allergies: _allergies.text,
-        conditions: _conditions.text,
+    final String savedId;
+    try {
+      if (id == null) {
+        savedId = await db.addProfile(
+          _name.text,
+          birthDate: _birthDate,
+          sex: _sex,
+          bloodType: _bloodType,
+          allergies: _allergies.text,
+          conditions: _conditions.text,
+        );
+      } else {
+        await db.updateProfile(
+          id,
+          displayName: _name.text,
+          birthDate: _birthDate,
+          sex: _sex,
+          bloodType: _bloodType,
+          allergies: _allergies.text,
+          conditions: _conditions.text,
+        );
+        savedId = id;
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).saveFailed)),
       );
-      if (mounted) context.go('/family/$newId');
-    } else {
-      await db.updateProfile(
-        id,
-        displayName: _name.text,
-        birthDate: _birthDate,
-        sex: _sex,
-        bloodType: _bloodType,
-        allergies: _allergies.text,
-        conditions: _conditions.text,
-      );
-      if (mounted) context.go('/family/$id');
+      return;
     }
+    if (mounted) context.go('/family/$savedId');
   }
 
   @override

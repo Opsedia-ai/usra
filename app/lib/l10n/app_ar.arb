@@ -36,7 +36,7 @@
   "profileConditions": "أمراض مزمنة",
   "profileNotFound": "مش موجود",
   "pickDate": "اختار تاريخ",
-  "ageYears": "{age} سنة",
+  "ageYears": "{age, plural, =0{أقل من سنة} =1{سنة} =2{سنتين} few{{age} سنين} other{{age} سنة}}",
   "timelineEmpty": "مفيش سجلات لسه. ضيف أول زيارة أو أشعة أو تطعيم.",
   "addRecord": "ضيف سجل",
   "chooseRecordType": "عايز تضيف إيه؟",
@@ -71,5 +71,6 @@
   "scanCt": "أشعة مقطعية",
   "scanMri": "رنين مغناطيسي",
   "scanUltrasound": "سونار",
-  "scanOther": "تانية"
+  "scanOther": "تانية",
+  "saveFailed": "حصلت مشكلة في الحفظ، جرّب تاني"
 }

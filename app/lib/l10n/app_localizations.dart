@@ -317,7 +317,7 @@ abstract class AppLocalizations {
   /// No description provided for @ageYears.
   ///
   /// In en, this message translates to:
-  /// **'{age} years'**
+  /// **'{age, plural, =0{Under 1 year} =1{1 year} other{{age} years}}'**
   String ageYears(int age);
 
   /// No description provided for @timelineEmpty.
@@ -529,6 +529,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get scanOther;
+
+  /// No description provided for @saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save. Please try again.'**
+  String get saveFailed;
 }
 
 class _AppLocalizationsDelegate
