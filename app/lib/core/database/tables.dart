@@ -44,6 +44,25 @@ class MedicalEvents extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// A doctor the family sees, shared by every person (schema v3).
+class Doctors extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get specialty => text().nullable()();
+  TextColumn get phone => text().nullable()();
+  TextColumn get clinic => text().nullable()();
+  TextColumn get address => text().nullable()();
+
+  /// Usual visit fee in the smallest currency unit (piasters for EGP).
+  IntColumn get feeMinor => integer().nullable()();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Local changes waiting to be synced (used once sync is switched on).
 class OutboxEntries extends Table {
   IntColumn get id => integer().autoIncrement()();

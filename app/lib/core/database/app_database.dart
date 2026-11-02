@@ -5,14 +5,14 @@ import 'tables.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Profiles, MedicalEvents, OutboxEntries])
+@DriftDatabase(tables: [Profiles, MedicalEvents, Doctors, OutboxEntries])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   static const _uuid = Uuid();
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -21,6 +21,9 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(profiles, profiles.bloodType);
         await m.addColumn(profiles, profiles.allergies);
         await m.addColumn(profiles, profiles.conditions);
+      }
+      if (from < 3) {
+        await m.createTable(doctors);
       }
     },
     beforeOpen: (details) async {
@@ -159,6 +162,7 @@ class AppDatabase extends _$AppDatabase {
     String dataJson = '{}',
     int? costMinor,
     String? currency,
+    String? doctorId,
   }) async {
     final id = _uuid.v7();
     await transaction(() async {
@@ -171,6 +175,7 @@ class AppDatabase extends _$AppDatabase {
           dataJson: Value(dataJson),
           costMinor: Value(costMinor),
           currency: Value(currency),
+          doctorId: Value(doctorId),
           updatedAt: DateTime.now().toUtc(),
         ),
       );
@@ -192,6 +197,93 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  /// Doctors that are not deleted, by name.
+  Stream<List<Doctor>> watchDoctors() {
+    final query = select(doctors)
+      ..where((d) => d.deletedAt.isNull())
+      ..orderBy([(d) => OrderingTerm.asc(d.name)]);
+    return query.watch();
+  }
+
+  Stream<Doctor?> watchDoctor(String id) {
+    return (select(doctors)
+          ..where((d) => d.id.equals(id) & d.deletedAt.isNull()))
+        .watchSingleOrNull();
+  }
+
+  /// Creates a doctor, or updates [id] when given. Returns the doctor's id.
+  Future<String> saveDoctor({
+    String? id,
+    required String name,
+    String? specialty,
+    String? phone,
+    String? clinic,
+    String? address,
+    int? feeMinor,
+    String? notes,
+  }) async {
+    final cleanName = name.trim();
+    if (cleanName.isEmpty) {
+      throw ArgumentError.value(name, 'name', 'must not be empty');
+    }
+    final doctorId = id ?? _uuid.v7();
+    final row = DoctorsCompanion(
+      id: Value(doctorId),
+      name: Value(cleanName),
+      specialty: Value(_clean(specialty)),
+      phone: Value(_clean(phone)),
+      clinic: Value(_clean(clinic)),
+      address: Value(_clean(address)),
+      feeMinor: Value(feeMinor),
+      notes: Value(_clean(notes)),
+      updatedAt: Value(DateTime.now().toUtc()),
+    );
+    await transaction(() async {
+      if (id == null) {
+        await into(doctors).insert(row);
+      } else {
+        await (update(doctors)..where((d) => d.id.equals(id))).write(row);
+      }
+      await _queue('doctor', doctorId, 'upsert');
+    });
+    return doctorId;
+  }
+
+  /// Marks a doctor deleted. Past visits keep their link and the name saved
+  /// in the visit, so history is never lost.
+  Future<void> softDeleteDoctor(String id) async {
+    final now = DateTime.now().toUtc();
+    await transaction(() async {
+      await (update(doctors)..where((d) => d.id.equals(id))).write(
+        DoctorsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+      );
+      await _queue('doctor', id, 'delete');
+    });
+  }
+
+  /// Every family member's live records with this doctor, newest first.
+  Stream<List<DoctorVisit>> watchDoctorVisits(String doctorId) {
+    final query =
+        select(medicalEvents).join([
+            innerJoin(profiles, profiles.id.equalsExp(medicalEvents.profileId)),
+          ])
+          ..where(
+            medicalEvents.doctorId.equals(doctorId) &
+                medicalEvents.deletedAt.isNull() &
+                profiles.deletedAt.isNull(),
+          )
+          ..orderBy([OrderingTerm.desc(medicalEvents.occurredAt)]);
+    return query.watch().map(
+      (rows) => [
+        for (final r in rows)
+          DoctorVisit(
+            event: r.readTable(medicalEvents),
+            person: r.readTable(profiles),
+          ),
+      ],
+    );
+  }
+
   Future<void> _queue(String entity, String id, String operation) {
     return into(outboxEntries).insert(
       OutboxEntriesCompanion.insert(
@@ -202,4 +294,12 @@ class AppDatabase extends _$AppDatabase {
       ),
     );
   }
+}
+
+/// A record with a doctor, and who in the family it was for.
+class DoctorVisit {
+  const DoctorVisit({required this.event, required this.person});
+
+  final MedicalEvent event;
+  final Profile person;
 }

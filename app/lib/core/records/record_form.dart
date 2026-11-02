@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../util/localized_numbers.dart';
 import 'record_type.dart';
 
 /// Words the form needs, passed in so the core stays free of feature strings.
@@ -13,6 +14,7 @@ class RecordFormStrings {
     required this.required,
     required this.invalid,
     required this.pickDate,
+    this.chooseDoctor = '',
   });
 
   final String date;
@@ -22,6 +24,31 @@ class RecordFormStrings {
   final String required;
   final String invalid;
   final String pickDate;
+
+  /// Label of the "pick from your doctors" menu on types with a doctor field.
+  final String chooseDoctor;
+}
+
+/// A saved doctor offered in the form's doctor menu.
+class DoctorChoice {
+  const DoctorChoice({
+    required this.id,
+    required this.name,
+    this.specialty,
+    this.feeMinor,
+  });
+
+  final String id;
+  final String name;
+  final String? specialty;
+  final int? feeMinor;
+
+  // By id, so a rebuilt list still matches the picked doctor.
+  @override
+  bool operator ==(Object other) => other is DoctorChoice && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 /// What the user entered, ready to store as a `MedicalEvent`.
@@ -30,6 +57,7 @@ class RecordFormResult {
     required this.occurredAt,
     required this.data,
     this.costMinor,
+    this.doctorId,
   });
 
   final DateTime occurredAt;
@@ -37,6 +65,9 @@ class RecordFormResult {
 
   /// Cost in the smallest currency unit (piasters for EGP).
   final int? costMinor;
+
+  /// The saved doctor picked from the menu, if the name wasn't changed after.
+  final String? doctorId;
 }
 
 /// A form built from any [RecordTypeDefinition], so a new record type needs
@@ -48,6 +79,7 @@ class RecordForm extends StatefulWidget {
     required this.strings,
     required this.onSubmit,
     this.initialDate,
+    this.doctors = const [],
   });
 
   final RecordTypeDefinition type;
@@ -56,6 +88,9 @@ class RecordForm extends StatefulWidget {
   /// Awaited; the Save button stays disabled until it completes.
   final Future<void> Function(RecordFormResult) onSubmit;
   final DateTime? initialDate;
+
+  /// Saved doctors, offered when the type has a [RecordTypeDefinition.doctorField].
+  final List<DoctorChoice> doctors;
 
   @override
   State<RecordForm> createState() => _RecordFormState();
@@ -72,12 +107,40 @@ class _RecordFormState extends State<RecordForm> {
   Set<String> _problems = {};
   bool _costInvalid = false;
   bool _submitting = false;
+  DoctorChoice? _doctor;
+
+  /// The fee text last filled in from a doctor, so switching doctors can
+  /// replace it without overwriting a cost the user typed.
+  String? _autoFee;
 
   @override
   void initState() {
     super.initState();
     for (final f in widget.type.fields) {
       if (_usesTextField(f.kind)) _text[f.key] = TextEditingController();
+    }
+    // Typing a different name unlinks the picked doctor.
+    _doctorText?.addListener(() {
+      if (_doctor != null && _doctorText!.text.trim() != _doctor!.name) {
+        setState(() => _doctor = null);
+      }
+    });
+  }
+
+  TextEditingController? get _doctorText {
+    final key = widget.type.doctorField;
+    return key == null ? null : _text[key];
+  }
+
+  void _pickDoctor(DoctorChoice? d) {
+    setState(() => _doctor = d);
+    if (d == null) return;
+    _doctorText?.text = d.name;
+    final current = _cost.text.trim();
+    final untouched = current.isEmpty || current == _autoFee;
+    if (widget.type.hasCost && untouched) {
+      _autoFee = d.feeMinor == null ? null : formatMoneyInput(d.feeMinor!);
+      _cost.text = _autoFee ?? '';
     }
   }
 
@@ -95,17 +158,6 @@ class _RecordFormState extends State<RecordForm> {
       kind == FieldKind.number ||
       kind == FieldKind.money;
 
-  static num? _parseNumber(String raw) {
-    // Accept Arabic-Indic digits and the Arabic decimal separator.
-    const arabic = '٠١٢٣٤٥٦٧٨٩';
-    final western = raw.trim().split('').map((ch) {
-      final i = arabic.indexOf(ch);
-      if (i >= 0) return '$i';
-      return ch == '٫' ? '.' : ch;
-    }).join();
-    return western.isEmpty ? null : num.tryParse(western);
-  }
-
   Map<String, Object?> _collect() {
     final data = <String, Object?>{};
     for (final f in widget.type.fields) {
@@ -115,7 +167,9 @@ class _RecordFormState extends State<RecordForm> {
           if (v.isNotEmpty) data[f.key] = v;
         case FieldKind.number || FieldKind.money:
           final raw = _text[f.key]!.text;
-          if (raw.trim().isNotEmpty) data[f.key] = _parseNumber(raw) ?? raw;
+          if (raw.trim().isNotEmpty) {
+            data[f.key] = parseLocalizedNumber(raw) ?? raw;
+          }
         case FieldKind.date || FieldKind.choice || FieldKind.boolean:
           if (_values[f.key] != null) data[f.key] = _values[f.key];
       }
@@ -131,12 +185,8 @@ class _RecordFormState extends State<RecordForm> {
     int? costMinor;
     var costInvalid = false;
     if (widget.type.hasCost && _cost.text.trim().isNotEmpty) {
-      final amount = _parseNumber(_cost.text);
-      if (amount == null || amount < 0) {
-        costInvalid = true;
-      } else {
-        costMinor = (amount * 100).round();
-      }
+      costMinor = parseMoneyMinor(_cost.text);
+      costInvalid = costMinor == null;
     }
 
     setState(() {
@@ -152,6 +202,7 @@ class _RecordFormState extends State<RecordForm> {
           occurredAt: _occurredAt,
           data: data,
           costMinor: costMinor,
+          doctorId: _doctor?.id,
         ),
       );
     } finally {
@@ -250,6 +301,30 @@ class _RecordFormState extends State<RecordForm> {
         ),
         for (final f in widget.type.fields) ...[
           const SizedBox(height: 16),
+          if (f.key == widget.type.doctorField &&
+              widget.doctors.isNotEmpty) ...[
+            DropdownButtonFormField<DoctorChoice>(
+              key: const ValueKey('field-doctorPick'),
+              initialValue: _doctor,
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: widget.strings.chooseDoctor,
+                prefixIcon: const Icon(Icons.contacts_outlined),
+              ),
+              items: [
+                for (final d in widget.doctors)
+                  DropdownMenuItem(
+                    value: d,
+                    child: Text(
+                      [d.name, ?d.specialty].join(' · '),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
+              onChanged: _pickDoctor,
+            ),
+            const SizedBox(height: 12),
+          ],
           _field(f),
         ],
         if (widget.type.hasCost) ...[

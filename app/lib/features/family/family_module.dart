@@ -63,6 +63,7 @@ class FamilyModule extends FeatureModule {
       key: 'visit',
       icon: Icons.medical_services_outlined,
       label: (c) => _l(c).recordVisit,
+      doctorField: 'doctorName',
       fields: [
         FieldSpec(
           key: 'doctorName',

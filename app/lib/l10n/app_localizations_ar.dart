@@ -241,4 +241,73 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get saveFailed => 'حصلت مشكلة في الحفظ، جرّب تاني';
+
+  @override
+  String get navDoctors => 'الدكاترة';
+
+  @override
+  String get doctorsTitle => 'دكاترة العيلة';
+
+  @override
+  String get doctorsEmpty =>
+      'لسه مفيش دكاترة. ضيف دكتور العيلة عشان تكلّمه بلمسة واحدة.';
+
+  @override
+  String get doctorsAdd => 'ضيف دكتور';
+
+  @override
+  String get doctorNew => 'دكتور جديد';
+
+  @override
+  String get doctorEdit => 'تعديل الدكتور';
+
+  @override
+  String get doctorName => 'اسم الدكتور';
+
+  @override
+  String get doctorSpecialty => 'التخصص';
+
+  @override
+  String get doctorPhone => 'رقم التليفون';
+
+  @override
+  String get doctorClinic => 'العيادة أو المستشفى';
+
+  @override
+  String get doctorAddress => 'العنوان';
+
+  @override
+  String get doctorFee => 'سعر الكشف';
+
+  @override
+  String get doctorNotes => 'ملاحظات';
+
+  @override
+  String get doctorCall => 'اتصل';
+
+  @override
+  String get doctorWhatsapp => 'واتساب';
+
+  @override
+  String get doctorDelete => 'امسح';
+
+  @override
+  String doctorDeleteConfirm(String name) {
+    return 'نمسح $name من القائمة؟ الزيارات القديمة هتفضل زي ما هي.';
+  }
+
+  @override
+  String get doctorVisits => 'الزيارات';
+
+  @override
+  String get doctorNoVisits => 'مفيش زيارات متسجلة مع الدكتور ده لسه.';
+
+  @override
+  String get doctorNotFound => 'الدكتور ده مش موجود';
+
+  @override
+  String get chooseDoctor => 'اختار من دكاترة العيلة';
+
+  @override
+  String get contactFailed => 'مقدرناش نفتح التطبيق ده على الموبايل';
 }

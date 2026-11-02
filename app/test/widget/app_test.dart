@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/design/dr_usra.dart';
@@ -98,6 +99,78 @@ void main() {
 
     expect(find.text('زيارة دكتور · د. هاني'), findsOneWidget);
     expect(find.textContaining('600'), findsOneWidget);
+  });
+
+  testWidgets('a saved doctor fills the visit and lists it on their page', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 3000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    // Database calls outside the widgets run on real time, not fake time.
+    final kid = (await tester.runAsync(() => db.addProfile('عمر')))!;
+    await tester.runAsync(
+      () => db.saveDoctor(name: 'د. هاني', feeMinor: 60000),
+    );
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+
+    // Add the doctor.
+    await tester.tap(find.text('الدكاترة'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('doctor-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('doctor-name')), 'د. منى');
+    await tester.enterText(
+      find.byKey(const ValueKey('doctor-phone')),
+      '01012345678',
+    );
+    await tester.enterText(find.byKey(const ValueKey('doctor-fee')), '٤٥٠');
+    await tester.tap(find.byKey(const ValueKey('doctor-save')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('doctor-call')), findsOneWidget);
+    expect(find.byKey(const ValueKey('doctor-whatsapp')), findsOneWidget);
+
+    // Record a visit for Omar, picking her from the menu.
+    final router = tester.element(find.byType(Scaffold).first);
+    GoRouter.of(router).go('/family/$kid/add/visit');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('field-doctorPick')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('د. منى').last);
+    await tester.pumpAndSettle();
+    String costText() => tester
+        .widget<TextField>(
+          find.descendant(
+            of: find.byKey(const ValueKey('field-cost')),
+            matching: find.byType(TextField),
+          ),
+        )
+        .controller!
+        .text;
+    expect(costText(), '450');
+    // Switching to another doctor replaces the auto-filled fee.
+    await tester.tap(find.byKey(const ValueKey('field-doctorPick')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('د. هاني').last);
+    await tester.pumpAndSettle();
+    expect(costText(), '600');
+    await tester.tap(find.byKey(const ValueKey('field-doctorPick')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('د. منى').last);
+    await tester.pumpAndSettle();
+    expect(costText(), '450');
+
+    await tester.tap(find.byKey(const ValueKey('record-save')));
+    await tester.pumpAndSettle();
+    expect(find.text('زيارة دكتور · د. منى'), findsOneWidget);
+
+    // The doctor's page lists the visit, with who it was for.
+    final doctors = (await tester.runAsync(() => db.watchDoctors().first))!;
+    final doctorId = doctors.singleWhere((d) => d.name == 'د. منى').id;
+    GoRouter.of(router).go('/doctors/$doctorId');
+    await tester.pumpAndSettle();
+    expect(find.text('عمر · زيارة دكتور'), findsOneWidget);
   });
 
   testWidgets('every Dr. Usra pose paints without errors', (tester) async {

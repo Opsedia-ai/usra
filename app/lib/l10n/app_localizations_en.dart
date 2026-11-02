@@ -241,4 +241,73 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveFailed => 'Could not save. Please try again.';
+
+  @override
+  String get navDoctors => 'Doctors';
+
+  @override
+  String get doctorsTitle => 'Family doctors';
+
+  @override
+  String get doctorsEmpty =>
+      'No doctors yet. Add your family doctor to call them in one tap.';
+
+  @override
+  String get doctorsAdd => 'Add doctor';
+
+  @override
+  String get doctorNew => 'New doctor';
+
+  @override
+  String get doctorEdit => 'Edit doctor';
+
+  @override
+  String get doctorName => 'Doctor\'s name';
+
+  @override
+  String get doctorSpecialty => 'Specialty';
+
+  @override
+  String get doctorPhone => 'Phone number';
+
+  @override
+  String get doctorClinic => 'Clinic or hospital';
+
+  @override
+  String get doctorAddress => 'Address';
+
+  @override
+  String get doctorFee => 'Visit fee';
+
+  @override
+  String get doctorNotes => 'Notes';
+
+  @override
+  String get doctorCall => 'Call';
+
+  @override
+  String get doctorWhatsapp => 'WhatsApp';
+
+  @override
+  String get doctorDelete => 'Delete';
+
+  @override
+  String doctorDeleteConfirm(String name) {
+    return 'Remove $name from your doctors? Past visits stay as they are.';
+  }
+
+  @override
+  String get doctorVisits => 'Visits';
+
+  @override
+  String get doctorNoVisits => 'No visits recorded with this doctor yet.';
+
+  @override
+  String get doctorNotFound => 'Doctor not found';
+
+  @override
+  String get chooseDoctor => 'Pick from family doctors';
+
+  @override
+  String get contactFailed => 'Couldn\'t open that app on this phone';
 }
