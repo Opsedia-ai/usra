@@ -1,6 +1,7 @@
 import { assertEquals, assertRejects, assertThrows } from "jsr:@std/assert@1";
 import { bytesToBase64 } from "../../functions/_shared/crypto.ts";
 import { HttpError } from "../../functions/_shared/http.ts";
+import { ProviderError } from "../../functions/_shared/llm.ts";
 import { SlidingWindowLimiter } from "../../functions/_shared/rate_limit.ts";
 import type { QuotaResult } from "../../functions/_shared/supabase.ts";
 import { createOcrHandler } from "../../functions/ocr-fallback/handler.ts";
@@ -37,22 +38,31 @@ Deno.test("image check: rejects bad base64, other formats, mismatched type and l
   assertThrows(() => checkImage(undefined, undefined), HttpError);
 });
 
-function setup(readerOutput: unknown, quota: QuotaResult = { allowed: true, used: 1, limit: 20 }) {
+function setup(
+  readerOutput: unknown,
+  quota: QuotaResult = { allowed: true, used: 1, limit: 20, requestId: 7 },
+  readerError?: Error,
+) {
   let reads = 0;
+  const released: number[] = [];
   const reader: MedicationReader = {
     name: "fake",
     read: () => {
       reads++;
+      if (readerError) return Promise.reject(readerError);
       return Promise.resolve({ output: readerOutput, inputTokens: 1, outputTokens: 1 });
     },
   };
   const handler = createOcrHandler({
     getUserId: () => Promise.resolve("user-1"),
     burstLimiter: new SlidingWindowLimiter(2, 60_000),
-    quota: { consume: () => Promise.resolve(quota) },
+    quota: {
+      consume: () => Promise.resolve(quota),
+      release: (_user, id) => Promise.resolve(void released.push(id)),
+    },
     reader,
   });
-  return { handler, reads: () => reads };
+  return { handler, reads: () => reads, released };
 }
 
 const post = (body: unknown) => new Request("http://local/ocr", { method: "POST", body: JSON.stringify(body) });
@@ -106,4 +116,25 @@ Deno.test("ocr: provider output that breaks the schema is a 502", async () => {
   const { handler } = setup({ medications: [{ name: "X", confidence: 7 }] });
   const err = await assertRejects(() => handler(post({ image_base64: jpeg(), consent: true })), HttpError);
   assertEquals([err.status, err.code], [502, "ocr_invalid_output"]);
+});
+
+Deno.test("ocr: a failed read gives the quota slot back", async () => {
+  const bad = setup({ medications: [{ name: "X", confidence: 7 }] });
+  await assertRejects(() => bad.handler(post({ image_base64: jpeg(), consent: true })), HttpError);
+  assertEquals(bad.released, [7]);
+
+  const down = setup(null, undefined, new ProviderError("timeout"));
+  const err = await assertRejects(() => down.handler(post({ image_base64: jpeg(), consent: true })), HttpError);
+  assertEquals(err.code, "ocr_unavailable");
+  assertEquals(down.released, [7]);
+
+  const ok = setup({ medications: [] });
+  await ok.handler(post({ image_base64: jpeg(), consent: true }));
+  assertEquals(ok.released, []);
+});
+
+Deno.test("ocr: the database burst limit returns rate_limited", async () => {
+  const { handler } = setup({ medications: [] }, { allowed: false, used: 3, limit: 20, reason: "burst" });
+  const err = await assertRejects(() => handler(post({ image_base64: jpeg(), consent: true })), HttpError);
+  assertEquals([err.status, err.code], [429, "rate_limited"]);
 });

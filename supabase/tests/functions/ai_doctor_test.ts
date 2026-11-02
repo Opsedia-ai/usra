@@ -1,7 +1,7 @@
 import { assert, assertEquals, assertRejects, assertStringIncludes } from "jsr:@std/assert@1";
 import { HttpError } from "../../functions/_shared/http.ts";
 import { type LlmProvider, ProviderError, type StructuredRequest } from "../../functions/_shared/llm.ts";
-import type { AiRunLog, CreditsStore, ReserveResult } from "../../functions/_shared/supabase.ts";
+import type { AiRunLog, CreditsStore, ReservationStatus, ReserveResult } from "../../functions/_shared/supabase.ts";
 import { createAiDoctorHandler } from "../../functions/ai-doctor/handler.ts";
 import { buildContent } from "../../functions/ai-doctor/prompt.ts";
 import { validateSnapshot } from "../../functions/ai-doctor/snapshot.ts";
@@ -69,19 +69,30 @@ Deno.test("prompt: record text cannot close the snapshot tag", () => {
 class FakeCredits implements CreditsStore {
   balance: number;
   events: string[] = [];
+  statuses = new Map<string, ReservationStatus>();
+  failCommit = false;
   constructor(balance: number) {
     this.balance = balance;
   }
   reserve(_user: string, amount: number, id: string): Promise<ReserveResult> {
     this.events.push(`reserve:${amount}`);
+    if (this.statuses.has(id)) {
+      return Promise.resolve({ ok: false, error: "duplicate_request", balance: this.balance });
+    }
     if (this.balance < amount) {
       return Promise.resolve({ ok: false, error: "insufficient_credits", balance: this.balance, required: amount });
     }
     this.balance -= amount;
+    this.statuses.set(id, "reserved");
     return Promise.resolve({ ok: true, reservationId: id, balance: this.balance });
   }
-  commit() {
+  status(_user: string, id: string): Promise<ReservationStatus> {
+    return Promise.resolve(this.statuses.get(id) ?? "unknown");
+  }
+  commit(id: string) {
     this.events.push("commit");
+    if (this.failCommit) return Promise.reject(new Error("db down"));
+    this.statuses.set(id, "commit");
     return Promise.resolve({ ok: true, balance: this.balance });
   }
   refund() {
@@ -188,4 +199,40 @@ Deno.test("ai-doctor: request_id must be a UUID", async () => {
   const { handler } = setup(3, () => validReport);
   const err = await assertRejects(() => handler(post({ snapshot, request_id: "abc" })), HttpError);
   assertEquals(err.status, 400);
+});
+
+const RETRY_ID = "11111111-2222-4333-8444-555555555555";
+
+Deno.test("ai-doctor: a retry of a paid request re-runs free instead of losing the result", async () => {
+  const { credits, llm, logs, handler } = setup(3, () => validReport);
+  const first = await handler(post({ snapshot, request_id: RETRY_ID }));
+  assertEquals((await first.json()).credits.charged, 1);
+
+  const retry = await handler(post({ snapshot, request_id: RETRY_ID }));
+  assertEquals(retry.status, 200);
+  const body = await retry.json();
+  assertEquals(body.report, validReport);
+  assertEquals(body.credits.charged, 0);
+  assertEquals(credits.balance, 2);
+  assertEquals(llm.calls.length, 2);
+  assertEquals(logs.map((l) => l.status), ["ok", "free_retry"]);
+});
+
+Deno.test("ai-doctor: a retry while the first run is still going is a 409", async () => {
+  const { credits, llm, handler } = setup(3, () => validReport);
+  credits.statuses.set(RETRY_ID, "reserved");
+  const err = await assertRejects(() => handler(post({ snapshot, request_id: RETRY_ID })), HttpError);
+  assertEquals([err.status, err.code], [409, "in_progress"]);
+  assertEquals(llm.calls.length, 0);
+});
+
+Deno.test("ai-doctor: a failed commit still returns the report", async () => {
+  const { credits, logs, handler } = setup(3, () => validReport);
+  credits.failCommit = true;
+  const res = await handler(post({ snapshot }));
+  assertEquals(res.status, 200);
+  const body = await res.json();
+  assertEquals(body.report, validReport);
+  assertEquals(body.credits.balance, null);
+  assertEquals(logs.map((l) => l.status), ["commit_failed"]);
 });

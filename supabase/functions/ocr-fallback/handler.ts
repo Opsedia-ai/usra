@@ -37,16 +37,32 @@ export function createOcrHandler(deps: OcrDeps): Handler {
 
     const quota = await deps.quota.consume(userId);
     if (!quota.allowed) {
+      if (quota.reason === "burst") {
+        throw new HttpError(429, "rate_limited", "Too many requests, try again shortly", {
+          retry_after_seconds: 60,
+        });
+      }
       throw new HttpError(429, "quota_exceeded", "Monthly cloud reading limit reached", {
         limit: quota.limit,
         resets_at: quota.resetsAt,
       });
     }
 
+    // A failed read gives its quota slot back.
+    const giveBack = async () => {
+      if (quota.requestId === undefined) return;
+      try {
+        await deps.quota.release(userId, quota.requestId);
+      } catch (err) {
+        console.error("ocr_quota_release_failed", err instanceof Error ? err.name : typeof err);
+      }
+    };
+
     let raw;
     try {
       raw = await deps.reader.read(image);
     } catch (err) {
+      await giveBack();
       if (err instanceof ProviderError) {
         throw new HttpError(502, "ocr_unavailable", "Cloud reading is unavailable, please type it in");
       }
@@ -55,6 +71,7 @@ export function createOcrHandler(deps: OcrDeps): Handler {
 
     const output = normaliseOcrOutput(raw.output);
     if (validate(OCR_SCHEMA, output).length > 0) {
+      await giveBack();
       throw new HttpError(502, "ocr_invalid_output", "Cloud reading failed, please type it in");
     }
 

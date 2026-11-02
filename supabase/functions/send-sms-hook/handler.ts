@@ -2,7 +2,7 @@
 // with Standard Webhooks; we send the OTP through the configured provider.
 // Response contract: 200 {} on success, or { error: { http_code, message } }.
 
-import { type Handler, isRecord } from "../_shared/http.ts";
+import { type Handler, HttpError, isRecord, readTextCapped } from "../_shared/http.ts";
 import { verifyWebhook, WebhookVerificationError } from "../_shared/standard_webhooks.ts";
 import type { SmsProvider } from "./providers.ts";
 
@@ -39,7 +39,14 @@ async function verifiedByAny(secrets: string[], headers: Headers, body: string):
 
 export function createSmsHookHandler(deps: SmsHookDeps): Handler {
   return async (req) => {
-    const body = await req.text();
+    let body: string;
+    try {
+      // Auth hook payloads are tiny; cap before verifying the signature.
+      body = await readTextCapped(req, 16 * 1024);
+    } catch (err) {
+      if (err instanceof HttpError) return hookError(413, "Payload too large");
+      throw err;
+    }
     if (!(await verifiedByAny(deps.secrets, req.headers, body))) {
       return hookError(401, "Invalid hook signature");
     }

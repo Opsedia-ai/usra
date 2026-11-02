@@ -31,8 +31,12 @@ export type ReserveResult =
   | { ok: true; reservationId: string; balance: number }
   | { ok: false; error: "insufficient_credits" | "duplicate_request"; balance: number; required?: number };
 
+export type ReservationStatus = "reserved" | "commit" | "refund" | "unknown";
+
 export interface CreditsStore {
   reserve(userId: string, amount: number, reservationId: string): Promise<ReserveResult>;
+  /** Where a reservation stands, for this user only ("unknown" for anyone else's). */
+  status(userId: string, reservationId: string): Promise<ReservationStatus>;
   commit(reservationId: string): Promise<{ ok: boolean; balance: number }>;
   refund(reservationId: string): Promise<{ ok: boolean; balance: number }>;
 }
@@ -51,6 +55,15 @@ export class SupabaseCreditsStore implements CreditsStore {
     return data.ok
       ? { ok: true, reservationId: data.reservation_id, balance: data.balance }
       : { ok: false, error: data.error, balance: data.balance, required: data.required };
+  }
+
+  async status(userId: string, reservationId: string): Promise<ReservationStatus> {
+    const { data, error } = await this.db.rpc("reservation_status", {
+      p_user: userId,
+      p_reservation_id: reservationId,
+    });
+    if (error) throw new Error(`reservation_status failed: ${error.code}`);
+    return data as ReservationStatus;
   }
 
   async commit(reservationId: string) {
@@ -77,7 +90,7 @@ export type AiRunLog = {
   model: string;
   inputTokens?: number;
   outputTokens?: number;
-  status: "ok" | "provider_error" | "invalid_output";
+  status: "ok" | "provider_error" | "invalid_output" | "commit_failed" | "free_retry";
 };
 
 export interface AiRunLogger {
@@ -104,16 +117,27 @@ export class SupabaseAiRunLogger implements AiRunLogger {
 
 // --- OCR quota ---------------------------------------------------------------------
 
-export type QuotaResult = { allowed: boolean; used: number; limit: number; resetsAt?: string };
+export type QuotaResult = {
+  allowed: boolean;
+  used: number;
+  limit: number;
+  /** "burst": too many in the last minute; "quota": monthly limit reached */
+  reason?: "burst" | "quota";
+  resetsAt?: string;
+  /** Id of the counted request, to give the slot back if the read fails. */
+  requestId?: number;
+};
 
 export interface OcrQuota {
   consume(userId: string): Promise<QuotaResult>;
+  release(userId: string, requestId: number): Promise<void>;
 }
 
 export class SupabaseOcrQuota implements OcrQuota {
   constructor(
     private readonly limit: number,
     private readonly windowDays: number,
+    private readonly burstPerMinute: number,
     private readonly db: SupabaseClient = getServiceClient(),
   ) {}
 
@@ -122,8 +146,22 @@ export class SupabaseOcrQuota implements OcrQuota {
       p_user: userId,
       p_limit: this.limit,
       p_window: `${this.windowDays} days`,
+      p_burst: this.burstPerMinute,
+      p_burst_window: "1 minute",
     });
     if (error) throw new Error(`consume_ocr_quota failed: ${error.code}`);
-    return { allowed: data.allowed, used: data.used, limit: data.limit, resetsAt: data.resets_at };
+    return {
+      allowed: data.allowed,
+      used: data.used,
+      limit: data.limit,
+      reason: data.reason,
+      resetsAt: data.resets_at,
+      requestId: data.request_id,
+    };
+  }
+
+  async release(userId: string, requestId: number): Promise<void> {
+    const { error } = await this.db.rpc("release_ocr_quota", { p_user: userId, p_request_id: requestId });
+    if (error) throw new Error(`release_ocr_quota failed: ${error.code}`);
   }
 }

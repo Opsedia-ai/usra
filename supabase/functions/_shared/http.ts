@@ -51,14 +51,40 @@ export function withHttp(handler: Handler): Handler {
   };
 }
 
-/** Reads a JSON body with a size cap, so a huge upload can't exhaust memory. */
-export async function readJson(req: Request, maxBytes: number): Promise<unknown> {
+/**
+ * Reads the body as text, stopping as soon as it passes `maxBytes`, so a huge
+ * or chunked upload (no Content-Length) can't exhaust memory.
+ */
+export async function readTextCapped(req: Request, maxBytes: number): Promise<string> {
   const declared = Number(req.headers.get("content-length") ?? "0");
   if (declared > maxBytes) throw new HttpError(413, "payload_too_large");
-  const text = await req.text();
-  if (new TextEncoder().encode(text).byteLength > maxBytes) {
-    throw new HttpError(413, "payload_too_large");
+  if (!req.body) return "";
+
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel();
+      throw new HttpError(413, "payload_too_large");
+    }
+    chunks.push(value);
   }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
+/** Reads a JSON body with a size cap, so a huge upload can't exhaust memory. */
+export async function readJson(req: Request, maxBytes: number): Promise<unknown> {
+  const text = await readTextCapped(req, maxBytes);
   try {
     return JSON.parse(text);
   } catch {

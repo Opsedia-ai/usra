@@ -10,8 +10,14 @@ import { LlmMedicationReader } from "./medication_reader.ts";
 
 const handler = createOcrHandler({
   getUserId: requireUserId,
+  // Cheap first guard inside one instance; the database enforces the real
+  // per-user burst and monthly limits across all instances.
   burstLimiter: new SlidingWindowLimiter(intEnv("OCR_BURST_PER_MINUTE", 5), 60_000),
-  quota: new SupabaseOcrQuota(intEnv("OCR_MONTHLY_LIMIT", 20), intEnv("OCR_QUOTA_WINDOW_DAYS", 30)),
+  quota: new SupabaseOcrQuota(
+    intEnv("OCR_MONTHLY_LIMIT", 20),
+    intEnv("OCR_QUOTA_WINDOW_DAYS", 30),
+    intEnv("OCR_BURST_PER_MINUTE", 5),
+  ),
   reader: new LlmMedicationReader(
     new AnthropicProvider({
       apiKey: requireEnv("ANTHROPIC_API_KEY"),
