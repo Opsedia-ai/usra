@@ -358,9 +358,11 @@ class AppDatabase extends _$AppDatabase {
       if (id == null) {
         await into(insuranceCards).insert(row);
       } else {
-        await (update(
+        final changed = await (update(
           insuranceCards,
-        )..where((c) => c.id.equals(id))).write(row);
+        )..where((c) => c.id.equals(id) & c.deletedAt.isNull())).write(row);
+        // Deleted meanwhile (or never existed): don't revive a tombstone.
+        if (changed == 0) throw StateError('Insurance card $id not found');
       }
       await _queue('insurance_card', cardId, 'upsert');
     });

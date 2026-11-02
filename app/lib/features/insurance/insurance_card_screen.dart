@@ -65,7 +65,7 @@ class InsuranceCardScreen extends ConsumerWidget {
                 if (path != null) ...[
                   _Photo(
                     label: label,
-                    file: ref.read(cardPhotoStoreProvider).fileOf(path),
+                    file: ref.watch(cardPhotoStoreProvider).fileOf(path),
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -109,7 +109,11 @@ class InsuranceCardScreen extends ConsumerWidget {
     final db = ref.read(databaseProvider);
     final photos = ref.read(cardPhotoStoreProvider);
     await db.softDeleteInsuranceCard(card.id);
-    await photos.prune(await db.liveInsurancePhotos());
+    try {
+      await photos.prune(await db.liveInsurancePhotos());
+    } catch (_) {
+      // Left for the next save or delete to clean up.
+    }
     if (context.mounted) context.go('/family/$profileId');
   }
 }
@@ -122,15 +126,7 @@ class _Photo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final image = Image.file(
-      file,
-      fit: BoxFit.contain,
-      semanticLabel: label,
-      errorBuilder: (_, _, _) => const SizedBox(
-        height: 120,
-        child: Center(child: Icon(Icons.broken_image_outlined, size: 40)),
-      ),
-    );
+    final image = CardPhotoImage(file: file, semanticLabel: label);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -212,7 +208,8 @@ class _ShareButton extends ConsumerWidget {
         minimumSize: const Size(0, 56),
         backgroundColor: Severity.good.foreground,
       ),
-      onPressed: () => _share(context, ref, person ?? ''),
+      // Wait for the name: the message is useless without it.
+      onPressed: person == null ? null : () => _share(context, ref, person),
       icon: const Icon(Icons.share_outlined),
       label: Text(l.insuranceShare),
     );

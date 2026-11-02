@@ -78,7 +78,33 @@ class _InsuranceFormScreenState extends ConsumerState<InsuranceFormScreen> {
     for (final c in [_label, _insurer, _memberNumber, _notes]) {
       c.dispose();
     }
+    // Picked but never saved: don't leave copies of the card in the cache.
+    _discard(_front);
+    _discard(_back);
     super.dispose();
+  }
+
+  /// Deletes a picked photo's temporary file. Saved photos are left to
+  /// [CardPhotoStore.prune], which knows whether a card still uses them.
+  static void _discard(_PhotoValue? v) {
+    if (v == null || !v.picked) return;
+    try {
+      File(v.path).deleteSync();
+    } on FileSystemException {
+      // Already gone.
+    }
+  }
+
+  /// Copies a picked photo into the app and forgets the temporary file, so
+  /// retrying a failed save doesn't copy it again.
+  static Future<_PhotoValue?> _keep(
+    _PhotoValue? v,
+    CardPhotoStore photos,
+  ) async {
+    if (v == null || !v.picked) return v;
+    final stored = _PhotoValue.stored(await photos.import(v.path));
+    _discard(v);
+    return stored;
   }
 
   Future<_PhotoValue?> _pick(ImageSource source) async {
@@ -97,11 +123,15 @@ class _InsuranceFormScreenState extends ConsumerState<InsuranceFormScreen> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
+    final initial = _expiresOn ?? now;
+    final first = DateTime(1990);
+    final last = DateTime(now.year + 20, 12, 31);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _expiresOn ?? now,
-      firstDate: DateTime(1990),
-      lastDate: DateTime(now.year + 20, 12, 31),
+      initialDate: initial,
+      // Widen the range so an unusual saved date still opens the picker.
+      firstDate: initial.isBefore(first) ? initial : first,
+      lastDate: initial.isAfter(last) ? initial : last,
     );
     if (picked != null) setState(() => _expiresOn = picked);
   }
@@ -114,13 +144,10 @@ class _InsuranceFormScreenState extends ConsumerState<InsuranceFormScreen> {
     setState(() => _saving = true);
     final db = ref.read(databaseProvider);
     final photos = ref.read(cardPhotoStoreProvider);
-    Future<String?> keep(_PhotoValue? v) async => v == null
-        ? null
-        : v.picked
-        ? photos.import(v.path)
-        : v.path;
     final String id;
     try {
+      _front = await _keep(_front, photos);
+      _back = await _keep(_back, photos);
       id = await db.saveInsuranceCard(
         id: widget.cardId,
         profileId: widget.profileId,
@@ -129,8 +156,8 @@ class _InsuranceFormScreenState extends ConsumerState<InsuranceFormScreen> {
         memberNumber: _memberNumber.text,
         expiresOn: _expiresOn,
         notes: _notes.text,
-        frontPhoto: await keep(_front),
-        backPhoto: await keep(_back),
+        frontPhoto: _front?.path,
+        backPhoto: _back?.path,
       );
     } catch (_) {
       if (!mounted) return;
@@ -216,9 +243,14 @@ class _InsuranceFormScreenState extends ConsumerState<InsuranceFormScreen> {
                   value: _front,
                   onPick: (source) async {
                     final v = await _pick(source);
-                    if (v != null && mounted) setState(() => _front = v);
+                    if (v == null || !mounted) return;
+                    _discard(_front);
+                    setState(() => _front = v);
                   },
-                  onRemove: () => setState(() => _front = null),
+                  onRemove: () {
+                    _discard(_front);
+                    setState(() => _front = null);
+                  },
                 ),
                 const SizedBox(height: 16),
                 _PhotoSlot(
@@ -227,9 +259,14 @@ class _InsuranceFormScreenState extends ConsumerState<InsuranceFormScreen> {
                   value: _back,
                   onPick: (source) async {
                     final v = await _pick(source);
-                    if (v != null && mounted) setState(() => _back = v);
+                    if (v == null || !mounted) return;
+                    _discard(_back);
+                    setState(() => _back = v);
                   },
-                  onRemove: () => setState(() => _back = null),
+                  onRemove: () {
+                    _discard(_back);
+                    setState(() => _back = null);
+                  },
                 ),
                 const SizedBox(height: 24),
                 FilledButton(
@@ -267,7 +304,7 @@ class _PhotoSlot extends ConsumerWidget {
         ? null
         : v.picked
         ? File(v.path)
-        : ref.read(cardPhotoStoreProvider).fileOf(v.path);
+        : ref.watch(cardPhotoStoreProvider).fileOf(v.path);
     const tall = Size(0, 56);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -277,15 +314,10 @@ class _PhotoSlot extends ConsumerWidget {
         if (file != null) ...[
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.file(
-              file,
+            child: CardPhotoImage(
               key: ValueKey('insurance-$slot-preview'),
+              file: file,
               height: 180,
-              fit: BoxFit.contain,
-              errorBuilder: (_, _, _) => const SizedBox(
-                height: 80,
-                child: Center(child: Icon(Icons.broken_image_outlined)),
-              ),
             ),
           ),
           const SizedBox(height: 8),

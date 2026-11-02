@@ -124,6 +124,8 @@ void main() {
     ))!.single;
     expect(card.frontPhoto, isNotNull);
     expect(photos.fileOf(card.frontPhoto!).existsSync(), isTrue);
+    // The picker's temporary copy is gone once saved.
+    expect(picked.existsSync(), isFalse);
     expect(find.text('998877'), findsOneWidget);
 
     await tapKey(tester, 'insurance-share');

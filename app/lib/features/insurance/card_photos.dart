@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -68,4 +69,30 @@ class CardPhotoStore {
       }
     }
   }
+}
+
+/// A card photo, or a broken-image icon if the file can't be read.
+class CardPhotoImage extends StatelessWidget {
+  const CardPhotoImage({
+    super.key,
+    required this.file,
+    this.height,
+    this.semanticLabel,
+  });
+
+  final File file;
+  final double? height;
+  final String? semanticLabel;
+
+  @override
+  Widget build(BuildContext context) => Image.file(
+    file,
+    height: height,
+    fit: BoxFit.contain,
+    semanticLabel: semanticLabel,
+    errorBuilder: (_, _, _) => const SizedBox(
+      height: 120,
+      child: Center(child: Icon(Icons.broken_image_outlined, size: 40)),
+    ),
+  );
 }

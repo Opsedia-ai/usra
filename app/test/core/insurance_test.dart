@@ -67,6 +67,17 @@ void main() {
       ]);
     });
 
+    test('a deleted card cannot be saved again', () async {
+      final id = await db.addProfile('Omar');
+      final card = await db.saveInsuranceCard(profileId: id, label: 'شغل');
+      await db.softDeleteInsuranceCard(card);
+      await expectLater(
+        db.saveInsuranceCard(id: card, profileId: id, label: 'شغل 2'),
+        throwsStateError,
+      );
+      expect(await db.watchInsuranceCard(card).first, isNull);
+    });
+
     test('a blank card name is refused', () async {
       final id = await db.addProfile('Omar');
       expect(
