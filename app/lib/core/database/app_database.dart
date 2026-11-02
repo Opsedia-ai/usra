@@ -5,14 +5,16 @@ import 'tables.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Profiles, MedicalEvents, Doctors, OutboxEntries])
+@DriftDatabase(
+  tables: [Profiles, MedicalEvents, Doctors, InsuranceCards, OutboxEntries],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   static const _uuid = Uuid();
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -24,6 +26,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 3) {
         await m.createTable(doctors);
+      }
+      if (from < 4) {
+        await m.createTable(insuranceCards);
       }
     },
     beforeOpen: (details) async {
@@ -116,8 +121,9 @@ class AppDatabase extends _$AppDatabase {
     return id;
   }
 
-  /// Marks a profile and all its records deleted (kept for sync) instead of
-  /// erasing them.
+  /// Marks a profile and all its records and insurance cards deleted (kept
+  /// for sync) instead of erasing them. Card photos are files: prune them
+  /// with `CardPhotoStore.prune(liveInsurancePhotos())` afterwards.
   Future<void> softDeleteProfile(String id) async {
     final now = DateTime.now().toUtc();
     await transaction(() async {
@@ -139,6 +145,22 @@ class AppDatabase extends _$AppDatabase {
       );
       for (final eventId in eventIds) {
         await _queue('medical_event', eventId, 'delete');
+      }
+
+      final liveCards =
+          insuranceCards.profileId.equals(id) &
+          insuranceCards.deletedAt.isNull();
+      final cardIds =
+          await (selectOnly(insuranceCards)
+                ..addColumns([insuranceCards.id])
+                ..where(liveCards))
+              .map((row) => row.read(insuranceCards.id)!)
+              .get();
+      await (update(insuranceCards)..where((_) => liveCards)).write(
+        InsuranceCardsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+      );
+      for (final cardId in cardIds) {
+        await _queue('insurance_card', cardId, 'delete');
       }
     });
   }
@@ -282,6 +304,93 @@ class AppDatabase extends _$AppDatabase {
           ),
       ],
     );
+  }
+
+  /// A person's live insurance cards, in the order they were added.
+  Stream<List<InsuranceCard>> watchInsuranceCards(String profileId) {
+    final query = select(insuranceCards)
+      ..where((c) => c.profileId.equals(profileId) & c.deletedAt.isNull())
+      ..orderBy([(c) => OrderingTerm.asc(c.id)]);
+    return query.watch();
+  }
+
+  Stream<InsuranceCard?> watchInsuranceCard(String id) {
+    return (select(insuranceCards)
+          ..where((c) => c.id.equals(id) & c.deletedAt.isNull()))
+        .watchSingleOrNull();
+  }
+
+  /// Creates a card for [profileId], or updates [id] when given.
+  /// Returns the card's id.
+  Future<String> saveInsuranceCard({
+    String? id,
+    required String profileId,
+    required String label,
+    String? insurer,
+    String? memberNumber,
+    DateTime? expiresOn,
+    String? notes,
+    String? frontPhoto,
+    String? backPhoto,
+  }) async {
+    final cleanLabel = label.trim();
+    if (cleanLabel.isEmpty) {
+      throw ArgumentError.value(label, 'label', 'must not be empty');
+    }
+    final cardId = id ?? _uuid.v7();
+    final row = InsuranceCardsCompanion(
+      id: Value(cardId),
+      profileId: Value(profileId),
+      label: Value(cleanLabel),
+      insurer: Value(_clean(insurer)),
+      memberNumber: Value(_clean(memberNumber)),
+      expiresOn: Value(
+        expiresOn == null
+            ? null
+            : DateTime.utc(expiresOn.year, expiresOn.month, expiresOn.day),
+      ),
+      notes: Value(_clean(notes)),
+      frontPhoto: Value(frontPhoto),
+      backPhoto: Value(backPhoto),
+      updatedAt: Value(DateTime.now().toUtc()),
+    );
+    await transaction(() async {
+      if (id == null) {
+        await into(insuranceCards).insert(row);
+      } else {
+        final changed = await (update(
+          insuranceCards,
+        )..where((c) => c.id.equals(id) & c.deletedAt.isNull())).write(row);
+        // Deleted meanwhile (or never existed): don't revive a tombstone.
+        if (changed == 0) throw StateError('Insurance card $id not found');
+      }
+      await _queue('insurance_card', cardId, 'upsert');
+    });
+    return cardId;
+  }
+
+  Future<void> softDeleteInsuranceCard(String id) async {
+    final now = DateTime.now().toUtc();
+    await transaction(() async {
+      await (update(insuranceCards)..where((c) => c.id.equals(id))).write(
+        InsuranceCardsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+      );
+      await _queue('insurance_card', id, 'delete');
+    });
+  }
+
+  /// Photo paths still used by a live card; any other photo file can go.
+  Future<Set<String>> liveInsurancePhotos() async {
+    final query = selectOnly(insuranceCards)
+      ..addColumns([insuranceCards.frontPhoto, insuranceCards.backPhoto])
+      ..where(insuranceCards.deletedAt.isNull());
+    final rows = await query.get();
+    return {
+      for (final r in rows) ...[
+        ?r.read(insuranceCards.frontPhoto),
+        ?r.read(insuranceCards.backPhoto),
+      ],
+    };
   }
 
   /// Spending in [currency] for each period between consecutive [bounds]

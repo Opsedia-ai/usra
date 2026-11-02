@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/modules/feature_module.dart';
 import '../../core/records/record_type.dart';
 import '../../l10n/app_localizations.dart';
+import '../insurance/insurance_card_screen.dart';
+import '../insurance/insurance_form_screen.dart';
 import 'family_screen.dart';
 import 'member_screen.dart';
 import 'profile_form_screen.dart';
@@ -49,6 +51,27 @@ class FamilyModule extends FeatureModule {
                 profileId: s.pathParameters['id']!,
                 typeKey: s.pathParameters['type']!,
               ),
+            ),
+            GoRoute(
+              path: 'insurance/new',
+              builder: (_, s) =>
+                  InsuranceFormScreen(profileId: s.pathParameters['id']!),
+            ),
+            GoRoute(
+              path: 'insurance/:cardId',
+              builder: (_, s) => InsuranceCardScreen(
+                profileId: s.pathParameters['id']!,
+                cardId: s.pathParameters['cardId']!,
+              ),
+              routes: [
+                GoRoute(
+                  path: 'edit',
+                  builder: (_, s) => InsuranceFormScreen(
+                    profileId: s.pathParameters['id']!,
+                    cardId: s.pathParameters['cardId'],
+                  ),
+                ),
+              ],
             ),
           ],
         ),

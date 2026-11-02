@@ -5,6 +5,7 @@ import 'app.dart';
 import 'core/database/app_database.dart';
 import 'core/database/connection.dart';
 import 'core/providers.dart';
+import 'features/insurance/card_photos.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,10 +13,12 @@ Future<void> main() async {
   final file = await defaultDatabaseFile();
   final outcome = prepareDatabaseFile(file, key);
   final database = AppDatabase(openEncryptedDatabase(file, key));
+  final cardPhotos = await CardPhotoStore.open();
   runApp(
     ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(database),
+        cardPhotoStoreProvider.overrideWithValue(cardPhotos),
         databaseRecoveredProvider.overrideWithValue(
           outcome == DatabaseOpenOutcome.recoveredFromUnreadableFile,
         ),

@@ -116,5 +116,67 @@
   "spendingEmpty": "مفيش مصاريف متسجلة في الفترة دي.",
   "spendingRecent": "آخر الفترات",
   "spendingRecords": "{count, plural, =1{سجل واحد} =2{سجلين} few{{count} سجلات} other{{count} سجل}}",
-  "memberSpending": "المصاريف"
+  "memberSpending": "المصاريف",
+  "insuranceTitle": "كروت التأمين",
+  "insuranceEmpty": "مفيش كروت تأمين لسه.",
+  "insuranceAdd": "ضيف كارت تأمين",
+  "insuranceNew": "كارت تأمين جديد",
+  "insuranceEdit": "تعديل الكارت",
+  "insuranceLabel": "اسم الكارت (مثلاً: نقابة، شغل)",
+  "insuranceCard": "الكارت",
+  "insuranceInsurer": "شركة التأمين",
+  "insuranceMemberNumber": "رقم العضوية",
+  "insuranceExpiry": "تاريخ الانتهاء",
+  "insuranceNotes": "ملاحظات",
+  "insuranceFront": "وش الكارت",
+  "insuranceBack": "ضهر الكارت",
+  "insuranceShare": "ابعت على واتساب",
+  "insuranceShareHeader": "كارت التأمين بتاع {name}",
+  "insuranceExpired": "انتهى {date}",
+  "insuranceExpiresSoon": "بينتهي {date}",
+  "insuranceValidUntil": "ساري لحد {date}",
+  "insuranceDelete": "امسح",
+  "insuranceDeleteConfirm": "نمسح كارت {label}؟ صوره هتتمسح من الموبايل.",
+  "insuranceNotFound": "الكارت ده مش موجود",
+  "clearDate": "امسح التاريخ",
+  "photoCamera": "صوّر",
+  "photoGallery": "من الصور",
+  "photoRemove": "شيل الصورة",
+  "photoFailed": "مقدرناش نجيب الصورة",
+  "shareFailed": "مقدرناش نفتح المشاركة",
+  "@insuranceShareHeader": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@insuranceExpired": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@insuranceExpiresSoon": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@insuranceValidUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@insuranceDeleteConfirm": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  }
 }
