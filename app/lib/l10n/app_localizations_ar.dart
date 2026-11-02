@@ -310,4 +310,59 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get contactFailed => 'مقدرناش نفتح التطبيق ده على الموبايل';
+
+  @override
+  String get navMoney => 'الفلوس';
+
+  @override
+  String get spendingTitle => 'مصاريف العلاج';
+
+  @override
+  String get spendingWeek => 'أسبوع';
+
+  @override
+  String get spendingMonth => 'شهر';
+
+  @override
+  String get spendingYear => 'سنة';
+
+  @override
+  String get spendingWholeFamily => 'العيلة كلها';
+
+  @override
+  String get spendingPrevious => 'اللي قبله';
+
+  @override
+  String get spendingNext => 'اللي بعده';
+
+  @override
+  String get spendingByType => 'حسب النوع';
+
+  @override
+  String get spendingByPerson => 'حسب الشخص';
+
+  @override
+  String get spendingByDoctor => 'حسب الدكتور';
+
+  @override
+  String get spendingEmpty => 'مفيش مصاريف متسجلة في الفترة دي.';
+
+  @override
+  String get spendingRecent => 'آخر الفترات';
+
+  @override
+  String spendingRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count سجل',
+      few: '$count سجلات',
+      two: 'سجلين',
+      one: 'سجل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get memberSpending => 'المصاريف';
 }

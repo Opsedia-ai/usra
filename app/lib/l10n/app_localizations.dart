@@ -667,6 +667,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t open that app on this phone'**
   String get contactFailed;
+
+  /// No description provided for @navMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Money'**
+  String get navMoney;
+
+  /// No description provided for @spendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical spending'**
+  String get spendingTitle;
+
+  /// No description provided for @spendingWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get spendingWeek;
+
+  /// No description provided for @spendingMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get spendingMonth;
+
+  /// No description provided for @spendingYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get spendingYear;
+
+  /// No description provided for @spendingWholeFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole family'**
+  String get spendingWholeFamily;
+
+  /// No description provided for @spendingPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get spendingPrevious;
+
+  /// No description provided for @spendingNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get spendingNext;
+
+  /// No description provided for @spendingByType.
+  ///
+  /// In en, this message translates to:
+  /// **'By type'**
+  String get spendingByType;
+
+  /// No description provided for @spendingByPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'By person'**
+  String get spendingByPerson;
+
+  /// No description provided for @spendingByDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'By doctor'**
+  String get spendingByDoctor;
+
+  /// No description provided for @spendingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No costs recorded in this period.'**
+  String get spendingEmpty;
+
+  /// No description provided for @spendingRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent periods'**
+  String get spendingRecent;
+
+  /// No description provided for @spendingRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 record} other{{count} records}}'**
+  String spendingRecords(int count);
+
+  /// No description provided for @memberSpending.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending'**
+  String get memberSpending;
 }
 
 class _AppLocalizationsDelegate

@@ -60,6 +60,16 @@ class MemberScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
             children: [
               _Header(profile: p),
+              const SizedBox(height: 12),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: OutlinedButton.icon(
+                  key: const ValueKey('member-spending'),
+                  onPressed: () => context.go('/money?person=$profileId'),
+                  icon: const Icon(Icons.payments_outlined),
+                  label: Text(l.memberSpending),
+                ),
+              ),
               const SizedBox(height: 20),
               ...timeline.when(
                 loading: () => [
