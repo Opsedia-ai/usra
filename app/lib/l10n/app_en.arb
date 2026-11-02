@@ -193,6 +193,23 @@
       }
     }
   },
+  "emergencyTitle": "Emergency card",
+  "emergencyUnknown": "Not recorded",
+  "emergencyNoneRecorded": "Nothing recorded",
+  "emergencySurgeries": "Past surgeries",
+  "emergencyComplete": "Complete emergency details",
+  "emergencyCallAmbulance": "Call ambulance {number}",
+  "@emergencyCallAmbulance": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "homeEmergencyTitle": "Emergency cards",
+  "homeEmergencyHint": "Open fast if someone needs an ambulance",
+  "emergencyLoading": "Loading…",
+  "emergencyLoadFailed": "Couldn't read the records",
   "recordPhotos": "Photos",
   "recordPhotoCount": "{count, plural, =1{1 photo} other{{count} photos}}",
   "recordNotFound": "This record was deleted",

@@ -248,6 +248,39 @@ void main() {
     );
   });
 
+  testWidgets('Home opens a person\'s emergency card with what ER needs', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 3000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    final id = (await tester.runAsync(
+      () => db.addProfile('جدّة سعاد', bloodType: 'B+', allergies: 'بنسلين'),
+    ))!;
+    await tester.runAsync(
+      () => db.addEvent(
+        profileId: id,
+        type: 'surgery',
+        occurredAt: DateTime(2019, 5, 1),
+        dataJson: '{"procedure":"مرارة"}',
+      ),
+    );
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(ValueKey('home-emergency-$id')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('بطاقة الطوارئ'), findsOneWidget);
+    expect(find.text('B+'), findsOneWidget);
+    expect(find.text('بنسلين'), findsOneWidget);
+    expect(find.text('مرارة · 2019'), findsOneWidget);
+    // Conditions were never entered, so the card says so instead of hiding it.
+    expect(find.text('مفيش حاجة متسجلة'), findsOneWidget);
+    expect(find.byKey(const ValueKey('emergency-ambulance')), findsOneWidget);
+    expect(find.byKey(const ValueKey('emergency-complete')), findsNothing);
+  });
+
   testWidgets('every Dr. Usra pose paints without errors', (tester) async {
     await tester.pumpWidget(
       Directionality(

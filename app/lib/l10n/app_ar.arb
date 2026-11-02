@@ -179,6 +179,23 @@
       }
     }
   },
+  "emergencyTitle": "بطاقة الطوارئ",
+  "emergencyUnknown": "مش متسجلة",
+  "emergencyNoneRecorded": "مفيش حاجة متسجلة",
+  "emergencySurgeries": "عمليات قبل كده",
+  "emergencyComplete": "كمّل بيانات الطوارئ",
+  "emergencyCallAmbulance": "اتصل بالإسعاف {number}",
+  "@emergencyCallAmbulance": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "homeEmergencyTitle": "بطاقات الطوارئ",
+  "homeEmergencyHint": "افتحها بسرعة لو حد احتاج إسعاف",
+  "emergencyLoading": "بنحمّل…",
+  "emergencyLoadFailed": "مقدرناش نقرا السجلات",
   "recordPhotos": "صور",
   "recordPhotoCount": "{count, plural, =1{صورة} =2{صورتين} few{{count} صور} other{{count} صورة}}",
   "recordNotFound": "السجل ده اتمسح",

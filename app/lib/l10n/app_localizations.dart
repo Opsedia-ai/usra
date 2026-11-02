@@ -920,6 +920,66 @@ abstract class AppLocalizations {
   /// **'Couldn\'t open sharing'**
   String get shareFailed;
 
+  /// No description provided for @emergencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency card'**
+  String get emergencyTitle;
+
+  /// No description provided for @emergencyUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get emergencyUnknown;
+
+  /// No description provided for @emergencyNoneRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing recorded'**
+  String get emergencyNoneRecorded;
+
+  /// No description provided for @emergencySurgeries.
+  ///
+  /// In en, this message translates to:
+  /// **'Past surgeries'**
+  String get emergencySurgeries;
+
+  /// No description provided for @emergencyComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete emergency details'**
+  String get emergencyComplete;
+
+  /// No description provided for @emergencyCallAmbulance.
+  ///
+  /// In en, this message translates to:
+  /// **'Call ambulance {number}'**
+  String emergencyCallAmbulance(String number);
+
+  /// No description provided for @homeEmergencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency cards'**
+  String get homeEmergencyTitle;
+
+  /// No description provided for @homeEmergencyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open fast if someone needs an ambulance'**
+  String get homeEmergencyHint;
+
+  /// No description provided for @emergencyLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get emergencyLoading;
+
+  /// No description provided for @emergencyLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the records'**
+  String get emergencyLoadFailed;
+
   /// No description provided for @recordPhotos.
   ///
   /// In en, this message translates to:

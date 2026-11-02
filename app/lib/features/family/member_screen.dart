@@ -56,6 +56,13 @@ class MemberScreen extends ConsumerWidget {
         title: Text(profile.value?.displayName ?? ''),
         actions: [
           IconButton(
+            key: const ValueKey('open-emergency'),
+            tooltip: l.emergencyTitle,
+            color: UsraColors.emergency,
+            icon: const Icon(Icons.emergency_outlined),
+            onPressed: () => context.go('/family/$profileId/emergency'),
+          ),
+          IconButton(
             tooltip: l.familyEdit,
             icon: const Icon(Icons.edit_outlined),
             onPressed: () => context.go('/family/$profileId/edit'),
