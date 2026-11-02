@@ -1,0 +1,39 @@
+name: usra
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.7
+
+dependencies:
+  drift: ^2.35.3
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_riverpod: ^3.4.3
+  flutter_secure_storage: ^11.2.0
+  go_router: ^18.1.2
+  intl: ^0.20.3
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  sqlite3: ^3.8.0
+  uuid: ^4.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  drift_dev: ^2.35.2
+  build_runner: ^2.17.1
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+hooks:
+  user_defines:
+    sqlite3:
+      # SQLite3 Multiple Ciphers: encrypted database (PRAGMA key)
+      source: sqlite3mc
