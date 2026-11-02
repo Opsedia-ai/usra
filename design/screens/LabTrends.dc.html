@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Usra – Lab result trends</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5FA8}a:hover{color:#174A85}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F3F6FA; font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif; color: #14263D; overflow: hidden; padding: 52px 20px 24px; display: flex; flex-direction: column; gap: 12px">
+  <div style="display: flex; align-items: center; gap: 12px">
+    <a href="Member.dc.html" aria-label="Back" style="width: 44px; height: 44px; border-radius: 14px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; color: #14263D"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <div style="flex-grow: 1"><h1 style="margin: 0; font-size: 22px; font-weight: 700">Fatma's lab results</h1><div style="font-size: 14px; color: #55657A">Trends over 2026</div></div>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 16px; font-weight: 700">HbA1c</span><div style="display: flex; gap: 6px"><span style="font-size: 12px; background: #FFE8D6; color: #A14A00; padding: 3px 9px; border-radius: 999px; font-weight: 600">Above target</span><span style="font-size: 12px; background: #E6F4EA; color: #1F6B3F; padding: 3px 9px; border-radius: 999px; font-weight: 600">Improving</span></div></div>
+    <svg width="326" height="150" viewBox="0 0 326 150" role="img" aria-label="HbA1c fell from 8.3% in January to 7.4% in October, still above the 7% target">
+      <rect x="0" y="104" width="326" height="40" fill="#E6F4EA"/>
+      <text x="6" y="134" font-size="11" fill="#1F6B3F">Target set by doctor: under 7%</text>
+      <line x1="0" y1="104" x2="326" y2="104" stroke="#9CC9AA" stroke-dasharray="4 4"/>
+      <polyline points="30,28 170,58 300,92" fill="none" stroke="#1F5FA8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="30" cy="28" r="5" fill="#1F5FA8"/><circle cx="170" cy="58" r="5" fill="#1F5FA8"/><circle cx="300" cy="92" r="6" fill="#1F5FA8"/>
+      <text x="30" y="16" font-size="12" text-anchor="middle" fill="#14263D">8.3</text>
+      <text x="170" y="46" font-size="12" text-anchor="middle" fill="#14263D">7.9</text>
+      <text x="300" y="80" font-size="13" font-weight="700" text-anchor="middle" fill="#14263D">7.4</text>
+    </svg>
+    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #55657A; padding: 0 14px"><span>Jan</span><span>Jul</span><span>Oct</span></div>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 20px; padding: 4px 16px">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #E8EDF4"><div><div style="font-size: 15px; font-weight: 600">Fasting blood sugar</div><div style="font-size: 13px; color: #55657A">142 mg/dL · 20 Oct</div></div><span style="font-size: 12px; background: #FFE8D6; color: #A14A00; padding: 4px 9px; border-radius: 999px; font-weight: 600">High</span></div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #E8EDF4"><div><div style="font-size: 15px; font-weight: 600">LDL cholesterol</div><div style="font-size: 13px; color: #55657A">96 mg/dL · 20 Oct</div></div><span style="font-size: 12px; background: #E6F4EA; color: #1F6B3F; padding: 4px 9px; border-radius: 999px; font-weight: 600">In range</span></div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 0"><div><div style="font-size: 15px; font-weight: 600">Creatinine</div><div style="font-size: 13px; color: #55657A">0.9 mg/dL · 20 Oct</div></div><span style="font-size: 12px; background: #E6F4EA; color: #1F6B3F; padding: 4px 9px; border-radius: 999px; font-weight: 600">In range</span></div>
+  </div>
+  <div style="font-size: 12px; color: #55657A; text-align: center">Ranges come from the lab report and your doctor. Not a diagnosis.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

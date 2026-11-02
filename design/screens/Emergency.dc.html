@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Usra – Emergency card</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5FA8}a:hover{color:#174A85}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F3F6FA; font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif; color: #14263D; overflow: hidden; padding: 52px 20px 24px; display: flex; flex-direction: column; gap: 12px">
+  <div style="display: flex; align-items: center; gap: 12px">
+    <a href="Member.dc.html" aria-label="Back" style="width: 44px; height: 44px; border-radius: 14px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; color: #14263D"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <div style="flex-grow: 1"><h1 style="margin: 0; font-size: 22px; font-weight: 700">Emergency card</h1><div style="font-size: 14px; color: #55657A">Fatma Hassan · 72 · works offline</div></div>
+  </div>
+
+  <button style="height: 72px; border: 0; border-radius: 20px; background: #C62828; color: #FFFFFF; font: inherit; font-size: 21px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 12px">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>
+    Call ambulance 123
+  </button>
+  <button style="height: 52px; border: 1.5px solid #C62828; border-radius: 16px; background: #FFFFFF; color: #B42318; font: inherit; font-size: 16px; font-weight: 600">Send my location to Mona and Karim</button>
+
+  <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <div style="background: #F3F6FA; border-radius: 14px; padding: 10px 12px"><div style="font-size: 12px; color: #55657A">Blood type</div><div style="font-size: 20px; font-weight: 700">O+</div></div>
+      <div style="background: #FDECEA; border-radius: 14px; padding: 10px 12px"><div style="font-size: 12px; color: #8C1C13">Severe allergy</div><div style="font-size: 18px; font-weight: 700; color: #B42318">Penicillin</div></div>
+    </div>
+    <div><div style="font-size: 13px; color: #55657A">Conditions</div><div style="font-size: 15px; font-weight: 600">Type 2 diabetes · high blood pressure</div></div>
+    <div><div style="font-size: 13px; color: #55657A">Current medicines</div><div style="font-size: 15px; font-weight: 600">Concor 5 mg · Glucophage 500 mg</div></div>
+    <div><div style="font-size: 13px; color: #55657A">Doctor</div><div style="font-size: 15px; font-weight: 600">Dr Hany Saad, cardiologist</div></div>
+    <div style="height: 1px; background: #E8EDF4"></div>
+    <div style="display: flex; justify-content: space-between; align-items: center"><div><div style="font-size: 13px; color: #55657A">Emergency contacts</div><div style="font-size: 15px; font-weight: 600">Mona (daughter-in-law) · Karim (son)</div></div></div>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px; display: flex; align-items: center; gap: 14px">
+    <div style="width: 84px; height: 84px; border-radius: 12px; background: #E3E9F1; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #55657A; flex-shrink: 0">QR code</div>
+    <div style="font-size: 14px; color: #55657A; line-height: 1.5">Paramedics can scan this. The card also shows on the lock screen.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

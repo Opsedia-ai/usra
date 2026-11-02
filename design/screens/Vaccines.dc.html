@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Usra – Vaccination schedule</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5FA8}a:hover{color:#174A85}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F3F6FA; font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif; color: #14263D; overflow: hidden; padding: 52px 20px 24px; display: flex; flex-direction: column; gap: 12px">
+  <div style="display: flex; align-items: center; gap: 12px">
+    <a href="Growth.dc.html" aria-label="Back" style="width: 44px; height: 44px; border-radius: 14px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; color: #14263D"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <div style="flex-grow: 1"><h1 style="margin: 0; font-size: 22px; font-weight: 700">Yassin's vaccines (تطعيمات)</h1><div style="font-size: 14px; color: #55657A">Egypt national schedule · from birth date</div></div>
+  </div>
+
+  <div style="background: #FFF6CC; border-radius: 20px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 17px; font-weight: 700; color: #5C4400">Next: MMR</span><span style="font-size: 12px; background: #FFFFFF; color: #7A5B00; padding: 4px 9px; border-radius: 999px; font-weight: 600">In 5 days · 7 Nov</span></div>
+    <div style="font-size: 14px; color: #7A5B00">Health unit or Dr Rania's clinic · bring the vaccination card</div>
+    <div style="display: flex; gap: 8px"><button style="flex: 1; height: 44px; border: 0; border-radius: 12px; background: #1F5FA8; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600">Remind me the day before</button></div>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 20px; padding: 4px 16px">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #E8EDF4"><div><div style="font-size: 15px; font-weight: 600">At birth</div><div style="font-size: 13px; color: #55657A">3 vaccines · [Hospital name]</div></div><span style="font-size: 12px; background: #E6F4EA; color: #1F6B3F; padding: 4px 9px; border-radius: 999px; font-weight: 600">Done</span></div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #E8EDF4"><div><div style="font-size: 15px; font-weight: 600">2, 4 and 6 months</div><div style="font-size: 13px; color: #55657A">9 doses · health unit</div></div><span style="font-size: 12px; background: #E6F4EA; color: #1F6B3F; padding: 4px 9px; border-radius: 999px; font-weight: 600">Done</span></div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #E8EDF4"><div><div style="font-size: 15px; font-weight: 600">9 and 12 months</div><div style="font-size: 13px; color: #55657A">3 doses · Dr Rania</div></div><span style="font-size: 12px; background: #E6F4EA; color: #1F6B3F; padding: 4px 9px; border-radius: 999px; font-weight: 600">Done</span></div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #E8EDF4"><div><div style="font-size: 15px; font-weight: 600">18 months booster</div><div style="font-size: 13px; color: #55657A">Not recorded yet</div></div><span style="font-size: 12px; background: #FFE8D6; color: #A14A00; padding: 4px 9px; border-radius: 999px; font-weight: 600">Check card</span></div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 0"><div><div style="font-size: 15px; font-weight: 600">Optional: flu, rotavirus</div><div style="font-size: 13px; color: #55657A">Ask Dr Rania</div></div><span style="font-size: 12px; background: #E3E9F1; color: #3E4C5E; padding: 4px 9px; border-radius: 999px; font-weight: 600">Optional</span></div>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 20px; padding: 12px 14px; display: flex; align-items: center; gap: 12px">
+    <div style="width: 72px; height: 52px; border-radius: 10px; background: #E3E9F1; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #55657A; flex-shrink: 0">Card photo</div>
+    <div style="flex-grow: 1; font-size: 14px">Vaccination card scanned 28 Oct</div>
+    <span style="font-size: 14px; color: #1F5FA8; font-weight: 600">Share</span>
+  </div>
+  <div style="font-size: 12px; color: #55657A; text-align: center">Doses and ages follow the Ministry of Health schedule; confirm with your doctor.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

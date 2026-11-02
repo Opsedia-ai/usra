@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Usra – Scan prescription</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5FA8}a:hover{color:#174A85}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; box-sizing: border-box; background: #0E1A2B; font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif; color: #14263D; overflow: hidden">
+  <div style="position: absolute; left: 0; right: 0; top: 0; height: 400px; display: flex; flex-direction: column; align-items: center; padding-top: 52px; box-sizing: border-box; gap: 18px">
+    <div style="width: 100%; padding: 0 20px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center">
+      <a href="Home.dc.html" aria-label="Close" style="width: 44px; height: 44px; border-radius: 14px; background: rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; color: #FFFFFF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
+      <div style="display: flex; background: rgba(255,255,255,0.14); border-radius: 999px; padding: 4px">
+        <span style="background: #FFFFFF; color: #14263D; font-size: 13px; padding: 7px 12px; border-radius: 999px; font-weight: 600">Prescription</span>
+        <span style="color: #FFFFFF; font-size: 13px; padding: 7px 12px">Medicine box</span>
+        <span style="color: #FFFFFF; font-size: 13px; padding: 7px 12px">Report</span>
+      </div>
+    </div>
+    <div style="position: relative; width: 280px; height: 220px; margin-top: 16px">
+      <div style="position: absolute; left: 0; top: 0; width: 36px; height: 36px; border-left: 4px solid #FFFFFF; border-top: 4px solid #FFFFFF; border-radius: 12px 0 0 0"></div>
+      <div style="position: absolute; right: 0; top: 0; width: 36px; height: 36px; border-right: 4px solid #FFFFFF; border-top: 4px solid #FFFFFF; border-radius: 0 12px 0 0"></div>
+      <div style="position: absolute; left: 0; bottom: 0; width: 36px; height: 36px; border-left: 4px solid #FFFFFF; border-bottom: 4px solid #FFFFFF; border-radius: 0 0 0 12px"></div>
+      <div style="position: absolute; right: 0; bottom: 0; width: 36px; height: 36px; border-right: 4px solid #FFFFFF; border-bottom: 4px solid #FFFFFF; border-radius: 0 0 12px 0"></div>
+      <div style="position: absolute; left: 28px; right: 28px; top: 28px; bottom: 28px; background: rgba(255,255,255,0.08); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.7); font-size: 13px">Camera view</div>
+    </div>
+    <div style="color: #FFFFFF; font-size: 15px">Hold steady over the prescription</div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 470px; background: #F3F6FA; border-radius: 28px 28px 0 0; padding: 12px 20px 28px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px">
+    <div style="align-self: center; width: 40px; height: 5px; border-radius: 3px; background: #C3CFDD"></div>
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <h1 style="margin: 0; font-size: 21px; font-weight: 700">Found 2 medicines</h1>
+      <span style="font-size: 14px; background: #FFFFFF; border: 1px solid #DDE5EF; padding: 8px 12px; border-radius: 999px">For: Karim ▾</span>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 18px; padding: 14px; display: flex; gap: 12px; border: 2px solid #1F5FA8">
+      <div style="width: 26px; height: 26px; border-radius: 8px; background: #1F5FA8; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></div>
+      <div style="flex-grow: 1">
+        <div style="font-size: 16px; font-weight: 600">Augmentin 1 g tablets</div>
+        <div style="font-size: 14px; color: #55657A">1 tablet every 12 hours · 7 days</div>
+        <span style="display: inline-block; margin-top: 6px; font-size: 12px; background: #E6F4EA; color: #1F6B3F; padding: 3px 9px; border-radius: 999px; font-weight: 600">Matched in the drug list</span>
+      </div>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 18px; padding: 14px; display: flex; gap: 12px; border: 2px solid #1F5FA8">
+      <div style="width: 26px; height: 26px; border-radius: 8px; background: #1F5FA8; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></div>
+      <div style="flex-grow: 1">
+        <div style="font-size: 16px; font-weight: 600">Panadol Extra</div>
+        <div style="font-size: 14px; color: #55657A">When needed · up to 4 a day</div>
+        <span style="display: inline-block; margin-top: 6px; font-size: 12px; background: #FFE8D6; color: #A14A00; padding: 3px 9px; border-radius: 999px; font-weight: 600">Hard to read: check the dose</span>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #55657A">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#55657A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      Read on your phone. Nothing was uploaded.
+    </div>
+    <div style="flex-grow: 1"></div>
+    <a href="Medicine.dc.html" style="display: flex; align-items: center; justify-content: center; height: 56px; border-radius: 16px; background: #1F5FA8; color: #FFFFFF; font-size: 17px; font-weight: 600; text-decoration: none">Add 2 medicines and reminders</a>
+    <a href="AddRecord.dc.html" style="text-align: center; font-size: 15px; color: #1F5FA8; text-decoration: none; padding: 6px">Not right? Enter by hand</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
