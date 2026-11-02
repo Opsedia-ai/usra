@@ -365,6 +365,97 @@ class AppLocalizationsEn extends AppLocalizations {
   String get memberSpending => 'Spending';
 
   @override
+  String get insuranceTitle => 'Insurance cards';
+
+  @override
+  String get insuranceEmpty => 'No insurance cards yet.';
+
+  @override
+  String get insuranceAdd => 'Add insurance card';
+
+  @override
+  String get insuranceNew => 'New insurance card';
+
+  @override
+  String get insuranceEdit => 'Edit card';
+
+  @override
+  String get insuranceLabel => 'Card name (e.g. Union, Work)';
+
+  @override
+  String get insuranceCard => 'Card';
+
+  @override
+  String get insuranceInsurer => 'Insurance company';
+
+  @override
+  String get insuranceMemberNumber => 'Member number';
+
+  @override
+  String get insuranceExpiry => 'Expiry date';
+
+  @override
+  String get insuranceNotes => 'Notes';
+
+  @override
+  String get insuranceFront => 'Front of card';
+
+  @override
+  String get insuranceBack => 'Back of card';
+
+  @override
+  String get insuranceShare => 'Send on WhatsApp';
+
+  @override
+  String insuranceShareHeader(String name) {
+    return '$name\'s insurance card';
+  }
+
+  @override
+  String insuranceExpired(String date) {
+    return 'Expired $date';
+  }
+
+  @override
+  String insuranceExpiresSoon(String date) {
+    return 'Expires $date';
+  }
+
+  @override
+  String insuranceValidUntil(String date) {
+    return 'Valid until $date';
+  }
+
+  @override
+  String get insuranceDelete => 'Delete';
+
+  @override
+  String insuranceDeleteConfirm(String label) {
+    return 'Delete the $label card? Its photos will be removed from this phone.';
+  }
+
+  @override
+  String get insuranceNotFound => 'Card not found';
+
+  @override
+  String get clearDate => 'Clear date';
+
+  @override
+  String get photoCamera => 'Take photo';
+
+  @override
+  String get photoGallery => 'From photos';
+
+  @override
+  String get photoRemove => 'Remove photo';
+
+  @override
+  String get photoFailed => 'Couldn\'t get the photo';
+
+  @override
+  String get shareFailed => 'Couldn\'t open sharing';
+
+  @override
   String get emergencyTitle => 'Emergency card';
 
   @override

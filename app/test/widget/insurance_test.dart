@@ -1,0 +1,173 @@
+import 'dart:io';
+
+import 'package:drift/drift.dart' show DatabaseConnection;
+import 'package:drift/native.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:usra/app.dart';
+import 'package:usra/core/database/app_database.dart';
+import 'package:usra/core/providers.dart';
+import 'package:usra/features/insurance/card_photos.dart';
+import 'package:usra/features/insurance/insurance_providers.dart';
+
+/// Real file copies, but synchronous: async file I/O never finishes under
+/// the fake clock of testWidgets.
+class _SyncPhotoStore extends CardPhotoStore {
+  _SyncPhotoStore(super.root);
+
+  var _n = 0;
+
+  @override
+  Future<String> import(String sourcePath) async {
+    final relative = '${CardPhotoStore.folder}/${_n++}.jpg';
+    fileOf(relative).parent.createSync(recursive: true);
+    File(sourcePath).copySync(fileOf(relative).path);
+    return relative;
+  }
+
+  @override
+  Future<void> prune(Set<String> keep) async {
+    final dir = Directory('${root.path}/${CardPhotoStore.folder}');
+    if (!dir.existsSync()) return;
+    for (final f in dir.listSync().whereType<File>()) {
+      final relative = '${CardPhotoStore.folder}/${f.uri.pathSegments.last}';
+      if (!keep.contains(relative)) f.deleteSync();
+    }
+  }
+}
+
+void main() {
+  late AppDatabase db;
+  late Directory dir;
+  late File picked;
+  late _SyncPhotoStore photos;
+  final shared = <ShareParams>[];
+
+  setUp(() {
+    db = AppDatabase(
+      DatabaseConnection(
+        NativeDatabase.memory(),
+        closeStreamsSynchronously: true,
+      ),
+    );
+    dir = Directory.systemTemp.createTempSync('usra_cards');
+    picked = File('${dir.path}/picked.jpg')..writeAsBytesSync([0, 1, 2]);
+    photos = _SyncPhotoStore(Directory('${dir.path}/support'));
+    shared.clear();
+  });
+  tearDown(() async {
+    await db.close();
+    dir.deleteSync(recursive: true);
+  });
+
+  Widget app() => ProviderScope(
+    overrides: [
+      databaseProvider.overrideWithValue(db),
+      cardPhotoStoreProvider.overrideWithValue(photos),
+      photoPickerProvider.overrideWithValue((_) async => picked.path),
+      shareProvider.overrideWithValue((p) async => shared.add(p)),
+    ],
+    child: const UsraApp(),
+  );
+
+  Future<void> tapKey(WidgetTester tester, String key) async {
+    await tester.ensureVisible(find.byKey(ValueKey(key)));
+    await tester.tap(find.byKey(ValueKey(key)));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('add a card with a photo, send it, then delete it', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 3000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    // Database calls outside the widgets run on real time, not fake time.
+    final mom = (await tester.runAsync(() => db.addProfile('فاطمة')))!;
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
+    router.go('/family/$mom');
+    await tester.pumpAndSettle();
+    expect(find.text('كروت التأمين'), findsOneWidget);
+
+    await tapKey(tester, 'insurance-add');
+    // The card needs a name.
+    await tapKey(tester, 'insurance-save');
+    expect(find.text('مطلوب'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('insurance-label')),
+      'نقابة',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('insurance-insurer')),
+      'مصر للتأمين',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('insurance-member')),
+      '998877',
+    );
+    await tapKey(tester, 'insurance-front-camera');
+    expect(
+      find.byKey(const ValueKey('insurance-front-preview')),
+      findsOneWidget,
+    );
+    await tapKey(tester, 'insurance-save');
+
+    // On the card's page, with the photo copied into the app.
+    final card = (await tester.runAsync(
+      () => db.watchInsuranceCards(mom).first,
+    ))!.single;
+    expect(card.frontPhoto, isNotNull);
+    expect(photos.fileOf(card.frontPhoto!).existsSync(), isTrue);
+    // The picker's temporary copy is gone once saved.
+    expect(picked.existsSync(), isFalse);
+    expect(find.text('998877'), findsOneWidget);
+
+    await tapKey(tester, 'insurance-share');
+    final sent = shared.single;
+    expect(sent.text, contains('كارت التأمين بتاع فاطمة'));
+    expect(sent.text, contains('رقم العضوية: 998877'));
+    expect(sent.files!.single.path, photos.fileOf(card.frontPhoto!).path);
+
+    await tapKey(tester, 'insurance-delete');
+    await tapKey(tester, 'insurance-delete-confirm');
+    expect(find.text('نقابة'), findsNothing);
+    expect(find.text('كروت التأمين'), findsOneWidget);
+    // The photo left the phone with its card.
+    expect(photos.fileOf(card.frontPhoto!).existsSync(), isFalse);
+  });
+
+  testWidgets('cards near or past expiry are flagged on the person\'s page', (
+    tester,
+  ) async {
+    final today = DateTime.now();
+    final kid = (await tester.runAsync(() async {
+      final id = await db.addProfile('عمر');
+      await db.saveInsuranceCard(
+        profileId: id,
+        label: 'شغل 1',
+        expiresOn: today.add(const Duration(days: 10)),
+      );
+      await db.saveInsuranceCard(
+        profileId: id,
+        label: 'شغل 2',
+        expiresOn: today.subtract(const Duration(days: 3)),
+      );
+      return id;
+    }))!;
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    GoRouter.of(tester.element(find.byType(Scaffold).first)).go('/family/$kid');
+    await tester.pumpAndSettle();
+
+    expect(find.text('شغل 1'), findsOneWidget);
+    expect(find.text('شغل 2'), findsOneWidget);
+    expect(find.textContaining('بينتهي'), findsOneWidget);
+    expect(find.textContaining('انتهى'), findsOneWidget);
+  });
+}
