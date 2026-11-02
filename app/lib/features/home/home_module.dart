@@ -8,6 +8,7 @@ import '../../core/design/tokens.dart';
 import '../../core/modules/feature_module.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../family/family_screen.dart';
 
 class HomeModule extends FeatureModule {
   const HomeModule();
@@ -71,6 +72,7 @@ class HomeScreen extends ConsumerWidget {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 24),
+        const _EmergencyCards(),
         Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -98,6 +100,67 @@ class HomeScreen extends ConsumerWidget {
           textAlign: TextAlign.center,
         ),
       ],
+    );
+  }
+}
+
+/// One tap from Home to anyone's emergency card. Hidden until the family
+/// has at least one person.
+class _EmergencyCards extends ConsumerWidget {
+  const _EmergencyCards();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final people = ref.watch(profilesProvider).value ?? const [];
+    if (people.isEmpty) return const SizedBox.shrink();
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Card(
+        color: Severity.urgent.background,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.emergency_outlined,
+                    color: UsraColors.emergency,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    l.homeEmergencyTitle,
+                    style: text.titleMedium?.copyWith(
+                      color: Severity.urgent.foreground,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(l.homeEmergencyHint, style: text.bodyMedium),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final p in people)
+                    ActionChip(
+                      key: ValueKey('home-emergency-${p.id}'),
+                      avatar: const Icon(Icons.badge_outlined, size: 20),
+                      label: Text(p.displayName),
+                      labelStyle: text.titleMedium,
+                      padding: const EdgeInsets.all(8),
+                      onPressed: () => context.go('/family/${p.id}/emergency'),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

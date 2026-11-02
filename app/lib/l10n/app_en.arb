@@ -130,5 +130,20 @@
       }
     }
   },
-  "memberSpending": "Spending"
+  "memberSpending": "Spending",
+  "emergencyTitle": "Emergency card",
+  "emergencyUnknown": "Not recorded",
+  "emergencyNoneRecorded": "Nothing recorded",
+  "emergencySurgeries": "Past surgeries",
+  "emergencyComplete": "Complete emergency details",
+  "emergencyCallAmbulance": "Call ambulance {number}",
+  "homeEmergencyTitle": "Emergency cards",
+  "homeEmergencyHint": "Open fast if someone needs an ambulance",
+  "@emergencyCallAmbulance": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -757,6 +757,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Spending'**
   String get memberSpending;
+
+  /// No description provided for @emergencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency card'**
+  String get emergencyTitle;
+
+  /// No description provided for @emergencyUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get emergencyUnknown;
+
+  /// No description provided for @emergencyNoneRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing recorded'**
+  String get emergencyNoneRecorded;
+
+  /// No description provided for @emergencySurgeries.
+  ///
+  /// In en, this message translates to:
+  /// **'Past surgeries'**
+  String get emergencySurgeries;
+
+  /// No description provided for @emergencyComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete emergency details'**
+  String get emergencyComplete;
+
+  /// No description provided for @emergencyCallAmbulance.
+  ///
+  /// In en, this message translates to:
+  /// **'Call ambulance {number}'**
+  String emergencyCallAmbulance(String number);
+
+  /// No description provided for @homeEmergencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency cards'**
+  String get homeEmergencyTitle;
+
+  /// No description provided for @homeEmergencyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open fast if someone needs an ambulance'**
+  String get homeEmergencyHint;
 }
 
 class _AppLocalizationsDelegate

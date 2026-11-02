@@ -363,4 +363,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get memberSpending => 'Spending';
+
+  @override
+  String get emergencyTitle => 'Emergency card';
+
+  @override
+  String get emergencyUnknown => 'Not recorded';
+
+  @override
+  String get emergencyNoneRecorded => 'Nothing recorded';
+
+  @override
+  String get emergencySurgeries => 'Past surgeries';
+
+  @override
+  String get emergencyComplete => 'Complete emergency details';
+
+  @override
+  String emergencyCallAmbulance(String number) {
+    return 'Call ambulance $number';
+  }
+
+  @override
+  String get homeEmergencyTitle => 'Emergency cards';
+
+  @override
+  String get homeEmergencyHint => 'Open fast if someone needs an ambulance';
 }

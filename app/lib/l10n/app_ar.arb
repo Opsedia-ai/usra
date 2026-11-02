@@ -116,5 +116,20 @@
   "spendingEmpty": "مفيش مصاريف متسجلة في الفترة دي.",
   "spendingRecent": "آخر الفترات",
   "spendingRecords": "{count, plural, =1{سجل واحد} =2{سجلين} few{{count} سجلات} other{{count} سجل}}",
-  "memberSpending": "المصاريف"
+  "memberSpending": "المصاريف",
+  "emergencyTitle": "بطاقة الطوارئ",
+  "emergencyUnknown": "مش متسجلة",
+  "emergencyNoneRecorded": "مفيش حاجة متسجلة",
+  "emergencySurgeries": "عمليات قبل كده",
+  "emergencyComplete": "كمّل بيانات الطوارئ",
+  "emergencyCallAmbulance": "اتصل بالإسعاف {number}",
+  "homeEmergencyTitle": "بطاقات الطوارئ",
+  "homeEmergencyHint": "افتحها بسرعة لو حد احتاج إسعاف",
+  "@emergencyCallAmbulance": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/modules/feature_module.dart';
 import '../../core/records/record_type.dart';
 import '../../l10n/app_localizations.dart';
+import 'emergency_card_screen.dart';
 import 'family_screen.dart';
 import 'member_screen.dart';
 import 'profile_form_screen.dart';
@@ -42,6 +43,11 @@ class FamilyModule extends FeatureModule {
               path: 'edit',
               builder: (_, s) =>
                   ProfileFormScreen(profileId: s.pathParameters['id']),
+            ),
+            GoRoute(
+              path: 'emergency',
+              builder: (_, s) =>
+                  EmergencyCardScreen(profileId: s.pathParameters['id']!),
             ),
             GoRoute(
               path: 'add/:type',

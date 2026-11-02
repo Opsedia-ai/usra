@@ -365,4 +365,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get memberSpending => 'المصاريف';
+
+  @override
+  String get emergencyTitle => 'بطاقة الطوارئ';
+
+  @override
+  String get emergencyUnknown => 'مش متسجلة';
+
+  @override
+  String get emergencyNoneRecorded => 'مفيش حاجة متسجلة';
+
+  @override
+  String get emergencySurgeries => 'عمليات قبل كده';
+
+  @override
+  String get emergencyComplete => 'كمّل بيانات الطوارئ';
+
+  @override
+  String emergencyCallAmbulance(String number) {
+    return 'اتصل بالإسعاف $number';
+  }
+
+  @override
+  String get homeEmergencyTitle => 'بطاقات الطوارئ';
+
+  @override
+  String get homeEmergencyHint => 'افتحها بسرعة لو حد احتاج إسعاف';
 }
