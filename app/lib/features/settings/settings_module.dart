@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/modules/feature_module.dart';
+import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -55,6 +56,36 @@ class SettingsScreen extends ConsumerWidget {
             selected: {locale.languageCode},
             onSelectionChanged: (s) =>
                 ref.read(localeProvider.notifier).change(Locale(s.first)),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  key: const ValueKey('settings-simple-mode'),
+                  value: ref.watch(simpleModeProvider),
+                  onChanged: (on) async {
+                    try {
+                      await ref.read(simpleModeProvider.notifier).set(on);
+                    } catch (_) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text(l.saveFailed)));
+                    }
+                  },
+                  secondary: const Icon(Icons.accessibility_new),
+                  title: Text(l.settingsSimpleMode),
+                  subtitle: Text(l.settingsSimpleModeHint),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  key: const ValueKey('settings-tutorial'),
+                  leading: const Icon(Icons.school_outlined),
+                  title: Text(l.settingsTutorial),
+                  onTap: ref.read(tutorialProvider.notifier).reopen,
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 24),
           Align(

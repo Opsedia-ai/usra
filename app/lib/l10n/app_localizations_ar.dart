@@ -672,6 +672,118 @@ class AppLocalizationsAr extends AppLocalizations {
   String get fieldNo => 'لأ';
 
   @override
+  String get navCall => 'اتصال';
+
+  @override
+  String get settingsSimpleMode => 'الوضع البسيط';
+
+  @override
+  String get settingsSimpleModeHint =>
+      'كلام وزراير أكبر وتابات أقل. مناسب للجدّ والجدّة لما يستخدموا الموبايل لوحدهم.';
+
+  @override
+  String get settingsTutorial => 'اعرض الشرح تاني';
+
+  @override
+  String get profileSimpleMode => 'بيستخدم الوضع البسيط';
+
+  @override
+  String get profileSimpleModeHint =>
+      'صاحب الموبايل ده: الرئيسية هتسلّم عليه باسمه. شغّل الوضع البسيط من «المزيد» على موبايله.';
+
+  @override
+  String get simpleHello => 'أهلاً بيك!';
+
+  @override
+  String simpleHelloName(String name) {
+    return 'أهلاً يا $name';
+  }
+
+  @override
+  String get simpleMedicines => 'أدويتي';
+
+  @override
+  String get simpleCallDoctor => 'كلّم دكتوري';
+
+  @override
+  String get simpleFamily => 'عيلتي';
+
+  @override
+  String get simpleEmergency => 'كارت الطوارئ';
+
+  @override
+  String get simplePickPerson => 'كارت الطوارئ بتاع مين؟';
+
+  @override
+  String get tutorialSkip => 'تخطّي';
+
+  @override
+  String get tutorialNext => 'التالي';
+
+  @override
+  String get tutorialBack => 'رجوع';
+
+  @override
+  String get tutorialStart => 'يلا نبدأ';
+
+  @override
+  String tutorialStep(int current, int total) {
+    return '$current من $total';
+  }
+
+  @override
+  String get tutorialWelcomeTitle => 'أهلاً، أنا دكتور أسرة';
+
+  @override
+  String get tutorialWelcomeBody =>
+      'أسرة بتجمع صحة عيلتك في مكان واحد: زيارات الدكاترة والتحاليل والأدوية وأرقام الدكاترة.';
+
+  @override
+  String get tutorialPrivacyTitle => 'بياناتك معاك إنت';
+
+  @override
+  String get tutorialPrivacyBody =>
+      'كل حاجة متسجّلة على الموبايل ده ومتشفّرة. مش محتاج حساب.';
+
+  @override
+  String get tutorialFamilyTitle => 'ضيف عيلتك';
+
+  @override
+  String get tutorialFamilyBody =>
+      'ضيف كل اللي بتهتم بيهم: الأولاد والأهل والجدود. كل واحد ليه صفحته.';
+
+  @override
+  String get tutorialColorsTitle => 'الألوان معناها الأهمية';
+
+  @override
+  String get tutorialColorsBody => 'كل لون معاه كلمة، فتعرف على طول معناه إيه.';
+
+  @override
+  String get tutorialEmergencyTitle => 'كارت طوارئ لكل واحد';
+
+  @override
+  String get tutorialEmergencyBody =>
+      'فصيلة الدم والحساسية والأمراض في كارت واحد، على بُعد دوسة من الرئيسية. وريه للدكتور أو للإسعاف.';
+
+  @override
+  String get tutorialElderWelcomeBody =>
+      'أنا هنا عشان أساعدك. كل حاجة على الشاشة كبيرة وواضحة.';
+
+  @override
+  String get tutorialElderButtonsTitle => 'زراير كبيرة في الرئيسية';
+
+  @override
+  String get tutorialElderButtonsBody =>
+      'دوس على «كلّم دكتوري» عشان تكلّم الدكتور بدوسة واحدة.';
+
+  @override
+  String get tutorialElderEmergencyTitle => 'لو تعبت';
+
+  @override
+  String get tutorialElderEmergencyBody =>
+      'دوس على الزرار الأحمر «كارت الطوارئ» ووريه للي بيساعدك.';
+
+  @override
   String get navMedicines => 'الأدوية';
 
   @override

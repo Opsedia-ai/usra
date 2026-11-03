@@ -13,6 +13,9 @@ class ModuleTab {
     required this.icon,
     required this.label,
     this.order = 100,
+    this.simple = false,
+    this.simpleIcon,
+    this.simpleLabel,
   });
 
   final String path;
@@ -21,6 +24,13 @@ class ModuleTab {
 
   /// Lower comes first in the navigation bar.
   final int order;
+
+  /// Shown in Simple Mode too, which keeps at most three tabs.
+  final bool simple;
+
+  /// What the tab looks like in Simple Mode, when it should read differently.
+  final IconData? simpleIcon;
+  final String Function(BuildContext context)? simpleLabel;
 }
 
 /// Every feature plugs into the app through this contract.
@@ -33,6 +43,9 @@ abstract class FeatureModule {
 
   String get id;
   List<RouteBase> get routes => const [];
+
+  /// Routes shown over the whole screen, without the bottom navigation.
+  List<RouteBase> get fullScreenRoutes => const [];
   List<ModuleTab> get tabs => const [];
   List<RecordTypeDefinition> get recordTypes => const [];
   Entitlement get requires => Entitlement.free;

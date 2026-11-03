@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/files/photo_store.dart';
+import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/features/medicines/medicines_providers.dart';
 import 'package:usra/features/medicines/reminders.dart';
@@ -44,9 +45,17 @@ void main() {
     dir.deleteSync(recursive: true);
   });
 
-  Widget app() => ProviderScope(
+  Widget app({bool simple = false}) => ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
+      if (simple)
+        keyValueStoreProvider.overrideWithValue(
+          MemoryKeyValueStore({
+            PrefKeys.simpleMode: true,
+            PrefKeys.tutorialSeen: true,
+            PrefKeys.elderTutorialSeen: true,
+          }),
+        ),
       medicinePhotoStoreProvider.overrideWithValue(photos),
       reminderSchedulerProvider.overrideWithValue(scheduler),
       clockProvider.overrideWithValue(() => now),
@@ -210,5 +219,26 @@ void main() {
     await tester.tap(find.text('اسمح'));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('reminders-off')), findsNothing);
+  });
+
+  testWidgets('Simple Mode\'s "My medicines" opens today\'s doses', (
+    tester,
+  ) async {
+    tallScreen(tester);
+    await tester.runAsync(() async {
+      final dad = await db.addProfile('بابا');
+      await db.saveMedicine(
+        profileId: dad,
+        name: 'كونكور',
+        startOn: DateTime(2026, 11, 1),
+        schedule: const DoseScheduleInput(times: ['08:00']),
+      );
+    });
+    await tester.pumpWidget(app(simple: true));
+    await tester.pumpAndSettle();
+
+    await tapKey(tester, 'simple-medicines');
+    expect(find.text('أدوية النهارده'), findsOneWidget);
+    expect(find.text('كونكور'), findsOneWidget);
   });
 }

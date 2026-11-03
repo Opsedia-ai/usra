@@ -72,6 +72,7 @@ class AppDatabase extends _$AppDatabase {
     String? bloodType,
     String? allergies,
     String? conditions,
+    bool? simpleMode,
   }) async {
     final name = displayName.trim();
     if (name.isEmpty) {
@@ -90,6 +91,7 @@ class AppDatabase extends _$AppDatabase {
           bloodType: Value(_clean(bloodType)),
           allergies: Value(_clean(allergies)),
           conditions: Value(_clean(conditions)),
+          simpleMode: Value.absentIfNull(simpleMode),
           updatedAt: Value(DateTime.now().toUtc()),
         ),
       );
@@ -114,6 +116,7 @@ class AppDatabase extends _$AppDatabase {
     String? bloodType,
     String? allergies,
     String? conditions,
+    bool? simpleMode,
   }) async {
     final name = displayName.trim();
     if (name.isEmpty) {
@@ -134,6 +137,7 @@ class AppDatabase extends _$AppDatabase {
           bloodType: Value(_clean(bloodType)),
           allergies: Value(_clean(allergies)),
           conditions: Value(_clean(conditions)),
+          simpleMode: Value.absentIfNull(simpleMode),
           updatedAt: DateTime.now().toUtc(),
         ),
       );
