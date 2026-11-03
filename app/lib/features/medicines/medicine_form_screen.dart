@@ -248,7 +248,7 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
     try {
       final scheduler = ref.read(reminderSchedulerProvider);
       if (!(await scheduler.access()).notifications) {
-        await scheduler.requestAccess();
+        await scheduler.requestAccess(exactAlarms: false);
       }
       ref.invalidate(reminderAccessProvider);
     } catch (_) {

@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+
 import '../../core/database/app_database.dart';
 import '../../l10n/app_localizations.dart';
 import 'dose_schedule.dart';
@@ -54,21 +57,18 @@ class PlannedReminder {
   );
 
   /// Everything needed to act on, or snooze, this reminder from a
-  /// notification, plus where to leave the action for the app ([inbox]).
-  String toPayload({String? inbox}) => jsonEncode({
+  /// notification.
+  String toPayload() => jsonEncode({
     'm': medicineId,
     's': scheduledAt.toUtc().millisecondsSinceEpoch,
     't': title,
     'b': body,
     'tl': takenLabel,
     'sl': snoozeLabel,
-    'i': ?inbox,
   });
 
   /// Reads [toPayload]; null if [payload] isn't one of ours.
-  static ({PlannedReminder reminder, String? inbox})? fromPayload(
-    String? payload,
-  ) {
+  static PlannedReminder? fromPayload(String? payload) {
     if (payload == null) return null;
     try {
       final j = jsonDecode(payload);
@@ -77,18 +77,15 @@ class PlannedReminder {
         j['s'] as int,
         isUtc: true,
       );
-      return (
-        reminder: PlannedReminder(
-          id: snoozeIdFor(j['m'] as String, scheduledAt),
-          at: scheduledAt,
-          medicineId: j['m'] as String,
-          scheduledAt: scheduledAt,
-          title: j['t'] as String,
-          body: j['b'] as String,
-          takenLabel: j['tl'] as String,
-          snoozeLabel: j['sl'] as String,
-        ),
-        inbox: j['i'] as String?,
+      return PlannedReminder(
+        id: snoozeIdFor(j['m'] as String, scheduledAt),
+        at: scheduledAt,
+        medicineId: j['m'] as String,
+        scheduledAt: scheduledAt,
+        title: j['t'] as String,
+        body: j['b'] as String,
+        takenLabel: j['tl'] as String,
+        snoozeLabel: j['sl'] as String,
       );
     } on Object {
       return null;
@@ -187,14 +184,16 @@ class ReminderAccess {
 abstract interface class ReminderScheduler {
   Future<ReminderAccess> access();
 
-  /// Asks the user for what's missing; returns the result.
-  Future<ReminderAccess> requestAccess();
+  /// Asks the user for what's missing; returns the result. Without
+  /// [exactAlarms], only the notification prompt is shown (Android's
+  /// exact-alarm permission is a whole settings screen).
+  Future<ReminderAccess> requestAccess({bool exactAlarms = true});
 
   /// Opens the system screen where battery optimisation is switched off.
   Future<void> openBatterySettings();
 
-  /// Cancels every planned reminder (not snoozes) and schedules
-  /// [reminders] instead.
+  /// Makes the planned reminders (not snoozes) exactly [reminders]:
+  /// unchanged ones are left alone, so one about to ring is never lost.
   Future<void> replaceAll(List<PlannedReminder> reminders);
 
   /// Schedules one more reminder (a snooze), keeping the others.
@@ -252,6 +251,13 @@ class DoseActionInbox {
 
   static const fileName = 'dose_actions.jsonl';
 
+  /// The inbox in the app's private folder. Looked up each time rather
+  /// than saved in notifications: the iOS container path can change when
+  /// the app is updated.
+  static Future<DoseActionInbox> open() async => DoseActionInbox(
+    File(p.join((await getApplicationSupportDirectory()).path, fileName)),
+  );
+
   void add(DoseAction action) {
     file.parent.createSync(recursive: true);
     file.writeAsStringSync(
@@ -292,4 +298,28 @@ class DoseActionInbox {
     final taken = File('${file.path}.taking');
     if (taken.existsSync()) taken.deleteSync();
   }
+}
+
+/// Used when the phone's notifications couldn't be set up: the app still
+/// opens, and the Medicines tab shows reminders as off.
+class UnavailableReminderScheduler implements ReminderScheduler {
+  const UnavailableReminderScheduler();
+
+  static const _none = ReminderAccess(notifications: false);
+
+  @override
+  Future<ReminderAccess> access() async => _none;
+
+  @override
+  Future<ReminderAccess> requestAccess({bool exactAlarms = true}) async =>
+      _none;
+
+  @override
+  Future<void> openBatterySettings() async {}
+
+  @override
+  Future<void> replaceAll(List<PlannedReminder> reminders) async {}
+
+  @override
+  Future<void> add(PlannedReminder reminder) async {}
 }

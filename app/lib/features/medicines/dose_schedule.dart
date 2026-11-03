@@ -1,11 +1,7 @@
 import '../../core/database/app_database.dart';
+import '../../core/util/dates.dart';
 
-/// A date saved as UTC midnight, as that calendar day. Drift reads it
-/// back in local time, which west of UTC is the evening before.
-DateTime storedDay(DateTime stored) {
-  final d = stored.toUtc();
-  return DateTime(d.year, d.month, d.day);
-}
+export '../../core/util/dates.dart' show storedDay;
 
 /// A time of day a dose is due, in the phone's local time.
 class DoseTime implements Comparable<DoseTime> {

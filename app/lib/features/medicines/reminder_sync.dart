@@ -128,22 +128,28 @@ class ReminderSync with WidgetsBindingObserver {
   /// A Taken or Snooze action handled while the app is running.
   Future<void> handleAction(PlannedReminder reminder, String status) async {
     final now = _clock();
-    await _save(reminder.medicineId, reminder.scheduledAt, status, now);
-    if (status == DoseOutcome.snoozed) {
+    final saved = await _save(
+      reminder.medicineId,
+      reminder.scheduledAt,
+      status,
+      now,
+    );
+    if (saved && status == DoseOutcome.snoozed) {
       await scheduler.add(reminder.snoozed(now));
     }
   }
 
-  Future<void> _save(
+  Future<bool> _save(
     String medicineId,
     DateTime scheduledAt,
     String status,
     DateTime at,
   ) async {
     try {
-      await db.logDose(medicineId, scheduledAt, status, at: at);
+      return await db.logDose(medicineId, scheduledAt, status, at: at);
     } on Exception {
       // The medicine was deleted since; nothing to record.
+      return false;
     }
   }
 }

@@ -241,4 +241,83 @@ void main() {
     expect(find.text('أدوية النهارده'), findsOneWidget);
     expect(find.text('كونكور'), findsOneWidget);
   });
+
+  testWidgets('edit keeps the weekdays and photos; delete removes them', (
+    tester,
+  ) async {
+    tallScreen(tester);
+    final ids = (await tester.runAsync(() async {
+      final omar = await db.addProfile('عمر');
+      final photo = await photos.import(picked.path);
+      final id = await db.saveMedicine(
+        profileId: omar,
+        name: 'ميثوتريكسات',
+        startOn: DateTime(2026, 11, 1),
+        photos: [photo],
+        // Monday and Thursday.
+        schedule: const DoseScheduleInput(
+          times: ['09:00'],
+          weekdays: 1 << 0 | 1 << 3,
+          amount: '4 أقراص',
+        ),
+      );
+      return (omar: omar, id: id, photo: photo);
+    }))!;
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
+    router.go('/family/${ids.omar}/medicines/${ids.id}');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('medicine-edit')));
+    await tester.pump();
+    // The form loads the medicine from the database, which needs real time;
+    // its spinner never lets pumpAndSettle finish meanwhile.
+    for (var i = 0; i < 50; i++) {
+      if (find.byType(CircularProgressIndicator).evaluate().isEmpty) break;
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    await tester.pumpAndSettle();
+
+    FilterChip day(int i) =>
+        tester.widget(find.byKey(ValueKey('medicine-weekday-$i')));
+    expect(day(0).selected, isTrue);
+    expect(day(1).selected, isFalse);
+    expect(day(3).selected, isTrue);
+    expect(
+      find.byKey(const ValueKey('medicine-photo-preview-0')),
+      findsOneWidget,
+    );
+
+    // No day picked is refused.
+    await tapKey(tester, 'medicine-weekday-0');
+    await tapKey(tester, 'medicine-weekday-3');
+    await tapKey(tester, 'medicine-save');
+    expect(find.text('اختار يوم واحد على الأقل'), findsOneWidget);
+
+    await tapKey(tester, 'medicine-weekday-3');
+    await tapKey(tester, 'medicine-save');
+    final s = (await tester.runAsync(
+      () => db.watchDoseSchedule(ids.id).first,
+    ))!;
+    expect(s.weekdays, 1 << 3);
+    expect(s.amount, '4 أقراص');
+    final m = (await tester.runAsync(() => db.watchMedicine(ids.id).first))!;
+    expect(decodeMedicinePhotos(m.photosJson), [ids.photo]);
+
+    await tapKey(tester, 'medicine-toggle-active');
+    expect(
+      (await tester.runAsync(() => db.watchMedicine(ids.id).first))!.active,
+      isFalse,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('متوقف'), findsOneWidget);
+
+    await tapKey(tester, 'medicine-delete');
+    await tapKey(tester, 'medicine-delete-confirm');
+    expect(find.text('أدوية عمر'), findsOneWidget);
+    expect(photos.fileOf(ids.photo).existsSync(), isFalse);
+  });
 }

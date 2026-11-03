@@ -165,6 +165,13 @@ void main() {
       var logs = await db.watchMedicineDoseLogs(id).first;
       expect(logs.single.status, DoseOutcome.taken);
 
+      // A stale notification's snooze doesn't undo Taken.
+      expect(await db.logDose(id, at, DoseOutcome.snoozed), isFalse);
+      expect(
+        (await db.watchMedicineDoseLogs(id).first).single.status,
+        DoseOutcome.taken,
+      );
+
       await db.clearDoseLog(id, at);
       expect(await db.watchMedicineDoseLogs(id).first, isEmpty);
       await db.logDose(id, at, DoseOutcome.skipped);
@@ -355,11 +362,10 @@ void main() {
         takenLabel: 'اتاخد',
         snoozeLabel: 'أجّل',
       );
-      final back = PlannedReminder.fromPayload(r.toPayload(inbox: '/x'))!;
-      expect(back.inbox, '/x');
-      expect(back.reminder.medicineId, 'm1');
-      expect(back.reminder.scheduledAt, r.scheduledAt);
-      expect(back.reminder.snoozeLabel, 'أجّل');
+      final back = PlannedReminder.fromPayload(r.toPayload())!;
+      expect(back.medicineId, 'm1');
+      expect(back.scheduledAt, r.scheduledAt);
+      expect(back.snoozeLabel, 'أجّل');
       expect(PlannedReminder.fromPayload('nonsense'), isNull);
 
       final s = r.snoozed(DateTime(2026, 11, 4, 8, 1));
@@ -425,6 +431,22 @@ void main() {
       expect(inbox.hasActions, isFalse);
       // 08:00 was taken from the notification: 20:00 is next.
       expect(scheduler.planned.first.at, DateTime(2026, 11, 3, 20));
+
+      // Snoozing from the stale 08:00 notification changes nothing.
+      await sync.handleAction(
+        PlannedReminder(
+          id: 1,
+          at: eight,
+          medicineId: id,
+          scheduledAt: eight,
+          title: 't',
+          body: 'b',
+          takenLabel: 'اتاخد',
+          snoozeLabel: 'أجّل',
+        ),
+        DoseOutcome.snoozed,
+      );
+      expect(scheduler.snoozes, isEmpty);
 
       await sync.handleAction(scheduler.planned.first, DoseOutcome.snoozed);
       expect(scheduler.snoozes.single.at, now.add(snoozeDuration));

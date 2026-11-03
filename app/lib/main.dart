@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart' as p;
 
 import 'app.dart';
 import 'core/database/app_database.dart';
@@ -23,15 +20,13 @@ Future<void> main() async {
   final file = await defaultDatabaseFile();
   final outcome = prepareDatabaseFile(file, key);
   final database = AppDatabase(openEncryptedDatabase(file, key));
-  final (preferences, cardPhotos, attachments, medicinePhotos) = await (
+  final (preferences, cardPhotos, attachments, medicinePhotos, inbox) = await (
     SharedPreferencesStore.open(),
     PhotoStore.open(PhotoStore.cardsFolder),
     PhotoStore.open(PhotoStore.attachmentsFolder),
     PhotoStore.open(PhotoStore.medicinesFolder),
+    DoseActionInbox.open(),
   ).wait;
-  final inbox = DoseActionInbox(
-    File(p.join(medicinePhotos.root.path, DoseActionInbox.fileName)),
-  );
 
   late final ProviderContainer container;
   late final ReminderSync reminders;
@@ -48,13 +43,22 @@ Future<void> main() async {
 
   // The app starts in Arabic; iOS fixes action labels at start-up.
   final startup = lookupAppLocalizations(const Locale('ar'));
-  final scheduler = await LocalNotificationScheduler.init(
-    inbox: inbox,
-    channelName: startup.doseChannelName,
-    takenLabel: startup.doseTaken,
-    snoozeLabel: startup.doseSnooze,
-    onResponse: onDoseResponse,
-  );
+  LocalNotificationScheduler? notifications;
+  try {
+    notifications = await LocalNotificationScheduler.init(
+      channelName: startup.doseChannelName,
+      takenLabel: startup.doseTaken,
+      snoozeLabel: startup.doseSnooze,
+      onResponse: onDoseResponse,
+    );
+  } catch (e, s) {
+    // Records and the emergency card must open even if reminders can't.
+    FlutterError.reportError(
+      FlutterErrorDetails(exception: e, stack: s, library: 'reminders'),
+    );
+  }
+  final ReminderScheduler scheduler =
+      notifications ?? const UnavailableReminderScheduler();
   container = ProviderContainer(
     overrides: [
       databaseProvider.overrideWithValue(database),
@@ -78,8 +82,12 @@ Future<void> main() async {
     UncontrolledProviderScope(container: container, child: const UsraApp()),
   );
   // After the first frame is queued: reminders never delay start-up.
-  final launch = await scheduler.launchResponse();
-  if (launch != null) onDoseResponse(launch);
+  try {
+    final launch = await notifications?.launchResponse();
+    if (launch != null) onDoseResponse(launch);
+  } catch (_) {
+    // Opened from a notification we can't read: just start normally.
+  }
   await reminders.start();
   // Notification text follows the app's language.
   container.listen(localeProvider, (_, _) => reminders.resync());

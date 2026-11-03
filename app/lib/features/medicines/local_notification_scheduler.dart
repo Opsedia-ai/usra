@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui' show DartPluginRegistrant;
 
 import 'package:flutter/services.dart';
@@ -26,10 +27,9 @@ typedef DoseResponse = ({PlannedReminder reminder, String? status});
 /// re-plans on start, on resume and whenever medicines or doses change.
 /// Android re-arms them after a reboot (ScheduledNotificationBootReceiver).
 class LocalNotificationScheduler implements ReminderScheduler {
-  LocalNotificationScheduler._(this._plugin, this._inbox);
+  LocalNotificationScheduler._(this._plugin);
 
   final FlutterLocalNotificationsPlugin _plugin;
-  final DoseActionInbox _inbox;
   static const _battery = MethodChannel('usra/battery');
 
   /// Sets up notifications. Taps and actions handled while the app runs
@@ -37,7 +37,6 @@ class LocalNotificationScheduler implements ReminderScheduler {
   /// [launchResponse]. [channelName] and the action labels are in the
   /// app's language (iOS fixes action labels here, once per launch).
   static Future<LocalNotificationScheduler> init({
-    required DoseActionInbox inbox,
     required String channelName,
     required String takenLabel,
     required String snoozeLabel,
@@ -63,7 +62,7 @@ class LocalNotificationScheduler implements ReminderScheduler {
         importance: Importance.max,
       ),
     );
-    return LocalNotificationScheduler._(plugin, inbox);
+    return LocalNotificationScheduler._(plugin);
   }
 
   /// The tap or action that launched the app, if any.
@@ -97,9 +96,9 @@ class LocalNotificationScheduler implements ReminderScheduler {
   );
 
   static DoseResponse? _read(NotificationResponse r) {
-    final parsed = PlannedReminder.fromPayload(r.payload);
-    if (parsed == null) return null;
-    return (reminder: parsed.reminder, status: _statusOf(r.actionId));
+    final reminder = PlannedReminder.fromPayload(r.payload);
+    if (reminder == null) return null;
+    return (reminder: reminder, status: _statusOf(r.actionId));
   }
 
   static String? _statusOf(String? actionId) => switch (actionId) {
@@ -147,13 +146,14 @@ class LocalNotificationScheduler implements ReminderScheduler {
   }
 
   @override
-  Future<ReminderAccess> requestAccess() async {
+  Future<ReminderAccess> requestAccess({bool exactAlarms = true}) async {
     final android = _android;
     if (android != null) {
       // Android 13+ asks; older versions allow notifications by default.
       await android.requestNotificationsPermission();
       // Android 12+: opens the "Alarms & reminders" screen if not allowed.
-      if (await android.canScheduleExactNotifications() == false) {
+      if (exactAlarms &&
+          await android.canScheduleExactNotifications() == false) {
         await android.requestExactAlarmsPermission();
       }
     }
@@ -175,21 +175,38 @@ class LocalNotificationScheduler implements ReminderScheduler {
   @override
   Future<void> replaceAll(List<PlannedReminder> reminders) async {
     final pending = await _plugin.pendingNotificationRequests();
+    final snoozes = pending.where((p) => p.id >= snoozeIdBase).length;
+    // iOS keeps only 64 pending notifications, snoozes included.
+    final room = Platform.isIOS ? max(0, _iosLimit - snoozes) : _androidLimit;
+    final wanted = {for (final r in reminders.take(room)) r.id: r};
+    // Leave unchanged reminders alone: cancelling and re-adding one that's
+    // about to ring could lose it.
+    final kept = <int>{};
     for (final p in pending) {
-      if (p.id < snoozeIdBase) await _plugin.cancel(id: p.id);
+      if (p.id >= snoozeIdBase) continue;
+      if (wanted[p.id]?.toPayload() == p.payload) {
+        kept.add(p.id);
+      } else {
+        await _plugin.cancel(id: p.id);
+      }
     }
     final mode = await _mode();
     // Planned a moment ago; one that's due by now would be refused.
-    final soonest = DateTime.now().add(const Duration(seconds: 5));
-    for (final r in reminders) {
-      if (r.at.isBefore(soonest)) continue;
-      await _schedule(_plugin, r, mode, inbox: _inbox.file.path);
+    final soonest = DateTime.now().add(const Duration(seconds: 1));
+    for (final r in wanted.values) {
+      if (kept.contains(r.id) || r.at.isBefore(soonest)) continue;
+      await _schedule(_plugin, r, mode);
     }
   }
 
+  static const _iosLimit = 64;
+
+  /// Well under Samsung's 500 alarms per app.
+  static const _androidLimit = 200;
+
   @override
   Future<void> add(PlannedReminder reminder) async {
-    await _schedule(_plugin, reminder, await _mode(), inbox: _inbox.file.path);
+    await _schedule(_plugin, reminder, await _mode());
   }
 
   /// Exact when allowed; otherwise Android may ring a few minutes late.
@@ -202,15 +219,14 @@ class LocalNotificationScheduler implements ReminderScheduler {
 Future<void> _schedule(
   FlutterLocalNotificationsPlugin plugin,
   PlannedReminder r,
-  AndroidScheduleMode mode, {
-  required String inbox,
-}) {
+  AndroidScheduleMode mode,
+) {
   return plugin.zonedSchedule(
     id: r.id,
     scheduledDate: tz.TZDateTime.from(r.at.toUtc(), tz.UTC),
     title: r.title,
     body: r.body,
-    payload: r.toPayload(inbox: inbox),
+    payload: r.toPayload(),
     androidScheduleMode: mode,
     notificationDetails: NotificationDetails(
       android: AndroidNotificationDetails(
@@ -237,26 +253,25 @@ Future<void> _schedule(
 /// the inbox for the app, and a snooze is scheduled right here.
 @pragma('vm:entry-point')
 Future<void> onBackgroundDoseResponse(NotificationResponse response) async {
-  final parsed = PlannedReminder.fromPayload(response.payload);
+  final reminder = PlannedReminder.fromPayload(response.payload);
   final status = LocalNotificationScheduler._statusOf(response.actionId);
-  final inboxPath = parsed?.inbox;
-  if (parsed == null || status == null || inboxPath == null) return;
+  if (reminder == null || status == null) return;
+  DartPluginRegistrant.ensureInitialized();
   final now = DateTime.now();
-  DoseActionInbox(File(inboxPath)).add(
+  (await DoseActionInbox.open()).add(
     DoseAction(
-      medicineId: parsed.reminder.medicineId,
-      scheduledAt: parsed.reminder.scheduledAt,
+      medicineId: reminder.medicineId,
+      scheduledAt: reminder.scheduledAt,
       status: status,
       at: now,
     ),
   );
   if (status != DoseOutcome.snoozed) return;
-  DartPluginRegistrant.ensureInitialized();
   final plugin = FlutterLocalNotificationsPlugin();
   await plugin.initialize(
     settings: LocalNotificationScheduler._settings(
-      takenLabel: parsed.reminder.takenLabel,
-      snoozeLabel: parsed.reminder.snoozeLabel,
+      takenLabel: reminder.takenLabel,
+      snoozeLabel: reminder.snoozeLabel,
     ),
     onDidReceiveBackgroundNotificationResponse: onBackgroundDoseResponse,
   );
@@ -269,10 +284,9 @@ Future<void> onBackgroundDoseResponse(NotificationResponse response) async {
       false;
   await _schedule(
     plugin,
-    parsed.reminder.snoozed(now),
+    reminder.snoozed(now),
     exact
         ? AndroidScheduleMode.exactAllowWhileIdle
         : AndroidScheduleMode.inexactAllowWhileIdle,
-    inbox: inboxPath,
   );
 }

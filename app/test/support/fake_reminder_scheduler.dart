@@ -9,6 +9,7 @@ class FakeReminderScheduler implements ReminderScheduler {
   ReminderAccess granted;
   ReminderAccess? afterRequest;
   var requests = 0;
+  bool? lastRequestedExactAlarms;
   var batterySettingsOpened = 0;
 
   /// Planned reminders, as last replaced.
@@ -19,8 +20,9 @@ class FakeReminderScheduler implements ReminderScheduler {
   Future<ReminderAccess> access() async => granted;
 
   @override
-  Future<ReminderAccess> requestAccess() async {
+  Future<ReminderAccess> requestAccess({bool exactAlarms = true}) async {
     requests++;
+    lastRequestedExactAlarms = exactAlarms;
     granted = afterRequest ?? granted;
     return granted;
   }

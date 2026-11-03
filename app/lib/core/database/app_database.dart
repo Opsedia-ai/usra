@@ -827,8 +827,10 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Records what happened to the dose of [medicineId] planned for
-  /// [scheduledAt]; marking it again replaces the earlier status.
-  Future<void> logDose(
+  /// [scheduledAt]; marking it again replaces the earlier status, except
+  /// that a snooze never undoes Taken or Skipped (a stale notification).
+  /// Returns false when nothing was recorded for that reason.
+  Future<bool> logDose(
     String medicineId,
     DateTime scheduledAt,
     String status, {
@@ -839,7 +841,7 @@ class AppDatabase extends _$AppDatabase {
     }
     final now = DateTime.now().toUtc();
     final when = (at ?? now).toUtc();
-    await transaction(() async {
+    return transaction(() async {
       final existing =
           await (select(doseLogs)..where(
                 (l) =>
@@ -847,6 +849,12 @@ class AppDatabase extends _$AppDatabase {
                     l.scheduledAt.equals(scheduledAt),
               ))
               .getSingleOrNull();
+      if (status == DoseOutcome.snoozed &&
+          existing != null &&
+          existing.deletedAt == null &&
+          existing.status != DoseOutcome.snoozed) {
+        return false;
+      }
       final String logId;
       if (existing == null) {
         logId = _uuid.v7();
@@ -872,6 +880,7 @@ class AppDatabase extends _$AppDatabase {
         );
       }
       await _queue('dose_log', logId, 'upsert');
+      return true;
     });
   }
 
