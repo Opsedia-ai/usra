@@ -93,6 +93,7 @@ abstract class ScreeningRule extends FollowUpRule {
             joinReasons([reason(c, subject), lastDone(c, last, today)]),
         recordType: recordType,
         source: source,
+        cycle: last == null && !from.isAfter(day) ? 'none' : null,
       ),
     ];
   }
@@ -192,8 +193,9 @@ class BreastScreeningRule extends ScreeningRule {
       months: 24,
     ),
   ];
+  // Scans only: a visit for breast pain isn't a screening.
   @override
-  Set<String> get searchIn => const {'scan', 'visit'};
+  Set<String> get searchIn => const {'scan'};
   @override
   String get recordType => 'scan';
   @override

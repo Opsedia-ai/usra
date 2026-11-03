@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -64,12 +65,15 @@ class FileDismissalStore implements DismissalStore {
   Future<void> save(Set<String> keys) {
     _keys = {...keys};
     final json = jsonEncode(_keys.toList()..sort());
-    return _writing = _writing.then((_) async {
+    final write = _writing.then((_) async {
       await _file.parent.create(recursive: true);
       final tmp = File('${_file.path}.tmp');
       await tmp.writeAsString(json, flush: true);
       await tmp.rename(_file.path);
     });
+    // A failed write mustn't block the ones after it.
+    _writing = write.catchError((Object _) {});
+    return write;
   }
 }
 
@@ -89,8 +93,14 @@ class DismissedFollowUps extends Notifier<Set<String>> {
 
   Future<void> restore(String cycleKey) => _set({...state}..remove(cycleKey));
 
-  Future<void> _set(Set<String> keys) {
+  /// The screen updates at once; if saving fails, the choice lasts until
+  /// the app restarts.
+  Future<void> _set(Set<String> keys) async {
     state = keys;
-    return ref.read(dismissalStoreProvider).save(keys);
+    try {
+      await ref.read(dismissalStoreProvider).save(keys);
+    } on FileSystemException catch (e) {
+      debugPrint('Could not save follow-up dismissals: $e');
+    }
   }
 }

@@ -23,6 +23,7 @@ class FollowUp {
     this.recordType,
     this.source,
     this.graceDays = 0,
+    this.cycle,
   }) : dueOn = dayOf(dueOn);
 
   /// Stable for the same rule and person, e.g. `screening.colorectal` or
@@ -47,10 +48,14 @@ class FollowUp {
   /// allows a month).
   final int graceDays;
 
+  /// Names the cycle when the due date can't: something never recorded is
+  /// due "today", which moves every day, so its rule passes `none`.
+  final String? cycle;
+
   /// Identifies this cycle: dismissing it hides it until the due date moves
   /// (a matching record is added, or the next cycle starts).
   String get cycleKey =>
-      '$profileId|$ruleId|${dueOn.toIso8601String().substring(0, 10)}';
+      '$profileId|$ruleId|${cycle ?? dueOn.toIso8601String().substring(0, 10)}';
 
   /// Overdue (past [graceDays]): act soon. Within two weeks: heads-up. Later: info.
   Severity severityOn(DateTime today) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/database/app_database.dart';
@@ -7,8 +9,15 @@ import '../family/family_screen.dart' show profilesProvider;
 import '../family/member_screen.dart' show timelineProvider;
 import 'dismissals.dart';
 
-/// Today, for follow-up due dates. Overridden in tests.
-final todayProvider = Provider<DateTime>((ref) => DateTime.now());
+/// Today, for follow-up due dates; refreshed at midnight so an app left
+/// open doesn't keep yesterday's severities. Overridden in tests.
+final todayProvider = Provider<DateTime>((ref) {
+  final now = DateTime.now();
+  final midnight = DateTime(now.year, now.month, now.day + 1);
+  final timer = Timer(midnight.difference(now), ref.invalidateSelf);
+  ref.onDispose(timer.cancel);
+  return now;
+});
 
 /// Every follow-up rule the registered modules contribute.
 final followUpRulesProvider = Provider<List<FollowUpRule>>(

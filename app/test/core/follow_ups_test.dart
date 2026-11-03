@@ -123,6 +123,7 @@ void main() {
     test('no false matches', () {
       expect(conditionsIn(null), isEmpty);
       expect(conditionsIn('ضغط واطي'), isEmpty);
+      expect(conditionsIn('ضغط نفسي من الشغل'), isEmpty);
       expect(conditionsIn('heartburn'), isEmpty);
       expect(mentionsAny('دكتور معين', ['عين']), isFalse);
       expect(mentionsAny('كشف العين', ['عين']), isTrue);
@@ -160,6 +161,17 @@ void main() {
       final [f] = run(rule, person(), events);
       expect(f.dueOn, DateTime.utc(2026, 10, 20));
       expect(f.severityOn(today), Severity.actSoon);
+    });
+
+    test('a linked doctor and the same name typed are the same doctor', () {
+      final events = [
+        record('visit', DateTime(2026, 9, 1), {
+          'doctorName': 'د. سامي',
+          'nextVisit': '2026-10-01',
+        }, doctorId: 'd1'),
+        record('visit', DateTime(2026, 10, 1), {'doctorName': 'د.  سامي'}),
+      ];
+      expect(run(rule, person(), events), isEmpty);
     });
 
     test('ignores stale, deleted and malformed dates', () {
@@ -214,6 +226,15 @@ void main() {
     test('due now when none is recorded; nothing without the condition', () {
       final [f] = run(const Hba1cRule(), person(conditions: 'diabetes'));
       expect(f.dueOn, DateTime.utc(2026, 11, 3));
+      // Hiding it lasts past today: the cycle doesn't move with the date.
+      final [tomorrow] = run(
+        const Hba1cRule(),
+        person(conditions: 'diabetes'),
+        const [],
+        DateTime(2026, 11, 4),
+      );
+      expect(tomorrow.cycleKey, f.cycleKey);
+      expect(f.cycleKey, 'p1|lab.hba1c|none');
       expect(run(const Hba1cRule(), person(conditions: 'ربو')), isEmpty);
       expect(run(const Hba1cRule(), person()), isEmpty);
     });
@@ -277,6 +298,34 @@ void main() {
       );
     });
 
+    test('"no follow-up needed" needs nothing; a comma ends the "no"', () {
+      for (final result in [
+        'لا يحتاج متابعة',
+        'Normal. No follow-up needed',
+        'لا داعي للمتابعة',
+      ]) {
+        expect(
+          run(rule, person(), [
+            record('scan', DateTime(2026, 6, 1), {
+              'kind': 'xray',
+              'result': result,
+            }),
+          ]),
+          isEmpty,
+          reason: result,
+        );
+      }
+      expect(
+        run(rule, person(), [
+          record('scan', DateTime(2026, 6, 1), {
+            'kind': 'ct',
+            'result': 'No change, follow up in 6 months',
+          }),
+        ]),
+        hasLength(1),
+      );
+    });
+
     test('a normal result needs nothing', () {
       expect(
         run(rule, person(), [
@@ -334,6 +383,13 @@ void main() {
       expect(f.dueOn, DateTime.utc(2027, 5, 1));
       final [never] = run(rule, person(birth: aged(41), sex: 'female'));
       expect(never.dueOn, DateTime.utc(2026, 11, 3));
+      // A visit for breast pain isn't a mammogram.
+      expect(
+        run(rule, person(birth: aged(45), sex: 'female'), [
+          record('visit', DateTime(2026, 5, 1), {'reason': 'ألم في الثدي'}),
+        ]).single.dueOn,
+        DateTime.utc(2026, 11, 3),
+      );
     });
 
     test('colorectal at 45–75; a colonoscopy lasts ten years', () {
@@ -444,6 +500,19 @@ void main() {
       await File('${dir.path}/${FileDismissalStore.fileName}')
           .writeAsString('{not json');
       expect((await FileDismissalStore.open(dir)).load(), isEmpty);
+    });
+
+    test('a failed write doesn\'t block the next one', () async {
+      final dir = await Directory.systemTemp.createTemp('usra_dismissals');
+      addTearDown(() => dir.delete(recursive: true));
+      final store = await FileDismissalStore.open(dir);
+      // A folder where the temporary file goes makes the write fail.
+      final tmp = Directory('${dir.path}/${FileDismissalStore.fileName}.tmp')
+        ..createSync();
+      await expectLater(store.save({'a'}), throwsA(isA<FileSystemException>()));
+      tmp.deleteSync();
+      await store.save({'b'});
+      expect((await FileDismissalStore.open(dir)).load(), {'b'});
     });
   });
 

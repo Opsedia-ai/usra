@@ -27,15 +27,20 @@ class NextVisitRule extends FollowUpRule {
   @override
   List<FollowUp> evaluate(FollowUpSubject subject, DateTime today) {
     final visits = subject.ofType('visit').toList();
-    String doctorOf(SubjectRecord r) =>
-        r.event.doctorId ?? normalizeText('${r.data['doctorName'] ?? ''}');
+    String nameOf(SubjectRecord r) =>
+        normalizeText('${r.data['doctorName'] ?? ''}');
+    // The same saved doctor, or the same name (one may be linked to a saved
+    // doctor and the other only typed).
+    bool sameDoctor(SubjectRecord a, SubjectRecord b) =>
+        (a.event.doctorId != null && a.event.doctorId == b.event.doctorId) ||
+        nameOf(a) == nameOf(b);
     return [
       for (final v in visits)
         if (dateField(v.data['nextVisit']) case final due?)
           if (!_stale(due, today) &&
               !visits.any(
                 (o) =>
-                    doctorOf(o) == doctorOf(v) &&
+                    sameDoctor(o, v) &&
                     dayOf(o.event.occurredAt)
                         .isAfter(dayOf(v.event.occurredAt)),
               ))
@@ -132,6 +137,7 @@ abstract class ChronicLabRule extends FollowUpRule {
         ]),
         recordType: 'lab',
         source: source,
+        cycle: last == null ? 'none' : null,
       ),
     ];
   }
@@ -245,6 +251,13 @@ class ScanFollowUpRule extends FollowUpRule {
     'تتعاد',
     'تكرار',
   ];
+
+  /// "لا يحتاج متابعة", "no follow-up needed", "لا داعي للمتابعة"; a comma
+  /// ends the phrase, so "no change, follow up in 6 months" still counts.
+  static final _negated = RegExp(
+    r'(^|\s)(no|not|without|لا|مش|بدون|غير)\s+([^\s,،.;؛]+\s+){0,2}'
+    r'(ال|لل|و|ب)?(follow|repeat|متابع|اعاد|تكرار|تتعاد)',
+  );
   static final _months = RegExp(r'(\d{1,2})\s*(months?|شهر|شهور|اشهر)');
   static final _weeks = RegExp(r'(\d{1,2})\s*(weeks?|اسبوع|اسابيع)');
   static const defaultMonths = 6;
@@ -255,7 +268,7 @@ class ScanFollowUpRule extends FollowUpRule {
     final out = <FollowUp>[];
     for (final s in scans) {
       final result = normalizeText('${s.data['result'] ?? ''}');
-      if (!mentionsAny(result, _words)) continue;
+      if (!mentionsAny(result, _words) || _negated.hasMatch(result)) continue;
       final kind = s.data['kind'];
       final redone = scans.any(
         (o) =>

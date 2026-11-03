@@ -74,10 +74,12 @@ const _conditionWords = <Condition, List<String>>{
   Condition.kidney: ['كلي', 'كلوي', 'kidney', 'renal', 'ckd'],
 };
 
-/// "Low" blood pressure isn't hypertension.
-const _lowPressureWords = [
+/// Low blood pressure and "ضغط نفسي/عصبي" (stress) aren't hypertension.
+const _notHypertensionWords = [
   'واطي',
   'منخفض',
+  'نفسي',
+  'عصبي',
   'low blood pressure',
   'hypotension',
 ];
@@ -93,9 +95,9 @@ Set<Condition> conditionsIn(String? text) {
       in _conditionWords.entries) {
     if (_hasAny(n, words)) found.add(condition);
   }
-  // "ضغط واطي" alone mentions pressure but isn't hypertension.
+  // "ضغط واطي" or "ضغط نفسي" alone mention pressure but aren't hypertension.
   if (found.contains(Condition.hypertension) &&
-      _lowPressureWords.any(n.contains) &&
+      _notHypertensionWords.any(n.contains) &&
       !['عالي', 'مرتفع', 'hypertension', 'high blood'].any(n.contains)) {
     found.remove(Condition.hypertension);
   }
