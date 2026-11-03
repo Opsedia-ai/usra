@@ -230,8 +230,9 @@ Future<void> main() async {
   } catch (_) {
     // No widget on this platform; the app works without it.
   }
+  // During a restore there is briefly no container; the tap is dropped.
   await HomeWidgetSnapshotPublisher.onTap(
-    () => container.read(routerProvider).go('/medicines'),
+    () => app.value?.read(routerProvider).go('/medicines'),
   );
   await reminders.start();
   // Notification text follows the app's language.
