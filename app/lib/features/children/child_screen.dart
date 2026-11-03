@@ -14,6 +14,7 @@ import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import 'egypt_vaccines.dart';
 import 'growth.dart';
+import 'growth_check.dart';
 
 /// One measurement on a chart: age in months and the value.
 typedef GrowthPoint = ({double months, double value, DateTime date});
@@ -114,6 +115,8 @@ class _Body extends StatelessWidget {
         if (sex != 'male' && sex != 'female')
           Text(l.growthNoSex, style: text.bodyLarge)
         else ...[
+          GrowthCheckCard(profile: profile),
+          const SizedBox(height: 12),
           for (final indicator in GrowthIndicator.values) ...[
             _GrowthCard(
               indicator: indicator,

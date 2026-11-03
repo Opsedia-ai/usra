@@ -82,7 +82,9 @@ void main() {
   });
 
   test('a growth record needs at least one measurement', () {
-    final growth = const ChildrenModule().recordTypes.single;
+    final growth = const ChildrenModule().recordTypes.firstWhere(
+      (t) => t.key == 'growth',
+    );
     expect(growth.validate({}), isNotEmpty);
     expect(growth.validate({'heightCm': 70}), isEmpty);
   });

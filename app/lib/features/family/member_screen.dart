@@ -12,8 +12,12 @@ import '../../core/records/record_type.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
 import '../children/growth.dart' show isUnderFive;
+import '../children/infant_log.dart' show isUnderOne;
+import '../children/milestones.dart' show showsMilestones;
 import '../follow_ups/follow_ups_section.dart';
 import '../insurance/insurance_section.dart';
+import '../pregnancy/pregnancy.dart' show canBePregnant;
+import '../pregnancy/pregnancy_widgets.dart';
 import 'family_screen.dart';
 import 'record_display.dart';
 
@@ -74,7 +78,7 @@ class MemberScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         key: const ValueKey('add-record'),
-        onPressed: () => _chooseType(context, types),
+        onPressed: () => _chooseType(context, types, profile.value),
         icon: const Icon(Icons.add),
         label: Text(l.addRecord),
       ),
@@ -113,40 +117,73 @@ class MemberScreen extends ConsumerWidget {
                       icon: const Icon(Icons.child_care_outlined),
                       label: Text(l.memberGrowth),
                     ),
+                  if (showsMilestones(p.birthDate, DateTime.now()))
+                    OutlinedButton.icon(
+                      key: const ValueKey('member-development'),
+                      onPressed: () =>
+                          context.go('/family/$profileId/development'),
+                      icon: const Icon(Icons.emoji_events_outlined),
+                      label: Text(l.memberDevelopment),
+                    ),
+                  if (isUnderOne(p.birthDate, DateTime.now()))
+                    OutlinedButton.icon(
+                      key: const ValueKey('member-baby-log'),
+                      onPressed: () =>
+                          context.go('/family/$profileId/baby-log'),
+                      icon: const Icon(Icons.local_drink_outlined),
+                      label: Text(l.memberBabyLog),
+                    ),
+                  if (canBePregnant(p, DateTime.now()))
+                    OutlinedButton.icon(
+                      key: const ValueKey('member-pregnancy'),
+                      onPressed: () =>
+                          context.go('/family/$profileId/pregnancy'),
+                      icon: const Icon(Icons.pregnant_woman),
+                      label: Text(l.memberPregnancy),
+                    ),
                 ],
               ),
               const SizedBox(height: 20),
+              MemberPregnancy(profile: p),
               InsuranceSection(profileId: profileId),
               const SizedBox(height: 28),
               MemberFollowUps(profileId: profileId),
               const SizedBox(height: 28),
-              ...timeline.when(
-                loading: () => [
-                  const Center(child: CircularProgressIndicator()),
-                ],
-                error: (e, _) => [Text('$e')],
-                data: (events) => events.isEmpty
-                    ? [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 32),
-                          child: Text(
-                            l.timelineEmpty,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                        ),
-                      ]
-                    : [
-                        for (final e in events) ...[
-                          _EventCard(
-                            event: e,
-                            type: types[e.type],
-                            photos: photoCounts[e.id] ?? 0,
-                          ),
-                          const SizedBox(height: 10),
-                        ],
-                      ],
-              ),
+              // Quick logs (feeds, diapers...) live on their own screens.
+              ...timeline
+                  .whenData(
+                    (all) => [
+                      for (final e in all)
+                        if (types[e.type]?.inTimeline ?? true) e,
+                    ],
+                  )
+                  .when(
+                    loading: () => [
+                      const Center(child: CircularProgressIndicator()),
+                    ],
+                    error: (e, _) => [Text('$e')],
+                    data: (events) => events.isEmpty
+                        ? [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 32),
+                              child: Text(
+                                l.timelineEmpty,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                            ),
+                          ]
+                        : [
+                            for (final e in events) ...[
+                              _EventCard(
+                                event: e,
+                                type: types[e.type],
+                                photos: photoCounts[e.id] ?? 0,
+                              ),
+                              const SizedBox(height: 10),
+                            ],
+                          ],
+                  ),
             ],
           );
         },
@@ -154,7 +191,12 @@ class MemberScreen extends ConsumerWidget {
     );
   }
 
-  void _chooseType(BuildContext context, RecordTypeRegistry types) {
+  void _chooseType(
+    BuildContext context,
+    RecordTypeRegistry types,
+    Profile? profile,
+  ) {
+    final today = DateTime.now();
     final l = AppLocalizations.of(context);
     showModalBottomSheet<void>(
       context: context,
@@ -171,15 +213,16 @@ class MemberScreen extends ConsumerWidget {
               ),
             ),
             for (final t in types.all)
-              ListTile(
-                key: ValueKey('type-${t.key}'),
-                leading: Icon(t.icon, color: UsraColors.primary),
-                title: Text(t.labelOf(context)),
-                onTap: () {
-                  Navigator.pop(sheet);
-                  context.go('/family/$profileId/add/${t.key}');
-                },
-              ),
+              if (profile == null || t.offeredFor(profile, today))
+                ListTile(
+                  key: ValueKey('type-${t.key}'),
+                  leading: Icon(t.icon, color: UsraColors.primary),
+                  title: Text(t.labelOf(context)),
+                  onTap: () {
+                    Navigator.pop(sheet);
+                    context.go('/family/$profileId/add/${t.key}');
+                  },
+                ),
           ],
         ),
       ),
