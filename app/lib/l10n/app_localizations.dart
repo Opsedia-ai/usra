@@ -980,6 +980,210 @@ abstract class AppLocalizations {
   /// **'Couldn\'t read the records'**
   String get emergencyLoadFailed;
 
+  /// No description provided for @recordGrowth.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth measurement'**
+  String get recordGrowth;
+
+  /// No description provided for @fieldWeightKg.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight (kg)'**
+  String get fieldWeightKg;
+
+  /// No description provided for @fieldHeightCm.
+  ///
+  /// In en, this message translates to:
+  /// **'Length / height (cm)'**
+  String get fieldHeightCm;
+
+  /// No description provided for @fieldHeadCm.
+  ///
+  /// In en, this message translates to:
+  /// **'Head circumference (cm)'**
+  String get fieldHeadCm;
+
+  /// No description provided for @memberGrowth.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth and vaccines'**
+  String get memberGrowth;
+
+  /// No description provided for @growthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth and vaccines'**
+  String get growthTitle;
+
+  /// No description provided for @growthAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add measurement'**
+  String get growthAdd;
+
+  /// No description provided for @growthWeightForAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight for age'**
+  String get growthWeightForAge;
+
+  /// No description provided for @growthHeightForAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Length / height for age'**
+  String get growthHeightForAge;
+
+  /// No description provided for @growthAgeAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'Age (months)'**
+  String get growthAgeAxis;
+
+  /// No description provided for @growthNoSex.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the child\'s sex to their profile to see the growth charts.'**
+  String get growthNoSex;
+
+  /// No description provided for @growthNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No measurements yet.'**
+  String get growthNoData;
+
+  /// No description provided for @growthLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest: {value} on {date}'**
+  String growthLatest(String value, String date);
+
+  /// No description provided for @growthWithinRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Percentile {percentile}: within the usual range for this age.'**
+  String growthWithinRange(String percentile);
+
+  /// No description provided for @growthOutsideRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Percentile {percentile}: outside the usual range. Talk to your pediatrician.'**
+  String growthOutsideRange(String percentile);
+
+  /// No description provided for @growthSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Curves: WHO Child Growth Standards (3rd, 15th, 50th, 85th and 97th percentiles). For information only; your pediatrician reads your child\'s growth.'**
+  String get growthSource;
+
+  /// No description provided for @vaccinesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mandatory vaccinations'**
+  String get vaccinesTitle;
+
+  /// No description provided for @vaccinesDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on the Egyptian Ministry of Health and Population\'s mandatory schedule. Schedules change, so the child\'s health office card is the official record.'**
+  String get vaccinesDisclaimer;
+
+  /// No description provided for @vaccineAtBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'At birth'**
+  String get vaccineAtBirth;
+
+  /// No description provided for @vaccineAtMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{months, plural, =1{At 1 month} other{At {months} months}}'**
+  String vaccineAtMonths(int months);
+
+  /// No description provided for @vaccineDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done {date}'**
+  String vaccineDone(String date);
+
+  /// No description provided for @vaccineDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String vaccineDue(String date);
+
+  /// No description provided for @vaccineOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue since {date}'**
+  String vaccineOverdue(String date);
+
+  /// No description provided for @vaccineLater.
+  ///
+  /// In en, this message translates to:
+  /// **'On {date}'**
+  String vaccineLater(String date);
+
+  /// No description provided for @vaccineDoseName.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, dose {dose}'**
+  String vaccineDoseName(String name, int dose);
+
+  /// No description provided for @vaccineHepB.
+  ///
+  /// In en, this message translates to:
+  /// **'Hepatitis B'**
+  String get vaccineHepB;
+
+  /// No description provided for @vaccineBcg.
+  ///
+  /// In en, this message translates to:
+  /// **'BCG (tuberculosis)'**
+  String get vaccineBcg;
+
+  /// No description provided for @vaccineOpv.
+  ///
+  /// In en, this message translates to:
+  /// **'Oral polio (drops)'**
+  String get vaccineOpv;
+
+  /// No description provided for @vaccineIpv.
+  ///
+  /// In en, this message translates to:
+  /// **'Polio injection (IPV)'**
+  String get vaccineIpv;
+
+  /// No description provided for @vaccinePenta.
+  ///
+  /// In en, this message translates to:
+  /// **'Pentavalent'**
+  String get vaccinePenta;
+
+  /// No description provided for @vaccineMmr.
+  ///
+  /// In en, this message translates to:
+  /// **'MMR (measles, mumps, rubella)'**
+  String get vaccineMmr;
+
+  /// No description provided for @vaccineDtp.
+  ///
+  /// In en, this message translates to:
+  /// **'DTP booster'**
+  String get vaccineDtp;
+
+  /// No description provided for @vaccineZeroDose.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, birth dose'**
+  String vaccineZeroDose(String name);
+
+  /// No description provided for @growthUnderFiveOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth charts and the vaccination schedule are for children under 5 with a birth date in their profile.'**
+  String get growthUnderFiveOnly;
+
   /// No description provided for @recordPhotos.
   ///
   /// In en, this message translates to:

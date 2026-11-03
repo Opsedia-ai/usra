@@ -10,6 +10,7 @@ import '../../core/providers.dart';
 import '../../core/records/record_type.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
+import '../children/growth.dart' show isUnderFive;
 import '../insurance/insurance_section.dart';
 import 'family_screen.dart';
 import 'record_display.dart';
@@ -85,14 +86,24 @@ class MemberScreen extends ConsumerWidget {
             children: [
               _Header(profile: p),
               const SizedBox(height: 12),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: OutlinedButton.icon(
-                  key: const ValueKey('member-spending'),
-                  onPressed: () => context.go('/money?person=$profileId'),
-                  icon: const Icon(Icons.payments_outlined),
-                  label: Text(l.memberSpending),
-                ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    key: const ValueKey('member-spending'),
+                    onPressed: () => context.go('/money?person=$profileId'),
+                    icon: const Icon(Icons.payments_outlined),
+                    label: Text(l.memberSpending),
+                  ),
+                  if (isUnderFive(p.birthDate, DateTime.now()))
+                    OutlinedButton.icon(
+                      key: const ValueKey('member-growth'),
+                      onPressed: () => context.go('/family/$profileId/growth'),
+                      icon: const Icon(Icons.child_care_outlined),
+                      label: Text(l.memberGrowth),
+                    ),
+                ],
               ),
               const SizedBox(height: 20),
               InsuranceSection(profileId: profileId),
