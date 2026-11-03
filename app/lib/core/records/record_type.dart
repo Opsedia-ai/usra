@@ -2,12 +2,17 @@ import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
 
+import '../database/app_database.dart';
+
 /// The kind of value a record field holds; drives the form and validation.
 enum FieldKind { text, number, date, money, choice, boolean }
 
 /// Translates a label in the current language. Modules pass these so the
 /// core never depends on a feature's strings.
 typedef LabelBuilder = String Function(BuildContext context);
+
+/// Whether a record type fits a person on a given day.
+typedef RecordTypeFilter = bool Function(Profile profile, DateTime today);
 typedef ChoiceLabelBuilder = String Function(
   BuildContext context,
   String choice,
@@ -49,6 +54,8 @@ class RecordTypeDefinition {
     this.label,
     this.doctorField,
     this.requireOneOf = const [],
+    this.appliesTo,
+    this.inTimeline = true,
   });
 
   final String key;
@@ -68,7 +75,19 @@ class RecordTypeDefinition {
   /// measurement needs a weight or a height, not necessarily both).
   final List<String> requireOneOf;
 
+  /// Who the "add record" list offers this type to (pregnancy for women,
+  /// a feed for babies); null means everyone. A module's own screens can
+  /// still add it.
+  final RecordTypeFilter? appliesTo;
+
+  /// False for quick logs (feeds, diapers, ticked milestones) that would
+  /// flood a person's timeline; their module's screen lists them instead.
+  final bool inTimeline;
+
   String labelOf(BuildContext context) => label?.call(context) ?? key;
+
+  bool offeredFor(Profile profile, DateTime today) =>
+      appliesTo?.call(profile, today) ?? true;
 
   /// The field shown as the record's title in lists: the first required one.
   FieldSpec? get titleField {

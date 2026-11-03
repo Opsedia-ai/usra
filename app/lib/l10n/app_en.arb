@@ -713,5 +713,273 @@
   "reminderAllow": "Allow",
   "reminderBatteryTitle": "Make reminders reliable",
   "reminderBatteryBody": "Some phones stop apps in the background to save battery. Set Usra's battery use to \"Unrestricted\" so reminders always ring.",
-  "reminderBatteryOpen": "Battery settings"
+  "reminderBatteryOpen": "Battery settings",
+  "memberPregnancy": "Pregnancy",
+  "memberDevelopment": "Development",
+  "memberBabyLog": "Baby's day",
+  "recordPregnancy": "Pregnancy",
+  "recordPregnancyCheck": "Weight and blood pressure",
+  "recordPregnancyEnd": "Pregnancy outcome",
+  "fieldLmp": "First day of last period",
+  "fieldDueDate": "Due date (from the doctor)",
+  "fieldSystolic": "Blood pressure, upper number",
+  "fieldDiastolic": "Blood pressure, lower number",
+  "fieldOutcome": "Outcome",
+  "outcomeBirth": "Birth",
+  "outcomeLoss": "Pregnancy loss",
+  "outcomeOther": "Other",
+  "pregnancyTitle": "Pregnancy follow-up",
+  "pregnancyNotEligible": "Pregnancy follow-up is for women. Check the sex and birth date in their details.",
+  "pregnancyStartIntro": "Follow the weeks, the due date, the antenatal visits and tests. Start with the first day of the last period, or the due date the doctor gave you.",
+  "pregnancyStart": "Start pregnancy follow-up",
+  "pregnancyWeek": "{weeks} weeks + {days} days",
+  "@pregnancyWeek": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "pregnancyTrimester": "{trimester, plural, =1{1st trimester} =2{2nd trimester} other{3rd trimester}}",
+  "@pregnancyTrimester": {
+    "placeholders": {
+      "trimester": {
+        "type": "int"
+      }
+    }
+  },
+  "pregnancyDue": "Due {date}",
+  "@pregnancyDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "pregnancyDaysLeft": "{days, plural, =0{Due today} =1{1 day to the due date} other{{days} days to the due date}}",
+  "@pregnancyDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "pregnancyPastDue": "The due date has passed. Stay in touch with your doctor, and add the outcome when the baby comes.",
+  "pregnancyAddCheck": "Add weight and blood pressure",
+  "pregnancyEnd": "Record the outcome",
+  "pregnancyScheduleTitle": "Visits, scans and tests",
+  "pregnancyScheduleSource": "Visits: WHO antenatal care recommendations (2016), at least 8 contacts. Scans and tests: what doctors in Egypt usually ask for. Your doctor may plan differently; follow their plan.",
+  "pregnancyDisclaimer": "For information only. It doesn't replace your doctor's follow-up.",
+  "ancContact": "Antenatal visit {number} of 8",
+  "@ancContact": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "ancContactReason": "Around week {week} of pregnancy",
+  "@ancContactReason": {
+    "placeholders": {
+      "week": {
+        "type": "int"
+      }
+    }
+  },
+  "ancWindow": "Usually between weeks {from} and {to} of pregnancy",
+  "@ancWindow": {
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "ancBookingLabs": "First pregnancy tests (blood count, blood group, urine, sugar, hepatitis)",
+  "ancFirstScan": "First-trimester ultrasound",
+  "ancAnomalyScan": "Anomaly scan (detailed ultrasound)",
+  "ancGlucoseTest": "Pregnancy sugar test (glucose curve)",
+  "ancBloodCount": "Blood count (anaemia check)",
+  "ancGrowthScan": "Baby growth ultrasound",
+  "ancDone": "Done",
+  "ancMissed": "Not recorded",
+  "pregDangerTitle": "Go to the hospital now if you notice any of these",
+  "pregDangerSign": "{sign, select, bleeding{Bleeding from the vagina} headache{Severe headache} vision{Blurred vision} fits{Fits or fainting} pain{Severe pain in the belly} fever{Fever} water{Water leaking from the vagina} movement{The baby moving less than usual, or not at all} swelling{Swelling of the face or hands} breathing{Difficulty breathing} other{}}",
+  "@pregDangerSign": {
+    "placeholders": {
+      "sign": {
+        "type": "String"
+      }
+    }
+  },
+  "pregDangerSource": "Danger signs from WHO and the Egyptian Ministry of Health maternal health guidance.",
+  "pregnancyWeightTitle": "Weight",
+  "pregnancyBpTitle": "Blood pressure",
+  "pregnancyNoReadings": "No readings yet.",
+  "pregnancyWeekAxis": "Pregnancy week",
+  "bpUsual": "In the usual range",
+  "bpHigh": "High: call your doctor today",
+  "bpVeryHigh": "Very high: go to the hospital now",
+  "pregnancyBpSource": "Levels from WHO: 140/90 and above is high in pregnancy, 160/110 and above is very high. One reading isn't a diagnosis; ask your doctor.",
+  "devTitle": "Development milestones",
+  "devUnderSixOnly": "The milestones checklist is for children under 6 whose birth date is recorded.",
+  "devIntro": "Tick what your child does, with the day you first noticed it.",
+  "devLateBanner": "Some milestones for {age} aren't ticked yet. Talk to your pediatrician about them; there's no need to wait.",
+  "@devLateBanner": {
+    "placeholders": {
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "devByAge": "By {age}",
+  "@devByAge": {
+    "placeholders": {
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "devTickedCount": "{done} of {total} ticked",
+  "@devTickedCount": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "devDone": "Since {date}",
+  "@devDone": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "devUpcoming": "Later",
+  "devWatch": "Watch for it",
+  "devLate": "Talk to your pediatrician",
+  "devNotTicked": "Not ticked",
+  "devWhenSeen": "When did you first notice it?",
+  "devAreaSocial": "Social and emotional",
+  "devAreaLanguage": "Language",
+  "devAreaCognitive": "Thinking and learning",
+  "devAreaMovement": "Movement",
+  "devSource": "From CDC's \"Learn the Signs. Act Early.\" milestones (2022), a selection: things most children (75%) do by each age. Full checklists at cdc.gov/actearly. For information only; your pediatrician assesses your child's development.",
+  "recordMilestone": "Milestone",
+  "milestone": "{id, select, m2_social{Smiles when you talk to or smile at them} m2_language{Makes sounds other than crying} m2_cognitive{Watches you as you move} m2_movement{Holds head up when on tummy} m4_social{Smiles on their own to get your attention} m4_language{Makes cooing sounds like \"oooo\" and \"aahh\"} m4_cognitive{Looks at their hands with interest} m4_movement{Holds head steady without support when you hold them} m6_social{Knows familiar people} m6_language{Takes turns making sounds with you} m6_cognitive{Reaches to grab a toy they want} m6_movement{Rolls from tummy to back} m9_social{Looks when you call their name} m9_language{Makes sounds like \"mamama\" and \"bababa\"} m9_cognitive{Looks for things when you drop them out of sight} m9_movement{Sits without support} m12_social{Plays games with you, like pat-a-cake} m12_language{Waves \"bye-bye\"} m12_cognitive{Looks for things they see you hide} m12_movement{Pulls up to stand} m15_social{Shows you an object they like} m15_language{Tries to say one or two words besides \"mama\" or \"dada\"} m15_cognitive{Stacks at least two small objects} m15_movement{Takes a few steps on their own} m18_social{Points to show you something interesting} m18_language{Tries to say three or more words besides \"mama\" or \"dada\"} m18_cognitive{Copies you doing chores, like sweeping} m18_movement{Walks without holding on to anyone or anything} m24_social{Notices when others are hurt or upset} m24_language{Says at least two words together, like \"more milk\"} m24_cognitive{Tries to use switches, knobs or buttons on a toy} m24_movement{Kicks a ball} m30_social{Plays next to other children and sometimes with them} m30_language{Says about 50 words} m30_cognitive{Uses things to pretend, like feeding a doll} m30_movement{Jumps off the ground with both feet} m36_social{Notices other children and joins them to play} m36_language{Holds a conversation with you of at least two back-and-forth exchanges} m36_cognitive{Draws a circle when you show them how} m36_movement{Puts on some clothes by themselves} m48_social{Comforts others who are hurt or sad} m48_language{Says sentences with four or more words} m48_cognitive{Names a few colours} m48_movement{Catches a large ball most of the time} m60_social{Follows rules or takes turns when playing games} m60_language{Tells a story they heard or made up, with at least two events} m60_cognitive{Counts to 10} m60_movement{Hops on one foot} other{}}",
+  "@milestone": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "infantLogTitle": "Baby's day",
+  "infantLogUnderOneOnly": "The feeds, sleep and diapers log is for babies under one whose birth date is recorded.",
+  "logBreast": "Breastfeed",
+  "logBottle": "Bottle",
+  "logSolids": "Solids",
+  "logSleep": "Sleep",
+  "logWet": "Wet diaper",
+  "logDirty": "Dirty diaper",
+  "logBottleAmount": "How much?",
+  "logSleepHowLong": "How long did they sleep?",
+  "logSkip": "Don't know",
+  "logMl": "{ml} ml",
+  "@logMl": {
+    "placeholders": {
+      "ml": {
+        "type": "int"
+      }
+    }
+  },
+  "logDuration": "{hours, plural, =0{{minutes} min} other{{hours} h {minutes} min}}",
+  "@logDuration": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "logSaved": "Saved",
+  "logToday": "Today",
+  "logYesterday": "Yesterday",
+  "logEmptyDay": "Nothing logged.",
+  "logSummaryFeeds": "{count, plural, =1{1 feed} other{{count} feeds}} (breast {breast}, bottle {bottle}, solids {solids})",
+  "@logSummaryFeeds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "breast": {
+        "type": "int"
+      },
+      "bottle": {
+        "type": "int"
+      },
+      "solids": {
+        "type": "int"
+      }
+    }
+  },
+  "logSummaryBottleMl": "{ml} ml from the bottle",
+  "@logSummaryBottleMl": {
+    "placeholders": {
+      "ml": {
+        "type": "int"
+      }
+    }
+  },
+  "logSummarySleep": "Sleep: {duration}",
+  "@logSummarySleep": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "logSummaryDiapers": "Diapers: {wet} wet, {dirty} dirty",
+  "@logSummaryDiapers": {
+    "placeholders": {
+      "wet": {
+        "type": "int"
+      },
+      "dirty": {
+        "type": "int"
+      }
+    }
+  },
+  "logDelete": "Delete",
+  "logDisclaimer": "A diary for you and the doctor. If you're worried about feeding, sleep or diapers, ask your pediatrician.",
+  "recordFeed": "Feed",
+  "recordDiaper": "Diaper",
+  "fieldFeedKind": "Type of feed",
+  "fieldAmountMl": "Amount (ml)",
+  "fieldMinutes": "Minutes",
+  "fieldDiaperKind": "Type of diaper",
+  "diaperWet": "Wet",
+  "diaperDirty": "Dirty",
+  "diaperBoth": "Wet and dirty",
+  "growthCheckTitle": "Quick check",
+  "growthCheckIntro": "Type today's weight or height and see where it falls on the WHO curves at {age}.",
+  "@growthCheckIntro": {
+    "placeholders": {
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "growthCheckSave": "Save as a measurement"
 }
