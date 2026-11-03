@@ -28,9 +28,20 @@ class ModuleRegistry {
     for (final m in modules) ...m.followUpRules,
   ];
 
+  List<RouteBase> get fullScreenRoutes => [
+    for (final m in modules) ...m.fullScreenRoutes,
+  ];
+
   List<ModuleTab> get tabs =>
       [for (final m in modules) ...m.tabs]
         ..sort((a, b) => a.order.compareTo(b.order));
+
+  /// Simple Mode keeps this many tabs at most.
+  static const maxSimpleTabs = 3;
+
+  /// The tabs shown in Simple Mode.
+  List<ModuleTab> get simpleTabs =>
+      tabs.where((t) => t.simple).take(maxSimpleTabs).toList();
 
   /// Modules the user can use with what they own.
   List<FeatureModule> availableWith(Set<Entitlement> owned) => [

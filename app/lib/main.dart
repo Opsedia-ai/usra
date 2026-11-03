@@ -5,6 +5,7 @@ import 'app.dart';
 import 'core/database/app_database.dart';
 import 'core/database/connection.dart';
 import 'core/files/photo_store.dart';
+import 'core/preferences.dart';
 import 'core/providers.dart';
 import 'features/follow_ups/dismissals.dart';
 
@@ -14,13 +15,17 @@ Future<void> main() async {
   final file = await defaultDatabaseFile();
   final outcome = prepareDatabaseFile(file, key);
   final database = AppDatabase(openEncryptedDatabase(file, key));
-  final cardPhotos = await PhotoStore.open(PhotoStore.cardsFolder);
-  final attachments = await PhotoStore.open(PhotoStore.attachmentsFolder);
-  final dismissals = await FileDismissalStore.open();
+  final (preferences, cardPhotos, attachments, dismissals) = await (
+    SharedPreferencesStore.open(),
+    PhotoStore.open(PhotoStore.cardsFolder),
+    PhotoStore.open(PhotoStore.attachmentsFolder),
+    FileDismissalStore.open(),
+  ).wait;
   runApp(
     ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(database),
+        keyValueStoreProvider.overrideWithValue(preferences),
         cardPhotoStoreProvider.overrideWithValue(cardPhotos),
         attachmentStoreProvider.overrideWithValue(attachments),
         dismissalStoreProvider.overrideWithValue(dismissals),

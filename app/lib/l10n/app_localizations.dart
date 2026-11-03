@@ -1256,6 +1256,216 @@ abstract class AppLocalizations {
   /// **'No'**
   String get fieldNo;
 
+  /// No description provided for @navCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get navCall;
+
+  /// No description provided for @settingsSimpleMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple Mode'**
+  String get settingsSimpleMode;
+
+  /// No description provided for @settingsSimpleModeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Bigger text and buttons, fewer tabs. Good for grandparents using the phone on their own.'**
+  String get settingsSimpleModeHint;
+
+  /// No description provided for @settingsTutorial.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the tour again'**
+  String get settingsTutorial;
+
+  /// No description provided for @profileSimpleMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses Simple Mode'**
+  String get profileSimpleMode;
+
+  /// No description provided for @profileSimpleModeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone in their hand: Home greets them by name. Turn Simple Mode on in More on that phone.'**
+  String get profileSimpleModeHint;
+
+  /// No description provided for @simpleHello.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello!'**
+  String get simpleHello;
+
+  /// No description provided for @simpleHelloName.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello, {name}'**
+  String simpleHelloName(String name);
+
+  /// No description provided for @simpleMedicines.
+  ///
+  /// In en, this message translates to:
+  /// **'My medicines'**
+  String get simpleMedicines;
+
+  /// No description provided for @simpleMedicinesSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine reminders are coming soon.'**
+  String get simpleMedicinesSoon;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get comingSoon;
+
+  /// No description provided for @simpleCallDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Call my doctor'**
+  String get simpleCallDoctor;
+
+  /// No description provided for @simpleFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'My family'**
+  String get simpleFamily;
+
+  /// No description provided for @simpleEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency card'**
+  String get simpleEmergency;
+
+  /// No description provided for @simplePickPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Whose emergency card?'**
+  String get simplePickPerson;
+
+  /// No description provided for @tutorialSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get tutorialSkip;
+
+  /// No description provided for @tutorialNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get tutorialNext;
+
+  /// No description provided for @tutorialBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get tutorialBack;
+
+  /// No description provided for @tutorialStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s start'**
+  String get tutorialStart;
+
+  /// No description provided for @tutorialStep.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String tutorialStep(int current, int total);
+
+  /// No description provided for @tutorialWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi, I\'m Dr. Usra'**
+  String get tutorialWelcomeTitle;
+
+  /// No description provided for @tutorialWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra keeps your family\'s health in one place: doctor visits, tests, medicines and your doctors\' numbers.'**
+  String get tutorialWelcomeBody;
+
+  /// No description provided for @tutorialPrivacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data stays with you'**
+  String get tutorialPrivacyTitle;
+
+  /// No description provided for @tutorialPrivacyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is saved on this phone, encrypted. No account needed.'**
+  String get tutorialPrivacyBody;
+
+  /// No description provided for @tutorialFamilyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your family'**
+  String get tutorialFamilyTitle;
+
+  /// No description provided for @tutorialFamilyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add everyone you care for: kids, parents, grandparents. Each person gets their own page.'**
+  String get tutorialFamilyBody;
+
+  /// No description provided for @tutorialColorsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Colours mean urgency'**
+  String get tutorialColorsTitle;
+
+  /// No description provided for @tutorialColorsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every colour comes with a word, so you always know what it means.'**
+  String get tutorialColorsBody;
+
+  /// No description provided for @tutorialEmergencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'An emergency card for everyone'**
+  String get tutorialEmergencyTitle;
+
+  /// No description provided for @tutorialEmergencyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood type, allergies and illnesses on one card, one tap from Home. Show it to a doctor or paramedic.'**
+  String get tutorialEmergencyBody;
+
+  /// No description provided for @tutorialElderWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m here to help you. Everything on the screen is big and clear.'**
+  String get tutorialElderWelcomeBody;
+
+  /// No description provided for @tutorialElderButtonsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Big buttons on Home'**
+  String get tutorialElderButtonsTitle;
+
+  /// No description provided for @tutorialElderButtonsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Press «Call my doctor» to call your doctor with one tap.'**
+  String get tutorialElderButtonsBody;
+
+  /// No description provided for @tutorialElderEmergencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'If you feel unwell'**
+  String get tutorialElderEmergencyTitle;
+
+  /// No description provided for @tutorialElderEmergencyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Press the red «Emergency card» button and show it to whoever is helping you.'**
+  String get tutorialElderEmergencyBody;
+
   /// No description provided for @followUpsTitle.
   ///
   /// In en, this message translates to:
