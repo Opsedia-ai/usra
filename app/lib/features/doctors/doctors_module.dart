@@ -21,6 +21,9 @@ class DoctorsModule extends FeatureModule {
       icon: Icons.contacts_outlined,
       label: (c) => AppLocalizations.of(c).navDoctors,
       order: 20,
+      simple: true,
+      simpleIcon: Icons.call,
+      simpleLabel: (c) => AppLocalizations.of(c).navCall,
     ),
   ];
 
