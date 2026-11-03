@@ -293,5 +293,19 @@
   "tutorialElderButtonsTitle": "زراير كبيرة في الرئيسية",
   "tutorialElderButtonsBody": "دوس على «كلّم دكتوري» عشان تكلّم الدكتور بدوسة واحدة.",
   "tutorialElderEmergencyTitle": "لو تعبت",
-  "tutorialElderEmergencyBody": "دوس على الزرار الأحمر «كارت الطوارئ» ووريه للي بيساعدك."
+  "tutorialElderEmergencyBody": "دوس على الزرار الأحمر «كارت الطوارئ» ووريه للي بيساعدك.",
+  "scanMedicineTitle": "صوّر علبة الدوا",
+  "scanMedicineIntro": "صوّر وش العلبة صورة واضحة في نور كويس. أسرة بتقرا الاسم والتركيز المكتوبين بالحروف الإنجليزي.",
+  "scanMedicineLimits": "الروشتة المكتوبة بخط الإيد والكلام العربي لسه مش بيتقروا على الموبايل. اكتبهم بنفسك.",
+  "scanMedicinePrivacy": "الصورة بتتقرا على الموبايل ده ومش بتتحفظ.",
+  "scanMedicineReading": "بنقرا العلبة…",
+  "scanMedicineSuggestions": "هو واحد من دول؟",
+  "scanMedicineNoneFound": "ملقيناش اسم دوا. اكتبه بنفسك، أو جرّب صورة تانية.",
+  "scanMedicineFailed": "مقدرناش نقرا الصورة دي. جرّب صورة تانية، أو اكتب الاسم بنفسك.",
+  "scanMedicineName": "اسم الدوا",
+  "scanMedicineStrength": "التركيز (اختياري)، زي 500mg",
+  "scanMedicineCheck": "راجع الاسم على العلبة قبل ما تستخدمه.",
+  "scanMedicineUse": "استخدم ده",
+  "scanMedicineRetake": "صورة تانية",
+  "scanMedicinePhoto": "صورة علبة الدوا"
 }

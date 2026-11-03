@@ -1465,6 +1465,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Press the red «Emergency card» button and show it to whoever is helping you.'**
   String get tutorialElderEmergencyBody;
+
+  /// No description provided for @scanMedicineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a medicine box'**
+  String get scanMedicineTitle;
+
+  /// No description provided for @scanMedicineIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a clear photo of the front of the box in good light. Usra reads the name and strength printed in English letters.'**
+  String get scanMedicineIntro;
+
+  /// No description provided for @scanMedicineLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'Handwritten prescriptions and Arabic text can\'t be read on the phone yet. Type those in yourself.'**
+  String get scanMedicineLimits;
+
+  /// No description provided for @scanMedicinePrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is read on this phone and isn\'t kept.'**
+  String get scanMedicinePrivacy;
+
+  /// No description provided for @scanMedicineReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the box…'**
+  String get scanMedicineReading;
+
+  /// No description provided for @scanMedicineSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Is it one of these?'**
+  String get scanMedicineSuggestions;
+
+  /// No description provided for @scanMedicineNoneFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t find a medicine name. Type it in, or try another photo.'**
+  String get scanMedicineNoneFound;
+
+  /// No description provided for @scanMedicineFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read this photo. Try another one, or type the name in.'**
+  String get scanMedicineFailed;
+
+  /// No description provided for @scanMedicineName.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine name'**
+  String get scanMedicineName;
+
+  /// No description provided for @scanMedicineStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength (optional), e.g. 500mg'**
+  String get scanMedicineStrength;
+
+  /// No description provided for @scanMedicineCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the name against the box before you use it.'**
+  String get scanMedicineCheck;
+
+  /// No description provided for @scanMedicineUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this'**
+  String get scanMedicineUse;
+
+  /// No description provided for @scanMedicineRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Another photo'**
+  String get scanMedicineRetake;
+
+  /// No description provided for @scanMedicinePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo of the medicine box'**
+  String get scanMedicinePhoto;
 }
 
 class _AppLocalizationsDelegate

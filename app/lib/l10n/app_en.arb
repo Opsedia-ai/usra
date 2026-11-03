@@ -400,5 +400,19 @@
   "tutorialElderButtonsTitle": "Big buttons on Home",
   "tutorialElderButtonsBody": "Press «Call my doctor» to call your doctor with one tap.",
   "tutorialElderEmergencyTitle": "If you feel unwell",
-  "tutorialElderEmergencyBody": "Press the red «Emergency card» button and show it to whoever is helping you."
+  "tutorialElderEmergencyBody": "Press the red «Emergency card» button and show it to whoever is helping you.",
+  "scanMedicineTitle": "Scan a medicine box",
+  "scanMedicineIntro": "Take a clear photo of the front of the box in good light. Usra reads the name and strength printed in English letters.",
+  "scanMedicineLimits": "Handwritten prescriptions and Arabic text can't be read on the phone yet. Type those in yourself.",
+  "scanMedicinePrivacy": "The photo is read on this phone and isn't kept.",
+  "scanMedicineReading": "Reading the box…",
+  "scanMedicineSuggestions": "Is it one of these?",
+  "scanMedicineNoneFound": "Couldn't find a medicine name. Type it in, or try another photo.",
+  "scanMedicineFailed": "Couldn't read this photo. Try another one, or type the name in.",
+  "scanMedicineName": "Medicine name",
+  "scanMedicineStrength": "Strength (optional), e.g. 500mg",
+  "scanMedicineCheck": "Check the name against the box before you use it.",
+  "scanMedicineUse": "Use this",
+  "scanMedicineRetake": "Another photo",
+  "scanMedicinePhoto": "Photo of the medicine box"
 }

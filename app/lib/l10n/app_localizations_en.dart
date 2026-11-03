@@ -784,4 +784,52 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tutorialElderEmergencyBody =>
       'Press the red «Emergency card» button and show it to whoever is helping you.';
+
+  @override
+  String get scanMedicineTitle => 'Scan a medicine box';
+
+  @override
+  String get scanMedicineIntro =>
+      'Take a clear photo of the front of the box in good light. Usra reads the name and strength printed in English letters.';
+
+  @override
+  String get scanMedicineLimits =>
+      'Handwritten prescriptions and Arabic text can\'t be read on the phone yet. Type those in yourself.';
+
+  @override
+  String get scanMedicinePrivacy =>
+      'The photo is read on this phone and isn\'t kept.';
+
+  @override
+  String get scanMedicineReading => 'Reading the box…';
+
+  @override
+  String get scanMedicineSuggestions => 'Is it one of these?';
+
+  @override
+  String get scanMedicineNoneFound =>
+      'Couldn\'t find a medicine name. Type it in, or try another photo.';
+
+  @override
+  String get scanMedicineFailed =>
+      'Couldn\'t read this photo. Try another one, or type the name in.';
+
+  @override
+  String get scanMedicineName => 'Medicine name';
+
+  @override
+  String get scanMedicineStrength => 'Strength (optional), e.g. 500mg';
+
+  @override
+  String get scanMedicineCheck =>
+      'Check the name against the box before you use it.';
+
+  @override
+  String get scanMedicineUse => 'Use this';
+
+  @override
+  String get scanMedicineRetake => 'Another photo';
+
+  @override
+  String get scanMedicinePhoto => 'Photo of the medicine box';
 }
