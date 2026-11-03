@@ -665,4 +665,257 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fieldNo => 'No';
+
+  @override
+  String get navMedicines => 'Medicines';
+
+  @override
+  String get medicinesTodayTitle => 'Today\'s medicines';
+
+  @override
+  String get medicinesTodayEmpty =>
+      'No doses due today. Add a medicine from a person\'s page in Family.';
+
+  @override
+  String get doseTaken => 'Taken';
+
+  @override
+  String get doseSkip => 'Skip';
+
+  @override
+  String get doseSkipped => 'Skipped';
+
+  @override
+  String get doseSnoozed => 'Snoozed';
+
+  @override
+  String get doseSnooze => 'Snooze 10 min';
+
+  @override
+  String get doseUndo => 'Undo';
+
+  @override
+  String doseMarkedAt(String status, String time) {
+    return '$status at $time';
+  }
+
+  @override
+  String doseReminderTitle(String person, String medicine) {
+    return 'Time for $person\'s medicine: $medicine';
+  }
+
+  @override
+  String get doseReminderBody => 'Tap Taken once it\'s done';
+
+  @override
+  String get doseChannelName => 'Medicine reminders';
+
+  @override
+  String get doseChannelDescription =>
+      'Reminders at the times the doctor prescribed';
+
+  @override
+  String get memberMedicines => 'Medicines';
+
+  @override
+  String medicinesTitle(String name) {
+    return '$name\'s medicines';
+  }
+
+  @override
+  String get medicinesEmpty =>
+      'No medicines yet. Add one exactly as the doctor wrote it.';
+
+  @override
+  String get medicineAdd => 'Add medicine';
+
+  @override
+  String get medicineNew => 'New medicine';
+
+  @override
+  String get medicineEdit => 'Edit medicine';
+
+  @override
+  String get medicineName => 'Medicine name';
+
+  @override
+  String get medicineStrength => 'Strength (as on the box)';
+
+  @override
+  String get medicineForm => 'Form';
+
+  @override
+  String get formTablet => 'Tablet';
+
+  @override
+  String get formCapsule => 'Capsule';
+
+  @override
+  String get formSyrup => 'Syrup';
+
+  @override
+  String get formDrops => 'Drops';
+
+  @override
+  String get formInjection => 'Injection';
+
+  @override
+  String get formCream => 'Cream';
+
+  @override
+  String get formInhaler => 'Inhaler';
+
+  @override
+  String get formOther => 'Other';
+
+  @override
+  String get medicineInstructions => 'Doctor\'s instructions';
+
+  @override
+  String get medicineInstructionsHint =>
+      'Exactly as written on the prescription';
+
+  @override
+  String get medicineDoctor => 'Prescribed by';
+
+  @override
+  String get medicineNoDoctor => 'Not set';
+
+  @override
+  String get medicineStart => 'First day';
+
+  @override
+  String get medicineEnd => 'Last day (optional)';
+
+  @override
+  String get medicineEndBeforeStart => 'The last day is before the first day';
+
+  @override
+  String get medicinePhotos => 'Photos of the box or prescription';
+
+  @override
+  String get medicineSchedule => 'Schedule';
+
+  @override
+  String get medicineAddTime => 'Add a time';
+
+  @override
+  String medicineRemoveTime(String time) {
+    return 'Remove $time';
+  }
+
+  @override
+  String get medicineNoTimes => 'No times means no reminders (as needed).';
+
+  @override
+  String get medicineAmount => 'Amount each time';
+
+  @override
+  String get medicineAmountHint => 'As the doctor wrote it, e.g. 1 tablet';
+
+  @override
+  String get medicineRepeat => 'How often';
+
+  @override
+  String get repeatDaily => 'Every day';
+
+  @override
+  String get repeatWeekdays => 'Some days';
+
+  @override
+  String get repeatEveryN => 'Every few days';
+
+  @override
+  String get medicineEveryN => 'Every how many days';
+
+  @override
+  String get medicineEveryNInvalid => 'Enter a number from 2 to 60';
+
+  @override
+  String get medicineWeekdaysEmpty => 'Pick at least one day';
+
+  @override
+  String get medicineStop => 'Stop taking';
+
+  @override
+  String get medicineResume => 'Taking it again';
+
+  @override
+  String get medicineStopped => 'Stopped';
+
+  @override
+  String get medicineEnded => 'Ended';
+
+  @override
+  String get medicineDelete => 'Delete';
+
+  @override
+  String medicineDeleteConfirm(String name) {
+    return 'Delete $name and its history? Its photos will be removed from this phone.';
+  }
+
+  @override
+  String get medicineNotFound => 'This medicine was deleted';
+
+  @override
+  String get medicineHistory => 'History';
+
+  @override
+  String get medicineHistoryEmpty => 'Nothing marked yet.';
+
+  @override
+  String get medicineAsNeeded => 'As needed, no reminders';
+
+  @override
+  String medicineNextDose(String when) {
+    return 'Next dose: $when';
+  }
+
+  @override
+  String medicineFromTo(String start, String end) {
+    return 'From $start to $end';
+  }
+
+  @override
+  String medicineFrom(String start) {
+    return 'From $start';
+  }
+
+  @override
+  String get scheduleEveryDay => 'Every day';
+
+  @override
+  String scheduleEveryNDays(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Every $n days',
+      one: 'Every day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reminderOffTitle => 'Reminders are off';
+
+  @override
+  String get reminderOffBody =>
+      'Allow notifications so Usra can remind you at medicine times.';
+
+  @override
+  String get reminderExactOff =>
+      'Allow \"Alarms & reminders\" so doses ring on time, not a few minutes late.';
+
+  @override
+  String get reminderAllow => 'Allow';
+
+  @override
+  String get reminderBatteryTitle => 'Make reminders reliable';
+
+  @override
+  String get reminderBatteryBody =>
+      'Some phones stop apps in the background to save battery. Set Usra\'s battery use to \"Unrestricted\" so reminders always ring.';
+
+  @override
+  String get reminderBatteryOpen => 'Battery settings';
 }

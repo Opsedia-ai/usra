@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -12,6 +14,9 @@ part 'app_database.g.dart';
     Doctors,
     InsuranceCards,
     Attachments,
+    Medicines,
+    DoseSchedules,
+    DoseLogs,
     OutboxEntries,
   ],
 )
@@ -21,7 +26,7 @@ class AppDatabase extends _$AppDatabase {
   static const _uuid = Uuid();
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -39,6 +44,12 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 5) {
         await m.createTable(attachments);
+      }
+      if (from < 6) {
+        await m.createTable(medicines);
+        await m.createTable(doseSchedules);
+        await m.createTable(doseLogs);
+        await m.createIndex(doseLogsDose);
       }
     },
     beforeOpen: (details) async {
@@ -131,10 +142,11 @@ class AppDatabase extends _$AppDatabase {
     return id;
   }
 
-  /// Marks a profile and all its records, their attachments and insurance
-  /// cards deleted (kept for sync) instead of erasing them. Photos are
-  /// files: prune them with `PhotoStore.prune(liveInsurancePhotos())` and
-  /// `PhotoStore.prune(liveAttachmentPaths())` afterwards.
+  /// Marks a profile and all its records, their attachments, insurance
+  /// cards and medicines deleted (kept for sync) instead of erasing them.
+  /// Photos are files: prune them with `PhotoStore.prune(...)` and
+  /// [liveInsurancePhotos], [liveAttachmentPaths] and [liveMedicinePhotos]
+  /// afterwards.
   Future<void> softDeleteProfile(String id) async {
     final now = DateTime.now().toUtc();
     await transaction(() async {
@@ -180,6 +192,18 @@ class AppDatabase extends _$AppDatabase {
       );
       for (final cardId in cardIds) {
         await _queue('insurance_card', cardId, 'delete');
+      }
+
+      final medicineIds =
+          await (selectOnly(medicines)
+                ..addColumns([medicines.id])
+                ..where(
+                  medicines.profileId.equals(id) & medicines.deletedAt.isNull(),
+                ))
+              .map((row) => row.read(medicines.id)!)
+              .get();
+      for (final medicineId in medicineIds) {
+        await _softDeleteMedicine(medicineId, now);
       }
     });
   }
@@ -534,6 +558,342 @@ class AppDatabase extends _$AppDatabase {
     };
   }
 
+  /// A person's live medicines: the ones still taken first, then by name.
+  Stream<List<Medicine>> watchMedicines(String profileId) {
+    final query = select(medicines)
+      ..where((m) => m.profileId.equals(profileId) & m.deletedAt.isNull())
+      ..orderBy([
+        (m) => OrderingTerm.desc(m.active),
+        (m) => OrderingTerm.asc(m.name),
+      ]);
+    return query.watch();
+  }
+
+  Stream<Medicine?> watchMedicine(String id) {
+    return (select(medicines)
+          ..where((m) => m.id.equals(id) & m.deletedAt.isNull()))
+        .watchSingleOrNull();
+  }
+
+  /// A medicine's live schedule, or null when it's taken as needed.
+  Stream<DoseSchedule?> watchDoseSchedule(String medicineId) {
+    return (select(doseSchedules)
+          ..where((s) => s.medicineId.equals(medicineId) & s.deletedAt.isNull())
+          ..limit(1))
+        .watchSingleOrNull();
+  }
+
+  /// Creates a medicine for [profileId], or updates [id] when given, with
+  /// its [schedule] (null: no reminders). Returns the medicine's id.
+  Future<String> saveMedicine({
+    String? id,
+    required String profileId,
+    required String name,
+    String? strength,
+    String? form,
+    String? instructions,
+    String? doctorId,
+    required DateTime startOn,
+    DateTime? endOn,
+    List<String> photos = const [],
+    bool active = true,
+    DoseScheduleInput? schedule,
+  }) async {
+    final cleanName = name.trim();
+    if (cleanName.isEmpty) {
+      throw ArgumentError.value(name, 'name', 'must not be empty');
+    }
+    final start = _day(startOn);
+    final end = endOn == null ? null : _day(endOn);
+    if (end != null && end.isBefore(start)) {
+      throw ArgumentError.value(endOn, 'endOn', 'is before startOn');
+    }
+    final medicineId = id ?? _uuid.v7();
+    final now = DateTime.now().toUtc();
+    final row = MedicinesCompanion(
+      id: Value(medicineId),
+      profileId: Value(profileId),
+      name: Value(cleanName),
+      strength: Value(_clean(strength)),
+      form: Value(_clean(form)),
+      instructions: Value(_clean(instructions)),
+      doctorId: Value(doctorId),
+      startOn: Value(start),
+      endOn: Value(end),
+      photosJson: Value(jsonEncode(photos)),
+      active: Value(active),
+      updatedAt: Value(now),
+    );
+    await transaction(() async {
+      if (id == null) {
+        await into(medicines).insert(row);
+      } else {
+        final changed = await (update(
+          medicines,
+        )..where((m) => m.id.equals(id) & m.deletedAt.isNull())).write(row);
+        // Deleted meanwhile (or never existed): don't revive a tombstone.
+        if (changed == 0) throw StateError('Medicine $id not found');
+      }
+      await _queue('medicine', medicineId, 'upsert');
+      await _replaceSchedule(medicineId, schedule, now);
+    });
+    return medicineId;
+  }
+
+  /// Keeps one live schedule per medicine: updates it in place, adds it, or
+  /// deletes it when [schedule] is null. Call in a transaction.
+  Future<void> _replaceSchedule(
+    String medicineId,
+    DoseScheduleInput? schedule,
+    DateTime now,
+  ) async {
+    final current =
+        await (select(doseSchedules)..where(
+              (s) => s.medicineId.equals(medicineId) & s.deletedAt.isNull(),
+            ))
+            .get();
+    if (schedule == null || schedule.times.isEmpty) {
+      for (final s in current) {
+        await (update(doseSchedules)..where((x) => x.id.equals(s.id))).write(
+          DoseSchedulesCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+        );
+        await _queue('dose_schedule', s.id, 'delete');
+      }
+      return;
+    }
+    if (schedule.everyNDays != null && schedule.everyNDays! < 1) {
+      throw ArgumentError.value(schedule.everyNDays, 'everyNDays');
+    }
+    final weekdays = schedule.weekdays;
+    final row = DoseSchedulesCompanion(
+      medicineId: Value(medicineId),
+      times: Value(schedule.times.join(',')),
+      // Every day of the week is the same as no limit.
+      weekdays: Value(
+        weekdays == null || weekdays & 0x7f == 0x7f ? null : weekdays & 0x7f,
+      ),
+      everyNDays: Value(
+        schedule.everyNDays == null || schedule.everyNDays! <= 1
+            ? null
+            : schedule.everyNDays,
+      ),
+      amount: Value(_clean(schedule.amount)),
+      updatedAt: Value(now),
+    );
+    if (row.weekdays.value == 0) {
+      throw ArgumentError.value(weekdays, 'weekdays', 'has no day');
+    }
+    final String scheduleId;
+    if (current.isEmpty) {
+      scheduleId = _uuid.v7();
+      await into(doseSchedules).insert(row.copyWith(id: Value(scheduleId)));
+    } else {
+      scheduleId = current.first.id;
+      await (update(
+        doseSchedules,
+      )..where((s) => s.id.equals(scheduleId))).write(row);
+    }
+    await _queue('dose_schedule', scheduleId, 'upsert');
+  }
+
+  /// Stops or restarts reminders for a medicine, keeping its history.
+  Future<void> setMedicineActive(String id, bool active) async {
+    await transaction(() async {
+      final changed =
+          await (update(
+            medicines,
+          )..where((m) => m.id.equals(id) & m.deletedAt.isNull())).write(
+            MedicinesCompanion(
+              active: Value(active),
+              updatedAt: Value(DateTime.now().toUtc()),
+            ),
+          );
+      if (changed == 0) throw StateError('Medicine $id not found');
+      await _queue('medicine', id, 'upsert');
+    });
+  }
+
+  /// Marks a medicine, its schedule and dose log deleted. Prune the photo
+  /// files with `PhotoStore.prune(liveMedicinePhotos())` afterwards.
+  Future<void> softDeleteMedicine(String id) async {
+    await transaction(() => _softDeleteMedicine(id, DateTime.now().toUtc()));
+  }
+
+  Future<void> _softDeleteMedicine(String id, DateTime now) async {
+    await (update(medicines)..where((m) => m.id.equals(id))).write(
+      MedicinesCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+    );
+    await _queue('medicine', id, 'delete');
+    final liveSchedules =
+        doseSchedules.medicineId.equals(id) & doseSchedules.deletedAt.isNull();
+    final scheduleIds =
+        await (selectOnly(doseSchedules)
+              ..addColumns([doseSchedules.id])
+              ..where(liveSchedules))
+            .map((row) => row.read(doseSchedules.id)!)
+            .get();
+    await (update(doseSchedules)..where((_) => liveSchedules)).write(
+      DoseSchedulesCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+    );
+    for (final s in scheduleIds) {
+      await _queue('dose_schedule', s, 'delete');
+    }
+    final liveLogs =
+        doseLogs.medicineId.equals(id) & doseLogs.deletedAt.isNull();
+    final logIds =
+        await (selectOnly(doseLogs)
+              ..addColumns([doseLogs.id])
+              ..where(liveLogs))
+            .map((row) => row.read(doseLogs.id)!)
+            .get();
+    await (update(doseLogs)..where((_) => liveLogs)).write(
+      DoseLogsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+    );
+    for (final l in logIds) {
+      await _queue('dose_log', l, 'delete');
+    }
+  }
+
+  /// Medicine photo files still used by a live medicine.
+  Future<Set<String>> liveMedicinePhotos() async {
+    final query = selectOnly(medicines)
+      ..addColumns([medicines.photosJson])
+      ..where(medicines.deletedAt.isNull());
+    return {
+      for (final r in await query.get())
+        ...decodeMedicinePhotos(r.read(medicines.photosJson)!),
+    };
+  }
+
+  /// Every medicine someone in the family is taking now with a schedule,
+  /// with whom it's for; ordered by person, then medicine name.
+  Stream<List<Regimen>> watchRegimens() {
+    final query =
+        select(medicines).join([
+            innerJoin(
+              doseSchedules,
+              doseSchedules.medicineId.equalsExp(medicines.id) &
+                  doseSchedules.deletedAt.isNull(),
+            ),
+            innerJoin(profiles, profiles.id.equalsExp(medicines.profileId)),
+          ])
+          ..where(
+            medicines.deletedAt.isNull() &
+                medicines.active.equals(true) &
+                profiles.deletedAt.isNull(),
+          )
+          ..orderBy([
+            OrderingTerm.asc(profiles.id),
+            OrderingTerm.asc(medicines.name),
+          ]);
+    return query.watch().map(
+      (rows) => [
+        for (final r in rows)
+          Regimen(
+            medicine: r.readTable(medicines),
+            schedule: r.readTable(doseSchedules),
+            person: r.readTable(profiles),
+          ),
+      ],
+    );
+  }
+
+  /// Live dose log entries planned between [from] (inclusive) and [to]
+  /// (exclusive), for every medicine.
+  Stream<List<DoseLog>> watchDoseLogs({
+    required DateTime from,
+    required DateTime to,
+  }) {
+    final query = select(doseLogs)
+      ..where(
+        (l) =>
+            l.deletedAt.isNull() &
+            l.scheduledAt.isBiggerOrEqualValue(from) &
+            l.scheduledAt.isSmallerThanValue(to),
+      );
+    return query.watch();
+  }
+
+  /// A medicine's dose history, newest first.
+  Stream<List<DoseLog>> watchMedicineDoseLogs(String medicineId) {
+    final query = select(doseLogs)
+      ..where((l) => l.medicineId.equals(medicineId) & l.deletedAt.isNull())
+      ..orderBy([(l) => OrderingTerm.desc(l.scheduledAt)]);
+    return query.watch();
+  }
+
+  /// Records what happened to the dose of [medicineId] planned for
+  /// [scheduledAt]; marking it again replaces the earlier status.
+  Future<void> logDose(
+    String medicineId,
+    DateTime scheduledAt,
+    String status, {
+    DateTime? at,
+  }) async {
+    if (!DoseOutcome.all.contains(status)) {
+      throw ArgumentError.value(status, 'status');
+    }
+    final now = DateTime.now().toUtc();
+    final when = (at ?? now).toUtc();
+    await transaction(() async {
+      final existing =
+          await (select(doseLogs)..where(
+                (l) =>
+                    l.medicineId.equals(medicineId) &
+                    l.scheduledAt.equals(scheduledAt),
+              ))
+              .getSingleOrNull();
+      final String logId;
+      if (existing == null) {
+        logId = _uuid.v7();
+        await into(doseLogs).insert(
+          DoseLogsCompanion.insert(
+            id: logId,
+            medicineId: medicineId,
+            scheduledAt: scheduledAt,
+            status: status,
+            at: when,
+            updatedAt: now,
+          ),
+        );
+      } else {
+        logId = existing.id;
+        await (update(doseLogs)..where((l) => l.id.equals(logId))).write(
+          DoseLogsCompanion(
+            status: Value(status),
+            at: Value(when),
+            updatedAt: Value(now),
+            deletedAt: const Value(null),
+          ),
+        );
+      }
+      await _queue('dose_log', logId, 'upsert');
+    });
+  }
+
+  /// Takes back a mark (tapped by mistake): the dose is due again.
+  Future<void> clearDoseLog(String medicineId, DateTime scheduledAt) async {
+    final now = DateTime.now().toUtc();
+    await transaction(() async {
+      final existing =
+          await (select(doseLogs)..where(
+                (l) =>
+                    l.medicineId.equals(medicineId) &
+                    l.scheduledAt.equals(scheduledAt) &
+                    l.deletedAt.isNull(),
+              ))
+              .getSingleOrNull();
+      if (existing == null) return;
+      await (update(doseLogs)..where((l) => l.id.equals(existing.id))).write(
+        DoseLogsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+      );
+      await _queue('dose_log', existing.id, 'delete');
+    });
+  }
+
+  /// A calendar day as UTC midnight, the way dates are stored.
+  static DateTime _day(DateTime d) => DateTime.utc(d.year, d.month, d.day);
+
   /// Spending in [currency] for each period between consecutive [bounds]
   /// (each from inclusive, to exclusive), for the family or one person.
   /// Records with no currency count as [currency].
@@ -683,4 +1043,58 @@ class SpendingSlice {
 
   /// How many records add up to [totalMinor].
   final int count;
+}
+
+/// What can happen to a scheduled dose.
+abstract final class DoseOutcome {
+  static const taken = 'taken';
+  static const skipped = 'skipped';
+  static const snoozed = 'snoozed';
+  static const all = {taken, skipped, snoozed};
+}
+
+/// A medicine's schedule as entered in the form.
+class DoseScheduleInput {
+  const DoseScheduleInput({
+    required this.times,
+    this.weekdays,
+    this.everyNDays,
+    this.amount,
+  });
+
+  /// "HH:mm" local times.
+  final List<String> times;
+
+  /// Bit mask, bit 0 = Monday; null for every day.
+  final int? weekdays;
+  final int? everyNDays;
+  final String? amount;
+}
+
+/// A medicine being taken on a schedule, and who takes it.
+class Regimen {
+  const Regimen({
+    required this.medicine,
+    required this.schedule,
+    required this.person,
+  });
+
+  final Medicine medicine;
+  final DoseSchedule schedule;
+  final Profile person;
+}
+
+/// The photo paths saved in `Medicines.photosJson`.
+List<String> decodeMedicinePhotos(String json) {
+  try {
+    final value = jsonDecode(json);
+    return value is List
+        ? [
+            for (final p in value)
+              if (p is String) p,
+          ]
+        : [];
+  } on FormatException {
+    return [];
+  }
 }

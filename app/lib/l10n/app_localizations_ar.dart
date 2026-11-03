@@ -670,4 +670,257 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get fieldNo => 'لأ';
+
+  @override
+  String get navMedicines => 'الأدوية';
+
+  @override
+  String get medicinesTodayTitle => 'أدوية النهارده';
+
+  @override
+  String get medicinesTodayEmpty =>
+      'مفيش أدوية النهارده. ضيف دوا من صفحة أي حد في العيلة.';
+
+  @override
+  String get doseTaken => 'اتاخد';
+
+  @override
+  String get doseSkip => 'فوّته';
+
+  @override
+  String get doseSkipped => 'اتفوّت';
+
+  @override
+  String get doseSnoozed => 'متأجل';
+
+  @override
+  String get doseSnooze => 'أجّل 10 دقايق';
+
+  @override
+  String get doseUndo => 'رجوع';
+
+  @override
+  String doseMarkedAt(String status, String time) {
+    return '$status الساعة $time';
+  }
+
+  @override
+  String doseReminderTitle(String person, String medicine) {
+    return 'ميعاد دوا $person: $medicine';
+  }
+
+  @override
+  String get doseReminderBody => 'دوس اتاخد بعد ما ياخده';
+
+  @override
+  String get doseChannelName => 'مواعيد الأدوية';
+
+  @override
+  String get doseChannelDescription => 'تنبيه في المواعيد اللي الدكتور كتبها';
+
+  @override
+  String get memberMedicines => 'الأدوية';
+
+  @override
+  String medicinesTitle(String name) {
+    return 'أدوية $name';
+  }
+
+  @override
+  String get medicinesEmpty =>
+      'مفيش أدوية لسه. ضيف الدوا زي ما الدكتور كتبه بالظبط.';
+
+  @override
+  String get medicineAdd => 'ضيف دوا';
+
+  @override
+  String get medicineNew => 'دوا جديد';
+
+  @override
+  String get medicineEdit => 'تعديل الدوا';
+
+  @override
+  String get medicineName => 'اسم الدوا';
+
+  @override
+  String get medicineStrength => 'التركيز (زي ما على العلبة)';
+
+  @override
+  String get medicineForm => 'الشكل';
+
+  @override
+  String get formTablet => 'أقراص';
+
+  @override
+  String get formCapsule => 'كبسول';
+
+  @override
+  String get formSyrup => 'شراب';
+
+  @override
+  String get formDrops => 'نقط';
+
+  @override
+  String get formInjection => 'حقن';
+
+  @override
+  String get formCream => 'كريم';
+
+  @override
+  String get formInhaler => 'بخاخ';
+
+  @override
+  String get formOther => 'تاني';
+
+  @override
+  String get medicineInstructions => 'تعليمات الدكتور';
+
+  @override
+  String get medicineInstructionsHint => 'زي ما مكتوبة في الروشتة بالظبط';
+
+  @override
+  String get medicineDoctor => 'الدكتور اللي كتبه';
+
+  @override
+  String get medicineNoDoctor => 'مش محدد';
+
+  @override
+  String get medicineStart => 'أول يوم';
+
+  @override
+  String get medicineEnd => 'آخر يوم (اختياري)';
+
+  @override
+  String get medicineEndBeforeStart => 'آخر يوم قبل أول يوم';
+
+  @override
+  String get medicinePhotos => 'صور العلبة أو الروشتة';
+
+  @override
+  String get medicineSchedule => 'المواعيد';
+
+  @override
+  String get medicineAddTime => 'ضيف ميعاد';
+
+  @override
+  String medicineRemoveTime(String time) {
+    return 'شيل $time';
+  }
+
+  @override
+  String get medicineNoTimes => 'من غير مواعيد مفيش تنبيهات (عند اللزوم).';
+
+  @override
+  String get medicineAmount => 'الكمية كل مرة';
+
+  @override
+  String get medicineAmountHint => 'زي ما الدكتور كتب، مثلاً: قرص واحد';
+
+  @override
+  String get medicineRepeat => 'كل قد إيه';
+
+  @override
+  String get repeatDaily => 'كل يوم';
+
+  @override
+  String get repeatWeekdays => 'أيام معينة';
+
+  @override
+  String get repeatEveryN => 'كل كام يوم';
+
+  @override
+  String get medicineEveryN => 'كل كام يوم';
+
+  @override
+  String get medicineEveryNInvalid => 'اكتب رقم من 2 لـ 60';
+
+  @override
+  String get medicineWeekdaysEmpty => 'اختار يوم واحد على الأقل';
+
+  @override
+  String get medicineStop => 'وقف الدوا';
+
+  @override
+  String get medicineResume => 'رجع ياخده';
+
+  @override
+  String get medicineStopped => 'متوقف';
+
+  @override
+  String get medicineEnded => 'خلص';
+
+  @override
+  String get medicineDelete => 'امسح';
+
+  @override
+  String medicineDeleteConfirm(String name) {
+    return 'تمسح $name وسجله؟ الصور هتتمسح من الموبايل ده.';
+  }
+
+  @override
+  String get medicineNotFound => 'الدوا ده اتمسح';
+
+  @override
+  String get medicineHistory => 'السجل';
+
+  @override
+  String get medicineHistoryEmpty => 'مفيش حاجة متسجلة لسه.';
+
+  @override
+  String get medicineAsNeeded => 'عند اللزوم، من غير تنبيهات';
+
+  @override
+  String medicineNextDose(String when) {
+    return 'الجرعة الجاية: $when';
+  }
+
+  @override
+  String medicineFromTo(String start, String end) {
+    return 'من $start لـ $end';
+  }
+
+  @override
+  String medicineFrom(String start) {
+    return 'من $start';
+  }
+
+  @override
+  String get scheduleEveryDay => 'كل يوم';
+
+  @override
+  String scheduleEveryNDays(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'كل $n يوم',
+      few: 'كل $n أيام',
+      two: 'كل يومين',
+      one: 'كل يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reminderOffTitle => 'التنبيهات مقفولة';
+
+  @override
+  String get reminderOffBody =>
+      'اسمح بالإشعارات علشان أسرة تفكرك بمواعيد الأدوية.';
+
+  @override
+  String get reminderExactOff =>
+      'اسمح بـ\"المنبهات والتذكيرات\" علشان الجرعات ترن في ميعادها بالظبط مش متأخر.';
+
+  @override
+  String get reminderAllow => 'اسمح';
+
+  @override
+  String get reminderBatteryTitle => 'خلّي التنبيهات مضمونة';
+
+  @override
+  String get reminderBatteryBody =>
+      'بعض الموبايلات بتوقف التطبيقات علشان توفر البطارية. خلّي استهلاك البطارية لأسرة \"غير مقيد\" علشان التنبيهات ترن دايماً.';
+
+  @override
+  String get reminderBatteryOpen => 'إعدادات البطارية';
 }

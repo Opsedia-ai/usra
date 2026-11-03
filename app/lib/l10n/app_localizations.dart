@@ -1255,6 +1255,450 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No'**
   String get fieldNo;
+
+  /// No description provided for @navMedicines.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicines'**
+  String get navMedicines;
+
+  /// No description provided for @medicinesTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s medicines'**
+  String get medicinesTodayTitle;
+
+  /// No description provided for @medicinesTodayEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No doses due today. Add a medicine from a person\'s page in Family.'**
+  String get medicinesTodayEmpty;
+
+  /// No description provided for @doseTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken'**
+  String get doseTaken;
+
+  /// No description provided for @doseSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get doseSkip;
+
+  /// No description provided for @doseSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get doseSkipped;
+
+  /// No description provided for @doseSnoozed.
+  ///
+  /// In en, this message translates to:
+  /// **'Snoozed'**
+  String get doseSnoozed;
+
+  /// No description provided for @doseSnooze.
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze 10 min'**
+  String get doseSnooze;
+
+  /// No description provided for @doseUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get doseUndo;
+
+  /// No description provided for @doseMarkedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'{status} at {time}'**
+  String doseMarkedAt(String status, String time);
+
+  /// No description provided for @doseReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time for {person}\'s medicine: {medicine}'**
+  String doseReminderTitle(String person, String medicine);
+
+  /// No description provided for @doseReminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Taken once it\'s done'**
+  String get doseReminderBody;
+
+  /// No description provided for @doseChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine reminders'**
+  String get doseChannelName;
+
+  /// No description provided for @doseChannelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders at the times the doctor prescribed'**
+  String get doseChannelDescription;
+
+  /// No description provided for @memberMedicines.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicines'**
+  String get memberMedicines;
+
+  /// No description provided for @medicinesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s medicines'**
+  String medicinesTitle(String name);
+
+  /// No description provided for @medicinesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No medicines yet. Add one exactly as the doctor wrote it.'**
+  String get medicinesEmpty;
+
+  /// No description provided for @medicineAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add medicine'**
+  String get medicineAdd;
+
+  /// No description provided for @medicineNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New medicine'**
+  String get medicineNew;
+
+  /// No description provided for @medicineEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit medicine'**
+  String get medicineEdit;
+
+  /// No description provided for @medicineName.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine name'**
+  String get medicineName;
+
+  /// No description provided for @medicineStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength (as on the box)'**
+  String get medicineStrength;
+
+  /// No description provided for @medicineForm.
+  ///
+  /// In en, this message translates to:
+  /// **'Form'**
+  String get medicineForm;
+
+  /// No description provided for @formTablet.
+  ///
+  /// In en, this message translates to:
+  /// **'Tablet'**
+  String get formTablet;
+
+  /// No description provided for @formCapsule.
+  ///
+  /// In en, this message translates to:
+  /// **'Capsule'**
+  String get formCapsule;
+
+  /// No description provided for @formSyrup.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrup'**
+  String get formSyrup;
+
+  /// No description provided for @formDrops.
+  ///
+  /// In en, this message translates to:
+  /// **'Drops'**
+  String get formDrops;
+
+  /// No description provided for @formInjection.
+  ///
+  /// In en, this message translates to:
+  /// **'Injection'**
+  String get formInjection;
+
+  /// No description provided for @formCream.
+  ///
+  /// In en, this message translates to:
+  /// **'Cream'**
+  String get formCream;
+
+  /// No description provided for @formInhaler.
+  ///
+  /// In en, this message translates to:
+  /// **'Inhaler'**
+  String get formInhaler;
+
+  /// No description provided for @formOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get formOther;
+
+  /// No description provided for @medicineInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor\'s instructions'**
+  String get medicineInstructions;
+
+  /// No description provided for @medicineInstructionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Exactly as written on the prescription'**
+  String get medicineInstructionsHint;
+
+  /// No description provided for @medicineDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Prescribed by'**
+  String get medicineDoctor;
+
+  /// No description provided for @medicineNoDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get medicineNoDoctor;
+
+  /// No description provided for @medicineStart.
+  ///
+  /// In en, this message translates to:
+  /// **'First day'**
+  String get medicineStart;
+
+  /// No description provided for @medicineEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Last day (optional)'**
+  String get medicineEnd;
+
+  /// No description provided for @medicineEndBeforeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'The last day is before the first day'**
+  String get medicineEndBeforeStart;
+
+  /// No description provided for @medicinePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos of the box or prescription'**
+  String get medicinePhotos;
+
+  /// No description provided for @medicineSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get medicineSchedule;
+
+  /// No description provided for @medicineAddTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a time'**
+  String get medicineAddTime;
+
+  /// No description provided for @medicineRemoveTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {time}'**
+  String medicineRemoveTime(String time);
+
+  /// No description provided for @medicineNoTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'No times means no reminders (as needed).'**
+  String get medicineNoTimes;
+
+  /// No description provided for @medicineAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount each time'**
+  String get medicineAmount;
+
+  /// No description provided for @medicineAmountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'As the doctor wrote it, e.g. 1 tablet'**
+  String get medicineAmountHint;
+
+  /// No description provided for @medicineRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'How often'**
+  String get medicineRepeat;
+
+  /// No description provided for @repeatDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get repeatDaily;
+
+  /// No description provided for @repeatWeekdays.
+  ///
+  /// In en, this message translates to:
+  /// **'Some days'**
+  String get repeatWeekdays;
+
+  /// No description provided for @repeatEveryN.
+  ///
+  /// In en, this message translates to:
+  /// **'Every few days'**
+  String get repeatEveryN;
+
+  /// No description provided for @medicineEveryN.
+  ///
+  /// In en, this message translates to:
+  /// **'Every how many days'**
+  String get medicineEveryN;
+
+  /// No description provided for @medicineEveryNInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number from 2 to 60'**
+  String get medicineEveryNInvalid;
+
+  /// No description provided for @medicineWeekdaysEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least one day'**
+  String get medicineWeekdaysEmpty;
+
+  /// No description provided for @medicineStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop taking'**
+  String get medicineStop;
+
+  /// No description provided for @medicineResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Taking it again'**
+  String get medicineResume;
+
+  /// No description provided for @medicineStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped'**
+  String get medicineStopped;
+
+  /// No description provided for @medicineEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get medicineEnded;
+
+  /// No description provided for @medicineDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get medicineDelete;
+
+  /// No description provided for @medicineDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name} and its history? Its photos will be removed from this phone.'**
+  String medicineDeleteConfirm(String name);
+
+  /// No description provided for @medicineNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This medicine was deleted'**
+  String get medicineNotFound;
+
+  /// No description provided for @medicineHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get medicineHistory;
+
+  /// No description provided for @medicineHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing marked yet.'**
+  String get medicineHistoryEmpty;
+
+  /// No description provided for @medicineAsNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'As needed, no reminders'**
+  String get medicineAsNeeded;
+
+  /// No description provided for @medicineNextDose.
+  ///
+  /// In en, this message translates to:
+  /// **'Next dose: {when}'**
+  String medicineNextDose(String when);
+
+  /// No description provided for @medicineFromTo.
+  ///
+  /// In en, this message translates to:
+  /// **'From {start} to {end}'**
+  String medicineFromTo(String start, String end);
+
+  /// No description provided for @medicineFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From {start}'**
+  String medicineFrom(String start);
+
+  /// No description provided for @scheduleEveryDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get scheduleEveryDay;
+
+  /// No description provided for @scheduleEveryNDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{Every day} other{Every {n} days}}'**
+  String scheduleEveryNDays(int n);
+
+  /// No description provided for @reminderOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders are off'**
+  String get reminderOffTitle;
+
+  /// No description provided for @reminderOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications so Usra can remind you at medicine times.'**
+  String get reminderOffBody;
+
+  /// No description provided for @reminderExactOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow \"Alarms & reminders\" so doses ring on time, not a few minutes late.'**
+  String get reminderExactOff;
+
+  /// No description provided for @reminderAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get reminderAllow;
+
+  /// No description provided for @reminderBatteryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make reminders reliable'**
+  String get reminderBatteryTitle;
+
+  /// No description provided for @reminderBatteryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Some phones stop apps in the background to save battery. Set Usra\'s battery use to \"Unrestricted\" so reminders always ring.'**
+  String get reminderBatteryBody;
+
+  /// No description provided for @reminderBatteryOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery settings'**
+  String get reminderBatteryOpen;
 }
 
 class _AppLocalizationsDelegate

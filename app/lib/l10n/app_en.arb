@@ -348,5 +348,151 @@
     }
   },
   "fieldYes": "Yes",
-  "fieldNo": "No"
+  "fieldNo": "No",
+  "navMedicines": "Medicines",
+  "medicinesTodayTitle": "Today's medicines",
+  "medicinesTodayEmpty": "No doses due today. Add a medicine from a person's page in Family.",
+  "doseTaken": "Taken",
+  "doseSkip": "Skip",
+  "doseSkipped": "Skipped",
+  "doseSnoozed": "Snoozed",
+  "doseSnooze": "Snooze 10 min",
+  "doseUndo": "Undo",
+  "doseMarkedAt": "{status} at {time}",
+  "@doseMarkedAt": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "doseReminderTitle": "Time for {person}'s medicine: {medicine}",
+  "@doseReminderTitle": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "medicine": {
+        "type": "String"
+      }
+    }
+  },
+  "doseReminderBody": "Tap Taken once it's done",
+  "doseChannelName": "Medicine reminders",
+  "doseChannelDescription": "Reminders at the times the doctor prescribed",
+  "memberMedicines": "Medicines",
+  "medicinesTitle": "{name}'s medicines",
+  "@medicinesTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "medicinesEmpty": "No medicines yet. Add one exactly as the doctor wrote it.",
+  "medicineAdd": "Add medicine",
+  "medicineNew": "New medicine",
+  "medicineEdit": "Edit medicine",
+  "medicineName": "Medicine name",
+  "medicineStrength": "Strength (as on the box)",
+  "medicineForm": "Form",
+  "formTablet": "Tablet",
+  "formCapsule": "Capsule",
+  "formSyrup": "Syrup",
+  "formDrops": "Drops",
+  "formInjection": "Injection",
+  "formCream": "Cream",
+  "formInhaler": "Inhaler",
+  "formOther": "Other",
+  "medicineInstructions": "Doctor's instructions",
+  "medicineInstructionsHint": "Exactly as written on the prescription",
+  "medicineDoctor": "Prescribed by",
+  "medicineNoDoctor": "Not set",
+  "medicineStart": "First day",
+  "medicineEnd": "Last day (optional)",
+  "medicineEndBeforeStart": "The last day is before the first day",
+  "medicinePhotos": "Photos of the box or prescription",
+  "medicineSchedule": "Schedule",
+  "medicineAddTime": "Add a time",
+  "medicineRemoveTime": "Remove {time}",
+  "@medicineRemoveTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "medicineNoTimes": "No times means no reminders (as needed).",
+  "medicineAmount": "Amount each time",
+  "medicineAmountHint": "As the doctor wrote it, e.g. 1 tablet",
+  "medicineRepeat": "How often",
+  "repeatDaily": "Every day",
+  "repeatWeekdays": "Some days",
+  "repeatEveryN": "Every few days",
+  "medicineEveryN": "Every how many days",
+  "medicineEveryNInvalid": "Enter a number from 2 to 60",
+  "medicineWeekdaysEmpty": "Pick at least one day",
+  "medicineStop": "Stop taking",
+  "medicineResume": "Taking it again",
+  "medicineStopped": "Stopped",
+  "medicineEnded": "Ended",
+  "medicineDelete": "Delete",
+  "medicineDeleteConfirm": "Delete {name} and its history? Its photos will be removed from this phone.",
+  "@medicineDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "medicineNotFound": "This medicine was deleted",
+  "medicineHistory": "History",
+  "medicineHistoryEmpty": "Nothing marked yet.",
+  "medicineAsNeeded": "As needed, no reminders",
+  "medicineNextDose": "Next dose: {when}",
+  "@medicineNextDose": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "medicineFromTo": "From {start} to {end}",
+  "@medicineFromTo": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "medicineFrom": "From {start}",
+  "@medicineFrom": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      }
+    }
+  },
+  "scheduleEveryDay": "Every day",
+  "scheduleEveryNDays": "{n, plural, =1{Every day} other{Every {n} days}}",
+  "@scheduleEveryNDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "reminderOffTitle": "Reminders are off",
+  "reminderOffBody": "Allow notifications so Usra can remind you at medicine times.",
+  "reminderExactOff": "Allow \"Alarms & reminders\" so doses ring on time, not a few minutes late.",
+  "reminderAllow": "Allow",
+  "reminderBatteryTitle": "Make reminders reliable",
+  "reminderBatteryBody": "Some phones stop apps in the background to save battery. Set Usra's battery use to \"Unrestricted\" so reminders always ring.",
+  "reminderBatteryOpen": "Battery settings"
 }
