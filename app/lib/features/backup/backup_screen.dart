@@ -65,7 +65,13 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               : box.localToGlobal(Offset.zero) & box.size,
         ),
       );
-      if (status != ShareResultStatus.dismissed) {
+      // Android often can't tell whether something was picked: ask.
+      final saved =
+          status == ShareResultStatus.success ||
+          (status == ShareResultStatus.unavailable &&
+              mounted &&
+              await _askSaved());
+      if (saved) {
         await ref.read(lastBackupProvider.notifier).set(DateTime.now());
         messenger.showSnackBar(SnackBar(content: Text(l.backupDone)));
       }
@@ -74,6 +80,28 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     } finally {
       if (mounted) setState(() => _working = false);
     }
+  }
+
+  Future<bool> _askSaved() async {
+    final l = AppLocalizations.of(context);
+    final answer = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(l.backupSavedQuestion),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l.backupSavedNo),
+          ),
+          FilledButton(
+            key: const ValueKey('backup-saved-yes'),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l.backupSavedYes),
+          ),
+        ],
+      ),
+    );
+    return answer ?? false;
   }
 
   @override
@@ -159,11 +187,14 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
   StagedRestore? _staged;
   RecoveryKey? _usedKey;
   var _working = false;
+  var _replacing = false;
+  late final BackupService _service;
   String? _error;
 
   @override
   void initState() {
     super.initState();
+    _service = ref.read(backupServiceProvider);
     // Restoring on the same phone: the saved key is probably the one.
     ref.read(recoveryKeyStoreProvider).read().then((key) {
       if (key != null && mounted && _key.text.isEmpty) {
@@ -175,6 +206,10 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
   @override
   void dispose() {
     _key.dispose();
+    // Opened but not restored: don't keep a decrypted copy around.
+    if (_staged != null && !_replacing) {
+      _service.discardStaged().ignore();
+    }
     super.dispose();
   }
 
@@ -235,7 +270,10 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
   }
 
   Future<void> _replace() async {
-    setState(() => _working = true);
+    setState(() {
+      _working = true;
+      _replacing = true;
+    });
     // Restarts the app: this screen goes away with the old data.
     await ref.read(restoreAndRestartProvider)(_staged!, _usedKey!);
   }

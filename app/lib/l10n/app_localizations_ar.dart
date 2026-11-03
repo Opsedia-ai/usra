@@ -1448,4 +1448,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get restoreFailedNotice =>
       'مقدرناش نرجّع النسخة، فسيبنا سجلاتك زي ما كانت.';
+
+  @override
+  String get backupSavedQuestion => 'حفظت النسخة أو بعتها في مكان؟';
+
+  @override
+  String get backupSavedYes => 'أيوه، حفظتها';
+
+  @override
+  String get backupSavedNo => 'لأ';
 }

@@ -77,9 +77,13 @@ Future<void> main() async {
   late ReminderSync reminders;
   AppLocalizations l() =>
       lookupAppLocalizations(container().read(localeProvider));
+  // Pressed while a restore swaps the data: replayed once it's back.
+  final waiting = <DoseResponse>[];
   void onDoseResponse(DoseResponse r) {
-    // Mid-restore: the notification is still there to press again.
-    if (app.value == null) return;
+    if (app.value == null) {
+      waiting.add(r);
+      return;
+    }
     final status = r.status;
     if (status == null) {
       container().read(routerProvider).go('/medicines');
@@ -142,19 +146,27 @@ Future<void> main() async {
     final old = app.value!;
     final locale = old.read(localeProvider);
     app.value = null;
-    await WidgetsBinding.instance.endOfFrame;
-    old.dispose();
-    reminders.dispose();
-    await database.close();
-    var restored = true;
+    var restored = false;
     try {
+      await WidgetsBinding.instance.endOfFrame;
+      old.dispose();
+      reminders.dispose();
+      await database.close();
       await backup.commit();
+      restored = true;
     } catch (e, s) {
-      // Rolled back: the phone keeps what it had.
-      restored = false;
       FlutterError.reportError(
         FlutterErrorDetails(exception: e, stack: s, library: 'backup'),
       );
+      try {
+        // commit() rolls back itself; this finishes the job if that failed
+        // too, so the old data is what reopens.
+        await backup.recoverInterrupted();
+      } catch (e, s) {
+        FlutterError.reportError(
+          FlutterErrorDetails(exception: e, stack: s, library: 'backup'),
+        );
+      }
     }
     outcome = prepareDatabaseFile(file, key);
     database = AppDatabase(openEncryptedDatabase(file, key));
@@ -180,6 +192,10 @@ Future<void> main() async {
     fresh.read(localeProvider.notifier).change(locale);
     app.value = fresh;
     reminders = newReminders();
+    for (final r in waiting) {
+      onDoseResponse(r);
+    }
+    waiting.clear();
     await reminders.start();
   };
 

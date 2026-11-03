@@ -205,7 +205,8 @@ class BackupService {
     }
     if (await _aside.exists()) await _aside.delete(recursive: true);
     await _aside.create();
-    await _marker.writeAsString(jsonEncode({'targets': _targets}));
+    // Its presence is what matters: rollback works from [_targets].
+    await _marker.create();
     try {
       for (final name in _targets) {
         await _move(p.join(root.path, name), p.join(_aside.path, name));
@@ -215,6 +216,7 @@ class BackupService {
       }
     } catch (_) {
       await _rollBack();
+      await _clearStaging();
       rethrow;
     }
     await _marker.delete();
@@ -224,6 +226,9 @@ class BackupService {
       if (await dir.exists()) await excludeFromBackup?.call(dir);
     }
   }
+
+  /// Drops a staged backup that won't be restored after all.
+  Future<void> discardStaged() => _clearStaging();
 
   /// Deletes what a successful restore replaced.
   Future<void> discardAside() async {
@@ -358,8 +363,11 @@ Future<void> _pack({
     if (!await dir.exists()) continue;
     await for (final entity in dir.list()) {
       final name = '$folder/${p.basename(entity.path)}';
-      // Skips anything that isn't one of our photos (e.g. .DS_Store).
-      if (entity is File && isSafeEntryName(name)) photos.add((name, entity));
+      if (entity is! File) continue;
+      // Hidden system files (.DS_Store) aren't photos. Anything else must
+      // go in, so a name the tar can't hold fails the backup, loudly.
+      if (p.basename(entity.path).startsWith('.')) continue;
+      photos.add((name, entity));
     }
   }
   counts['photos'] = photos.length;

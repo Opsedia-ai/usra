@@ -1432,4 +1432,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get restoreFailedNotice =>
       'We couldn\'t restore the backup, so your records stayed as they were.';
+
+  @override
+  String get backupSavedQuestion =>
+      'Did you save the backup or send it somewhere?';
+
+  @override
+  String get backupSavedYes => 'Yes, saved';
+
+  @override
+  String get backupSavedNo => 'No';
 }

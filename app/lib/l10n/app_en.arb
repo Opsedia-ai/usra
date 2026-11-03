@@ -806,5 +806,8 @@
   "restoreReplaceWarning": "Everything on this phone now will be replaced by this backup.",
   "restoreReplace": "Restore and replace",
   "restoreDoneNotice": "Your backup is restored.",
-  "restoreFailedNotice": "We couldn't restore the backup, so your records stayed as they were."
+  "restoreFailedNotice": "We couldn't restore the backup, so your records stayed as they were.",
+  "backupSavedQuestion": "Did you save the backup or send it somewhere?",
+  "backupSavedYes": "Yes, saved",
+  "backupSavedNo": "No"
 }

@@ -78,6 +78,7 @@ void main() {
       await db.addProfile('ليلى');
       oldPhone.writePhoto('attachments/a1.jpg', photo);
       oldPhone.writePhoto('insurance_cards/c1.png', [1, 2, 3]);
+      oldPhone.writePhoto('medicines/box.front.jpg', [4]);
       oldPhone.writePhoto('attachments/.DS_Store', [0]);
       File(p.join(oldPhone.root.path, 'follow_up_dismissals.json'))
           .writeAsStringSync('["x"]');
@@ -116,10 +117,14 @@ void main() {
     expect(staged.manifest.appVersion, '0.1.0+1');
     expect(staged.manifest.createdAt, DateTime.utc(2026, 11, 3));
     expect(staged.manifest.count('people'), 2);
-    expect(staged.manifest.count('photos'), 2);
+    expect(staged.manifest.count('photos'), 3);
 
     await newPhone.service.commit();
     await newPhone.service.discardAside();
+    expect(
+      File(p.join(newPhone.root.path, 'medicines/box.front.jpg')).existsSync(),
+      isTrue,
+    );
 
     final db = newPhone.open();
     addTearDown(db.close);
@@ -143,6 +148,7 @@ void main() {
       'usra.sqlite',
       'attachments',
       'insurance_cards',
+      'medicines',
       'follow_up_dismissals.json',
     });
   });
@@ -234,6 +240,13 @@ void main() {
       Directory(p.join(newPhone.root.path, 'restore-staging')).existsSync(),
       isFalse,
     );
+  });
+
+  test('a backup opened but not restored leaves nothing behind', () async {
+    final backup = await backupOldPhone();
+    await newPhone.service.stage(backup, recovery, currentSchema: 6);
+    await newPhone.service.discardStaged();
+    expect(newPhone.root.listSync(), isEmpty);
   });
 
   test('a file that is not a backup is refused', () async {

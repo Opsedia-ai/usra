@@ -73,7 +73,7 @@ class TarWriter {
 /// Relative, normalized, no `..`, no hidden or odd characters.
 bool isSafeEntryName(String name) =>
     RegExp(
-      r'^[A-Za-z0-9_-]+(\.[A-Za-z0-9]+)?(/[A-Za-z0-9_-]+(\.[A-Za-z0-9]+)?)?$',
+      r'^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*(/[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*)?$',
     ).hasMatch(name) &&
     p.posix.normalize(name) == name;
 

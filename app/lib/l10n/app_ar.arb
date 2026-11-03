@@ -476,5 +476,8 @@
   "restoreReplaceWarning": "كل اللي على الموبايل ده دلوقتي هيتشال ويتحط مكانه اللي في النسخة دي.",
   "restoreReplace": "استرجع واستبدل",
   "restoreDoneNotice": "رجّعنا نسختك الاحتياطية.",
-  "restoreFailedNotice": "مقدرناش نرجّع النسخة، فسيبنا سجلاتك زي ما كانت."
+  "restoreFailedNotice": "مقدرناش نرجّع النسخة، فسيبنا سجلاتك زي ما كانت.",
+  "backupSavedQuestion": "حفظت النسخة أو بعتها في مكان؟",
+  "backupSavedYes": "أيوه، حفظتها",
+  "backupSavedNo": "لأ"
 }

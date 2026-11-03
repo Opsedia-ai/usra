@@ -2503,6 +2503,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We couldn\'t restore the backup, so your records stayed as they were.'**
   String get restoreFailedNotice;
+
+  /// No description provided for @backupSavedQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you save the backup or send it somewhere?'**
+  String get backupSavedQuestion;
+
+  /// No description provided for @backupSavedYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, saved'**
+  String get backupSavedYes;
+
+  /// No description provided for @backupSavedNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get backupSavedNo;
 }
 
 class _AppLocalizationsDelegate

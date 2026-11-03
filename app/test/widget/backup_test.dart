@@ -67,6 +67,7 @@ void main() {
   late _FakeBackupService service;
   late Directory dir;
   late List<ShareParams> shared;
+  late ShareResultStatus shareStatus;
   late List<(StagedRestore, RecoveryKey)> restarted;
 
   setUp(() {
@@ -84,6 +85,7 @@ void main() {
     dir = Directory.systemTemp.createTempSync('usra_backup_widget');
     service = _FakeBackupService(dir);
     shared = [];
+    shareStatus = ShareResultStatus.success;
     restarted = [];
   });
   tearDown(() async {
@@ -99,7 +101,7 @@ void main() {
       backupServiceProvider.overrideWithValue(service),
       backupShareProvider.overrideWithValue((params) async {
         shared.add(params);
-        return ShareResultStatus.success;
+        return shareStatus;
       }),
       ...extra,
     ],
@@ -292,6 +294,33 @@ void main() {
     expect(restarted.single.$2, key);
     expect(restarted.single.$1.manifest.count('people'), 3);
   });
+
+  testWidgets(
+    'when Android can\'t tell, it asks whether the backup was saved',
+    (tester) async {
+      await keys.write(RecoveryKey.generate());
+      shareStatus = ShareResultStatus.unavailable;
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+      await go(tester, '/settings/backup');
+
+      await tester.tap(find.byKey(const ValueKey('backup-now')));
+      // The button's spinner keeps going behind the question.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.text('لأ'));
+      await tester.pumpAndSettle();
+      expect(prefs.getInt(PrefKeys.lastBackupAt), isNull);
+
+      await tester.tap(find.byKey(const ValueKey('backup-now')));
+      // The button's spinner keeps going behind the question.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.byKey(const ValueKey('backup-saved-yes')));
+      await tester.pumpAndSettle();
+      expect(prefs.getInt(PrefKeys.lastBackupAt), isNotNull);
+    },
+  );
 
   testWidgets('after a restore Home says so', (tester) async {
     await tester.pumpWidget(
