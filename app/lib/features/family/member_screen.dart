@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,8 +11,10 @@ import '../../core/providers.dart';
 import '../../core/records/record_type.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
+import '../children/growth.dart' show isUnderFive;
 import '../insurance/insurance_section.dart';
 import 'family_screen.dart';
+import 'record_display.dart';
 
 final profileProvider = StreamProvider.family<Profile?, String>(
   (ref, id) => ref.watch(databaseProvider).watchProfile(id),
@@ -22,6 +22,20 @@ final profileProvider = StreamProvider.family<Profile?, String>(
 
 final timelineProvider = StreamProvider.family<List<MedicalEvent>, String>(
   (ref, id) => ref.watch(databaseProvider).watchTimeline(id),
+);
+
+/// How many photos each of a person's records has.
+final attachmentCountsProvider =
+    StreamProvider.family<Map<String, int>, String>(
+      (ref, id) => ref.watch(databaseProvider).watchAttachmentCounts(id),
+    );
+
+final eventProvider = StreamProvider.family<MedicalEvent?, String>(
+  (ref, id) => ref.watch(databaseProvider).watchEvent(id),
+);
+
+final attachmentsProvider = StreamProvider.family<List<Attachment>, String>(
+  (ref, eventId) => ref.watch(databaseProvider).watchAttachments(eventId),
 );
 
 /// One person: their health details and every record, newest first.
@@ -36,6 +50,8 @@ class MemberScreen extends ConsumerWidget {
     final profile = ref.watch(profileProvider(profileId));
     final timeline = ref.watch(timelineProvider(profileId));
     final types = ref.watch(moduleRegistryProvider).recordTypes;
+    final photoCounts =
+        ref.watch(attachmentCountsProvider(profileId)).value ?? const {};
 
     return Scaffold(
       appBar: AppBar(
@@ -71,17 +87,27 @@ class MemberScreen extends ConsumerWidget {
             children: [
               _Header(profile: p),
               const SizedBox(height: 12),
-              // No spending charts in Simple Mode.
-              if (!ref.watch(simpleModeProvider))
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: OutlinedButton.icon(
-                    key: const ValueKey('member-spending'),
-                    onPressed: () => context.go('/money?person=$profileId'),
-                    icon: const Icon(Icons.payments_outlined),
-                    label: Text(l.memberSpending),
-                  ),
-                ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  // No spending charts in Simple Mode.
+                  if (!ref.watch(simpleModeProvider))
+                    OutlinedButton.icon(
+                      key: const ValueKey('member-spending'),
+                      onPressed: () => context.go('/money?person=$profileId'),
+                      icon: const Icon(Icons.payments_outlined),
+                      label: Text(l.memberSpending),
+                    ),
+                  if (isUnderFive(p.birthDate, DateTime.now()))
+                    OutlinedButton.icon(
+                      key: const ValueKey('member-growth'),
+                      onPressed: () => context.go('/family/$profileId/growth'),
+                      icon: const Icon(Icons.child_care_outlined),
+                      label: Text(l.memberGrowth),
+                    ),
+                ],
+              ),
               const SizedBox(height: 20),
               InsuranceSection(profileId: profileId),
               const SizedBox(height: 28),
@@ -103,7 +129,11 @@ class MemberScreen extends ConsumerWidget {
                       ]
                     : [
                         for (final e in events) ...[
-                          _EventCard(event: e, type: types[e.type]),
+                          _EventCard(
+                            event: e,
+                            type: types[e.type],
+                            photos: photoCounts[e.id] ?? 0,
+                          ),
                           const SizedBox(height: 10),
                         ],
                       ],
@@ -201,15 +231,21 @@ class _Header extends StatelessWidget {
 }
 
 class _EventCard extends StatelessWidget {
-  const _EventCard({required this.event, required this.type});
+  const _EventCard({
+    required this.event,
+    required this.type,
+    required this.photos,
+  });
 
   final MedicalEvent event;
   final RecordTypeDefinition? type;
+  final int photos;
 
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final data = _decode(event.dataJson);
+    final l = AppLocalizations.of(context);
+    final data = decodeRecordData(event.dataJson);
     final titleField = type?.titleField;
     final title = titleField == null ? null : data[titleField.key];
     final currency = event.currency;
@@ -219,12 +255,15 @@ class _EventCard extends StatelessWidget {
             event.costMinor!,
             locale: locale,
             currency: currency == null || currency == 'EGP'
-                ? AppLocalizations.of(context).currencyEgp
+                ? l.currencyEgp
                 : currency,
           );
 
     return Card(
       child: ListTile(
+        key: ValueKey('event-${event.id}'),
+        onTap: () =>
+            context.go('/family/${event.profileId}/record/${event.id}'),
         leading: CircleAvatar(
           backgroundColor: UsraColors.primaryTint,
           child: Icon(
@@ -235,7 +274,7 @@ class _EventCard extends StatelessWidget {
         title: Text(
           [
             type?.labelOf(context) ?? event.type,
-            if (title != null) _display(context, titleField!, title),
+            if (title != null) displayFieldValue(context, titleField!, title),
           ].join(' · '),
         ),
         subtitle: Text(
@@ -244,21 +283,22 @@ class _EventCard extends StatelessWidget {
             ?money,
           ].join(' · '),
         ),
+        trailing: photos == 0
+            ? null
+            : Semantics(
+                label: l.recordPhotoCount(photos),
+                excludeSemantics: true,
+                child: Badge(
+                  key: ValueKey('event-photos-${event.id}'),
+                  label: Text('$photos'),
+                  backgroundColor: UsraColors.primary,
+                  child: const Icon(
+                    Icons.photo_outlined,
+                    color: UsraColors.primary,
+                  ),
+                ),
+              ),
       ),
     );
-  }
-
-  static String _display(BuildContext context, FieldSpec field, Object value) =>
-      field.kind == FieldKind.choice
-      ? field.choiceLabelOf(context, '$value')
-      : '$value';
-
-  static Map<String, Object?> _decode(String json) {
-    try {
-      final v = jsonDecode(json);
-      return v is Map<String, Object?> ? v : const {};
-    } catch (_) {
-      return const {};
-    }
   }
 }

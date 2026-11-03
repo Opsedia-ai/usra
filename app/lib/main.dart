@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
 import 'core/database/app_database.dart';
 import 'core/database/connection.dart';
+import 'core/files/photo_store.dart';
 import 'core/preferences.dart';
 import 'core/providers.dart';
-import 'features/insurance/card_photos.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,9 +14,10 @@ Future<void> main() async {
   final file = await defaultDatabaseFile();
   final outcome = prepareDatabaseFile(file, key);
   final database = AppDatabase(openEncryptedDatabase(file, key));
-  final (preferences, cardPhotos) = await (
+  final (preferences, cardPhotos, attachments) = await (
     SharedPreferencesStore.open(),
-    CardPhotoStore.open(),
+    PhotoStore.open(PhotoStore.cardsFolder),
+    PhotoStore.open(PhotoStore.attachmentsFolder),
   ).wait;
   runApp(
     ProviderScope(
@@ -24,6 +25,7 @@ Future<void> main() async {
         databaseProvider.overrideWithValue(database),
         keyValueStoreProvider.overrideWithValue(preferences),
         cardPhotoStoreProvider.overrideWithValue(cardPhotos),
+        attachmentStoreProvider.overrideWithValue(attachments),
         databaseRecoveredProvider.overrideWithValue(
           outcome == DatabaseOpenOutcome.recoveredFromUnreadableFile,
         ),

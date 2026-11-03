@@ -7,10 +7,10 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
+import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider;
-import 'card_photos.dart';
 import 'insurance_info.dart';
 import 'insurance_providers.dart';
 
@@ -126,7 +126,7 @@ class _Photo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final image = CardPhotoImage(file: file, semanticLabel: label);
+    final image = PhotoImage(file: file, semanticLabel: label);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -227,7 +227,7 @@ class _ShareButton extends ConsumerWidget {
     final files = [
       for (final path in [card.frontPhoto, card.backPhoto])
         if (path != null && store.fileOf(path).existsSync())
-          XFile(store.fileOf(path).path, mimeType: _mimeOf(path)),
+          XFile(store.fileOf(path).path, mimeType: photoMimeOf(path)),
     ];
     try {
       await ref.read(shareProvider)(
@@ -245,9 +245,3 @@ class _ShareButton extends ConsumerWidget {
     }
   }
 }
-
-String _mimeOf(String path) => switch (path.split('.').last.toLowerCase()) {
-  'png' => 'image/png',
-  'heic' => 'image/heic',
-  _ => 'image/jpeg',
-};

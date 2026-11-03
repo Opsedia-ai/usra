@@ -196,6 +196,69 @@
   "homeEmergencyHint": "افتحها بسرعة لو حد احتاج إسعاف",
   "emergencyLoading": "بنحمّل…",
   "emergencyLoadFailed": "مقدرناش نقرا السجلات",
+  "recordGrowth": "قياس نمو",
+  "fieldWeightKg": "الوزن (كجم)",
+  "fieldHeightCm": "الطول (سم)",
+  "fieldHeadCm": "محيط الراس (سم)",
+  "memberGrowth": "النمو والتطعيمات",
+  "growthTitle": "النمو والتطعيمات",
+  "growthAdd": "ضيف قياس",
+  "growthWeightForAge": "الوزن حسب السن",
+  "growthHeightForAge": "الطول حسب السن",
+  "growthAgeAxis": "السن (بالشهور)",
+  "growthNoSex": "ضيف نوع الطفل (ولد ولا بنت) في بياناته عشان تشوف منحنيات النمو.",
+  "growthNoData": "مفيش قياسات لسه.",
+  "growthLatest": "آخر قياس: {value} يوم {date}",
+  "growthWithinRange": "المئين {percentile}: في المدى المعتاد للسن ده.",
+  "growthOutsideRange": "المئين {percentile}: برّه المدى المعتاد. اتكلم مع دكتور الأطفال.",
+  "growthSource": "المنحنيات من معايير نمو الطفل بتاعة منظمة الصحة العالمية (المئين ٣ و١٥ و٥٠ و٨٥ و٩٧). للمعلومة بس؛ دكتور الأطفال هو اللي يقيّم نمو طفلك.",
+  "vaccinesTitle": "التطعيمات الإجبارية",
+  "vaccinesDisclaimer": "حسب جدول التطعيمات الإجبارية بتاع وزارة الصحة والسكان المصرية. الجداول بتتغير، وكارت التطعيم بتاع مكتب الصحة هو المرجع الرسمي.",
+  "vaccineAtBirth": "عند الولادة",
+  "vaccineAtMonths": "{months, plural, =1{عند شهر} =2{عند شهرين} few{عند {months} شهور} other{عند {months} شهر}}",
+  "vaccineDone": "اتاخد {date}",
+  "vaccineDue": "معاده {date}",
+  "vaccineOverdue": "متأخر من {date}",
+  "vaccineLater": "يوم {date}",
+  "vaccineDoseName": "{name}، جرعة {dose}",
+  "vaccineHepB": "الالتهاب الكبدي ب",
+  "vaccineBcg": "الدرن (BCG)",
+  "vaccineOpv": "شلل الأطفال بالفم (نقط)",
+  "vaccineIpv": "شلل الأطفال بالحقن (سولك)",
+  "vaccinePenta": "الخماسي",
+  "vaccineMmr": "الثلاثي الفيروسي (MMR)",
+  "vaccineDtp": "الثلاثي البكتيري (منشّط)",
+  "vaccineZeroDose": "{name}، الجرعة الصفرية",
+  "growthUnderFiveOnly": "منحنيات النمو وجدول التطعيمات للأطفال أقل من ٥ سنين اللي تاريخ ميلادهم متسجل.",
+  "recordPhotos": "صور",
+  "recordPhotoCount": "{count, plural, =1{صورة} =2{صورتين} few{{count} صور} other{{count} صورة}}",
+  "recordNotFound": "السجل ده اتمسح",
+  "recordShare": "ابعت",
+  "recordDelete": "امسح",
+  "recordDeleteConfirm": "نمسح السجل ده؟ صوره هتتمسح من الموبايل.",
+  "photoShare": "ابعت الصورة",
+  "photoDelete": "امسح الصورة",
+  "photoDeleteConfirm": "نمسح الصورة دي من السجل؟",
+  "photoPosition": "صورة {index} من {total}",
+  "@recordPhotoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@photoPosition": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fieldYes": "أيوه",
+  "fieldNo": "لأ",
   "navCall": "اتصال",
   "settingsSimpleMode": "الوضع البسيط",
   "settingsSimpleModeHint": "كلام وزراير أكبر وتابات أقل. مناسب للجدّ والجدّة لما يستخدموا الموبايل لوحدهم.",

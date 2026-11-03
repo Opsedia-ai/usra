@@ -6,11 +6,10 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
-import 'card_photos.dart';
 import 'insurance_info.dart';
-import 'insurance_providers.dart';
 
 /// A card photo in the form: already saved ([stored]), or just picked and
 /// only copied into the app when the card is saved.
@@ -85,22 +84,14 @@ class _InsuranceFormScreenState extends ConsumerState<InsuranceFormScreen> {
   }
 
   /// Deletes a picked photo's temporary file. Saved photos are left to
-  /// [CardPhotoStore.prune], which knows whether a card still uses them.
+  /// [PhotoStore.prune], which knows whether a card still uses them.
   static void _discard(_PhotoValue? v) {
-    if (v == null || !v.picked) return;
-    try {
-      File(v.path).deleteSync();
-    } on FileSystemException {
-      // Already gone.
-    }
+    if (v != null && v.picked) discardPicked(v.path);
   }
 
   /// Copies a picked photo into the app and forgets the temporary file, so
   /// retrying a failed save doesn't copy it again.
-  static Future<_PhotoValue?> _keep(
-    _PhotoValue? v,
-    CardPhotoStore photos,
-  ) async {
+  static Future<_PhotoValue?> _keep(_PhotoValue? v, PhotoStore photos) async {
     if (v == null || !v.picked) return v;
     final stored = _PhotoValue.stored(await photos.import(v.path));
     _discard(v);
@@ -314,7 +305,7 @@ class _PhotoSlot extends ConsumerWidget {
         if (file != null) ...[
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: CardPhotoImage(
+            child: PhotoImage(
               key: ValueKey('insurance-$slot-preview'),
               file: file,
               height: 180,

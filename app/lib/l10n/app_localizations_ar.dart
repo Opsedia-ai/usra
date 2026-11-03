@@ -490,6 +490,188 @@ class AppLocalizationsAr extends AppLocalizations {
   String get emergencyLoadFailed => 'مقدرناش نقرا السجلات';
 
   @override
+  String get recordGrowth => 'قياس نمو';
+
+  @override
+  String get fieldWeightKg => 'الوزن (كجم)';
+
+  @override
+  String get fieldHeightCm => 'الطول (سم)';
+
+  @override
+  String get fieldHeadCm => 'محيط الراس (سم)';
+
+  @override
+  String get memberGrowth => 'النمو والتطعيمات';
+
+  @override
+  String get growthTitle => 'النمو والتطعيمات';
+
+  @override
+  String get growthAdd => 'ضيف قياس';
+
+  @override
+  String get growthWeightForAge => 'الوزن حسب السن';
+
+  @override
+  String get growthHeightForAge => 'الطول حسب السن';
+
+  @override
+  String get growthAgeAxis => 'السن (بالشهور)';
+
+  @override
+  String get growthNoSex =>
+      'ضيف نوع الطفل (ولد ولا بنت) في بياناته عشان تشوف منحنيات النمو.';
+
+  @override
+  String get growthNoData => 'مفيش قياسات لسه.';
+
+  @override
+  String growthLatest(String value, String date) {
+    return 'آخر قياس: $value يوم $date';
+  }
+
+  @override
+  String growthWithinRange(String percentile) {
+    return 'المئين $percentile: في المدى المعتاد للسن ده.';
+  }
+
+  @override
+  String growthOutsideRange(String percentile) {
+    return 'المئين $percentile: برّه المدى المعتاد. اتكلم مع دكتور الأطفال.';
+  }
+
+  @override
+  String get growthSource =>
+      'المنحنيات من معايير نمو الطفل بتاعة منظمة الصحة العالمية (المئين ٣ و١٥ و٥٠ و٨٥ و٩٧). للمعلومة بس؛ دكتور الأطفال هو اللي يقيّم نمو طفلك.';
+
+  @override
+  String get vaccinesTitle => 'التطعيمات الإجبارية';
+
+  @override
+  String get vaccinesDisclaimer =>
+      'حسب جدول التطعيمات الإجبارية بتاع وزارة الصحة والسكان المصرية. الجداول بتتغير، وكارت التطعيم بتاع مكتب الصحة هو المرجع الرسمي.';
+
+  @override
+  String get vaccineAtBirth => 'عند الولادة';
+
+  @override
+  String vaccineAtMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'عند $months شهر',
+      few: 'عند $months شهور',
+      two: 'عند شهرين',
+      one: 'عند شهر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineDone(String date) {
+    return 'اتاخد $date';
+  }
+
+  @override
+  String vaccineDue(String date) {
+    return 'معاده $date';
+  }
+
+  @override
+  String vaccineOverdue(String date) {
+    return 'متأخر من $date';
+  }
+
+  @override
+  String vaccineLater(String date) {
+    return 'يوم $date';
+  }
+
+  @override
+  String vaccineDoseName(String name, int dose) {
+    return '$name، جرعة $dose';
+  }
+
+  @override
+  String get vaccineHepB => 'الالتهاب الكبدي ب';
+
+  @override
+  String get vaccineBcg => 'الدرن (BCG)';
+
+  @override
+  String get vaccineOpv => 'شلل الأطفال بالفم (نقط)';
+
+  @override
+  String get vaccineIpv => 'شلل الأطفال بالحقن (سولك)';
+
+  @override
+  String get vaccinePenta => 'الخماسي';
+
+  @override
+  String get vaccineMmr => 'الثلاثي الفيروسي (MMR)';
+
+  @override
+  String get vaccineDtp => 'الثلاثي البكتيري (منشّط)';
+
+  @override
+  String vaccineZeroDose(String name) {
+    return '$name، الجرعة الصفرية';
+  }
+
+  @override
+  String get growthUnderFiveOnly =>
+      'منحنيات النمو وجدول التطعيمات للأطفال أقل من ٥ سنين اللي تاريخ ميلادهم متسجل.';
+
+  @override
+  String get recordPhotos => 'صور';
+
+  @override
+  String recordPhotoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة',
+      few: '$count صور',
+      two: 'صورتين',
+      one: 'صورة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get recordNotFound => 'السجل ده اتمسح';
+
+  @override
+  String get recordShare => 'ابعت';
+
+  @override
+  String get recordDelete => 'امسح';
+
+  @override
+  String get recordDeleteConfirm => 'نمسح السجل ده؟ صوره هتتمسح من الموبايل.';
+
+  @override
+  String get photoShare => 'ابعت الصورة';
+
+  @override
+  String get photoDelete => 'امسح الصورة';
+
+  @override
+  String get photoDeleteConfirm => 'نمسح الصورة دي من السجل؟';
+
+  @override
+  String photoPosition(int index, int total) {
+    return 'صورة $index من $total';
+  }
+
+  @override
+  String get fieldYes => 'أيوه';
+
+  @override
+  String get fieldNo => 'لأ';
+
+  @override
   String get navCall => 'اتصال';
 
   @override
