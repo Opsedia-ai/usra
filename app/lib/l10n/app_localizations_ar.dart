@@ -1272,4 +1272,678 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reminderBatteryOpen => 'إعدادات البطارية';
+
+  @override
+  String get backupTitle => 'النسخة الاحتياطية';
+
+  @override
+  String get settingsBackupHint =>
+      'احتفظ بنسخة من سجلات العيلة برّه الموبايل ده';
+
+  @override
+  String get backupIntro =>
+      'النسخة الاحتياطية ملف واحد متشفّر فيه كل سجلات العيلة وصورها. احفظه على Google Drive أو في الملفات، أو ابعته لنفسك على واتساب. علشان تفتحه على موبايل جديد هتحتاج مفتاح الاسترجاع بتاعك.';
+
+  @override
+  String get backupNever => 'لسه معملتش نسخة احتياطية';
+
+  @override
+  String backupLast(String date) {
+    return 'آخر نسخة احتياطية: $date';
+  }
+
+  @override
+  String get backupNow => 'اعمل نسخة احتياطية دلوقتي';
+
+  @override
+  String get backupWorking => 'بنجهّز النسخة…';
+
+  @override
+  String get backupShareSubject => 'نسخة احتياطية من أسرة';
+
+  @override
+  String get backupDone => 'النسخة جاهزة. احفظها في مكان أمين برّه الموبايل.';
+
+  @override
+  String get backupFailed => 'مقدرناش نعمل النسخة. جرّب تاني.';
+
+  @override
+  String get backupDueTitle => 'اعمل نسخة احتياطية لسجلات العيلة';
+
+  @override
+  String get backupDueNever =>
+      'لو الموبايل ضاع، السجلات هتضيع معاه. اعمل نسخة احتياطية متشفّرة واحفظها برّه الموبايل.';
+
+  @override
+  String get backupDueOld => 'آخر نسخة احتياطية عملتها من أكتر من ٣٠ يوم.';
+
+  @override
+  String get recoveryKeyTitle => 'مفتاح الاسترجاع';
+
+  @override
+  String get recoveryKeyIntro =>
+      'ده مفتاح الاسترجاع بتاعك. اكتبه على ورقة واحتفظ بيها في مكان أمين بعيد عن الموبايل. هتحتاجه علشان تفتح النسخ الاحتياطية على موبايل جديد.';
+
+  @override
+  String get recoveryKeyShowIntro =>
+      'ده المفتاح اللي بيفتح نسخك الاحتياطية. اتأكد إنه زي اللي مكتوب عندك على الورقة.';
+
+  @override
+  String get recoveryKeyLoseWarning =>
+      'من غير المفتاح ده محدش يقدر يفتح نسخك الاحتياطية، ولا حتى إحنا. ولو ضاع مش هنقدر نرجّعه.';
+
+  @override
+  String get recoveryKeyWrittenDown => 'كتبته';
+
+  @override
+  String get recoveryKeyConfirmIntro =>
+      'علشان نتأكد إنه مكتوب صح، اكتب المجموعتين دول من الورقة.';
+
+  @override
+  String recoveryKeyGroupLabel(int number) {
+    return 'المجموعة $number';
+  }
+
+  @override
+  String get recoveryKeyConfirm => 'تأكيد';
+
+  @override
+  String get recoveryKeyShowAgain => 'اعرض المفتاح تاني';
+
+  @override
+  String recoveryKeyMismatch(String groups) {
+    return 'المجموعة $groups مش مطابقة. راجع الورقة.';
+  }
+
+  @override
+  String get recoveryKeyShow => 'اعرض مفتاح الاسترجاع';
+
+  @override
+  String get restoreTitle => 'استرجع من نسخة احتياطية';
+
+  @override
+  String get restoreHint => 'هتستبدل كل اللي على الموبايل ده';
+
+  @override
+  String get restoreIntro =>
+      'اختار ملف النسخة الاحتياطية (بينتهي بـ ‎.usra‎) من Drive أو الملفات أو واتساب، وبعدين اكتب مفتاح الاسترجاع.';
+
+  @override
+  String get restorePick => 'اختار ملف النسخة';
+
+  @override
+  String get restoreKeyLabel => 'مفتاح الاسترجاع (٣٦ رقم)';
+
+  @override
+  String restoreKeyGroupsWrong(String groups) {
+    return 'المجموعة $groups من المفتاح مش مظبوطة. راجعها على الورقة.';
+  }
+
+  @override
+  String get restoreOpen => 'افتح النسخة';
+
+  @override
+  String get restoreNotABackup => 'الملف ده مش نسخة احتياطية من أسرة.';
+
+  @override
+  String get restoreWrongKey =>
+      'المفتاح ده مش بيفتح النسخة دي. راجعه، أو جرّب المفتاح اللي كان معاك لما اتعملت النسخة.';
+
+  @override
+  String get restoreDamaged => 'ملف النسخة ناقص أو بايظ. جرّب تنزّله تاني.';
+
+  @override
+  String get restoreTooNew =>
+      'النسخة دي معمولة بإصدار أحدث من أسرة. حدّث التطبيق وجرّب تاني.';
+
+  @override
+  String get restoreFailed => 'مقدرناش نفتح النسخة. جرّب تاني.';
+
+  @override
+  String restoreFrom(String date) {
+    return 'نسخة من $date';
+  }
+
+  @override
+  String restoreContents(int people, int records, int medicines, int photos) {
+    String _temp0 = intl.Intl.pluralLogic(
+      people,
+      locale: localeName,
+      other: '$people شخص',
+      few: '$people أشخاص',
+      two: 'شخصين',
+      one: 'شخص واحد',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      records,
+      locale: localeName,
+      other: '$records سجل',
+      few: '$records سجلات',
+      two: 'سجلين',
+      one: 'سجل واحد',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      medicines,
+      locale: localeName,
+      other: '$medicines دوا',
+      few: '$medicines أدوية',
+      two: 'دوايين',
+      one: 'دوا واحد',
+    );
+    String _temp3 = intl.Intl.pluralLogic(
+      photos,
+      locale: localeName,
+      other: '$photos صورة',
+      few: '$photos صور',
+      two: 'صورتين',
+      one: 'صورة واحدة',
+    );
+    return '$_temp0، $_temp1، $_temp2، $_temp3';
+  }
+
+  @override
+  String get restoreReplaceWarning =>
+      'كل اللي على الموبايل ده دلوقتي هيتشال ويتحط مكانه اللي في النسخة دي.';
+
+  @override
+  String get restoreReplace => 'استرجع واستبدل';
+
+  @override
+  String get restoreDoneNotice => 'رجّعنا نسختك الاحتياطية.';
+
+  @override
+  String get restoreFailedNotice =>
+      'مقدرناش نرجّع النسخة، فسيبنا سجلاتك زي ما كانت.';
+
+  @override
+  String get backupSavedQuestion => 'حفظت النسخة أو بعتها في مكان؟';
+
+  @override
+  String get backupSavedYes => 'أيوه، حفظتها';
+
+  @override
+  String get backupSavedNo => 'لأ';
+
+  @override
+  String get memberPregnancy => 'الحمل';
+
+  @override
+  String get memberDevelopment => 'التطور والمهارات';
+
+  @override
+  String get memberBabyLog => 'يوم البيبي';
+
+  @override
+  String get recordPregnancy => 'حمل';
+
+  @override
+  String get recordPregnancyCheck => 'وزن وضغط';
+
+  @override
+  String get recordPregnancyEnd => 'نهاية الحمل';
+
+  @override
+  String get fieldLmp => 'أول يوم في آخر دورة';
+
+  @override
+  String get fieldDueDate => 'ميعاد الولادة (من الدكتور)';
+
+  @override
+  String get fieldSystolic => 'الضغط العالي';
+
+  @override
+  String get fieldDiastolic => 'الضغط الواطي';
+
+  @override
+  String get fieldOutcome => 'النتيجة';
+
+  @override
+  String get outcomeBirth => 'ولادة';
+
+  @override
+  String get outcomeLoss => 'إجهاض';
+
+  @override
+  String get outcomeOther => 'غير كده';
+
+  @override
+  String get pregnancyTitle => 'متابعة الحمل';
+
+  @override
+  String get pregnancyNotEligible =>
+      'متابعة الحمل للستات. راجع النوع وتاريخ الميلاد في البيانات.';
+
+  @override
+  String get pregnancyStartIntro =>
+      'تابعي أسابيع الحمل وميعاد الولادة والزيارات والتحاليل. ابدئي بأول يوم في آخر دورة، أو ميعاد الولادة اللي الدكتور قالهولك.';
+
+  @override
+  String get pregnancyStart => 'ابدئي متابعة الحمل';
+
+  @override
+  String pregnancyWeek(int weeks, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: '$weeks أسبوع',
+      few: '$weeks أسابيع',
+      two: 'أسبوعين',
+      one: 'أسبوع',
+      zero: 'أقل من أسبوع',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوم',
+      zero: '0 يوم',
+    );
+    return '$_temp0 و$_temp1';
+  }
+
+  @override
+  String pregnancyTrimester(int trimester) {
+    String _temp0 = intl.Intl.pluralLogic(
+      trimester,
+      locale: localeName,
+      other: 'التلت الأخير',
+      two: 'التلت التاني',
+      one: 'التلت الأول',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pregnancyDue(String date) {
+    return 'الولادة $date';
+  }
+
+  @override
+  String pregnancyDaysLeft(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'فاضل $days يوم على ميعاد الولادة',
+      few: 'فاضل $days أيام على ميعاد الولادة',
+      two: 'فاضل يومين على ميعاد الولادة',
+      one: 'فاضل يوم على ميعاد الولادة',
+      zero: 'ميعاد الولادة النهارده',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pregnancyPastDue =>
+      'ميعاد الولادة عدّى. خليكي على تواصل مع دكتورك، وسجّلي نهاية الحمل لما البيبي ييجي.';
+
+  @override
+  String get pregnancyAddCheck => 'سجّلي الوزن والضغط';
+
+  @override
+  String get pregnancyEnd => 'سجّلي نهاية الحمل';
+
+  @override
+  String get pregnancyScheduleTitle => 'الزيارات والسونار والتحاليل';
+
+  @override
+  String get pregnancyScheduleSource =>
+      'الزيارات: توصيات منظمة الصحة العالمية لمتابعة الحمل (٢٠١٦)، ٨ زيارات على الأقل. السونار والتحاليل: اللي الدكاترة في مصر بيطلبوه عادةً. دكتورك ممكن يرتب غير كده، وكلامه هو اللي يتمشي عليه.';
+
+  @override
+  String get pregnancyDisclaimer => 'للمعلومة بس، ومش بديل عن متابعة دكتورك.';
+
+  @override
+  String ancContact(int number) {
+    return 'زيارة متابعة الحمل $number من ٨';
+  }
+
+  @override
+  String ancContactReason(int week) {
+    return 'حوالي الأسبوع $week من الحمل';
+  }
+
+  @override
+  String ancWindow(int from, int to) {
+    return 'عادةً بين الأسبوع $from والأسبوع $to من الحمل';
+  }
+
+  @override
+  String get ancBookingLabs =>
+      'تحاليل أول الحمل (صورة دم، فصيلة، بول، سكر، فيروسات كبد)';
+
+  @override
+  String get ancFirstScan => 'سونار التلت الأول';
+
+  @override
+  String get ancAnomalyScan => 'سونار التشوهات (السونار المفصّل)';
+
+  @override
+  String get ancGlucoseTest => 'تحليل سكر الحمل (منحنى السكر)';
+
+  @override
+  String get ancBloodCount => 'صورة دم (للأنيميا)';
+
+  @override
+  String get ancGrowthScan => 'سونار نمو الجنين';
+
+  @override
+  String get ancDone => 'اتعمل';
+
+  @override
+  String get ancMissed => 'مش متسجل';
+
+  @override
+  String get pregDangerTitle => 'روحي المستشفى فورًا لو حصل أي حاجة من دول';
+
+  @override
+  String pregDangerSign(String sign) {
+    String _temp0 = intl.Intl.selectLogic(sign, {
+      'bleeding': 'نزيف من المهبل',
+      'headache': 'صداع جامد',
+      'vision': 'زغللة في النظر',
+      'fits': 'تشنجات أو إغماء',
+      'pain': 'وجع جامد في البطن',
+      'fever': 'سخونية',
+      'water': 'نزول مية من المهبل',
+      'movement': 'حركة البيبي قلّت عن العادي أو وقفت',
+      'swelling': 'ورم في الوش أو الإيدين',
+      'breathing': 'صعوبة في التنفس',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get pregDangerSource =>
+      'علامات الخطر من إرشادات منظمة الصحة العالمية ووزارة الصحة المصرية لصحة الأم.';
+
+  @override
+  String get pregnancyWeightTitle => 'الوزن';
+
+  @override
+  String get pregnancyBpTitle => 'الضغط';
+
+  @override
+  String get pregnancyNoReadings => 'مفيش قياسات لسه.';
+
+  @override
+  String get pregnancyWeekAxis => 'أسبوع الحمل';
+
+  @override
+  String get bpUsual => 'في المدى المعتاد';
+
+  @override
+  String get bpHigh => 'عالي: كلّمي دكتورك النهارده';
+
+  @override
+  String get bpVeryHigh => 'عالي جدًا: روحي المستشفى فورًا';
+
+  @override
+  String get pregnancyBpSource =>
+      'الحدود من منظمة الصحة العالمية: ١٤٠/٩٠ وأكتر يعتبر عالي في الحمل، و١٦٠/١١٠ وأكتر عالي جدًا. قياس واحد مش تشخيص؛ اسألي دكتورك.';
+
+  @override
+  String get devTitle => 'مهارات الطفل وتطوره';
+
+  @override
+  String get devUnderSixOnly =>
+      'قايمة المهارات للأطفال أقل من ٦ سنين اللي تاريخ ميلادهم متسجل.';
+
+  @override
+  String get devIntro =>
+      'علّم على اللي طفلك بيعمله، واختار اليوم اللي لاحظته فيه أول مرة.';
+
+  @override
+  String devLateBanner(String age) {
+    return 'فيه مهارات بتاعة سن $age لسه متعلّمش عليها. اتكلم مع دكتور الأطفال عنها، ومتستناش.';
+  }
+
+  @override
+  String devByAge(String age) {
+    return 'في سن $age';
+  }
+
+  @override
+  String devTickedCount(int done, int total) {
+    return '$done من $total';
+  }
+
+  @override
+  String devDone(String date) {
+    return 'من $date';
+  }
+
+  @override
+  String get devUpcoming => 'بعدين';
+
+  @override
+  String get devWatch => 'خلّي بالك منها';
+
+  @override
+  String get devLate => 'اتكلم مع دكتور الأطفال';
+
+  @override
+  String get devNotTicked => 'متعلّمش عليها';
+
+  @override
+  String get devWhenSeen => 'لاحظتها أول مرة إمتى؟';
+
+  @override
+  String get devAreaSocial => 'اجتماعي ومشاعر';
+
+  @override
+  String get devAreaLanguage => 'كلام وتواصل';
+
+  @override
+  String get devAreaCognitive => 'تفكير وتعلّم';
+
+  @override
+  String get devAreaMovement => 'حركة';
+
+  @override
+  String get devSource =>
+      'من مهارات «Learn the Signs. Act Early.» بتاعة مراكز السيطرة على الأمراض الأمريكية (CDC) نسخة ٢٠٢٢، مختارات منها: حاجات أغلب الأطفال (٧٥٪) بيعملوها في كل سن. القوايم الكاملة على cdc.gov/actearly. للمعلومة بس؛ دكتور الأطفال هو اللي يقيّم تطور طفلك.';
+
+  @override
+  String get recordMilestone => 'مهارة';
+
+  @override
+  String milestone(String id) {
+    String _temp0 = intl.Intl.selectLogic(id, {
+      'm2_social': 'بيضحك لما تكلمه أو تضحكله',
+      'm2_language': 'بيطلّع أصوات غير العياط',
+      'm2_cognitive': 'بيتابعك بعينه وانت بتتحرك',
+      'm2_movement': 'بيرفع راسه وهو نايم على بطنه',
+      'm4_social': 'بيضحك من نفسه عشان يلفت انتباهك',
+      'm4_language': 'بيناغي بأصوات زي «أووو» و«آآه»',
+      'm4_cognitive': 'بيبص على إيديه باهتمام',
+      'm4_movement': 'بيثبّت راسه لوحده وانت شايله',
+      'm6_social': 'بيعرف الناس اللي متعود عليهم',
+      'm6_language': 'بيرد عليك بأصوات لما تكلمه',
+      'm6_cognitive': 'بيمد إيده يمسك اللعبة اللي عايزها',
+      'm6_movement': 'بيتقلب من بطنه لضهره',
+      'm9_social': 'بيبص لما تنده اسمه',
+      'm9_language': 'بيقول أصوات زي «ماماما» و«بابابا»',
+      'm9_cognitive': 'بيدور على الحاجة لما تقع من قدامه',
+      'm9_movement': 'بيقعد من غير سند',
+      'm12_social': 'بيلعب معاك ألعاب زي التسقيف',
+      'm12_language': 'بيعمل «باي باي» بإيده',
+      'm12_cognitive': 'بيدور على الحاجة اللي شافك بتخبيها',
+      'm12_movement': 'بيسند على حاجة ويقف',
+      'm15_social': 'بيوريك حاجة بيحبها',
+      'm15_language': 'بيحاول يقول كلمة أو اتنين غير «ماما» و«بابا»',
+      'm15_cognitive': 'بيرص حاجتين صغيرين على بعض على الأقل',
+      'm15_movement': 'بيمشي كام خطوة لوحده',
+      'm18_social': 'بيشاور عشان يوريك حاجة لفتت نظره',
+      'm18_language': 'بيحاول يقول ٣ كلمات أو أكتر غير «ماما» و«بابا»',
+      'm18_cognitive': 'بيقلدك وانت بتعمل شغل البيت، زي الكنس',
+      'm18_movement': 'بيمشي من غير ما يسند على حد أو حاجة',
+      'm24_social': 'بياخد باله لما حد يتعور أو يزعل',
+      'm24_language': 'بيقول كلمتين مع بعض على الأقل، زي «عايز لبن»',
+      'm24_cognitive': 'بيحاول يشغّل الزراير أو المفاتيح في اللعب',
+      'm24_movement': 'بيشوط الكورة',
+      'm30_social': 'بيلعب جنب الأطفال التانيين وساعات معاهم',
+      'm30_language': 'بيقول حوالي ٥٠ كلمة',
+      'm30_cognitive': 'بيلعب تمثيل، زي إنه يأكّل العروسة',
+      'm30_movement': 'بينط من على الأرض برجليه الاتنين',
+      'm36_social': 'بياخد باله من الأطفال التانيين ويلعب معاهم',
+      'm36_language': 'بيتكلم معاك ويرد عليك مرتين على الأقل في نفس الكلام',
+      'm36_cognitive': 'بيرسم دايرة لما توريه إزاي',
+      'm36_movement': 'بيلبس شوية من هدومه لوحده',
+      'm48_social': 'بيطبطب على اللي متعور أو زعلان',
+      'm48_language': 'بيقول جمل فيها ٤ كلمات أو أكتر',
+      'm48_cognitive': 'بيعرف يسمي كام لون',
+      'm48_movement': 'بيمسك الكورة الكبيرة أغلب الوقت',
+      'm60_social': 'بيلتزم بقواعد اللعب ويستنى دوره',
+      'm60_language': 'بيحكي حكاية سمعها أو ألّفها فيها حدثين على الأقل',
+      'm60_cognitive': 'بيعد لحد ١٠',
+      'm60_movement': 'بينط على رجل واحدة',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get infantLogTitle => 'يوم البيبي';
+
+  @override
+  String get infantLogUnderOneOnly =>
+      'سجل الرضعات والنوم والحفاضات للبيبي أقل من سنة اللي تاريخ ميلاده متسجل.';
+
+  @override
+  String get logBreast => 'رضاعة طبيعية';
+
+  @override
+  String get logBottle => 'ببرونة';
+
+  @override
+  String get logSolids => 'أكل';
+
+  @override
+  String get logSleep => 'نوم';
+
+  @override
+  String get logWet => 'حفاضة مبلولة';
+
+  @override
+  String get logDirty => 'حفاضة فيها براز';
+
+  @override
+  String get logBottleAmount => 'شرب قد إيه؟';
+
+  @override
+  String get logSleepHowLong => 'نام قد إيه؟';
+
+  @override
+  String get logSkip => 'مش عارف';
+
+  @override
+  String logMl(int ml) {
+    return '$ml مل';
+  }
+
+  @override
+  String logDuration(int hours, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '$hours س $minutes د',
+      zero: '$minutes دقيقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get logSaved => 'اتسجل';
+
+  @override
+  String get logToday => 'النهارده';
+
+  @override
+  String get logYesterday => 'امبارح';
+
+  @override
+  String get logEmptyDay => 'مفيش حاجة متسجلة.';
+
+  @override
+  String logSummaryFeeds(int count, int breast, int bottle, int solids) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رضعة',
+      few: '$count رضعات',
+      two: 'رضعتين',
+      one: 'رضعة واحدة',
+    );
+    return '$_temp0 (طبيعي $breast، ببرونة $bottle، أكل $solids)';
+  }
+
+  @override
+  String logSummaryBottleMl(int ml) {
+    return '$ml مل من الببرونة';
+  }
+
+  @override
+  String logSummarySleep(String duration) {
+    return 'النوم: $duration';
+  }
+
+  @override
+  String logSummaryDiapers(int wet, int dirty) {
+    return 'الحفاضات: $wet مبلولة، $dirty فيها براز';
+  }
+
+  @override
+  String get logDelete => 'امسح';
+
+  @override
+  String get logDisclaimer =>
+      'مذكرة ليك وللدكتور. لو قلقان من الرضاعة أو النوم أو الحفاضات، اسأل دكتور الأطفال.';
+
+  @override
+  String get recordFeed => 'رضعة';
+
+  @override
+  String get recordDiaper => 'حفاضة';
+
+  @override
+  String get fieldFeedKind => 'نوع الرضعة';
+
+  @override
+  String get fieldAmountMl => 'الكمية (مل)';
+
+  @override
+  String get fieldMinutes => 'الدقايق';
+
+  @override
+  String get fieldDiaperKind => 'نوع الحفاضة';
+
+  @override
+  String get diaperWet => 'مبلولة';
+
+  @override
+  String get diaperDirty => 'فيها براز';
+
+  @override
+  String get diaperBoth => 'مبلولة وفيها براز';
+
+  @override
+  String get growthCheckTitle => 'افحص دلوقتي';
+
+  @override
+  String growthCheckIntro(String age) {
+    return 'اكتب الوزن أو الطول النهارده وشوف مكانه على منحنيات منظمة الصحة العالمية في سن $age.';
+  }
+
+  @override
+  String get growthCheckSave => 'احفظه كقياس';
+
+  @override
+  String get devUntick => 'شيل العلامة';
+
+  @override
+  String get devUntickConfirm =>
+      'تشيل العلامة من المهارة دي؟ التاريخ اللي سجلته هيتمسح.';
 }

@@ -2263,6 +2263,912 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Battery settings'**
   String get reminderBatteryOpen;
+
+  /// No description provided for @backupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get backupTitle;
+
+  /// No description provided for @settingsBackupHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep a copy of the family\'s records off this phone'**
+  String get settingsBackupHint;
+
+  /// No description provided for @backupIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'A backup is one encrypted file with all the family\'s records and photos. Save it to Google Drive or Files, or send it to yourself on WhatsApp. To open it on a new phone you\'ll need your recovery key.'**
+  String get backupIntro;
+
+  /// No description provided for @backupNever.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup yet'**
+  String get backupNever;
+
+  /// No description provided for @backupLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup: {date}'**
+  String backupLast(String date);
+
+  /// No description provided for @backupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get backupNow;
+
+  /// No description provided for @backupWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing the backup…'**
+  String get backupWorking;
+
+  /// No description provided for @backupShareSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra backup'**
+  String get backupShareSubject;
+
+  /// No description provided for @backupDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup ready. Keep it somewhere safe off this phone.'**
+  String get backupDone;
+
+  /// No description provided for @backupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t make the backup. Try again.'**
+  String get backupFailed;
+
+  /// No description provided for @backupDueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up the family\'s records'**
+  String get backupDueTitle;
+
+  /// No description provided for @backupDueNever.
+  ///
+  /// In en, this message translates to:
+  /// **'If this phone is lost, the records go with it. Make an encrypted backup and keep it off the phone.'**
+  String get backupDueNever;
+
+  /// No description provided for @backupDueOld.
+  ///
+  /// In en, this message translates to:
+  /// **'Your last backup is more than 30 days old.'**
+  String get backupDueOld;
+
+  /// No description provided for @recoveryKeyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery key'**
+  String get recoveryKeyTitle;
+
+  /// No description provided for @recoveryKeyIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'This is your recovery key. Write it on paper and keep it somewhere safe, away from this phone. You\'ll need it to open your backups on a new phone.'**
+  String get recoveryKeyIntro;
+
+  /// No description provided for @recoveryKeyShowIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the key that opens your backups. Check it matches the one you wrote down.'**
+  String get recoveryKeyShowIntro;
+
+  /// No description provided for @recoveryKeyLoseWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Without this key nobody can open your backups, not even us. If it\'s lost, we can\'t get it back.'**
+  String get recoveryKeyLoseWarning;
+
+  /// No description provided for @recoveryKeyWrittenDown.
+  ///
+  /// In en, this message translates to:
+  /// **'I wrote it down'**
+  String get recoveryKeyWrittenDown;
+
+  /// No description provided for @recoveryKeyConfirmIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'To be sure it\'s written correctly, type these two groups from your paper.'**
+  String get recoveryKeyConfirmIntro;
+
+  /// No description provided for @recoveryKeyGroupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Group {number}'**
+  String recoveryKeyGroupLabel(int number);
+
+  /// No description provided for @recoveryKeyConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get recoveryKeyConfirm;
+
+  /// No description provided for @recoveryKeyShowAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the key again'**
+  String get recoveryKeyShowAgain;
+
+  /// No description provided for @recoveryKeyMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Group {groups} doesn\'t match. Check your paper.'**
+  String recoveryKeyMismatch(String groups);
+
+  /// No description provided for @recoveryKeyShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show recovery key'**
+  String get recoveryKeyShow;
+
+  /// No description provided for @restoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from a backup'**
+  String get restoreTitle;
+
+  /// No description provided for @restoreHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces everything on this phone'**
+  String get restoreHint;
+
+  /// No description provided for @restoreIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your backup file (it ends in .usra) from Drive, Files or WhatsApp, then type your recovery key.'**
+  String get restoreIntro;
+
+  /// No description provided for @restorePick.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the backup file'**
+  String get restorePick;
+
+  /// No description provided for @restoreKeyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery key (36 digits)'**
+  String get restoreKeyLabel;
+
+  /// No description provided for @restoreKeyGroupsWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Group {groups} of the key isn\'t right. Check it against your paper.'**
+  String restoreKeyGroupsWrong(String groups);
+
+  /// No description provided for @restoreOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the backup'**
+  String get restoreOpen;
+
+  /// No description provided for @restoreNotABackup.
+  ///
+  /// In en, this message translates to:
+  /// **'This file isn\'t a Usra backup.'**
+  String get restoreNotABackup;
+
+  /// No description provided for @restoreWrongKey.
+  ///
+  /// In en, this message translates to:
+  /// **'This recovery key doesn\'t open this backup. Check it, or try the key you had when the backup was made.'**
+  String get restoreWrongKey;
+
+  /// No description provided for @restoreDamaged.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup file is incomplete or damaged. Try downloading it again.'**
+  String get restoreDamaged;
+
+  /// No description provided for @restoreTooNew.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup was made with a newer version of Usra. Update the app, then try again.'**
+  String get restoreTooNew;
+
+  /// No description provided for @restoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the backup. Try again.'**
+  String get restoreFailed;
+
+  /// No description provided for @restoreFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup from {date}'**
+  String restoreFrom(String date);
+
+  /// No description provided for @restoreContents.
+  ///
+  /// In en, this message translates to:
+  /// **'{people, plural, =1{1 person} other{{people} people}}, {records, plural, =1{1 record} other{{records} records}}, {medicines, plural, =1{1 medicine} other{{medicines} medicines}}, {photos, plural, =1{1 photo} other{{photos} photos}}'**
+  String restoreContents(int people, int records, int medicines, int photos);
+
+  /// No description provided for @restoreReplaceWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything on this phone now will be replaced by this backup.'**
+  String get restoreReplaceWarning;
+
+  /// No description provided for @restoreReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore and replace'**
+  String get restoreReplace;
+
+  /// No description provided for @restoreDoneNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Your backup is restored.'**
+  String get restoreDoneNotice;
+
+  /// No description provided for @restoreFailedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t restore the backup, so your records stayed as they were.'**
+  String get restoreFailedNotice;
+
+  /// No description provided for @backupSavedQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you save the backup or send it somewhere?'**
+  String get backupSavedQuestion;
+
+  /// No description provided for @backupSavedYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, saved'**
+  String get backupSavedYes;
+
+  /// No description provided for @backupSavedNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get backupSavedNo;
+
+  /// No description provided for @memberPregnancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy'**
+  String get memberPregnancy;
+
+  /// No description provided for @memberDevelopment.
+  ///
+  /// In en, this message translates to:
+  /// **'Development'**
+  String get memberDevelopment;
+
+  /// No description provided for @memberBabyLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Baby\'s day'**
+  String get memberBabyLog;
+
+  /// No description provided for @recordPregnancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy'**
+  String get recordPregnancy;
+
+  /// No description provided for @recordPregnancyCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight and blood pressure'**
+  String get recordPregnancyCheck;
+
+  /// No description provided for @recordPregnancyEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy outcome'**
+  String get recordPregnancyEnd;
+
+  /// No description provided for @fieldLmp.
+  ///
+  /// In en, this message translates to:
+  /// **'First day of last period'**
+  String get fieldLmp;
+
+  /// No description provided for @fieldDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date (from the doctor)'**
+  String get fieldDueDate;
+
+  /// No description provided for @fieldSystolic.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood pressure, upper number'**
+  String get fieldSystolic;
+
+  /// No description provided for @fieldDiastolic.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood pressure, lower number'**
+  String get fieldDiastolic;
+
+  /// No description provided for @fieldOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Outcome'**
+  String get fieldOutcome;
+
+  /// No description provided for @outcomeBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth'**
+  String get outcomeBirth;
+
+  /// No description provided for @outcomeLoss.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy loss'**
+  String get outcomeLoss;
+
+  /// No description provided for @outcomeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get outcomeOther;
+
+  /// No description provided for @pregnancyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy follow-up'**
+  String get pregnancyTitle;
+
+  /// No description provided for @pregnancyNotEligible.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy follow-up is for women. Check the sex and birth date in their details.'**
+  String get pregnancyNotEligible;
+
+  /// No description provided for @pregnancyStartIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the weeks, the due date, the antenatal visits and tests. Start with the first day of the last period, or the due date the doctor gave you.'**
+  String get pregnancyStartIntro;
+
+  /// No description provided for @pregnancyStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start pregnancy follow-up'**
+  String get pregnancyStart;
+
+  /// No description provided for @pregnancyWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'{weeks, plural, =0{أقل من أسبوع} =1{أسبوع} =2{أسبوعين} few{{weeks} أسابيع} other{{weeks} أسبوع}} و{days, plural, =0{0 يوم} =1{يوم} =2{يومين} few{{days} أيام} other{{days} يوم}}'**
+  String pregnancyWeek(int weeks, int days);
+
+  /// No description provided for @pregnancyTrimester.
+  ///
+  /// In en, this message translates to:
+  /// **'{trimester, plural, =1{1st trimester} =2{2nd trimester} other{3rd trimester}}'**
+  String pregnancyTrimester(int trimester);
+
+  /// No description provided for @pregnancyDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String pregnancyDue(String date);
+
+  /// No description provided for @pregnancyDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{Due today} =1{1 day to the due date} other{{days} days to the due date}}'**
+  String pregnancyDaysLeft(int days);
+
+  /// No description provided for @pregnancyPastDue.
+  ///
+  /// In en, this message translates to:
+  /// **'The due date has passed. Stay in touch with your doctor, and add the outcome when the baby comes.'**
+  String get pregnancyPastDue;
+
+  /// No description provided for @pregnancyAddCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Add weight and blood pressure'**
+  String get pregnancyAddCheck;
+
+  /// No description provided for @pregnancyEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Record the outcome'**
+  String get pregnancyEnd;
+
+  /// No description provided for @pregnancyScheduleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Visits, scans and tests'**
+  String get pregnancyScheduleTitle;
+
+  /// No description provided for @pregnancyScheduleSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Visits: WHO antenatal care recommendations (2016), at least 8 contacts. Scans and tests: what doctors in Egypt usually ask for. Your doctor may plan differently; follow their plan.'**
+  String get pregnancyScheduleSource;
+
+  /// No description provided for @pregnancyDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'For information only. It doesn\'t replace your doctor\'s follow-up.'**
+  String get pregnancyDisclaimer;
+
+  /// No description provided for @ancContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Antenatal visit {number} of 8'**
+  String ancContact(int number);
+
+  /// No description provided for @ancContactReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Around week {week} of pregnancy'**
+  String ancContactReason(int week);
+
+  /// No description provided for @ancWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Usually between weeks {from} and {to} of pregnancy'**
+  String ancWindow(int from, int to);
+
+  /// No description provided for @ancBookingLabs.
+  ///
+  /// In en, this message translates to:
+  /// **'First pregnancy tests (blood count, blood group, urine, sugar, hepatitis)'**
+  String get ancBookingLabs;
+
+  /// No description provided for @ancFirstScan.
+  ///
+  /// In en, this message translates to:
+  /// **'First-trimester ultrasound'**
+  String get ancFirstScan;
+
+  /// No description provided for @ancAnomalyScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Anomaly scan (detailed ultrasound)'**
+  String get ancAnomalyScan;
+
+  /// No description provided for @ancGlucoseTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy sugar test (glucose curve)'**
+  String get ancGlucoseTest;
+
+  /// No description provided for @ancBloodCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood count (anaemia check)'**
+  String get ancBloodCount;
+
+  /// No description provided for @ancGrowthScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Baby growth ultrasound'**
+  String get ancGrowthScan;
+
+  /// No description provided for @ancDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get ancDone;
+
+  /// No description provided for @ancMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get ancMissed;
+
+  /// No description provided for @pregDangerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to the hospital now if you notice any of these'**
+  String get pregDangerTitle;
+
+  /// No description provided for @pregDangerSign.
+  ///
+  /// In en, this message translates to:
+  /// **'{sign, select, bleeding{Bleeding from the vagina} headache{Severe headache} vision{Blurred vision} fits{Fits or fainting} pain{Severe pain in the belly} fever{Fever} water{Water leaking from the vagina} movement{The baby moving less than usual, or not at all} swelling{Swelling of the face or hands} breathing{Difficulty breathing} other{}}'**
+  String pregDangerSign(String sign);
+
+  /// No description provided for @pregDangerSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Danger signs from WHO and the Egyptian Ministry of Health maternal health guidance.'**
+  String get pregDangerSource;
+
+  /// No description provided for @pregnancyWeightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get pregnancyWeightTitle;
+
+  /// No description provided for @pregnancyBpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood pressure'**
+  String get pregnancyBpTitle;
+
+  /// No description provided for @pregnancyNoReadings.
+  ///
+  /// In en, this message translates to:
+  /// **'No readings yet.'**
+  String get pregnancyNoReadings;
+
+  /// No description provided for @pregnancyWeekAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'Pregnancy week'**
+  String get pregnancyWeekAxis;
+
+  /// No description provided for @bpUsual.
+  ///
+  /// In en, this message translates to:
+  /// **'In the usual range'**
+  String get bpUsual;
+
+  /// No description provided for @bpHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High: call your doctor today'**
+  String get bpHigh;
+
+  /// No description provided for @bpVeryHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Very high: go to the hospital now'**
+  String get bpVeryHigh;
+
+  /// No description provided for @pregnancyBpSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Levels from WHO: 140/90 and above is high in pregnancy, 160/110 and above is very high. One reading isn\'t a diagnosis; ask your doctor.'**
+  String get pregnancyBpSource;
+
+  /// No description provided for @devTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Development milestones'**
+  String get devTitle;
+
+  /// No description provided for @devUnderSixOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'The milestones checklist is for children under 6 whose birth date is recorded.'**
+  String get devUnderSixOnly;
+
+  /// No description provided for @devIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick what your child does, with the day you first noticed it.'**
+  String get devIntro;
+
+  /// No description provided for @devLateBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Some milestones for {age} aren\'t ticked yet. Talk to your pediatrician about them; there\'s no need to wait.'**
+  String devLateBanner(String age);
+
+  /// No description provided for @devByAge.
+  ///
+  /// In en, this message translates to:
+  /// **'By {age}'**
+  String devByAge(String age);
+
+  /// No description provided for @devTickedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} ticked'**
+  String devTickedCount(int done, int total);
+
+  /// No description provided for @devDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {date}'**
+  String devDone(String date);
+
+  /// No description provided for @devUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get devUpcoming;
+
+  /// No description provided for @devWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch for it'**
+  String get devWatch;
+
+  /// No description provided for @devLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Talk to your pediatrician'**
+  String get devLate;
+
+  /// No description provided for @devNotTicked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not ticked'**
+  String get devNotTicked;
+
+  /// No description provided for @devWhenSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'When did you first notice it?'**
+  String get devWhenSeen;
+
+  /// No description provided for @devAreaSocial.
+  ///
+  /// In en, this message translates to:
+  /// **'Social and emotional'**
+  String get devAreaSocial;
+
+  /// No description provided for @devAreaLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get devAreaLanguage;
+
+  /// No description provided for @devAreaCognitive.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinking and learning'**
+  String get devAreaCognitive;
+
+  /// No description provided for @devAreaMovement.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement'**
+  String get devAreaMovement;
+
+  /// No description provided for @devSource.
+  ///
+  /// In en, this message translates to:
+  /// **'From CDC\'s \"Learn the Signs. Act Early.\" milestones (2022), a selection: things most children (75%) do by each age. Full checklists at cdc.gov/actearly. For information only; your pediatrician assesses your child\'s development.'**
+  String get devSource;
+
+  /// No description provided for @recordMilestone.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestone'**
+  String get recordMilestone;
+
+  /// No description provided for @milestone.
+  ///
+  /// In en, this message translates to:
+  /// **'{id, select, m2_social{Smiles when you talk to or smile at them} m2_language{Makes sounds other than crying} m2_cognitive{Watches you as you move} m2_movement{Holds head up when on tummy} m4_social{Smiles on their own to get your attention} m4_language{Makes cooing sounds like \"oooo\" and \"aahh\"} m4_cognitive{Looks at their hands with interest} m4_movement{Holds head steady without support when you hold them} m6_social{Knows familiar people} m6_language{Takes turns making sounds with you} m6_cognitive{Reaches to grab a toy they want} m6_movement{Rolls from tummy to back} m9_social{Looks when you call their name} m9_language{Makes sounds like \"mamama\" and \"bababa\"} m9_cognitive{Looks for things when you drop them out of sight} m9_movement{Sits without support} m12_social{Plays games with you, like pat-a-cake} m12_language{Waves \"bye-bye\"} m12_cognitive{Looks for things they see you hide} m12_movement{Pulls up to stand} m15_social{Shows you an object they like} m15_language{Tries to say one or two words besides \"mama\" or \"dada\"} m15_cognitive{Stacks at least two small objects} m15_movement{Takes a few steps on their own} m18_social{Points to show you something interesting} m18_language{Tries to say three or more words besides \"mama\" or \"dada\"} m18_cognitive{Copies you doing chores, like sweeping} m18_movement{Walks without holding on to anyone or anything} m24_social{Notices when others are hurt or upset} m24_language{Says at least two words together, like \"more milk\"} m24_cognitive{Tries to use switches, knobs or buttons on a toy} m24_movement{Kicks a ball} m30_social{Plays next to other children and sometimes with them} m30_language{Says about 50 words} m30_cognitive{Uses things to pretend, like feeding a doll} m30_movement{Jumps off the ground with both feet} m36_social{Notices other children and joins them to play} m36_language{Holds a conversation with you of at least two back-and-forth exchanges} m36_cognitive{Draws a circle when you show them how} m36_movement{Puts on some clothes by themselves} m48_social{Comforts others who are hurt or sad} m48_language{Says sentences with four or more words} m48_cognitive{Names a few colours} m48_movement{Catches a large ball most of the time} m60_social{Follows rules or takes turns when playing games} m60_language{Tells a story they heard or made up, with at least two events} m60_cognitive{Counts to 10} m60_movement{Hops on one foot} other{}}'**
+  String milestone(String id);
+
+  /// No description provided for @infantLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Baby\'s day'**
+  String get infantLogTitle;
+
+  /// No description provided for @infantLogUnderOneOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'The feeds, sleep and diapers log is for babies under one whose birth date is recorded.'**
+  String get infantLogUnderOneOnly;
+
+  /// No description provided for @logBreast.
+  ///
+  /// In en, this message translates to:
+  /// **'Breastfeed'**
+  String get logBreast;
+
+  /// No description provided for @logBottle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottle'**
+  String get logBottle;
+
+  /// No description provided for @logSolids.
+  ///
+  /// In en, this message translates to:
+  /// **'Solids'**
+  String get logSolids;
+
+  /// No description provided for @logSleep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep'**
+  String get logSleep;
+
+  /// No description provided for @logWet.
+  ///
+  /// In en, this message translates to:
+  /// **'Wet diaper'**
+  String get logWet;
+
+  /// No description provided for @logDirty.
+  ///
+  /// In en, this message translates to:
+  /// **'Dirty diaper'**
+  String get logDirty;
+
+  /// No description provided for @logBottleAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'How much?'**
+  String get logBottleAmount;
+
+  /// No description provided for @logSleepHowLong.
+  ///
+  /// In en, this message translates to:
+  /// **'How long did they sleep?'**
+  String get logSleepHowLong;
+
+  /// No description provided for @logSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t know'**
+  String get logSkip;
+
+  /// No description provided for @logMl.
+  ///
+  /// In en, this message translates to:
+  /// **'{ml} ml'**
+  String logMl(int ml);
+
+  /// No description provided for @logDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours, plural, =0{{minutes} min} other{{hours} h {minutes} min}}'**
+  String logDuration(int hours, int minutes);
+
+  /// No description provided for @logSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get logSaved;
+
+  /// No description provided for @logToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get logToday;
+
+  /// No description provided for @logYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get logYesterday;
+
+  /// No description provided for @logEmptyDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged.'**
+  String get logEmptyDay;
+
+  /// No description provided for @logSummaryFeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 feed} other{{count} feeds}} (breast {breast}, bottle {bottle}, solids {solids})'**
+  String logSummaryFeeds(int count, int breast, int bottle, int solids);
+
+  /// No description provided for @logSummaryBottleMl.
+  ///
+  /// In en, this message translates to:
+  /// **'{ml} ml from the bottle'**
+  String logSummaryBottleMl(int ml);
+
+  /// No description provided for @logSummarySleep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep: {duration}'**
+  String logSummarySleep(String duration);
+
+  /// No description provided for @logSummaryDiapers.
+  ///
+  /// In en, this message translates to:
+  /// **'Diapers: {wet} wet, {dirty} dirty'**
+  String logSummaryDiapers(int wet, int dirty);
+
+  /// No description provided for @logDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get logDelete;
+
+  /// No description provided for @logDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'A diary for you and the doctor. If you\'re worried about feeding, sleep or diapers, ask your pediatrician.'**
+  String get logDisclaimer;
+
+  /// No description provided for @recordFeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed'**
+  String get recordFeed;
+
+  /// No description provided for @recordDiaper.
+  ///
+  /// In en, this message translates to:
+  /// **'Diaper'**
+  String get recordDiaper;
+
+  /// No description provided for @fieldFeedKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Type of feed'**
+  String get fieldFeedKind;
+
+  /// No description provided for @fieldAmountMl.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount (ml)'**
+  String get fieldAmountMl;
+
+  /// No description provided for @fieldMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get fieldMinutes;
+
+  /// No description provided for @fieldDiaperKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Type of diaper'**
+  String get fieldDiaperKind;
+
+  /// No description provided for @diaperWet.
+  ///
+  /// In en, this message translates to:
+  /// **'Wet'**
+  String get diaperWet;
+
+  /// No description provided for @diaperDirty.
+  ///
+  /// In en, this message translates to:
+  /// **'Dirty'**
+  String get diaperDirty;
+
+  /// No description provided for @diaperBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Wet and dirty'**
+  String get diaperBoth;
+
+  /// No description provided for @growthCheckTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick check'**
+  String get growthCheckTitle;
+
+  /// No description provided for @growthCheckIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Type today\'s weight or height and see where it falls on the WHO curves at {age}.'**
+  String growthCheckIntro(String age);
+
+  /// No description provided for @growthCheckSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as a measurement'**
+  String get growthCheckSave;
+
+  /// No description provided for @devUntick.
+  ///
+  /// In en, this message translates to:
+  /// **'Untick'**
+  String get devUntick;
+
+  /// No description provided for @devUntickConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Untick this milestone? The date you recorded will be removed.'**
+  String get devUntickConfirm;
 }
 
 class _AppLocalizationsDelegate

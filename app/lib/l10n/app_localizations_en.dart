@@ -1262,4 +1262,674 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reminderBatteryOpen => 'Battery settings';
+
+  @override
+  String get backupTitle => 'Backup';
+
+  @override
+  String get settingsBackupHint =>
+      'Keep a copy of the family\'s records off this phone';
+
+  @override
+  String get backupIntro =>
+      'A backup is one encrypted file with all the family\'s records and photos. Save it to Google Drive or Files, or send it to yourself on WhatsApp. To open it on a new phone you\'ll need your recovery key.';
+
+  @override
+  String get backupNever => 'No backup yet';
+
+  @override
+  String backupLast(String date) {
+    return 'Last backup: $date';
+  }
+
+  @override
+  String get backupNow => 'Back up now';
+
+  @override
+  String get backupWorking => 'Preparing the backup…';
+
+  @override
+  String get backupShareSubject => 'Usra backup';
+
+  @override
+  String get backupDone =>
+      'Backup ready. Keep it somewhere safe off this phone.';
+
+  @override
+  String get backupFailed => 'Couldn\'t make the backup. Try again.';
+
+  @override
+  String get backupDueTitle => 'Back up the family\'s records';
+
+  @override
+  String get backupDueNever =>
+      'If this phone is lost, the records go with it. Make an encrypted backup and keep it off the phone.';
+
+  @override
+  String get backupDueOld => 'Your last backup is more than 30 days old.';
+
+  @override
+  String get recoveryKeyTitle => 'Recovery key';
+
+  @override
+  String get recoveryKeyIntro =>
+      'This is your recovery key. Write it on paper and keep it somewhere safe, away from this phone. You\'ll need it to open your backups on a new phone.';
+
+  @override
+  String get recoveryKeyShowIntro =>
+      'This is the key that opens your backups. Check it matches the one you wrote down.';
+
+  @override
+  String get recoveryKeyLoseWarning =>
+      'Without this key nobody can open your backups, not even us. If it\'s lost, we can\'t get it back.';
+
+  @override
+  String get recoveryKeyWrittenDown => 'I wrote it down';
+
+  @override
+  String get recoveryKeyConfirmIntro =>
+      'To be sure it\'s written correctly, type these two groups from your paper.';
+
+  @override
+  String recoveryKeyGroupLabel(int number) {
+    return 'Group $number';
+  }
+
+  @override
+  String get recoveryKeyConfirm => 'Confirm';
+
+  @override
+  String get recoveryKeyShowAgain => 'Show the key again';
+
+  @override
+  String recoveryKeyMismatch(String groups) {
+    return 'Group $groups doesn\'t match. Check your paper.';
+  }
+
+  @override
+  String get recoveryKeyShow => 'Show recovery key';
+
+  @override
+  String get restoreTitle => 'Restore from a backup';
+
+  @override
+  String get restoreHint => 'Replaces everything on this phone';
+
+  @override
+  String get restoreIntro =>
+      'Choose your backup file (it ends in .usra) from Drive, Files or WhatsApp, then type your recovery key.';
+
+  @override
+  String get restorePick => 'Choose the backup file';
+
+  @override
+  String get restoreKeyLabel => 'Recovery key (36 digits)';
+
+  @override
+  String restoreKeyGroupsWrong(String groups) {
+    return 'Group $groups of the key isn\'t right. Check it against your paper.';
+  }
+
+  @override
+  String get restoreOpen => 'Open the backup';
+
+  @override
+  String get restoreNotABackup => 'This file isn\'t a Usra backup.';
+
+  @override
+  String get restoreWrongKey =>
+      'This recovery key doesn\'t open this backup. Check it, or try the key you had when the backup was made.';
+
+  @override
+  String get restoreDamaged =>
+      'This backup file is incomplete or damaged. Try downloading it again.';
+
+  @override
+  String get restoreTooNew =>
+      'This backup was made with a newer version of Usra. Update the app, then try again.';
+
+  @override
+  String get restoreFailed => 'Couldn\'t open the backup. Try again.';
+
+  @override
+  String restoreFrom(String date) {
+    return 'Backup from $date';
+  }
+
+  @override
+  String restoreContents(int people, int records, int medicines, int photos) {
+    String _temp0 = intl.Intl.pluralLogic(
+      people,
+      locale: localeName,
+      other: '$people people',
+      one: '1 person',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      records,
+      locale: localeName,
+      other: '$records records',
+      one: '1 record',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      medicines,
+      locale: localeName,
+      other: '$medicines medicines',
+      one: '1 medicine',
+    );
+    String _temp3 = intl.Intl.pluralLogic(
+      photos,
+      locale: localeName,
+      other: '$photos photos',
+      one: '1 photo',
+    );
+    return '$_temp0, $_temp1, $_temp2, $_temp3';
+  }
+
+  @override
+  String get restoreReplaceWarning =>
+      'Everything on this phone now will be replaced by this backup.';
+
+  @override
+  String get restoreReplace => 'Restore and replace';
+
+  @override
+  String get restoreDoneNotice => 'Your backup is restored.';
+
+  @override
+  String get restoreFailedNotice =>
+      'We couldn\'t restore the backup, so your records stayed as they were.';
+
+  @override
+  String get backupSavedQuestion =>
+      'Did you save the backup or send it somewhere?';
+
+  @override
+  String get backupSavedYes => 'Yes, saved';
+
+  @override
+  String get backupSavedNo => 'No';
+
+  @override
+  String get memberPregnancy => 'Pregnancy';
+
+  @override
+  String get memberDevelopment => 'Development';
+
+  @override
+  String get memberBabyLog => 'Baby\'s day';
+
+  @override
+  String get recordPregnancy => 'Pregnancy';
+
+  @override
+  String get recordPregnancyCheck => 'Weight and blood pressure';
+
+  @override
+  String get recordPregnancyEnd => 'Pregnancy outcome';
+
+  @override
+  String get fieldLmp => 'First day of last period';
+
+  @override
+  String get fieldDueDate => 'Due date (from the doctor)';
+
+  @override
+  String get fieldSystolic => 'Blood pressure, upper number';
+
+  @override
+  String get fieldDiastolic => 'Blood pressure, lower number';
+
+  @override
+  String get fieldOutcome => 'Outcome';
+
+  @override
+  String get outcomeBirth => 'Birth';
+
+  @override
+  String get outcomeLoss => 'Pregnancy loss';
+
+  @override
+  String get outcomeOther => 'Other';
+
+  @override
+  String get pregnancyTitle => 'Pregnancy follow-up';
+
+  @override
+  String get pregnancyNotEligible =>
+      'Pregnancy follow-up is for women. Check the sex and birth date in their details.';
+
+  @override
+  String get pregnancyStartIntro =>
+      'Follow the weeks, the due date, the antenatal visits and tests. Start with the first day of the last period, or the due date the doctor gave you.';
+
+  @override
+  String get pregnancyStart => 'Start pregnancy follow-up';
+
+  @override
+  String pregnancyWeek(int weeks, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: '$weeks أسبوع',
+      few: '$weeks أسابيع',
+      two: 'أسبوعين',
+      one: 'أسبوع',
+      zero: 'أقل من أسبوع',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوم',
+      zero: '0 يوم',
+    );
+    return '$_temp0 و$_temp1';
+  }
+
+  @override
+  String pregnancyTrimester(int trimester) {
+    String _temp0 = intl.Intl.pluralLogic(
+      trimester,
+      locale: localeName,
+      other: '3rd trimester',
+      two: '2nd trimester',
+      one: '1st trimester',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pregnancyDue(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String pregnancyDaysLeft(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days to the due date',
+      one: '1 day to the due date',
+      zero: 'Due today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pregnancyPastDue =>
+      'The due date has passed. Stay in touch with your doctor, and add the outcome when the baby comes.';
+
+  @override
+  String get pregnancyAddCheck => 'Add weight and blood pressure';
+
+  @override
+  String get pregnancyEnd => 'Record the outcome';
+
+  @override
+  String get pregnancyScheduleTitle => 'Visits, scans and tests';
+
+  @override
+  String get pregnancyScheduleSource =>
+      'Visits: WHO antenatal care recommendations (2016), at least 8 contacts. Scans and tests: what doctors in Egypt usually ask for. Your doctor may plan differently; follow their plan.';
+
+  @override
+  String get pregnancyDisclaimer =>
+      'For information only. It doesn\'t replace your doctor\'s follow-up.';
+
+  @override
+  String ancContact(int number) {
+    return 'Antenatal visit $number of 8';
+  }
+
+  @override
+  String ancContactReason(int week) {
+    return 'Around week $week of pregnancy';
+  }
+
+  @override
+  String ancWindow(int from, int to) {
+    return 'Usually between weeks $from and $to of pregnancy';
+  }
+
+  @override
+  String get ancBookingLabs =>
+      'First pregnancy tests (blood count, blood group, urine, sugar, hepatitis)';
+
+  @override
+  String get ancFirstScan => 'First-trimester ultrasound';
+
+  @override
+  String get ancAnomalyScan => 'Anomaly scan (detailed ultrasound)';
+
+  @override
+  String get ancGlucoseTest => 'Pregnancy sugar test (glucose curve)';
+
+  @override
+  String get ancBloodCount => 'Blood count (anaemia check)';
+
+  @override
+  String get ancGrowthScan => 'Baby growth ultrasound';
+
+  @override
+  String get ancDone => 'Done';
+
+  @override
+  String get ancMissed => 'Not recorded';
+
+  @override
+  String get pregDangerTitle =>
+      'Go to the hospital now if you notice any of these';
+
+  @override
+  String pregDangerSign(String sign) {
+    String _temp0 = intl.Intl.selectLogic(sign, {
+      'bleeding': 'Bleeding from the vagina',
+      'headache': 'Severe headache',
+      'vision': 'Blurred vision',
+      'fits': 'Fits or fainting',
+      'pain': 'Severe pain in the belly',
+      'fever': 'Fever',
+      'water': 'Water leaking from the vagina',
+      'movement': 'The baby moving less than usual, or not at all',
+      'swelling': 'Swelling of the face or hands',
+      'breathing': 'Difficulty breathing',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get pregDangerSource =>
+      'Danger signs from WHO and the Egyptian Ministry of Health maternal health guidance.';
+
+  @override
+  String get pregnancyWeightTitle => 'Weight';
+
+  @override
+  String get pregnancyBpTitle => 'Blood pressure';
+
+  @override
+  String get pregnancyNoReadings => 'No readings yet.';
+
+  @override
+  String get pregnancyWeekAxis => 'Pregnancy week';
+
+  @override
+  String get bpUsual => 'In the usual range';
+
+  @override
+  String get bpHigh => 'High: call your doctor today';
+
+  @override
+  String get bpVeryHigh => 'Very high: go to the hospital now';
+
+  @override
+  String get pregnancyBpSource =>
+      'Levels from WHO: 140/90 and above is high in pregnancy, 160/110 and above is very high. One reading isn\'t a diagnosis; ask your doctor.';
+
+  @override
+  String get devTitle => 'Development milestones';
+
+  @override
+  String get devUnderSixOnly =>
+      'The milestones checklist is for children under 6 whose birth date is recorded.';
+
+  @override
+  String get devIntro =>
+      'Tick what your child does, with the day you first noticed it.';
+
+  @override
+  String devLateBanner(String age) {
+    return 'Some milestones for $age aren\'t ticked yet. Talk to your pediatrician about them; there\'s no need to wait.';
+  }
+
+  @override
+  String devByAge(String age) {
+    return 'By $age';
+  }
+
+  @override
+  String devTickedCount(int done, int total) {
+    return '$done of $total ticked';
+  }
+
+  @override
+  String devDone(String date) {
+    return 'Since $date';
+  }
+
+  @override
+  String get devUpcoming => 'Later';
+
+  @override
+  String get devWatch => 'Watch for it';
+
+  @override
+  String get devLate => 'Talk to your pediatrician';
+
+  @override
+  String get devNotTicked => 'Not ticked';
+
+  @override
+  String get devWhenSeen => 'When did you first notice it?';
+
+  @override
+  String get devAreaSocial => 'Social and emotional';
+
+  @override
+  String get devAreaLanguage => 'Language';
+
+  @override
+  String get devAreaCognitive => 'Thinking and learning';
+
+  @override
+  String get devAreaMovement => 'Movement';
+
+  @override
+  String get devSource =>
+      'From CDC\'s \"Learn the Signs. Act Early.\" milestones (2022), a selection: things most children (75%) do by each age. Full checklists at cdc.gov/actearly. For information only; your pediatrician assesses your child\'s development.';
+
+  @override
+  String get recordMilestone => 'Milestone';
+
+  @override
+  String milestone(String id) {
+    String _temp0 = intl.Intl.selectLogic(id, {
+      'm2_social': 'Smiles when you talk to or smile at them',
+      'm2_language': 'Makes sounds other than crying',
+      'm2_cognitive': 'Watches you as you move',
+      'm2_movement': 'Holds head up when on tummy',
+      'm4_social': 'Smiles on their own to get your attention',
+      'm4_language': 'Makes cooing sounds like \"oooo\" and \"aahh\"',
+      'm4_cognitive': 'Looks at their hands with interest',
+      'm4_movement': 'Holds head steady without support when you hold them',
+      'm6_social': 'Knows familiar people',
+      'm6_language': 'Takes turns making sounds with you',
+      'm6_cognitive': 'Reaches to grab a toy they want',
+      'm6_movement': 'Rolls from tummy to back',
+      'm9_social': 'Looks when you call their name',
+      'm9_language': 'Makes sounds like \"mamama\" and \"bababa\"',
+      'm9_cognitive': 'Looks for things when you drop them out of sight',
+      'm9_movement': 'Sits without support',
+      'm12_social': 'Plays games with you, like pat-a-cake',
+      'm12_language': 'Waves \"bye-bye\"',
+      'm12_cognitive': 'Looks for things they see you hide',
+      'm12_movement': 'Pulls up to stand',
+      'm15_social': 'Shows you an object they like',
+      'm15_language':
+          'Tries to say one or two words besides \"mama\" or \"dada\"',
+      'm15_cognitive': 'Stacks at least two small objects',
+      'm15_movement': 'Takes a few steps on their own',
+      'm18_social': 'Points to show you something interesting',
+      'm18_language':
+          'Tries to say three or more words besides \"mama\" or \"dada\"',
+      'm18_cognitive': 'Copies you doing chores, like sweeping',
+      'm18_movement': 'Walks without holding on to anyone or anything',
+      'm24_social': 'Notices when others are hurt or upset',
+      'm24_language': 'Says at least two words together, like \"more milk\"',
+      'm24_cognitive': 'Tries to use switches, knobs or buttons on a toy',
+      'm24_movement': 'Kicks a ball',
+      'm30_social': 'Plays next to other children and sometimes with them',
+      'm30_language': 'Says about 50 words',
+      'm30_cognitive': 'Uses things to pretend, like feeding a doll',
+      'm30_movement': 'Jumps off the ground with both feet',
+      'm36_social': 'Notices other children and joins them to play',
+      'm36_language': 'Holds a conversation with you of at least two back-and-forth exchanges',
+      'm36_cognitive': 'Draws a circle when you show them how',
+      'm36_movement': 'Puts on some clothes by themselves',
+      'm48_social': 'Comforts others who are hurt or sad',
+      'm48_language': 'Says sentences with four or more words',
+      'm48_cognitive': 'Names a few colours',
+      'm48_movement': 'Catches a large ball most of the time',
+      'm60_social': 'Follows rules or takes turns when playing games',
+      'm60_language':
+          'Tells a story they heard or made up, with at least two events',
+      'm60_cognitive': 'Counts to 10',
+      'm60_movement': 'Hops on one foot',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get infantLogTitle => 'Baby\'s day';
+
+  @override
+  String get infantLogUnderOneOnly =>
+      'The feeds, sleep and diapers log is for babies under one whose birth date is recorded.';
+
+  @override
+  String get logBreast => 'Breastfeed';
+
+  @override
+  String get logBottle => 'Bottle';
+
+  @override
+  String get logSolids => 'Solids';
+
+  @override
+  String get logSleep => 'Sleep';
+
+  @override
+  String get logWet => 'Wet diaper';
+
+  @override
+  String get logDirty => 'Dirty diaper';
+
+  @override
+  String get logBottleAmount => 'How much?';
+
+  @override
+  String get logSleepHowLong => 'How long did they sleep?';
+
+  @override
+  String get logSkip => 'Don\'t know';
+
+  @override
+  String logMl(int ml) {
+    return '$ml ml';
+  }
+
+  @override
+  String logDuration(int hours, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '$hours h $minutes min',
+      zero: '$minutes min',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get logSaved => 'Saved';
+
+  @override
+  String get logToday => 'Today';
+
+  @override
+  String get logYesterday => 'Yesterday';
+
+  @override
+  String get logEmptyDay => 'Nothing logged.';
+
+  @override
+  String logSummaryFeeds(int count, int breast, int bottle, int solids) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count feeds',
+      one: '1 feed',
+    );
+    return '$_temp0 (breast $breast, bottle $bottle, solids $solids)';
+  }
+
+  @override
+  String logSummaryBottleMl(int ml) {
+    return '$ml ml from the bottle';
+  }
+
+  @override
+  String logSummarySleep(String duration) {
+    return 'Sleep: $duration';
+  }
+
+  @override
+  String logSummaryDiapers(int wet, int dirty) {
+    return 'Diapers: $wet wet, $dirty dirty';
+  }
+
+  @override
+  String get logDelete => 'Delete';
+
+  @override
+  String get logDisclaimer =>
+      'A diary for you and the doctor. If you\'re worried about feeding, sleep or diapers, ask your pediatrician.';
+
+  @override
+  String get recordFeed => 'Feed';
+
+  @override
+  String get recordDiaper => 'Diaper';
+
+  @override
+  String get fieldFeedKind => 'Type of feed';
+
+  @override
+  String get fieldAmountMl => 'Amount (ml)';
+
+  @override
+  String get fieldMinutes => 'Minutes';
+
+  @override
+  String get fieldDiaperKind => 'Type of diaper';
+
+  @override
+  String get diaperWet => 'Wet';
+
+  @override
+  String get diaperDirty => 'Dirty';
+
+  @override
+  String get diaperBoth => 'Wet and dirty';
+
+  @override
+  String get growthCheckTitle => 'Quick check';
+
+  @override
+  String growthCheckIntro(String age) {
+    return 'Type today\'s weight or height and see where it falls on the WHO curves at $age.';
+  }
+
+  @override
+  String get growthCheckSave => 'Save as a measurement';
+
+  @override
+  String get devUntick => 'Untick';
+
+  @override
+  String get devUntickConfirm =>
+      'Untick this milestone? The date you recorded will be removed.';
 }
