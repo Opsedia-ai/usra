@@ -34,6 +34,10 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
   bool _failed = false;
   bool _nameMissing = false;
 
+  /// The fields hold a suggestion the person hasn't edited, so a new photo
+  /// may replace it.
+  bool _filledIn = false;
+
   @override
   void dispose() {
     _name.dispose();
@@ -73,10 +77,17 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
         _suggestions = suggestions;
         _reading = false;
       });
-      if (suggestions.isNotEmpty && _name.text.trim().isEmpty) {
-        _choose(suggestions.first);
+      if (_filledIn || _name.text.trim().isEmpty) {
+        if (suggestions.isEmpty) {
+          _name.clear();
+          _strength.clear();
+          _filledIn = false;
+        } else {
+          _choose(suggestions.first);
+        }
       }
-    } catch (_) {
+    } catch (e, stack) {
+      debugPrint('Medicine scan failed: $e\n$stack');
       if (!mounted || _photo != path) return;
       setState(() {
         _reading = false;
@@ -89,6 +100,7 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
     _name.text = s.name;
     _strength.text = s.strength ?? '';
     _nameMissing = false;
+    _filledIn = true;
   });
 
   void _use() {
@@ -110,6 +122,8 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    // Keeps the recogniser open while this screen is up.
+    ref.watch(ocrServiceProvider);
     final chosen = _name.text.trim().toLowerCase();
     return Scaffold(
       appBar: AppBar(title: Text(l.scanMedicineTitle)),
@@ -226,7 +240,10 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
             controller: _name,
             textDirection: TextDirection.ltr,
             textCapitalization: TextCapitalization.words,
-            onChanged: (_) => setState(() => _nameMissing = false),
+            onChanged: (_) => setState(() {
+              _nameMissing = false;
+              _filledIn = false;
+            }),
             decoration: InputDecoration(
               labelText: l.scanMedicineName,
               errorText: _nameMissing ? l.fieldRequired : null,
@@ -237,7 +254,7 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
             key: const ValueKey('scan-strength'),
             controller: _strength,
             textDirection: TextDirection.ltr,
-            onChanged: (_) => setState(() {}),
+            onChanged: (_) => setState(() => _filledIn = false),
             decoration: InputDecoration(labelText: l.scanMedicineStrength),
           ),
           if (_suggestions.isNotEmpty) ...[

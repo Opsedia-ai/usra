@@ -121,6 +121,30 @@ void main() {
     expect(picked.existsSync(), isFalse);
   });
 
+  testWidgets('a new photo replaces an unedited suggestion, not typing', (
+    tester,
+  ) async {
+    ocr.result = ocrOf(['Concor 5 mg']);
+    final result = await open(tester);
+    await tapKey(tester, 'scan-camera');
+    expect(field(tester, 'scan-name'), 'Concor');
+
+    // Wrong box: a new photo fills in the new name.
+    ocr.result = ocrOf(['Augmentin 1g']);
+    await tapKey(tester, 'scan-camera');
+    expect(field(tester, 'scan-name'), 'Augmentin');
+    expect(field(tester, 'scan-strength'), '1g');
+
+    // Once the person types, another photo leaves the fields alone.
+    await tester.enterText(find.byKey(const ValueKey('scan-name')), 'Hibiotic');
+    ocr.result = ocrOf(['Concor 5 mg']);
+    await tapKey(tester, 'scan-gallery');
+    expect(field(tester, 'scan-name'), 'Hibiotic');
+
+    await tapKey(tester, 'scan-use');
+    expect((await result)?.name, 'Hibiotic');
+  });
+
   testWidgets('nothing read: type the name in', (tester) async {
     final result = await open(tester);
     await tapKey(tester, 'scan-gallery');

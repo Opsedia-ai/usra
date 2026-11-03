@@ -72,8 +72,9 @@ class MlKitOcrService implements OcrService {
   Future<void> close() => _recognizer.close();
 }
 
-/// The text recogniser. Overridden in tests.
-final ocrServiceProvider = Provider<OcrService>((ref) {
+/// The text recogniser, closed (freeing the model) once no screen watches
+/// it. Overridden in tests.
+final ocrServiceProvider = Provider.autoDispose<OcrService>((ref) {
   final service = MlKitOcrService();
   ref.onDispose(service.close);
   return service;

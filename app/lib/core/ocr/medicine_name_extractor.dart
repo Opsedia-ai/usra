@@ -88,59 +88,67 @@ class MedicineNameExtractor {
     final strengths = [
       for (final l in lines) _isDoseLine(l.text) ? null : strengthIn(l.text),
     ];
+    final known = [
+      for (final l in lines)
+        _isDetailLine(l.text) ? const <String>[] : _knownIn(l.text),
+    ];
+    final guessed = [
+      for (final (i, l) in lines.indexed)
+        known[i].isEmpty ? _guessName(l.text) : null,
+    ];
 
     String? strengthNear(int i) {
       for (final d in const [0, 1, -1, 2, -2]) {
         final j = i + d;
-        if (j >= 0 && j < lines.length && strengths[j] != null) {
-          return strengths[j];
+        if (j < 0 || j >= lines.length || strengths[j] == null) continue;
+        // A line with its own name has its own strength, unless it's the
+        // smaller print under a brand ("Paracetamol 500mg" under "Panadol").
+        final named = known[j].isNotEmpty || guessed[j] != null;
+        if (d != 0 &&
+            named &&
+            lines[j].box.height > lines[i].box.height * 0.8) {
+          continue;
         }
+        return strengths[j];
       }
       return null;
     }
 
-    final known = <(MedicineSuggestion, double)>[];
-    final guessed = <(MedicineSuggestion, double)>[];
+    final ranked = <(MedicineSuggestion, double)>[];
     for (var i = 0; i < lines.length; i++) {
       final line = lines[i];
-      final height = line.box.height;
-      final found = _knownIn(line.text);
-      for (final name in found) {
-        known.add((
+      for (final name in known[i]) {
+        ranked.add((
           MedicineSuggestion(
             name: name,
             strength: strengthNear(i),
             known: true,
             box: line.box,
           ),
-          height,
+          line.box.height,
         ));
       }
-      if (found.isNotEmpty) continue;
-      final guess = _guessName(line.text);
+      final guess = guessed[i];
       if (guess != null) {
-        guessed.add((
+        ranked.add((
           MedicineSuggestion(
             name: guess,
             strength: strengthNear(i),
             box: line.box,
           ),
-          height,
+          // A listed name is more likely right than a guess the same size.
+          line.box.height * 0.8,
         ));
       }
     }
-
     // Bigger print first: the brand is the largest text on a box.
-    int byHeight(
-      (MedicineSuggestion, double) a,
-      (MedicineSuggestion, double) b,
-    ) => b.$2.compareTo(a.$2);
-    known.sort(byHeight);
-    guessed.sort(byHeight);
+    ranked.sort((a, b) => b.$2.compareTo(a.$2));
 
     final out = <MedicineSuggestion>[];
     final byName = <String, int>{};
-    for (final (s, _) in [...known, ...guessed.take(3)]) {
+    var keptGuesses = 0;
+    for (final (s, _) in ranked) {
+      if (!s.known && ++keptGuesses > 3) continue;
       final key = s.name.toLowerCase();
       final at = byName[key];
       if (at == null) {
@@ -168,8 +176,17 @@ class MedicineNameExtractor {
     return null;
   }
 
-  static String _number(String s) =>
-      s.replaceAll(RegExp(r'\s+'), '').replaceAll(',', '.');
+  /// "0,5" -> "0.5", but "200,000" and "200.000" -> "200000": three digits
+  /// after the separator mean thousands.
+  static String _number(String s) => s
+      .replaceAll(RegExp(r'\s+'), '')
+      .split('/')
+      .map(
+        (n) => RegExp(r'^[1-9]\d{0,2}([.,]\d{3})+$').hasMatch(n)
+            ? n.replaceAll(RegExp('[.,]'), '')
+            : n.replaceAll(',', '.'),
+      )
+      .join('/');
 
   List<String> _knownIn(String text) {
     var rest = text.toLowerCase();
@@ -237,6 +254,10 @@ class MedicineNameExtractor {
 
   static bool _isDoseLine(String text) => _doseWords.hasMatch(text);
 
+  /// Inactive ingredients and the maker's details: names there aren't the
+  /// medicine ("magnesium stearate").
+  static bool _isDetailLine(String text) => _detailWords.hasMatch(text);
+
   static String _unit(String raw) =>
       switch (raw.toLowerCase().replaceAll('.', '')) {
         'gm' || 'gram' || 'grams' => 'g',
@@ -261,7 +282,7 @@ class MedicineNameExtractor {
       w.toLowerCase().replaceAll(RegExp(r'[^a-z]'), '');
 
   static final _strength = RegExp(
-    r'(?<![\d.,])(\d+(?:[.,]\d+)?(?:\s*/\s*\d+(?:[.,]\d+)?)?)\s*'
+    r'(?<![\d.,])(\d+(?:[.,]\d+)*(?:\s*/\s*\d+(?:[.,]\d+)*)?)\s*'
     r'(mg|mcg|µg|ug|grams?|gm|g|ml|i\.?u\.?|%)'
     r'(?:\s*/\s*(\d+(?:[.,]\d+)?)?\s*(ml|g|mg))?'
     r'(?![a-z])',
@@ -273,6 +294,12 @@ class MedicineNameExtractor {
   static final _doseWords = RegExp(
     r'\b(take|times|daily|every|hours?|hrs|twice|once|thrice|meals?|'
     r'bedtime|per\s+day|a\s+day)\b|\b\d\s*x\b|\bx\s*\d',
+    caseSensitive: false,
+  );
+
+  static final _detailWords = RegExp(
+    r'\b(excipients?|inactive|stearate|oxide|manufactured|marketed|'
+    r'distributed|licen[cs]ed?|store|keep)\b',
     caseSensitive: false,
   );
 

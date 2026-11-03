@@ -80,6 +80,42 @@ void main() {
     expect(MedicineNameExtractor.strengthIn('Exp 12/2027'), isNull);
   });
 
+  test('thousands separators are not decimals', () {
+    expect(
+      MedicineNameExtractor.strengthIn('Devarol-S 200,000 I.U.'),
+      '200000IU',
+    );
+    expect(
+      MedicineNameExtractor.strengthIn('Devarol-S 200.000 IU'),
+      '200000IU',
+    );
+    expect(
+      MedicineNameExtractor.strengthIn('Vidrop 1,000,000 IU'),
+      '1000000IU',
+    );
+    expect(MedicineNameExtractor.strengthIn('Eltroxin 0,125 mg'), '0.125mg');
+    expect(MedicineNameExtractor.strengthIn('Xarelto 2,5 mg'), '2.5mg');
+  });
+
+  test('inactive ingredients and the maker are not suggested', () {
+    final s = extractor.suggest(
+      ocrOf([
+        'Concor 5 mg',
+        'Excipients: magnesium stearate, zinc oxide',
+        'Manufactured by Merck under licence, Egypt',
+      ]),
+    );
+    expect(s.map((x) => x.label), ['Concor 5mg']);
+  });
+
+  test('a strength is not borrowed from another medicine\'s line', () {
+    final s = extractor.suggest(
+      ocrOf(['Concor', 'Lasix 40mg'], heights: [30, 30]),
+    );
+    expect(s.firstWhere((x) => x.name == 'Concor').strength, isNull);
+    expect(s.firstWhere((x) => x.name == 'Lasix').strength, '40mg');
+  });
+
   test('common OCR slips in the name and the strength', () {
     final s = extractor.suggest(
       ocrOf(['Augrnentin', '5OO rng'], heights: [40, 20]),
@@ -117,10 +153,10 @@ void main() {
         heights: [48, 20, 16, 10, 10],
       ),
     );
-    expect(s.first.label, 'Diclofenac 75mg');
-    final flotac = s.firstWhere((x) => x.name == 'Flotac');
-    expect(flotac.known, isFalse);
-    expect(flotac.strength, '75mg');
+    // The brand in the biggest print comes before the listed generic.
+    expect(s.first.label, 'Flotac 75mg');
+    expect(s.first.known, isFalse);
+    expect(s.map((x) => x.label), contains('Diclofenac 75mg'));
     expect(s.map((x) => x.name), isNot(contains('Store')));
   });
 
