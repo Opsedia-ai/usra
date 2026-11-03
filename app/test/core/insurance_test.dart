@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/design/tokens.dart';
-import 'package:usra/features/insurance/card_photos.dart';
+import 'package:usra/core/files/photo_store.dart';
 import 'package:usra/features/insurance/insurance_info.dart';
 
 void main() {
@@ -143,7 +143,10 @@ void main() {
     final dir = await Directory.systemTemp.createTemp('usra_photos');
     addTearDown(() => dir.delete(recursive: true));
     final picked = File('${dir.path}/picked.JPG')..writeAsBytesSync([1, 2]);
-    final store = CardPhotoStore(Directory('${dir.path}/support'));
+    final store = PhotoStore(
+      Directory('${dir.path}/support'),
+      PhotoStore.cardsFolder,
+    );
 
     final a = await store.import(picked.path);
     final b = await store.import(picked.path);

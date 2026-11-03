@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import '../files/photo_store.dart';
 import '../util/localized_numbers.dart';
 import 'record_type.dart';
 
@@ -15,6 +19,10 @@ class RecordFormStrings {
     required this.invalid,
     required this.pickDate,
     this.chooseDoctor = '',
+    this.photos = '',
+    this.photoCamera = '',
+    this.photoGallery = '',
+    this.photoRemove = '',
   });
 
   final String date;
@@ -27,6 +35,12 @@ class RecordFormStrings {
 
   /// Label of the "pick from your doctors" menu on types with a doctor field.
   final String chooseDoctor;
+
+  /// The "Add photos" row, shown when the form is given a photo picker.
+  final String photos;
+  final String photoCamera;
+  final String photoGallery;
+  final String photoRemove;
 }
 
 /// A saved doctor offered in the form's doctor menu.
@@ -58,6 +72,7 @@ class RecordFormResult {
     required this.data,
     this.costMinor,
     this.doctorId,
+    this.photos = const [],
   });
 
   final DateTime occurredAt;
@@ -68,6 +83,10 @@ class RecordFormResult {
 
   /// The saved doctor picked from the menu, if the name wasn't changed after.
   final String? doctorId;
+
+  /// Temporary paths of the picked photos, in order. The caller copies them
+  /// into the app; the form deletes them when it closes.
+  final List<String> photos;
 }
 
 /// A form built from any [RecordTypeDefinition], so a new record type needs
@@ -80,6 +99,7 @@ class RecordForm extends StatefulWidget {
     required this.onSubmit,
     this.initialDate,
     this.doctors = const [],
+    this.pickPhotos,
   });
 
   final RecordTypeDefinition type;
@@ -91,6 +111,10 @@ class RecordForm extends StatefulWidget {
 
   /// Saved doctors, offered when the type has a [RecordTypeDefinition.doctorField].
   final List<DoctorChoice> doctors;
+
+  /// Returns the temporary paths of photos taken or picked (empty if
+  /// cancelled). Without it the form has no photos row.
+  final Future<List<String>> Function(ImageSource source)? pickPhotos;
 
   @override
   State<RecordForm> createState() => _RecordFormState();
@@ -108,6 +132,7 @@ class _RecordFormState extends State<RecordForm> {
   bool _costInvalid = false;
   bool _submitting = false;
   DoctorChoice? _doctor;
+  final _photos = <String>[];
 
   /// The fee text last filled in from a doctor, so switching doctors can
   /// replace it without overwriting a cost the user typed.
@@ -150,6 +175,10 @@ class _RecordFormState extends State<RecordForm> {
       c.dispose();
     }
     _cost.dispose();
+    // Picked photos are temporary copies: never leave them in the cache.
+    for (final path in _photos) {
+      discardPicked(path);
+    }
     super.dispose();
   }
 
@@ -203,11 +232,26 @@ class _RecordFormState extends State<RecordForm> {
           data: data,
           costMinor: costMinor,
           doctorId: _doctor?.id,
+          photos: List.unmodifiable(_photos),
         ),
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  Future<void> _addPhotos(ImageSource source) async {
+    final picked = await widget.pickPhotos!(source);
+    if (!mounted) {
+      picked.forEach(discardPicked);
+      return;
+    }
+    if (picked.isNotEmpty) setState(() => _photos.addAll(picked));
+  }
+
+  void _removePhoto(int index) {
+    discardPicked(_photos[index]);
+    setState(() => _photos.removeAt(index));
   }
 
   String? _errorFor(FieldSpec f) {
@@ -340,11 +384,112 @@ class _RecordFormState extends State<RecordForm> {
             ),
           ),
         ],
+        if (widget.pickPhotos != null) ...[
+          const SizedBox(height: 20),
+          _PhotosRow(
+            strings: widget.strings,
+            photos: _photos,
+            onAdd: _submitting ? null : _addPhotos,
+            onRemove: _submitting ? null : _removePhoto,
+          ),
+        ],
         const SizedBox(height: 28),
         FilledButton(
           key: const ValueKey('record-save'),
           onPressed: _submitting ? null : _submit,
           child: Text(widget.strings.save),
+        ),
+      ],
+    );
+  }
+}
+
+/// Picked photos as thumbnails, with big buttons to take or pick more.
+class _PhotosRow extends StatelessWidget {
+  const _PhotosRow({
+    required this.strings,
+    required this.photos,
+    required this.onAdd,
+    required this.onRemove,
+  });
+
+  final RecordFormStrings strings;
+  final List<String> photos;
+  final ValueChanged<ImageSource>? onAdd;
+  final ValueChanged<int>? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    const tall = Size(0, 56);
+    const thumb = 88.0;
+    final pixels = (thumb * MediaQuery.devicePixelRatioOf(context)).round();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(strings.photos, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        if (photos.isNotEmpty) ...[
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final (i, path) in photos.indexed)
+                Stack(
+                  key: ValueKey('record-photo-$i'),
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: PhotoImage(
+                        file: File(path),
+                        width: thumb,
+                        height: thumb,
+                        fit: BoxFit.cover,
+                        cacheWidth: pixels,
+                      ),
+                    ),
+                    PositionedDirectional(
+                      top: 0,
+                      end: 0,
+                      child: IconButton.filledTonal(
+                        key: ValueKey('record-photo-remove-$i'),
+                        tooltip: strings.photoRemove,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: onRemove == null ? null : () => onRemove!(i),
+                        icon: const Icon(Icons.close, size: 18),
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+        ],
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                key: const ValueKey('record-photo-camera'),
+                style: OutlinedButton.styleFrom(minimumSize: tall),
+                onPressed: onAdd == null
+                    ? null
+                    : () => onAdd!(ImageSource.camera),
+                icon: const Icon(Icons.photo_camera_outlined),
+                label: Text(strings.photoCamera),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton.icon(
+                key: const ValueKey('record-photo-gallery'),
+                style: OutlinedButton.styleFrom(minimumSize: tall),
+                onPressed: onAdd == null
+                    ? null
+                    : () => onAdd!(ImageSource.gallery),
+                icon: const Icon(Icons.photo_library_outlined),
+                label: Text(strings.photoGallery),
+              ),
+            ),
+          ],
         ),
       ],
     );

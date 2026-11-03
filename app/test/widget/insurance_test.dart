@@ -10,40 +10,15 @@ import 'package:share_plus/share_plus.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/providers.dart';
-import 'package:usra/features/insurance/card_photos.dart';
-import 'package:usra/features/insurance/insurance_providers.dart';
+import 'package:usra/core/files/photo_store.dart';
 
-/// Real file copies, but synchronous: async file I/O never finishes under
-/// the fake clock of testWidgets.
-class _SyncPhotoStore extends CardPhotoStore {
-  _SyncPhotoStore(super.root);
-
-  var _n = 0;
-
-  @override
-  Future<String> import(String sourcePath) async {
-    final relative = '${CardPhotoStore.folder}/${_n++}.jpg';
-    fileOf(relative).parent.createSync(recursive: true);
-    File(sourcePath).copySync(fileOf(relative).path);
-    return relative;
-  }
-
-  @override
-  Future<void> prune(Set<String> keep) async {
-    final dir = Directory('${root.path}/${CardPhotoStore.folder}');
-    if (!dir.existsSync()) return;
-    for (final f in dir.listSync().whereType<File>()) {
-      final relative = '${CardPhotoStore.folder}/${f.uri.pathSegments.last}';
-      if (!keep.contains(relative)) f.deleteSync();
-    }
-  }
-}
+import '../support/sync_photo_store.dart';
 
 void main() {
   late AppDatabase db;
   late Directory dir;
   late File picked;
-  late _SyncPhotoStore photos;
+  late SyncPhotoStore photos;
   final shared = <ShareParams>[];
 
   setUp(() {
@@ -55,7 +30,10 @@ void main() {
     );
     dir = Directory.systemTemp.createTempSync('usra_cards');
     picked = File('${dir.path}/picked.jpg')..writeAsBytesSync([0, 1, 2]);
-    photos = _SyncPhotoStore(Directory('${dir.path}/support'));
+    photos = SyncPhotoStore(
+      Directory('${dir.path}/support'),
+      PhotoStore.cardsFolder,
+    );
     shared.clear();
   });
   tearDown(() async {

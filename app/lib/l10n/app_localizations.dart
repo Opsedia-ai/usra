@@ -1183,6 +1183,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Growth charts and the vaccination schedule are for children under 5 with a birth date in their profile.'**
   String get growthUnderFiveOnly;
+
+  /// No description provided for @recordPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get recordPhotos;
+
+  /// No description provided for @recordPhotoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String recordPhotoCount(int count);
+
+  /// No description provided for @recordNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This record was deleted'**
+  String get recordNotFound;
+
+  /// No description provided for @recordShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get recordShare;
+
+  /// No description provided for @recordDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get recordDelete;
+
+  /// No description provided for @recordDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this record? Its photos will be removed from this phone.'**
+  String get recordDeleteConfirm;
+
+  /// No description provided for @photoShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Send photo'**
+  String get photoShare;
+
+  /// No description provided for @photoDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete photo'**
+  String get photoDelete;
+
+  /// No description provided for @photoDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this photo from the record?'**
+  String get photoDeleteConfirm;
+
+  /// No description provided for @photoPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo {index} of {total}'**
+  String photoPosition(int index, int total);
+
+  /// No description provided for @fieldYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get fieldYes;
+
+  /// No description provided for @fieldNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get fieldNo;
 }
 
 class _AppLocalizationsDelegate
