@@ -19,12 +19,15 @@ private let shown = 3
 
 struct WidgetDose: Decodable {
   let at: Int64
+  let until: Int64
   let time: String
   let person: String
   let medicine: String
   let m: String
 
   var date: Date { Date(timeIntervalSince1970: TimeInterval(at) / 1000) }
+  /// When it leaves the widget: an hour after it's due or its snooze ends.
+  var untilDate: Date { Date(timeIntervalSince1970: TimeInterval(until) / 1000) }
   var line: String { "\(time) · \(person) · \(medicine)" }
 }
 
@@ -32,7 +35,6 @@ struct WidgetSnapshot: Decodable {
   let v: Int
   let generatedAt: Int64
   let validUntil: Int64
-  let graceMinutes: Int
   let rtl: Bool
   let title: String
   let empty: String
@@ -40,7 +42,6 @@ struct WidgetSnapshot: Decodable {
   let doses: [WidgetDose]
 
   var validUntilDate: Date { Date(timeIntervalSince1970: TimeInterval(validUntil) / 1000) }
-  var grace: TimeInterval { TimeInterval(graceMinutes * 60) }
 
   static func load() -> WidgetSnapshot? {
     guard let raw = UserDefaults(suiteName: appGroup)?.string(forKey: dataKey),
@@ -82,7 +83,7 @@ struct DoseProvider: TimelineProvider {
     if let s = snapshot {
       times.insert(s.validUntilDate)
       for d in s.doses {
-        times.insert(d.date.addingTimeInterval(s.grace))
+        times.insert(d.untilDate.addingTimeInterval(1))
       }
     }
     let end = calendar.date(byAdding: .day, value: 1, to: tomorrow)!
@@ -98,7 +99,7 @@ struct DoseProvider: TimelineProvider {
     }
     let calendar = Calendar.current
     let due = s.doses.filter {
-      $0.date >= date.addingTimeInterval(-s.grace) && calendar.isDate($0.date, inSameDayAs: date)
+      $0.untilDate >= date && calendar.isDate($0.date, inSameDayAs: date)
     }
     return DoseEntry(
       date: date, title: s.title, rtl: s.rtl,

@@ -109,6 +109,30 @@ void main() {
     expect(s.doses.first.at, DateTime(2026, 11, 3, 20));
   });
 
+  test('a snoozed dose stays until an hour after its snooze', () async {
+    final id = await medicine(omar, 'باراسيتامول', ['08:00', '20:00']);
+    final eight = DateTime(2026, 11, 3, 8).toUtc();
+    await db.logDose(
+      id,
+      eight,
+      DoseOutcome.snoozed,
+      at: DateTime(2026, 11, 3, 8, 55),
+    );
+    final s = await snapshotAt(DateTime(2026, 11, 3, 9, 30));
+    expect(s.doses.first.at, DateTime(2026, 11, 3, 8));
+    expect(s.doses.first.until, DateTime(2026, 11, 3, 10, 5));
+    final later = await snapshotAt(DateTime(2026, 11, 3, 10, 10));
+    expect(later.doses.first.at, DateTime(2026, 11, 3, 20));
+  });
+
+  test('marking a dose cancels its snooze', () async {
+    final id = await medicine(omar, 'باراسيتامول', ['08:00', '20:00']);
+    final eight = DateTime(2026, 11, 3, 8).toUtc();
+    await db.logDose(id, eight, DoseOutcome.taken);
+    final logs = await db.watchMedicineDoseLogs(id).first;
+    expect(doneSnoozeIds(logs), {snoozeIdFor(id, eight)});
+  });
+
   test('only first names and medicine names leave the database', () async {
     await medicine(omar, 'باراسيتامول', ['08:00']);
     final json = (await snapshotAt(DateTime(2026, 11, 3, 7))).encode();
@@ -127,7 +151,7 @@ void main() {
     final dose = (jsonDecode(json)['doses'] as List).first as Map;
     expect(
       dose.keys,
-      unorderedEquals(['at', 'time', 'person', 'medicine', 'm']),
+      unorderedEquals(['at', 'until', 'time', 'person', 'medicine', 'm']),
     );
   });
 
@@ -167,7 +191,9 @@ void main() {
     final before = widget.published.length;
     await db.logDose(id, DateTime(2026, 11, 3, 8).toUtc(), DoseOutcome.taken);
     // Picked up from the table change, after the debounce.
-    await Future<void>.delayed(const Duration(milliseconds: 800));
+    for (var i = 0; i < 100 && widget.published.length == before; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
     expect(widget.published.length, greaterThan(before));
     expect(widget.last.doses.first.at, DateTime(2026, 11, 3, 20));
   });
@@ -184,9 +210,10 @@ void main() {
     File('${dir.path}/a.jsonl').writeAsStringSync(
       '${jsonEncode({'m': id, 's': DateTime(2026, 11, 3, 8).toUtc().millisecondsSinceEpoch, 'st': 'taken', 'at': now.toUtc().millisecondsSinceEpoch})}\n',
     );
+    final scheduler = FakeReminderScheduler();
     final sync = ReminderSync(
       db: db,
-      scheduler: FakeReminderScheduler(),
+      scheduler: scheduler,
       inbox: inbox,
       texts: () => ReminderTexts(ar),
       widget: widget,
@@ -195,5 +222,10 @@ void main() {
     await sync.resync();
     expect((await db.watchMedicineDoseLogs(id).first).single.status, 'taken');
     expect(widget.last.doses.first.at, DateTime(2026, 11, 3, 20));
+    // A snooze set before it was taken won't ring.
+    expect(
+      scheduler.doneSnoozes,
+      contains(snoozeIdFor(id, DateTime(2026, 11, 3, 8).toUtc())),
+    );
   });
 }

@@ -159,6 +159,15 @@ List<PlannedReminder> planReminders(
   return out;
 }
 
+/// Snooze ids of doses marked taken or skipped in [logs], however they
+/// were marked (app, notification or widget), so a snooze set earlier
+/// doesn't ring for a dose already taken.
+Set<int> doneSnoozeIds(List<DoseLog> logs) => {
+  for (final l in logs)
+    if (l.status == DoseOutcome.taken || l.status == DoseOutcome.skipped)
+      snoozeIdFor(l.medicineId, l.scheduledAt),
+};
+
 /// What the phone lets reminders do.
 class ReminderAccess {
   const ReminderAccess({
@@ -194,7 +203,11 @@ abstract interface class ReminderScheduler {
 
   /// Makes the planned reminders (not snoozes) exactly [reminders]:
   /// unchanged ones are left alone, so one about to ring is never lost.
-  Future<void> replaceAll(List<PlannedReminder> reminders);
+  /// Snoozes in [doneSnoozes] are cancelled: their dose was marked since.
+  Future<void> replaceAll(
+    List<PlannedReminder> reminders, {
+    Set<int> doneSnoozes = const {},
+  });
 
   /// Schedules one more reminder (a snooze), keeping the others.
   Future<void> add(PlannedReminder reminder);
@@ -318,7 +331,10 @@ class UnavailableReminderScheduler implements ReminderScheduler {
   Future<void> openBatterySettings() async {}
 
   @override
-  Future<void> replaceAll(List<PlannedReminder> reminders) async {}
+  Future<void> replaceAll(
+    List<PlannedReminder> reminders, {
+    Set<int> doneSnoozes = const {},
+  }) async {}
 
   @override
   Future<void> add(PlannedReminder reminder) async {}

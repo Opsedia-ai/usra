@@ -119,6 +119,7 @@ class ReminderSync with WidgetsBindingObserver {
     try {
       await scheduler.replaceAll(
         planReminders(regimens, logs, now: now, texts: texts()),
+        doneSnoozes: doneSnoozeIds(logs),
       );
     } catch (e, s) {
       _report(e, s);

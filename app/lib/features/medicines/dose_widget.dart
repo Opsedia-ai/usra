@@ -9,8 +9,11 @@ import 'package:intl/intl.dart';
 import '../../core/database/app_database.dart';
 import '../../l10n/app_localizations.dart';
 import 'dose_schedule.dart';
+import 'medicines_providers.dart' show todayOf;
+import 'reminders.dart' show snoozeDuration;
 
-/// A dose due up to this long ago still shows on the widget, with Taken.
+/// A dose due (or snoozed until) up to this long ago still shows on the
+/// widget, with Taken.
 const widgetGrace = Duration(hours: 1);
 
 /// Most doses kept in a snapshot; the widget shows three.
@@ -22,6 +25,7 @@ const widgetMaxDoses = 20;
 class WidgetDose {
   const WidgetDose({
     required this.at,
+    required this.until,
     required this.time,
     required this.person,
     required this.medicine,
@@ -30,6 +34,10 @@ class WidgetDose {
 
   /// Local planned time.
   final DateTime at;
+
+  /// When the widget stops showing it: [widgetGrace] after it's due, or
+  /// after its snooze ends.
+  final DateTime until;
 
   /// [at] as "٨:٠٠ م", in the app's language.
   final String time;
@@ -43,6 +51,7 @@ class WidgetDose {
 
   Map<String, Object> toJson() => {
     'at': at.toUtc().millisecondsSinceEpoch,
+    'until': until.toUtc().millisecondsSinceEpoch,
     'time': time,
     'person': person,
     'medicine': medicine,
@@ -89,7 +98,6 @@ class WidgetSnapshot {
     'v': version,
     'generatedAt': generatedAt.toUtc().millisecondsSinceEpoch,
     'validUntil': validUntil.toUtc().millisecondsSinceEpoch,
-    'graceMinutes': widgetGrace.inMinutes,
     'rtl': rtl,
     'title': title,
     'empty': empty,
@@ -107,8 +115,9 @@ String firstName(String displayName) {
   return parts.first;
 }
 
-/// The widget's snapshot at [now]: doses due from [widgetGrace] ago to the
-/// end of tomorrow that aren't marked taken or skipped, with text in [l]'s
+/// The widget's snapshot at [now]: doses from today to the end of
+/// tomorrow that aren't marked taken or skipped and haven't been due (or
+/// snoozed until) for over [widgetGrace], with text in [l]'s
 /// language. Call [ensureWidgetDateFormatting] first.
 WidgetSnapshot buildWidgetSnapshot(
   List<Regimen> regimens,
@@ -116,21 +125,25 @@ WidgetSnapshot buildWidgetSnapshot(
   required DateTime now,
   required AppLocalizations l,
 }) {
-  final today = DateTime(now.year, now.month, now.day);
+  final today = todayOf(now).from;
   final validUntil = DateTime(today.year, today.month, today.day + 2);
   final time = DateFormat.jm(_timeLocale(l.localeName));
   final doses = <WidgetDose>[];
-  for (final d in plannedDoses(
-    regimens,
-    logs,
-    from: now.subtract(widgetGrace),
-    to: validUntil,
-  )) {
+  for (final d in plannedDoses(regimens, logs, from: today, to: validUntil)) {
     if (d.isDone) continue;
+    final log = d.log;
+    final snoozedUntil = log?.status == DoseOutcome.snoozed
+        ? log!.at.toLocal().add(snoozeDuration)
+        : d.at;
+    final until = (snoozedUntil.isAfter(d.at) ? snoozedUntil : d.at).add(
+      widgetGrace,
+    );
+    if (until.isBefore(now)) continue;
     if (doses.length == widgetMaxDoses) break;
     doses.add(
       WidgetDose(
         at: d.at,
+        until: until,
         time: time.format(d.at),
         person: firstName(d.regimen.person.displayName),
         medicine: d.regimen.medicine.name,
@@ -195,9 +208,13 @@ class HomeWidgetSnapshotPublisher implements WidgetSnapshotPublisher {
   /// launched the app.
   static Future<void> onTap(void Function() open) async {
     try {
-      HomeWidget.widgetClicked.listen((uri) {
-        if (uri != null) open();
-      });
+      HomeWidget.widgetClicked.listen(
+        (uri) {
+          if (uri != null) open();
+        },
+        // The widget can't be reached; it still opens the app.
+        onError: (Object _) {},
+      );
       if (await HomeWidget.initiallyLaunchedFromHomeWidget() != null) open();
     } on MissingPluginException {
       // No widget on this platform.

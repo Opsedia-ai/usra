@@ -88,6 +88,7 @@ class DoseWidgetProvider : HomeWidgetProvider() {
 
         private class Dose(
             val at: Long,
+            val until: Long,
             val time: String,
             val person: String,
             val medicine: String,
@@ -97,7 +98,6 @@ class DoseWidgetProvider : HomeWidgetProvider() {
         private class Snapshot(
             val generatedAt: Long,
             val validUntil: Long,
-            val graceMs: Long,
             val rtl: Boolean,
             val title: String?,
             val empty: String?,
@@ -128,7 +128,12 @@ class DoseWidgetProvider : HomeWidgetProvider() {
             views.setInt(
                 R.id.dose_widget_root,
                 "setLayoutDirection",
-                if (snapshot?.rtl != false) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR,
+                // Before the first snapshot, the phone's own direction.
+                when (snapshot?.rtl) {
+                    true -> View.LAYOUT_DIRECTION_RTL
+                    false -> View.LAYOUT_DIRECTION_LTR
+                    null -> context.resources.configuration.layoutDirection
+                },
             )
             views.setTextViewText(
                 R.id.dose_widget_title,
@@ -147,7 +152,7 @@ class DoseWidgetProvider : HomeWidgetProvider() {
             val todayEnd = startOfDay(now) + DAY_MS
             val stale = snapshot == null || now >= snapshot.validUntil
             val due = if (stale) emptyList() else snapshot!!.doses.filter {
-                it.at >= now - snapshot.graceMs && it.at < todayEnd &&
+                it.until >= now && it.at < todayEnd &&
                     !taken.contains(key(it.medicineId, it.at))
             }.take(SHOWN)
 
@@ -190,14 +195,14 @@ class DoseWidgetProvider : HomeWidgetProvider() {
             if (snapshot != null) {
                 if (snapshot.validUntil in (now + 1) until next) next = snapshot.validUntil
                 for (dose in snapshot.doses) {
-                    for (t in longArrayOf(dose.at, dose.at + snapshot.graceMs)) {
+                    for (t in longArrayOf(dose.at, dose.until + 1)) {
                         if (t in (now + 1) until next) next = t
                     }
                 }
             }
-            // Inexact: a widget may lag a few minutes, and needs no
-            // exact-alarm permission.
-            alarms(context).set(AlarmManager.RTC, next, refreshIntent(context))
+            // Inexact, so no exact-alarm permission, but allowed while
+            // idle: Doze would otherwise hold yesterday's doses past midnight.
+            alarms(context).setAndAllowWhileIdle(AlarmManager.RTC, next, refreshIntent(context))
         }
 
         private fun alarms(context: Context) =
@@ -284,7 +289,6 @@ class DoseWidgetProvider : HomeWidgetProvider() {
                 Snapshot(
                     generatedAt = j.getLong("generatedAt"),
                     validUntil = j.getLong("validUntil"),
-                    graceMs = j.optLong("graceMinutes", 60) * 60 * 1000,
                     rtl = j.optBoolean("rtl", true),
                     title = j.optString("title").ifEmpty { null },
                     empty = j.optString("empty").ifEmpty { null },
@@ -294,6 +298,7 @@ class DoseWidgetProvider : HomeWidgetProvider() {
                         val d = list.getJSONObject(it)
                         Dose(
                             at = d.getLong("at"),
+                            until = d.getLong("until"),
                             time = d.getString("time"),
                             person = d.getString("person"),
                             medicine = d.getString("medicine"),

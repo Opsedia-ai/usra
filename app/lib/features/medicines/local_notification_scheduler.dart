@@ -173,7 +173,10 @@ class LocalNotificationScheduler implements ReminderScheduler {
   }
 
   @override
-  Future<void> replaceAll(List<PlannedReminder> reminders) async {
+  Future<void> replaceAll(
+    List<PlannedReminder> reminders, {
+    Set<int> doneSnoozes = const {},
+  }) async {
     final pending = await _plugin.pendingNotificationRequests();
     final snoozes = pending.where((p) => p.id >= snoozeIdBase).length;
     // iOS keeps only 64 pending notifications, snoozes included.
@@ -183,7 +186,10 @@ class LocalNotificationScheduler implements ReminderScheduler {
     // about to ring could lose it.
     final kept = <int>{};
     for (final p in pending) {
-      if (p.id >= snoozeIdBase) continue;
+      if (p.id >= snoozeIdBase) {
+        if (doneSnoozes.contains(p.id)) await _plugin.cancel(id: p.id);
+        continue;
+      }
       if (wanted[p.id]?.toPayload() == p.payload) {
         kept.add(p.id);
       } else {
