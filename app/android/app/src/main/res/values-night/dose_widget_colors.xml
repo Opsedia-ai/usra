@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="dose_widget_background">#FF1B1B1F</color>
+    <color name="dose_widget_text">#FFF2F0F4</color>
+    <color name="dose_widget_accent">#FF4CD9E0</color>
+    <color name="dose_widget_on_accent">#FF003739</color>
+</resources>

@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show TableUpdateQuery;
 import 'package:flutter/widgets.dart';
 
 import '../../core/database/app_database.dart';
+import 'dose_widget.dart';
 import 'reminders.dart';
 
 /// Keeps the phone's scheduled reminders in step with the database.
@@ -11,13 +12,15 @@ import 'reminders.dart';
 /// Re-plans the next week of reminders when the app starts, when it comes
 /// back to the foreground, every few hours while open, and shortly after
 /// any change to people, medicines, schedules or doses. Also saves doses
-/// marked from notifications while the app wasn't running.
+/// marked from notifications or the home-screen widget while the app
+/// wasn't running, and hands the widget the doses still due.
 class ReminderSync with WidgetsBindingObserver {
   ReminderSync({
     required this.db,
     required this.scheduler,
     required this.inbox,
     required this.texts,
+    this.widget,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
 
@@ -27,6 +30,9 @@ class ReminderSync with WidgetsBindingObserver {
 
   /// Notification text in the app's current language.
   final ReminderTexts Function() texts;
+
+  /// The home-screen widget; none in tests that don't need it.
+  final WidgetSnapshotPublisher? widget;
   final DateTime Function() _clock;
 
   StreamSubscription<void>? _changes;
@@ -91,26 +97,48 @@ class ReminderSync with WidgetsBindingObserver {
   }
 
   Future<void> _run() async {
+    // Read before the inbox: a Taken pressed on the widget after this
+    // isn't in the snapshot, and the widget keeps hiding it.
+    final now = _clock();
+    final List<Regimen> regimens;
+    final List<DoseLog> logs;
     try {
       await saveInbox();
-      final now = _clock();
-      final regimens = await db.watchRegimens().first;
-      final logs = await db
+      regimens = await db.watchRegimens().first;
+      logs = await db
           .watchDoseLogs(
             from: now.subtract(const Duration(days: 1)),
             to: now.add(const Duration(days: 8)),
           )
           .first;
+    } catch (e, s) {
+      _report(e, s);
+      return;
+    }
+    // Each on its own: a broken widget never stops reminders.
+    try {
       await scheduler.replaceAll(
         planReminders(regimens, logs, now: now, texts: texts()),
+        doneSnoozes: doneSnoozeIds(logs),
       );
     } catch (e, s) {
-      // Reminders must never take the app down; the next run retries.
-      FlutterError.reportError(
-        FlutterErrorDetails(exception: e, stack: s, library: 'reminders'),
-      );
+      _report(e, s);
+    }
+    final widget = this.widget;
+    if (widget == null) return;
+    try {
+      final l = texts().l;
+      await ensureWidgetDateFormatting(l.localeName);
+      await widget.publish(buildWidgetSnapshot(regimens, logs, now: now, l: l));
+    } catch (e, s) {
+      _report(e, s);
     }
   }
+
+  /// Reminders must never take the app down; the next run retries.
+  void _report(Object e, StackTrace s) => FlutterError.reportError(
+    FlutterErrorDetails(exception: e, stack: s, library: 'reminders'),
+  );
 
   /// Moves doses marked from notifications into the database.
   Future<void> saveInbox() async {

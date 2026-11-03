@@ -602,6 +602,8 @@
   "doseReminderBody": "Tap Taken once it's done",
   "doseChannelName": "Medicine reminders",
   "doseChannelDescription": "Reminders at the times the doctor prescribed",
+  "widgetEmpty": "No medicines today",
+  "widgetStale": "Open Usra to refresh medicines",
   "memberMedicines": "Medicines",
   "medicinesTitle": "{name}'s medicines",
   "@medicinesTitle": {

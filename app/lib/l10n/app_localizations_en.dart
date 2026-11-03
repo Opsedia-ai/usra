@@ -1053,6 +1053,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Reminders at the times the doctor prescribed';
 
   @override
+  String get widgetEmpty => 'No medicines today';
+
+  @override
+  String get widgetStale => 'Open Usra to refresh medicines';
+
+  @override
   String get memberMedicines => 'Medicines';
 
   @override

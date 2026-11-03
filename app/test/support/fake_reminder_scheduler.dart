@@ -30,9 +30,17 @@ class FakeReminderScheduler implements ReminderScheduler {
   @override
   Future<void> openBatterySettings() async => batterySettingsOpened++;
 
+  /// Snoozes cancelled at the last replace.
+  Set<int> doneSnoozes = const {};
+
   @override
-  Future<void> replaceAll(List<PlannedReminder> reminders) async =>
-      planned = List.of(reminders);
+  Future<void> replaceAll(
+    List<PlannedReminder> reminders, {
+    Set<int> doneSnoozes = const {},
+  }) async {
+    planned = List.of(reminders);
+    this.doneSnoozes = doneSnoozes;
+  }
 
   @override
   Future<void> add(PlannedReminder reminder) async => snoozes.add(reminder);

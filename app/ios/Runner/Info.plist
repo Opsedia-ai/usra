@@ -70,5 +70,17 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- The home-screen widget opens the Medicines tab with usra://widget/medicines. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.opsedia.usra</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>usra</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
