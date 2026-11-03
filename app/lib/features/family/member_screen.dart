@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +10,7 @@ import '../../core/providers.dart';
 import '../../core/records/record_type.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
+import '../children/growth.dart' show isUnderFive;
 import '../insurance/insurance_section.dart';
 import 'family_screen.dart';
 
@@ -70,14 +69,24 @@ class MemberScreen extends ConsumerWidget {
             children: [
               _Header(profile: p),
               const SizedBox(height: 12),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: OutlinedButton.icon(
-                  key: const ValueKey('member-spending'),
-                  onPressed: () => context.go('/money?person=$profileId'),
-                  icon: const Icon(Icons.payments_outlined),
-                  label: Text(l.memberSpending),
-                ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    key: const ValueKey('member-spending'),
+                    onPressed: () => context.go('/money?person=$profileId'),
+                    icon: const Icon(Icons.payments_outlined),
+                    label: Text(l.memberSpending),
+                  ),
+                  if (isUnderFive(p.birthDate, DateTime.now()))
+                    OutlinedButton.icon(
+                      key: const ValueKey('member-growth'),
+                      onPressed: () => context.go('/family/$profileId/growth'),
+                      icon: const Icon(Icons.child_care_outlined),
+                      label: Text(l.memberGrowth),
+                    ),
+                ],
               ),
               const SizedBox(height: 20),
               InsuranceSection(profileId: profileId),
@@ -206,7 +215,7 @@ class _EventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final data = _decode(event.dataJson);
+    final data = decodeRecordData(event.dataJson);
     final titleField = type?.titleField;
     final title = titleField == null ? null : data[titleField.key];
     final currency = event.currency;
@@ -249,13 +258,4 @@ class _EventCard extends StatelessWidget {
       field.kind == FieldKind.choice
       ? field.choiceLabelOf(context, '$value')
       : '$value';
-
-  static Map<String, Object?> _decode(String json) {
-    try {
-      final v = jsonDecode(json);
-      return v is Map<String, Object?> ? v : const {};
-    } catch (_) {
-      return const {};
-    }
-  }
 }

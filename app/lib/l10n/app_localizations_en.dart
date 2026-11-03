@@ -486,4 +486,136 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emergencyLoadFailed => 'Couldn\'t read the records';
+
+  @override
+  String get recordGrowth => 'Growth measurement';
+
+  @override
+  String get fieldWeightKg => 'Weight (kg)';
+
+  @override
+  String get fieldHeightCm => 'Length / height (cm)';
+
+  @override
+  String get fieldHeadCm => 'Head circumference (cm)';
+
+  @override
+  String get memberGrowth => 'Growth and vaccines';
+
+  @override
+  String get growthTitle => 'Growth and vaccines';
+
+  @override
+  String get growthAdd => 'Add measurement';
+
+  @override
+  String get growthWeightForAge => 'Weight for age';
+
+  @override
+  String get growthHeightForAge => 'Length / height for age';
+
+  @override
+  String get growthAgeAxis => 'Age (months)';
+
+  @override
+  String get growthNoSex =>
+      'Add the child\'s sex to their profile to see the growth charts.';
+
+  @override
+  String get growthNoData => 'No measurements yet.';
+
+  @override
+  String growthLatest(String value, String date) {
+    return 'Latest: $value on $date';
+  }
+
+  @override
+  String growthWithinRange(String percentile) {
+    return 'Percentile $percentile: within the usual range for this age.';
+  }
+
+  @override
+  String growthOutsideRange(String percentile) {
+    return 'Percentile $percentile: outside the usual range. Talk to your pediatrician.';
+  }
+
+  @override
+  String get growthSource =>
+      'Curves: WHO Child Growth Standards (3rd, 15th, 50th, 85th and 97th percentiles). For information only; your pediatrician reads your child\'s growth.';
+
+  @override
+  String get vaccinesTitle => 'Mandatory vaccinations';
+
+  @override
+  String get vaccinesDisclaimer =>
+      'Based on the Egyptian Ministry of Health and Population\'s mandatory schedule. Schedules change, so the child\'s health office card is the official record.';
+
+  @override
+  String get vaccineAtBirth => 'At birth';
+
+  @override
+  String vaccineAtMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'At $months months',
+      one: 'At 1 month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineDone(String date) {
+    return 'Done $date';
+  }
+
+  @override
+  String vaccineDue(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String vaccineOverdue(String date) {
+    return 'Overdue since $date';
+  }
+
+  @override
+  String vaccineLater(String date) {
+    return 'On $date';
+  }
+
+  @override
+  String vaccineDoseName(String name, int dose) {
+    return '$name, dose $dose';
+  }
+
+  @override
+  String get vaccineHepB => 'Hepatitis B';
+
+  @override
+  String get vaccineBcg => 'BCG (tuberculosis)';
+
+  @override
+  String get vaccineOpv => 'Oral polio (drops)';
+
+  @override
+  String get vaccineIpv => 'Polio injection (IPV)';
+
+  @override
+  String get vaccinePenta => 'Pentavalent';
+
+  @override
+  String get vaccineMmr => 'MMR (measles, mumps, rubella)';
+
+  @override
+  String get vaccineDtp => 'DTP booster';
+
+  @override
+  String vaccineZeroDose(String name) {
+    return '$name, birth dose';
+  }
+
+  @override
+  String get growthUnderFiveOnly =>
+      'Growth charts and the vaccination schedule are for children under 5 with a birth date in their profile.';
 }
