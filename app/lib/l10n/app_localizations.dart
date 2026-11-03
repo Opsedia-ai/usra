@@ -2252,6 +2252,276 @@ abstract class AppLocalizations {
   /// **'Battery settings'**
   String get reminderBatteryOpen;
 
+  /// No description provided for @backupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get backupTitle;
+
+  /// No description provided for @settingsBackupHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep a copy of the family\'s records off this phone'**
+  String get settingsBackupHint;
+
+  /// No description provided for @backupIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'A backup is one encrypted file with all the family\'s records and photos. Save it to Google Drive or Files, or send it to yourself on WhatsApp. To open it on a new phone you\'ll need your recovery key.'**
+  String get backupIntro;
+
+  /// No description provided for @backupNever.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup yet'**
+  String get backupNever;
+
+  /// No description provided for @backupLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup: {date}'**
+  String backupLast(String date);
+
+  /// No description provided for @backupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get backupNow;
+
+  /// No description provided for @backupWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing the backup…'**
+  String get backupWorking;
+
+  /// No description provided for @backupShareSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra backup'**
+  String get backupShareSubject;
+
+  /// No description provided for @backupDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup ready. Keep it somewhere safe off this phone.'**
+  String get backupDone;
+
+  /// No description provided for @backupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t make the backup. Try again.'**
+  String get backupFailed;
+
+  /// No description provided for @backupDueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up the family\'s records'**
+  String get backupDueTitle;
+
+  /// No description provided for @backupDueNever.
+  ///
+  /// In en, this message translates to:
+  /// **'If this phone is lost, the records go with it. Make an encrypted backup and keep it off the phone.'**
+  String get backupDueNever;
+
+  /// No description provided for @backupDueOld.
+  ///
+  /// In en, this message translates to:
+  /// **'Your last backup is more than 30 days old.'**
+  String get backupDueOld;
+
+  /// No description provided for @recoveryKeyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery key'**
+  String get recoveryKeyTitle;
+
+  /// No description provided for @recoveryKeyIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'This is your recovery key. Write it on paper and keep it somewhere safe, away from this phone. You\'ll need it to open your backups on a new phone.'**
+  String get recoveryKeyIntro;
+
+  /// No description provided for @recoveryKeyShowIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the key that opens your backups. Check it matches the one you wrote down.'**
+  String get recoveryKeyShowIntro;
+
+  /// No description provided for @recoveryKeyLoseWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Without this key nobody can open your backups, not even us. If it\'s lost, we can\'t get it back.'**
+  String get recoveryKeyLoseWarning;
+
+  /// No description provided for @recoveryKeyWrittenDown.
+  ///
+  /// In en, this message translates to:
+  /// **'I wrote it down'**
+  String get recoveryKeyWrittenDown;
+
+  /// No description provided for @recoveryKeyConfirmIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'To be sure it\'s written correctly, type these two groups from your paper.'**
+  String get recoveryKeyConfirmIntro;
+
+  /// No description provided for @recoveryKeyGroupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Group {number}'**
+  String recoveryKeyGroupLabel(int number);
+
+  /// No description provided for @recoveryKeyConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get recoveryKeyConfirm;
+
+  /// No description provided for @recoveryKeyShowAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the key again'**
+  String get recoveryKeyShowAgain;
+
+  /// No description provided for @recoveryKeyMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Group {groups} doesn\'t match. Check your paper.'**
+  String recoveryKeyMismatch(String groups);
+
+  /// No description provided for @recoveryKeyShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show recovery key'**
+  String get recoveryKeyShow;
+
+  /// No description provided for @restoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from a backup'**
+  String get restoreTitle;
+
+  /// No description provided for @restoreHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces everything on this phone'**
+  String get restoreHint;
+
+  /// No description provided for @restoreIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your backup file (it ends in .usra) from Drive, Files or WhatsApp, then type your recovery key.'**
+  String get restoreIntro;
+
+  /// No description provided for @restorePick.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the backup file'**
+  String get restorePick;
+
+  /// No description provided for @restoreKeyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery key (36 digits)'**
+  String get restoreKeyLabel;
+
+  /// No description provided for @restoreKeyGroupsWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Group {groups} of the key isn\'t right. Check it against your paper.'**
+  String restoreKeyGroupsWrong(String groups);
+
+  /// No description provided for @restoreOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the backup'**
+  String get restoreOpen;
+
+  /// No description provided for @restoreNotABackup.
+  ///
+  /// In en, this message translates to:
+  /// **'This file isn\'t a Usra backup.'**
+  String get restoreNotABackup;
+
+  /// No description provided for @restoreWrongKey.
+  ///
+  /// In en, this message translates to:
+  /// **'This recovery key doesn\'t open this backup. Check it, or try the key you had when the backup was made.'**
+  String get restoreWrongKey;
+
+  /// No description provided for @restoreDamaged.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup file is incomplete or damaged. Try downloading it again.'**
+  String get restoreDamaged;
+
+  /// No description provided for @restoreTooNew.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup was made with a newer version of Usra. Update the app, then try again.'**
+  String get restoreTooNew;
+
+  /// No description provided for @restoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the backup. Try again.'**
+  String get restoreFailed;
+
+  /// No description provided for @restoreFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup from {date}'**
+  String restoreFrom(String date);
+
+  /// No description provided for @restoreContents.
+  ///
+  /// In en, this message translates to:
+  /// **'{people, plural, =1{1 person} other{{people} people}}, {records, plural, =1{1 record} other{{records} records}}, {medicines, plural, =1{1 medicine} other{{medicines} medicines}}, {photos, plural, =1{1 photo} other{{photos} photos}}'**
+  String restoreContents(int people, int records, int medicines, int photos);
+
+  /// No description provided for @restoreReplaceWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything on this phone now will be replaced by this backup.'**
+  String get restoreReplaceWarning;
+
+  /// No description provided for @restoreReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore and replace'**
+  String get restoreReplace;
+
+  /// No description provided for @restoreDoneNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Your backup is restored.'**
+  String get restoreDoneNotice;
+
+  /// No description provided for @restoreFailedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t restore the backup, so your records stayed as they were.'**
+  String get restoreFailedNotice;
+
+  /// No description provided for @backupSavedQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you save the backup or send it somewhere?'**
+  String get backupSavedQuestion;
+
+  /// No description provided for @backupSavedYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, saved'**
+  String get backupSavedYes;
+
+  /// No description provided for @backupSavedNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get backupSavedNo;
+
   /// No description provided for @memberPregnancy.
   ///
   /// In en, this message translates to:

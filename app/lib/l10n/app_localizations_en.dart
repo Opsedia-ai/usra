@@ -1258,6 +1258,192 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderBatteryOpen => 'Battery settings';
 
   @override
+  String get backupTitle => 'Backup';
+
+  @override
+  String get settingsBackupHint =>
+      'Keep a copy of the family\'s records off this phone';
+
+  @override
+  String get backupIntro =>
+      'A backup is one encrypted file with all the family\'s records and photos. Save it to Google Drive or Files, or send it to yourself on WhatsApp. To open it on a new phone you\'ll need your recovery key.';
+
+  @override
+  String get backupNever => 'No backup yet';
+
+  @override
+  String backupLast(String date) {
+    return 'Last backup: $date';
+  }
+
+  @override
+  String get backupNow => 'Back up now';
+
+  @override
+  String get backupWorking => 'Preparing the backup…';
+
+  @override
+  String get backupShareSubject => 'Usra backup';
+
+  @override
+  String get backupDone =>
+      'Backup ready. Keep it somewhere safe off this phone.';
+
+  @override
+  String get backupFailed => 'Couldn\'t make the backup. Try again.';
+
+  @override
+  String get backupDueTitle => 'Back up the family\'s records';
+
+  @override
+  String get backupDueNever =>
+      'If this phone is lost, the records go with it. Make an encrypted backup and keep it off the phone.';
+
+  @override
+  String get backupDueOld => 'Your last backup is more than 30 days old.';
+
+  @override
+  String get recoveryKeyTitle => 'Recovery key';
+
+  @override
+  String get recoveryKeyIntro =>
+      'This is your recovery key. Write it on paper and keep it somewhere safe, away from this phone. You\'ll need it to open your backups on a new phone.';
+
+  @override
+  String get recoveryKeyShowIntro =>
+      'This is the key that opens your backups. Check it matches the one you wrote down.';
+
+  @override
+  String get recoveryKeyLoseWarning =>
+      'Without this key nobody can open your backups, not even us. If it\'s lost, we can\'t get it back.';
+
+  @override
+  String get recoveryKeyWrittenDown => 'I wrote it down';
+
+  @override
+  String get recoveryKeyConfirmIntro =>
+      'To be sure it\'s written correctly, type these two groups from your paper.';
+
+  @override
+  String recoveryKeyGroupLabel(int number) {
+    return 'Group $number';
+  }
+
+  @override
+  String get recoveryKeyConfirm => 'Confirm';
+
+  @override
+  String get recoveryKeyShowAgain => 'Show the key again';
+
+  @override
+  String recoveryKeyMismatch(String groups) {
+    return 'Group $groups doesn\'t match. Check your paper.';
+  }
+
+  @override
+  String get recoveryKeyShow => 'Show recovery key';
+
+  @override
+  String get restoreTitle => 'Restore from a backup';
+
+  @override
+  String get restoreHint => 'Replaces everything on this phone';
+
+  @override
+  String get restoreIntro =>
+      'Choose your backup file (it ends in .usra) from Drive, Files or WhatsApp, then type your recovery key.';
+
+  @override
+  String get restorePick => 'Choose the backup file';
+
+  @override
+  String get restoreKeyLabel => 'Recovery key (36 digits)';
+
+  @override
+  String restoreKeyGroupsWrong(String groups) {
+    return 'Group $groups of the key isn\'t right. Check it against your paper.';
+  }
+
+  @override
+  String get restoreOpen => 'Open the backup';
+
+  @override
+  String get restoreNotABackup => 'This file isn\'t a Usra backup.';
+
+  @override
+  String get restoreWrongKey =>
+      'This recovery key doesn\'t open this backup. Check it, or try the key you had when the backup was made.';
+
+  @override
+  String get restoreDamaged =>
+      'This backup file is incomplete or damaged. Try downloading it again.';
+
+  @override
+  String get restoreTooNew =>
+      'This backup was made with a newer version of Usra. Update the app, then try again.';
+
+  @override
+  String get restoreFailed => 'Couldn\'t open the backup. Try again.';
+
+  @override
+  String restoreFrom(String date) {
+    return 'Backup from $date';
+  }
+
+  @override
+  String restoreContents(int people, int records, int medicines, int photos) {
+    String _temp0 = intl.Intl.pluralLogic(
+      people,
+      locale: localeName,
+      other: '$people people',
+      one: '1 person',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      records,
+      locale: localeName,
+      other: '$records records',
+      one: '1 record',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      medicines,
+      locale: localeName,
+      other: '$medicines medicines',
+      one: '1 medicine',
+    );
+    String _temp3 = intl.Intl.pluralLogic(
+      photos,
+      locale: localeName,
+      other: '$photos photos',
+      one: '1 photo',
+    );
+    return '$_temp0, $_temp1, $_temp2, $_temp3';
+  }
+
+  @override
+  String get restoreReplaceWarning =>
+      'Everything on this phone now will be replaced by this backup.';
+
+  @override
+  String get restoreReplace => 'Restore and replace';
+
+  @override
+  String get restoreDoneNotice => 'Your backup is restored.';
+
+  @override
+  String get restoreFailedNotice =>
+      'We couldn\'t restore the backup, so your records stayed as they were.';
+
+  @override
+  String get backupSavedQuestion =>
+      'Did you save the backup or send it somewhere?';
+
+  @override
+  String get backupSavedYes => 'Yes, saved';
+
+  @override
+  String get backupSavedNo => 'No';
+
+  @override
   String get memberPregnancy => 'Pregnancy';
 
   @override

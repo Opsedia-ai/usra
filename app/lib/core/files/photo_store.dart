@@ -85,6 +85,14 @@ class PhotoStore {
 
   Directory get _dir => Directory(p.join(root.path, folder));
 
+  /// Keeps [dir] out of iCloud backup; excluding a folder covers every file
+  /// in it. (Android backup is off for the whole app.)
+  static Future<void> excludeFromBackup(Directory dir) async {
+    if (Platform.isIOS) {
+      await _files.invokeMethod<void>('excludeFromBackup', dir.path);
+    }
+  }
+
   /// The file for a path saved in the database.
   File fileOf(String relativePath) => File(p.join(root.path, relativePath));
 
@@ -92,11 +100,9 @@ class PhotoStore {
   /// Throws, copying nothing, if the folder can't be kept out of backup.
   Future<String> import(String sourcePath) async {
     await _dir.create(recursive: true);
-    if (Platform.isIOS) {
-      // Cheap and idempotent, so done every time rather than trusting an
-      // earlier call. Excluding the folder covers every file in it.
-      await _files.invokeMethod<void>('excludeFromBackup', _dir.path);
-    }
+    // Cheap and idempotent, so done every time rather than trusting an
+    // earlier call.
+    await excludeFromBackup(_dir);
     final ext = p.extension(sourcePath).toLowerCase();
     final relative = p.join(
       folder,

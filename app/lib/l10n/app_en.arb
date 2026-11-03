@@ -714,6 +714,102 @@
   "reminderBatteryTitle": "Make reminders reliable",
   "reminderBatteryBody": "Some phones stop apps in the background to save battery. Set Usra's battery use to \"Unrestricted\" so reminders always ring.",
   "reminderBatteryOpen": "Battery settings",
+  "backupTitle": "Backup",
+  "settingsBackupHint": "Keep a copy of the family's records off this phone",
+  "backupIntro": "A backup is one encrypted file with all the family's records and photos. Save it to Google Drive or Files, or send it to yourself on WhatsApp. To open it on a new phone you'll need your recovery key.",
+  "backupNever": "No backup yet",
+  "backupLast": "Last backup: {date}",
+  "@backupLast": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "backupNow": "Back up now",
+  "backupWorking": "Preparing the backup…",
+  "backupShareSubject": "Usra backup",
+  "backupDone": "Backup ready. Keep it somewhere safe off this phone.",
+  "backupFailed": "Couldn't make the backup. Try again.",
+  "backupDueTitle": "Back up the family's records",
+  "backupDueNever": "If this phone is lost, the records go with it. Make an encrypted backup and keep it off the phone.",
+  "backupDueOld": "Your last backup is more than 30 days old.",
+  "recoveryKeyTitle": "Recovery key",
+  "recoveryKeyIntro": "This is your recovery key. Write it on paper and keep it somewhere safe, away from this phone. You'll need it to open your backups on a new phone.",
+  "recoveryKeyShowIntro": "This is the key that opens your backups. Check it matches the one you wrote down.",
+  "recoveryKeyLoseWarning": "Without this key nobody can open your backups, not even us. If it's lost, we can't get it back.",
+  "recoveryKeyWrittenDown": "I wrote it down",
+  "recoveryKeyConfirmIntro": "To be sure it's written correctly, type these two groups from your paper.",
+  "recoveryKeyGroupLabel": "Group {number}",
+  "@recoveryKeyGroupLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "recoveryKeyConfirm": "Confirm",
+  "recoveryKeyShowAgain": "Show the key again",
+  "recoveryKeyMismatch": "Group {groups} doesn't match. Check your paper.",
+  "@recoveryKeyMismatch": {
+    "placeholders": {
+      "groups": {
+        "type": "String"
+      }
+    }
+  },
+  "recoveryKeyShow": "Show recovery key",
+  "restoreTitle": "Restore from a backup",
+  "restoreHint": "Replaces everything on this phone",
+  "restoreIntro": "Choose your backup file (it ends in .usra) from Drive, Files or WhatsApp, then type your recovery key.",
+  "restorePick": "Choose the backup file",
+  "restoreKeyLabel": "Recovery key (36 digits)",
+  "restoreKeyGroupsWrong": "Group {groups} of the key isn't right. Check it against your paper.",
+  "@restoreKeyGroupsWrong": {
+    "placeholders": {
+      "groups": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreOpen": "Open the backup",
+  "restoreNotABackup": "This file isn't a Usra backup.",
+  "restoreWrongKey": "This recovery key doesn't open this backup. Check it, or try the key you had when the backup was made.",
+  "restoreDamaged": "This backup file is incomplete or damaged. Try downloading it again.",
+  "restoreTooNew": "This backup was made with a newer version of Usra. Update the app, then try again.",
+  "restoreFailed": "Couldn't open the backup. Try again.",
+  "restoreFrom": "Backup from {date}",
+  "@restoreFrom": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreContents": "{people, plural, =1{1 person} other{{people} people}}, {records, plural, =1{1 record} other{{records} records}}, {medicines, plural, =1{1 medicine} other{{medicines} medicines}}, {photos, plural, =1{1 photo} other{{photos} photos}}",
+  "@restoreContents": {
+    "placeholders": {
+      "people": {
+        "type": "int"
+      },
+      "records": {
+        "type": "int"
+      },
+      "medicines": {
+        "type": "int"
+      },
+      "photos": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreReplaceWarning": "Everything on this phone now will be replaced by this backup.",
+  "restoreReplace": "Restore and replace",
+  "restoreDoneNotice": "Your backup is restored.",
+  "restoreFailedNotice": "We couldn't restore the backup, so your records stayed as they were.",
+  "backupSavedQuestion": "Did you save the backup or send it somewhere?",
+  "backupSavedYes": "Yes, saved",
+  "backupSavedNo": "No",
   "memberPregnancy": "Pregnancy",
   "memberDevelopment": "Development",
   "memberBabyLog": "Baby's day",
