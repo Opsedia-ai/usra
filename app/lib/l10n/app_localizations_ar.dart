@@ -1266,4 +1266,186 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reminderBatteryOpen => 'إعدادات البطارية';
+
+  @override
+  String get backupTitle => 'النسخة الاحتياطية';
+
+  @override
+  String get settingsBackupHint =>
+      'احتفظ بنسخة من سجلات العيلة برّه الموبايل ده';
+
+  @override
+  String get backupIntro =>
+      'النسخة الاحتياطية ملف واحد متشفّر فيه كل سجلات العيلة وصورها. احفظه على Google Drive أو في الملفات، أو ابعته لنفسك على واتساب. علشان تفتحه على موبايل جديد هتحتاج مفتاح الاسترجاع بتاعك.';
+
+  @override
+  String get backupNever => 'لسه معملتش نسخة احتياطية';
+
+  @override
+  String backupLast(String date) {
+    return 'آخر نسخة احتياطية: $date';
+  }
+
+  @override
+  String get backupNow => 'اعمل نسخة احتياطية دلوقتي';
+
+  @override
+  String get backupWorking => 'بنجهّز النسخة…';
+
+  @override
+  String get backupShareSubject => 'نسخة احتياطية من أسرة';
+
+  @override
+  String get backupDone => 'النسخة جاهزة. احفظها في مكان أمين برّه الموبايل.';
+
+  @override
+  String get backupFailed => 'مقدرناش نعمل النسخة. جرّب تاني.';
+
+  @override
+  String get backupDueTitle => 'اعمل نسخة احتياطية لسجلات العيلة';
+
+  @override
+  String get backupDueNever =>
+      'لو الموبايل ضاع، السجلات هتضيع معاه. اعمل نسخة احتياطية متشفّرة واحفظها برّه الموبايل.';
+
+  @override
+  String get backupDueOld => 'آخر نسخة احتياطية عملتها من أكتر من ٣٠ يوم.';
+
+  @override
+  String get recoveryKeyTitle => 'مفتاح الاسترجاع';
+
+  @override
+  String get recoveryKeyIntro =>
+      'ده مفتاح الاسترجاع بتاعك. اكتبه على ورقة واحتفظ بيها في مكان أمين بعيد عن الموبايل. هتحتاجه علشان تفتح النسخ الاحتياطية على موبايل جديد.';
+
+  @override
+  String get recoveryKeyShowIntro =>
+      'ده المفتاح اللي بيفتح نسخك الاحتياطية. اتأكد إنه زي اللي مكتوب عندك على الورقة.';
+
+  @override
+  String get recoveryKeyLoseWarning =>
+      'من غير المفتاح ده محدش يقدر يفتح نسخك الاحتياطية، ولا حتى إحنا. ولو ضاع مش هنقدر نرجّعه.';
+
+  @override
+  String get recoveryKeyWrittenDown => 'كتبته';
+
+  @override
+  String get recoveryKeyConfirmIntro =>
+      'علشان نتأكد إنه مكتوب صح، اكتب المجموعتين دول من الورقة.';
+
+  @override
+  String recoveryKeyGroupLabel(int number) {
+    return 'المجموعة $number';
+  }
+
+  @override
+  String get recoveryKeyConfirm => 'تأكيد';
+
+  @override
+  String get recoveryKeyShowAgain => 'اعرض المفتاح تاني';
+
+  @override
+  String recoveryKeyMismatch(String groups) {
+    return 'المجموعة $groups مش مطابقة. راجع الورقة.';
+  }
+
+  @override
+  String get recoveryKeyShow => 'اعرض مفتاح الاسترجاع';
+
+  @override
+  String get restoreTitle => 'استرجع من نسخة احتياطية';
+
+  @override
+  String get restoreHint => 'هتستبدل كل اللي على الموبايل ده';
+
+  @override
+  String get restoreIntro =>
+      'اختار ملف النسخة الاحتياطية (بينتهي بـ ‎.usra‎) من Drive أو الملفات أو واتساب، وبعدين اكتب مفتاح الاسترجاع.';
+
+  @override
+  String get restorePick => 'اختار ملف النسخة';
+
+  @override
+  String get restoreKeyLabel => 'مفتاح الاسترجاع (٣٦ رقم)';
+
+  @override
+  String restoreKeyGroupsWrong(String groups) {
+    return 'المجموعة $groups من المفتاح مش مظبوطة. راجعها على الورقة.';
+  }
+
+  @override
+  String get restoreOpen => 'افتح النسخة';
+
+  @override
+  String get restoreNotABackup => 'الملف ده مش نسخة احتياطية من أسرة.';
+
+  @override
+  String get restoreWrongKey =>
+      'المفتاح ده مش بيفتح النسخة دي. راجعه، أو جرّب المفتاح اللي كان معاك لما اتعملت النسخة.';
+
+  @override
+  String get restoreDamaged => 'ملف النسخة ناقص أو بايظ. جرّب تنزّله تاني.';
+
+  @override
+  String get restoreTooNew =>
+      'النسخة دي معمولة بإصدار أحدث من أسرة. حدّث التطبيق وجرّب تاني.';
+
+  @override
+  String get restoreFailed => 'مقدرناش نفتح النسخة. جرّب تاني.';
+
+  @override
+  String restoreFrom(String date) {
+    return 'نسخة من $date';
+  }
+
+  @override
+  String restoreContents(int people, int records, int medicines, int photos) {
+    String _temp0 = intl.Intl.pluralLogic(
+      people,
+      locale: localeName,
+      other: '$people شخص',
+      few: '$people أشخاص',
+      two: 'شخصين',
+      one: 'شخص واحد',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      records,
+      locale: localeName,
+      other: '$records سجل',
+      few: '$records سجلات',
+      two: 'سجلين',
+      one: 'سجل واحد',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      medicines,
+      locale: localeName,
+      other: '$medicines دوا',
+      few: '$medicines أدوية',
+      two: 'دوايين',
+      one: 'دوا واحد',
+    );
+    String _temp3 = intl.Intl.pluralLogic(
+      photos,
+      locale: localeName,
+      other: '$photos صورة',
+      few: '$photos صور',
+      two: 'صورتين',
+      one: 'صورة واحدة',
+    );
+    return '$_temp0، $_temp1، $_temp2، $_temp3';
+  }
+
+  @override
+  String get restoreReplaceWarning =>
+      'كل اللي على الموبايل ده دلوقتي هيتشال ويتحط مكانه اللي في النسخة دي.';
+
+  @override
+  String get restoreReplace => 'استرجع واستبدل';
+
+  @override
+  String get restoreDoneNotice => 'رجّعنا نسختك الاحتياطية.';
+
+  @override
+  String get restoreFailedNotice =>
+      'مقدرناش نرجّع النسخة، فسيبنا سجلاتك زي ما كانت.';
 }

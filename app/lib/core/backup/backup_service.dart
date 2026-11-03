@@ -1,0 +1,475 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:isolate';
+
+import 'package:path/path.dart' as p;
+import 'package:sqlite3/sqlite3.dart';
+
+import '../database/app_database.dart';
+import '../database/connection.dart';
+import 'backup_archive.dart';
+import 'backup_crypto.dart';
+import 'recovery_key.dart';
+
+/// What a backup holds, saved inside it as `manifest.json`.
+class BackupManifest {
+  const BackupManifest({
+    required this.appVersion,
+    required this.schemaVersion,
+    required this.createdAt,
+    required this.counts,
+  });
+
+  /// Bumped when the inside of the backup changes in a way older apps
+  /// can't read.
+  static const format = 1;
+
+  final String appVersion;
+  final int schemaVersion;
+  final DateTime createdAt;
+
+  /// Live (not deleted) rows per table, and `photos`.
+  final Map<String, int> counts;
+
+  int count(String name) => counts[name] ?? 0;
+
+  static BackupManifest fromJson(Map<String, dynamic> json) => BackupManifest(
+    appVersion: json['appVersion'] as String,
+    schemaVersion: json['schemaVersion'] as int,
+    createdAt: DateTime.parse(json['createdAt'] as String),
+    counts: (json['counts'] as Map<String, dynamic>).map(
+      (k, v) => MapEntry(k, v as int),
+    ),
+  );
+}
+
+/// A backup decrypted and checked, waiting in the staging folder to replace
+/// what's on the phone.
+class StagedRestore {
+  const StagedRestore(this.manifest);
+
+  final BackupManifest manifest;
+}
+
+/// Makes encrypted backups of the database and photos, and puts them back.
+///
+/// Backups are never encrypted with the phone's database key (that never
+/// leaves the phone), but with a key derived from the family's
+/// [RecoveryKey]. The database inside is a `VACUUM INTO` snapshot re-keyed
+/// with a one-off key written in the manifest, so it is never on disk
+/// unencrypted, here or on the new phone.
+class BackupService {
+  BackupService({
+    required this.root,
+    required this.databaseName,
+    required this.deviceKey,
+    required this.temporary,
+    required this.folders,
+    this.files = const [],
+    this.kdf = BackupKdf.standard,
+    this.chunkSize = BackupFileFormat.defaultChunkSize,
+    this.excludeFromBackup,
+  });
+
+  /// The app's private folder, holding the database, [folders] and [files].
+  final Directory root;
+  final String databaseName;
+
+  /// The phone's database key, only used to read and re-key snapshots.
+  final String deviceKey;
+
+  /// Where new backup files are written before sharing.
+  final Directory temporary;
+
+  /// Photo folders inside [root].
+  final List<String> folders;
+
+  /// Other small files inside [root] worth keeping (dismissed follow-ups).
+  final List<String> files;
+  final BackupKdf kdf;
+  final int chunkSize;
+
+  /// Keeps a folder out of iCloud backup (photos aren't encrypted on disk).
+  final Future<void> Function(Directory dir)? excludeFromBackup;
+
+  static const _manifestName = 'manifest.json';
+  static const _databaseEntry = 'database.sqlite';
+  static const _stagingName = 'restore-staging';
+  static const _asideName = 'restore-aside';
+  static const _markerName = 'restore-in-progress.json';
+
+  Directory get _staging => Directory(p.join(root.path, _stagingName));
+  Directory get _aside => Directory(p.join(root.path, _asideName));
+  File get _marker => File(p.join(root.path, _markerName));
+
+  /// Writes an encrypted backup of [db] and the photos to a new file in
+  /// [temporary] and returns it. The caller shares it, then deletes it.
+  Future<File> create(
+    AppDatabase db,
+    RecoveryKey key, {
+    required String appVersion,
+    DateTime? now,
+  }) async {
+    final createdAt = (now ?? DateTime.now()).toUtc();
+    // Earlier backups already shared; encrypted, but no use kept here.
+    await for (final old in temporary.list()) {
+      final name = p.basename(old.path);
+      if (old is File &&
+          name.startsWith('usra-backup-') &&
+          name.endsWith('.usra')) {
+        await old.delete();
+      }
+    }
+    final work = await temporary.createTemp('usra-backup-');
+    final snapshot = p.join(work.path, 'snapshot.sqlite');
+    final stamp = createdAt.toIso8601String().substring(0, 10);
+    final out = File(p.join(temporary.path, 'usra-backup-$stamp.usra'));
+    try {
+      // Consistent even while the app keeps writing.
+      await db.customStatement('VACUUM INTO ?', [snapshot]);
+      final (rootPath, folders, files, deviceKey, kdf, chunk) = (
+        root.path,
+        this.folders,
+        this.files,
+        this.deviceKey,
+        this.kdf,
+        chunkSize,
+      );
+      await Isolate.run(
+        () => _pack(
+          snapshot: snapshot,
+          out: out.path,
+          root: rootPath,
+          folders: folders,
+          files: files,
+          deviceKey: deviceKey,
+          key: key,
+          kdf: kdf,
+          chunkSize: chunk,
+          appVersion: appVersion,
+          createdAt: createdAt,
+        ),
+      );
+      return out;
+    } catch (_) {
+      if (await out.exists()) await out.delete();
+      rethrow;
+    } finally {
+      await work.delete(recursive: true);
+    }
+  }
+
+  /// Decrypts [backup] with [key] into a staging folder and checks it,
+  /// without touching what's on the phone yet. Throws [BackupException].
+  Future<StagedRestore> stage(
+    File backup,
+    RecoveryKey key, {
+    required int currentSchema,
+  }) async {
+    await _clearStaging();
+    await _staging.create(recursive: true);
+    await excludeFromBackup?.call(_staging);
+    final (staging, databaseName, folders, files, deviceKey) = (
+      _staging.path,
+      this.databaseName,
+      this.folders,
+      this.files,
+      this.deviceKey,
+    );
+    try {
+      final json = await Isolate.run(
+        () => _unpack(
+          backup: backup.path,
+          staging: staging,
+          databaseName: databaseName,
+          folders: folders,
+          files: files,
+          deviceKey: deviceKey,
+          key: key,
+          currentSchema: currentSchema,
+        ),
+      );
+      return StagedRestore(BackupManifest.fromJson(json));
+    } catch (_) {
+      await _clearStaging();
+      rethrow;
+    }
+  }
+
+  /// Swaps the staged backup in for the database and photos. The database
+  /// must be closed. What was there is kept in a side folder until
+  /// [discardAside]; if anything fails it is put back and this rethrows.
+  Future<void> commit() async {
+    if (!await File(p.join(_staging.path, databaseName)).exists()) {
+      throw StateError('Nothing staged to restore');
+    }
+    if (await _aside.exists()) await _aside.delete(recursive: true);
+    await _aside.create();
+    await _marker.writeAsString(jsonEncode({'targets': _targets}));
+    try {
+      for (final name in _targets) {
+        await _move(p.join(root.path, name), p.join(_aside.path, name));
+      }
+      for (final name in [databaseName, ...folders, ...files]) {
+        await _move(p.join(_staging.path, name), p.join(root.path, name));
+      }
+    } catch (_) {
+      await _rollBack();
+      rethrow;
+    }
+    await _marker.delete();
+    await _clearStaging();
+    for (final folder in folders) {
+      final dir = Directory(p.join(root.path, folder));
+      if (await dir.exists()) await excludeFromBackup?.call(dir);
+    }
+  }
+
+  /// Deletes what a successful restore replaced.
+  Future<void> discardAside() async {
+    if (await _aside.exists()) await _aside.delete(recursive: true);
+  }
+
+  /// At start-up, before opening the database: finishes off a restore the
+  /// app was killed in the middle of, putting the old data back, and clears
+  /// leftovers.
+  Future<void> recoverInterrupted() async {
+    if (await _marker.exists()) {
+      await _rollBack();
+    } else {
+      await discardAside();
+    }
+    await _clearStaging();
+  }
+
+  /// Everything a restore replaces, relative to [root]. The journal files
+  /// only ever move aside: a closed database has nothing in them that
+  /// matters, and a stray one must not be paired with the new database.
+  List<String> get _targets => [
+    databaseName,
+    for (final suffix in ['-journal', '-wal', '-shm']) '$databaseName$suffix',
+    ...folders,
+    ...files,
+  ];
+
+  Future<void> _rollBack() async {
+    for (final name in _targets) {
+      final live = p.join(root.path, name);
+      final old = p.join(_aside.path, name);
+      final staged = p.join(_staging.path, name);
+      if (await _exists(old)) {
+        await _delete(live);
+        await _move(old, live);
+      } else if (!await _exists(staged)) {
+        // Moved in from the backup with nothing before it.
+        await _delete(live);
+      }
+    }
+    if (await _marker.exists()) await _marker.delete();
+    await discardAside();
+  }
+
+  Future<void> _clearStaging() async {
+    if (await _staging.exists()) await _staging.delete(recursive: true);
+  }
+
+  static Future<bool> _exists(String path) async =>
+      await FileSystemEntity.type(path) != FileSystemEntityType.notFound;
+
+  static Future<void> _delete(String path) async {
+    switch (await FileSystemEntity.type(path)) {
+      case FileSystemEntityType.directory:
+        await Directory(path).delete(recursive: true);
+      case FileSystemEntityType.notFound:
+        break;
+      default:
+        await File(path).delete();
+    }
+  }
+
+  static Future<void> _move(String from, String to) async {
+    switch (await FileSystemEntity.type(from)) {
+      case FileSystemEntityType.directory:
+        await Directory(from).rename(to);
+      case FileSystemEntityType.notFound:
+        break;
+      default:
+        await File(from).rename(to);
+    }
+  }
+}
+
+/// Tables counted in the manifest, by the name the UI uses.
+const _countedTables = {
+  'people': 'profiles',
+  'records': 'medical_events',
+  'medicines': 'medicines',
+  'doctors': 'doctors',
+  'insuranceCards': 'insurance_cards',
+  'attachments': 'attachments',
+};
+
+Future<void> _pack({
+  required String snapshot,
+  required String out,
+  required String root,
+  required List<String> folders,
+  required List<String> files,
+  required String deviceKey,
+  required RecoveryKey key,
+  required BackupKdf kdf,
+  required int chunkSize,
+  required String appVersion,
+  required DateTime createdAt,
+}) async {
+  // Re-key the snapshot with a one-off key, so the phone's key never
+  // leaves it and the new phone can open the database.
+  final snapshotKey = DatabaseKeyStore.generateKey();
+  final counts = <String, int>{};
+  final int schemaVersion;
+  final db = sqlite3.open(snapshot);
+  try {
+    unlockDatabase(db, deviceKey);
+    schemaVersion = db.userVersion;
+    final tables = {
+      for (final row in db.select(
+        "SELECT name FROM sqlite_master WHERE type = 'table'",
+      ))
+        row['name'] as String,
+    };
+    for (final MapEntry(key: name, value: table) in _countedTables.entries) {
+      if (!tables.contains(table)) continue;
+      counts[name] =
+          db
+                  .select(
+                    'SELECT count(*) AS n FROM $table WHERE deleted_at IS NULL',
+                  )
+                  .first['n']
+              as int;
+    }
+    db.execute("PRAGMA rekey = '$snapshotKey';");
+  } finally {
+    db.close();
+  }
+
+  final photos = <(String, File)>[];
+  for (final folder in folders) {
+    final dir = Directory(p.join(root, folder));
+    if (!await dir.exists()) continue;
+    await for (final entity in dir.list()) {
+      final name = '$folder/${p.basename(entity.path)}';
+      // Skips anything that isn't one of our photos (e.g. .DS_Store).
+      if (entity is File && isSafeEntryName(name)) photos.add((name, entity));
+    }
+  }
+  counts['photos'] = photos.length;
+
+  final writer = await BackupFileWriter.create(
+    File(out),
+    key,
+    kdf: kdf,
+    chunkSize: chunkSize,
+  );
+  try {
+    final tar = TarWriter(writer.add);
+    await tar.addBytes(
+      BackupService._manifestName,
+      utf8.encode(
+        jsonEncode({
+          'format': BackupManifest.format,
+          'appVersion': appVersion,
+          'schemaVersion': schemaVersion,
+          'createdAt': createdAt.toIso8601String(),
+          'counts': counts,
+          'snapshotKey': snapshotKey,
+        }),
+      ),
+    );
+    await tar.addFile(BackupService._databaseEntry, File(snapshot));
+    for (final (name, file) in photos) {
+      await tar.addFile(name, file);
+    }
+    for (final name in files) {
+      final file = File(p.join(root, name));
+      if (await file.exists()) await tar.addFile(name, file);
+    }
+    await tar.finish();
+  } finally {
+    await writer.close();
+  }
+}
+
+Future<Map<String, dynamic>> _unpack({
+  required String backup,
+  required String staging,
+  required String databaseName,
+  required List<String> folders,
+  required List<String> files,
+  required String deviceKey,
+  required RecoveryKey key,
+  required int currentSchema,
+}) async {
+  final reader = await BackupFileReader.open(File(backup), key);
+  try {
+    await extractTar(
+      reader,
+      Directory(staging),
+      accept: (name) {
+        if (name == BackupService._manifestName ||
+            name == BackupService._databaseEntry ||
+            files.contains(name)) {
+          return true;
+        }
+        final parts = name.split('/');
+        return parts.length == 2 && folders.contains(parts.first);
+      },
+    );
+  } finally {
+    await reader.close();
+  }
+
+  final manifestFile = File(p.join(staging, BackupService._manifestName));
+  final databaseFile = File(p.join(staging, BackupService._databaseEntry));
+  if (!await manifestFile.exists() || !await databaseFile.exists()) {
+    throw const BackupException(BackupFailure.damaged, 'missing parts');
+  }
+  final Map<String, dynamic> manifest;
+  final String snapshotKey;
+  try {
+    manifest =
+        jsonDecode(await manifestFile.readAsString()) as Map<String, dynamic>;
+    snapshotKey = manifest['snapshotKey'] as String;
+    BackupManifest.fromJson(manifest);
+  } catch (_) {
+    throw const BackupException(BackupFailure.damaged, 'manifest');
+  } finally {
+    await manifestFile.delete();
+  }
+  if ((manifest['format'] as int? ?? 0) > BackupManifest.format ||
+      (manifest['schemaVersion'] as int) > currentSchema) {
+    throw const BackupException(BackupFailure.tooNew);
+  }
+
+  // Opened with the one-off key, checked, then re-keyed for this phone.
+  final db = sqlite3.open(databaseFile.path);
+  try {
+    unlockDatabase(db, snapshotKey);
+    final check = db.select('PRAGMA quick_check;');
+    if (check.length != 1 || check.first.values.first != 'ok') {
+      throw const BackupException(BackupFailure.damaged, 'database check');
+    }
+    if (db.userVersion != manifest['schemaVersion']) {
+      throw const BackupException(BackupFailure.damaged, 'schema version');
+    }
+    db.execute("PRAGMA rekey = '$deviceKey';");
+  } on SqliteException {
+    throw const BackupException(BackupFailure.damaged, 'database');
+  } on ArgumentError {
+    throw const BackupException(BackupFailure.damaged, 'database key');
+  } finally {
+    db.close();
+  }
+  await databaseFile.rename(p.join(staging, databaseName));
+  manifest.remove('snapshotKey');
+  return manifest;
+}

@@ -8,6 +8,7 @@ import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../backup/backup_screen.dart';
 
 class SettingsModule extends FeatureModule {
   const SettingsModule();
@@ -76,6 +77,14 @@ class SettingsScreen extends ConsumerWidget {
                   secondary: const Icon(Icons.accessibility_new),
                   title: Text(l.settingsSimpleMode),
                   subtitle: Text(l.settingsSimpleModeHint),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  key: const ValueKey('settings-backup'),
+                  leading: const Icon(Icons.backup_outlined),
+                  title: Text(l.backupTitle),
+                  subtitle: Text(l.settingsBackupHint),
+                  onTap: () => context.go(backupPath),
                 ),
                 const Divider(height: 1),
                 ListTile(
