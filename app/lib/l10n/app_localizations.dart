@@ -1549,6 +1549,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Photo of the medicine box'**
   String get scanMedicinePhoto;
+
+  /// No description provided for @followUpsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-ups'**
+  String get followUpsTitle;
+
+  /// No description provided for @followUpsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing coming up.'**
+  String get followUpsEmpty;
+
+  /// No description provided for @followUpsDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions from public guidance (WHO, USPSTF and others) and your records, not a diagnosis. Ask your doctor what suits each person.'**
+  String get followUpsDisclaimer;
+
+  /// No description provided for @followUpDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String followUpDue(String date);
+
+  /// No description provided for @followUpOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Was due {date}'**
+  String followUpOverdue(String date);
+
+  /// No description provided for @followUpSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source: {source}'**
+  String followUpSource(String source);
+
+  /// No description provided for @followUpAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {type}'**
+  String followUpAdd(String type);
+
+  /// No description provided for @followUpDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide until next time'**
+  String get followUpDismiss;
+
+  /// No description provided for @followUpDismissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden until it\'s due again.'**
+  String get followUpDismissed;
+
+  /// No description provided for @followUpUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get followUpUndo;
+
+  /// No description provided for @fuNextVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up visit'**
+  String get fuNextVisit;
+
+  /// No description provided for @fuNextVisitBy.
+  ///
+  /// In en, this message translates to:
+  /// **'{doctor} set this date at the last visit'**
+  String fuNextVisitBy(String doctor);
+
+  /// No description provided for @fuNextVisitSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set at the last visit'**
+  String get fuNextVisitSet;
+
+  /// No description provided for @fuNextDose.
+  ///
+  /// In en, this message translates to:
+  /// **'Next dose: {vaccine}'**
+  String fuNextDose(String vaccine);
+
+  /// No description provided for @fuNextDoseSet.
+  ///
+  /// In en, this message translates to:
+  /// **'The date written on the last dose'**
+  String get fuNextDoseSet;
+
+  /// No description provided for @fuHba1c.
+  ///
+  /// In en, this message translates to:
+  /// **'HbA1c (3-month sugar) test'**
+  String get fuHba1c;
+
+  /// No description provided for @fuLipids.
+  ///
+  /// In en, this message translates to:
+  /// **'Lipid profile (cholesterol)'**
+  String get fuLipids;
+
+  /// No description provided for @fuKidney.
+  ///
+  /// In en, this message translates to:
+  /// **'Kidney function and urine albumin'**
+  String get fuKidney;
+
+  /// No description provided for @fuScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up scan'**
+  String get fuScan;
+
+  /// No description provided for @fuScanResult.
+  ///
+  /// In en, this message translates to:
+  /// **'The last scan\'s result mentions a follow-up'**
+  String get fuScanResult;
+
+  /// No description provided for @fuBloodPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood pressure check'**
+  String get fuBloodPressure;
+
+  /// No description provided for @fuBloodSugar.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood sugar test'**
+  String get fuBloodSugar;
+
+  /// No description provided for @fuMammogram.
+  ///
+  /// In en, this message translates to:
+  /// **'Mammogram (breast screening)'**
+  String get fuMammogram;
+
+  /// No description provided for @fuColorectal.
+  ///
+  /// In en, this message translates to:
+  /// **'Colon cancer screening'**
+  String get fuColorectal;
+
+  /// No description provided for @fuEyeExam.
+  ///
+  /// In en, this message translates to:
+  /// **'Eye exam (retina)'**
+  String get fuEyeExam;
+
+  /// No description provided for @fuDental.
+  ///
+  /// In en, this message translates to:
+  /// **'Dental check-up'**
+  String get fuDental;
+
+  /// No description provided for @fuChildCheckup.
+  ///
+  /// In en, this message translates to:
+  /// **'Child check-up'**
+  String get fuChildCheckup;
+
+  /// No description provided for @fuChildCheckupAt.
+  ///
+  /// In en, this message translates to:
+  /// **'The usual check-up at {age}'**
+  String fuChildCheckupAt(String age);
+
+  /// No description provided for @fuAgeMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{months, plural, =1{1 month} other{{months} months}}'**
+  String fuAgeMonths(int months);
+
+  /// No description provided for @fuVaccinesDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Mandatory vaccines'**
+  String get fuVaccinesDue;
+
+  /// No description provided for @fuVaccinesAt.
+  ///
+  /// In en, this message translates to:
+  /// **'{age}: {names}'**
+  String fuVaccinesAt(String age, String names);
+
+  /// No description provided for @fuBecauseCondition.
+  ///
+  /// In en, this message translates to:
+  /// **'Because of {condition}'**
+  String fuBecauseCondition(String sex, String condition);
+
+  /// No description provided for @fuLastDoneMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{months, plural, =0{last one this month} =1{last one a month ago} other{last one {months} months ago}}'**
+  String fuLastDoneMonths(int months);
+
+  /// No description provided for @fuNeverRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'none recorded yet'**
+  String get fuNeverRecorded;
+
+  /// No description provided for @fuAgeFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested from age {age}'**
+  String fuAgeFrom(int age);
+
+  /// No description provided for @fuAgeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested at ages {from}–{to}'**
+  String fuAgeRange(int from, int to);
+
+  /// No description provided for @fuWomenAgeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested for women aged {from}–{to}'**
+  String fuWomenAgeRange(int from, int to);
+
+  /// No description provided for @fuYearlyForAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested once a year for everyone'**
+  String get fuYearlyForAll;
+
+  /// No description provided for @conditionDiabetes.
+  ///
+  /// In en, this message translates to:
+  /// **'diabetes'**
+  String get conditionDiabetes;
+
+  /// No description provided for @conditionHypertension.
+  ///
+  /// In en, this message translates to:
+  /// **'high blood pressure'**
+  String get conditionHypertension;
+
+  /// No description provided for @conditionHeart.
+  ///
+  /// In en, this message translates to:
+  /// **'heart disease'**
+  String get conditionHeart;
+
+  /// No description provided for @conditionHighCholesterol.
+  ///
+  /// In en, this message translates to:
+  /// **'high cholesterol'**
+  String get conditionHighCholesterol;
+
+  /// No description provided for @conditionKidney.
+  ///
+  /// In en, this message translates to:
+  /// **'kidney disease'**
+  String get conditionKidney;
 }
 
 class _AppLocalizationsDelegate
