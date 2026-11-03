@@ -39,6 +39,25 @@ class _FakeBackupService extends BackupService {
     made.add(key);
     return File('${root.path}/usra-backup-test.usra');
   }
+
+  final opened = <(String, RecoveryKey)>[];
+
+  @override
+  Future<StagedRestore> stage(
+    File backup,
+    RecoveryKey key, {
+    required int currentSchema,
+  }) async {
+    opened.add((backup.path, key));
+    return StagedRestore(
+      BackupManifest(
+        appVersion: '0.1.0+1',
+        schemaVersion: currentSchema,
+        createdAt: DateTime.utc(2026, 11, 3),
+        counts: const {'people': 3, 'records': 12, 'medicines': 2, 'photos': 1},
+      ),
+    );
+  }
 }
 
 void main() {
@@ -48,6 +67,7 @@ void main() {
   late _FakeBackupService service;
   late Directory dir;
   late List<ShareParams> shared;
+  late List<(StagedRestore, RecoveryKey)> restarted;
 
   setUp(() {
     db = AppDatabase(
@@ -64,6 +84,7 @@ void main() {
     dir = Directory.systemTemp.createTempSync('usra_backup_widget');
     service = _FakeBackupService(dir);
     shared = [];
+    restarted = [];
   });
   tearDown(() async {
     await db.close();
@@ -213,6 +234,9 @@ void main() {
           backupFilePickerProvider.overrideWithValue(
             () async => '${dir.path}/usra-backup-2026-11-03.usra',
           ),
+          restoreAndRestartProvider.overrideWithValue(
+            (staged, key) async => restarted.add((staged, key)),
+          ),
         ],
       ),
     );
@@ -250,6 +274,23 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('restore-open')));
     await tester.pumpAndSettle();
     expect(find.textContaining('المجموعة 3 من المفتاح'), findsOneWidget);
+    expect(service.opened, isEmpty);
+
+    // Typed right: opened, what's inside is shown, then it's swapped in.
+    await tester.enterText(
+      find.byKey(const ValueKey('restore-key')),
+      key.digits,
+    );
+    await tester.tap(find.byKey(const ValueKey('restore-open')));
+    await tester.pumpAndSettle();
+    expect(service.opened.single.$2, key);
+    expect(find.text('3 أشخاص، 12 سجل، دوايين، صورة واحدة'), findsOneWidget);
+    expect(restarted, isEmpty);
+
+    await tester.tap(find.byKey(const ValueKey('restore-replace')));
+    await tester.pumpAndSettle();
+    expect(restarted.single.$2, key);
+    expect(restarted.single.$1.manifest.count('people'), 3);
   });
 
   testWidgets('after a restore Home says so', (tester) async {

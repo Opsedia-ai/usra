@@ -41,12 +41,16 @@ final backupShareProvider =
           (params) async => (await SharePlus.instance.share(params)).status,
     );
 
-/// Swaps the staged backup in, then restarts the app on it. Provided in
+/// Swaps the staged backup in, then restarts the app on it. Once it's in,
+/// the key that opened it becomes this phone's recovery key (one key for
+/// the family to keep) and its date the last backup. Provided in
 /// `main.dart`, which owns the database connection.
-final restoreAndRestartProvider = Provider<Future<void> Function()>(
-  (ref) =>
-      throw UnimplementedError('restoreAndRestartProvider must be overridden'),
-);
+final restoreAndRestartProvider =
+    Provider<Future<void> Function(StagedRestore, RecoveryKey)>(
+      (ref) => throw UnimplementedError(
+        'restoreAndRestartProvider must be overridden',
+      ),
+    );
 
 /// How the last restore went, shown once on Home after the app restarts.
 enum RestoreOutcome { restored, failed }

@@ -106,7 +106,8 @@ Future<void> main() async {
   }
   final ReminderScheduler scheduler =
       notifications ?? const UnavailableReminderScheduler();
-  late final Future<void> Function() restoreAndRestart;
+  late final Future<void> Function(StagedRestore, RecoveryKey)
+  restoreAndRestart;
   ProviderContainer build({RestoreOutcome? restore}) => ProviderContainer(
     overrides: [
       databaseProvider.overrideWithValue(database),
@@ -137,7 +138,7 @@ Future<void> main() async {
 
   // Swaps a staged backup in and starts the app again on it. The old
   // providers go first, so nothing reads the database while it's replaced.
-  restoreAndRestart = () async {
+  restoreAndRestart = (staged, recoveryKey) async {
     final old = app.value!;
     final locale = old.read(localeProvider);
     app.value = null;
@@ -158,18 +159,26 @@ Future<void> main() async {
     outcome = prepareDatabaseFile(file, key);
     database = AppDatabase(openEncryptedDatabase(file, key));
     dismissals = await FileDismissalStore.open();
+    if (restored) {
+      try {
+        await recoveryKeys.write(recoveryKey);
+        await preferences.setInt(
+          PrefKeys.lastBackupAt,
+          staged.manifest.createdAt.millisecondsSinceEpoch,
+        );
+        await backup.discardAside();
+      } catch (e, s) {
+        // The records are back; these only matter for the next backup.
+        FlutterError.reportError(
+          FlutterErrorDetails(exception: e, stack: s, library: 'backup'),
+        );
+      }
+    }
     final fresh = build(
       restore: restored ? RestoreOutcome.restored : RestoreOutcome.failed,
     );
     fresh.read(localeProvider.notifier).change(locale);
     app.value = fresh;
-    if (restored) {
-      try {
-        await backup.discardAside();
-      } catch (_) {
-        // Cleared at the next start instead.
-      }
-    }
     reminders = newReminders();
     await reminders.start();
   };

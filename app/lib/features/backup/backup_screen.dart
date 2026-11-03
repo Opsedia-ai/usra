@@ -36,6 +36,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   Future<void> _backUp() async {
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final box = context.findRenderObject() as RenderBox?;
     var key = await ref.read(recoveryKeyStoreProvider).read();
     if (key == null) {
       if (!mounted) return;
@@ -58,6 +59,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           files: [XFile(file.path, mimeType: 'application/octet-stream')],
           fileNameOverrides: [file.uri.pathSegments.last],
           subject: l.backupShareSubject,
+          // iPad needs to know where to anchor the share sheet.
+          sharePositionOrigin: box == null
+              ? null
+              : box.localToGlobal(Offset.zero) & box.size,
         ),
       );
       if (status != ShareResultStatus.dismissed) {
@@ -230,20 +235,9 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
   }
 
   Future<void> _replace() async {
-    final staged = _staged!;
     setState(() => _working = true);
-    try {
-      // Later backups from this phone use the same key, so the family has
-      // only one to keep.
-      await ref.read(recoveryKeyStoreProvider).write(_usedKey!);
-      await ref
-          .read(lastBackupProvider.notifier)
-          .set(staged.manifest.createdAt.toLocal());
-    } catch (_) {
-      // Not worth stopping the restore for; a key can be made again.
-    }
     // Restarts the app: this screen goes away with the old data.
-    await ref.read(restoreAndRestartProvider)();
+    await ref.read(restoreAndRestartProvider)(_staged!, _usedKey!);
   }
 
   @override
