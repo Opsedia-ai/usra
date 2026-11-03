@@ -76,6 +76,7 @@ class PhotoStore {
 
   static const cardsFolder = 'insurance_cards';
   static const attachmentsFolder = 'attachments';
+  static const medicinesFolder = 'medicines';
   static const _uuid = Uuid();
   static const _files = MethodChannel('usra/files');
 

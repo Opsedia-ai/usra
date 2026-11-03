@@ -44,6 +44,9 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).first,
     );
+    // scrollUntilVisible stops once it's partly in view; bring it all in.
+    await tester.ensureVisible(link);
+    await tester.pumpAndSettle();
     await tester.tap(link);
     await tester.pumpAndSettle();
   }
@@ -100,7 +103,7 @@ void main() {
     store = MemoryKeyValueStore({PrefKeys.tutorialSeen: true});
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
-    expect(tabs(), findsNWidgets(5));
+    expect(tabs(), findsNWidgets(6));
     double scale() =>
         MediaQuery.textScalerOf(tester.element(find.byType(NavigationBar)))
             .scale(10) /
@@ -150,7 +153,7 @@ void main() {
     await openMoreFromSimpleHome(tester);
     await tester.tap(find.byKey(const ValueKey('settings-simple-mode')));
     await tester.pumpAndSettle();
-    expect(tabs(), findsNWidgets(5));
+    expect(tabs(), findsNWidgets(6));
     expect(scale(), 1.0);
   });
 

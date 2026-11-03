@@ -107,6 +107,90 @@ class Attachments extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// A medicine a person takes, written as the doctor prescribed it
+/// (schema v6). The app records the prescription; it never suggests doses.
+class Medicines extends Table {
+  TextColumn get id => text()();
+  TextColumn get profileId => text().references(Profiles, #id)();
+  TextColumn get name => text()();
+
+  /// As printed on the box, e.g. "500 مجم".
+  TextColumn get strength => text().nullable()();
+
+  /// tablet, capsule, syrup, drops, injection, cream, inhaler or other.
+  TextColumn get form => text().nullable()();
+
+  /// What the doctor wrote, word for word.
+  TextColumn get instructions => text().nullable()();
+  TextColumn get doctorId => text().nullable()();
+
+  /// First and last day (inclusive), stored as UTC midnight.
+  DateTimeColumn get startOn => dateTime()();
+  DateTimeColumn get endOn => dateTime().nullable()();
+
+  /// Photos of the box or prescription: a JSON list of paths relative to
+  /// the app's private folder (see `PhotoStore`).
+  TextColumn get photosJson => text().withDefault(const Constant('[]'))();
+
+  /// False once the person stops taking it; kept for history.
+  BoolColumn get active => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// When a medicine is taken (schema v6).
+class DoseSchedules extends Table {
+  TextColumn get id => text()();
+  TextColumn get medicineId => text().references(Medicines, #id)();
+
+  /// Local times of day, "HH:mm" separated by commas, e.g. "08:00,20:00".
+  TextColumn get times => text()();
+
+  /// Days of the week as a bit mask (bit 0 = Monday ... bit 6 = Sunday);
+  /// null means every day.
+  IntColumn get weekdays => integer().nullable()();
+
+  /// Every N days counted from the medicine's first day; null means daily.
+  IntColumn get everyNDays => integer().nullable()();
+
+  /// How much, as the doctor wrote it, e.g. "قرص واحد" or "5 مل".
+  TextColumn get amount => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// What happened to one scheduled dose (schema v6). One row per dose:
+/// marking it again updates the row.
+@TableIndex(
+  name: 'dose_logs_dose',
+  columns: {#medicineId, #scheduledAt},
+  unique: true,
+)
+class DoseLogs extends Table {
+  TextColumn get id => text()();
+  TextColumn get medicineId => text().references(Medicines, #id)();
+
+  /// The dose's planned time (the local time of day, as an instant).
+  DateTimeColumn get scheduledAt => dateTime()();
+
+  /// taken, skipped or snoozed.
+  TextColumn get status => text()();
+
+  /// When it was marked.
+  DateTimeColumn get at => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Local changes waiting to be synced (used once sync is switched on).
 class OutboxEntries extends Table {
   IntColumn get id => integer().autoIncrement()();

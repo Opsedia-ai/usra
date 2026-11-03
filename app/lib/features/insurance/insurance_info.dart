@@ -4,14 +4,12 @@ import 'package:intl/intl.dart';
 import '../../core/database/app_database.dart';
 import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
+import '../../core/util/dates.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Expiry is stored as UTC midnight; this is that calendar day, locally.
-DateTime? expiryDay(DateTime? expiresOn) {
-  if (expiresOn == null) return null;
-  final d = expiresOn.toUtc();
-  return DateTime(d.year, d.month, d.day);
-}
+DateTime? expiryDay(DateTime? expiresOn) =>
+    expiresOn == null ? null : storedDay(expiresOn);
 
 /// How urgent a card's expiry is on [today]: expired is urgent, within 30
 /// days is a heads-up, otherwise just information. Null if no expiry date.

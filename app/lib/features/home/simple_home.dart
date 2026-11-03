@@ -65,11 +65,8 @@ class SimpleHome extends ConsumerWidget {
           key: const ValueKey('simple-medicines'),
           icon: Icons.medication_outlined,
           label: l.simpleMedicines,
-          badge: l.comingSoon,
-          style: _Look.muted,
-          onPressed: () => ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text(l.simpleMedicinesSoon))),
+          style: _Look.primary,
+          onPressed: () => context.go('/medicines'),
         ),
         const SizedBox(height: 16),
         _BigButton(
@@ -159,7 +156,7 @@ class SimpleHome extends ConsumerWidget {
   }
 }
 
-enum _Look { primary, outlined, emergency, muted }
+enum _Look { primary, outlined, emergency }
 
 class _BigButton extends StatelessWidget {
   const _BigButton({
@@ -168,14 +165,12 @@ class _BigButton extends StatelessWidget {
     required this.label,
     required this.style,
     required this.onPressed,
-    this.badge,
   });
 
   final IconData icon;
   final String label;
   final _Look style;
   final VoidCallback onPressed;
-  final String? badge;
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +178,6 @@ class _BigButton extends StatelessWidget {
       _Look.primary => (UsraColors.primary, Colors.white),
       _Look.emergency => (UsraColors.emergency, Colors.white),
       _Look.outlined => (UsraColors.surface, UsraColors.primary),
-      _Look.muted => (UsraColors.surface, UsraColors.textMuted),
     };
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(22),
@@ -219,27 +213,6 @@ class _BigButton extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        // Below the label so it still fits with very large text.
-                        if (badge != null) ...[
-                          const SizedBox(height: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Severity.headsUp.background,
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              badge!,
-                              style: text.bodyMedium?.copyWith(
-                                color: Severity.headsUp.foreground,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                   ),
