@@ -4,6 +4,7 @@ import 'features/doctors/doctors_module.dart';
 import 'features/family/family_module.dart';
 import 'features/home/home_module.dart';
 import 'features/medicines/medicines_module.dart';
+import 'features/scan/scan_module.dart';
 import 'features/settings/settings_module.dart';
 import 'features/spending/spending_module.dart';
 import 'features/tutorial/tutorial_module.dart';
@@ -17,6 +18,7 @@ const List<FeatureModule> appModules = [
   MedicinesModule(),
   DoctorsModule(),
   SpendingModule(),
+  ScanModule(),
   SettingsModule(),
   TutorialModule(),
 ];

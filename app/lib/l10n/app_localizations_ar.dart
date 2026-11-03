@@ -784,6 +784,52 @@ class AppLocalizationsAr extends AppLocalizations {
       'دوس على الزرار الأحمر «كارت الطوارئ» ووريه للي بيساعدك.';
 
   @override
+  String get scanMedicineTitle => 'صوّر علبة الدوا';
+
+  @override
+  String get scanMedicineIntro =>
+      'صوّر وش العلبة صورة واضحة في نور كويس. أسرة بتقرا الاسم والتركيز المكتوبين بالحروف الإنجليزي.';
+
+  @override
+  String get scanMedicineLimits =>
+      'الروشتة المكتوبة بخط الإيد والكلام العربي لسه مش بيتقروا على الموبايل. اكتبهم بنفسك.';
+
+  @override
+  String get scanMedicinePrivacy => 'الصورة بتتقرا على الموبايل ده ومش بتتحفظ.';
+
+  @override
+  String get scanMedicineReading => 'بنقرا العلبة…';
+
+  @override
+  String get scanMedicineSuggestions => 'هو واحد من دول؟';
+
+  @override
+  String get scanMedicineNoneFound =>
+      'ملقيناش اسم دوا. اكتبه بنفسك، أو جرّب صورة تانية.';
+
+  @override
+  String get scanMedicineFailed =>
+      'مقدرناش نقرا الصورة دي. جرّب صورة تانية، أو اكتب الاسم بنفسك.';
+
+  @override
+  String get scanMedicineName => 'اسم الدوا';
+
+  @override
+  String get scanMedicineStrength => 'التركيز (اختياري)، زي 500mg';
+
+  @override
+  String get scanMedicineCheck => 'راجع الاسم على العلبة قبل ما تستخدمه.';
+
+  @override
+  String get scanMedicineUse => 'استخدم ده';
+
+  @override
+  String get scanMedicineRetake => 'صورة تانية';
+
+  @override
+  String get scanMedicinePhoto => 'صورة علبة الدوا';
+
+  @override
   String get navMedicines => 'الأدوية';
 
   @override

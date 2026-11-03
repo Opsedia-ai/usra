@@ -8,10 +8,12 @@ import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/files/photo_store.dart';
+import '../../core/ocr/medicine_name_extractor.dart';
 import '../../core/providers.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
 import '../doctors/doctors_providers.dart';
+import '../scan/scan_medicine_screen.dart';
 import 'dose_schedule.dart';
 import 'medicine_text.dart';
 import 'medicines_providers.dart';
@@ -149,6 +151,19 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
         );
       }
     }
+  }
+
+  /// Reads the name and strength off the box (on the phone); the person
+  /// checks them before saving.
+  Future<void> _scan() async {
+    final found = await context.push<MedicineSuggestion>(
+      ScanMedicineScreen.path,
+    );
+    if (found == null || !mounted) return;
+    setState(() {
+      _name.text = found.name;
+      if (found.strength != null) _strength.text = found.strength!;
+    });
   }
 
   Future<DateTime?> _pickDate(DateTime? current) {
@@ -340,6 +355,16 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
                       : null,
                 ),
                 field('strength', _strength, l.medicineStrength),
+                OutlinedButton.icon(
+                  key: const ValueKey('medicine-scan'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 56),
+                  ),
+                  onPressed: _scan,
+                  icon: const Icon(Icons.document_scanner_outlined),
+                  label: Text(l.scanMedicineTitle),
+                ),
+                const SizedBox(height: 16),
                 Text(l.medicineForm, style: text.titleSmall),
                 const SizedBox(height: 8),
                 Wrap(
