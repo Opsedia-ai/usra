@@ -1,0 +1,339 @@
+import 'dart:io';
+
+import 'package:drift/drift.dart' show DatabaseConnection;
+import 'package:drift/native.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:usra/app.dart';
+import 'package:usra/core/backup/backup_service.dart';
+import 'package:usra/core/backup/recovery_key.dart';
+import 'package:usra/core/database/app_database.dart';
+import 'package:usra/core/preferences.dart';
+import 'package:usra/core/providers.dart';
+import 'package:usra/core/routing/app_router.dart';
+import 'package:usra/features/backup/backup_providers.dart';
+
+/// Hands back a ready-made file instead of packing the database.
+class _FakeBackupService extends BackupService {
+  _FakeBackupService(Directory dir)
+    : super(
+        root: dir,
+        databaseName: 'usra.sqlite',
+        deviceKey: '0' * 64,
+        temporary: dir,
+        folders: const [],
+      );
+
+  final made = <RecoveryKey>[];
+
+  @override
+  Future<File> create(
+    AppDatabase db,
+    RecoveryKey key, {
+    required String appVersion,
+    DateTime? now,
+  }) async {
+    made.add(key);
+    return File('${root.path}/usra-backup-test.usra');
+  }
+
+  final opened = <(String, RecoveryKey)>[];
+
+  @override
+  Future<StagedRestore> stage(
+    File backup,
+    RecoveryKey key, {
+    required int currentSchema,
+  }) async {
+    opened.add((backup.path, key));
+    return StagedRestore(
+      BackupManifest(
+        appVersion: '0.1.0+1',
+        schemaVersion: currentSchema,
+        createdAt: DateTime.utc(2026, 11, 3),
+        counts: const {'people': 3, 'records': 12, 'medicines': 2, 'photos': 1},
+      ),
+    );
+  }
+}
+
+void main() {
+  late AppDatabase db;
+  late MemoryRecoveryKeyStore keys;
+  late MemoryKeyValueStore prefs;
+  late _FakeBackupService service;
+  late Directory dir;
+  late List<ShareParams> shared;
+  late ShareResultStatus shareStatus;
+  late List<(StagedRestore, RecoveryKey)> restarted;
+
+  setUp(() {
+    db = AppDatabase(
+      DatabaseConnection(
+        NativeDatabase.memory(),
+        closeStreamsSynchronously: true,
+      ),
+    );
+    keys = MemoryRecoveryKeyStore();
+    prefs = MemoryKeyValueStore({
+      PrefKeys.tutorialSeen: true,
+      PrefKeys.elderTutorialSeen: true,
+    });
+    dir = Directory.systemTemp.createTempSync('usra_backup_widget');
+    service = _FakeBackupService(dir);
+    shared = [];
+    shareStatus = ShareResultStatus.success;
+    restarted = [];
+  });
+  tearDown(() async {
+    await db.close();
+    dir.deleteSync(recursive: true);
+  });
+
+  Widget app({List<Override> extra = const []}) => ProviderScope(
+    overrides: [
+      databaseProvider.overrideWithValue(db),
+      keyValueStoreProvider.overrideWithValue(prefs),
+      recoveryKeyStoreProvider.overrideWithValue(keys),
+      backupServiceProvider.overrideWithValue(service),
+      backupShareProvider.overrideWithValue((params) async {
+        shared.add(params);
+        return shareStatus;
+      }),
+      ...extra,
+    ],
+    child: const UsraApp(),
+  );
+
+  Future<void> go(WidgetTester tester, String path) async {
+    final context = tester.element(find.byType(Navigator).first);
+    ProviderScope.containerOf(context).read(routerProvider).go(path);
+    await tester.pumpAndSettle();
+  }
+
+  String groupShown(WidgetTester tester, int n) => tester
+      .widget<SelectableText>(find.byKey(ValueKey('recovery-group-$n')))
+      .data!;
+
+  testWidgets(
+    'first backup makes a recovery key, checks two groups, then shares',
+    (tester) async {
+      tester.view.physicalSize = const Size(1170, 3000);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('المزيد').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('settings-backup')));
+      await tester.pumpAndSettle();
+      expect(find.text('لسه معملتش نسخة احتياطية'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('backup-now')));
+      await tester.pumpAndSettle();
+
+      // The key, six groups, and a plain warning about losing it.
+      final groups = [for (var n = 1; n <= 6; n++) groupShown(tester, n)];
+      final key = RecoveryKey.tryParse(groups.join());
+      expect(key, isNotNull);
+      expect(find.textContaining('ولا حتى إحنا'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('recovery-key-written')));
+      await tester.pumpAndSettle();
+      final asked = [
+        for (var n = 1; n <= 6; n++)
+          if (find.byKey(ValueKey('recovery-confirm-$n')).evaluate().isNotEmpty)
+            n,
+      ];
+      expect(asked, hasLength(2));
+
+      // A wrong group is caught, and nothing is saved.
+      final wrong = groups[asked[0] - 1] == '000000' ? '111111' : '000000';
+      await tester.enterText(
+        find.byKey(ValueKey('recovery-confirm-${asked[0]}')),
+        wrong,
+      );
+      await tester.enterText(
+        find.byKey(ValueKey('recovery-confirm-${asked[1]}')),
+        groups[asked[1] - 1],
+      );
+      await tester.tap(find.byKey(const ValueKey('recovery-confirm')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('recovery-confirm-error')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('المجموعة ${asked[0]}'), findsWidgets);
+      expect(await keys.read(), isNull);
+
+      // Typed right, with Arabic digits: saved, and the backup goes ahead.
+      const arabic = '٠١٢٣٤٥٦٧٨٩';
+      await tester.enterText(
+        find.byKey(ValueKey('recovery-confirm-${asked[0]}')),
+        groups[asked[0] - 1].split('').map((d) => arabic[int.parse(d)]).join(),
+      );
+      await tester.tap(find.byKey(const ValueKey('recovery-confirm')));
+      await tester.pumpAndSettle();
+
+      expect(await keys.read(), key);
+      expect(service.made, [key]);
+      expect(shared.single.files!.single.path, endsWith('.usra'));
+      expect(prefs.getInt(PrefKeys.lastBackupAt), isNotNull);
+      expect(find.textContaining('آخر نسخة احتياطية:'), findsOneWidget);
+
+      // The next backup doesn't ask again.
+      await tester.tap(find.byKey(const ValueKey('backup-now')));
+      await tester.pumpAndSettle();
+      expect(service.made, [key, key]);
+      expect(find.byKey(const ValueKey('recovery-key-written')), findsNothing);
+    },
+  );
+
+  testWidgets('Home reminds to back up once the family has someone in it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('backup-due')), findsNothing);
+
+    await tester.runAsync(() => db.addProfile('فاطمة'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('backup-due')), findsOneWidget);
+    expect(find.textContaining('لو الموبايل ضاع'), findsOneWidget);
+
+    // A recent backup: no reminder.
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(Navigator).first),
+    );
+    await container
+        .read(lastBackupProvider.notifier)
+        .set(DateTime.now().subtract(const Duration(days: 3)));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('backup-due')), findsNothing);
+
+    // Over 30 days old: reminded again.
+    await container
+        .read(lastBackupProvider.notifier)
+        .set(DateTime.now().subtract(const Duration(days: 31)));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('أكتر من ٣٠ يوم'), findsOneWidget);
+  });
+
+  testWidgets('the recovery notice leads to restore, which checks the key', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 3000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      app(
+        extra: [
+          databaseRecoveredProvider.overrideWithValue(true),
+          backupFilePickerProvider.overrideWithValue(
+            () async => '${dir.path}/usra-backup-2026-11-03.usra',
+          ),
+          restoreAndRestartProvider.overrideWithValue(
+            (staged, key) async => restarted.add((staged, key)),
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final notice = find.byKey(const ValueKey('recovery-notice'));
+    expect(notice, findsOneWidget);
+    await tester.tap(
+      find.descendant(of: notice, matching: find.byType(FilledButton)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('restore-pick')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('restore-pick')));
+    await tester.pumpAndSettle();
+    expect(find.text('usra-backup-2026-11-03.usra'), findsOneWidget);
+
+    // Third group mistyped: said before even opening the file.
+    final key = RecoveryKey.generate();
+    final typed = [...key.groups];
+    typed[2] =
+        '${typed[2].substring(0, 5)}${(int.parse(typed[2][5]) + 1) % 10}';
+    await tester.enterText(
+      find.byKey(const ValueKey('restore-key')),
+      typed.join(),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('restore-key')))
+          .controller!
+          .text,
+      typed.join(' '),
+    );
+    await tester.tap(find.byKey(const ValueKey('restore-open')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('المجموعة 3 من المفتاح'), findsOneWidget);
+    expect(service.opened, isEmpty);
+
+    // Typed right: opened, what's inside is shown, then it's swapped in.
+    await tester.enterText(
+      find.byKey(const ValueKey('restore-key')),
+      key.digits,
+    );
+    await tester.tap(find.byKey(const ValueKey('restore-open')));
+    await tester.pumpAndSettle();
+    expect(service.opened.single.$2, key);
+    expect(find.text('3 أشخاص، 12 سجل، دوايين، صورة واحدة'), findsOneWidget);
+    expect(restarted, isEmpty);
+
+    await tester.tap(find.byKey(const ValueKey('restore-replace')));
+    await tester.pumpAndSettle();
+    expect(restarted.single.$2, key);
+    expect(restarted.single.$1.manifest.count('people'), 3);
+  });
+
+  testWidgets(
+    'when Android can\'t tell, it asks whether the backup was saved',
+    (tester) async {
+      await keys.write(RecoveryKey.generate());
+      shareStatus = ShareResultStatus.unavailable;
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+      await go(tester, '/settings/backup');
+
+      await tester.tap(find.byKey(const ValueKey('backup-now')));
+      // The button's spinner keeps going behind the question.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.text('لأ'));
+      await tester.pumpAndSettle();
+      expect(prefs.getInt(PrefKeys.lastBackupAt), isNull);
+
+      await tester.tap(find.byKey(const ValueKey('backup-now')));
+      // The button's spinner keeps going behind the question.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.byKey(const ValueKey('backup-saved-yes')));
+      await tester.pumpAndSettle();
+      expect(prefs.getInt(PrefKeys.lastBackupAt), isNotNull);
+    },
+  );
+
+  testWidgets('after a restore Home says so', (tester) async {
+    await tester.pumpWidget(
+      app(
+        extra: [
+          restoreOutcomeProvider.overrideWithValue(RestoreOutcome.restored),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('رجّعنا نسختك الاحتياطية.'), findsOneWidget);
+    // And the backup page is one step away.
+    await go(tester, '/settings/backup');
+    expect(find.byKey(const ValueKey('backup-now')), findsOneWidget);
+  });
+}

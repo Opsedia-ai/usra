@@ -5,19 +5,27 @@ import 'package:shared_preferences/shared_preferences.dart';
 abstract class KeyValueStore {
   bool? getBool(String key);
   Future<void> setBool(String key, bool value);
+  int? getInt(String key);
+  Future<void> setInt(String key, int value);
 }
 
 /// Kept only while the app runs; what tests use.
 class MemoryKeyValueStore implements KeyValueStore {
-  MemoryKeyValueStore([Map<String, bool>? values]) : _values = {...?values};
+  MemoryKeyValueStore([Map<String, Object>? values]) : _values = {...?values};
 
-  final Map<String, bool> _values;
+  final Map<String, Object> _values;
 
   @override
-  bool? getBool(String key) => _values[key];
+  bool? getBool(String key) => _values[key] as bool?;
 
   @override
   Future<void> setBool(String key, bool value) async => _values[key] = value;
+
+  @override
+  int? getInt(String key) => _values[key] as int?;
+
+  @override
+  Future<void> setInt(String key, int value) async => _values[key] = value;
 }
 
 /// Saved on the phone with shared_preferences.
@@ -40,13 +48,25 @@ class SharedPreferencesStore implements KeyValueStore {
 
   @override
   Future<void> setBool(String key, bool value) => _prefs.setBool(key, value);
+
+  @override
+  int? getInt(String key) => _prefs.getInt(key);
+
+  @override
+  Future<void> setInt(String key, int value) => _prefs.setInt(key, value);
 }
 
 abstract final class PrefKeys {
   static const simpleMode = 'simple_mode';
   static const tutorialSeen = 'tutorial_seen';
   static const elderTutorialSeen = 'tutorial_elder_seen';
-  static const all = {simpleMode, tutorialSeen, elderTutorialSeen};
+  static const lastBackupAt = 'last_backup_at';
+  static const all = {
+    simpleMode,
+    tutorialSeen,
+    elderTutorialSeen,
+    lastBackupAt,
+  };
 }
 
 /// Overridden in `main.dart` with [SharedPreferencesStore]. The default,

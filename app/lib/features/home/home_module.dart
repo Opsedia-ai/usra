@@ -7,8 +7,8 @@ import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
-import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../backup/backup_notices.dart';
 import '../family/family_screen.dart';
 import '../follow_ups/follow_ups_section.dart';
 import 'simple_home.dart';
@@ -47,22 +47,7 @@ class HomeScreen extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
       children: [
-        if (ref.watch(databaseRecoveredProvider)) ...[
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Severity.actSoon.background,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              l.recoveryNotice,
-              style: text.bodyMedium?.copyWith(
-                color: Severity.actSoon.foreground,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
+        const BackupNotices(),
         Center(child: DrUsra(size: 180, semanticLabel: l.homeGreeting)),
         const SizedBox(height: 12),
         Text(

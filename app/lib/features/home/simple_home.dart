@@ -6,8 +6,8 @@ import '../../core/database/app_database.dart';
 import '../../core/design/dr_usra.dart';
 import '../../core/design/theme.dart';
 import '../../core/design/tokens.dart';
-import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../backup/backup_notices.dart';
 import '../family/family_screen.dart';
 
 /// Home in Simple Mode: a greeting and four big buttons, nothing else.
@@ -26,22 +26,7 @@ class SimpleHome extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
       children: [
-        if (ref.watch(databaseRecoveredProvider)) ...[
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Severity.actSoon.background,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              l.recoveryNotice,
-              style: text.bodyLarge?.copyWith(
-                color: Severity.actSoon.foreground,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
+        const BackupNotices(simple: true),
         Row(
           children: [
             DrUsra(size: 72, semanticLabel: l.homeGreeting),
