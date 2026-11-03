@@ -9,6 +9,7 @@ import 'core/preferences.dart';
 import 'core/providers.dart';
 import 'core/routing/app_router.dart';
 import 'features/follow_ups/dismissals.dart';
+import 'features/medicines/dose_widget.dart';
 import 'features/medicines/local_notification_scheduler.dart';
 import 'features/medicines/medicines_providers.dart';
 import 'features/medicines/reminder_sync.dart';
@@ -87,6 +88,7 @@ Future<void> main() async {
     scheduler: scheduler,
     inbox: inbox,
     texts: () => ReminderTexts(l()),
+    widget: const HomeWidgetSnapshotPublisher(),
   );
   runApp(
     UncontrolledProviderScope(container: container, child: const UsraApp()),
@@ -98,6 +100,14 @@ Future<void> main() async {
   } catch (_) {
     // Opened from a notification we can't read: just start normally.
   }
+  try {
+    await HomeWidgetSnapshotPublisher.init();
+  } catch (_) {
+    // No widget on this platform; the app works without it.
+  }
+  await HomeWidgetSnapshotPublisher.onTap(
+    () => container.read(routerProvider).go('/medicines'),
+  );
   await reminders.start();
   // Notification text follows the app's language.
   container.listen(localeProvider, (_, _) => reminders.resync());

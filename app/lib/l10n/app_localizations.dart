@@ -1892,6 +1892,18 @@ abstract class AppLocalizations {
   /// **'Reminders at the times the doctor prescribed'**
   String get doseChannelDescription;
 
+  /// No description provided for @widgetEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No medicines today'**
+  String get widgetEmpty;
+
+  /// No description provided for @widgetStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Usra to refresh medicines'**
+  String get widgetStale;
+
   /// No description provided for @memberMedicines.
   ///
   /// In en, this message translates to:

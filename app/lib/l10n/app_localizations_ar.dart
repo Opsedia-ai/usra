@@ -1062,6 +1062,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get doseChannelDescription => 'تنبيه في المواعيد اللي الدكتور كتبها';
 
   @override
+  String get widgetEmpty => 'مفيش أدوية النهارده';
+
+  @override
+  String get widgetStale => 'افتح أسرة عشان نحدّث الأدوية';
+
+  @override
   String get memberMedicines => 'الأدوية';
 
   @override

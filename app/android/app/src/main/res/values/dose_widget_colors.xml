@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home-screen widget, light; values-night has the dark ones. -->
+<resources>
+    <color name="dose_widget_background">#FFFFFFFF</color>
+    <color name="dose_widget_text">#FF1B1B1F</color>
+    <color name="dose_widget_accent">#FF00696E</color>
+    <color name="dose_widget_on_accent">#FFFFFFFF</color>
+</resources>

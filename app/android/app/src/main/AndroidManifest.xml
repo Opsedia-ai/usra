@@ -8,6 +8,7 @@
         android:label="usra"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:supportsRtl="true"
         android:allowBackup="false"
         android:fullBackupContent="false"
         android:dataExtractionRules="@xml/data_extraction_rules">
@@ -46,6 +47,23 @@
             </intent-filter>
         </receiver>
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver" />
+        <!-- Home-screen widget: the next doses today, redrawn when a dose
+             comes due, at midnight, after a reboot and when the clock
+             changes. Not exported: only the system and the app's own
+             Taken buttons reach it. -->
+        <receiver android:exported="false" android:name=".DoseWidgetProvider"
+            android:label="@string/dose_widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.TIME_SET"/>
+                <action android:name="android.intent.action.TIMEZONE_CHANGED"/>
+                <action android:name="android.intent.action.LOCALE_CHANGED"/>
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/dose_widget_info"/>
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

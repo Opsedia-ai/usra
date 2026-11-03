@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shown until the app hands the widget its first snapshot, which brings
+     its own text in the app's language. -->
+<resources>
+    <string name="dose_widget_name">أدوية النهارده</string>
+    <string name="dose_widget_description">مواعيد الأدوية الجاية للعيلة</string>
+    <string name="dose_widget_empty">مفيش أدوية النهارده</string>
+    <string name="dose_widget_stale">افتح أسرة عشان نحدّث الأدوية</string>
+    <string name="dose_widget_taken">اتاخد</string>
+</resources>

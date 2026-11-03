@@ -375,6 +375,8 @@
   "doseReminderBody": "دوس اتاخد بعد ما ياخده",
   "doseChannelName": "مواعيد الأدوية",
   "doseChannelDescription": "تنبيه في المواعيد اللي الدكتور كتبها",
+  "widgetEmpty": "مفيش أدوية النهارده",
+  "widgetStale": "افتح أسرة عشان نحدّث الأدوية",
   "memberMedicines": "الأدوية",
   "medicinesTitle": "أدوية {name}",
   "medicinesEmpty": "مفيش أدوية لسه. ضيف الدوا زي ما الدكتور كتبه بالظبط.",
