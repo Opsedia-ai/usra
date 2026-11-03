@@ -25,6 +25,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
   DateTime? _birthDate;
   String? _sex;
   String? _bloodType;
+  bool _simpleMode = false;
   bool _loaded = false;
   bool _nameMissing = false;
   bool _saving = false;
@@ -50,6 +51,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
         _birthDate = p.birthDate;
         _sex = p.sex;
         _bloodType = p.bloodType;
+        _simpleMode = p.simpleMode;
       }
       _loaded = true;
     });
@@ -81,6 +83,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
           bloodType: _bloodType,
           allergies: _allergies.text,
           conditions: _conditions.text,
+          simpleMode: _simpleMode,
         );
       } else {
         await db.updateProfile(
@@ -91,6 +94,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
           bloodType: _bloodType,
           allergies: _allergies.text,
           conditions: _conditions.text,
+          simpleMode: _simpleMode,
         );
         savedId = id;
       }
@@ -183,7 +187,16 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                   controller: _conditions,
                   decoration: InputDecoration(labelText: l.profileConditions),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  key: const ValueKey('profile-simple-mode'),
+                  contentPadding: EdgeInsets.zero,
+                  value: _simpleMode,
+                  onChanged: (v) => setState(() => _simpleMode = v),
+                  title: Text(l.profileSimpleMode),
+                  subtitle: Text(l.profileSimpleModeHint),
+                ),
+                const SizedBox(height: 20),
                 FilledButton(
                   key: const ValueKey('profile-save'),
                   onPressed: _saving ? null : _save,

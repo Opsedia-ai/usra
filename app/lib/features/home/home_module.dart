@@ -6,9 +6,11 @@ import '../../core/design/dr_usra.dart';
 import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/modules/feature_module.dart';
+import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/family_screen.dart';
+import 'simple_home.dart';
 
 class HomeModule extends FeatureModule {
   const HomeModule();
@@ -23,6 +25,7 @@ class HomeModule extends FeatureModule {
       icon: Icons.home_outlined,
       label: (c) => AppLocalizations.of(c).navHome,
       order: 0,
+      simple: true,
     ),
   ];
 
@@ -37,6 +40,7 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(simpleModeProvider)) return const SimpleHome();
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     return ListView(
