@@ -698,6 +698,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get simpleMedicines => 'My medicines';
 
   @override
+  String get simpleMedicinesSoon => 'Medicine reminders are coming soon.';
+
+  @override
+  String get comingSoon => 'Coming soon';
+
+  @override
   String get simpleCallDoctor => 'Call my doctor';
 
   @override
@@ -826,6 +832,177 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanMedicinePhoto => 'Photo of the medicine box';
+
+  @override
+  String get followUpsTitle => 'Follow-ups';
+
+  @override
+  String get followUpsEmpty => 'Nothing coming up.';
+
+  @override
+  String get followUpsDisclaimer =>
+      'Suggestions from public guidance (WHO, USPSTF and others) and your records, not a diagnosis. Ask your doctor what suits each person.';
+
+  @override
+  String followUpDue(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String followUpOverdue(String date) {
+    return 'Was due $date';
+  }
+
+  @override
+  String followUpSource(String source) {
+    return 'Source: $source';
+  }
+
+  @override
+  String followUpAdd(String type) {
+    return 'Add $type';
+  }
+
+  @override
+  String get followUpDismiss => 'Hide until next time';
+
+  @override
+  String get followUpDismissed => 'Hidden until it\'s due again.';
+
+  @override
+  String get followUpUndo => 'Undo';
+
+  @override
+  String get fuNextVisit => 'Follow-up visit';
+
+  @override
+  String fuNextVisitBy(String doctor) {
+    return '$doctor set this date at the last visit';
+  }
+
+  @override
+  String get fuNextVisitSet => 'Set at the last visit';
+
+  @override
+  String fuNextDose(String vaccine) {
+    return 'Next dose: $vaccine';
+  }
+
+  @override
+  String get fuNextDoseSet => 'The date written on the last dose';
+
+  @override
+  String get fuHba1c => 'HbA1c (3-month sugar) test';
+
+  @override
+  String get fuLipids => 'Lipid profile (cholesterol)';
+
+  @override
+  String get fuKidney => 'Kidney function and urine albumin';
+
+  @override
+  String get fuScan => 'Follow-up scan';
+
+  @override
+  String get fuScanResult => 'The last scan\'s result mentions a follow-up';
+
+  @override
+  String get fuBloodPressure => 'Blood pressure check';
+
+  @override
+  String get fuBloodSugar => 'Blood sugar test';
+
+  @override
+  String get fuMammogram => 'Mammogram (breast screening)';
+
+  @override
+  String get fuColorectal => 'Colon cancer screening';
+
+  @override
+  String get fuEyeExam => 'Eye exam (retina)';
+
+  @override
+  String get fuDental => 'Dental check-up';
+
+  @override
+  String get fuChildCheckup => 'Child check-up';
+
+  @override
+  String fuChildCheckupAt(String age) {
+    return 'The usual check-up at $age';
+  }
+
+  @override
+  String fuAgeMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: '$months months',
+      one: '1 month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fuVaccinesDue => 'Mandatory vaccines';
+
+  @override
+  String fuVaccinesAt(String age, String names) {
+    return '$age: $names';
+  }
+
+  @override
+  String fuBecauseCondition(String sex, String condition) {
+    return 'Because of $condition';
+  }
+
+  @override
+  String fuLastDoneMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'last one $months months ago',
+      one: 'last one a month ago',
+      zero: 'last one this month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fuNeverRecorded => 'none recorded yet';
+
+  @override
+  String fuAgeFrom(int age) {
+    return 'Suggested from age $age';
+  }
+
+  @override
+  String fuAgeRange(int from, int to) {
+    return 'Suggested at ages $from–$to';
+  }
+
+  @override
+  String fuWomenAgeRange(int from, int to) {
+    return 'Suggested for women aged $from–$to';
+  }
+
+  @override
+  String get fuYearlyForAll => 'Suggested once a year for everyone';
+
+  @override
+  String get conditionDiabetes => 'diabetes';
+
+  @override
+  String get conditionHypertension => 'high blood pressure';
+
+  @override
+  String get conditionHeart => 'heart disease';
+
+  @override
+  String get conditionHighCholesterol => 'high cholesterol';
+
+  @override
+  String get conditionKidney => 'kidney disease';
 
   @override
   String get navMedicines => 'Medicines';

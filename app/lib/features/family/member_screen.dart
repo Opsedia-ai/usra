@@ -12,6 +12,7 @@ import '../../core/records/record_type.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
 import '../children/growth.dart' show isUnderFive;
+import '../follow_ups/follow_ups_section.dart';
 import '../insurance/insurance_section.dart';
 import 'family_screen.dart';
 import 'record_display.dart';
@@ -116,6 +117,8 @@ class MemberScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 20),
               InsuranceSection(profileId: profileId),
+              const SizedBox(height: 28),
+              MemberFollowUps(profileId: profileId),
               const SizedBox(height: 28),
               ...timeline.when(
                 loading: () => [

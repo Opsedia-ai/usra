@@ -703,6 +703,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get simpleMedicines => 'أدويتي';
 
   @override
+  String get simpleMedicinesSoon => 'تذكير الأدوية جاي قريب.';
+
+  @override
+  String get comingSoon => 'قريبًا';
+
+  @override
   String get simpleCallDoctor => 'كلّم دكتوري';
 
   @override
@@ -828,6 +834,185 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get scanMedicinePhoto => 'صورة علبة الدوا';
+
+  @override
+  String get followUpsTitle => 'المتابعات';
+
+  @override
+  String get followUpsEmpty => 'مفيش متابعات قريبة.';
+
+  @override
+  String get followUpsDisclaimer =>
+      'اقتراحات من إرشادات عامة (منظمة الصحة العالمية وUSPSTF وغيرهم) ومن سجلاتكم، مش تشخيص. اسأل الدكتور إيه المناسب لكل واحد.';
+
+  @override
+  String followUpDue(String date) {
+    return 'معاده $date';
+  }
+
+  @override
+  String followUpOverdue(String date) {
+    return 'كان معاده $date';
+  }
+
+  @override
+  String followUpSource(String source) {
+    return 'المصدر: $source';
+  }
+
+  @override
+  String followUpAdd(String type) {
+    return 'سجّل $type';
+  }
+
+  @override
+  String get followUpDismiss => 'خبّيها لحد المرة الجاية';
+
+  @override
+  String get followUpDismissed => 'اتخبّت لحد ما ميعادها ييجي تاني.';
+
+  @override
+  String get followUpUndo => 'رجّعها';
+
+  @override
+  String get fuNextVisit => 'زيارة متابعة';
+
+  @override
+  String fuNextVisitBy(String doctor) {
+    return '$doctor حدد الميعاد ده في آخر زيارة';
+  }
+
+  @override
+  String get fuNextVisitSet => 'اتحدد في آخر زيارة';
+
+  @override
+  String fuNextDose(String vaccine) {
+    return 'الجرعة الجاية: $vaccine';
+  }
+
+  @override
+  String get fuNextDoseSet => 'الميعاد المكتوب في آخر جرعة';
+
+  @override
+  String get fuHba1c => 'تحليل السكر التراكمي';
+
+  @override
+  String get fuLipids => 'تحليل دهون الدم (الكوليسترول)';
+
+  @override
+  String get fuKidney => 'وظائف الكلى والزلال في البول';
+
+  @override
+  String get fuScan => 'أشعة متابعة';
+
+  @override
+  String get fuScanResult => 'نتيجة آخر أشعة فيها متابعة';
+
+  @override
+  String get fuBloodPressure => 'قياس الضغط';
+
+  @override
+  String get fuBloodSugar => 'تحليل السكر';
+
+  @override
+  String get fuMammogram => 'ماموجرام (فحص الثدي)';
+
+  @override
+  String get fuColorectal => 'فحص القولون';
+
+  @override
+  String get fuEyeExam => 'كشف عيون (قاع العين)';
+
+  @override
+  String get fuDental => 'كشف أسنان';
+
+  @override
+  String get fuChildCheckup => 'كشف متابعة للطفل';
+
+  @override
+  String fuChildCheckupAt(String age) {
+    return 'الكشف المعتاد في سن $age';
+  }
+
+  @override
+  String fuAgeMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: '$months شهر',
+      few: '$months شهور',
+      two: 'شهرين',
+      one: 'شهر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fuVaccinesDue => 'التطعيمات الإجبارية';
+
+  @override
+  String fuVaccinesAt(String age, String names) {
+    return '$age: $names';
+  }
+
+  @override
+  String fuBecauseCondition(String sex, String condition) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'female': 'لأن عندها $condition',
+      'other': 'لأن عنده $condition',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String fuLastDoneMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'آخر مرة من $months شهر',
+      few: 'آخر مرة من $months شهور',
+      two: 'آخر مرة من شهرين',
+      one: 'آخر مرة من شهر',
+      zero: 'آخر مرة الشهر ده',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fuNeverRecorded => 'مفيش واحد متسجل لسه';
+
+  @override
+  String fuAgeFrom(int age) {
+    return 'مقترح من سن $age';
+  }
+
+  @override
+  String fuAgeRange(int from, int to) {
+    return 'مقترح من سن $from لـ $to';
+  }
+
+  @override
+  String fuWomenAgeRange(int from, int to) {
+    return 'مقترح للستات من سن $from لـ $to';
+  }
+
+  @override
+  String get fuYearlyForAll => 'مقترح للكل مرة في السنة';
+
+  @override
+  String get conditionDiabetes => 'سكر';
+
+  @override
+  String get conditionHypertension => 'ضغط';
+
+  @override
+  String get conditionHeart => 'مرض في القلب';
+
+  @override
+  String get conditionHighCholesterol => 'كوليسترول عالي';
+
+  @override
+  String get conditionKidney => 'مرض في الكلى';
 
   @override
   String get navMedicines => 'الأدوية';

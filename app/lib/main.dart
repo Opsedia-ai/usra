@@ -8,6 +8,7 @@ import 'core/files/photo_store.dart';
 import 'core/preferences.dart';
 import 'core/providers.dart';
 import 'core/routing/app_router.dart';
+import 'features/follow_ups/dismissals.dart';
 import 'features/medicines/local_notification_scheduler.dart';
 import 'features/medicines/medicines_providers.dart';
 import 'features/medicines/reminder_sync.dart';
@@ -20,12 +21,20 @@ Future<void> main() async {
   final file = await defaultDatabaseFile();
   final outcome = prepareDatabaseFile(file, key);
   final database = AppDatabase(openEncryptedDatabase(file, key));
-  final (preferences, cardPhotos, attachments, medicinePhotos, inbox) = await (
+  final (
+    preferences,
+    cardPhotos,
+    attachments,
+    medicinePhotos,
+    inbox,
+    dismissals,
+  ) = await (
     SharedPreferencesStore.open(),
     PhotoStore.open(PhotoStore.cardsFolder),
     PhotoStore.open(PhotoStore.attachmentsFolder),
     PhotoStore.open(PhotoStore.medicinesFolder),
     DoseActionInbox.open(),
+    FileDismissalStore.open(),
   ).wait;
 
   late final ProviderContainer container;
@@ -67,6 +76,7 @@ Future<void> main() async {
       attachmentStoreProvider.overrideWithValue(attachments),
       medicinePhotoStoreProvider.overrideWithValue(medicinePhotos),
       reminderSchedulerProvider.overrideWithValue(scheduler),
+      dismissalStoreProvider.overrideWithValue(dismissals),
       databaseRecoveredProvider.overrideWithValue(
         outcome == DatabaseOpenOutcome.recoveredFromUnreadableFile,
       ),
