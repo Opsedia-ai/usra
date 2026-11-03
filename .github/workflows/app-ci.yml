@@ -36,6 +36,14 @@ jobs:
       run:
         working-directory: app
     steps:
+      # The debug APK (ML Kit, Glance for the home-screen widget) outgrows
+      # the runner's free disk; drop toolchains this job never uses.
+      - name: Free disk space
+        working-directory: .
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/boost /usr/local/lib/node_modules
+          df -h /
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
