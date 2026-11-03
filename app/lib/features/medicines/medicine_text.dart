@@ -77,9 +77,6 @@ String _comma(BuildContext context) =>
 /// Past its last day.
 bool medicineEnded(Medicine m, DateTime now) {
   final end = m.endOn;
-  return end != null && DateTime.utc(now.year, now.month, now.day).isAfter(end);
+  return end != null &&
+      DateTime(now.year, now.month, now.day).isAfter(storedDay(end));
 }
-
-/// A stored date (UTC midnight) as a local date, for display and pickers.
-DateTime localDay(DateTime stored) =>
-    DateTime(stored.year, stored.month, stored.day);

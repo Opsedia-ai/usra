@@ -132,7 +132,7 @@ class _Details extends ConsumerWidget {
         ? null
         : DoseRule.of(m, schedule).nextAfter(now);
 
-    final start = date.format(localDay(m.startOn));
+    final start = date.format(storedDay(m.startOn));
     final rows = <(String, String)>[
       if (m.form != null) (l.medicineForm, medicineFormLabel(l, m.form!)),
       (
@@ -147,7 +147,7 @@ class _Details extends ConsumerWidget {
         l.medicineStart,
         m.endOn == null
             ? l.medicineFrom(start)
-            : l.medicineFromTo(start, date.format(localDay(m.endOn!))),
+            : l.medicineFromTo(start, date.format(storedDay(m.endOn!))),
       ),
     ];
 

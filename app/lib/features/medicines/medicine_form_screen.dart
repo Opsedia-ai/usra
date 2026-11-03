@@ -86,8 +86,8 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
         _instructions.text = m.instructions ?? '';
         _form = m.form;
         _doctorId = m.doctorId;
-        _startOn = localDay(m.startOn);
-        _endOn = m.endOn == null ? null : localDay(m.endOn!);
+        _startOn = storedDay(m.startOn);
+        _endOn = m.endOn == null ? null : storedDay(m.endOn!);
         _active = m.active;
         _photos.addAll([
           for (final p in decodeMedicinePhotos(m.photosJson))
