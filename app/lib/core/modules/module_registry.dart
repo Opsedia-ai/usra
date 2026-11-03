@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import '../follow_ups/follow_up.dart';
 import '../records/record_type.dart';
 import 'feature_module.dart';
 
@@ -22,6 +23,10 @@ class ModuleRegistry {
   final RecordTypeRegistry recordTypes;
 
   List<RouteBase> get routes => [for (final m in modules) ...m.routes];
+
+  List<FollowUpRule> get followUpRules => [
+    for (final m in modules) ...m.followUpRules,
+  ];
 
   List<ModuleTab> get tabs =>
       [for (final m in modules) ...m.tabs]

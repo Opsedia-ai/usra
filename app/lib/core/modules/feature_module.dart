@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+import '../follow_ups/follow_up.dart';
 import '../records/record_type.dart';
 
 /// What a user has paid for. Paid modules check this, never purchase code.
@@ -35,5 +36,9 @@ abstract class FeatureModule {
   List<RouteBase> get routes => const [];
   List<ModuleTab> get tabs => const [];
   List<RecordTypeDefinition> get recordTypes => const [];
+
+  /// Rules that suggest follow-ups (check-ups, tests, doses) from a person's
+  /// age and records.
+  List<FollowUpRule> get followUpRules => const [];
   Entitlement get requires => Entitlement.free;
 }

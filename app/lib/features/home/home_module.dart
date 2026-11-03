@@ -9,6 +9,7 @@ import '../../core/modules/feature_module.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/family_screen.dart';
+import '../follow_ups/follow_ups_section.dart';
 
 class HomeModule extends FeatureModule {
   const HomeModule();
@@ -73,6 +74,7 @@ class HomeScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 24),
         const _EmergencyCards(),
+        const HomeFollowUps(),
         Card(
           child: Padding(
             padding: const EdgeInsets.all(16),

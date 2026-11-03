@@ -258,5 +258,58 @@
     }
   },
   "fieldYes": "أيوه",
-  "fieldNo": "لأ"
+  "fieldNo": "لأ",
+  "followUpsTitle": "المتابعات",
+  "followUpsEmpty": "مفيش متابعات قريبة.",
+  "followUpsDisclaimer": "اقتراحات من إرشادات عامة (منظمة الصحة العالمية وUSPSTF وغيرهم) ومن سجلاتكم، مش تشخيص. اسأل الدكتور إيه المناسب لكل واحد.",
+  "followUpDue": "معاده {date}",
+  "followUpOverdue": "كان معاده {date}",
+  "followUpSource": "المصدر: {source}",
+  "followUpAdd": "سجّل {type}",
+  "followUpDismiss": "خبّيها لحد المرة الجاية",
+  "followUpDismissed": "اتخبّت لحد ما ميعادها ييجي تاني.",
+  "followUpUndo": "رجّعها",
+  "fuNextVisit": "زيارة متابعة",
+  "fuNextVisitBy": "{doctor} حدد الميعاد ده في آخر زيارة",
+  "fuNextVisitSet": "اتحدد في آخر زيارة",
+  "fuNextDose": "الجرعة الجاية: {vaccine}",
+  "fuNextDoseSet": "الميعاد المكتوب في آخر جرعة",
+  "fuHba1c": "تحليل السكر التراكمي",
+  "fuLipids": "تحليل دهون الدم (الكوليسترول)",
+  "fuKidney": "وظائف الكلى والزلال في البول",
+  "fuScan": "أشعة متابعة",
+  "fuScanResult": "نتيجة آخر أشعة فيها متابعة",
+  "fuBloodPressure": "قياس الضغط",
+  "fuBloodSugar": "تحليل السكر",
+  "fuMammogram": "ماموجرام (فحص الثدي)",
+  "fuColorectal": "فحص القولون",
+  "fuEyeExam": "كشف عيون (قاع العين)",
+  "fuDental": "كشف أسنان",
+  "fuChildCheckup": "كشف متابعة للطفل",
+  "fuChildCheckupAt": "الكشف المعتاد في سن {age}",
+  "fuAgeMonths": "{months, plural, =1{شهر} =2{شهرين} few{{months} شهور} other{{months} شهر}}",
+  "fuVaccinesDue": "التطعيمات الإجبارية",
+  "fuVaccinesAt": "{age}: {names}",
+  "fuBecauseCondition": "{sex, select, female{لأن عندها {condition}} other{لأن عنده {condition}}}",
+  "@fuBecauseCondition": {
+    "placeholders": {
+      "sex": {
+        "type": "String"
+      },
+      "condition": {
+        "type": "String"
+      }
+    }
+  },
+  "fuLastDoneMonths": "{months, plural, =0{آخر مرة الشهر ده} =1{آخر مرة من شهر} =2{آخر مرة من شهرين} few{آخر مرة من {months} شهور} other{آخر مرة من {months} شهر}}",
+  "fuNeverRecorded": "مفيش واحد متسجل لسه",
+  "fuAgeFrom": "مقترح من سن {age}",
+  "fuAgeRange": "مقترح من سن {from} لـ {to}",
+  "fuWomenAgeRange": "مقترح للستات من سن {from} لـ {to}",
+  "fuYearlyForAll": "مقترح للكل مرة في السنة",
+  "conditionDiabetes": "سكر",
+  "conditionHypertension": "ضغط",
+  "conditionHeart": "مرض في القلب",
+  "conditionHighCholesterol": "كوليسترول عالي",
+  "conditionKidney": "مرض في الكلى"
 }

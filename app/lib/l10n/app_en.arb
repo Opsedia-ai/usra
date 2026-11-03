@@ -348,5 +348,158 @@
     }
   },
   "fieldYes": "Yes",
-  "fieldNo": "No"
+  "fieldNo": "No",
+  "followUpsTitle": "Follow-ups",
+  "followUpsEmpty": "Nothing coming up.",
+  "followUpsDisclaimer": "Suggestions from public guidance (WHO, USPSTF and others) and your records, not a diagnosis. Ask your doctor what suits each person.",
+  "followUpDue": "Due {date}",
+  "@followUpDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "followUpOverdue": "Was due {date}",
+  "@followUpOverdue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "followUpSource": "Source: {source}",
+  "@followUpSource": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "followUpAdd": "Add {type}",
+  "@followUpAdd": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "followUpDismiss": "Hide until next time",
+  "followUpDismissed": "Hidden until it's due again.",
+  "followUpUndo": "Undo",
+  "fuNextVisit": "Follow-up visit",
+  "fuNextVisitBy": "{doctor} set this date at the last visit",
+  "@fuNextVisitBy": {
+    "placeholders": {
+      "doctor": {
+        "type": "String"
+      }
+    }
+  },
+  "fuNextVisitSet": "Set at the last visit",
+  "fuNextDose": "Next dose: {vaccine}",
+  "@fuNextDose": {
+    "placeholders": {
+      "vaccine": {
+        "type": "String"
+      }
+    }
+  },
+  "fuNextDoseSet": "The date written on the last dose",
+  "fuHba1c": "HbA1c (3-month sugar) test",
+  "fuLipids": "Lipid profile (cholesterol)",
+  "fuKidney": "Kidney function and urine albumin",
+  "fuScan": "Follow-up scan",
+  "fuScanResult": "The last scan's result mentions a follow-up",
+  "fuBloodPressure": "Blood pressure check",
+  "fuBloodSugar": "Blood sugar test",
+  "fuMammogram": "Mammogram (breast screening)",
+  "fuColorectal": "Colon cancer screening",
+  "fuEyeExam": "Eye exam (retina)",
+  "fuDental": "Dental check-up",
+  "fuChildCheckup": "Child check-up",
+  "fuChildCheckupAt": "The usual check-up at {age}",
+  "@fuChildCheckupAt": {
+    "placeholders": {
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "fuAgeMonths": "{months, plural, =1{1 month} other{{months} months}}",
+  "@fuAgeMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "fuVaccinesDue": "Mandatory vaccines",
+  "fuVaccinesAt": "{age}: {names}",
+  "@fuVaccinesAt": {
+    "placeholders": {
+      "age": {
+        "type": "String"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "fuBecauseCondition": "Because of {condition}",
+  "@fuBecauseCondition": {
+    "placeholders": {
+      "sex": {
+        "type": "String"
+      },
+      "condition": {
+        "type": "String"
+      }
+    }
+  },
+  "fuLastDoneMonths": "{months, plural, =0{last one this month} =1{last one a month ago} other{last one {months} months ago}}",
+  "@fuLastDoneMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "fuNeverRecorded": "none recorded yet",
+  "fuAgeFrom": "Suggested from age {age}",
+  "@fuAgeFrom": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "fuAgeRange": "Suggested at ages {from}–{to}",
+  "@fuAgeRange": {
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "fuWomenAgeRange": "Suggested for women aged {from}–{to}",
+  "@fuWomenAgeRange": {
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "fuYearlyForAll": "Suggested once a year for everyone",
+  "conditionDiabetes": "diabetes",
+  "conditionHypertension": "high blood pressure",
+  "conditionHeart": "heart disease",
+  "conditionHighCholesterol": "high cholesterol",
+  "conditionKidney": "kidney disease"
 }
