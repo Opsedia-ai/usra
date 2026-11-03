@@ -453,7 +453,7 @@
   "pregnancyNotEligible": "متابعة الحمل للستات. راجع النوع وتاريخ الميلاد في البيانات.",
   "pregnancyStartIntro": "تابعي أسابيع الحمل وميعاد الولادة والزيارات والتحاليل. ابدئي بأول يوم في آخر دورة، أو ميعاد الولادة اللي الدكتور قالهولك.",
   "pregnancyStart": "ابدئي متابعة الحمل",
-  "pregnancyWeek": "{weeks} أسبوع و{days} يوم",
+  "pregnancyWeek": "{weeks, plural, =0{أقل من أسبوع} =1{أسبوع} =2{أسبوعين} few{{weeks} أسابيع} other{{weeks} أسبوع}} و{days, plural, =0{0 يوم} =1{يوم} =2{يومين} few{{days} أيام} other{{days} يوم}}",
   "pregnancyTrimester": "{trimester, plural, =1{التلت الأول} =2{التلت التاني} other{التلت الأخير}}",
   "pregnancyDue": "الولادة {date}",
   "pregnancyDaysLeft": "{days, plural, =0{ميعاد الولادة النهارده} =1{فاضل يوم على ميعاد الولادة} =2{فاضل يومين على ميعاد الولادة} few{فاضل {days} أيام على ميعاد الولادة} other{فاضل {days} يوم على ميعاد الولادة}}",
@@ -538,5 +538,7 @@
   "diaperBoth": "مبلولة وفيها براز",
   "growthCheckTitle": "افحص دلوقتي",
   "growthCheckIntro": "اكتب الوزن أو الطول النهارده وشوف مكانه على منحنيات منظمة الصحة العالمية في سن {age}.",
-  "growthCheckSave": "احفظه كقياس"
+  "growthCheckSave": "احفظه كقياس",
+  "devUntick": "شيل العلامة",
+  "devUntickConfirm": "تشيل العلامة من المهارة دي؟ التاريخ اللي سجلته هيتمسح."
 }

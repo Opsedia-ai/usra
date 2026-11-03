@@ -225,6 +225,8 @@ void main() {
     );
     // Unticking deletes the record.
     await tester.tap(find.byKey(const ValueKey('milestone-check-m2_movement')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('milestone-untick')));
     await settleDb(tester);
     expect(
       find.descendant(

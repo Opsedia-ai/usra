@@ -58,12 +58,17 @@ class FollowUp {
       '$profileId|$ruleId|${cycle ?? dueOn.toIso8601String().substring(0, 10)}';
 
   /// Overdue (past [graceDays]): act soon. Within two weeks: heads-up. Later: info.
-  Severity severityOn(DateTime today) {
-    final days = dueOn.difference(dayOf(today)).inDays;
-    if (days < -graceDays) return Severity.actSoon;
-    if (days <= followUpSoonDays) return Severity.headsUp;
-    return Severity.info;
-  }
+  Severity severityOn(DateTime today) =>
+      followUpSeverity(dueOn, today, graceDays: graceDays);
+}
+
+/// How urgent something due on [dueOn] is on [today]; see
+/// [FollowUp.severityOn].
+Severity followUpSeverity(DateTime dueOn, DateTime today, {int graceDays = 0}) {
+  final days = dayOf(dueOn).difference(dayOf(today)).inDays;
+  if (days < -graceDays) return Severity.actSoon;
+  if (days <= followUpSoonDays) return Severity.headsUp;
+  return Severity.info;
 }
 
 /// A record with its `dataJson` decoded.

@@ -1325,7 +1325,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String pregnancyWeek(int weeks, int days) {
-    return '$weeks أسبوع و$days يوم';
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: '$weeks أسبوع',
+      few: '$weeks أسابيع',
+      two: 'أسبوعين',
+      one: 'أسبوع',
+      zero: 'أقل من أسبوع',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوم',
+      zero: '0 يوم',
+    );
+    return '$_temp0 و$_temp1';
   }
 
   @override
@@ -1724,4 +1742,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get growthCheckSave => 'احفظه كقياس';
+
+  @override
+  String get devUntick => 'شيل العلامة';
+
+  @override
+  String get devUntickConfirm =>
+      'تشيل العلامة من المهارة دي؟ التاريخ اللي سجلته هيتمسح.';
 }

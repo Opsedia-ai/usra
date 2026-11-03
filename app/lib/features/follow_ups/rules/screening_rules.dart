@@ -5,6 +5,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../children/growth.dart' show addMonths;
 import '../conditions.dart';
 import 'reasons.dart';
+import '../../pregnancy/pregnancy.dart' show PregnancyFields, PregnancyTypes;
 
 /// Screenings starting more than this far ahead don't show yet.
 const screeningLookaheadDays = 365;
@@ -40,6 +41,10 @@ abstract class ScreeningRule extends FollowUpRule {
   /// Record types searched for a matching test.
   Set<String> get searchIn;
 
+  /// A test [r] stands for without naming it in text (a measurement record,
+  /// say); null when it doesn't.
+  ScreeningTest? measuredBy(SubjectRecord r) => null;
+
   /// The record type to add once done.
   String get recordType;
   String get source;
@@ -69,11 +74,16 @@ abstract class ScreeningRule extends FollowUpRule {
     DateTime? last;
     int? months;
     for (final r in subject.records.reversed) {
-      if (!searchIn.contains(r.event.type)) continue;
-      final text = r.data.values.whereType<String>().join(' ');
-      final test = tests
-          .where((t) => mentionsAny(text, t.keywords))
-          .firstOrNull;
+      final test = searchIn.contains(r.event.type)
+          ? tests
+                .where(
+                  (t) => mentionsAny(
+                    r.data.values.whereType<String>().join(' '),
+                    t.keywords,
+                  ),
+                )
+                .firstOrNull
+          : measuredBy(r);
       if (test == null) continue;
       last = r.event.occurredAt;
       months = test.months;
@@ -117,6 +127,15 @@ class BloodPressureRule extends ScreeningRule {
   ];
   @override
   Set<String> get searchIn => const {'visit', 'lab'};
+
+  /// A reading logged during pregnancy is a measurement too.
+  @override
+  ScreeningTest? measuredBy(SubjectRecord r) =>
+      r.event.type == PregnancyTypes.check &&
+          (r.data[PregnancyFields.systolic] is num ||
+              r.data[PregnancyFields.diastolic] is num)
+      ? tests.first
+      : null;
   @override
   String get recordType => 'visit';
   @override

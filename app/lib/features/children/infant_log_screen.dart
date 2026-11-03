@@ -174,7 +174,7 @@ class _Body extends ConsumerWidget {
             content: Text(l.logSaved),
             action: SnackBarAction(
               label: l.followUpUndo,
-              onPressed: () => db.softDeleteEvent(id),
+              onPressed: () => _delete(messenger, db, id, l.saveFailed),
             ),
           ),
         );
@@ -225,6 +225,19 @@ class _Body extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+Future<void> _delete(
+  ScaffoldMessengerState messenger,
+  AppDatabase db,
+  String id,
+  String failed,
+) async {
+  try {
+    await db.softDeleteEvent(id);
+  } catch (_) {
+    messenger.showSnackBar(SnackBar(content: Text(failed)));
   }
 }
 
@@ -308,7 +321,12 @@ class _EntryTile extends ConsumerWidget {
       trailing: IconButton(
         tooltip: l.logDelete,
         icon: const Icon(Icons.delete_outline),
-        onPressed: () => ref.read(databaseProvider).softDeleteEvent(event.id),
+        onPressed: () => _delete(
+          ScaffoldMessenger.of(context),
+          ref.read(databaseProvider),
+          event.id,
+          l.saveFailed,
+        ),
       ),
     );
   }

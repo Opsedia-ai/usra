@@ -2363,7 +2363,7 @@ abstract class AppLocalizations {
   /// No description provided for @pregnancyWeek.
   ///
   /// In en, this message translates to:
-  /// **'{weeks} weeks + {days} days'**
+  /// **'{weeks, plural, =0{أقل من أسبوع} =1{أسبوع} =2{أسبوعين} few{{weeks} أسابيع} other{{weeks} أسبوع}} و{days, plural, =0{0 يوم} =1{يوم} =2{يومين} few{{days} أيام} other{{days} يوم}}'**
   String pregnancyWeek(int weeks, int days);
 
   /// No description provided for @pregnancyTrimester.
@@ -2875,6 +2875,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save as a measurement'**
   String get growthCheckSave;
+
+  /// No description provided for @devUntick.
+  ///
+  /// In en, this message translates to:
+  /// **'Untick'**
+  String get devUntick;
+
+  /// No description provided for @devUntickConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Untick this milestone? The date you recorded will be removed.'**
+  String get devUntickConfirm;
 }
 
 class _AppLocalizationsDelegate

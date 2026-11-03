@@ -9,6 +9,7 @@ import '../../core/database/app_database.dart';
 import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
+import '../../core/util/dates.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import 'growth.dart';
@@ -207,13 +208,32 @@ class _MilestoneTile extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     try {
       if (ticked case final t?) {
+        final l = AppLocalizations.of(context);
+        final sure = await showDialog<bool>(
+          context: context,
+          builder: (dialog) => AlertDialog(
+            content: Text(l.devUntickConfirm),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialog, false),
+                child: Text(l.familyCancel),
+              ),
+              TextButton(
+                key: const ValueKey('milestone-untick'),
+                onPressed: () => Navigator.pop(dialog, true),
+                child: Text(l.devUntick),
+              ),
+            ],
+          ),
+        );
+        if (sure != true) return;
         for (final id in t.eventIds) {
           await db.softDeleteEvent(id);
         }
         return;
       }
       final today = DateUtils.dateOnly(DateTime.now());
-      final birth = DateUtils.dateOnly(profile.birthDate!);
+      final birth = storedDay(profile.birthDate!);
       final picked = await showDatePicker(
         context: context,
         initialDate: today,

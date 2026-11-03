@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/design/tokens.dart';
 import 'package:usra/core/follow_ups/follow_up.dart';
+import 'package:usra/features/follow_ups/rules/screening_rules.dart';
 import 'package:usra/features/pregnancy/antenatal_schedule.dart';
 import 'package:usra/features/pregnancy/pregnancy.dart';
 
@@ -117,6 +118,25 @@ void main() {
       expect(BloodPressureLevel.of(150, 112), BloodPressureLevel.veryHigh);
       expect(BloodPressureLevel.veryHigh.severity, Severity.urgent);
     });
+  });
+
+  test('a pregnancy BP reading counts for the yearly BP check', () {
+    const rule = BloodPressureRule();
+    final reading = record(PregnancyTypes.check, today, {
+      PregnancyFields.systolic: 118,
+      PregnancyFields.diastolic: 76,
+    });
+    final weightOnly = record(PregnancyTypes.check, today, {
+      PregnancyFields.weightKg: 70,
+    });
+    expect(
+      rule.evaluate(FollowUpSubject(woman(), [weightOnly]), today).single.dueOn,
+      dayOf(today),
+    );
+    expect(
+      rule.evaluate(FollowUpSubject(woman(), [reading]), today).single.dueOn,
+      DateTime.utc(2027, 11, 3),
+    );
   });
 
   group('antenatal schedule', () {

@@ -195,14 +195,6 @@ class _Body extends StatelessWidget {
     );
   }
 
-  static final PregnancyReading _none = (
-    week: 0,
-    date: DateTime(0),
-    weightKg: null,
-    systolic: null,
-    diastolic: null,
-  );
-
   static Widget _latest(BuildContext context, String value, DateTime date) {
     final locale = Localizations.localeOf(context).toLanguageTag();
     return Text(
@@ -215,12 +207,9 @@ class _Body extends StatelessWidget {
     BuildContext context,
     List<PregnancyReading> readings,
   ) {
-    final r = readings.lastWhere(
-      (r) => r.weightKg != null,
-      orElse: () => _none,
-    );
-    final weight = r.weightKg;
-    if (weight == null) return null;
+    final r = readings.reversed.where((r) => r.weightKg != null).firstOrNull;
+    final weight = r?.weightKg;
+    if (r == null || weight == null) return null;
     final locale = Localizations.localeOf(context).toLanguageTag();
     return _latest(
       context,
@@ -234,12 +223,11 @@ class _Body extends StatelessWidget {
     List<PregnancyReading> readings,
   ) {
     final l = AppLocalizations.of(context);
-    final r = readings.lastWhere(
-      (r) => r.systolic != null || r.diastolic != null,
-      orElse: () => _none,
-    );
-    final level = BloodPressureLevel.of(r.systolic, r.diastolic);
-    if (level == null) return null;
+    final r = readings.reversed
+        .where((r) => r.systolic != null || r.diastolic != null)
+        .firstOrNull;
+    final level = BloodPressureLevel.of(r?.systolic, r?.diastolic);
+    if (r == null || level == null) return null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -274,14 +262,11 @@ class _AncTile extends StatelessWidget {
     final (severity, label) = switch (status.state) {
       AncState.done => (Severity.good, l.ancDone),
       AncState.missed => (Severity.info, l.ancMissed),
-      AncState.open => switch (FollowUp(
-        ruleId: item.id,
-        profileId: '',
-        dueOn: status.dueOn,
-        title: (_) => '',
-        reason: (_) => '',
+      AncState.open => switch (followUpSeverity(
+        status.dueOn,
+        today,
         graceDays: item.graceDays,
-      ).severityOn(today)) {
+      )) {
         Severity.actSoon => (Severity.actSoon, l.followUpOverdue(date)),
         final s => (s, l.followUpDue(date)),
       },
