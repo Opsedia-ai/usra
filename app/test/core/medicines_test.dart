@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/native.dart';
@@ -296,7 +297,37 @@ void main() {
 
   group('reminders', () {
     final ar = lookupAppLocalizations(const Locale('ar'));
-    final texts = ReminderTexts(ar);
+    final texts = ReminderTexts(ar, discreet: false);
+
+    test('discreet: no person, medicine or instructions', () async {
+      final id = await paracetamol();
+      final regimens = await db.watchRegimens().first;
+      final now = DateTime(2026, 11, 3, 9);
+      for (final (l, title, body) in [
+        (ar, 'ميعاد دوا', 'افتح أسرة عشان تشوف أنهي دوا'),
+        (
+          lookupAppLocalizations(const Locale('en')),
+          'Time for a medicine',
+          'Open Usra to see which',
+        ),
+      ]) {
+        final planned = planReminders(
+          regimens,
+          const [],
+          now: now,
+          texts: ReminderTexts(l, discreet: true),
+          window: const Duration(days: 1),
+        );
+        expect(planned.first.title, title);
+        expect(planned.first.body, body);
+        expect(planned.first.takenLabel, isNull);
+        // Without the random id, which can contain "500".
+        final payload = planned.first.toPayload().replaceAll(id, '');
+        for (final secret in ['عمر', 'باراسيتامول', '500', 'قرص', 'الأكل']) {
+          expect(payload, isNot(contains(secret)), reason: secret);
+        }
+      }
+    });
 
     test('one per dose not yet marked, in Arabic with the name', () async {
       final id = await paracetamol();
@@ -351,28 +382,63 @@ void main() {
       expect(all.last.at, DateTime(2026, 11, 30, 20));
     });
 
-    test('the payload round-trips; snoozes get a stable high id', () {
+    test('the payload holds only the dose, never text', () {
       final r = PlannedReminder(
         id: 4,
         at: DateTime(2026, 11, 4, 8),
         medicineId: 'm1',
         scheduledAt: DateTime(2026, 11, 4, 8).toUtc(),
-        title: 't',
-        body: 'b',
+        title: 'ميعاد دوا عمر',
+        body: 'بعد الأكل',
         takenLabel: 'اتاخد',
         snoozeLabel: 'أجّل',
       );
-      final back = PlannedReminder.fromPayload(r.toPayload())!;
+      final payload = r.toPayload();
+      expect(
+        (jsonDecode(payload) as Map).keys,
+        unorderedEquals(['m', 's', 'a', 'l']),
+      );
+      final back = ReminderRef.fromPayload(payload)!;
       expect(back.medicineId, 'm1');
       expect(back.scheduledAt, r.scheduledAt);
-      expect(back.snoozeLabel, 'أجّل');
-      expect(PlannedReminder.fromPayload('nonsense'), isNull);
+      expect(back.at!.isAtSameMomentAs(r.at), isTrue);
+      expect(back.locale, 'ar');
+      expect(ReminderRef.fromPayload('nonsense'), isNull);
+      // What older versions saved: still read, the text ignored.
+      final old = ReminderRef.fromPayload(
+        jsonEncode({
+          'm': 'm1',
+          's': 1,
+          't': 'عمر',
+          'b': 'b',
+          'tl': 'x',
+          'sl': 'y',
+        }),
+      )!;
+      expect(old.at, isNull);
+      expect(old.medicineId, 'm1');
 
-      final s = r.snoozed(DateTime(2026, 11, 4, 8, 1));
-      expect(s.at, DateTime(2026, 11, 4, 8, 11));
-      expect(s.id, greaterThanOrEqualTo(snoozeIdBase));
-      expect(s.id, snoozeIdFor('m1', r.scheduledAt));
-      expect(s.scheduledAt.isAtSameMomentAs(r.scheduledAt), isTrue);
+      expect(
+        snoozeIdFor('m1', r.scheduledAt),
+        greaterThanOrEqualTo(snoozeIdBase),
+      );
+      expect(
+        snoozeIdFor('m1', r.scheduledAt),
+        snoozeIdFor('m1', r.scheduledAt),
+      );
+    });
+
+    test('a snooze pressed while the app is closed is discreet', () {
+      final ref = ReminderRef(
+        medicineId: 'm1',
+        scheduledAt: DateTime.utc(2026, 11, 4, 6),
+        locale: 'en',
+      );
+      final s = ReminderTexts.generic(ref, at: DateTime(2026, 11, 4, 8, 10));
+      expect(s.title, 'Time for a medicine');
+      expect(s.takenLabel, isNull);
+      expect(s.snoozeLabel, 'Snooze 10 min');
+      expect(s.id, snoozeIdFor('m1', ref.scheduledAt));
     });
 
     test('the inbox hands back actions once, even after a cut-off run', () {
@@ -434,22 +500,18 @@ void main() {
 
       // Snoozing from the stale 08:00 notification changes nothing.
       await sync.handleAction(
-        PlannedReminder(
-          id: 1,
-          at: eight,
-          medicineId: id,
-          scheduledAt: eight,
-          title: 't',
-          body: 'b',
-          takenLabel: 'اتاخد',
-          snoozeLabel: 'أجّل',
-        ),
+        ReminderRef(medicineId: id, scheduledAt: eight, locale: 'ar'),
         DoseOutcome.snoozed,
       );
       expect(scheduler.snoozes, isEmpty);
 
-      await sync.handleAction(scheduler.planned.first, DoseOutcome.snoozed);
+      await sync.handleAction(scheduler.planned.first.ref, DoseOutcome.snoozed);
       expect(scheduler.snoozes.single.at, now.add(snoozeDuration));
+      // Rebuilt from the database, not copied from the notification.
+      expect(
+        scheduler.snoozes.single.title,
+        'ميعاد دوا عمر: باراسيتامول 500 مجم',
+      );
       await sync.resync();
       expect(scheduler.planned.first.at, DateTime(2026, 11, 4, 8));
     });

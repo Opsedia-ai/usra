@@ -28,7 +28,8 @@ class ReminderSync with WidgetsBindingObserver {
   final ReminderScheduler scheduler;
   final DoseActionInbox inbox;
 
-  /// Notification text in the app's current language.
+  /// Notification and widget text in the app's current language and
+  /// discreet setting.
   final ReminderTexts Function() texts;
 
   /// The home-screen widget; none in tests that don't need it.
@@ -116,10 +117,18 @@ class ReminderSync with WidgetsBindingObserver {
       return;
     }
     // Each on its own: a broken widget never stops reminders.
+    final t = texts();
     try {
       await scheduler.replaceAll(
-        planReminders(regimens, logs, now: now, texts: texts()),
+        planReminders(regimens, logs, now: now, texts: t),
         doneSnoozes: doneSnoozeIds(logs),
+        // Snoozes and notifications on screen follow the settings too.
+        rebuild: (id, ref, at) {
+          final r = _regimenOf(regimens, ref.medicineId);
+          return r == null
+              ? null
+              : t.reminder(r, id: id, at: at, scheduledAt: ref.scheduledAt);
+        },
       );
     } catch (e, s) {
       _report(e, s);
@@ -127,9 +136,16 @@ class ReminderSync with WidgetsBindingObserver {
     final widget = this.widget;
     if (widget == null) return;
     try {
-      final l = texts().l;
-      await ensureWidgetDateFormatting(l.localeName);
-      await widget.publish(buildWidgetSnapshot(regimens, logs, now: now, l: l));
+      await ensureWidgetDateFormatting(t.l.localeName);
+      await widget.publish(
+        buildWidgetSnapshot(
+          regimens,
+          logs,
+          now: now,
+          l: t.l,
+          discreet: t.discreet,
+        ),
+      );
     } catch (e, s) {
       _report(e, s);
     }
@@ -154,17 +170,27 @@ class ReminderSync with WidgetsBindingObserver {
   }
 
   /// A Taken or Snooze action handled while the app is running.
-  Future<void> handleAction(PlannedReminder reminder, String status) async {
+  Future<void> handleAction(ReminderRef dose, String status) async {
     final now = _clock();
-    final saved = await _save(
-      reminder.medicineId,
-      reminder.scheduledAt,
-      status,
-      now,
+    final saved = await _save(dose.medicineId, dose.scheduledAt, status, now);
+    if (!saved || status != DoseOutcome.snoozed) return;
+    final r = _regimenOf(await db.watchRegimens().first, dose.medicineId);
+    if (r == null) return;
+    await scheduler.add(
+      texts().reminder(
+        r,
+        id: snoozeIdFor(dose.medicineId, dose.scheduledAt),
+        at: now.add(snoozeDuration),
+        scheduledAt: dose.scheduledAt,
+      ),
     );
-    if (saved && status == DoseOutcome.snoozed) {
-      await scheduler.add(reminder.snoozed(now));
+  }
+
+  static Regimen? _regimenOf(List<Regimen> regimens, String medicineId) {
+    for (final r in regimens) {
+      if (r.medicine.id == medicineId) return r;
     }
+    return null;
   }
 
   Future<bool> _save(

@@ -15,7 +15,9 @@ import 'package:usra/core/preferences.dart';
 import 'package:usra/core/files/photo_crypto.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/core/routing/app_router.dart';
+import 'package:usra/core/screen_privacy.dart';
 import 'package:usra/features/backup/backup_providers.dart';
+import 'package:usra/features/backup/backup_screen.dart';
 
 /// Hands back a ready-made file instead of packing the database.
 class _FakeBackupService extends BackupService {
@@ -361,5 +363,75 @@ void main() {
     // And the backup page is one step away.
     await go(tester, '/settings/backup');
     expect(find.byKey(const ValueKey('backup-now')), findsOneWidget);
+  });
+
+  group('screen privacy', () {
+    late List<bool> secure;
+    setUp(() => secure = []);
+
+    Future<void> start(WidgetTester tester) async {
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        ScreenPrivacy.channel,
+        (call) async {
+          if (call.method == 'setSecure') secure.add(call.arguments as bool);
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          ScreenPrivacy.channel,
+          null,
+        ),
+      );
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('no screenshots of the recovery key', (tester) async {
+      await start(tester);
+      // "Block screenshots" is off by default.
+      expect(secure, [false]);
+
+      await go(tester, '$backupPath/key');
+      expect(find.byKey(const ValueKey('recovery-group-1')), findsOneWidget);
+      expect(secure, [false, true]);
+
+      await go(tester, backupPath);
+      expect(secure, [false, true, false]);
+
+      // Restore, where the key is typed, too.
+      await go(tester, '$backupPath/restore');
+      expect(secure.last, isTrue);
+    });
+
+    testWidgets('Block screenshots and Discreet notifications in Settings', (
+      tester,
+    ) async {
+      await start(tester);
+      await go(tester, '/settings');
+      Finder tile(String key) => find.descendant(
+        of: find.byKey(ValueKey(key)),
+        matching: find.byType(SwitchListTile),
+      );
+      final block = tile('settings-block-screenshots');
+      final discreet = tile('settings-discreet');
+      expect(tester.widget<SwitchListTile>(block).value, isFalse);
+      expect(tester.widget<SwitchListTile>(discreet).value, isTrue);
+
+      await tester.tap(block);
+      await tester.pumpAndSettle();
+      expect(secure, [false, true]);
+      expect(prefs.getBool(PrefKeys.blockScreenshots), isTrue);
+      // Leaving the recovery key keeps the whole app blocked.
+      await go(tester, '$backupPath/key');
+      await go(tester, backupPath);
+      expect(secure, [false, true]);
+
+      await go(tester, '/settings');
+      await tester.tap(discreet);
+      await tester.pumpAndSettle();
+      expect(prefs.getBool(PrefKeys.discreetNotifications), isFalse);
+      expect(find.text('تنبيهات من غير أسامي'), findsOneWidget);
+    });
   });
 }

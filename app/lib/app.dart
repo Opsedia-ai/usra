@@ -5,6 +5,7 @@ import 'core/design/theme.dart';
 import 'core/preferences.dart';
 import 'core/providers.dart';
 import 'core/routing/app_router.dart';
+import 'core/screen_privacy.dart';
 import 'l10n/app_localizations.dart';
 
 /// Simple Mode grows text up to this, so screens still fit when the phone's
@@ -17,6 +18,8 @@ class UsraApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final simple = ref.watch(simpleModeProvider);
+    // Applies "Block screenshots" from the start.
+    ref.watch(screenPrivacyProvider);
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,

@@ -22,7 +22,7 @@
   "settingsLanguage": "Language",
   "languageArabic": "العربية",
   "languageEnglish": "English",
-  "settingsPrivacy": "Your data stays on this phone. Records are encrypted.",
+  "settingsPrivacy": "Your data stays on this phone, encrypted.",
   "recoveryNotice": "We couldn't open your earlier records on this phone, so we kept them aside safely and started fresh. You can restore them from your backup in More.",
   "notMedicalDevice": "Usra is not a medical device. Always ask your doctor before medical decisions.",
   "aboutTitle": "About & privacy",
@@ -411,7 +411,7 @@
   "tutorialWelcomeTitle": "Hi, I'm Dr. Usra",
   "tutorialWelcomeBody": "Usra keeps your family's health in one place: doctor visits, tests, medicines and your doctors' numbers.",
   "tutorialPrivacyTitle": "Your data stays with you",
-  "tutorialPrivacyBody": "Everything is saved on this phone, and records are encrypted. No account needed.",
+  "tutorialPrivacyBody": "Everything is saved on this phone, encrypted. No account needed.",
   "tutorialFamilyTitle": "Add your family",
   "tutorialFamilyBody": "Add everyone you care for: kids, parents, grandparents. Each person gets their own page.",
   "tutorialColorsTitle": "Colours mean urgency",
@@ -1172,5 +1172,12 @@
     }
   },
   "accountErrorSignInAgain": "Your sign-in has expired. Sign in again",
-  "accountErrorFamilyHasMembers": "You created a family that other people are in. Their shared records would be deleted too, so this account can't be deleted yet."
+  "accountErrorFamilyHasMembers": "You created a family that other people are in. Their shared records would be deleted too, so this account can't be deleted yet.",
+  "doseReminderDiscreetTitle": "Time for a medicine",
+  "widgetDiscreetDose": "Dose due",
+  "settingsDiscreet": "Discreet notifications",
+  "settingsDiscreetHint": "Reminders and the home-screen widget say \"Time for a medicine\", without the person's or the medicine's name.",
+  "settingsBlockScreenshots": "Block screenshots",
+  "settingsBlockScreenshotsHint": "No screenshots or screen recording anywhere in the app. The recovery key is always protected. Leave off to screenshot the emergency card.",
+  "doseReminderDiscreetBody": "Open Usra to see which"
 }

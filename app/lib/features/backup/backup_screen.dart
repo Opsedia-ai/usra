@@ -12,6 +12,7 @@ import '../../core/backup/backup_service.dart';
 import '../../core/backup/recovery_key.dart';
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
+import '../../core/screen_privacy.dart';
 import '../../l10n/app_localizations.dart';
 import 'backup_providers.dart';
 
@@ -288,8 +289,11 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
     await ref.read(restoreAndRestartProvider)(_staged!, _usedKey!);
   }
 
+  // The recovery key is typed here: no screenshots or screen recording.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => SecureScreen(child: _page(context));
+
+  Widget _page(BuildContext context) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     final staged = _staged;

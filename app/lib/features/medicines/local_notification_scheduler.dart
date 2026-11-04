@@ -1,23 +1,27 @@
 import 'dart:io';
 import 'dart:math';
-import 'dart:ui' show DartPluginRegistrant;
+import 'dart:ui' show DartPluginRegistrant, Locale;
 
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../core/database/app_database.dart';
+import '../../l10n/app_localizations.dart';
 import 'reminders.dart';
 
 const _channelId = 'doses';
 const _category = 'dose';
+
+/// Discreet reminders: Snooze only (iOS fixes a category's buttons).
+const _discreetCategory = 'dose_discreet';
 const takenActionId = 'taken';
 const snoozeActionId = 'snooze';
 
 /// What a tap on a dose notification asks for: `status` is
 /// [DoseOutcome.taken] or [DoseOutcome.snoozed] for the action buttons, null
 /// when the notification itself was tapped.
-typedef DoseResponse = ({PlannedReminder reminder, String? status});
+typedef DoseResponse = ({ReminderRef dose, String? status});
 
 /// [ReminderScheduler] on the phone's notifications
 /// (flutter_local_notifications).
@@ -40,6 +44,7 @@ class LocalNotificationScheduler implements ReminderScheduler {
     required String channelName,
     required String takenLabel,
     required String snoozeLabel,
+    required String hiddenPreviewText,
     required void Function(DoseResponse response) onResponse,
   }) async {
     final plugin = FlutterLocalNotificationsPlugin();
@@ -62,7 +67,22 @@ class LocalNotificationScheduler implements ReminderScheduler {
         importance: Importance.max,
       ),
     );
+    if (Platform.isIOS) await _hideLockScreenText(hiddenPreviewText);
     return LocalNotificationScheduler._(plugin);
+  }
+
+  static const _privacy = MethodChannel('usra/notification_privacy');
+
+  /// iOS hides previews on the lock screen by default; this is what shows
+  /// instead (rather than "Notification"). Android: see [_details].
+  static Future<void> _hideLockScreenText(String text) async {
+    try {
+      await _privacy.invokeMethod<void>('setHiddenPreviewText', text);
+    } on PlatformException {
+      // The default placeholder is generic too.
+    } on MissingPluginException {
+      // The default placeholder is generic too.
+    }
   }
 
   /// The tap or action that launched the app, if any.
@@ -91,14 +111,20 @@ class LocalNotificationScheduler implements ReminderScheduler {
             DarwinNotificationAction.plain(snoozeActionId, snoozeLabel),
           ],
         ),
+        DarwinNotificationCategory(
+          _discreetCategory,
+          actions: [
+            DarwinNotificationAction.plain(snoozeActionId, snoozeLabel),
+          ],
+        ),
       ],
     ),
   );
 
   static DoseResponse? _read(NotificationResponse r) {
-    final reminder = PlannedReminder.fromPayload(r.payload);
-    if (reminder == null) return null;
-    return (reminder: reminder, status: _statusOf(r.actionId));
+    final dose = ReminderRef.fromPayload(r.payload);
+    if (dose == null) return null;
+    return (dose: dose, status: _statusOf(r.actionId));
   }
 
   static String? _statusOf(String? actionId) => switch (actionId) {
@@ -176,32 +202,53 @@ class LocalNotificationScheduler implements ReminderScheduler {
   Future<void> replaceAll(
     List<PlannedReminder> reminders, {
     Set<int> doneSnoozes = const {},
+    ReminderRebuild? rebuild,
   }) async {
     final pending = await _plugin.pendingNotificationRequests();
     final snoozes = pending.where((p) => p.id >= snoozeIdBase).length;
     // iOS keeps only 64 pending notifications, snoozes included.
     final room = Platform.isIOS ? max(0, _iosLimit - snoozes) : _androidLimit;
-    final wanted = {for (final r in reminders.take(room)) r.id: r};
-    // Leave unchanged reminders alone: cancelling and re-adding one that's
-    // about to ring could lose it.
-    final kept = <int>{};
-    for (final p in pending) {
-      if (p.id >= snoozeIdBase) {
-        if (doneSnoozes.contains(p.id)) await _plugin.cancel(id: p.id);
-        continue;
-      }
-      if (wanted[p.id]?.toPayload() == p.payload) {
-        kept.add(p.id);
-      } else {
-        await _plugin.cancel(id: p.id);
-      }
+    final changes = diffReminders(
+      pending: [
+        for (final p in pending)
+          (id: p.id, title: p.title, body: p.body, payload: p.payload),
+      ],
+      shown: rebuild == null ? const [] : await _shown(),
+      wanted: reminders.take(room).toList(),
+      doneSnoozes: doneSnoozes,
+      rebuild: rebuild,
+      now: DateTime.now(),
+    );
+    for (final id in changes.cancel) {
+      await _plugin.cancel(id: id);
     }
     final mode = await _mode();
-    // Planned a moment ago; one that's due by now would be refused.
-    final soonest = DateTime.now().add(const Duration(seconds: 1));
-    for (final r in wanted.values) {
-      if (kept.contains(r.id) || r.at.isBefore(soonest)) continue;
+    for (final r in changes.schedule) {
       await _schedule(_plugin, r, mode);
+    }
+    for (final r in changes.repost) {
+      await _plugin.show(
+        id: r.id,
+        title: r.title,
+        body: r.body,
+        payload: r.toPayload(),
+        notificationDetails: _details(r, silent: true),
+      );
+    }
+  }
+
+  /// Dose notifications on screen now.
+  Future<List<PhoneReminder>> _shown() async {
+    try {
+      return [
+        for (final n in await _plugin.getActiveNotifications())
+          if (n.id != null &&
+              (n.channelId == null || n.channelId == _channelId))
+            (id: n.id!, title: n.title, body: n.body, payload: n.payload),
+      ];
+    } on Object {
+      // Older Android, or not allowed: they stay as they are.
+      return const [];
     }
   }
 
@@ -234,7 +281,12 @@ Future<void> _schedule(
     body: r.body,
     payload: r.toPayload(),
     androidScheduleMode: mode,
-    notificationDetails: NotificationDetails(
+    notificationDetails: _details(r),
+  );
+}
+
+NotificationDetails _details(PlannedReminder r, {bool silent = false}) =>
+    NotificationDetails(
       android: AndroidNotificationDetails(
         _channelId,
         // Only used if the channel was never created; init creates it.
@@ -242,42 +294,51 @@ Future<void> _schedule(
         importance: Importance.max,
         priority: Priority.high,
         category: AndroidNotificationCategory.reminder,
-        // Medicine names are health data: hidden on a secure lock screen.
+        // Hidden on a secure lock screen when the phone hides sensitive
+        // content; discreet text says nothing either way.
         visibility: NotificationVisibility.private,
+        silent: silent,
         actions: [
-          AndroidNotificationAction(takenActionId, r.takenLabel),
+          if (r.takenLabel case final taken?)
+            AndroidNotificationAction(takenActionId, taken),
           AndroidNotificationAction(snoozeActionId, r.snoozeLabel),
         ],
       ),
-      iOS: const DarwinNotificationDetails(categoryIdentifier: _category),
-    ),
-  );
-}
+      iOS: DarwinNotificationDetails(
+        categoryIdentifier: r.discreet ? _discreetCategory : _category,
+        presentSound: silent ? false : null,
+        presentBanner: silent ? false : null,
+      ),
+    );
 
 /// Taken / Snooze pressed while the app wasn't running, in a background
 /// isolate that can't open the encrypted database: the action is left in
 /// the inbox for the app, and a snooze is scheduled right here.
 @pragma('vm:entry-point')
 Future<void> onBackgroundDoseResponse(NotificationResponse response) async {
-  final reminder = PlannedReminder.fromPayload(response.payload);
+  final dose = ReminderRef.fromPayload(response.payload);
   final status = LocalNotificationScheduler._statusOf(response.actionId);
-  if (reminder == null || status == null) return;
+  if (dose == null || status == null) return;
   DartPluginRegistrant.ensureInitialized();
   final now = DateTime.now();
   (await DoseActionInbox.open()).add(
     DoseAction(
-      medicineId: reminder.medicineId,
-      scheduledAt: reminder.scheduledAt,
+      medicineId: dose.medicineId,
+      scheduledAt: dose.scheduledAt,
       status: status,
       at: now,
     ),
   );
   if (status != DoseOutcome.snoozed) return;
+  // The database (and so the names) can't be read here: the snooze is
+  // discreet, and gets its full text when the app next runs.
+  final snooze = ReminderTexts.generic(dose, at: now.add(snoozeDuration));
+  final l = lookupAppLocalizations(Locale(snooze.locale));
   final plugin = FlutterLocalNotificationsPlugin();
   await plugin.initialize(
     settings: LocalNotificationScheduler._settings(
-      takenLabel: reminder.takenLabel,
-      snoozeLabel: reminder.snoozeLabel,
+      takenLabel: l.doseTaken,
+      snoozeLabel: l.doseSnooze,
     ),
     onDidReceiveBackgroundNotificationResponse: onBackgroundDoseResponse,
   );
@@ -290,7 +351,7 @@ Future<void> onBackgroundDoseResponse(NotificationResponse response) async {
       false;
   await _schedule(
     plugin,
-    reminder.snoozed(now),
+    snooze,
     exact
         ? AndroidScheduleMode.exactAllowWhileIdle
         : AndroidScheduleMode.inexactAllowWhileIdle,

@@ -77,8 +77,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
-  String get settingsPrivacy =>
-      'بياناتك بتفضل على الموبايل ده، والسجلات متشفرة.';
+  String get settingsPrivacy => 'بياناتك بتفضل على الموبايل ده ومتشفرة.';
 
   @override
   String get recoveryNotice =>
@@ -804,7 +803,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tutorialPrivacyBody =>
-      'كل حاجة متسجّلة على الموبايل ده، والسجلات متشفّرة. مش محتاج حساب.';
+      'كل حاجة متسجّلة على الموبايل ده ومتشفّرة. مش محتاج حساب.';
 
   @override
   String get tutorialFamilyTitle => 'ضيف عيلتك';
@@ -2134,4 +2133,27 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get accountErrorFamilyHasMembers =>
       'إنت عامل عيلة فيها ناس تانيين، ومسح الحساب هيمسح سجلاتهم المشتركة كمان، فمينفعش يتمسح دلوقتي.';
+
+  @override
+  String get doseReminderDiscreetTitle => 'ميعاد دوا';
+
+  @override
+  String get widgetDiscreetDose => 'ميعاد جرعة';
+
+  @override
+  String get settingsDiscreet => 'تنبيهات من غير أسامي';
+
+  @override
+  String get settingsDiscreetHint =>
+      'التنبيهات وويدجت الشاشة الرئيسية بتقول \"ميعاد دوا\" بس، من غير اسم الشخص ولا اسم الدوا.';
+
+  @override
+  String get settingsBlockScreenshots => 'امنع تصوير الشاشة';
+
+  @override
+  String get settingsBlockScreenshotsHint =>
+      'مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق كله. مفتاح الاسترجاع محمي على طول. سيبها مقفولة لو عايز تصوّر كارت الطوارئ.';
+
+  @override
+  String get doseReminderDiscreetBody => 'افتح أسرة عشان تشوف أنهي دوا';
 }

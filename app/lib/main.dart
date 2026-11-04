@@ -118,8 +118,6 @@ Future<void> main() async {
   final app = ValueNotifier<ProviderContainer?>(null);
   ProviderContainer container() => app.value!;
   late ReminderSync reminders;
-  AppLocalizations l() =>
-      lookupAppLocalizations(container().read(localeProvider));
   // Pressed while a restore swaps the data: replayed once it's back.
   final waiting = <DoseResponse>[];
   void onDoseResponse(DoseResponse r) {
@@ -131,7 +129,7 @@ Future<void> main() async {
     if (status == null) {
       container().read(routerProvider).go('/medicines');
     } else {
-      reminders.handleAction(r.reminder, status);
+      reminders.handleAction(r.dose, status);
     }
   }
 
@@ -143,6 +141,7 @@ Future<void> main() async {
       channelName: startup.doseChannelName,
       takenLabel: startup.doseTaken,
       snoozeLabel: startup.doseSnooze,
+      hiddenPreviewText: startup.doseReminderDiscreetTitle,
       onResponse: onDoseResponse,
     );
   } catch (e, s) {
@@ -180,7 +179,7 @@ Future<void> main() async {
     db: database,
     scheduler: scheduler,
     inbox: inbox,
-    texts: () => ReminderTexts(l()),
+    texts: () => reminderTextsOf(container()),
     widget: const HomeWidgetSnapshotPublisher(),
   );
 
@@ -279,12 +278,12 @@ Future<void> main() async {
     () => app.value?.read(routerProvider).go('/medicines'),
   );
   await reminders.start();
-  // Notification text follows the app's language.
-  // (Set up again for each restart's container.)
-  void followLocale() =>
-      container().listen(localeProvider, (_, _) => reminders.resync());
-  followLocale();
+  // Notification and widget text follow the app's language and the
+  // discreet setting. (Set up again for each restart's container.)
+  void followTexts() =>
+      resyncOnTextChange(container(), () => reminders.resync());
+  followTexts();
   app.addListener(() {
-    if (app.value != null) followLocale();
+    if (app.value != null) followTexts();
   });
 }

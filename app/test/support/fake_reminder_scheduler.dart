@@ -33,13 +33,18 @@ class FakeReminderScheduler implements ReminderScheduler {
   /// Snoozes cancelled at the last replace.
   Set<int> doneSnoozes = const {};
 
+  /// How snoozes and notifications on screen were to be rewritten.
+  ReminderRebuild? rebuild;
+
   @override
   Future<void> replaceAll(
     List<PlannedReminder> reminders, {
     Set<int> doneSnoozes = const {},
+    ReminderRebuild? rebuild,
   }) async {
     planned = List.of(reminders);
     this.doneSnoozes = doneSnoozes;
+    this.rebuild = rebuild;
   }
 
   @override

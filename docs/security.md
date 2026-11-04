@@ -64,8 +64,28 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   snapshot, `quick_check` on restore. `app/lib/core/backup/`.
 - **OS backup**: Android `allowBackup=false` plus data extraction rules that
   exclude everything; iOS photo folders excluded from iCloud backup.
-- **Notifications**: reminders use `NotificationVisibility.private`.
-- **Widget**: first name and medicine name only, no strength or condition.
+- **Notifications**: payloads hold only the medicine id, dose time and
+  language; the text is rebuilt from the current settings each time a
+  reminder is scheduled. Discreet notifications (default on, S4): "Time
+  for a medicine", no person, medicine or instructions, and no Taken
+  button (identical notifications could mark someone else's dose); a
+  snooze set while the app is closed is always discreet. Switching it
+  rewrites pending reminders, snoozes and notifications on screen.
+  Lock screen: `NotificationVisibility.private` hides content only when
+  the phone's lock-screen setting hides sensitive content (many phones
+  show it by default), so with discreet off names can show there on
+  Android; iOS hides previews when locked by default and shows generic
+  text instead.
+- **Widget**: first name and medicine name only, no strength or condition;
+  in discreet mode "Dose due" with no name and no Taken button (a tap
+  opens the app).
+- **Screen privacy (S3)**: recent-apps card is blank on Android 13+
+  (`setRecentsScreenshotEnabled(false)`) and shows the launch screen
+  below 13 (a cover added on pause, skipped in split screen) and on iOS
+  (cover while the scene is inactive). The cover can be held until the
+  app lock is drawn (`coverUntilReady` / `uncover` on
+  `usra/screen_privacy`). `FLAG_SECURE` on the recovery key and restore
+  screens; optional "Block screenshots" for the whole app (Android).
 - **Photos**: app private folder, never the gallery, EXIF not requested
   (`requestFullMetadata: false`). Each file encrypted with
   XChaCha20-Poly1305 under a random 256-bit photo key in the Keystore /

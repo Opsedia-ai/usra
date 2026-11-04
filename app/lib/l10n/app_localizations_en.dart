@@ -78,8 +78,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
-  String get settingsPrivacy =>
-      'Your data stays on this phone. Records are encrypted.';
+  String get settingsPrivacy => 'Your data stays on this phone, encrypted.';
 
   @override
   String get recoveryNotice =>
@@ -800,7 +799,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tutorialPrivacyBody =>
-      'Everything is saved on this phone, and records are encrypted. No account needed.';
+      'Everything is saved on this phone, encrypted. No account needed.';
 
   @override
   String get tutorialFamilyTitle => 'Add your family';
@@ -2122,4 +2121,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get accountErrorFamilyHasMembers =>
       'You created a family that other people are in. Their shared records would be deleted too, so this account can\'t be deleted yet.';
+
+  @override
+  String get doseReminderDiscreetTitle => 'Time for a medicine';
+
+  @override
+  String get widgetDiscreetDose => 'Dose due';
+
+  @override
+  String get settingsDiscreet => 'Discreet notifications';
+
+  @override
+  String get settingsDiscreetHint =>
+      'Reminders and the home-screen widget say \"Time for a medicine\", without the person\'s or the medicine\'s name.';
+
+  @override
+  String get settingsBlockScreenshots => 'Block screenshots';
+
+  @override
+  String get settingsBlockScreenshotsHint =>
+      'No screenshots or screen recording anywhere in the app. The recovery key is always protected. Leave off to screenshot the emergency card.';
+
+  @override
+  String get doseReminderDiscreetBody => 'Open Usra to see which';
 }

@@ -22,7 +22,7 @@
   "settingsLanguage": "اللغة",
   "languageArabic": "العربية",
   "languageEnglish": "English",
-  "settingsPrivacy": "بياناتك بتفضل على الموبايل ده، والسجلات متشفرة.",
+  "settingsPrivacy": "بياناتك بتفضل على الموبايل ده ومتشفرة.",
   "recoveryNotice": "مقدرناش نفتح سجلاتك القديمة على الموبايل ده، فحفظناها على جنب بأمان وبدأنا من جديد. تقدر ترجعها من النسخة الاحتياطية في المزيد.",
   "notMedicalDevice": "أسرة مش جهاز طبي. اسأل دكتورك دايماً قبل أي قرار طبي.",
   "aboutTitle": "عن أسرة والخصوصية",
@@ -297,7 +297,7 @@
   "tutorialWelcomeTitle": "أهلاً، أنا دكتور أسرة",
   "tutorialWelcomeBody": "أسرة بتجمع صحة عيلتك في مكان واحد: زيارات الدكاترة والتحاليل والأدوية وأرقام الدكاترة.",
   "tutorialPrivacyTitle": "بياناتك معاك إنت",
-  "tutorialPrivacyBody": "كل حاجة متسجّلة على الموبايل ده، والسجلات متشفّرة. مش محتاج حساب.",
+  "tutorialPrivacyBody": "كل حاجة متسجّلة على الموبايل ده ومتشفّرة. مش محتاج حساب.",
   "tutorialFamilyTitle": "ضيف عيلتك",
   "tutorialFamilyBody": "ضيف كل اللي بتهتم بيهم: الأولاد والأهل والجدود. كل واحد ليه صفحته.",
   "tutorialColorsTitle": "الألوان معناها الأهمية",
@@ -636,5 +636,12 @@
   "accountRetry": "جرّب تاني",
   "accountResendIn": "تقدر تطلب كود تاني بعد {seconds} ثانية",
   "accountErrorSignInAgain": "الدخول انتهى. ادخل تاني",
-  "accountErrorFamilyHasMembers": "إنت عامل عيلة فيها ناس تانيين، ومسح الحساب هيمسح سجلاتهم المشتركة كمان، فمينفعش يتمسح دلوقتي."
+  "accountErrorFamilyHasMembers": "إنت عامل عيلة فيها ناس تانيين، ومسح الحساب هيمسح سجلاتهم المشتركة كمان، فمينفعش يتمسح دلوقتي.",
+  "doseReminderDiscreetTitle": "ميعاد دوا",
+  "widgetDiscreetDose": "ميعاد جرعة",
+  "settingsDiscreet": "تنبيهات من غير أسامي",
+  "settingsDiscreetHint": "التنبيهات وويدجت الشاشة الرئيسية بتقول \"ميعاد دوا\" بس، من غير اسم الشخص ولا اسم الدوا.",
+  "settingsBlockScreenshots": "امنع تصوير الشاشة",
+  "settingsBlockScreenshotsHint": "مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق كله. مفتاح الاسترجاع محمي على طول. سيبها مقفولة لو عايز تصوّر كارت الطوارئ.",
+  "doseReminderDiscreetBody": "افتح أسرة عشان تشوف أنهي دوا"
 }
