@@ -8,6 +8,10 @@ on:
     branches: [main]
     paths: ["app/**", ".github/workflows/app-ci.yml"]
 
+# Read-only token: no job here writes to the repo.
+permissions:
+  contents: read
+
 jobs:
   test:
     # `labeled` is only a trigger so `release-build` can start the release
@@ -105,9 +109,24 @@ jobs:
           cache: true
       # Release native libraries are stripped, so all three ABIs fit where
       # three debug ABIs did not.
-      - run: flutter build appbundle --release
+      # Same flags as a Play release (docs/release.md), so obfuscation
+      # breakage shows up here first.
+      - name: Build release bundle
+        run: |
+          version=$(sed -n 's/^version: *//p' pubspec.yaml)
+          echo "version=$version" >> "$GITHUB_ENV"
+          flutter build appbundle --release --obfuscate \
+            --split-debug-info="build/symbols/$version"
       - name: Bundle size
         run: ls -lh build/app/outputs/bundle/release/app-release.aab
+      # Dart symbols for de-obfuscating stack traces from this build. Real
+      # releases keep theirs privately (docs/release.md); these are only
+      # for debugging CI builds, so they expire quickly.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dart-symbols-${{ env.version }}-${{ github.sha }}
+          path: app/build/symbols/
+          retention-days: 7
       - name: Disk left after build
         if: always()
         working-directory: /

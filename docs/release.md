@@ -11,6 +11,8 @@ Android only for now. The iOS icon and launch screen are generated, but the iOS 
 | Version | `version:` in `app/pubspec.yaml`: `1.2.3+N` gives versionName `1.2.3`, versionCode `N` |
 | SDK levels | minSdk 24, targetSdk 36 (`app/android/app/build.gradle.kts`) |
 | Shrinking | R8 and resource shrinking on release builds; extra rules in `app/android/app/proguard-rules.pro` |
+| Obfuscation | Dart code built with `--obfuscate --split-debug-info`; native symbol tables in the bundle (`debugSymbolLevel = SYMBOL_TABLE`) |
+| Network | No cleartext HTTP: `usesCleartextTraffic="false"` and `res/xml/network_security_config.xml` (system CAs only) |
 | Signing | Upload key from `app/android/key.properties` or `USRA_UPLOAD_*` env vars; debug key otherwise |
 | Icon and splash | `app/assets/branding/`, from `tools/branding/render_icons.py` |
 
@@ -42,16 +44,23 @@ or export the same values (for CI, from secrets):
 | `keyAlias` | `USRA_UPLOAD_KEY_ALIAS` |
 | `keyPassword` | `USRA_UPLOAD_KEY_PASSWORD` |
 
-`key.properties` wins over the environment. `storeFile` may be absolute or relative to `app/android/`.
+`key.properties` wins over the environment; a blank value in it (`storePassword=`) counts as missing, so the env var is used. `storeFile` may be absolute or relative to `app/android/`.
 
-Without either, the build prints `Usra: no upload key … signing release with the debug key` and still succeeds. That bundle installs on a device but **Play rejects it**.
+Without either, a release build prints `Usra: no upload key … signing release with the debug key` and still succeeds. That bundle installs on a device but **Play rejects it**. To make a missing key an error instead, set `USRA_REQUIRE_UPLOAD_KEY=true`: always do this for a real release and in any CI job that uploads to Play, so a renamed or missing secret fails the build instead of producing a debug-signed bundle.
 
 ## 3. Build
 
 Bump the build number in `app/pubspec.yaml` first (every upload needs a higher versionCode), then:
 
 ```bash
-cd app && flutter build appbundle --release
+cd app && USRA_REQUIRE_UPLOAD_KEY=true flutter build appbundle --release \
+  --obfuscate --split-debug-info=build/symbols/$(sed -n 's/^version: *//p' pubspec.yaml)
+```
+
+`--obfuscate` renames Dart classes and functions in the shipped `libapp.so`; `--split-debug-info` writes the symbols needed to read stack traces from that build to `app/build/symbols/<version>/`. **Keep that folder for every uploaded build**, privately (the team drive or password manager's file storage, not the repo, not a public release). Without it, crash stack traces from that version can't be read. To decode one:
+
+```bash
+flutter symbolize -i crash.txt -d app/build/symbols/<version>/app.android-arm64.symbols
 ```
 
 The bundle is `app/build/app/outputs/bundle/release/app-release.aab`. Check it was signed with the upload key, not the debug key:
@@ -81,7 +90,7 @@ Before the first production release the store listing, content rating, Data safe
 
 ## CI
 
-`.github/workflows/app-ci.yml` builds a debug-signed release bundle on every push to `main` (job `build-android-release`), so R8 or signing breakage shows up before release day. Add the `release-build` label to a PR to run it there too. It does not upload anything or use the upload key.
+`.github/workflows/app-ci.yml` builds a debug-signed, obfuscated release bundle (job `build-android-release`) on pushes to `main` that touch `app/**` or the workflow file, so R8, obfuscation or signing breakage shows up before release day. Add the `release-build` label to a PR to run it there too. It does not upload the bundle or use the upload key. Its Dart symbols are kept as a workflow artifact for 7 days, for debugging CI builds only.
 
 ## Regenerating the icon and splash
 

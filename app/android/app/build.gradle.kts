@@ -16,8 +16,10 @@ val keyProperties =
         if (file.exists()) file.inputStream().use { load(it) }
     }
 
+// Blank values (`storePassword=`) count as missing, so the env var is used.
 fun uploadKey(property: String, env: String): String? =
-    keyProperties.getProperty(property) ?: System.getenv(env)?.takeIf { it.isNotBlank() }
+    keyProperties.getProperty(property)?.takeIf { it.isNotBlank() }
+        ?: System.getenv(env)?.takeIf { it.isNotBlank() }
 
 val uploadStoreFile = uploadKey("storeFile", "USRA_UPLOAD_STORE_FILE")
 val hasUploadKey = uploadStoreFile != null
@@ -64,15 +66,24 @@ android {
             // R8 (minify + resource shrinking) is turned on by the Flutter
             // plugin, which also adds proguard-rules.pro.
             signingConfig = signingConfigs.getByName(if (hasUploadKey) "upload" else "debug")
+            // Native symbol tables in the bundle, so Play can symbolicate
+            // native crashes (sqlite3mc, ML Kit) and stops warning.
+            ndk { debugSymbolLevel = "SYMBOL_TABLE" }
         }
     }
 }
 
-// Warn only when a release is actually being built, not on every debug run.
+// Only when a release is actually being built, not on every debug run: warn
+// about the debug-key fallback, or fail if the caller requires the upload
+// key (USRA_REQUIRE_UPLOAD_KEY=true, set by any job that uploads to Play).
 if (!hasUploadKey) {
     gradle.taskGraph.whenReady {
         if (allTasks.any { it.project == project && it.name.contains("Release") }) {
-            logger.warn("Usra: no upload key (android/key.properties or USRA_UPLOAD_*); signing release with the debug key.")
+            val message = "no upload key (android/key.properties or USRA_UPLOAD_*)"
+            if (System.getenv("USRA_REQUIRE_UPLOAD_KEY") == "true") {
+                throw GradleException("Usra: $message, and USRA_REQUIRE_UPLOAD_KEY=true.")
+            }
+            logger.warn("Usra: $message; signing release with the debug key.")
         }
     }
 }
