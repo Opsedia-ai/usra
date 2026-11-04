@@ -88,6 +88,60 @@ class AppLocalizationsAr extends AppLocalizations {
       'أسرة مش جهاز طبي. اسأل دكتورك دايماً قبل أي قرار طبي.';
 
   @override
+  String get aboutTitle => 'عن أسرة والخصوصية';
+
+  @override
+  String get aboutHint => 'بياناتك بتتحفظ إزاي، ونسخة التطبيق';
+
+  @override
+  String get aboutPrivacyHeading => 'خصوصيتك، بكلام بسيط';
+
+  @override
+  String get aboutPrivacyOnPhone =>
+      'كل اللي بتسجله بيفضل على الموبايل ده. السجلات في قاعدة بيانات متشفرة، والصور في المساحة الخاصة بالتطبيق، عمرها ما بتروح معرض الصور ولا النسخ الاحتياطية على السحابة. إحنا مش بنستلم أي حاجة منهم ومنقدرش نشوفها.';
+
+  @override
+  String get aboutPrivacyNoAccount =>
+      'مفيش حساب ولا تسجيل دخول ولا إعلانات ولا تتبع. وعمرنا ما بنبيع ولا بنشارك بيانات حد.';
+
+  @override
+  String get aboutPrivacyBackup =>
+      'النسخة الاحتياطية ملف متشفر إنت بتحتفظ بيه في المكان اللي تختاره. ميتفتحش غير بمفتاح الاسترجاع بتاعك، وهو مش معانا.';
+
+  @override
+  String get aboutPrivacyPhotos =>
+      'الكاميرا والصور بتتستخدم بس لما إنت تختار، والكلام بيتقرا منها على الموبايل ده.';
+
+  @override
+  String get aboutPrivacyReminders =>
+      'التذكير بيتظبط على الموبايل ده. أسامي الأشخاص وأسامي الأدوية ممكن تظهر على شاشة القفل (الاسم زي ما كتبته) وفي الويدجت (الاسم الأول).';
+
+  @override
+  String get aboutPrivacyGoogle =>
+      'قارئ الكلام من جوجل، وممكن يبعت لجوجل بيانات تقنية برقم تثبيت عشوائي مش مربوط بيك. عمره ما بيبعت صورك ولا الكلام ولا سجلاتك.';
+
+  @override
+  String get aboutMedicalHeading => 'تنبيه طبي';
+
+  @override
+  String get aboutMedicalBody =>
+      'أسرة مش جهاز طبي. مش بتشخّص ولا بتعالج، ومش بديل عن دكتورك. منحنيات النمو ومواعيد التطعيمات والاقتراحات والكلام اللي بيتقرا من الصور للتنظيم والمعرفة العامة، وممكن تكون غلط. اسأل دكتورك أو الصيدلي دايماً قبل أي قرار طبي. وفي الطوارئ كلّم الإسعاف ١٢٣ في مصر أو رقم الطوارئ في بلدك.';
+
+  @override
+  String aboutVersion(String version) {
+    return 'النسخة $version';
+  }
+
+  @override
+  String get aboutPrivacyPolicy => 'سياسة الخصوصية';
+
+  @override
+  String get aboutTerms => 'شروط الاستخدام';
+
+  @override
+  String get aboutLinkFailed => 'مقدرناش نفتح الصفحة. اتأكد من النت.';
+
+  @override
   String get familyNew => 'شخص جديد';
 
   @override
@@ -1305,6 +1359,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backupDone => 'النسخة جاهزة. احفظها في مكان أمين برّه الموبايل.';
 
   @override
+  String backupDonePhotosSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة مقدرناش نفتحهم على الموبايل ده ومش فيها',
+      few: '$count صور مقدرناش نفتحهم على الموبايل ده ومش فيها',
+      two: 'صورتين مقدرناش نفتحهم على الموبايل ده ومش فيها',
+      one: 'صورة واحدة مقدرناش نفتحها على الموبايل ده ومش فيها',
+    );
+    return 'النسخة جاهزة، بس $_temp0. احفظها في مكان أمين برّه الموبايل.';
+  }
+
+  @override
+  String restorePhotosSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة في النسخة دي مش هيتفتحوا وهيتسابوا.',
+      few: '$count صور في النسخة دي مش هيتفتحوا وهيتسابوا.',
+      two: 'صورتين في النسخة دي مش هيتفتحوا وهيتسابوا.',
+      one: 'صورة واحدة في النسخة دي مش هتتفتح وهتتساب.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get photosLocked =>
+      'الصور مش بتتفتح على الموبايل ده. رجّع نسختك الاحتياطية عشان ترجعلك.';
+
+  @override
   String get backupFailed => 'مقدرناش نعمل النسخة. جرّب تاني.';
 
   @override
@@ -1946,6 +2030,109 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get devUntickConfirm =>
       'تشيل العلامة من المهارة دي؟ التاريخ اللي سجلته هيتمسح.';
+
+  @override
+  String get accountTitle => 'الحساب';
+
+  @override
+  String get accountSettingsHint => 'اختياري. سجلاتك فاضلة على الموبايل ده';
+
+  @override
+  String get accountPrivacy =>
+      'سجلات العيلة الصحية فاضلة على الموبايل ده. الحساب مش بيرفعها: هو بس بيجهّز لمزامنة موبايلات العيلة ولخدمات الذكاء الاصطناعي بعدين، وإنت اللي هتختار قبل ما أي حاجة تتبعت.';
+
+  @override
+  String get accountSignInIntro => 'ادخل برقم موبايلك، وهنبعتلك كود في رسالة.';
+
+  @override
+  String get countryEgypt => 'مصر';
+
+  @override
+  String get countrySaudiArabia => 'السعودية';
+
+  @override
+  String get countryUae => 'الإمارات';
+
+  @override
+  String get accountPhone => 'رقم الموبايل';
+
+  @override
+  String get accountPhoneInvalid => 'اتأكد من رقم الموبايل';
+
+  @override
+  String get accountSendCode => 'ابعت الكود';
+
+  @override
+  String accountCodeSentTo(String phone) {
+    return 'اكتب الكود اللي فيه ٦ أرقام اللي بعتناه على $phone';
+  }
+
+  @override
+  String get accountCode => 'الكود';
+
+  @override
+  String get accountVerify => 'تأكيد';
+
+  @override
+  String get accountResend => 'ابعت الكود تاني';
+
+  @override
+  String get accountCodeResent => 'الكود اتبعت تاني';
+
+  @override
+  String get accountChangeNumber => 'غيّر الرقم';
+
+  @override
+  String get accountSignedIn => 'إنت داخل على حسابك';
+
+  @override
+  String accountSignedInAs(String phone) {
+    return 'داخل برقم $phone';
+  }
+
+  @override
+  String get accountSignOut => 'اخرج من الحساب';
+
+  @override
+  String get accountSignOutConfirm =>
+      'تخرج من الحساب؟ سجلاتك فاضلة على الموبايل.';
+
+  @override
+  String get accountDelete => 'امسح الحساب';
+
+  @override
+  String get accountDeleteConfirm =>
+      'تمسح حسابك؟ الحساب والأجهزة والرصيد هيتمسحوا من السيرفرات بتاعتنا. السجلات اللي على الموبايل ده هتفضل زي ما هي.';
+
+  @override
+  String get accountDeleted => 'الحساب اتمسح';
+
+  @override
+  String get accountErrorInvalidCode => 'الكود ده مش صح أو انتهى';
+
+  @override
+  String get accountErrorTooMany => 'محاولات كتير. استنى شوية وجرّب تاني';
+
+  @override
+  String get accountErrorNetwork => 'مفيش اتصال. اتأكد من النت وجرّب تاني';
+
+  @override
+  String get accountErrorGeneric => 'حصلت مشكلة. جرّب تاني';
+
+  @override
+  String get accountRetry => 'جرّب تاني';
+
+  @override
+  String accountResendIn(int seconds) {
+    return 'تقدر تطلب كود تاني بعد $seconds ثانية';
+  }
+
+  @override
+  String get accountErrorSignInAgain => 'الدخول انتهى. ادخل تاني';
+
+  @override
+  String get accountErrorFamilyHasMembers =>
+      'إنت عامل عيلة فيها ناس تانيين، ومسح الحساب هيمسح سجلاتهم المشتركة كمان، فمينفعش يتمسح دلوقتي.';
 
   @override
   String get doseReminderDiscreetTitle => 'ميعاد دوا';

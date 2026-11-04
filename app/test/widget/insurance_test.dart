@@ -20,6 +20,8 @@ void main() {
   late File picked;
   late SyncPhotoStore photos;
   final shared = <ShareParams>[];
+  final sharedBytes = <List<int>>[];
+  late SyncSharedPhotoCache shareCache;
 
   setUp(() {
     db = AppDatabase(
@@ -34,7 +36,9 @@ void main() {
       Directory('${dir.path}/support'),
       PhotoStore.cardsFolder,
     );
+    shareCache = SyncSharedPhotoCache(Directory('${dir.path}/cache'));
     shared.clear();
+    sharedBytes.clear();
   });
   tearDown(() async {
     await db.close();
@@ -46,7 +50,13 @@ void main() {
       databaseProvider.overrideWithValue(db),
       cardPhotoStoreProvider.overrideWithValue(photos),
       photoPickerProvider.overrideWithValue((_) async => picked.path),
-      shareProvider.overrideWithValue((p) async => shared.add(p)),
+      sharedPhotoCacheProvider.overrideWithValue(shareCache),
+      shareProvider.overrideWithValue((p) async {
+        shared.add(p);
+        for (final f in p.files ?? <XFile>[]) {
+          sharedBytes.add(File(f.path).readAsBytesSync());
+        }
+      }),
     ],
     child: const UsraApp(),
   );
@@ -110,7 +120,9 @@ void main() {
     final sent = shared.single;
     expect(sent.text, contains('كارت التأمين بتاع فاطمة'));
     expect(sent.text, contains('رقم العضوية: 998877'));
-    expect(sent.files!.single.path, photos.fileOf(card.frontPhoto!).path);
+    expect(sent.files, hasLength(1));
+    expect(sharedBytes.single, [0, 1, 2]);
+    expect(shareCache.dir.existsSync(), isFalse);
 
     await tapKey(tester, 'insurance-delete');
     await tapKey(tester, 'insurance-delete-confirm');

@@ -87,7 +87,20 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   `usra/screen_privacy`). `FLAG_SECURE` on the recovery key and restore
   screens; optional "Block screenshots" for the whole app (Android).
 - **Photos**: app private folder, never the gallery, EXIF not requested
-  (`requestFullMetadata: false`).
+  (`requestFullMetadata: false`). Each file encrypted with
+  XChaCha20-Poly1305 under a random 256-bit photo key in the Keystore /
+  Keychain (this device only), decrypted in memory to show, and only
+  written out decrypted to a cache folder for the share sheet, cleared
+  when the sheet returns; share_plus's own Android copies
+  (`<cache>/share_plus/`) are cleared when Usra is back in front, before
+  each share and on every start. Photos saved before this are encrypted in
+  place in the background after start-up. A missing photo key is never
+  replaced while encrypted photos exist: the app says photos can't be
+  opened and a restore brings them back with a new key. Backups carry
+  photos decrypted inside the backup's encryption and say how many they
+  left out; a restore encrypts them for the new phone as it unpacks.
+  Rolling the app back past this needs a forward fix (photos stay
+  encrypted), so it ships with a staged rollout. `app/lib/core/files/`.
 - **Backend**: RLS on every table, API roles start with no privileges,
   credits through functions only with locking, idempotent purchase webhook
   with signature check, in-memory rate limiter, body size limits, AI/OCR
@@ -104,7 +117,7 @@ with the cloud features (M6).
 
 | # | Item | Pri | Notes |
 | --- | --- | --- | --- |
-| S1 | **Encrypt photos at rest** | P0 | Biggest gap: insurance cards and prescriptions are plain files. Encrypt each file with XChaCha20-Poly1305 using a file key kept in the Keystore (or derived from the DB key); decrypt into memory for display; migrate existing files; share decrypts to a temp file that is deleted after. |
+| S1 | **Encrypt photos at rest** | P0 | Done (see section 3); verify on a device with existing photos. Was the biggest gap: insurance cards and prescriptions were plain files. Encrypt each file with XChaCha20-Poly1305 using a file key kept in the Keystore (or derived from the DB key); decrypt into memory for display; migrate existing files; share decrypts to a temp file that is deleted after. |
 | S2 | **App lock** | P0 | Optional PIN plus biometrics (`local_auth`), on by default from onboarding with skip. Re-lock after N minutes in the background. Simple Mode keeps it easy (biometrics first, big PIN pad). |
 | S3 | **Screen privacy** | P0 | Blur the app in the recent-apps switcher (iOS snapshot cover, Android `FLAG_SECURE` or `setRecentsScreenshotEnabled(false)`). `FLAG_SECURE` on the recovery key, emergency card is exempt so it can be shown. |
 | S4 | **Discreet mode** | P0 | Setting to show "Time for your medicine" instead of medicine/person names in notifications and the widget. Default on for the lock screen. |
