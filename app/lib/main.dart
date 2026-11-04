@@ -28,6 +28,13 @@ Future<void> main() async {
   Log.installErrorHandlers();
   final key = await DatabaseKeyStore().readOrCreate();
   final file = await defaultDatabaseFile();
+  try {
+    await excludeDatabaseFromBackup(file, PhotoStore.excludeFromBackup);
+  } catch (e, s) {
+    FlutterError.reportError(
+      FlutterErrorDetails(exception: e, stack: s, library: 'database'),
+    );
+  }
   final (temporary, version) = await (
     getTemporaryDirectory(),
     PackageInfo.fromPlatform(),

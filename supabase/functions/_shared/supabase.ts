@@ -16,11 +16,23 @@ export function getServiceClient(): SupabaseClient {
 
 /** Returns the id of the user whose JWT is in the Authorization header. */
 export async function requireUserId(req: Request): Promise<string> {
+  const id = await requireUserIdOrGone(req);
+  if (id === null) throw new HttpError(401, "unauthorized", "Invalid or expired session");
+  return id;
+}
+
+/**
+ * Like [requireUserId], but returns null when the token is genuine and
+ * its user no longer exists (Auth checks the signature before looking the
+ * user up), so a retried account deletion can answer "already deleted".
+ */
+export async function requireUserIdOrGone(req: Request): Promise<string | null> {
   const header = req.headers.get("Authorization") ?? "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : "";
   if (!token) throw new HttpError(401, "unauthorized", "Missing bearer token");
 
   const { data, error } = await getServiceClient().auth.getUser(token);
+  if (error?.code === "user_not_found") return null;
   if (error || !data.user) throw new HttpError(401, "unauthorized", "Invalid or expired session");
   return data.user.id;
 }

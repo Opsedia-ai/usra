@@ -233,7 +233,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsPrivacy.
   ///
   /// In en, this message translates to:
-  /// **'Your data stays on this phone, encrypted.'**
+  /// **'Your data stays on this phone. Records are encrypted.'**
   String get settingsPrivacy;
 
   /// No description provided for @recoveryNotice.
@@ -247,6 +247,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Usra is not a medical device. Always ask your doctor before medical decisions.'**
   String get notMedicalDevice;
+
+  /// No description provided for @aboutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About & privacy'**
+  String get aboutTitle;
+
+  /// No description provided for @aboutHint.
+  ///
+  /// In en, this message translates to:
+  /// **'How your data is kept, and the app version'**
+  String get aboutHint;
+
+  /// No description provided for @aboutPrivacyHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Your privacy, in plain words'**
+  String get aboutPrivacyHeading;
+
+  /// No description provided for @aboutPrivacyOnPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything you record stays on this phone. Records are in an encrypted database; photos are in the app\'s private storage, never in your gallery or in cloud backups. We don\'t receive any of it and can\'t see it.'**
+  String get aboutPrivacyOnPhone;
+
+  /// No description provided for @aboutPrivacyNoAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'No account, no sign-in, no ads and no tracking. We never sell or share anyone\'s data.'**
+  String get aboutPrivacyNoAccount;
+
+  /// No description provided for @aboutPrivacyBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'A backup is an encrypted file you keep wherever you choose. Only your recovery key opens it, and we don\'t have it.'**
+  String get aboutPrivacyBackup;
+
+  /// No description provided for @aboutPrivacyPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera and photos are used only when you choose, and text is read from them on this phone.'**
+  String get aboutPrivacyPhotos;
+
+  /// No description provided for @aboutPrivacyReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders are set on this phone. People\'s names and medicine names can show on the lock screen (the name as you typed it) and on the home-screen widget (first names).'**
+  String get aboutPrivacyReminders;
+
+  /// No description provided for @aboutPrivacyGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'The text reader is made by Google and may send Google technical data with a random install ID, not linked to you. Never your photos, the text or your records.'**
+  String get aboutPrivacyGoogle;
+
+  /// No description provided for @aboutMedicalHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical disclaimer'**
+  String get aboutMedicalHeading;
+
+  /// No description provided for @aboutMedicalBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra is not a medical device. It doesn\'t diagnose or treat, and it doesn\'t replace your doctor. Growth charts, vaccine dates, suggestions and text read from photos are for organising and general information, and can be wrong. Always ask your doctor or pharmacist before medical decisions. In an emergency, call 123 in Egypt or your local emergency number.'**
+  String get aboutMedicalBody;
+
+  /// No description provided for @aboutVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String aboutVersion(String version);
+
+  /// No description provided for @aboutPrivacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get aboutPrivacyPolicy;
+
+  /// No description provided for @aboutTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of use'**
+  String get aboutTerms;
+
+  /// No description provided for @aboutLinkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the page. Check your internet connection.'**
+  String get aboutLinkFailed;
 
   /// No description provided for @familyNew.
   ///
@@ -1397,7 +1487,7 @@ abstract class AppLocalizations {
   /// No description provided for @tutorialPrivacyBody.
   ///
   /// In en, this message translates to:
-  /// **'Everything is saved on this phone, encrypted. No account needed.'**
+  /// **'Everything is saved on this phone, and records are encrypted. No account needed.'**
   String get tutorialPrivacyBody;
 
   /// No description provided for @tutorialFamilyTitle.
@@ -3169,6 +3259,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Untick this milestone? The date you recorded will be removed.'**
   String get devUntickConfirm;
+
+  /// No description provided for @accountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get accountTitle;
+
+  /// No description provided for @accountSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Your records stay on this phone'**
+  String get accountSettingsHint;
+
+  /// No description provided for @accountPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family\'s health records stay on this phone. An account doesn\'t upload them: it only gets things ready for syncing between your family\'s phones and for AI features later, and you\'ll choose before anything is shared.'**
+  String get accountPrivacy;
+
+  /// No description provided for @accountSignInIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with your mobile number. We\'ll text you a code.'**
+  String get accountSignInIntro;
+
+  /// No description provided for @countryEgypt.
+  ///
+  /// In en, this message translates to:
+  /// **'Egypt'**
+  String get countryEgypt;
+
+  /// No description provided for @countrySaudiArabia.
+  ///
+  /// In en, this message translates to:
+  /// **'Saudi Arabia'**
+  String get countrySaudiArabia;
+
+  /// No description provided for @countryUae.
+  ///
+  /// In en, this message translates to:
+  /// **'UAE'**
+  String get countryUae;
+
+  /// No description provided for @accountPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile number'**
+  String get accountPhone;
+
+  /// No description provided for @accountPhoneInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the mobile number'**
+  String get accountPhoneInvalid;
+
+  /// No description provided for @accountSendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get accountSendCode;
+
+  /// No description provided for @accountCodeSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code we sent to {phone}'**
+  String accountCodeSentTo(String phone);
+
+  /// No description provided for @accountCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get accountCode;
+
+  /// No description provided for @accountVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get accountVerify;
+
+  /// No description provided for @accountResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the code again'**
+  String get accountResend;
+
+  /// No description provided for @accountCodeResent.
+  ///
+  /// In en, this message translates to:
+  /// **'Code sent again'**
+  String get accountCodeResent;
+
+  /// No description provided for @accountChangeNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Change number'**
+  String get accountChangeNumber;
+
+  /// No description provided for @accountSignedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in'**
+  String get accountSignedIn;
+
+  /// No description provided for @accountSignedInAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as {phone}'**
+  String accountSignedInAs(String phone);
+
+  /// No description provided for @accountSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get accountSignOut;
+
+  /// No description provided for @accountSignOutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out? Your records stay on this phone.'**
+  String get accountSignOutConfirm;
+
+  /// No description provided for @accountDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get accountDelete;
+
+  /// No description provided for @accountDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your account? Your account, devices and credits are erased from our servers. The records on this phone stay here.'**
+  String get accountDeleteConfirm;
+
+  /// No description provided for @accountDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted'**
+  String get accountDeleted;
+
+  /// No description provided for @accountErrorInvalidCode.
+  ///
+  /// In en, this message translates to:
+  /// **'That code isn\'t right or has expired'**
+  String get accountErrorInvalidCode;
+
+  /// No description provided for @accountErrorTooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries. Wait a little and try again'**
+  String get accountErrorTooMany;
+
+  /// No description provided for @accountErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. Check the internet and try again'**
+  String get accountErrorNetwork;
+
+  /// No description provided for @accountErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Try again'**
+  String get accountErrorGeneric;
+
+  /// No description provided for @accountRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get accountRetry;
+
+  /// No description provided for @accountResendIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the code again in {seconds}s'**
+  String accountResendIn(int seconds);
+
+  /// No description provided for @accountErrorSignInAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sign-in has expired. Sign in again'**
+  String get accountErrorSignInAgain;
+
+  /// No description provided for @accountErrorFamilyHasMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'You created a family that other people are in. Their shared records would be deleted too, so this account can\'t be deleted yet.'**
+  String get accountErrorFamilyHasMembers;
 }
 
 class _AppLocalizationsDelegate
