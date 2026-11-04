@@ -109,21 +109,22 @@ def main():
     canvas.save("icon.png", opaque=True)
 
     # Android adaptive icon foreground. flutter_launcher_icons insets it by
-    # 16% on each side, which already keeps it inside the 66/108 dp safe
-    # zone, so the glyph fills most of its own canvas.
-    canvas = Canvas(1024, CLEAR, 0.9)
+    # 16% on each side; at 0.8 the house's bottom corners stay inside the
+    # 33 dp safe-zone radius, so circle masks don't clip them.
+    canvas = Canvas(1024, CLEAR, 0.8)
     app_icon(canvas)
     canvas.save("icon_foreground.png")
 
     # Android 13 themed icon: only the alpha channel is used, so the face
     # and heart are cut out of the house.
-    canvas = Canvas(1024, CLEAR, 0.9)
+    canvas = Canvas(1024, CLEAR, 0.8)
     app_icon(canvas, house=WHITE, face=CLEAR, heart=CLEAR)
     canvas.save("icon_monochrome.png")
 
-    # Notification small icon (24 dp): Android draws only its alpha, so a
-    # full-colour launcher icon would show as a white square.
-    canvas = Canvas(1024, CLEAR, 22 / 24 / 0.8)
+    # Notification small icon: 20 dp live area in a 24 dp icon. Android
+    # draws only its alpha, so a full-colour launcher icon would show as a
+    # white square.
+    canvas = Canvas(1024, CLEAR, 20 / 24 / 0.8)
     app_icon(canvas, house=WHITE, face=CLEAR, heart=CLEAR)
     for density, scale in {"mdpi": 1, "hdpi": 1.5, "xhdpi": 2, "xxhdpi": 3, "xxxhdpi": 4}.items():
         canvas.save("ic_stat_usra.png", folder=RES / f"drawable-{density}", size=round(24 * scale))

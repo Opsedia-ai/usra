@@ -10,6 +10,9 @@ on:
 
 jobs:
   test:
+    # `labeled` is only a trigger so `release-build` can start the release
+    # job below; other labels don't re-run CI.
+    if: github.event.action != 'labeled' || github.event.label.name == 'release-build'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -32,6 +35,7 @@ jobs:
 
   build-android:
     needs: test
+    if: github.event.action != 'labeled'
     runs-on: ubuntu-latest
     defaults:
       run:

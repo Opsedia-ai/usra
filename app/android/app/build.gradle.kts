@@ -63,13 +63,16 @@ android {
         release {
             // R8 (minify + resource shrinking) is turned on by the Flutter
             // plugin, which also adds proguard-rules.pro.
-            signingConfig =
-                if (hasUploadKey) {
-                    signingConfigs.getByName("upload")
-                } else {
-                    logger.warn("Usra: no upload key (android/key.properties or USRA_UPLOAD_*); signing release with the debug key.")
-                    signingConfigs.getByName("debug")
-                }
+            signingConfig = signingConfigs.getByName(if (hasUploadKey) "upload" else "debug")
+        }
+    }
+}
+
+// Warn only when a release is actually being built, not on every debug run.
+if (!hasUploadKey) {
+    gradle.taskGraph.whenReady {
+        if (allTasks.any { it.project == project && it.name.contains("Release") }) {
+            logger.warn("Usra: no upload key (android/key.properties or USRA_UPLOAD_*); signing release with the debug key.")
         }
     }
 }
