@@ -3337,6 +3337,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try again'**
   String get accountRetry;
+
+  /// No description provided for @accountResendIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the code again in {seconds}s'**
+  String accountResendIn(int seconds);
+
+  /// No description provided for @accountErrorSignInAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sign-in has expired. Sign out and sign in again'**
+  String get accountErrorSignInAgain;
 }
 
 class _AppLocalizationsDelegate

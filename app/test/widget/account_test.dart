@@ -8,6 +8,7 @@ import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
+import 'package:usra/core/routing/app_router.dart';
 import 'package:usra/features/account/account_providers.dart';
 import 'package:usra/features/account/auth_gateway.dart';
 import 'package:usra/features/account/device_identity.dart';
@@ -117,7 +118,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('account-send-code')));
     await tester.pumpAndSettle();
     expect(gateway.codesSent, ['+201001234567']);
-    expect(find.textContaining('+201001234567'), findsOneWidget);
+    expect(find.textContaining('+20 10•••••567'), findsOneWidget);
 
     await tester.enterText(
       find.byKey(const ValueKey('account-code')),
@@ -153,10 +154,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(gateway.codesSent, ['+966501234567']);
 
+    // Resend waits a minute.
+    expect(find.text('تقدر تطلب كود تاني بعد 60 ثانية'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('account-resend')));
+    await tester.pump(const Duration(seconds: 30));
+    expect(gateway.codesSent, ['+966501234567']);
+    expect(find.text('تقدر تطلب كود تاني بعد 30 ثانية'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 30));
     await tester.tap(find.byKey(const ValueKey('account-resend')));
     await tester.pumpAndSettle();
     expect(gateway.codesSent, ['+966501234567', '+966501234567']);
     expect(find.text('الكود اتبعت تاني'), findsOneWidget);
+    expect(find.text('تقدر تطلب كود تاني بعد 60 ثانية'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('account-change-number')));
     await tester.pumpAndSettle();
@@ -176,21 +185,23 @@ void main() {
     expect(find.byKey(const ValueKey('account-phone')), findsOneWidget);
   });
 
-  testWidgets('sign out keeps the device key; delete forgets it', (
-    tester,
-  ) async {
+  testWidgets('sign out and delete both wipe the device key', (tester) async {
     const id = 'user-201001234567';
     gateway.signedIn = const AccountUser(id: id, phone: '+201001234567');
+    gateway.devices['device-1'] = (platform: 'ios', appVersion: '1', key: [1]);
     await ids.saveDeviceId(id, 'device-1');
+    await ids.publicKey(id);
     await openAccount(tester);
-    expect(find.textContaining('+201001234567'), findsOneWidget);
+    expect(find.textContaining('+20 10•••••567'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('account-sign-out')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('account-confirm')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('account-phone')), findsOneWidget);
-    expect(ids.devices, {id: 'device-1'});
+    expect(ids.devices, isEmpty);
+    expect(ids.keys, isEmpty);
+    expect(gateway.deletedDevices, ['device-1']);
 
     // Back in, then delete (cancelling once first).
     await tester.enterText(
@@ -221,6 +232,21 @@ void main() {
     expect(find.text('الحساب اتمسح'), findsOneWidget);
     expect(find.byKey(const ValueKey('account-phone')), findsOneWidget);
     expect(ids.devices, isEmpty);
+    expect(ids.keys, isEmpty);
+  });
+
+  testWidgets('the account screen redirects to Settings without a cloud', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app(configured: false));
+    await tester.pumpAndSettle();
+    final context = tester.element(find.byType(Navigator).first);
+    ProviderScope.containerOf(context)
+        .read(routerProvider)
+        .go('/settings/account');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('account-phone')), findsNothing);
+    expect(find.byKey(const ValueKey('settings-backup')), findsOneWidget);
   });
 
   testWidgets('English strings', (tester) async {

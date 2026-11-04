@@ -15,7 +15,15 @@ class AccountUser {
   int get hashCode => Object.hash(id, phone);
 }
 
-enum AccountErrorKind { invalidCode, tooManyRequests, network, unknown }
+enum AccountErrorKind {
+  invalidCode,
+  tooManyRequests,
+  network,
+
+  /// The session is no longer valid: sign in again.
+  sessionExpired,
+  unknown,
+}
 
 /// What went wrong talking to the account backend, without its message
 /// (which may echo the phone number).
@@ -57,6 +65,10 @@ abstract class AuthGateway {
     required List<int> publicKey,
   });
 
+  /// Removes this phone's device row, before signing out.
+  Future<void> deleteDevice(String deviceId);
+
+  /// Ends the session and wipes it from the phone, even offline.
   Future<void> signOut();
 
   /// Deletes the account and everything the server holds for it.

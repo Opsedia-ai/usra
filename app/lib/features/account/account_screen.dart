@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -223,11 +225,32 @@ class _CodeForm extends ConsumerStatefulWidget {
   ConsumerState<_CodeForm> createState() => _CodeFormState();
 }
 
+/// How long before another code can be asked for.
+const resendWait = Duration(seconds: 60);
+
 class _CodeFormState extends ConsumerState<_CodeForm> with _Busy<_CodeForm> {
   final _code = TextEditingController();
+  Timer? _timer;
+  var _wait = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _startWait();
+  }
+
+  void _startWait() {
+    _timer?.cancel();
+    setState(() => _wait = resendWait.inSeconds);
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      setState(() => _wait--);
+      if (_wait <= 0) t.cancel();
+    });
+  }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _code.dispose();
     super.dispose();
   }
@@ -239,6 +262,7 @@ class _CodeFormState extends ConsumerState<_CodeForm> with _Busy<_CodeForm> {
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     if (await run(ref.read(accountProvider.notifier).resendCode)) {
+      if (mounted) _startWait();
       messenger.showSnackBar(SnackBar(content: Text(l.accountCodeResent)));
     }
   }
@@ -270,8 +294,8 @@ class _CodeFormState extends ConsumerState<_CodeForm> with _Busy<_CodeForm> {
         const SizedBox(height: 8),
         TextButton(
           key: const ValueKey('account-resend'),
-          onPressed: busy ? null : _resend,
-          child: Text(l.accountResend),
+          onPressed: busy || _wait > 0 ? null : _resend,
+          child: Text(_wait > 0 ? l.accountResendIn(_wait) : l.accountResend),
         ),
         TextButton(
           key: const ValueKey('account-change-number'),

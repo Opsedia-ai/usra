@@ -214,13 +214,17 @@ URL and anon key (never the service-role key):
 flutter run --dart-define=SUPABASE_URL=https://<ref>.supabase.co --dart-define=SUPABASE_ANON_KEY=<anon key>
 ```
 
-Without them the account entry in Settings is hidden and the app makes no
-network calls for accounts. With them, Supabase starts only when the account
+The URL must be `https://` (anything else counts as not configured).
+Without them the account entry in Settings is hidden and the account route
+redirects to Settings, and the app makes no network calls for accounts. With them, Supabase starts only when the account
 screen is opened. Sign-in is phone + SMS code; on sign-in the app sets
-`accounts.country` / `locale` and adds (or updates) its `devices` row with an
-X25519 public key whose private half stays in the phone's secure storage,
-ready for wrapping the family key in v2 sync. The session is kept in secure
-storage too.
+`accounts.country` / `locale` (the locale follows later language changes)
+and adds its `devices` row with an X25519 public key. The key pair is per
+account and its private half stays in the phone's secure storage (iOS
+this-device-only, Android backups off), ready for wrapping the family key in
+v2 sync. The session and Auth's PKCE items are in secure storage too. Sign-out
+deletes the device row (best effort) and wipes the session and that
+account's key pair; delete-account does the same after the server delete.
 
 ## Regulatory gates (from the technical design)
 

@@ -2037,4 +2037,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accountRetry => 'جرّب تاني';
+
+  @override
+  String accountResendIn(int seconds) {
+    return 'تقدر تطلب كود تاني بعد $seconds ثانية';
+  }
+
+  @override
+  String get accountErrorSignInAgain =>
+      'الدخول انتهى. اخرج من الحساب وادخل تاني';
 }

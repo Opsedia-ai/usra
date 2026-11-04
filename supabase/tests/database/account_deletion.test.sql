@@ -1,7 +1,7 @@
 -- pgTAP: deleting an account (what the delete-account function does) removes
 -- everything that user owns, and nothing of anyone else's. Run with: supabase test db
 begin;
-select plan(9);
+select plan(12);
 
 insert into auth.users (id, phone) values
   ('33333333-3333-3333-3333-333333333333', '201000000003'),
@@ -21,6 +21,13 @@ select public.apply_purchase_event('evt-del-4', 'NON_RENEWING_PURCHASE',
 insert into public.families (id, created_by) values
   ('ffffffff-0000-0000-0000-000000000003', '33333333-3333-3333-3333-333333333333');
 -- (the creator becomes its owner member by trigger)
+-- User 3 is also a guardian in user 4's family.
+insert into public.families (id, created_by) values
+  ('ffffffff-0000-0000-0000-000000000004', '44444444-4444-4444-4444-444444444444');
+insert into public.family_members (family_id, user_id, role) values
+  ('ffffffff-0000-0000-0000-000000000004', '33333333-3333-3333-3333-333333333333', 'guardian');
+insert into public.e2ee_records (family_id, record_id, ciphertext) values
+  ('ffffffff-0000-0000-0000-000000000004', 'eeeeeeee-0000-0000-0000-000000000004', '\xcafe');
 insert into public.e2ee_records (family_id, record_id, ciphertext) values
   ('ffffffff-0000-0000-0000-000000000003', 'eeeeeeee-0000-0000-0000-000000000001', '\xdeadbeef');
 
@@ -40,6 +47,12 @@ select is((select count(*)::int from public.families where id = 'ffffffff-0000-0
 select is((select count(*)::int from public.e2ee_records where family_id = 'ffffffff-0000-0000-0000-000000000003'), 0,
   'that family''s ciphertext is gone');
 
+select is((select count(*)::int from public.family_members where user_id = '33333333-3333-3333-3333-333333333333'), 0,
+  'their memberships in other families are gone');
+select is((select count(*)::int from public.family_members where family_id = 'ffffffff-0000-0000-0000-000000000004'), 1,
+  'the other family keeps its owner');
+select is((select count(*)::int from public.e2ee_records where family_id = 'ffffffff-0000-0000-0000-000000000004'), 1,
+  'the other family keeps its records');
 select is((select count(*)::int from public.devices where user_id = '44444444-4444-4444-4444-444444444444'), 1,
   'other users keep their devices');
 select is(public.credit_balance('44444444-4444-4444-4444-444444444444'), 5,

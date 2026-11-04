@@ -1,8 +1,10 @@
+import '../../core/util/localized_numbers.dart';
+
 /// Countries an account can be opened in, with their mobile numbers.
 enum AccountCountry {
   egypt('EG', '20', r'^1[0125]\d{8}$'),
   saudiArabia('SA', '966', r'^5\d{8}$'),
-  uae('AE', '971', r'^5\d{8}$');
+  uae('AE', '971', r'^5[024568]\d{7}$');
 
   const AccountCountry(this.code, this.dialCode, this._mobile);
 
@@ -47,20 +49,23 @@ enum AccountCountry {
 /// Digits only, with Arabic-Indic and Persian digits made ASCII; null if
 /// anything other than digits and separators was typed.
 String? asciiDigits(String typed) {
-  final out = StringBuffer();
-  for (final rune in typed.runes) {
-    if (rune >= 0x30 && rune <= 0x39) {
-      out.writeCharCode(rune);
-    } else if (rune >= 0x660 && rune <= 0x669) {
-      out.writeCharCode(rune - 0x660 + 0x30);
-    } else if (rune >= 0x6F0 && rune <= 0x6F9) {
-      out.writeCharCode(rune - 0x6F0 + 0x30);
-    } else if (!' -()+\u200E\u200F'.runes.contains(rune)) {
-      return null;
-    }
-  }
-  return out.toString();
+  final western = toWesternDigits(typed).replaceAll(_separators, '');
+  return RegExp(r'^\d*$').hasMatch(western) ? western : null;
 }
 
-/// A phone number written left to right inside Arabic text.
-String displayPhone(String e164) => '\u2066$e164\u2069';
+final _separators = RegExp('[\\s\\-()+\u200E\u200F]');
+
+/// A phone number written left to right inside Arabic text, with the
+/// middle hidden: `+20 10•••••567`.
+String displayPhone(String e164) {
+  final country = AccountCountry.ofE164(e164);
+  final digits = e164.startsWith('+') ? e164.substring(1) : e164;
+  final code = country?.dialCode ?? '';
+  final national = digits.substring(code.length);
+  final masked = national.length <= 5
+      ? '•' * national.length
+      : '${national.substring(0, 2)}'
+            '${'•' * (national.length - 5)}'
+            '${national.substring(national.length - 3)}';
+  return '\u2066${code.isEmpty ? '' : '+$code '}$masked\u2069';
+}

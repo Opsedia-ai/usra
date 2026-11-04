@@ -615,5 +615,7 @@
   "accountErrorTooMany": "محاولات كتير. استنى شوية وجرّب تاني",
   "accountErrorNetwork": "مفيش اتصال. اتأكد من النت وجرّب تاني",
   "accountErrorGeneric": "حصلت مشكلة. جرّب تاني",
-  "accountRetry": "جرّب تاني"
+  "accountRetry": "جرّب تاني",
+  "accountResendIn": "تقدر تطلب كود تاني بعد {seconds} ثانية",
+  "accountErrorSignInAgain": "الدخول انتهى. اخرج من الحساب وادخل تاني"
 }

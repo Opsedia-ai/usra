@@ -1123,5 +1123,14 @@
   "accountErrorTooMany": "Too many tries. Wait a little and try again",
   "accountErrorNetwork": "No connection. Check the internet and try again",
   "accountErrorGeneric": "Something went wrong. Try again",
-  "accountRetry": "Try again"
+  "accountRetry": "Try again",
+  "accountResendIn": "Send the code again in {seconds}s",
+  "@accountResendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "accountErrorSignInAgain": "Your sign-in has expired. Sign out and sign in again"
 }

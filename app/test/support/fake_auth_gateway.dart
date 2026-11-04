@@ -96,6 +96,15 @@ class FakeAuthGateway implements AuthGateway {
     return id;
   }
 
+  final deletedDevices = <String>[];
+
+  @override
+  Future<void> deleteDevice(String deviceId) async {
+    _setUpCall();
+    deletedDevices.add(deviceId);
+    devices.remove(deviceId);
+  }
+
   @override
   Future<void> signOut() async => signedIn = null;
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
@@ -77,6 +78,12 @@ class AccountController extends AsyncNotifier<AccountState> {
       }
     }, onError: (_) {});
     ref.onDispose(changes.cancel);
+    // The account's language follows the app's.
+    ref.listen(localeProvider, (_, locale) {
+      if (state.value case AccountSignedIn(:final user)) {
+        _saveAccount(user, locale).catchError((_) {});
+      }
+    });
     if (user == null) return const AccountSignedOut();
     // Signed in before but this phone isn't registered yet (it was offline).
     final ids = ref.read(deviceIdentityStoreProvider);
@@ -118,43 +125,69 @@ class AccountController extends AsyncNotifier<AccountState> {
   /// account opens if it didn't get through.
   Future<bool> _setUp(AccountUser user) async {
     try {
-      final country = AccountCountry.ofE164(user.phone);
-      if (country != null) {
-        await _gateway.updateAccount(
-          country: country.code,
-          locale: ref.read(localeProvider).languageCode,
-        );
-      }
       final ids = ref.read(deviceIdentityStoreProvider);
-      final deviceId = await _gateway.registerDevice(
-        deviceId: await ids.deviceId(user.id),
+      final (_, (deviceId, publicKey)) = await (
+        _saveAccount(user, ref.read(localeProvider)),
+        (ids.deviceId(user.id), ids.publicKey(user.id)).wait,
+      ).wait;
+      final saved = await _gateway.registerDevice(
+        deviceId: deviceId,
         platform: ref.read(devicePlatformProvider),
         appVersion: ref.read(appVersionProvider),
-        publicKey: await ids.publicKey(),
+        publicKey: publicKey,
       );
-      await ids.saveDeviceId(user.id, deviceId);
+      await ids.saveDeviceId(user.id, saved);
       return true;
     } catch (_) {
       return false;
     }
   }
 
+  Future<void> _saveAccount(AccountUser user, Locale locale) async {
+    final country = AccountCountry.ofE164(user.phone);
+    if (country == null) return;
+    await _gateway.updateAccount(
+      country: country.code,
+      locale: locale.languageCode,
+    );
+  }
+
+  /// Removes this phone's device row (best effort), ends the session and
+  /// wipes the session and this account's device key from the phone.
   Future<void> signOut() async {
-    await _gateway.signOut();
+    final current = state.value;
+    if (current is AccountSignedIn) {
+      final ids = ref.read(deviceIdentityStoreProvider);
+      try {
+        final deviceId = await ids.deviceId(current.user.id);
+        if (deviceId != null) await _gateway.deleteDevice(deviceId);
+      } catch (_) {
+        // Offline: the row stays, but its private key is wiped below, so
+        // nothing wrapped to it can be opened.
+      }
+      await _gateway.signOut();
+      await _forget(current.user.id);
+    } else {
+      await _gateway.signOut();
+    }
     state = const AsyncData(AccountSignedOut());
   }
 
-  /// Deletes the account on the server, then forgets this phone's device
-  /// key. Records on the phone are not touched.
+  Future<void> _forget(String userId) async {
+    try {
+      await ref.read(deviceIdentityStoreProvider).forget(userId);
+    } catch (_) {
+      // Keychain unavailable: tried again by the next sign-out or delete.
+    }
+  }
+
+  /// Deletes the account on the server, then wipes this phone's session
+  /// and device key. Records on the phone are not touched.
   Future<void> deleteAccount() async {
     final current = state.value;
     if (current is! AccountSignedIn) return;
     await _gateway.deleteAccount();
     state = const AsyncData(AccountSignedOut());
-    try {
-      await ref.read(deviceIdentityStoreProvider).forget(current.user.id);
-    } catch (_) {
-      // A stale key is replaced next time; the account is already gone.
-    }
+    await _forget(current.user.id);
   }
 }

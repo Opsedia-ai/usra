@@ -16,6 +16,13 @@ class SupabaseConfig {
   /// The public anon key; row-level security decides what it can reach.
   final String anonKey;
 
-  bool get isConfigured =>
-      anonKey.isNotEmpty && (Uri.tryParse(url)?.hasAuthority ?? false);
+  /// HTTPS only: a plain-http URL counts as not configured, so tokens
+  /// and phone numbers never travel unencrypted.
+  bool get isConfigured {
+    final uri = Uri.tryParse(url);
+    return anonKey.isNotEmpty &&
+        uri != null &&
+        uri.scheme == 'https' &&
+        uri.host.isNotEmpty;
+  }
 }

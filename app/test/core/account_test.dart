@@ -6,6 +6,7 @@ import 'package:usra/features/account/account_providers.dart';
 import 'package:usra/features/account/auth_gateway.dart';
 import 'package:usra/features/account/device_identity.dart';
 import 'package:usra/features/account/phone_number.dart';
+import 'package:usra/features/account/supabase_auth_gateway.dart';
 import 'package:usra/features/account/supabase_config.dart';
 import 'package:usra/features/backup/backup_providers.dart';
 
@@ -53,6 +54,7 @@ void main() {
       );
       expect(AccountCountry.uae.toE164('050 123 4567'), '+971501234567');
       expect(AccountCountry.uae.toE164('0401234567'), isNull);
+      expect(AccountCountry.uae.toE164('0531234567'), isNull);
     });
 
     test('country of a number', () {
@@ -62,6 +64,33 @@ void main() {
       expect(AccountCountry.ofE164('+14155550100'), isNull);
       expect(AccountCountry.ofE164(null), isNull);
     });
+  });
+
+  test('phone numbers are shown masked', () {
+    expect(displayPhone('+201001234567'), '\u2066+20 10•••••567\u2069');
+    expect(displayPhone('+966501234567'), '\u2066+966 50••••567\u2069');
+  });
+
+  test(
+    'error mapping: only the code check reads a rejection as a wrong code',
+    () {
+      AccountErrorKind k(String? s, String? c, {bool v = false}) =>
+          SupabaseAuthGateway.kindOf(s, c, v);
+      expect(k('403', 'otp_expired', v: true), AccountErrorKind.invalidCode);
+      expect(k('403', null), AccountErrorKind.unknown);
+      expect(k('401', null), AccountErrorKind.sessionExpired);
+      expect(k(null, 'PGRST303'), AccountErrorKind.sessionExpired);
+      expect(k('429', null), AccountErrorKind.tooManyRequests);
+      expect(
+        k('400', 'over_sms_send_rate_limit', v: true),
+        AccountErrorKind.tooManyRequests,
+      );
+      expect(k('500', null), AccountErrorKind.unknown);
+    },
+  );
+
+  test('public keys go to PostgREST as bytea hex', () {
+    expect(SupabaseAuthGateway.bytea([0, 1, 171, 255]), r'\x0001abff');
   });
 
   test('cloud is configured only with a URL and an anon key', () {
@@ -143,25 +172,68 @@ void main() {
         final device = gateway.devices['device-1']!;
         expect(device.platform, 'ios');
         expect(device.appVersion, '1.2.0+7');
-        expect(device.key, await ids.publicKey());
+        expect(device.key, await ids.publicKey(state.user.id));
         expect(await ids.deviceId(state.user.id), 'device-1');
       },
     );
 
-    test('signing in again on the same phone updates its device row', () async {
+    test('signing out removes the device row and wipes its key; signing in again makes new ones', () async {
       final c = make();
       final account = c.read(accountProvider.notifier);
       await c.read(accountProvider.future);
       await account.sendCode(AccountCountry.saudiArabia, '0501234567');
       await account.verifyCode(FakeAuthGateway.validCode);
       expect(gateway.accountUpdates.single.country, 'SA');
+      const id = 'user-966501234567';
+      final firstKey = await ids.publicKey(id);
       await account.signOut();
       expect(c.read(accountProvider).value, isA<AccountSignedOut>());
+      expect(gateway.deletedDevices, ['device-1']);
+      expect(ids.devices, isEmpty);
+      expect(ids.keys, isEmpty);
 
       await account.sendCode(AccountCountry.saudiArabia, '0501234567');
       await account.verifyCode(FakeAuthGateway.validCode);
-      expect(gateway.registerCalls, [null, 'device-1']);
-      expect(gateway.devices.keys, ['device-1']);
+      expect(gateway.registerCalls, [null, null]);
+      expect(await ids.publicKey(id), isNot(firstKey));
+    });
+
+    test('offline sign-out still wipes the key on the phone', () async {
+      gateway.signedIn = const AccountUser(id: 'u1', phone: '+201001234567');
+      await ids.saveDeviceId('u1', 'device-9');
+      await ids.publicKey('u1');
+      final c = make();
+      await c.read(accountProvider.future);
+      gateway.failSetUp = const AccountException(AccountErrorKind.network);
+      await c.read(accountProvider.notifier).signOut();
+      expect(c.read(accountProvider).value, isA<AccountSignedOut>());
+      expect(ids.keys, isEmpty);
+      expect(ids.devices, isEmpty);
+    });
+
+    test('two accounts on one phone get different device keys', () async {
+      final c = make();
+      final account = c.read(accountProvider.notifier);
+      await c.read(accountProvider.future);
+      await account.sendCode(AccountCountry.egypt, '01001234567');
+      await account.verifyCode(FakeAuthGateway.validCode);
+      await account.signOut();
+      await account.sendCode(AccountCountry.egypt, '01001234568');
+      await account.verifyCode(FakeAuthGateway.validCode);
+      final keys = gateway.devices.values.map((d) => d.key).toList();
+      expect(keys, hasLength(1));
+      expect(gateway.registerCalls, [null, null]);
+      expect(ids.keys.keys, ['user-201001234568']);
+    });
+
+    test('the account language follows the app language', () async {
+      gateway.signedIn = const AccountUser(id: 'u1', phone: '+201001234567');
+      await ids.saveDeviceId('u1', 'device-9');
+      final c = make();
+      await c.read(accountProvider.future);
+      c.read(localeProvider.notifier).change(const Locale('en'));
+      await pumpEventQueue();
+      expect(gateway.accountUpdates, [(country: 'EG', locale: 'en')]);
     });
 
     test('a wrong or short code keeps waiting for the code', () async {
@@ -244,7 +316,8 @@ void main() {
       await c.read(accountProvider.future);
       await account.sendCode(AccountCountry.egypt, '01001234567');
       await account.verifyCode(FakeAuthGateway.validCode);
-      final oldKey = await ids.publicKey();
+      const id = 'user-201001234567';
+      expect(ids.keys, contains(id));
 
       gateway.failDelete = const AccountException(AccountErrorKind.network);
       await expectLater(
@@ -258,7 +331,7 @@ void main() {
       expect(gateway.deleted, 1);
       expect(c.read(accountProvider).value, isA<AccountSignedOut>());
       expect(ids.devices, isEmpty);
-      expect(await ids.publicKey(), isNot(oldKey));
+      expect(ids.keys, isEmpty);
     });
   });
 }

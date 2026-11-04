@@ -2026,4 +2026,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountRetry => 'Try again';
+
+  @override
+  String accountResendIn(int seconds) {
+    return 'Send the code again in ${seconds}s';
+  }
+
+  @override
+  String get accountErrorSignInAgain =>
+      'Your sign-in has expired. Sign out and sign in again';
 }

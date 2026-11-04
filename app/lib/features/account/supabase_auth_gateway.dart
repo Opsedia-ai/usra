@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' show SocketException;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' show ClientException;
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
@@ -27,8 +28,11 @@ class SupabaseAuthGateway implements AuthGateway {
         url: config.url,
         // The anon key goes in the same `apikey` header.
         publishableKey: config.anonKey,
+        // Supabase's debug log can include requests; never turn it on.
+        debug: false,
         authOptions: const sb.FlutterAuthClientOptions(
           localStorage: SecureSessionStorage(),
+          pkceAsyncStorage: SecureAuthItemStorage(),
           // Phone codes only: no magic links to catch.
           detectSessionInUri: false,
         ),
@@ -142,14 +146,26 @@ class SupabaseAuthGateway implements AuthGateway {
       '\\x${bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}';
 
   @override
-  Future<void> signOut() async {
+  Future<void> deleteDevice(String deviceId) => _guard(() async {
     final client = await _client();
+    await client.from('devices').delete().eq('id', deviceId);
+  });
+
+  @override
+  Future<void> signOut() async {
     try {
+      final client = await _client();
       await client.auth.signOut();
     } catch (_) {
-      // The local session is removed before the server is told; offline,
-      // the server's copy just expires.
+      // Offline, the server's copy of the session just expires.
+    } finally {
+      await _wipeLocalSession();
     }
+  }
+
+  static Future<void> _wipeLocalSession() async {
+    await const SecureSessionStorage().removePersistedSession();
+    await const SecureAuthItemStorage().clear();
   }
 
   @override
@@ -159,10 +175,19 @@ class SupabaseAuthGateway implements AuthGateway {
     try {
       // The server session is gone with the user; drop the local copy.
       await client.auth.signOut(scope: sb.SignOutScope.local);
-    } catch (_) {}
+    } catch (_) {
+    } finally {
+      await _wipeLocalSession();
+    }
   });
 
-  static Future<T> _guard<T>(Future<T> Function() call) async {
+  /// Runs [call], turning failures into [AccountException]. Only the code
+  /// check reads a rejection as a wrong code; elsewhere a 401/403 means the
+  /// session is gone.
+  static Future<T> _guard<T>(
+    Future<T> Function() call, {
+    bool verifying = false,
+  }) async {
     try {
       return await call();
     } on AccountException {
@@ -170,11 +195,11 @@ class SupabaseAuthGateway implements AuthGateway {
     } on sb.AuthRetryableFetchException {
       throw const AccountException(AccountErrorKind.network);
     } on sb.AuthException catch (e) {
-      throw AccountException(_kind(e.statusCode, e.code));
+      throw AccountException(_kind(e.statusCode, e.code, verifying));
     } on sb.FunctionException catch (e) {
-      throw AccountException(_kind('${e.status}', null));
+      throw AccountException(_kind('${e.status}', null, verifying));
     } on sb.PostgrestException catch (e) {
-      throw AccountException(_kind(e.code, null));
+      throw AccountException(_kind(null, e.code, verifying));
     } on SocketException {
       throw const AccountException(AccountErrorKind.network);
     } on ClientException {
@@ -186,30 +211,52 @@ class SupabaseAuthGateway implements AuthGateway {
     }
   }
 
-  static AccountErrorKind _kind(String? status, String? code) {
+  @visibleForTesting
+  static AccountErrorKind kindOf(
+    String? status,
+    String? code,
+    bool verifying,
+  ) => _kind(status, code, verifying);
+
+  static AccountErrorKind _kind(String? status, String? code, bool verifying) {
     if (status == '429' || (code?.startsWith('over_') ?? false)) {
       return AccountErrorKind.tooManyRequests;
     }
-    if (code == 'otp_expired' ||
-        code == 'invalid_credentials' ||
-        status == '403') {
+    if (verifying &&
+        (code == 'otp_expired' ||
+            code == 'invalid_credentials' ||
+            status == '403' ||
+            status == '401')) {
       return AccountErrorKind.invalidCode;
+    }
+    if (status == '401' ||
+        code == 'session_not_found' ||
+        code == 'bad_jwt' ||
+        code == 'PGRST301' ||
+        code == 'PGRST303') {
+      return AccountErrorKind.sessionExpired;
     }
     return AccountErrorKind.unknown;
   }
+
+  @visibleForTesting
+  static String bytea(List<int> bytes) => _bytea(bytes);
 }
 
-/// Keeps the Supabase session in Android Keystore / iOS Keychain instead of
-/// shared preferences.
+const _secure = FlutterSecureStorage(
+  iOptions: IOSOptions(
+    accessibility: KeychainAccessibility.first_unlock_this_device,
+    synchronizable: false,
+  ),
+);
+
+/// Keeps the Supabase session (with its refresh token) in Android Keystore /
+/// iOS Keychain, this device only, instead of shared preferences.
 class SecureSessionStorage extends sb.LocalStorage {
   const SecureSessionStorage();
 
   static const _key = 'usra.account.session.v1';
-  static const _storage = FlutterSecureStorage(
-    iOptions: IOSOptions(
-      accessibility: KeychainAccessibility.first_unlock_this_device,
-    ),
-  );
+  static const _storage = _secure;
 
   @override
   Future<void> initialize() async {}
@@ -226,4 +273,31 @@ class SecureSessionStorage extends sb.LocalStorage {
 
   @override
   Future<void> removePersistedSession() => _storage.delete(key: _key);
+}
+
+/// Supabase Auth's other small items (PKCE verifiers), also kept out of
+/// shared preferences.
+class SecureAuthItemStorage extends sb.GotrueAsyncStorage {
+  const SecureAuthItemStorage();
+
+  static const _prefix = 'usra.account.auth.';
+
+  @override
+  Future<String?> getItem({required String key}) =>
+      _secure.read(key: '$_prefix$key');
+
+  @override
+  Future<void> setItem({required String key, required String value}) =>
+      _secure.write(key: '$_prefix$key', value: value);
+
+  @override
+  Future<void> removeItem({required String key}) =>
+      _secure.delete(key: '$_prefix$key');
+
+  Future<void> clear() async {
+    final all = await _secure.readAll();
+    for (final key in all.keys.where((k) => k.startsWith(_prefix))) {
+      await _secure.delete(key: key);
+    }
+  }
 }
