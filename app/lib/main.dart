@@ -28,6 +28,17 @@ Future<void> main() async {
   Log.installErrorHandlers();
   final key = await DatabaseKeyStore().readOrCreate();
   final file = await defaultDatabaseFile();
+  const photoFolders = [
+    PhotoStore.cardsFolder,
+    PhotoStore.attachmentsFolder,
+    PhotoStore.medicinesFolder,
+  ];
+  final photoKeyStore = SecurePhotoKeyStore();
+  // Never throws: without a key the app still opens, and photos say they
+  // can't be opened here until a backup is restored.
+  final photoKeys = await photoKeyStore.load(
+    sealedPhotosExist: () => anySealedPhoto(file.parent, photoFolders),
+  );
   try {
     await excludeDatabaseFromBackup(file, PhotoStore.excludeFromBackup);
   } catch (e, s) {
@@ -43,12 +54,10 @@ Future<void> main() async {
     root: file.parent,
     databaseName: p.basename(file.path),
     deviceKey: key,
+    photoKeys: photoKeys,
+    photoKeyStore: photoKeyStore,
     temporary: temporary,
-    folders: const [
-      PhotoStore.cardsFolder,
-      PhotoStore.attachmentsFolder,
-      PhotoStore.medicinesFolder,
-    ],
+    folders: photoFolders,
     files: const [FileDismissalStore.fileName],
     excludeFromBackup: PhotoStore.excludeFromBackup,
   );
@@ -71,12 +80,36 @@ Future<void> main() async {
     firstDismissals,
   ) = await (
     SharedPreferencesStore.open(),
-    PhotoStore.open(PhotoStore.cardsFolder),
-    PhotoStore.open(PhotoStore.attachmentsFolder),
-    PhotoStore.open(PhotoStore.medicinesFolder),
+    PhotoStore.open(PhotoStore.cardsFolder, photoKeys),
+    PhotoStore.open(PhotoStore.attachmentsFolder, photoKeys),
+    PhotoStore.open(PhotoStore.medicinesFolder, photoKeys),
     DoseActionInbox.open(),
     FileDismissalStore.open(),
   ).wait;
+
+  // Once, for photos saved before they were encrypted; resumes if the app
+  // was killed half way. Not awaited: the app opens meanwhile, showing
+  // those photos as they are until they're done.
+  final photoMigration = () async {
+    try {
+      await [
+        for (final store in [cardPhotos, attachments, medicinePhotos])
+          store.sealPlainFiles(),
+      ].wait;
+    } catch (e, s) {
+      FlutterError.reportError(
+        FlutterErrorDetails(exception: e, stack: s, library: 'photos'),
+      );
+    }
+  }();
+  try {
+    // Decrypted copies a share left behind.
+    await SharedPhotoCache(temporary).clear();
+  } catch (e, s) {
+    FlutterError.reportError(
+      FlutterErrorDetails(exception: e, stack: s, library: 'photos'),
+    );
+  }
 
   var dismissals = firstDismissals;
   final recoveryKeys = SecureRecoveryKeyStore();
@@ -163,6 +196,8 @@ Future<void> main() async {
       old.dispose();
       reminders.dispose();
       await database.close();
+      // The restore replaces the photo folders the migration works in.
+      await photoMigration;
       await backup.commit();
       restored = true;
     } catch (e, s) {

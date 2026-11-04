@@ -12,6 +12,7 @@ import 'package:usra/core/backup/backup_service.dart';
 import 'package:usra/core/backup/recovery_key.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/preferences.dart';
+import 'package:usra/core/files/photo_crypto.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/core/routing/app_router.dart';
 import 'package:usra/features/backup/backup_providers.dart';
@@ -23,21 +24,28 @@ class _FakeBackupService extends BackupService {
         root: dir,
         databaseName: 'usra.sqlite',
         deviceKey: '0' * 64,
+        photoKeys: PhotoKeys.ready(PhotoCipher(List.filled(32, 0))),
         temporary: dir,
         folders: const [],
       );
 
   final made = <RecoveryKey>[];
 
+  /// Photos the next backup says it left out.
+  var skippedPhotos = 0;
+
   @override
-  Future<File> create(
+  Future<CreatedBackup> create(
     AppDatabase db,
     RecoveryKey key, {
     required String appVersion,
     DateTime? now,
   }) async {
     made.add(key);
-    return File('${root.path}/usra-backup-test.usra');
+    return CreatedBackup(
+      File('${root.path}/usra-backup-test.usra'),
+      skippedPhotos: skippedPhotos,
+    );
   }
 
   final opened = <(String, RecoveryKey)>[];
@@ -192,6 +200,24 @@ void main() {
       expect(find.byKey(const ValueKey('recovery-key-written')), findsNothing);
     },
   );
+
+  testWidgets('a backup missing photos says so, not just "ready"', (
+    tester,
+  ) async {
+    await keys.write(RecoveryKey.generate());
+    service.skippedPhotos = 2;
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    await go(tester, '/settings/backup');
+    await tester.tap(find.byKey(const ValueKey('backup-now')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    final shown = tester
+        .widget<Text>(find.byKey(const ValueKey('backup-done')))
+        .data!;
+    expect(shown, contains('صورتين'));
+    expect(shown, contains('مقدرناش نفتحهم'));
+  });
 
   testWidgets('Home reminds to back up once the family has someone in it', (
     tester,

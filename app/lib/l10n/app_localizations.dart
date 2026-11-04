@@ -2408,6 +2408,24 @@ abstract class AppLocalizations {
   /// **'Backup ready. Keep it somewhere safe off this phone.'**
   String get backupDone;
 
+  /// No description provided for @backupDonePhotosSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup ready, but {count, plural, =1{1 photo couldn\'t be opened on this phone and isn\'t} other{{count} photos couldn\'t be opened on this phone and aren\'t}} in it. Keep it somewhere safe off this phone.'**
+  String backupDonePhotosSkipped(int count);
+
+  /// No description provided for @restorePhotosSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo in this backup can\'t be opened and will be left out.} other{{count} photos in this backup can\'t be opened and will be left out.}}'**
+  String restorePhotosSkipped(int count);
+
+  /// No description provided for @photosLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos can\'t be opened on this phone. Restore your backup to get them back.'**
+  String get photosLocked;
+
   /// No description provided for @backupFailed.
   ///
   /// In en, this message translates to:

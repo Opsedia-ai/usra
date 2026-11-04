@@ -347,7 +347,7 @@ class _ReadPhotoState extends State<_ReadPhoto> {
     final text = widget.text;
     if (size == null || text == null) {
       return PhotoImage(
-        file: widget.file,
+        image: FileImage(widget.file),
         height: 240,
         semanticLabel: widget.semanticLabel,
       );
@@ -361,7 +361,7 @@ class _ReadPhotoState extends State<_ReadPhoto> {
           fit: StackFit.expand,
           children: [
             PhotoImage(
-              file: widget.file,
+              image: FileImage(widget.file),
               fit: BoxFit.fill,
               semanticLabel: widget.semanticLabel,
             ),

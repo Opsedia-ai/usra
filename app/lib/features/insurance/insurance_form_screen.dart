@@ -291,23 +291,23 @@ class _PhotoSlot extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final v = value;
-    final File? file = v == null
+    final ImageProvider? image = v == null
         ? null
         : v.picked
-        ? File(v.path)
-        : ref.watch(cardPhotoStoreProvider).fileOf(v.path);
+        ? FileImage(File(v.path))
+        : ref.watch(cardPhotoStoreProvider).image(v.path);
     const tall = Size(0, 56);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(label, style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 8),
-        if (file != null) ...[
+        if (image != null) ...[
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: PhotoImage(
               key: ValueKey('insurance-$slot-preview'),
-              file: file,
+              image: image,
               height: 180,
             ),
           ),
@@ -334,7 +334,7 @@ class _PhotoSlot extends ConsumerWidget {
                 label: Text(l.photoGallery),
               ),
             ),
-            if (file != null) ...[
+            if (image != null) ...[
               const SizedBox(width: 8),
               IconButton.outlined(
                 key: ValueKey('insurance-$slot-remove'),

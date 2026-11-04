@@ -440,7 +440,7 @@ class _PhotosRow extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: PhotoImage(
-                        file: File(path),
+                        image: FileImage(File(path)),
                         width: thumb,
                         height: thumb,
                         fit: BoxFit.cover,

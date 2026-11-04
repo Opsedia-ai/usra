@@ -198,7 +198,7 @@ class _Details extends ConsumerWidget {
               itemCount: photos.length,
               separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, i) {
-                final file = store.fileOf(photos[i]);
+                final image = store.image(photos[i]);
                 return GestureDetector(
                   key: ValueKey('medicine-photo-$i'),
                   onTap: () => showDialog<void>(
@@ -207,7 +207,7 @@ class _Details extends ConsumerWidget {
                       child: GestureDetector(
                         onTap: () => Navigator.pop(dialog),
                         child: InteractiveViewer(
-                          child: Center(child: PhotoImage(file: file)),
+                          child: Center(child: PhotoImage(image: image)),
                         ),
                       ),
                     ),
@@ -215,7 +215,7 @@ class _Details extends ConsumerWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: PhotoImage(
-                      file: file,
+                      image: image,
                       width: 120,
                       height: 120,
                       fit: BoxFit.cover,

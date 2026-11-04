@@ -1352,6 +1352,33 @@ class AppLocalizationsEn extends AppLocalizations {
       'Backup ready. Keep it somewhere safe off this phone.';
 
   @override
+  String backupDonePhotosSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos couldn\'t be opened on this phone and aren\'t',
+      one: '1 photo couldn\'t be opened on this phone and isn\'t',
+    );
+    return 'Backup ready, but $_temp0 in it. Keep it somewhere safe off this phone.';
+  }
+
+  @override
+  String restorePhotosSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count photos in this backup can\'t be opened and will be left out.',
+      one: '1 photo in this backup can\'t be opened and will be left out.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get photosLocked =>
+      'Photos can\'t be opened on this phone. Restore your backup to get them back.';
+
+  @override
   String get backupFailed => 'Couldn\'t make the backup. Try again.';
 
   @override
