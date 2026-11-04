@@ -5,6 +5,7 @@ import 'core/design/theme.dart';
 import 'core/preferences.dart';
 import 'core/providers.dart';
 import 'core/routing/app_router.dart';
+import 'features/app_lock/lock_screen.dart';
 import 'core/screen_privacy.dart';
 import 'l10n/app_localizations.dart';
 
@@ -28,8 +29,10 @@ class UsraApp extends ConsumerWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       routerConfig: ref.watch(routerProvider),
-      // Always wrapped, so switching modes doesn't rebuild the page stack.
-      builder: (context, child) => _textScale(context, child!, simple: simple),
+      // Always wrapped, so switching modes or locking doesn't rebuild the
+      // page stack. The lock covers every page, deep links included.
+      builder: (context, child) =>
+          _textScale(context, AppLockGate(child: child!), simple: simple),
     );
   }
 }

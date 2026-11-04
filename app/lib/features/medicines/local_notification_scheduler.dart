@@ -7,6 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../core/database/app_database.dart';
+import '../../core/security/app_lock.dart';
 import '../../l10n/app_localizations.dart';
 import 'reminders.dart';
 
@@ -190,7 +191,7 @@ class LocalNotificationScheduler implements ReminderScheduler {
   @override
   Future<void> openBatterySettings() async {
     try {
-      await _battery.invokeMethod<void>('openSettings');
+      await whileInOtherApp(() => _battery.invokeMethod<void>('openSettings'));
     } on PlatformException {
       // No such screen on this phone.
     } on MissingPluginException {

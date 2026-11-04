@@ -6,15 +6,18 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
+import android.os.SystemClock
 import android.provider.Settings
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : FlutterActivity() {
+// A FragmentActivity so the app lock can show the system biometric prompt
+// (local_auth).
+class MainActivity : FlutterFragmentActivity() {
     /// Screenshots blocked by the app: the "Block screenshots" setting or a
     /// sensitive screen such as the recovery key (lib/core/screen_privacy.dart).
     private var secure = false
@@ -105,6 +108,15 @@ class MainActivity : FlutterActivity() {
                             result.error("unavailable", e.message, null)
                         }
                     }
+                    else -> result.notImplemented()
+                }
+            }
+        // The app lock measures time away with this: it counts while the
+        // phone sleeps and can't be changed in the phone's settings.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "usra/clock")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "elapsedRealtime" -> result.success(SystemClock.elapsedRealtime())
                     else -> result.notImplemented()
                 }
             }

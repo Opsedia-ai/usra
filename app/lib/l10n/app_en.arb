@@ -754,23 +754,6 @@
   "backupWorking": "Preparing the backup…",
   "backupShareSubject": "Usra backup",
   "backupDone": "Backup ready. Keep it somewhere safe off this phone.",
-  "backupDonePhotosSkipped": "Backup ready, but {count, plural, =1{1 photo couldn't be opened on this phone and isn't} other{{count} photos couldn't be opened on this phone and aren't}} in it. Keep it somewhere safe off this phone.",
-  "@backupDonePhotosSkipped": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "restorePhotosSkipped": "{count, plural, =1{1 photo in this backup can't be opened and will be left out.} other{{count} photos in this backup can't be opened and will be left out.}}",
-  "@restorePhotosSkipped": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "photosLocked": "Photos can't be opened on this phone. Restore your backup to get them back.",
   "backupFailed": "Couldn't make the backup. Try again.",
   "backupDueTitle": "Back up the family's records",
   "backupDueNever": "If this phone is lost, the records go with it. Make an encrypted backup and keep it off the phone.",
@@ -1173,6 +1156,89 @@
   },
   "accountErrorSignInAgain": "Your sign-in has expired. Sign in again",
   "accountErrorFamilyHasMembers": "You created a family that other people are in. Their shared records would be deleted too, so this account can't be deleted yet.",
+  "lockTitle": "Usra is locked",
+  "lockEnterPin": "Enter your PIN",
+  "lockUseBiometrics": "Unlock with fingerprint or face",
+  "lockBiometricReason": "Unlock Usra to see your family's records",
+  "lockWrongPin": "Wrong PIN. Try again.",
+  "lockWait": "Too many wrong tries. Try again in {time}.",
+  "@lockWait": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "lockForgot": "Forgot your PIN?",
+  "lockForgotTitle": "If you forget your PIN",
+  "lockForgotBody": "To keep your family's records private, nothing can skip the PIN, not even us.\n\nTo start again:\n1. Remove Usra's data. On Android: phone Settings › Apps › Usra › Storage › Clear data. On iPhone: delete Usra and install it again. This deletes everything Usra keeps on this phone.\n2. Open Usra and restore your latest backup with your recovery key (More › Backup).\n\nWithout a backup and its recovery key, the records can't be brought back.",
+  "lockEmergency": "Emergency info",
+  "lockEmergencyPick": "Whose emergency card?",
+  "lockEmergencyNone": "No one has been added yet.",
+  "pinOk": "OK",
+  "pinDelete": "Delete",
+  "pinLengthHint": "6 numbers",
+  "pinEntered": "{count} of 6 numbers typed",
+  "@pinEntered": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "lockSetupNewPin": "Choose a 6-number PIN",
+  "lockSetupConfirmPin": "Type the same PIN again",
+  "lockSetupMismatch": "The two PINs are different. Choose again.",
+  "lockSetupCurrentPin": "Enter your current PIN",
+  "lockSetupBiometricsTitle": "Use your fingerprint or face too?",
+  "lockSetupBiometricsBody": "Opens Usra faster; the PIN always works too. Anyone whose fingerprint or face is set up on this phone, family members too, will be able to open Usra. If others use this phone, choose Not now.",
+  "lockSetupBiometricsYes": "Yes, use it",
+  "lockSetupDone": "App lock is on",
+  "lockSetupWriteDown": "Keep your PIN somewhere safe. If you forget it, the only way back in is to remove Usra's data and restore a backup.",
+  "lockOfferTitle": "Lock Usra with a PIN?",
+  "lockOfferBody": "If your phone is lost or someone else picks it up, your family's records stay closed. You can unlock with your fingerprint or face too.",
+  "lockOfferYes": "Set up the lock",
+  "lockOfferSkip": "Not now",
+  "lockOfferLater": "You can turn it on any time from More › App lock.",
+  "settingsAppLock": "App lock",
+  "settingsAppLockOn": "On: PIN needed to open Usra",
+  "settingsAppLockOff": "Off: anyone with the phone can open Usra",
+  "lockSettingsSwitch": "Lock with a PIN",
+  "lockSettingsChangePin": "Change PIN",
+  "lockSettingsBiometrics": "Fingerprint or face",
+  "lockSettingsBiometricsHint": "Anyone whose fingerprint or face is set up on this phone can open Usra, family members too. If others use this phone, keep this off and use the PIN only.",
+  "lockSettingsTimeout": "Lock again after leaving Usra",
+  "lockTimeoutImmediately": "Right away",
+  "lockTimeoutOneMinute": "1 minute",
+  "lockTimeoutFiveMinutes": "5 minutes",
+  "lockSettingsEmergency": "Emergency card on the lock screen",
+  "lockSettingsEmergencyHint": "A paramedic can see the blood type, allergies and conditions of the people you choose here without the PIN. Anyone holding the phone can see them too.",
+  "lockVerifyTitle": "Confirm it's you",
+  "lockOffDone": "App lock is off",
+  "lockUnavailable": "Couldn't read the lock just now. Try again in a moment.",
+  "lockSetupTrivial": "That PIN is too easy to guess. Avoid repeated or sequential numbers.",
+  "lockEmergencyFor": "Show on the lock screen",
+  "lockBackupFirstTitle": "Make a backup first?",
+  "lockBackupFirstBody": "If you forget your PIN, the only way back in is to remove Usra's data and restore a backup with its recovery key. You don't have a backup yet.",
+  "lockBackupFirstMake": "Make a backup",
+  "lockBackupFirstSkip": "Continue without",
+  "backupDonePhotosSkipped": "Backup ready, but {count, plural, =1{1 photo couldn't be opened on this phone and isn't} other{{count} photos couldn't be opened on this phone and aren't}} in it. Keep it somewhere safe off this phone.",
+  "@backupDonePhotosSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restorePhotosSkipped": "{count, plural, =1{1 photo in this backup can't be opened and will be left out.} other{{count} photos in this backup can't be opened and will be left out.}}",
+  "@restorePhotosSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "photosLocked": "Photos can't be opened on this phone. Restore your backup to get them back.",
   "doseReminderDiscreetTitle": "Time for a medicine",
   "widgetDiscreetDose": "Dose due",
   "settingsDiscreet": "Discreet notifications",

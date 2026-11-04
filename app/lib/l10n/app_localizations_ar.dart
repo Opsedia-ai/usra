@@ -1359,36 +1359,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backupDone => 'النسخة جاهزة. احفظها في مكان أمين برّه الموبايل.';
 
   @override
-  String backupDonePhotosSkipped(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count صورة مقدرناش نفتحهم على الموبايل ده ومش فيها',
-      few: '$count صور مقدرناش نفتحهم على الموبايل ده ومش فيها',
-      two: 'صورتين مقدرناش نفتحهم على الموبايل ده ومش فيها',
-      one: 'صورة واحدة مقدرناش نفتحها على الموبايل ده ومش فيها',
-    );
-    return 'النسخة جاهزة، بس $_temp0. احفظها في مكان أمين برّه الموبايل.';
-  }
-
-  @override
-  String restorePhotosSkipped(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count صورة في النسخة دي مش هيتفتحوا وهيتسابوا.',
-      few: '$count صور في النسخة دي مش هيتفتحوا وهيتسابوا.',
-      two: 'صورتين في النسخة دي مش هيتفتحوا وهيتسابوا.',
-      one: 'صورة واحدة في النسخة دي مش هتتفتح وهتتساب.',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get photosLocked =>
-      'الصور مش بتتفتح على الموبايل ده. رجّع نسختك الاحتياطية عشان ترجعلك.';
-
-  @override
   String get backupFailed => 'مقدرناش نعمل النسخة. جرّب تاني.';
 
   @override
@@ -2133,6 +2103,205 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get accountErrorFamilyHasMembers =>
       'إنت عامل عيلة فيها ناس تانيين، ومسح الحساب هيمسح سجلاتهم المشتركة كمان، فمينفعش يتمسح دلوقتي.';
+
+  @override
+  String get lockTitle => 'أسرة مقفولة';
+
+  @override
+  String get lockEnterPin => 'اكتب الرقم السري';
+
+  @override
+  String get lockUseBiometrics => 'افتح ببصمة الصباع أو الوش';
+
+  @override
+  String get lockBiometricReason => 'افتح أسرة عشان تشوف سجلات عيلتك';
+
+  @override
+  String get lockWrongPin => 'الرقم السري غلط. جرّب تاني.';
+
+  @override
+  String lockWait(String time) {
+    return 'محاولات غلط كتير. جرّب تاني بعد $time.';
+  }
+
+  @override
+  String get lockForgot => 'نسيت الرقم السري؟';
+
+  @override
+  String get lockForgotTitle => 'لو نسيت الرقم السري';
+
+  @override
+  String get lockForgotBody =>
+      'عشان سجلات عيلتك تفضل سر، مفيش حاجة تعدّي الرقم السري، ولا حتى إحنا.\n\nعشان تبدأ من جديد:\n1. امسح بيانات أسرة. على أندرويد: إعدادات الموبايل › التطبيقات › أسرة › التخزين › مسح البيانات. على الآيفون: امسح أسرة ونزّلها تاني. ده بيمسح كل حاجة أسرة شايلاها على الموبايل ده.\n2. افتح أسرة ورجّع آخر نسخة احتياطية بمفتاح الاسترجاع (المزيد › النسخة الاحتياطية).\n\nمن غير نسخة احتياطية ومفتاحها، السجلات مش هترجع.';
+
+  @override
+  String get lockEmergency => 'معلومات الطوارئ';
+
+  @override
+  String get lockEmergencyPick => 'كارت طوارئ مين؟';
+
+  @override
+  String get lockEmergencyNone => 'لسه محدش اتضاف.';
+
+  @override
+  String get pinOk => 'تمام';
+
+  @override
+  String get pinDelete => 'امسح';
+
+  @override
+  String get pinLengthHint => '6 أرقام';
+
+  @override
+  String pinEntered(int count) {
+    return 'اتكتب $count من 6 أرقام';
+  }
+
+  @override
+  String get lockSetupNewPin => 'اختار رقم سري من 6 أرقام';
+
+  @override
+  String get lockSetupConfirmPin => 'اكتب نفس الرقم السري تاني';
+
+  @override
+  String get lockSetupMismatch => 'الرقمين مختلفين. اختار تاني.';
+
+  @override
+  String get lockSetupCurrentPin => 'اكتب الرقم السري الحالي';
+
+  @override
+  String get lockSetupBiometricsTitle => 'تستخدم بصمة الصباع أو الوش كمان؟';
+
+  @override
+  String get lockSetupBiometricsBody =>
+      'بتفتح أسرة أسرع، والرقم السري بيشتغل دايماً برضه. أي حد بصمته أو وشه متسجلين على الموبايل ده، حتى لو من العيلة، هيقدر يفتح أسرة. لو في حد تاني بيستخدم الموبايل، اختار مش دلوقتي.';
+
+  @override
+  String get lockSetupBiometricsYes => 'أيوه، استخدمها';
+
+  @override
+  String get lockSetupDone => 'قفل التطبيق اشتغل';
+
+  @override
+  String get lockSetupWriteDown =>
+      'احفظ الرقم السري في مكان أمان. لو نسيته، الطريقة الوحيدة إنك تمسح بيانات أسرة وترجّع نسخة احتياطية.';
+
+  @override
+  String get lockOfferTitle => 'تقفل أسرة برقم سري؟';
+
+  @override
+  String get lockOfferBody =>
+      'لو الموبايل ضاع أو حد تاني مسكه، سجلات عيلتك تفضل مقفولة. وتقدر تفتح ببصمة صباعك أو وشك كمان.';
+
+  @override
+  String get lockOfferYes => 'اعمل القفل';
+
+  @override
+  String get lockOfferSkip => 'مش دلوقتي';
+
+  @override
+  String get lockOfferLater => 'تقدر تشغّله في أي وقت من المزيد › قفل التطبيق.';
+
+  @override
+  String get settingsAppLock => 'قفل التطبيق';
+
+  @override
+  String get settingsAppLockOn => 'شغّال: لازم الرقم السري عشان تفتح أسرة';
+
+  @override
+  String get settingsAppLockOff => 'مقفول: أي حد معاه الموبايل يقدر يفتح أسرة';
+
+  @override
+  String get lockSettingsSwitch => 'اقفل برقم سري';
+
+  @override
+  String get lockSettingsChangePin => 'غيّر الرقم السري';
+
+  @override
+  String get lockSettingsBiometrics => 'بصمة الصباع أو الوش';
+
+  @override
+  String get lockSettingsBiometricsHint =>
+      'أي حد بصمته أو وشه متسجلين على الموبايل ده يقدر يفتح أسرة، حتى لو من العيلة. لو في حد تاني بيستخدم الموبايل، سيبها مقفولة واستخدم الرقم السري بس.';
+
+  @override
+  String get lockSettingsTimeout => 'اقفل تاني بعد ما تخرج من أسرة بـ';
+
+  @override
+  String get lockTimeoutImmediately => 'على طول';
+
+  @override
+  String get lockTimeoutOneMinute => 'دقيقة';
+
+  @override
+  String get lockTimeoutFiveMinutes => '5 دقايق';
+
+  @override
+  String get lockSettingsEmergency => 'كارت الطوارئ على شاشة القفل';
+
+  @override
+  String get lockSettingsEmergencyHint =>
+      'المسعف يقدر يشوف فصيلة الدم والحساسية والأمراض للناس اللي هتختارهم هنا من غير الرقم السري. وأي حد ماسك الموبايل يقدر يشوفهم برضه.';
+
+  @override
+  String get lockVerifyTitle => 'أكّد إنه إنت';
+
+  @override
+  String get lockOffDone => 'قفل التطبيق اتقفل';
+
+  @override
+  String get lockUnavailable =>
+      'مقدرناش نقرا القفل دلوقتي. جرّب تاني كمان شوية.';
+
+  @override
+  String get lockSetupTrivial =>
+      'الرقم ده سهل يتخمّن. ابعد عن الأرقام المتكررة أو اللي ورا بعض.';
+
+  @override
+  String get lockEmergencyFor => 'يظهر على شاشة القفل';
+
+  @override
+  String get lockBackupFirstTitle => 'تعمل نسخة احتياطية الأول؟';
+
+  @override
+  String get lockBackupFirstBody =>
+      'لو نسيت الرقم السري، الطريقة الوحيدة إنك تمسح بيانات أسرة وترجّع نسخة احتياطية بمفتاح الاسترجاع بتاعها. إنت لسه معملتش نسخة احتياطية.';
+
+  @override
+  String get lockBackupFirstMake => 'اعمل نسخة احتياطية';
+
+  @override
+  String get lockBackupFirstSkip => 'كمّل من غيرها';
+
+  @override
+  String backupDonePhotosSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة مقدرناش نفتحهم على الموبايل ده ومش فيها',
+      few: '$count صور مقدرناش نفتحهم على الموبايل ده ومش فيها',
+      two: 'صورتين مقدرناش نفتحهم على الموبايل ده ومش فيها',
+      one: 'صورة واحدة مقدرناش نفتحها على الموبايل ده ومش فيها',
+    );
+    return 'النسخة جاهزة، بس $_temp0. احفظها في مكان أمين برّه الموبايل.';
+  }
+
+  @override
+  String restorePhotosSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة في النسخة دي مش هيتفتحوا وهيتسابوا.',
+      few: '$count صور في النسخة دي مش هيتفتحوا وهيتسابوا.',
+      two: 'صورتين في النسخة دي مش هيتفتحوا وهيتسابوا.',
+      one: 'صورة واحدة في النسخة دي مش هتتفتح وهتتساب.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get photosLocked =>
+      'الصور مش بتتفتح على الموبايل ده. رجّع نسختك الاحتياطية عشان ترجعلك.';
 
   @override
   String get doseReminderDiscreetTitle => 'ميعاد دوا';

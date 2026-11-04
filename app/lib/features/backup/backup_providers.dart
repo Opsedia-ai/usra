@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/backup/backup_service.dart';
 import '../../core/backup/recovery_key.dart';
 import '../../core/preferences.dart';
+import '../../core/security/app_lock.dart';
 import '../family/family_screen.dart';
 
 /// Where the recovery key is kept; overridden in `main.dart` with
@@ -30,7 +31,7 @@ final appVersionProvider = Provider<String>((ref) => 'dev');
 /// Overridden in tests.
 final backupFilePickerProvider = Provider<Future<String?> Function()>(
   (ref) =>
-      () async => (await FilePicker.pickFile())?.path,
+      () async => (await whileInOtherApp(FilePicker.pickFile))?.path,
 );
 
 /// Opens the share sheet for a backup file and says whether it was saved
@@ -38,7 +39,9 @@ final backupFilePickerProvider = Provider<Future<String?> Function()>(
 final backupShareProvider =
     Provider<Future<ShareResultStatus> Function(ShareParams)>(
       (ref) =>
-          (params) async => (await SharePlus.instance.share(params)).status,
+          (params) async =>
+              (await whileInOtherApp(() => SharePlus.instance.share(params)))
+                  .status,
     );
 
 /// Swaps the staged backup in, then restarts the app on it. Once it's in,

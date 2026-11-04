@@ -18,9 +18,17 @@ const ambulanceNumber = '123';
 /// What a paramedic or ER nurse needs first, in large high-contrast text:
 /// blood type, allergies, chronic conditions and past surgeries.
 class EmergencyCardScreen extends ConsumerWidget {
-  const EmergencyCardScreen({super.key, required this.profileId});
+  const EmergencyCardScreen({
+    super.key,
+    required this.profileId,
+    this.editable = true,
+  });
 
   final String profileId;
+
+  /// False when opened from the lock screen: nothing there leads further
+  /// into the app.
+  final bool editable;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -81,7 +89,7 @@ class EmergencyCardScreen extends ConsumerWidget {
                   _ => l.emergencyLoading,
                 },
               ),
-              if (p.bloodType == null || p.allergies == null) ...[
+              if (editable && (p.bloodType == null || p.allergies == null)) ...[
                 const SizedBox(height: 4),
                 TextButton.icon(
                   key: const ValueKey('emergency-complete'),

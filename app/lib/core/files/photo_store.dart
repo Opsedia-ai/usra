@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 
+import '../security/app_lock.dart';
 import '../../l10n/app_localizations.dart';
 import 'photo_crypto.dart';
 import 'photo_worker.dart';
@@ -35,14 +36,16 @@ final attachmentStoreProvider = Provider<PhotoStore>(
 /// Overridden in tests.
 final photoPickerProvider = Provider<Future<String?> Function(ImageSource)>(
   (ref) => (source) async {
-    final photo = await ImagePicker().pickImage(
-      source: source,
-      // A card or a report page is readable at this size and stays a few
-      // hundred KB.
-      maxWidth: _maxSide,
-      maxHeight: _maxSide,
-      imageQuality: _quality,
-      requestFullMetadata: false,
+    final photo = await whileInOtherApp(
+      () => ImagePicker().pickImage(
+        source: source,
+        // A card or a report page is readable at this size and stays a few
+        // hundred KB.
+        maxWidth: _maxSide,
+        maxHeight: _maxSide,
+        imageQuality: _quality,
+        requestFullMetadata: false,
+      ),
     );
     return photo?.path;
   },
@@ -52,11 +55,13 @@ final photoPickerProvider = Provider<Future<String?> Function(ImageSource)>(
 /// (empty if cancelled). Overridden in tests.
 final multiPhotoPickerProvider = Provider<Future<List<String>> Function()>(
   (ref) => () async {
-    final photos = await ImagePicker().pickMultiImage(
-      maxWidth: _maxSide,
-      maxHeight: _maxSide,
-      imageQuality: _quality,
-      requestFullMetadata: false,
+    final photos = await whileInOtherApp(
+      () => ImagePicker().pickMultiImage(
+        maxWidth: _maxSide,
+        maxHeight: _maxSide,
+        imageQuality: _quality,
+        requestFullMetadata: false,
+      ),
     );
     return [for (final x in photos) x.path];
   },
@@ -68,7 +73,7 @@ const int _quality = 85;
 /// Opens the system share sheet. Overridden in tests.
 final shareProvider = Provider<Future<void> Function(ShareParams)>(
   (ref) =>
-      (params) => SharePlus.instance.share(params),
+      (params) => whileInOtherApp(() => SharePlus.instance.share(params)),
 );
 
 /// Keeps photos in the app's private folder, next to the database, each

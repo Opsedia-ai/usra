@@ -8,6 +8,7 @@ import '../../core/design/tokens.dart';
 import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
 import '../../core/providers.dart';
+import '../../core/security/app_lock.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/account_screen.dart';
 import '../backup/backup_screen.dart';
@@ -81,6 +82,21 @@ class SettingsScreen extends ConsumerWidget {
                   secondary: const Icon(Icons.accessibility_new),
                   title: Text(l.settingsSimpleMode),
                   subtitle: Text(l.settingsSimpleModeHint),
+                ),
+                const Divider(height: 1),
+                ListenableBuilder(
+                  listenable: ref.watch(appLockProvider),
+                  builder: (context, _) => ListTile(
+                    key: const ValueKey('settings-app-lock'),
+                    leading: const Icon(Icons.lock_outline),
+                    title: Text(l.settingsAppLock),
+                    subtitle: Text(
+                      ref.read(appLockProvider).enabled
+                          ? l.settingsAppLockOn
+                          : l.settingsAppLockOff,
+                    ),
+                    onTap: () => context.go(appLockSettingsPath),
+                  ),
                 ),
                 const Divider(height: 1),
                 _PreferenceSwitch(

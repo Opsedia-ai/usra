@@ -2408,24 +2408,6 @@ abstract class AppLocalizations {
   /// **'Backup ready. Keep it somewhere safe off this phone.'**
   String get backupDone;
 
-  /// No description provided for @backupDonePhotosSkipped.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup ready, but {count, plural, =1{1 photo couldn\'t be opened on this phone and isn\'t} other{{count} photos couldn\'t be opened on this phone and aren\'t}} in it. Keep it somewhere safe off this phone.'**
-  String backupDonePhotosSkipped(int count);
-
-  /// No description provided for @restorePhotosSkipped.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 photo in this backup can\'t be opened and will be left out.} other{{count} photos in this backup can\'t be opened and will be left out.}}'**
-  String restorePhotosSkipped(int count);
-
-  /// No description provided for @photosLocked.
-  ///
-  /// In en, this message translates to:
-  /// **'Photos can\'t be opened on this phone. Restore your backup to get them back.'**
-  String get photosLocked;
-
   /// No description provided for @backupFailed.
   ///
   /// In en, this message translates to:
@@ -3463,6 +3445,336 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You created a family that other people are in. Their shared records would be deleted too, so this account can\'t be deleted yet.'**
   String get accountErrorFamilyHasMembers;
+
+  /// No description provided for @lockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra is locked'**
+  String get lockTitle;
+
+  /// No description provided for @lockEnterPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your PIN'**
+  String get lockEnterPin;
+
+  /// No description provided for @lockUseBiometrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with fingerprint or face'**
+  String get lockUseBiometrics;
+
+  /// No description provided for @lockBiometricReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Usra to see your family\'s records'**
+  String get lockBiometricReason;
+
+  /// No description provided for @lockWrongPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong PIN. Try again.'**
+  String get lockWrongPin;
+
+  /// No description provided for @lockWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many wrong tries. Try again in {time}.'**
+  String lockWait(String time);
+
+  /// No description provided for @lockForgot.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot your PIN?'**
+  String get lockForgot;
+
+  /// No description provided for @lockForgotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'If you forget your PIN'**
+  String get lockForgotTitle;
+
+  /// No description provided for @lockForgotBody.
+  ///
+  /// In en, this message translates to:
+  /// **'To keep your family\'s records private, nothing can skip the PIN, not even us.\n\nTo start again:\n1. Remove Usra\'s data. On Android: phone Settings › Apps › Usra › Storage › Clear data. On iPhone: delete Usra and install it again. This deletes everything Usra keeps on this phone.\n2. Open Usra and restore your latest backup with your recovery key (More › Backup).\n\nWithout a backup and its recovery key, the records can\'t be brought back.'**
+  String get lockForgotBody;
+
+  /// No description provided for @lockEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency info'**
+  String get lockEmergency;
+
+  /// No description provided for @lockEmergencyPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Whose emergency card?'**
+  String get lockEmergencyPick;
+
+  /// No description provided for @lockEmergencyNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No one has been added yet.'**
+  String get lockEmergencyNone;
+
+  /// No description provided for @pinOk.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get pinOk;
+
+  /// No description provided for @pinDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get pinDelete;
+
+  /// No description provided for @pinLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'6 numbers'**
+  String get pinLengthHint;
+
+  /// No description provided for @pinEntered.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of 6 numbers typed'**
+  String pinEntered(int count);
+
+  /// No description provided for @lockSetupNewPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a 6-number PIN'**
+  String get lockSetupNewPin;
+
+  /// No description provided for @lockSetupConfirmPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Type the same PIN again'**
+  String get lockSetupConfirmPin;
+
+  /// No description provided for @lockSetupMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The two PINs are different. Choose again.'**
+  String get lockSetupMismatch;
+
+  /// No description provided for @lockSetupCurrentPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your current PIN'**
+  String get lockSetupCurrentPin;
+
+  /// No description provided for @lockSetupBiometricsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use your fingerprint or face too?'**
+  String get lockSetupBiometricsTitle;
+
+  /// No description provided for @lockSetupBiometricsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens Usra faster; the PIN always works too. Anyone whose fingerprint or face is set up on this phone, family members too, will be able to open Usra. If others use this phone, choose Not now.'**
+  String get lockSetupBiometricsBody;
+
+  /// No description provided for @lockSetupBiometricsYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, use it'**
+  String get lockSetupBiometricsYes;
+
+  /// No description provided for @lockSetupDone.
+  ///
+  /// In en, this message translates to:
+  /// **'App lock is on'**
+  String get lockSetupDone;
+
+  /// No description provided for @lockSetupWriteDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your PIN somewhere safe. If you forget it, the only way back in is to remove Usra\'s data and restore a backup.'**
+  String get lockSetupWriteDown;
+
+  /// No description provided for @lockOfferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock Usra with a PIN?'**
+  String get lockOfferTitle;
+
+  /// No description provided for @lockOfferBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If your phone is lost or someone else picks it up, your family\'s records stay closed. You can unlock with your fingerprint or face too.'**
+  String get lockOfferBody;
+
+  /// No description provided for @lockOfferYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up the lock'**
+  String get lockOfferYes;
+
+  /// No description provided for @lockOfferSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get lockOfferSkip;
+
+  /// No description provided for @lockOfferLater.
+  ///
+  /// In en, this message translates to:
+  /// **'You can turn it on any time from More › App lock.'**
+  String get lockOfferLater;
+
+  /// No description provided for @settingsAppLock.
+  ///
+  /// In en, this message translates to:
+  /// **'App lock'**
+  String get settingsAppLock;
+
+  /// No description provided for @settingsAppLockOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On: PIN needed to open Usra'**
+  String get settingsAppLockOn;
+
+  /// No description provided for @settingsAppLockOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: anyone with the phone can open Usra'**
+  String get settingsAppLockOff;
+
+  /// No description provided for @lockSettingsSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock with a PIN'**
+  String get lockSettingsSwitch;
+
+  /// No description provided for @lockSettingsChangePin.
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN'**
+  String get lockSettingsChangePin;
+
+  /// No description provided for @lockSettingsBiometrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Fingerprint or face'**
+  String get lockSettingsBiometrics;
+
+  /// No description provided for @lockSettingsBiometricsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone whose fingerprint or face is set up on this phone can open Usra, family members too. If others use this phone, keep this off and use the PIN only.'**
+  String get lockSettingsBiometricsHint;
+
+  /// No description provided for @lockSettingsTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock again after leaving Usra'**
+  String get lockSettingsTimeout;
+
+  /// No description provided for @lockTimeoutImmediately.
+  ///
+  /// In en, this message translates to:
+  /// **'Right away'**
+  String get lockTimeoutImmediately;
+
+  /// No description provided for @lockTimeoutOneMinute.
+  ///
+  /// In en, this message translates to:
+  /// **'1 minute'**
+  String get lockTimeoutOneMinute;
+
+  /// No description provided for @lockTimeoutFiveMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'5 minutes'**
+  String get lockTimeoutFiveMinutes;
+
+  /// No description provided for @lockSettingsEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency card on the lock screen'**
+  String get lockSettingsEmergency;
+
+  /// No description provided for @lockSettingsEmergencyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A paramedic can see the blood type, allergies and conditions of the people you choose here without the PIN. Anyone holding the phone can see them too.'**
+  String get lockSettingsEmergencyHint;
+
+  /// No description provided for @lockVerifyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you'**
+  String get lockVerifyTitle;
+
+  /// No description provided for @lockOffDone.
+  ///
+  /// In en, this message translates to:
+  /// **'App lock is off'**
+  String get lockOffDone;
+
+  /// No description provided for @lockUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the lock just now. Try again in a moment.'**
+  String get lockUnavailable;
+
+  /// No description provided for @lockSetupTrivial.
+  ///
+  /// In en, this message translates to:
+  /// **'That PIN is too easy to guess. Avoid repeated or sequential numbers.'**
+  String get lockSetupTrivial;
+
+  /// No description provided for @lockEmergencyFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on the lock screen'**
+  String get lockEmergencyFor;
+
+  /// No description provided for @lockBackupFirstTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a backup first?'**
+  String get lockBackupFirstTitle;
+
+  /// No description provided for @lockBackupFirstBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If you forget your PIN, the only way back in is to remove Usra\'s data and restore a backup with its recovery key. You don\'t have a backup yet.'**
+  String get lockBackupFirstBody;
+
+  /// No description provided for @lockBackupFirstMake.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a backup'**
+  String get lockBackupFirstMake;
+
+  /// No description provided for @lockBackupFirstSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue without'**
+  String get lockBackupFirstSkip;
+
+  /// No description provided for @backupDonePhotosSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup ready, but {count, plural, =1{1 photo couldn\'t be opened on this phone and isn\'t} other{{count} photos couldn\'t be opened on this phone and aren\'t}} in it. Keep it somewhere safe off this phone.'**
+  String backupDonePhotosSkipped(int count);
+
+  /// No description provided for @restorePhotosSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo in this backup can\'t be opened and will be left out.} other{{count} photos in this backup can\'t be opened and will be left out.}}'**
+  String restorePhotosSkipped(int count);
+
+  /// No description provided for @photosLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos can\'t be opened on this phone. Restore your backup to get them back.'**
+  String get photosLocked;
 
   /// No description provided for @doseReminderDiscreetTitle.
   ///
