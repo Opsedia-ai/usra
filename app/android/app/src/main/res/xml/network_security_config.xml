@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- No plain HTTP from the app, ever (docs/security.md S6). Only system CAs
+     are trusted; user-installed CAs can't intercept traffic. Flutter's
+     dart:io reads this file too, so it covers Dart HTTP as well as plugins.
+     Debug tooling (hot reload, DevTools) uses the VM service over adb, not
+     app HTTP, so debug builds share this config. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
