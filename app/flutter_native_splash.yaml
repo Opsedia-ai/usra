@@ -1,0 +1,17 @@
+# Launch screen: the Dr. Usra logo mark on the app background (Nile blue
+# brand, design/README.md). Regenerate with:
+#   dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#F3F6FA"
+  image: assets/branding/splash.png
+  color_dark: "#14263D"
+  image_dark: assets/branding/splash_dark.png
+  android_12:
+    color: "#F3F6FA"
+    image: assets/branding/splash.png
+    color_dark: "#14263D"
+    image_dark: assets/branding/splash_dark.png
+  android: true
+  ios: true
+  web: false
+  fullscreen: false
