@@ -45,8 +45,8 @@ class WidgetDose {
   /// First name only; empty in discreet mode.
   final String person;
 
-  /// The medicine's name, without its strength; "Medicine dose" in
-  /// discreet mode.
+  /// The medicine's name, without its strength; "Dose due" in discreet
+  /// mode.
   final String medicine;
   final String medicineId;
 
@@ -76,6 +76,7 @@ class WidgetSnapshot {
     required this.stale,
     required this.taken,
     required this.doses,
+    this.discreet = false,
   });
 
   /// When the doses were read; a Taken pressed on the widget after this
@@ -93,6 +94,10 @@ class WidgetSnapshot {
   /// Not yet taken or skipped, soonest first.
   final List<WidgetDose> doses;
 
+  /// No names, and so no Taken button: rows that look alike could each
+  /// mark someone else's dose. A tap opens the app instead.
+  final bool discreet;
+
   static const version = 1;
 
   Map<String, Object> toJson() => {
@@ -104,6 +109,7 @@ class WidgetSnapshot {
     'empty': empty,
     'stale': stale,
     'taken': taken,
+    'discreet': discreet,
     'doses': [for (final d in doses) d.toJson()],
   };
 
@@ -163,6 +169,7 @@ WidgetSnapshot buildWidgetSnapshot(
     stale: l.widgetStale,
     taken: l.doseTaken,
     doses: doses,
+    discreet: discreet,
   );
 }
 

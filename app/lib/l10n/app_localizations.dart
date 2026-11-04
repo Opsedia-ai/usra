@@ -3179,7 +3179,7 @@ abstract class AppLocalizations {
   /// No description provided for @widgetDiscreetDose.
   ///
   /// In en, this message translates to:
-  /// **'Medicine dose'**
+  /// **'Dose due'**
   String get widgetDiscreetDose;
 
   /// No description provided for @settingsDiscreet.
@@ -3205,6 +3205,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No screenshots or screen recording anywhere in the app. The recovery key is always protected. Leave off to screenshot the emergency card.'**
   String get settingsBlockScreenshotsHint;
+
+  /// No description provided for @doseReminderDiscreetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Usra to see which'**
+  String get doseReminderDiscreetBody;
 }
 
 class _AppLocalizationsDelegate

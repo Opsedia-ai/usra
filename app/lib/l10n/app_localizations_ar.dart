@@ -1951,7 +1951,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get doseReminderDiscreetTitle => 'ميعاد دوا';
 
   @override
-  String get widgetDiscreetDose => 'جرعة دوا';
+  String get widgetDiscreetDose => 'ميعاد جرعة';
 
   @override
   String get settingsDiscreet => 'تنبيهات من غير أسامي';
@@ -1966,4 +1966,7 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settingsBlockScreenshotsHint =>
       'مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق كله. مفتاح الاسترجاع محمي على طول. سيبها مقفولة لو عايز تصوّر كارت الطوارئ.';
+
+  @override
+  String get doseReminderDiscreetBody => 'افتح أسرة عشان تشوف أنهي دوا';
 }

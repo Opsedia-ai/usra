@@ -87,7 +87,7 @@ Future<void> main() async {
     if (status == null) {
       container().read(routerProvider).go('/medicines');
     } else {
-      reminders.handleAction(r.reminder, status);
+      reminders.handleAction(r.dose, status);
     }
   }
 
@@ -99,6 +99,7 @@ Future<void> main() async {
       channelName: startup.doseChannelName,
       takenLabel: startup.doseTaken,
       snoozeLabel: startup.doseSnooze,
+      hiddenPreviewText: startup.doseReminderDiscreetTitle,
       onResponse: onDoseResponse,
     );
   } catch (e, s) {

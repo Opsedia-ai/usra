@@ -9,8 +9,10 @@ import 'preferences.dart';
 /// screen such as the recovery key is open.
 ///
 /// The recent-apps switcher is covered natively whatever this says
-/// (`MainActivity.kt`, `SceneDelegate.swift`). iOS can't block screenshots,
-/// so there the channel isn't implemented and calls do nothing.
+/// (`MainActivity.kt`, `SceneDelegate.swift`): the launch screen goes over
+/// the app when it leaves the foreground and comes off when it's back,
+/// or, after [coverUntilReady], only once [uncover] is called. iOS can't
+/// block screenshots, so there `setSecure` does nothing.
 class ScreenPrivacy {
   ScreenPrivacy([this._channel = channel]);
 
@@ -38,6 +40,22 @@ class ScreenPrivacy {
   Future<void> release() {
     if (_screens > 0) _screens--;
     return _apply();
+  }
+
+  /// For the app lock: while on, the cover stays after the app comes back
+  /// until [uncover], so nothing shows before the lock screen is drawn
+  /// (natively it gives up after 3 seconds).
+  Future<void> coverUntilReady(bool on) => _call('coverUntilReady', on);
+
+  /// The lock screen is drawn, or there's no need for one.
+  Future<void> uncover() => _call('uncover');
+
+  Future<void> _call(String method, [Object? argument]) async {
+    try {
+      await _channel.invokeMethod<void>(method, argument);
+    } on MissingPluginException {
+      // Tests, or a platform without a cover.
+    }
   }
 
   Future<void> _apply() async {

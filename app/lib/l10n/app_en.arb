@@ -1083,9 +1083,10 @@
   "devUntick": "Untick",
   "devUntickConfirm": "Untick this milestone? The date you recorded will be removed.",
   "doseReminderDiscreetTitle": "Time for a medicine",
-  "widgetDiscreetDose": "Medicine dose",
+  "widgetDiscreetDose": "Dose due",
   "settingsDiscreet": "Discreet notifications",
   "settingsDiscreetHint": "Reminders and the home-screen widget say \"Time for a medicine\", without the person's or the medicine's name.",
   "settingsBlockScreenshots": "Block screenshots",
-  "settingsBlockScreenshotsHint": "No screenshots or screen recording anywhere in the app. The recovery key is always protected. Leave off to screenshot the emergency card."
+  "settingsBlockScreenshotsHint": "No screenshots or screen recording anywhere in the app. The recovery key is always protected. Leave off to screenshot the emergency card.",
+  "doseReminderDiscreetBody": "Open Usra to see which"
 }

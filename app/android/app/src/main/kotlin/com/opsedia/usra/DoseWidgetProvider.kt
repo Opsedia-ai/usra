@@ -103,6 +103,8 @@ class DoseWidgetProvider : HomeWidgetProvider() {
             val empty: String?,
             val stale: String?,
             val taken: String?,
+            /** No names, so no Taken: identical rows could be anyone's. */
+            val discreet: Boolean,
             val doses: List<Dose>,
         )
 
@@ -171,7 +173,7 @@ class DoseWidgetProvider : HomeWidgetProvider() {
                 )
                 // Only doses already due: a later one still has its
                 // reminder coming, which Taken here can't cancel.
-                if (dose.at <= now) {
+                if (dose.at <= now && !snapshot!!.discreet) {
                     views.setViewVisibility(buttons[i], View.VISIBLE)
                     views.setTextViewText(
                         buttons[i],
@@ -299,6 +301,7 @@ class DoseWidgetProvider : HomeWidgetProvider() {
                     empty = j.optString("empty").ifEmpty { null },
                     stale = j.optString("stale").ifEmpty { null },
                     taken = j.optString("taken").ifEmpty { null },
+                    discreet = j.optBoolean("discreet", false),
                     doses = (0 until list.length()).map {
                         val d = list.getJSONObject(it)
                         Dose(

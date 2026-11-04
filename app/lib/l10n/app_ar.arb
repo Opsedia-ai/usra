@@ -589,9 +589,10 @@
   "devUntick": "شيل العلامة",
   "devUntickConfirm": "تشيل العلامة من المهارة دي؟ التاريخ اللي سجلته هيتمسح.",
   "doseReminderDiscreetTitle": "ميعاد دوا",
-  "widgetDiscreetDose": "جرعة دوا",
+  "widgetDiscreetDose": "ميعاد جرعة",
   "settingsDiscreet": "تنبيهات من غير أسامي",
   "settingsDiscreetHint": "التنبيهات وويدجت الشاشة الرئيسية بتقول \"ميعاد دوا\" بس، من غير اسم الشخص ولا اسم الدوا.",
   "settingsBlockScreenshots": "امنع تصوير الشاشة",
-  "settingsBlockScreenshotsHint": "مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق كله. مفتاح الاسترجاع محمي على طول. سيبها مقفولة لو عايز تصوّر كارت الطوارئ."
+  "settingsBlockScreenshotsHint": "مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق كله. مفتاح الاسترجاع محمي على طول. سيبها مقفولة لو عايز تصوّر كارت الطوارئ.",
+  "doseReminderDiscreetBody": "افتح أسرة عشان تشوف أنهي دوا"
 }

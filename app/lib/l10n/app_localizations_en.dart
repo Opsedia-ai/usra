@@ -1937,7 +1937,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get doseReminderDiscreetTitle => 'Time for a medicine';
 
   @override
-  String get widgetDiscreetDose => 'Medicine dose';
+  String get widgetDiscreetDose => 'Dose due';
 
   @override
   String get settingsDiscreet => 'Discreet notifications';
@@ -1952,4 +1952,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsBlockScreenshotsHint =>
       'No screenshots or screen recording anywhere in the app. The recovery key is always protected. Leave off to screenshot the emergency card.';
+
+  @override
+  String get doseReminderDiscreetBody => 'Open Usra to see which';
 }

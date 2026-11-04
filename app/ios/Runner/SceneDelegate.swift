@@ -2,26 +2,47 @@ import Flutter
 import UIKit
 
 class SceneDelegate: FlutterSceneDelegate {
+  /// The scene showing the app, for the `usra/screen_privacy` channel
+  /// (registered in AppDelegate).
+  static weak var current: SceneDelegate?
+
+  /// The app lock is on: the cover stays once active until Dart has drawn
+  /// the lock (or decided there's none) and calls `uncover`.
+  var coverUntilReady = false
+
   private var cover: UIView?
+  private var active = false
   private var observers: [NSObjectProtocol] = []
 
   override init() {
     super.init()
+    SceneDelegate.current = self
     // Health records must not show in the app switcher: iOS snapshots the
     // window once the app goes inactive, so cover it then (the launch
     // screen) and uncover when it's active again. Notifications rather than
     // overriding the scene callbacks, which FlutterSceneDelegate needs.
+    // Also shows behind system alerts (permission prompts, Face ID).
     let center = NotificationCenter.default
     observers = [
       center.addObserver(
         forName: UIScene.willDeactivateNotification, object: nil, queue: .main
       ) { [weak self] note in
-        self?.ifOwnScene(note) { $0.showCover() }
+        self?.ifOwnScene(note) {
+          $0.active = false
+          $0.showCover()
+        }
       },
       center.addObserver(
         forName: UIScene.didActivateNotification, object: nil, queue: .main
       ) { [weak self] note in
-        self?.ifOwnScene(note) { $0.hideCover() }
+        self?.ifOwnScene(note) {
+          $0.active = true
+          if $0.coverUntilReady {
+            $0.uncoverSoon()
+          } else {
+            $0.hideCover()
+          }
+        }
       },
     ]
   }
@@ -29,6 +50,18 @@ class SceneDelegate: FlutterSceneDelegate {
   deinit {
     for observer in observers {
       NotificationCenter.default.removeObserver(observer)
+    }
+  }
+
+  /// Dart is ready (the lock is drawn, or there is none).
+  func uncover() {
+    if active { hideCover() }
+  }
+
+  /// Never stuck: Dart normally uncovers within a frame or two.
+  private func uncoverSoon() {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+      self?.uncover()
     }
   }
 
