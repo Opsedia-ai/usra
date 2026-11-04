@@ -34,7 +34,7 @@ class _PinPadState extends ConsumerState<PinPad> {
   bool get _active => widget.enabled && !widget.busy;
 
   void _type(String digit) {
-    if (!_active || _pin.length >= maxPinLength) return;
+    if (!_active || _pin.length >= pinLength) return;
     setState(() => _pin += digit);
   }
 
@@ -44,7 +44,7 @@ class _PinPadState extends ConsumerState<PinPad> {
   }
 
   void _submit() {
-    if (!_active || _pin.length < minPinLength) return;
+    if (!_active || _pin.length < pinLength) return;
     final pin = _pin;
     setState(() => _pin = '');
     widget.onSubmit(pin);
@@ -97,7 +97,7 @@ class _PinPadState extends ConsumerState<PinPad> {
             key: const ValueKey('pin-dots'),
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (var i = 0; i < maxPinLength; i++)
+              for (var i = 0; i < pinLength; i++)
                 Container(
                   margin: const EdgeInsets.all(6),
                   width: simple ? 20 : 16,
@@ -108,7 +108,7 @@ class _PinPadState extends ConsumerState<PinPad> {
                         ? UsraColors.primary
                         : Colors.transparent,
                     border: Border.all(
-                      color: i < minPinLength || i < _pin.length
+                      color: i < pinLength
                           ? UsraColors.primary
                           : UsraColors.line,
                       width: 2,
@@ -162,7 +162,7 @@ class _PinPadState extends ConsumerState<PinPad> {
                     'ok',
                     Icon(
                       Icons.check,
-                      color: _pin.length >= minPinLength
+                      color: _pin.length >= pinLength
                           ? UsraColors.primary
                           : UsraColors.textMuted,
                     ),

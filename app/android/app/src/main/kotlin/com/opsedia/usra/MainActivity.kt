@@ -2,6 +2,7 @@ package com.opsedia.usra
 
 import android.content.Intent
 import android.os.PowerManager
+import android.os.SystemClock
 import android.provider.Settings
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -29,6 +30,15 @@ class MainActivity : FlutterFragmentActivity() {
                             result.error("unavailable", e.message, null)
                         }
                     }
+                    else -> result.notImplemented()
+                }
+            }
+        // The app lock measures time away with this: it counts while the
+        // phone sleeps and can't be changed in the phone's settings.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "usra/clock")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "elapsedRealtime" -> result.success(SystemClock.elapsedRealtime())
                     else -> result.notImplemented()
                 }
             }

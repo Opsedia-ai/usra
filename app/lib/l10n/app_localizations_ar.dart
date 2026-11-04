@@ -1993,7 +1993,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pinDelete => 'امسح';
 
   @override
-  String get pinLengthHint => 'من 4 لـ 6 أرقام';
+  String get pinLengthHint => '6 أرقام';
 
   @override
   String pinEntered(int count) {
@@ -2001,7 +2001,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get lockSetupNewPin => 'اختار رقم سري';
+  String get lockSetupNewPin => 'اختار رقم سري من 6 أرقام';
 
   @override
   String get lockSetupConfirmPin => 'اكتب نفس الرقم السري تاني';
@@ -2017,7 +2017,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lockSetupBiometricsBody =>
-      'بتفتح أسرة أسرع. والرقم السري بيشتغل دايماً برضه.';
+      'بتفتح أسرة أسرع، والرقم السري بيشتغل دايماً برضه. أي حد بصمته أو وشه متسجلين على الموبايل ده، حتى لو من العيلة، هيقدر يفتح أسرة. لو في حد تاني بيستخدم الموبايل، اختار مش دلوقتي.';
 
   @override
   String get lockSetupBiometricsYes => 'أيوه، استخدمها';
@@ -2064,7 +2064,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get lockSettingsBiometrics => 'بصمة الصباع أو الوش';
 
   @override
-  String get lockSettingsBiometricsHint => 'افتح من غير ما تكتب الرقم السري';
+  String get lockSettingsBiometricsHint =>
+      'أي حد بصمته أو وشه متسجلين على الموبايل ده يقدر يفتح أسرة، حتى لو من العيلة. لو في حد تاني بيستخدم الموبايل، سيبها مقفولة واستخدم الرقم السري بس.';
 
   @override
   String get lockSettingsTimeout => 'اقفل تاني بعد ما تخرج من أسرة بـ';
@@ -2083,11 +2084,35 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lockSettingsEmergencyHint =>
-      'بيخلي المسعف يشوف فصيلة الدم والحساسية والأمراض من غير الرقم السري. وأي حد ماسك الموبايل يقدر يشوفهم برضه.';
+      'المسعف يقدر يشوف فصيلة الدم والحساسية والأمراض للناس اللي هتختارهم هنا من غير الرقم السري. وأي حد ماسك الموبايل يقدر يشوفهم برضه.';
 
   @override
   String get lockVerifyTitle => 'أكّد إنه إنت';
 
   @override
   String get lockOffDone => 'قفل التطبيق اتقفل';
+
+  @override
+  String get lockUnavailable =>
+      'مقدرناش نقرا القفل دلوقتي. جرّب تاني كمان شوية.';
+
+  @override
+  String get lockSetupTrivial =>
+      'الرقم ده سهل يتخمّن. ابعد عن الأرقام المتكررة أو اللي ورا بعض.';
+
+  @override
+  String get lockEmergencyFor => 'يظهر على شاشة القفل';
+
+  @override
+  String get lockBackupFirstTitle => 'تعمل نسخة احتياطية الأول؟';
+
+  @override
+  String get lockBackupFirstBody =>
+      'لو نسيت الرقم السري، الطريقة الوحيدة إنك تمسح بيانات أسرة وترجّع نسخة احتياطية بمفتاح الاسترجاع بتاعها. إنت لسه معملتش نسخة احتياطية.';
+
+  @override
+  String get lockBackupFirstMake => 'اعمل نسخة احتياطية';
+
+  @override
+  String get lockBackupFirstSkip => 'كمّل من غيرها';
 }

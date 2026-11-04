@@ -30,6 +30,10 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
   late final AppLifecycleListener _life;
   final _navigator = GlobalKey<NavigatorState>();
 
+  /// Hides the app from the moment it starts to leave the screen until the
+  /// lock has decided on coming back, so the records never flash up first.
+  bool _covered = false;
+
   @override
   void initState() {
     super.initState();
@@ -47,16 +51,27 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
     super.dispose();
   }
 
-  void _lifecycle(AppLifecycleState state) {
+  Future<void> _lifecycle(AppLifecycleState state) async {
     switch (state) {
+      case AppLifecycleState.inactive:
+        // Also the notification shade and the Face ID prompt: covered, but
+        // the background clock only starts once the app is really away.
+        _cover(true);
       case AppLifecycleState.hidden || AppLifecycleState.paused:
+        _cover(true);
         _lock.movedToBackground();
       case AppLifecycleState.resumed:
-        _lock.movedToForeground();
-      // Inactive is also the Face ID prompt and the notification shade.
-      case AppLifecycleState.inactive || AppLifecycleState.detached:
+        await _lock.movedToForeground();
+        _cover(false);
+      case AppLifecycleState.detached:
         break;
     }
+  }
+
+  void _cover(bool on) {
+    final covered = on && _lock.enabled && !_lock.locked;
+    if (covered == _covered || !mounted) return;
+    setState(() => _covered = covered);
   }
 
   void _changed() {
@@ -83,16 +98,34 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
   @override
   Widget build(BuildContext context) {
     final locked = _lock.locked;
+    final hidden = locked || _covered;
     return Stack(
       fit: StackFit.expand,
       children: [
-        ExcludeSemantics(
-          excluding: locked,
-          child: TickerMode(
-            enabled: !locked,
-            child: Offstage(offstage: locked, child: widget.child),
+        // Out of sight, out of reach of taps, screen readers, and keyboard
+        // or D-pad focus.
+        ExcludeFocus(
+          excluding: hidden,
+          child: ExcludeSemantics(
+            excluding: hidden,
+            child: TickerMode(
+              enabled: !hidden,
+              child: Offstage(offstage: hidden, child: widget.child),
+            ),
           ),
         ),
+        if (_covered && !locked)
+          const ColoredBox(
+            key: ValueKey('lock-cover'),
+            color: UsraColors.background,
+            child: Center(
+              child: Icon(
+                Icons.lock_outline,
+                size: 48,
+                color: UsraColors.primary,
+              ),
+            ),
+          ),
         if (locked)
           Navigator(
             key: _navigator,
@@ -218,7 +251,7 @@ class PinEntry extends ConsumerStatefulWidget {
 class _PinEntryState extends ConsumerState<PinEntry> {
   late final AppLock _lock = ref.read(appLockProvider);
   bool _busy = false;
-  bool _wrong = false;
+  PinCheck? _result;
   Timer? _tick;
 
   @override
@@ -246,12 +279,20 @@ class _PinEntryState extends ConsumerState<PinEntry> {
 
   Future<void> _check(String pin) async {
     setState(() => _busy = true);
-    final result = await _lock.checkPin(pin);
+    var result = PinCheck.unavailable;
+    try {
+      result = await _lock.checkPin(pin);
+    } catch (_) {
+      // Shown as "try again"; the pad is usable again either way.
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _result = result;
+        });
+      }
+    }
     if (!mounted) return;
-    setState(() {
-      _busy = false;
-      _wrong = result != PinCheck.ok;
-    });
     if (result == PinCheck.ok) {
       widget.onOk();
     } else {
@@ -266,9 +307,11 @@ class _PinEntryState extends ConsumerState<PinEntry> {
     final wait = _lock.waitRemaining;
     final message = wait > Duration.zero
         ? l.lockWait(_minutesSeconds(wait))
-        : _wrong
-        ? l.lockWrongPin
-        : null;
+        : switch (_result) {
+            PinCheck.wrong || PinCheck.blocked => l.lockWrongPin,
+            PinCheck.unavailable => l.lockUnavailable,
+            _ => _lock.unreadable ? l.lockUnavailable : null,
+          };
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -316,15 +359,21 @@ Future<void> showForgotPin(BuildContext context) {
   );
 }
 
-/// Only reachable when the person turned it on: whose card to show, then
-/// the card itself, with nothing that leads further into the app.
+/// Only reachable when the person turned it on, and lists only the people
+/// they chose: whose card to show, then the card itself, with nothing that
+/// leads further into the app.
 class LockedEmergencyPicker extends ConsumerWidget {
   const LockedEmergencyPicker({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
-    final profiles = ref.watch(profilesProvider).value;
+    final allowed = ref.read(appLockProvider).emergencyProfiles;
+    final profiles = ref
+        .watch(profilesProvider)
+        .value
+        ?.where((p) => allowed.contains(p.id))
+        .toList();
     return Scaffold(
       appBar: AppBar(
         backgroundColor: UsraColors.emergency,

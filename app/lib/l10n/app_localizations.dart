@@ -3257,7 +3257,7 @@ abstract class AppLocalizations {
   /// No description provided for @pinLengthHint.
   ///
   /// In en, this message translates to:
-  /// **'4 to 6 numbers'**
+  /// **'6 numbers'**
   String get pinLengthHint;
 
   /// No description provided for @pinEntered.
@@ -3269,7 +3269,7 @@ abstract class AppLocalizations {
   /// No description provided for @lockSetupNewPin.
   ///
   /// In en, this message translates to:
-  /// **'Choose a PIN'**
+  /// **'Choose a 6-number PIN'**
   String get lockSetupNewPin;
 
   /// No description provided for @lockSetupConfirmPin.
@@ -3299,7 +3299,7 @@ abstract class AppLocalizations {
   /// No description provided for @lockSetupBiometricsBody.
   ///
   /// In en, this message translates to:
-  /// **'Opens Usra faster. The PIN always works too.'**
+  /// **'Opens Usra faster; the PIN always works too. Anyone whose fingerprint or face is set up on this phone, family members too, will be able to open Usra. If others use this phone, choose Not now.'**
   String get lockSetupBiometricsBody;
 
   /// No description provided for @lockSetupBiometricsYes.
@@ -3389,7 +3389,7 @@ abstract class AppLocalizations {
   /// No description provided for @lockSettingsBiometricsHint.
   ///
   /// In en, this message translates to:
-  /// **'Unlock without typing the PIN'**
+  /// **'Anyone whose fingerprint or face is set up on this phone can open Usra, family members too. If others use this phone, keep this off and use the PIN only.'**
   String get lockSettingsBiometricsHint;
 
   /// No description provided for @lockSettingsTimeout.
@@ -3425,7 +3425,7 @@ abstract class AppLocalizations {
   /// No description provided for @lockSettingsEmergencyHint.
   ///
   /// In en, this message translates to:
-  /// **'Lets a paramedic see blood type, allergies and conditions without the PIN. Anyone holding the phone can see them too.'**
+  /// **'A paramedic can see the blood type, allergies and conditions of the people you choose here without the PIN. Anyone holding the phone can see them too.'**
   String get lockSettingsEmergencyHint;
 
   /// No description provided for @lockVerifyTitle.
@@ -3439,6 +3439,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'App lock is off'**
   String get lockOffDone;
+
+  /// No description provided for @lockUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the lock just now. Try again in a moment.'**
+  String get lockUnavailable;
+
+  /// No description provided for @lockSetupTrivial.
+  ///
+  /// In en, this message translates to:
+  /// **'That PIN is too easy to guess. Avoid repeated or sequential numbers.'**
+  String get lockSetupTrivial;
+
+  /// No description provided for @lockEmergencyFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on the lock screen'**
+  String get lockEmergencyFor;
+
+  /// No description provided for @lockBackupFirstTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a backup first?'**
+  String get lockBackupFirstTitle;
+
+  /// No description provided for @lockBackupFirstBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If you forget your PIN, the only way back in is to remove Usra\'s data and restore a backup with its recovery key. You don\'t have a backup yet.'**
+  String get lockBackupFirstBody;
+
+  /// No description provided for @lockBackupFirstMake.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a backup'**
+  String get lockBackupFirstMake;
+
+  /// No description provided for @lockBackupFirstSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue without'**
+  String get lockBackupFirstSkip;
 }
 
 class _AppLocalizationsDelegate

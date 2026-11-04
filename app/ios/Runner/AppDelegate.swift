@@ -23,6 +23,22 @@ import flutter_local_notifications
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "UsraFiles") {
       registerFilesChannel(messenger: registrar.messenger())
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "UsraClock") {
+      registerClockChannel(messenger: registrar.messenger())
+    }
+  }
+
+  /// The app lock measures time away with this: CLOCK_MONOTONIC on iOS keeps
+  /// counting while the phone sleeps and can't be changed in Settings.
+  private func registerClockChannel(messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(name: "usra/clock", binaryMessenger: messenger)
+    channel.setMethodCallHandler { call, result in
+      guard call.method == "elapsedRealtime" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      result(Int(clock_gettime_nsec_np(CLOCK_MONOTONIC) / 1_000_000))
+    }
   }
 
   /// Keeps private folders (insurance card photos) out of iCloud backup.

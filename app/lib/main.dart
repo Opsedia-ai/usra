@@ -76,6 +76,7 @@ Future<void> main() async {
   final lock = await AppLock.open(
     store: SecureLockStore(),
     biometrics: LocalAuthBiometrics(),
+    uptime: const PlatformUptime(),
     freshInstall: freshInstall,
   );
   if (freshInstall) await preferences.setBool(PrefKeys.installed, true);

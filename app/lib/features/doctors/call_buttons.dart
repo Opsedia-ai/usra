@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/design/tokens.dart';
+import '../../core/security/app_lock.dart';
 import '../../l10n/app_localizations.dart';
 import 'contact_links.dart';
 
@@ -11,7 +12,9 @@ Future<void> openContact(BuildContext context, Uri uri) async {
   final failed = AppLocalizations.of(context).contactFailed;
   var ok = false;
   try {
-    ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    ok = await whileInOtherApp(
+      () => launchUrl(uri, mode: LaunchMode.externalApplication),
+    );
   } catch (_) {
     ok = false;
   }

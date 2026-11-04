@@ -8,6 +8,8 @@ import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
 import '../../core/security/app_lock.dart';
 import '../../l10n/app_localizations.dart';
+import '../backup/backup_screen.dart';
+import '../family/family_screen.dart';
 import 'lock_screen.dart';
 import 'pin_pad.dart';
 
@@ -57,6 +59,51 @@ Future<bool> setUpPin(BuildContext context) async =>
       ),
     ) ??
     false;
+
+/// Turning the lock on: a forgotten PIN means wiping the app, so without
+/// a backup of existing records it suggests making one first. True when
+/// the lock was turned on.
+Future<bool> turnOnLock(BuildContext context, WidgetRef ref) async {
+  final l = AppLocalizations.of(context);
+  final noBackup =
+      ref.read(keyValueStoreProvider).getInt(PrefKeys.lastBackupAt) == null;
+  var hasRecords = false;
+  if (noBackup) {
+    try {
+      hasRecords = (await ref.read(profilesProvider.future)).isNotEmpty;
+    } catch (_) {
+      hasRecords = true;
+    }
+  }
+  if (!context.mounted) return false;
+  if (hasRecords) {
+    final backupFirst = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l.lockBackupFirstTitle),
+        content: Text(l.lockBackupFirstBody),
+        actions: [
+          TextButton(
+            key: const ValueKey('lock-backup-skip'),
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l.lockBackupFirstSkip),
+          ),
+          FilledButton(
+            key: const ValueKey('lock-backup-make'),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l.lockBackupFirstMake),
+          ),
+        ],
+      ),
+    );
+    if (!context.mounted || backupFirst == null) return false;
+    if (backupFirst) {
+      context.go(backupPath);
+      return false;
+    }
+  }
+  return setUpPin(context);
+}
 
 class _VerifyScreen extends ConsumerStatefulWidget {
   const _VerifyScreen();
@@ -133,14 +180,23 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
   var _step = _Step.choose;
   String? _first;
   bool _mismatch = false;
+  bool _trivial = false;
   bool _busy = false;
 
   Future<void> _entered(String pin) async {
     switch (_step) {
       case _Step.choose:
+        if (isTrivialPin(pin)) {
+          setState(() {
+            _mismatch = false;
+            _trivial = true;
+          });
+          return;
+        }
         setState(() {
           _first = pin;
           _mismatch = false;
+          _trivial = false;
           _step = _Step.confirm;
         });
       case _Step.confirm:
@@ -258,13 +314,18 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
                     ),
                     SizedBox(
                       height: 40,
-                      child: _mismatch
+                      child: _mismatch || _trivial
                           ? Text(
-                              l.lockSetupMismatch,
-                              key: const ValueKey('setup-mismatch'),
+                              _mismatch
+                                  ? l.lockSetupMismatch
+                                  : l.lockSetupTrivial,
+                              key: ValueKey(
+                                _mismatch ? 'setup-mismatch' : 'setup-trivial',
+                              ),
                               style: text.bodyMedium?.copyWith(
                                 color: UsraColors.emergency,
                               ),
+                              textAlign: TextAlign.center,
                             )
                           : null,
                     ),
@@ -357,7 +418,7 @@ class AppLockOfferScreen extends ConsumerWidget {
                         minimumSize: Size.fromHeight(simple ? 64 : 52),
                       ),
                       onPressed: () async {
-                        if (await setUpPin(context) && context.mounted) {
+                        if (await turnOnLock(context, ref) && context.mounted) {
                           await _done(context, ref);
                         }
                       },
@@ -419,7 +480,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
 
   Future<void> _toggle(bool on) async {
     if (on) {
-      await setUpPin(context);
+      await turnOnLock(context, ref);
       return;
     }
     if (!await confirmItsYou(context)) return;
@@ -434,14 +495,26 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
     if (await confirmItsYou(context) && mounted) await setUpPin(context);
   }
 
+  /// Anything that makes the lock easier to get past needs the PIN, so a
+  /// moment with the phone unlocked can't weaken it for later.
+  Future<bool> _loosen() => confirmItsYou(context);
+
   Future<void> _setBiometrics(bool on) async {
-    if (on &&
-        !await _lock.authenticate(
-          AppLocalizations.of(context).lockBiometricReason,
-        )) {
-      return;
+    if (on) {
+      final reason = AppLocalizations.of(context).lockBiometricReason;
+      if (!await _loosen() || !await _lock.authenticate(reason)) return;
     }
     await _guard(() => _lock.setBiometrics(on));
+  }
+
+  Future<void> _setTimeout(LockTimeout timeout) async {
+    if (timeout.duration > _lock.timeout.duration && !await _loosen()) return;
+    await _guard(() => _lock.setTimeout(timeout));
+  }
+
+  Future<void> _setEmergency(String profileId, bool on) async {
+    if (on && !await _loosen()) return;
+    await _guard(() => _lock.setEmergencyProfile(profileId, on));
   }
 
   @override
@@ -524,22 +597,31 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
                     ),
                   ],
                   selected: {_lock.timeout},
-                  onSelectionChanged: (s) =>
-                      _guard(() => _lock.setTimeout(s.first)),
+                  onSelectionChanged: (s) => _setTimeout(s.first),
                 ),
                 const SizedBox(height: 20),
                 Card(
-                  child: SwitchListTile(
-                    key: const ValueKey('app-lock-emergency'),
-                    value: _lock.emergencyOnLockScreen,
-                    onChanged: (v) =>
-                        _guard(() => _lock.setEmergencyOnLockScreen(v)),
-                    secondary: const Icon(
-                      Icons.emergency_outlined,
-                      color: UsraColors.emergency,
-                    ),
-                    title: Text(l.lockSettingsEmergency),
-                    subtitle: Text(l.lockSettingsEmergencyHint),
+                  key: const ValueKey('app-lock-emergency'),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(
+                          Icons.emergency_outlined,
+                          color: UsraColors.emergency,
+                        ),
+                        title: Text(l.lockSettingsEmergency),
+                        subtitle: Text(l.lockSettingsEmergencyHint),
+                      ),
+                      for (final p
+                          in ref.watch(profilesProvider).value ?? const [])
+                        CheckboxListTile(
+                          key: ValueKey('app-lock-emergency-${p.id}'),
+                          value: _lock.emergencyProfiles.contains(p.id),
+                          onChanged: (v) => _setEmergency(p.id, v ?? false),
+                          title: Text(p.displayName),
+                          subtitle: Text(l.lockEmergencyFor),
+                        ),
+                    ],
                   ),
                 ),
               ],

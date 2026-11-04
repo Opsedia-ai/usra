@@ -1103,7 +1103,7 @@
   "lockEmergencyNone": "No one has been added yet.",
   "pinOk": "OK",
   "pinDelete": "Delete",
-  "pinLengthHint": "4 to 6 numbers",
+  "pinLengthHint": "6 numbers",
   "pinEntered": "{count} of 6 numbers typed",
   "@pinEntered": {
     "placeholders": {
@@ -1112,12 +1112,12 @@
       }
     }
   },
-  "lockSetupNewPin": "Choose a PIN",
+  "lockSetupNewPin": "Choose a 6-number PIN",
   "lockSetupConfirmPin": "Type the same PIN again",
   "lockSetupMismatch": "The two PINs are different. Choose again.",
   "lockSetupCurrentPin": "Enter your current PIN",
   "lockSetupBiometricsTitle": "Use your fingerprint or face too?",
-  "lockSetupBiometricsBody": "Opens Usra faster. The PIN always works too.",
+  "lockSetupBiometricsBody": "Opens Usra faster; the PIN always works too. Anyone whose fingerprint or face is set up on this phone, family members too, will be able to open Usra. If others use this phone, choose Not now.",
   "lockSetupBiometricsYes": "Yes, use it",
   "lockSetupDone": "App lock is on",
   "lockSetupWriteDown": "Keep your PIN somewhere safe. If you forget it, the only way back in is to remove Usra's data and restore a backup.",
@@ -1132,13 +1132,20 @@
   "lockSettingsSwitch": "Lock with a PIN",
   "lockSettingsChangePin": "Change PIN",
   "lockSettingsBiometrics": "Fingerprint or face",
-  "lockSettingsBiometricsHint": "Unlock without typing the PIN",
+  "lockSettingsBiometricsHint": "Anyone whose fingerprint or face is set up on this phone can open Usra, family members too. If others use this phone, keep this off and use the PIN only.",
   "lockSettingsTimeout": "Lock again after leaving Usra",
   "lockTimeoutImmediately": "Right away",
   "lockTimeoutOneMinute": "1 minute",
   "lockTimeoutFiveMinutes": "5 minutes",
   "lockSettingsEmergency": "Emergency card on the lock screen",
-  "lockSettingsEmergencyHint": "Lets a paramedic see blood type, allergies and conditions without the PIN. Anyone holding the phone can see them too.",
+  "lockSettingsEmergencyHint": "A paramedic can see the blood type, allergies and conditions of the people you choose here without the PIN. Anyone holding the phone can see them too.",
   "lockVerifyTitle": "Confirm it's you",
-  "lockOffDone": "App lock is off"
+  "lockOffDone": "App lock is off",
+  "lockUnavailable": "Couldn't read the lock just now. Try again in a moment.",
+  "lockSetupTrivial": "That PIN is too easy to guess. Avoid repeated or sequential numbers.",
+  "lockEmergencyFor": "Show on the lock screen",
+  "lockBackupFirstTitle": "Make a backup first?",
+  "lockBackupFirstBody": "If you forget your PIN, the only way back in is to remove Usra's data and restore a backup with its recovery key. You don't have a backup yet.",
+  "lockBackupFirstMake": "Make a backup",
+  "lockBackupFirstSkip": "Continue without"
 }

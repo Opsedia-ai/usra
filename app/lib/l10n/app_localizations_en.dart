@@ -1979,7 +1979,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pinDelete => 'Delete';
 
   @override
-  String get pinLengthHint => '4 to 6 numbers';
+  String get pinLengthHint => '6 numbers';
 
   @override
   String pinEntered(int count) {
@@ -1987,7 +1987,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get lockSetupNewPin => 'Choose a PIN';
+  String get lockSetupNewPin => 'Choose a 6-number PIN';
 
   @override
   String get lockSetupConfirmPin => 'Type the same PIN again';
@@ -2003,7 +2003,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lockSetupBiometricsBody =>
-      'Opens Usra faster. The PIN always works too.';
+      'Opens Usra faster; the PIN always works too. Anyone whose fingerprint or face is set up on this phone, family members too, will be able to open Usra. If others use this phone, choose Not now.';
 
   @override
   String get lockSetupBiometricsYes => 'Yes, use it';
@@ -2051,7 +2051,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lockSettingsBiometrics => 'Fingerprint or face';
 
   @override
-  String get lockSettingsBiometricsHint => 'Unlock without typing the PIN';
+  String get lockSettingsBiometricsHint =>
+      'Anyone whose fingerprint or face is set up on this phone can open Usra, family members too. If others use this phone, keep this off and use the PIN only.';
 
   @override
   String get lockSettingsTimeout => 'Lock again after leaving Usra';
@@ -2070,11 +2071,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lockSettingsEmergencyHint =>
-      'Lets a paramedic see blood type, allergies and conditions without the PIN. Anyone holding the phone can see them too.';
+      'A paramedic can see the blood type, allergies and conditions of the people you choose here without the PIN. Anyone holding the phone can see them too.';
 
   @override
   String get lockVerifyTitle => 'Confirm it\'s you';
 
   @override
   String get lockOffDone => 'App lock is off';
+
+  @override
+  String get lockUnavailable =>
+      'Couldn\'t read the lock just now. Try again in a moment.';
+
+  @override
+  String get lockSetupTrivial =>
+      'That PIN is too easy to guess. Avoid repeated or sequential numbers.';
+
+  @override
+  String get lockEmergencyFor => 'Show on the lock screen';
+
+  @override
+  String get lockBackupFirstTitle => 'Make a backup first?';
+
+  @override
+  String get lockBackupFirstBody =>
+      'If you forget your PIN, the only way back in is to remove Usra\'s data and restore a backup with its recovery key. You don\'t have a backup yet.';
+
+  @override
+  String get lockBackupFirstMake => 'Make a backup';
+
+  @override
+  String get lockBackupFirstSkip => 'Continue without';
 }

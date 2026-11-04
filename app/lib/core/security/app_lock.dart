@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
@@ -27,6 +28,10 @@ class SecureLockStore implements LockStore {
             iOptions: IOSOptions(
               accessibility: KeychainAccessibility.first_unlock_this_device,
             ),
+            // The plugin's default wipes its storage on a Keystore error,
+            // which would turn the lock off. A read error must keep the
+            // app locked instead (fail closed); AppLock retries it.
+            aOptions: AndroidOptions(resetOnError: false),
           );
 
   static const _keyName = 'usra.app_lock.v1';
@@ -118,6 +123,75 @@ class NoBiometrics implements BiometricUnlock {
   Future<bool> authenticate(String reason) async => false;
 }
 
+/// Time since the phone started, counting while it sleeps, which can't be
+/// changed in the phone's settings (Android `elapsedRealtime`, iOS
+/// `CLOCK_MONOTONIC`). Null when the platform can't tell.
+abstract class Uptime {
+  Future<Duration?> now();
+}
+
+class PlatformUptime implements Uptime {
+  const PlatformUptime();
+
+  static const channel = MethodChannel('usra/clock');
+
+  @override
+  Future<Duration?> now() async {
+    try {
+      final ms = await channel.invokeMethod<int>('elapsedRealtime');
+      return ms == null ? null : Duration(milliseconds: ms);
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+/// For tests, and where there's no platform clock.
+class NoUptime implements Uptime {
+  const NoUptime();
+
+  @override
+  Future<Duration?> now() async => null;
+}
+
+final _ticks = Stopwatch()..start();
+
+/// Time since the app started; can't be changed in the phone's settings,
+/// but may stop while the phone sleeps (so it only ever makes waits longer).
+Duration processTicks() => _ticks.elapsed;
+
+var _tripsOpen = 0;
+Duration? _tripStarted;
+
+/// Wraps a trip the app itself starts to another app (camera, gallery,
+/// file picker, share sheet, dialer), so coming back from it within
+/// [tripGrace] doesn't lock with "Right away".
+Future<T> whileInOtherApp<T>(Future<T> Function() trip) async {
+  _tripsOpen++;
+  _tripStarted = processTicks();
+  try {
+    return await trip();
+  } finally {
+    _tripsOpen--;
+  }
+}
+
+/// A trip is open, or one was started moments ago (a dialer or settings
+/// screen returns as soon as it's launched, before the app leaves).
+bool get _onTrip {
+  final started = _tripStarted;
+  return _tripsOpen > 0 ||
+      (started != null &&
+          processTicks() - started < const Duration(seconds: 3));
+}
+
+/// How long a trip from [whileInOtherApp] may take with "Right away".
+const tripGrace = Duration(minutes: 1);
+
+/// How long the app may be away while a biometric prompt is up (some
+/// phones pause the app for it).
+const promptGrace = Duration(seconds: 15);
+
 /// How long the app may stay in the background before it locks again.
 enum LockTimeout {
   immediately(Duration.zero),
@@ -129,12 +203,47 @@ enum LockTimeout {
   final Duration duration;
 }
 
-/// The result of typing a PIN.
-enum PinCheck { ok, wrong, blocked }
+/// The result of typing a PIN. [unavailable]: the saved lock can't be read
+/// right now (try again; nothing was counted).
+enum PinCheck { ok, wrong, blocked, unavailable }
 
-/// Shortest and longest PIN.
-const minPinLength = 4;
-const maxPinLength = 6;
+/// Every PIN has 6 digits.
+const pinLength = 6;
+
+/// PINs a stranger would try first: one digit repeated, a run up or down
+/// (123456, 987654), a repeated pair or triple (121212, 123123), and a few
+/// keypad patterns.
+bool isTrivialPin(String pin) {
+  if (pin.length != pinLength) return true;
+  final d = pin.codeUnits.map((c) => c - 0x30).toList();
+  bool steps(int by) {
+    for (var i = 1; i < d.length; i++) {
+      if (d[i] - d[i - 1] != by) return false;
+    }
+    return true;
+  }
+
+  bool period(int n) {
+    for (var i = n; i < d.length; i++) {
+      if (d[i] != d[i - n]) return false;
+    }
+    return true;
+  }
+
+  return steps(0) ||
+      steps(1) ||
+      steps(-1) ||
+      period(2) ||
+      period(3) ||
+      const {
+        '112233',
+        '147258',
+        '159753',
+        '258369',
+        '369258',
+        '852456',
+      }.contains(pin);
+}
 
 /// Wrong PINs allowed before the app makes the person wait.
 const freeAttempts = 5;
@@ -147,21 +256,37 @@ Duration lockoutAfter(int failures) {
   return Duration(seconds: min(30 * (1 << steps), 3600));
 }
 
+/// When the app left the screen, by every clock.
+class _Away {
+  _Away(this.wall, this.ticks, this.uptime, this.grace);
+
+  final DateTime wall;
+  final Duration ticks;
+  final Future<Duration?> uptime;
+  final Duration grace;
+}
+
 /// The optional app lock: a PIN, with fingerprint or face as a shortcut.
 ///
 /// Lives outside the provider container, so a backup restore (which builds
 /// a new container) neither re-locks nor forgets a held deep link.
+///
+/// Waits and timeouts never trust the phone's clock alone: someone holding
+/// the phone can change it. A wait after wrong PINs needs real time to
+/// pass in this run of the app (and starts again in full after a restart);
+/// the background timeout also measures with [Uptime] and [processTicks].
 class AppLock extends ChangeNotifier {
   AppLock._({
     required this._store,
     required this._hasher,
     required this.biometrics,
     required this._clock,
-    _LockConfig? config,
-  }) : _config = config,
-       _locked = config != null;
+    required this._ticks,
+    required this._uptime,
+  });
 
-  /// Reads the saved lock. Starts locked whenever a PIN is set.
+  /// Reads the saved lock. Starts locked whenever a PIN is set, and also
+  /// when it can't be read.
   ///
   /// [freshInstall] drops a lock left in the iOS Keychain by an earlier
   /// install of the app, whose data is already gone.
@@ -170,25 +295,23 @@ class AppLock extends ChangeNotifier {
     BiometricUnlock biometrics = const NoBiometrics(),
     PinHasher hasher = const PinHasher(),
     DateTime Function() clock = DateTime.now,
+    Duration Function() ticks = processTicks,
+    Uptime uptime = const NoUptime(),
     bool freshInstall = false,
   }) async {
     if (freshInstall) await store.delete();
-    _LockConfig? config;
-    try {
-      final raw = await store.read();
-      if (raw != null) config = _LockConfig.fromJson(raw);
-    } catch (_) {
-      // Unreadable is not the same as off: fail closed with a lock nobody
-      // can open, and say how to reset (wipe or restore a backup).
-      config = _LockConfig.unreadable();
-    }
-    return AppLock._(
+    final lock = AppLock._(
       store: store,
       hasher: hasher,
       biometrics: biometrics,
       clock: clock,
-      config: config,
+      ticks: ticks,
+      uptime: uptime,
     );
+    lock._unreadable = true;
+    await lock._reload();
+    lock._locked = lock.enabled;
+    return lock;
   }
 
   /// Off and unlocked, kept in memory: the default in tests.
@@ -197,40 +320,100 @@ class AppLock extends ChangeNotifier {
     PinHasher hasher = const PinHasher(),
     BiometricUnlock biometrics = const NoBiometrics(),
     DateTime Function() clock = DateTime.now,
+    Duration Function() ticks = processTicks,
+    Uptime uptime = const NoUptime(),
   }) => AppLock._(
     store: store ?? MemoryLockStore(),
     hasher: hasher,
     biometrics: biometrics,
     clock: clock,
+    ticks: ticks,
+    uptime: uptime,
   );
 
   final LockStore _store;
   final PinHasher _hasher;
   final BiometricUnlock biometrics;
   final DateTime Function() _clock;
+  final Duration Function() _ticks;
+  final Uptime _uptime;
   _LockConfig? _config;
-  bool _locked;
-  DateTime? _backgroundAt;
-  VoidCallback? _pending;
 
-  bool get enabled => _config != null;
+  /// The saved lock couldn't be read. Locked, nothing is saved over it
+  /// (that would destroy the real PIN hash), and it's read again on each
+  /// try and on coming back to the app.
+  bool _unreadable = false;
+  bool _locked = false;
+  _Away? _away;
+  VoidCallback? _pending;
+  bool _prompting = false;
+
+  /// [processTicks] when the current wait started in this run; null when
+  /// it started in an earlier run (then it starts again in full).
+  Duration? _waitStartedTicks;
+
+  bool get enabled => _config != null || _unreadable;
   bool get locked => _locked;
+
+  /// The saved lock can't be read right now.
+  bool get unreadable => _unreadable;
   bool get biometricsEnabled => _config?.biometrics ?? false;
   LockTimeout get timeout => _config?.timeout ?? LockTimeout.oneMinute;
 
-  /// First responders may open the emergency card without the PIN. Off
-  /// unless the person turns it on.
-  bool get emergencyOnLockScreen => _config?.emergency ?? false;
+  /// People whose emergency card first responders may open from the lock
+  /// screen without the PIN. Nobody unless the person adds them.
+  Set<String> get emergencyProfiles => {...?_config?.emergency};
+  bool get emergencyOnLockScreen => _config?.emergency.isNotEmpty ?? false;
 
   /// Wrong PINs in a row.
   int get failures => _config?.failures ?? 0;
 
   /// How long until the next PIN may be tried; zero when it may be now.
+  /// Both the phone's clock and this run's own time must have passed.
   Duration get waitRemaining {
-    final until = _config?.blockedUntil;
-    if (until == null) return Duration.zero;
-    final left = until.difference(_clock());
+    final c = _config;
+    final until = c?.blockedUntil;
+    final at = c?.blockedAt;
+    if (c == null || until == null || at == null) return Duration.zero;
+    final wait = until.difference(at);
+    final started = _waitStartedTicks;
+    var left = until.difference(_clock());
+    if (started == null) {
+      left = wait;
+    } else {
+      final ran = wait - (_ticks() - started);
+      if (ran > left) left = ran;
+    }
+    if (left > wait) left = wait;
     return left.isNegative ? Duration.zero : left;
+  }
+
+  /// Reads the saved lock again when it couldn't be read. True when it's
+  /// readable now.
+  Future<bool> _reload() async {
+    if (!_unreadable) return true;
+    try {
+      final raw = await _store.read();
+      _config = raw == null ? null : _LockConfig.fromJson(raw);
+      _unreadable = false;
+    } catch (_) {
+      return false;
+    }
+    // A wait from an earlier run starts again in full: restarting the app
+    // or the phone must never shorten it.
+    final c = _config;
+    if (c != null && c.failures >= freeAttempts) {
+      final now = _clock();
+      _config = c.copyWith(
+        blockedAt: now,
+        blockedUntil: now.add(lockoutAfter(c.failures)),
+      );
+      _waitStartedTicks = _ticks();
+      await _trySave();
+    }
+    if (!enabled) _locked = false;
+    notifyListeners();
+    return true;
   }
 
   /// Turns the lock on with [pin]; the caller has already had it typed
@@ -240,7 +423,7 @@ class AppLock extends ChangeNotifier {
       pin: await _hasher.hash(pin),
       biometrics: biometrics,
       timeout: _config?.timeout ?? LockTimeout.oneMinute,
-      emergency: _config?.emergency ?? false,
+      emergency: _config?.emergency ?? const [],
     );
     _locked = false;
     await _save();
@@ -261,10 +444,11 @@ class AppLock extends ChangeNotifier {
 
   /// Turns the lock off and forgets the PIN. The caller checks it first.
   Future<void> disable() async {
-    _config = null;
-    _locked = false;
-    _backgroundAt = null;
     await _store.delete();
+    _config = null;
+    _unreadable = false;
+    _locked = false;
+    _away = null;
     notifyListeners();
   }
 
@@ -274,17 +458,23 @@ class AppLock extends ChangeNotifier {
   Future<void> setTimeout(LockTimeout timeout) =>
       _update((c) => c.copyWith(timeout: timeout));
 
-  Future<void> setEmergencyOnLockScreen(bool on) =>
-      _update((c) => c.copyWith(emergency: on));
+  Future<void> setEmergencyProfile(String profileId, bool on) => _update(
+    (c) => c.copyWith(
+      emergency: [
+        for (final id in c.emergency)
+          if (id != profileId) id,
+        if (on) profileId,
+      ],
+    ),
+  );
 
   /// Checks [pin]; on success the app unlocks and the wrong-PIN count
   /// starts again.
   Future<PinCheck> checkPin(String pin) async {
+    if (!await _reload()) return PinCheck.unavailable;
     var c = _config;
     if (c == null) return PinCheck.ok;
-    final before = c;
     c = _clockMovedBack(c);
-    if (!identical(c, before)) await _save();
     if (waitRemaining > Duration.zero) return PinCheck.blocked;
     // Counted before the slow check and saved, so closing the app in the
     // middle of it isn't a free guess.
@@ -296,7 +486,10 @@ class AppLock extends ChangeNotifier {
       blockedAt: wait == Duration.zero ? null : now,
       blockedUntil: wait == Duration.zero ? null : now.add(wait),
     );
-    await _save();
+    _waitStartedTicks = wait == Duration.zero ? null : _ticks();
+    // If it can't be saved, it still counts for as long as the app runs:
+    // the owner must be able to unlock even with storage failing.
+    await _trySave();
     if (!await _hasher.verify(pin, c.pin)) {
       notifyListeners();
       return PinCheck.wrong;
@@ -313,17 +506,14 @@ class AppLock extends ChangeNotifier {
     return true;
   }
 
-  bool _prompting = false;
-
-  /// The system biometric prompt. Some phones pause the app while it's up;
-  /// that isn't leaving the app, so it doesn't start the lock timeout.
+  /// The system biometric prompt. Time away while it's up still counts;
+  /// only [promptGrace] is allowed on top with "Right away".
   Future<bool> authenticate(String reason) async {
     _prompting = true;
     try {
       return await biometrics.authenticate(reason);
     } finally {
       _prompting = false;
-      _backgroundAt = null;
     }
   }
 
@@ -331,7 +521,8 @@ class AppLock extends ChangeNotifier {
     final c = _config;
     if (c != null && (c.failures != 0 || c.blockedUntil != null)) {
       _config = c.copyWith(failures: 0, blockedUntil: null, blockedAt: null);
-      await _save();
+      _waitStartedTicks = null;
+      await _trySave();
     }
     _unlock();
   }
@@ -364,19 +555,32 @@ class AppLock extends ChangeNotifier {
 
   /// The app left the screen.
   void movedToBackground() {
-    if (_locked || _prompting) return;
-    _backgroundAt ??= _clock();
+    if (_locked || !enabled || _away != null) return;
+    _away = _Away(
+      _clock(),
+      _ticks(),
+      _uptime.now(),
+      _prompting
+          ? promptGrace
+          : _onTrip
+          ? tripGrace
+          : Duration.zero,
+    );
   }
 
-  /// The app is back; locks when it was away for at least [timeout].
-  void movedToForeground() {
-    final left = _backgroundAt;
-    _backgroundAt = null;
-    if (left == null || !enabled) return;
-    if (_clock().difference(left) >= timeout.duration ||
-        _clock().isBefore(left)) {
-      lock();
-    }
+  /// The app is back. Locks when it was away for at least [timeout] by
+  /// any clock, or the phone's clock was turned back.
+  Future<void> movedToForeground() async {
+    final away = _away;
+    _away = null;
+    if (_unreadable) await _reload();
+    if (away == null || !enabled) return;
+    final limit = timeout.duration > away.grace ? timeout.duration : away.grace;
+    final wall = _clock().difference(away.wall);
+    final ticks = _ticks() - away.ticks;
+    if (wall.isNegative || wall >= limit || ticks >= limit) return lock();
+    final (before, after) = (await away.uptime, await _uptime.now());
+    if (before != null && after != null && after - before >= limit) lock();
   }
 
   /// A block set "in the future" means the clock was turned back: start
@@ -385,6 +589,7 @@ class AppLock extends ChangeNotifier {
     final at = c.blockedAt;
     final now = _clock();
     if (at == null || !now.isBefore(at)) return c;
+    _waitStartedTicks = _ticks();
     return _config = c.copyWith(
       blockedAt: now,
       blockedUntil: now.add(c.blockedUntil!.difference(at)),
@@ -400,8 +605,17 @@ class AppLock extends ChangeNotifier {
 
   Future<void> _save() async {
     final c = _config;
-    if (c != null) await _store.write(c.toJson());
+    // Never over a record that couldn't be read.
+    if (c != null && !_unreadable) await _store.write(c.toJson());
     notifyListeners();
+  }
+
+  Future<void> _trySave() async {
+    try {
+      await _save();
+    } catch (_) {
+      notifyListeners();
+    }
   }
 }
 
@@ -411,14 +625,11 @@ class _LockConfig {
     required this.pin,
     this.biometrics = false,
     this.timeout = LockTimeout.oneMinute,
-    this.emergency = false,
+    this.emergency = const [],
     this.failures = 0,
     this.blockedAt,
     this.blockedUntil,
   });
-
-  /// A lock no PIN opens.
-  factory _LockConfig.unreadable() => const _LockConfig(pin: {});
 
   factory _LockConfig.fromJson(String raw) {
     final j = jsonDecode(raw) as Map<String, Object?>;
@@ -433,7 +644,10 @@ class _LockConfig {
         (t) => t.name == j['timeout'],
         orElse: () => LockTimeout.oneMinute,
       ),
-      emergency: j['emergency'] == true,
+      emergency: [
+        for (final id in j['emergency'] as List? ?? const [])
+          if (id is String) id,
+      ],
       failures: j['failures'] as int? ?? 0,
       blockedAt: time('blockedAt'),
       blockedUntil: time('blockedUntil'),
@@ -443,7 +657,9 @@ class _LockConfig {
   final Map<String, Object?> pin;
   final bool biometrics;
   final LockTimeout timeout;
-  final bool emergency;
+
+  /// Profile ids shown on the lock screen's emergency button.
+  final List<String> emergency;
   final int failures;
   final DateTime? blockedAt;
   final DateTime? blockedUntil;
@@ -454,7 +670,7 @@ class _LockConfig {
     Map<String, Object?>? pin,
     bool? biometrics,
     LockTimeout? timeout,
-    bool? emergency,
+    List<String>? emergency,
     int? failures,
     Object? blockedAt = _keep,
     Object? blockedUntil = _keep,
