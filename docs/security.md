@@ -64,15 +64,26 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   snapshot, `quick_check` on restore. `app/lib/core/backup/`.
 - **OS backup**: Android `allowBackup=false` plus data extraction rules that
   exclude everything; iOS photo folders excluded from iCloud backup.
-- **App lock** (S2): optional 4–6 digit PIN, stored only as a salted
-  Argon2id hash (19 MiB, 2 passes) in Keystore / Keychain this-device-only,
-  checked in constant time; fingerprint or face through `local_auth`,
-  biometrics only (not the phone's own PIN). Wrong tries are counted before
-  each check and saved: after 5, a wait of 30 s doubling to at most an hour,
-  kept across restarts. Locks on cold start and after a chosen time in the
-  background; covers every page, and notification / widget deep links wait
-  until unlocked. No reset that skips the PIN: wipe app data and restore a
-  backup with the recovery key. Emergency card on the lock screen is opt-in.
+- **App lock** (S2): optional 6-digit PIN (trivial ones refused), stored
+  only as a salted Argon2id hash (19 MiB, 2 passes) in Keystore / Keychain
+  this-device-only, checked in constant time. On Android the lock's storage
+  uses `resetOnError: false`, so a Keystore error keeps the app locked
+  instead of wiping the lock (fail closed); an unreadable lock is never
+  written over and is read again on each try and on resume. Fingerprint or
+  face through `local_auth`, biometrics only and, on Android, only with a
+  strong (Class 3) sensor; Settings warns that anyone enrolled on the phone
+  can open Usra. Wrong tries are counted before each check: after 5, a wait
+  of 30 s doubling to at most an hour, which needs real time to pass in the
+  running app (changing the phone's clock doesn't end it) and starts again
+  in full after a restart. The background timeout (right away / 1 / 5 min)
+  is measured with the wall clock, the app's own monotonic time and the
+  phone's uptime (`elapsedRealtime` / `CLOCK_MONOTONIC`); any of them
+  passing, or the clock going back, locks. The app is covered as soon as it
+  starts to leave the screen until the lock has decided. Covers every page;
+  notification / widget deep links wait until unlocked. Loosening a setting
+  needs the PIN. No reset that skips the PIN: wipe app data and restore a
+  backup with the recovery key (turning the lock on suggests a backup
+  first). Emergency cards on the lock screen are opt-in per person.
   `app/lib/core/security/`, `app/lib/features/app_lock/`.
 - **Notifications**: reminders use `NotificationVisibility.private`.
 - **Widget**: first name and medicine name only, no strength or condition.

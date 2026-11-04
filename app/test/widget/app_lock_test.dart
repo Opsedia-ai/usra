@@ -10,15 +10,15 @@ import 'package:usra/core/providers.dart';
 import 'package:usra/core/routing/app_router.dart';
 import 'package:usra/core/security/app_lock.dart';
 
-import '../core/app_lock_test.dart' show fastHasher;
+import '../support/fake_lock.dart';
 
 const home = 'أهلاً! أنا دكتور أسرة';
 
 void main() {
   late AppDatabase db;
   late MemoryLockStore store;
-  late DateTime now;
-  late _FakeBiometrics biometrics;
+  late FakeClocks clocks;
+  late FakeBiometrics biometrics;
 
   setUp(() {
     db = AppDatabase(
@@ -28,8 +28,8 @@ void main() {
       ),
     );
     store = MemoryLockStore();
-    now = DateTime(2026, 11, 4, 9);
-    biometrics = _FakeBiometrics();
+    clocks = FakeClocks();
+    biometrics = FakeBiometrics();
   });
   tearDown(() => db.close());
 
@@ -38,7 +38,9 @@ void main() {
       store: store,
       hasher: fastHasher,
       biometrics: biometrics,
-      clock: () => now,
+      clock: clocks.wall,
+      ticks: clocks.ticks,
+      uptime: clocks,
     ),
   ))!;
 
@@ -46,13 +48,13 @@ void main() {
   Future<AppLock> lockedWith(
     WidgetTester tester,
     String pin, {
-    bool emergency = false,
+    String? emergency,
     bool face = false,
   }) async {
     final first = await openLock(tester);
     await tester.runAsync(() async {
       await first.enable(pin, biometrics: face);
-      await first.setEmergencyOnLockScreen(emergency);
+      if (emergency != null) await first.setEmergencyProfile(emergency, true);
     });
     return openLock(tester);
   }
@@ -94,7 +96,7 @@ void main() {
   testWidgets('a locked app shows only the lock screen until the PIN', (
     tester,
   ) async {
-    final lock = await lockedWith(tester, '2580');
+    final lock = await lockedWith(tester, '258046');
     await tester.pumpWidget(app(lock));
     await tester.pumpAndSettle();
 
@@ -104,11 +106,11 @@ void main() {
     // No emergency button unless turned on.
     expect(find.byKey(const ValueKey('lock-emergency')), findsNothing);
 
-    await typePin(tester, '1111');
+    await typePin(tester, '111111');
     expect(find.text('الرقم السري غلط. جرّب تاني.'), findsOneWidget);
     expect(find.byKey(const ValueKey('lock-screen')), findsOneWidget);
 
-    await typePin(tester, '2580');
+    await typePin(tester, '258046');
     expect(find.byKey(const ValueKey('lock-screen')), findsNothing);
     expect(find.text(home), findsOneWidget);
   });
@@ -116,7 +118,7 @@ void main() {
   testWidgets('a deep link waits behind the lock and opens after it', (
     tester,
   ) async {
-    final lock = await lockedWith(tester, '2580');
+    final lock = await lockedWith(tester, '258046');
     await tester.pumpWidget(app(lock));
     await tester.pumpAndSettle();
     final container = ProviderScope.containerOf(
@@ -129,28 +131,28 @@ void main() {
     expect(location(tester), isNot('/medicines'));
     expect(find.byKey(const ValueKey('lock-screen')), findsOneWidget);
 
-    await typePin(tester, '2580');
+    await typePin(tester, '258046');
     expect(location(tester), '/medicines');
     expect(find.byKey(const ValueKey('lock-screen')), findsNothing);
   });
 
   testWidgets('five wrong PINs lock the pad for 30 seconds', (tester) async {
-    final lock = await lockedWith(tester, '2580');
+    final lock = await lockedWith(tester, '258046');
     await tester.pumpWidget(app(lock));
     await tester.pumpAndSettle();
 
     for (var i = 0; i < 5; i++) {
-      await typePin(tester, '0000');
+      await typePin(tester, '000000');
     }
     expect(find.text('محاولات غلط كتير. جرّب تاني بعد 0:30.'), findsOneWidget);
     // Keys do nothing while waiting.
-    await typePin(tester, '2580');
+    await typePin(tester, '258046');
     expect(find.byKey(const ValueKey('lock-screen')), findsOneWidget);
     expect(lock.failures, 5);
 
-    now = now.add(const Duration(seconds: 30));
+    clocks.pass(const Duration(seconds: 30));
     await tester.pump(const Duration(seconds: 1));
-    await typePin(tester, '2580');
+    await typePin(tester, '258046');
     expect(find.byKey(const ValueKey('lock-screen')), findsNothing);
   });
 
@@ -159,7 +161,7 @@ void main() {
   ) async {
     tester.platformDispatcher.textScaleFactorTestValue = 2;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-    final lock = await lockedWith(tester, '2580', emergency: true);
+    final lock = await lockedWith(tester, '258046', emergency: 'x');
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -180,13 +182,13 @@ void main() {
     expect(tester.getSize(find.byKey(const ValueKey('pin-5'))).width, 84);
 
     await tester.ensureVisible(find.byKey(const ValueKey('pin-ok')));
-    await typePin(tester, '2580');
+    await typePin(tester, '258046');
     expect(lock.locked, isFalse);
   });
 
   testWidgets('biometrics come first and unlock on their own', (tester) async {
     biometrics.pass = true;
-    final lock = await lockedWith(tester, '2580', face: true);
+    final lock = await lockedWith(tester, '258046', face: true);
     await tester.pumpWidget(app(lock));
     await tester.pumpAndSettle();
 
@@ -198,7 +200,7 @@ void main() {
   testWidgets('forgot PIN explains the reset, without a way around', (
     tester,
   ) async {
-    final lock = await lockedWith(tester, '2580');
+    final lock = await lockedWith(tester, '258046');
     await tester.pumpWidget(app(lock));
     await tester.pumpAndSettle();
 
@@ -211,11 +213,13 @@ void main() {
     expect(lock.locked, isTrue);
   });
 
-  testWidgets('emergency card from the lock screen only when turned on', (
+  testWidgets('emergency card from the lock screen only for chosen people', (
     tester,
   ) async {
-    final id = (await tester.runAsync(() => db.addProfile('جدو')))!;
-    final lock = await lockedWith(tester, '2580', emergency: true);
+    final (id, other) = (await tester.runAsync(
+      () async => (await db.addProfile('جدو'), await db.addProfile('منى')),
+    ))!;
+    final lock = await lockedWith(tester, '258046', emergency: id);
     await tester.pumpWidget(app(lock));
     await tester.pumpAndSettle();
 
@@ -223,6 +227,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('lock-emergency')));
     await tester.pumpAndSettle();
+    // Only the people the owner chose.
+    expect(find.byKey(ValueKey('lock-emergency-$other')), findsNothing);
+    expect(find.text('منى'), findsNothing);
     await tester.tap(find.byKey(ValueKey('lock-emergency-$id')));
     await tester.pumpAndSettle();
     expect(find.text('بطاقة الطوارئ'), findsWidgets);
@@ -237,33 +244,46 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('lock-screen')), findsOneWidget);
     expect(lock.locked, isTrue);
+
+    // Back on the lock screen itself is handled (the app closes), and
+    // never reaches the pages behind it.
+    expect(await tester.binding.handlePopRoute(), isTrue);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('lock-screen')), findsOneWidget);
+    expect(lock.locked, isTrue);
   });
 
   testWidgets('locks again after the timeout in the background', (
     tester,
   ) async {
-    final lock = await lockedWith(tester, '2580');
+    final lock = await lockedWith(tester, '258046');
     await tester.pumpWidget(app(lock));
     await tester.pumpAndSettle();
-    await typePin(tester, '2580');
+    await typePin(tester, '258046');
 
     void lifecycle(AppLifecycleState s) =>
         tester.binding.handleAppLifecycleStateChanged(s);
 
     lifecycle(AppLifecycleState.inactive);
+    await tester.pump();
+    // Covered from the moment it starts to leave.
+    expect(find.byKey(const ValueKey('lock-cover')), findsOneWidget);
+    expect(find.text(home), findsNothing);
     lifecycle(AppLifecycleState.hidden);
     lifecycle(AppLifecycleState.paused);
-    now = now.add(const Duration(seconds: 30));
+    clocks.pass(const Duration(seconds: 30));
     lifecycle(AppLifecycleState.hidden);
     lifecycle(AppLifecycleState.inactive);
     lifecycle(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('lock-screen')), findsNothing);
+    expect(find.byKey(const ValueKey('lock-cover')), findsNothing);
+    expect(find.text(home), findsOneWidget);
 
     lifecycle(AppLifecycleState.inactive);
     lifecycle(AppLifecycleState.hidden);
     lifecycle(AppLifecycleState.paused);
-    now = now.add(const Duration(minutes: 2));
+    clocks.pass(const Duration(minutes: 2));
     lifecycle(AppLifecycleState.hidden);
     lifecycle(AppLifecycleState.inactive);
     lifecycle(AppLifecycleState.resumed);
@@ -289,12 +309,15 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('app-lock-switch')));
     await tester.pumpAndSettle();
 
-    await typePin(tester, '13579');
+    // Too easy to guess: refused.
+    await typePin(tester, '123456');
+    expect(find.byKey(const ValueKey('setup-trivial')), findsOneWidget);
+    await typePin(tester, '135792');
     expect(find.text('اكتب نفس الرقم السري تاني'), findsOneWidget);
-    await typePin(tester, '13570');
+    await typePin(tester, '135790');
     expect(find.byKey(const ValueKey('setup-mismatch')), findsOneWidget);
-    await typePin(tester, '13579');
-    await typePin(tester, '13579');
+    await typePin(tester, '135792');
+    await typePin(tester, '135792');
     // The phone has biometrics: asked, and declined.
     await tester.tap(find.byKey(const ValueKey('setup-biometrics-no')));
     await tester.pump();
@@ -306,34 +329,119 @@ void main() {
     expect(lock.enabled, isTrue);
     expect(lock.locked, isFalse);
     expect(lock.biometricsEnabled, isFalse);
-    expect(store.value, isNot(contains('13579')));
-    expect(find.byKey(const ValueKey('app-lock-emergency')), findsOneWidget);
+    expect(store.value, isNot(contains('135792')));
 
+    // Tightening needs nothing…
+    await tester.ensureVisible(find.byKey(const ValueKey('app-lock-timeout')));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('على طول'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(lock.timeout, LockTimeout.immediately);
+    // …loosening needs the PIN.
+    await tester.tap(find.text('5 دقايق'));
+    await tester.pumpAndSettle();
+    expect(find.text('أكّد إنه إنت'), findsOneWidget);
+    await tester.tap(find.byType(CloseButton));
+    await tester.pumpAndSettle();
+    expect(lock.timeout, LockTimeout.immediately);
+    await tester.tap(find.text('5 دقايق'));
+    await tester.pumpAndSettle();
+    await typePin(tester, '135792');
+    expect(lock.timeout, LockTimeout.fiveMinutes);
 
     // Turning it off asks for the PIN first.
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('app-lock-switch')),
+      -200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('app-lock-switch')));
     await tester.pumpAndSettle();
-    await typePin(tester, '11111');
+    await typePin(tester, '111111');
     expect(lock.enabled, isTrue);
-    await typePin(tester, '13579');
+    await typePin(tester, '135792');
     expect(lock.enabled, isFalse);
     expect(store.value, isNull);
   });
-}
 
-class _FakeBiometrics implements BiometricUnlock {
-  bool pass = false;
-  int asked = 0;
+  testWidgets('with records and no backup, turning it on suggests one', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final id = (await tester.runAsync(() => db.addProfile('جدو')))!;
+    final lock = await openLock(tester);
+    await tester.pumpWidget(app(lock));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('المزيد').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('settings-app-lock')));
+    await tester.pumpAndSettle();
 
-  @override
-  Future<bool> available() async => true;
+    await tester.tap(find.byKey(const ValueKey('app-lock-switch')));
+    await tester.pumpAndSettle();
+    expect(find.text('تعمل نسخة احتياطية الأول؟'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('lock-backup-make')));
+    await tester.pumpAndSettle();
+    expect(location(tester), '/settings/backup');
+    expect(lock.enabled, isFalse);
 
-  @override
-  Future<bool> authenticate(String reason) async {
-    asked++;
-    return pass;
-  }
+    // Or carry on without one.
+    await tester.tap(find.text('المزيد').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('settings-app-lock')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('app-lock-switch')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('lock-backup-skip')));
+    await tester.pumpAndSettle();
+    await typePin(tester, '730184');
+    await typePin(tester, '730184');
+    await tester.tap(find.byKey(const ValueKey('setup-biometrics-no')));
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+    await tester.pumpAndSettle();
+    expect(lock.enabled, isTrue);
+
+    // Showing someone's card on the lock screen needs the PIN.
+    final person = find.byKey(ValueKey('app-lock-emergency-$id'));
+    await tester.scrollUntilVisible(
+      person,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(person);
+    await tester.pumpAndSettle();
+    expect(find.text('أكّد إنه إنت'), findsOneWidget);
+    await typePin(tester, '730184');
+    expect(lock.emergencyProfiles, {id});
+  });
+
+  testWidgets('a lock that can\'t be read stays locked and says try again', (
+    tester,
+  ) async {
+    final flaky = FlakyLockStore();
+    store = flaky;
+    await lockedWith(tester, '258046');
+    flaky.failReads = 2;
+    final lock = await openLock(tester);
+    await tester.pumpWidget(app(lock));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('lock-screen')), findsOneWidget);
+    expect(
+      find.text('مقدرناش نقرا القفل دلوقتي. جرّب تاني كمان شوية.'),
+      findsOneWidget,
+    );
+
+    await typePin(tester, '258046');
+    expect(lock.locked, isTrue);
+    // Readable now: the pad works and the real PIN opens.
+    await typePin(tester, '258046');
+    expect(lock.locked, isFalse);
+  });
 }

@@ -471,10 +471,12 @@ class AppLock extends ChangeNotifier {
   /// Checks [pin]; on success the app unlocks and the wrong-PIN count
   /// starts again.
   Future<PinCheck> checkPin(String pin) async {
-    if (!await _reload()) return PinCheck.unavailable;
+    if (_unreadable && !await _reload()) return PinCheck.unavailable;
     var c = _config;
     if (c == null) return PinCheck.ok;
+    final before = c;
     c = _clockMovedBack(c);
+    if (!identical(c, before)) await _trySave();
     if (waitRemaining > Duration.zero) return PinCheck.blocked;
     // Counted before the slow check and saved, so closing the app in the
     // middle of it isn't a free guess.

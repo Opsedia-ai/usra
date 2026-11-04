@@ -90,7 +90,7 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
       navigator.pop();
     } else {
       // On the lock screen itself, back leaves the app as usual.
-      await SystemNavigator.pop();
+      unawaited(SystemNavigator.pop());
     }
     return true;
   }
