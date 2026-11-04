@@ -146,7 +146,7 @@ void main() {
     final store = PhotoStore(
       Directory('${dir.path}/support'),
       PhotoStore.cardsFolder,
-      PhotoCipher(PhotoCipher.generateKey()),
+      PhotoKeys.ready(PhotoCipher(PhotoCipher.generateKey())),
     );
 
     final a = await store.import(picked.path);

@@ -120,14 +120,15 @@ class _Source {
 /// Unpacks the tar inside [reader] into [into]. [accept] says, for each
 /// entry name, whether to keep it; others are skipped. [transform] may give,
 /// for an entry, a function its whole content goes through in memory
-/// before it is written (photos are encrypted for this phone); such entries
-/// are limited to [maxTransformedSize]. Returns the names written. Throws
+/// before it is written (photos are encrypted for this phone), or that
+/// returns null to leave the entry out; such entries are limited to
+/// [maxTransformedSize]. Returns the names written. Throws
 /// [BackupException] on anything malformed.
 Future<List<String>> extractTar(
   BackupFileReader reader,
   Directory into, {
   required bool Function(String name) accept,
-  List<int> Function(Uint8List content)? Function(String name)? transform,
+  List<int>? Function(Uint8List content)? Function(String name)? transform,
 }) async {
   final source = _Source(reader);
   final written = <String>[];
@@ -160,8 +161,10 @@ Future<List<String>> extractTar(
       if (size > maxTransformedSize) {
         throw const BackupException(BackupFailure.damaged, 'entry too big');
       }
-      await file.writeAsBytes(convert(await source.exactly(size)));
+      final converted = convert(await source.exactly(size));
       await source.exactly(padded - size);
+      if (converted == null) continue;
+      await file.writeAsBytes(converted);
       written.add(name);
       continue;
     }

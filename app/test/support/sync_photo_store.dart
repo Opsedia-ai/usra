@@ -8,8 +8,12 @@ import 'package:usra/core/files/photo_store.dart';
 /// Real encrypted files, but synchronous: async file I/O never finishes
 /// under the fake clock of testWidgets.
 class SyncPhotoStore extends PhotoStore {
-  SyncPhotoStore(Directory root, String folder, [PhotoCipher? cipher])
-    : super(root, folder, cipher ?? PhotoCipher(PhotoCipher.generateKey()));
+  SyncPhotoStore(Directory root, String folder, [PhotoKeys? keys])
+    : super(
+        root,
+        folder,
+        keys ?? PhotoKeys.ready(PhotoCipher(PhotoCipher.generateKey())),
+      );
 
   var _n = 0;
 
@@ -17,8 +21,9 @@ class SyncPhotoStore extends PhotoStore {
   Future<String> import(String sourcePath) async {
     final relative = '$folder/${_n++}.jpg';
     fileOf(relative).parent.createSync(recursive: true);
-    fileOf(relative)
-        .writeAsBytesSync(cipher.seal(File(sourcePath).readAsBytesSync()));
+    fileOf(
+      relative,
+    ).writeAsBytesSync(keys.require.seal(File(sourcePath).readAsBytesSync()));
     return relative;
   }
 
@@ -27,7 +32,7 @@ class SyncPhotoStore extends PhotoStore {
 
   /// The photo decrypted.
   Uint8List readSync(String relativePath) =>
-      cipher.open(fileOf(relativePath).readAsBytesSync());
+      keys.require.open(fileOf(relativePath).readAsBytesSync());
 
   @override
   Future<void> prune(Set<String> keep) async {
@@ -65,7 +70,10 @@ class SyncSharedPhotoCache extends SharedPhotoCache {
   }
 
   @override
-  Future<void> clear() async {
+  Future<void> clearCopies() async {
     if (dir.existsSync()) dir.deleteSync(recursive: true);
   }
+
+  @override
+  Future<void> clear() => clearCopies();
 }

@@ -71,10 +71,16 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   XChaCha20-Poly1305 under a random 256-bit photo key in the Keystore /
   Keychain (this device only), decrypted in memory to show, and only
   written out decrypted to a cache folder for the share sheet, cleared
-  after sharing and on every start. Photos saved before this are encrypted
-  in place at start-up. Backups carry photos decrypted inside the backup's
-  encryption; a restore encrypts them for the new phone as it unpacks.
-  `app/lib/core/files/`.
+  when the sheet returns; share_plus's own Android copies
+  (`<cache>/share_plus/`) are cleared when Usra is back in front, before
+  each share and on every start. Photos saved before this are encrypted in
+  place in the background after start-up. A missing photo key is never
+  replaced while encrypted photos exist: the app says photos can't be
+  opened and a restore brings them back with a new key. Backups carry
+  photos decrypted inside the backup's encryption and say how many they
+  left out; a restore encrypts them for the new phone as it unpacks.
+  Rolling the app back past this needs a forward fix (photos stay
+  encrypted), so it ships with a staged rollout. `app/lib/core/files/`.
 - **Backend**: RLS on every table, API roles start with no privileges,
   credits through functions only with locking, idempotent purchase webhook
   with signature check, in-memory rate limiter, body size limits, AI/OCR

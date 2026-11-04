@@ -1305,6 +1305,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backupDone => 'النسخة جاهزة. احفظها في مكان أمين برّه الموبايل.';
 
   @override
+  String backupDonePhotosSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة مقدرناش نفتحهم على الموبايل ده ومش فيها',
+      few: '$count صور مقدرناش نفتحهم على الموبايل ده ومش فيها',
+      two: 'صورتين مقدرناش نفتحهم على الموبايل ده ومش فيها',
+      one: 'صورة واحدة مقدرناش نفتحها على الموبايل ده ومش فيها',
+    );
+    return 'النسخة جاهزة، بس $_temp0. احفظها في مكان أمين برّه الموبايل.';
+  }
+
+  @override
+  String restorePhotosSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة في النسخة دي مش هيتفتحوا وهيتسابوا.',
+      few: '$count صور في النسخة دي مش هيتفتحوا وهيتسابوا.',
+      two: 'صورتين في النسخة دي مش هيتفتحوا وهيتسابوا.',
+      one: 'صورة واحدة في النسخة دي مش هتتفتح وهتتساب.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get photosLocked =>
+      'الصور مش بتتفتح على الموبايل ده. رجّع نسختك الاحتياطية عشان ترجعلك.';
+
+  @override
   String get backupFailed => 'مقدرناش نعمل النسخة. جرّب تاني.';
 
   @override

@@ -13,7 +13,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../l10n/app_localizations.dart';
 import 'photo_crypto.dart';
+import 'photo_worker.dart';
 
 export 'photo_crypto.dart';
 
@@ -70,7 +72,8 @@ final shareProvider = Provider<Future<void> Function(ShareParams)>(
 );
 
 /// Keeps photos in the app's private folder, next to the database, each
-/// kind in its own [folder], encrypted with [cipher] (see [PhotoCipher]).
+/// kind in its own [folder], encrypted with the key in [keys] (see
+/// [PhotoCipher]).
 ///
 /// Never in the photo gallery, and never on disk unencrypted: photos are
 /// decrypted into memory to show them ([image]) and only written out
@@ -78,12 +81,19 @@ final shareProvider = Provider<Future<void> Function(ShareParams)>(
 /// also kept out of iCloud backup, since the key never leaves this phone.
 /// (Android backup is switched off for the whole app.)
 class PhotoStore {
-  PhotoStore(this.root, this.folder, this.cipher);
+  PhotoStore(this.root, this.folder, this.keys);
 
   /// The app's private folder; photos go in [folder] inside it.
   final Directory root;
   final String folder;
-  final PhotoCipher cipher;
+
+  /// Shared by every folder; without a key nothing can be opened or saved
+  /// ([PhotoKeyUnavailableException]).
+  final PhotoKeys keys;
+
+  /// True until [sealPlainFiles] has encrypted every plain photo: until
+  /// then a photo from before encryption is shown as it is.
+  var _plainAllowed = false;
 
   static const cardsFolder = 'insurance_cards';
   static const attachmentsFolder = 'attachments';
@@ -91,8 +101,8 @@ class PhotoStore {
   static const _uuid = Uuid();
   static const _files = MethodChannel('usra/files');
 
-  static Future<PhotoStore> open(String folder, PhotoCipher cipher) async =>
-      PhotoStore(await getApplicationSupportDirectory(), folder, cipher);
+  static Future<PhotoStore> open(String folder, PhotoKeys keys) async =>
+      PhotoStore(await getApplicationSupportDirectory(), folder, keys);
 
   Directory get _dir => Directory(p.join(root.path, folder));
 
@@ -109,8 +119,9 @@ class PhotoStore {
 
   /// Encrypts a picked photo in and returns the path to save in the
   /// database. Throws, storing nothing, if the folder can't be kept out of
-  /// backup.
+  /// backup or there is no photo key.
   Future<String> import(String sourcePath) async {
+    final cipher = keys.require;
     await _dir.create(recursive: true);
     // Cheap and idempotent, so done every time rather than trusting an
     // earlier call.
@@ -121,19 +132,20 @@ class PhotoStore {
       '${_uuid.v7()}${ext.isEmpty ? '.jpg' : ext}',
     );
     final plain = await File(sourcePath).readAsBytes();
-    final key = cipher.keyBytes;
-    final sealed = await Isolate.run(() => PhotoCipher(key).seal(plain));
+    final sealed = await PhotoWorker.instance.seal(cipher, plain);
     await writeSealedFile(fileOf(relative), sealed);
     return relative;
   }
 
   /// The photo's bytes, decrypted in memory. Throws
-  /// [PhotoUnreadableException] if the file was changed or can't be opened.
+  /// [PhotoUnreadableException] if the file was changed or can't be opened,
+  /// and [PhotoKeyUnavailableException] if there is no key to open it.
   Future<Uint8List> read(String relativePath) async {
-    final sealed = await fileOf(relativePath).readAsBytes();
+    final bytes = await fileOf(relativePath).readAsBytes();
+    if (_plainAllowed && !PhotoCipher.isSealed(bytes)) return bytes;
+    final cipher = keys.require;
     // Tens of milliseconds for a full photo: off the UI thread.
-    final key = cipher.keyBytes;
-    return Isolate.run(() => PhotoCipher(key).open(sealed));
+    return PhotoWorker.instance.open(cipher, bytes);
   }
 
   /// The photo for an [Image], decrypted in memory.
@@ -157,15 +169,43 @@ class PhotoStore {
     }
   }
 
-  /// Encrypts the photos saved before photos were encrypted, in an isolate.
-  /// Safe to run on every start and to be killed half way: each file is
-  /// only replaced once its encrypted copy has been written and read back.
-  /// Returns how many were encrypted.
-  Future<int> sealPlainFiles() {
-    final (dir, key) = (_dir.path, cipher.keyBytes);
-    return Isolate.run(() => sealPlainPhotos(Directory(dir), PhotoCipher(key)));
+  /// Encrypts the photos saved before photos were encrypted, in an isolate,
+  /// while the app is already running: photos still plain are shown as they
+  /// are until this has finished without a failure. Safe to run on every
+  /// start and to be killed half way: each file is only replaced once its
+  /// encrypted copy has been written and read back. Returns how many were
+  /// encrypted.
+  Future<int> sealPlainFiles() async {
+    // Set before the first await, so reads that start now still work.
+    _plainAllowed = true;
+    final (dir, key) = (_dir.path, keys.require.keyBytes);
+    final sealed = await Isolate.run(
+      () => sealPlainPhotos(Directory(dir), PhotoCipher(key)),
+    );
+    _plainAllowed = false;
+    return sealed;
   }
 }
+
+/// Whether any of [folders] in [root] holds an encrypted photo: if so, a
+/// missing key was lost rather than never made.
+Future<bool> anySealedPhoto(Directory root, Iterable<String> folders) async {
+  for (final folder in folders) {
+    final dir = Directory(p.join(root.path, folder));
+    if (!await dir.exists()) continue;
+    await for (final entity in dir.list()) {
+      if (entity is! File || p.basename(entity.path).startsWith('.')) {
+        continue;
+      }
+      if (PhotoCipher.isSealed(await _head(entity))) return true;
+    }
+  }
+  return false;
+}
+
+Future<List<int>> _head(File file) => file
+    .openRead(0, PhotoCipher.magic.length)
+    .fold(<int>[], (all, piece) => all..addAll(piece));
 
 /// Writes [sealed] to [file] through a hidden temporary file and a rename,
 /// so [file] is either the old one or the whole new one, never half.
@@ -213,10 +253,7 @@ Future<int> sealPlainPhotos(Directory dir, PhotoCipher cipher) async {
 /// Seals [file] in place if it's plain; false if it was sealed already.
 Future<bool> _sealPlainPhoto(File file, PhotoCipher cipher) async {
   // Only the magic on every start, not the whole photo.
-  final head = await file
-      .openRead(0, PhotoCipher.magic.length)
-      .fold(<int>[], (all, piece) => all..addAll(piece));
-  if (PhotoCipher.isSealed(head)) return false;
+  if (PhotoCipher.isSealed(await _head(file))) return false;
   final plain = await file.readAsBytes();
   final part = File(
     p.join(file.parent.path, '.${p.basename(file.path)}$_partSuffix'),
@@ -292,25 +329,37 @@ final sharedPhotoCacheProvider = Provider<SharedPhotoCache>(
 );
 
 /// Decrypted copies of photos for the share sheet (WhatsApp needs a file):
-/// the only time a photo is on disk unencrypted. They go in one folder in
-/// the cache, emptied after sharing, before the next share and on every
-/// start.
+/// the only time a photo is on disk unencrypted.
+///
+/// Ours go in one folder in the cache and are deleted as soon as the sheet
+/// returns. On Android, share_plus copies every shared file again, into
+/// `<cache>/share_plus/` (what the other app actually reads), and only
+/// empties that at its next share; that folder is deleted when Usra comes
+/// back to the front, before every share and on every start. (On iOS the
+/// sheet reads our file directly and keeps no copy.)
 class SharedPhotoCache {
-  SharedPhotoCache(this._temporary);
+  SharedPhotoCache(this._temporary, {bool? android})
+    : _android = android ?? Platform.isAndroid;
 
-  SharedPhotoCache.system() : _temporary = getTemporaryDirectory();
+  SharedPhotoCache.system()
+    : _temporary = getTemporaryDirectory(),
+      _android = Platform.isAndroid;
 
   final FutureOr<Directory> _temporary;
+  final bool _android;
 
   static const folderName = 'usra-share';
 
-  Future<Directory> get _dir async =>
-      Directory(p.join((await _temporary).path, folderName));
+  /// share_plus's own copies on Android (`Share.kt`, `shareCacheFolder`).
+  static const sharePlusFolder = 'share_plus';
+
+  Future<Directory> _folder(String name) async =>
+      Directory(p.join((await _temporary).path, name));
 
   /// Decrypts stored photos into files to share, leaving out any that are
-  /// missing or no longer open.
+  /// missing or can't be opened.
   Future<List<XFile>> copyOut(PhotoStore store, Iterable<String> paths) async {
-    final dir = await _dir;
+    final dir = await _folder(folderName);
     await dir.create(recursive: true);
     final files = <XFile>[];
     for (final path in paths) {
@@ -318,6 +367,8 @@ class SharedPhotoCache {
       try {
         bytes = await store.read(path);
       } on PhotoUnreadableException {
+        continue;
+      } on PhotoKeyUnavailableException {
         continue;
       } on FileSystemException {
         continue;
@@ -329,21 +380,27 @@ class SharedPhotoCache {
     return files;
   }
 
-  /// Deletes every decrypted copy.
+  /// Deletes our decrypted copies.
+  Future<void> clearCopies() => _delete(folderName);
+
+  /// Deletes our copies and share_plus's.
   Future<void> clear() async {
-    final dir = await _dir;
+    await _delete(folderName);
+    await _delete(sharePlusFolder);
+  }
+
+  Future<void> _delete(String name) async {
+    final dir = await _folder(name);
     if (await dir.exists()) await dir.delete(recursive: true);
   }
 
-  /// Deletes the copies once the share is over: right away on iOS (the
-  /// sheet reports back after the other app took the files), and on
-  /// Android when Usra comes back to the front, since WhatsApp may still
-  /// be reading the file after the sheet closes.
-  void clearAfterShare() {
-    if (!Platform.isAndroid) {
-      unawaited(clear().catchError((Object _) {}));
-      return;
-    }
+  /// Once the sheet has returned: our copies go now (on Android share_plus
+  /// has its own by then). share_plus's go when Usra is back in front, not
+  /// now, since the app the user picked may still be reading them.
+  /// Completes once our copies are gone.
+  Future<void> clearAfterShare() {
+    final ours = clearCopies().catchError((Object _) {});
+    if (!_android) return ours;
     late final AppLifecycleListener listener;
     listener = AppLifecycleListener(
       onResume: () {
@@ -351,6 +408,7 @@ class SharedPhotoCache {
         unawaited(clear().catchError((Object _) {}));
       },
     );
+    return ours;
   }
 }
 
@@ -380,7 +438,7 @@ Future<void> shareStoredPhotos(
       ),
     );
   } finally {
-    cache.clearAfterShare();
+    unawaited(cache.clearAfterShare());
   }
 }
 
@@ -430,10 +488,35 @@ class PhotoImage extends StatelessWidget {
     width: width,
     fit: fit,
     semanticLabel: semanticLabel,
-    errorBuilder: (_, _, _) => SizedBox(
+    errorBuilder: (context, error, _) => SizedBox(
       height: height ?? 120,
       width: width,
-      child: const Center(child: Icon(Icons.broken_image_outlined, size: 40)),
+      child: error is PhotoKeyUnavailableException
+          // Not a damaged photo: none can be opened here, and a broken
+          // image wouldn't say what to do about it.
+          ? Tooltip(
+              message: AppLocalizations.of(context).photosLocked,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.lock_outline, size: 32),
+                    if ((height ?? 120) >= 100)
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(
+                          AppLocalizations.of(context).photosLocked,
+                          key: const ValueKey('photos-locked'),
+                          textAlign: TextAlign.center,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            )
+          : const Center(child: Icon(Icons.broken_image_outlined, size: 40)),
     ),
   );
 }

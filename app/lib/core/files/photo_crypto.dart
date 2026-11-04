@@ -113,10 +113,98 @@ class PhotoCipher {
   }
 }
 
+/// Why there is no photo key on this run.
+enum PhotoKeyProblem {
+  /// No key stored, but encrypted photos are: the key was lost (a Keystore
+  /// reset, say). Those photos can't be opened; a backup brings them back.
+  lost,
+
+  /// A key is stored but isn't a valid key.
+  corrupt,
+
+  /// The key store couldn't be read (an error or no answer). The key may
+  /// still be there, so it is never replaced; the next start tries again.
+  unreadable,
+}
+
+/// Photos can't be opened or saved on this run: see [problem].
+class PhotoKeyUnavailableException implements Exception {
+  const PhotoKeyUnavailableException(this.problem);
+
+  final PhotoKeyProblem problem;
+
+  @override
+  String toString() => 'PhotoKeyUnavailableException(${problem.name})';
+}
+
+/// The photo key for this run, shared by every photo folder: the cipher, or
+/// the [problem] that left the app without one. A restore that brings a key
+/// of its own back puts it here with [replace].
+class PhotoKeys {
+  PhotoKeys.ready(PhotoCipher this._cipher) : _problem = null;
+
+  PhotoKeys.unavailable(PhotoKeyProblem this._problem) : _cipher = null;
+
+  PhotoCipher? _cipher;
+  PhotoKeyProblem? _problem;
+
+  PhotoCipher? get cipher => _cipher;
+  PhotoKeyProblem? get problem => _problem;
+
+  /// The cipher, or throws [PhotoKeyUnavailableException].
+  PhotoCipher get require =>
+      _cipher ?? (throw PhotoKeyUnavailableException(_problem!));
+
+  void replace(PhotoCipher cipher) {
+    _cipher = cipher;
+    _problem = null;
+  }
+}
+
+/// Where the photo key is kept; [SecurePhotoKeyStore] in the app.
+abstract class PhotoKeyStore {
+  Future<String?> readRaw();
+  Future<void> writeRaw(String value);
+
+  /// Gives up on a key store that doesn't answer, so start-up never hangs.
+  static const readTimeout = Duration(seconds: 10);
+
+  /// The key, made on first use. A key is only ever made when no encrypted
+  /// photo exists ([sealedPhotosExist]): otherwise a missing key means the
+  /// old one was lost, and a new one would hide that for good.
+  Future<PhotoKeys> load({
+    required Future<bool> Function() sealedPhotosExist,
+    Duration timeout = readTimeout,
+  }) async {
+    final String? stored;
+    try {
+      stored = await readRaw().timeout(timeout);
+    } catch (_) {
+      return PhotoKeys.unavailable(PhotoKeyProblem.unreadable);
+    }
+    if (stored != null) {
+      try {
+        return PhotoKeys.ready(PhotoCipher(base64.decode(stored)));
+      } catch (_) {
+        return PhotoKeys.unavailable(PhotoKeyProblem.corrupt);
+      }
+    }
+    if (await sealedPhotosExist()) {
+      return PhotoKeys.unavailable(PhotoKeyProblem.lost);
+    }
+    final cipher = PhotoCipher(PhotoCipher.generateKey());
+    await save(cipher);
+    return PhotoKeys.ready(cipher);
+  }
+
+  Future<void> save(PhotoCipher cipher) =>
+      writeRaw(base64.encode(cipher.keyBytes));
+}
+
 /// Keeps the photo key in Android Keystore / iOS Keychain, next to the
 /// database key and stored the same way: this device only.
-class PhotoKeyStore {
-  PhotoKeyStore([FlutterSecureStorage? storage])
+class SecurePhotoKeyStore extends PhotoKeyStore {
+  SecurePhotoKeyStore([FlutterSecureStorage? storage])
     : _storage =
           storage ??
           const FlutterSecureStorage(
@@ -128,11 +216,23 @@ class PhotoKeyStore {
   static const _keyName = 'usra.photos.key.v1';
   final FlutterSecureStorage _storage;
 
-  Future<PhotoCipher> readOrCreate() async {
-    final existing = await _storage.read(key: _keyName);
-    if (existing != null) return PhotoCipher(base64.decode(existing));
-    final key = PhotoCipher.generateKey();
-    await _storage.write(key: _keyName, value: base64.encode(key));
-    return PhotoCipher(key);
-  }
+  @override
+  Future<String?> readRaw() => _storage.read(key: _keyName);
+
+  @override
+  Future<void> writeRaw(String value) =>
+      _storage.write(key: _keyName, value: value);
+}
+
+/// For tests.
+class MemoryPhotoKeyStore extends PhotoKeyStore {
+  MemoryPhotoKeyStore([this.value]);
+
+  String? value;
+
+  @override
+  Future<String?> readRaw() async => value;
+
+  @override
+  Future<void> writeRaw(String value) async => this.value = value;
 }

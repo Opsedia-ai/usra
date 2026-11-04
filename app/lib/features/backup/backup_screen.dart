@@ -47,13 +47,14 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     }
     setState(() => _working = true);
     try {
-      final file = await ref
+      final created = await ref
           .read(backupServiceProvider)
           .create(
             ref.read(databaseProvider),
             key,
             appVersion: ref.read(appVersionProvider),
           );
+      final file = created.file;
       final status = await ref.read(backupShareProvider)(
         ShareParams(
           files: [XFile(file.path, mimeType: 'application/octet-stream')],
@@ -73,7 +74,16 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               await _askSaved());
       if (saved) {
         await ref.read(lastBackupProvider.notifier).set(DateTime.now());
-        messenger.showSnackBar(SnackBar(content: Text(l.backupDone)));
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              created.skippedPhotos == 0
+                  ? l.backupDone
+                  : l.backupDonePhotosSkipped(created.skippedPhotos),
+              key: const ValueKey('backup-done'),
+            ),
+          ),
+        );
       }
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(l.backupFailed)));
@@ -363,6 +373,13 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
                       ),
                       key: const ValueKey('restore-contents'),
                     ),
+                    if (staged.skippedPhotos > 0) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        l.restorePhotosSkipped(staged.skippedPhotos),
+                        key: const ValueKey('restore-photos-skipped'),
+                      ),
+                    ],
                   ],
                 ),
               ),

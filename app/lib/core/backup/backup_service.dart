@@ -48,9 +48,24 @@ class BackupManifest {
 /// A backup decrypted and checked, waiting in the staging folder to replace
 /// what's on the phone.
 class StagedRestore {
-  const StagedRestore(this.manifest);
+  const StagedRestore(this.manifest, {this.skippedPhotos = 0});
 
   final BackupManifest manifest;
+
+  /// Photos in the backup that were left out: already encrypted for
+  /// another phone, so nothing here can open them.
+  final int skippedPhotos;
+}
+
+/// A backup file made by [BackupService.create].
+class CreatedBackup {
+  const CreatedBackup(this.file, {this.skippedPhotos = 0});
+
+  final File file;
+
+  /// Photos left out because they can't be opened on this phone (damaged,
+  /// or the photo key is gone); the backup isn't complete without saying so.
+  final int skippedPhotos;
 }
 
 /// Makes encrypted backups of the database and photos, and puts them back.
@@ -72,7 +87,8 @@ class BackupService {
     required this.root,
     required this.databaseName,
     required this.deviceKey,
-    required this.photoKey,
+    required this.photoKeys,
+    this.photoKeyStore,
     required this.temporary,
     required this.folders,
     this.files = const [],
@@ -90,7 +106,15 @@ class BackupService {
 
   /// The phone's photo key (see [PhotoCipher]), only used to decrypt photos
   /// into a backup and encrypt restored ones.
-  final List<int> photoKey;
+  final PhotoKeys photoKeys;
+
+  /// Where a new photo key is saved when a restore brings photos back to a
+  /// phone whose key was lost (or never made).
+  final PhotoKeyStore? photoKeyStore;
+
+  /// The key a staged restore encrypted its photos with, if it had to make
+  /// one; saved by [commit].
+  PhotoCipher? _stagedKey;
 
   /// Where new backup files are written before sharing.
   final Directory temporary;
@@ -119,7 +143,7 @@ class BackupService {
 
   /// Writes an encrypted backup of [db] and the photos to a new file in
   /// [temporary] and returns it. The caller shares it, then deletes it.
-  Future<File> create(
+  Future<CreatedBackup> create(
     AppDatabase db,
     RecoveryKey key, {
     required String appVersion,
@@ -147,11 +171,11 @@ class BackupService {
         this.folders,
         this.files,
         this.deviceKey,
-        this.photoKey,
+        photoKeys.cipher?.keyBytes,
         this.kdf,
         chunkSize,
       );
-      await Isolate.run(
+      final skipped = await Isolate.run(
         () => _pack(
           snapshot: snapshot,
           out: out.path,
@@ -167,7 +191,7 @@ class BackupService {
           createdAt: createdAt,
         ),
       );
-      return out;
+      return CreatedBackup(out, skippedPhotos: skipped);
     } catch (_) {
       if (await out.exists()) await out.delete();
       rethrow;
@@ -186,13 +210,25 @@ class BackupService {
     await _clearStaging();
     await _staging.create(recursive: true);
     await excludeFromBackup?.call(_staging);
+    // No key, because it was lost or is corrupt: the restore replaces every
+    // photo, so a new one is safe, and is saved only if the restore goes in.
+    // A key store that couldn't be read may still hold the real key: stop.
+    _stagedKey = null;
+    var cipher = photoKeys.cipher;
+    if (cipher == null) {
+      if (photoKeys.problem == PhotoKeyProblem.unreadable ||
+          photoKeyStore == null) {
+        throw PhotoKeyUnavailableException(photoKeys.problem!);
+      }
+      cipher = _stagedKey = PhotoCipher(PhotoCipher.generateKey());
+    }
     final (staging, databaseName, folders, files, deviceKey, photoKey) = (
       _staging.path,
       this.databaseName,
       this.folders,
       this.files,
       this.deviceKey,
-      this.photoKey,
+      cipher.keyBytes,
     );
     try {
       final json = await Isolate.run(
@@ -208,7 +244,11 @@ class BackupService {
           currentSchema: currentSchema,
         ),
       );
-      return StagedRestore(BackupManifest.fromJson(json));
+      final skipped = json.remove('skippedPhotos') as int;
+      return StagedRestore(
+        BackupManifest.fromJson(json),
+        skippedPhotos: skipped,
+      );
     } catch (_) {
       await _clearStaging();
       rethrow;
@@ -221,6 +261,13 @@ class BackupService {
   Future<void> commit() async {
     if (!await File(p.join(_staging.path, databaseName)).exists()) {
       throw StateError('Nothing staged to restore');
+    }
+    if (_stagedKey case final key?) {
+      // Before anything moves: photos encrypted with a key that isn't kept
+      // would be lost.
+      await photoKeyStore!.save(key);
+      photoKeys.replace(key);
+      _stagedKey = null;
     }
     if (await _aside.exists()) await _aside.delete(recursive: true);
     await _aside.create();
@@ -333,14 +380,15 @@ const _countedTables = {
   'attachments': 'attachments',
 };
 
-Future<void> _pack({
+/// Returns how many photos were left out.
+Future<int> _pack({
   required String snapshot,
   required String out,
   required String root,
   required List<String> folders,
   required List<String> files,
   required String deviceKey,
-  required List<int> photoKey,
+  required List<int>? photoKey,
   required RecoveryKey key,
   required BackupKdf kdf,
   required int chunkSize,
@@ -391,6 +439,7 @@ Future<void> _pack({
     }
   }
 
+  var skipped = 0;
   final writer = await BackupFileWriter.create(
     File(out),
     key,
@@ -400,7 +449,7 @@ Future<void> _pack({
   try {
     final tar = TarWriter(writer.add);
     await tar.addFile(BackupService._databaseEntry, File(snapshot));
-    final cipher = PhotoCipher(photoKey);
+    final cipher = photoKey == null ? null : PhotoCipher(photoKey);
     var photoCount = 0;
     for (final (name, file) in photos) {
       final bytes = await file.readAsBytes();
@@ -408,12 +457,17 @@ Future<void> _pack({
       if (!PhotoCipher.isSealed(bytes)) {
         // Not reached yet by the start-up migration: still plain.
         photo = bytes;
+      } else if (cipher == null) {
+        // No key on this phone: nothing to open it with.
+        skipped++;
+        continue;
       } else {
         try {
           photo = cipher.open(bytes);
         } on PhotoUnreadableException {
           // Damaged on this phone and shown as a broken image already; it
-          // mustn't stop the rest from being backed up.
+          // mustn't stop the rest from being backed up, but is reported.
+          skipped++;
           continue;
         }
       }
@@ -444,6 +498,7 @@ Future<void> _pack({
   } finally {
     await writer.close();
   }
+  return skipped;
 }
 
 Future<Map<String, dynamic>> _unpack({
@@ -458,6 +513,21 @@ Future<Map<String, dynamic>> _unpack({
   required int currentSchema,
 }) async {
   final cipher = PhotoCipher(photoKey);
+  var skipped = 0;
+  // Backups hold photos decrypted. One already encrypted (a backup not
+  // made by Usra, or from a future format) is kept only if this phone can
+  // open it; encrypting it again would make it a photo nothing can show.
+  List<int>? sealForThisPhone(Uint8List photo) {
+    if (!PhotoCipher.isSealed(photo)) return cipher.seal(photo);
+    try {
+      cipher.open(photo);
+      return photo;
+    } on PhotoUnreadableException {
+      skipped++;
+      return null;
+    }
+  }
+
   bool isPhoto(String name) {
     final parts = name.split('/');
     return parts.length == 2 && folders.contains(parts.first);
@@ -476,7 +546,7 @@ Future<Map<String, dynamic>> _unpack({
         }
         return isPhoto(name);
       },
-      transform: (name) => isPhoto(name) ? cipher.seal : null,
+      transform: (name) => isPhoto(name) ? sealForThisPhone : null,
     );
   } finally {
     await reader.close();
@@ -525,5 +595,5 @@ Future<Map<String, dynamic>> _unpack({
   }
   await databaseFile.rename(p.join(staging, databaseName));
   manifest.remove('snapshotKey');
-  return manifest;
+  return manifest..['skippedPhotos'] = skipped;
 }

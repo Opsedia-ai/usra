@@ -5,6 +5,7 @@ import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart';
+import 'package:usra/core/backup/backup_archive.dart';
 import 'package:usra/core/backup/backup_crypto.dart';
 import 'package:usra/core/backup/backup_service.dart';
 import 'package:usra/core/backup/recovery_key.dart';
@@ -17,25 +18,31 @@ const _testKdf = BackupKdf(memory: 64, iterations: 1, parallelism: 1);
 
 /// One phone: its private folder, database key and backup service.
 class _Phone {
-  _Phone(this.dir)
+  _Phone(this.dir, {PhotoKeys? photoKeys})
     : key = DatabaseKeyStore.generateKey(),
-      photos = PhotoCipher(PhotoCipher.generateKey()),
+      photoKeys =
+          photoKeys ?? PhotoKeys.ready(PhotoCipher(PhotoCipher.generateKey())),
       root = Directory(p.join(dir.path, 'support'))..createSync(),
       temp = Directory(p.join(dir.path, 'tmp'))..createSync();
 
   final Directory dir;
   final String key;
-  final PhotoCipher photos;
+  final PhotoKeys photoKeys;
+  final keyStore = MemoryPhotoKeyStore();
   final Directory root;
+
+  PhotoCipher get photos => photoKeys.require;
   final Directory temp;
 
   File get dbFile => File(p.join(root.path, 'usra.sqlite'));
 
-  BackupService get service => BackupService(
+  // One for the phone, as in the app: a restore's stage and commit share it.
+  late final service = BackupService(
     root: root,
     databaseName: 'usra.sqlite',
     deviceKey: key,
-    photoKey: photos.keyBytes,
+    photoKeys: photoKeys,
+    photoKeyStore: keyStore,
     temporary: temp,
     folders: const ['insurance_cards', 'attachments', 'medicines'],
     files: const ['follow_up_dismissals.json'],
@@ -95,12 +102,12 @@ void main() {
       oldPhone.writePhoto('attachments/.DS_Store', [0]);
       File(p.join(oldPhone.root.path, 'follow_up_dismissals.json'))
           .writeAsStringSync('["x"]');
-      return await oldPhone.service.create(
+      return (await oldPhone.service.create(
         db,
         recovery,
         appVersion: '0.1.0+1',
         now: DateTime.utc(2026, 11, 3),
-      );
+      )).file;
     } finally {
       await db.close();
     }
@@ -313,11 +320,11 @@ void main() {
     final v5 = _V5Database(
       openEncryptedDatabase(oldPhone.dbFile, oldPhone.key),
     );
-    final backup = await oldPhone.service.create(
+    final backup = (await oldPhone.service.create(
       v5,
       recovery,
       appVersion: '0.0.9',
-    );
+    )).file;
     await v5.close();
 
     final staged = await newPhone.service.stage(
@@ -372,12 +379,15 @@ void main() {
     bytes[bytes.length ~/ 2] ^= 1;
     bad.writeAsBytesSync(bytes);
     final db = oldPhone.open();
-    final File backup;
+    final CreatedBackup created;
     try {
-      backup = await oldPhone.service.create(db, recovery, appVersion: '1');
+      created = await oldPhone.service.create(db, recovery, appVersion: '1');
     } finally {
       await db.close();
     }
+    // Said, not hidden: the backup isn't complete.
+    expect(created.skippedPhotos, 1);
+    final backup = created.file;
 
     final staged = await newPhone.service.stage(
       backup,
@@ -401,6 +411,142 @@ void main() {
     }
     await newPhone.service.discardStaged();
   });
+
+  /// [backup] again, with [extra] entries added to its tar: what Usra never
+  /// writes itself (photos already encrypted).
+  Future<File> withEntries(File backup, Map<String, List<int>> extra) async {
+    final unpacked = Directory(p.join(dir.path, 'unpacked'))..createSync();
+    final reader = await BackupFileReader.open(backup, recovery);
+    final List<String> names;
+    try {
+      names = await extractTar(reader, unpacked, accept: (_) => true);
+    } finally {
+      await reader.close();
+    }
+    final out = File(p.join(dir.path, 'crafted.usra'));
+    final writer = await BackupFileWriter.create(
+      out,
+      recovery,
+      kdf: _testKdf,
+      chunkSize: 4096,
+    );
+    try {
+      final tar = TarWriter(writer.add);
+      for (final name in names) {
+        await tar.addFile(
+          name,
+          File(p.joinAll([unpacked.path, ...name.split('/')])),
+        );
+      }
+      for (final MapEntry(key: name, value: bytes) in extra.entries) {
+        await tar.addBytes(name, bytes);
+      }
+      await tar.finish();
+    } finally {
+      await writer.close();
+    }
+    return out;
+  }
+
+  test(
+    'a photo already encrypted in a backup is never encrypted again',
+    () async {
+      final backup = await withEntries(await backupOldPhone(), {
+        // Encrypted for the new phone: kept as it is.
+        'attachments/mine.jpg': newPhone.photos.seal([8, 8]),
+        // Encrypted for some other phone: nothing here opens it.
+        'attachments/other.jpg': PhotoCipher(PhotoCipher.generateKey())
+            .seal([9]),
+      });
+      final staged = await newPhone.service.stage(
+        backup,
+        recovery,
+        currentSchema: 6,
+      );
+      expect(staged.skippedPhotos, 1);
+      await newPhone.service.commit();
+      expect(newPhone.readPhoto('attachments/mine.jpg'), [8, 8]);
+      expect(newPhone.photoFile('attachments/other.jpg').existsSync(), isFalse);
+      expect(newPhone.readPhoto('attachments/a1.jpg'), photo);
+    },
+  );
+
+  test(
+    'a backup on a phone without its photo key says what it left out',
+    () async {
+      final lost = _Phone(
+        Directory(p.join(dir.path, 'lost'))..createSync(),
+        photoKeys: PhotoKeys.unavailable(PhotoKeyProblem.lost),
+      );
+      final before = PhotoCipher(PhotoCipher.generateKey());
+      for (final name in ['a.jpg', 'b.jpg']) {
+        (lost.photoFile(
+          'attachments/$name',
+        )..createSync(recursive: true)).writeAsBytesSync(before.seal([1]));
+      }
+      lost.writePhoto('attachments/plain.jpg', [2], plain: true);
+      final db = lost.open();
+      final CreatedBackup created;
+      try {
+        created = await lost.service.create(db, recovery, appVersion: '1');
+      } finally {
+        await db.close();
+      }
+      expect(created.skippedPhotos, 2);
+
+      final staged = await newPhone.service.stage(
+        created.file,
+        recovery,
+        currentSchema: 6,
+      );
+      expect(staged.manifest.count('photos'), 1);
+    },
+  );
+
+  test('restoring onto a phone whose photo key was lost makes a new one, '
+      'kept only once the restore goes in', () async {
+    final backup = await backupOldPhone();
+    final lost = _Phone(
+      Directory(p.join(dir.path, 'lost'))..createSync(),
+      photoKeys: PhotoKeys.unavailable(PhotoKeyProblem.lost),
+    );
+
+    await lost.service.stage(backup, recovery, currentSchema: 6);
+    await lost.service.discardStaged();
+    // Not restored: no key was saved, the phone still says it has none.
+    expect(lost.keyStore.value, isNull);
+    expect(lost.photoKeys.problem, PhotoKeyProblem.lost);
+
+    await lost.service.stage(backup, recovery, currentSchema: 6);
+    await lost.service.commit();
+    expect(lost.keyStore.value, isNotNull);
+    expect(lost.photoKeys.cipher, isNotNull);
+    expect(lost.readPhoto('attachments/a1.jpg'), photo);
+    // The saved key is the one the photos were encrypted with.
+    final saved = await lost.keyStore.load(sealedPhotosExist: () async => true);
+    expect(
+      saved.require.open(
+        lost.photoFile('attachments/a1.jpg').readAsBytesSync(),
+      ),
+      photo,
+    );
+  });
+
+  test(
+    'a phone that can\'t read its key store never restores over it',
+    () async {
+      final backup = await backupOldPhone();
+      final unreadable = _Phone(
+        Directory(p.join(dir.path, 'unreadable'))..createSync(),
+        photoKeys: PhotoKeys.unavailable(PhotoKeyProblem.unreadable),
+      );
+      await expectLater(
+        unreadable.service.stage(backup, recovery, currentSchema: 6),
+        throwsA(isA<PhotoKeyUnavailableException>()),
+      );
+      expect(unreadable.keyStore.value, isNull);
+    },
+  );
 
   test('the file format refuses a hostile Argon2 cost', () {
     expect(

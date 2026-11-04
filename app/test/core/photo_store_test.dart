@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:usra/core/files/photo_store.dart';
+import 'package:usra/l10n/app_localizations.dart';
 
 /// A real (tiny) PNG, so "readable as an image" means something.
 final _png = base64.decode(
@@ -34,7 +35,7 @@ void main() {
     store = PhotoStore(
       Directory(p.join(dir.path, 'support')),
       PhotoStore.attachmentsFolder,
-      cipher,
+      PhotoKeys.ready(cipher),
     );
   });
   tearDown(() => dir.deleteSync(recursive: true));
@@ -256,6 +257,283 @@ void main() {
       expect(await store.read(a), photo);
     });
   });
+
+  group('the real store end to end', () {
+    test(
+      'writes atomically: the old file stays whole if a write fails',
+      () async {
+        final path = await store.import(picked(photo).path);
+        final file = store.fileOf(path);
+        final before = file.readAsBytesSync();
+
+        // Replaced in one rename, never written in place.
+        await writeSealedFile(file, cipher.seal([1, 2, 3]));
+        expect(await store.read(path), [1, 2, 3]);
+        expect(file.parent.listSync(), hasLength(1));
+
+        // A write that can't happen (folder read-only) leaves it untouched.
+        file.writeAsBytesSync(before);
+        Process.runSync('chmod', ['555', file.parent.path]);
+        addTearDown(() => Process.runSync('chmod', ['755', file.parent.path]));
+        await expectLater(
+          writeSealedFile(file, cipher.seal([4])),
+          throwsA(isA<FileSystemException>()),
+        );
+        expect(await store.read(path), photo);
+      },
+    );
+
+    test('many photos at once go through one worker, each correct', () async {
+      final paths = [
+        for (var i = 0; i < 12; i++)
+          await store.import(picked([...photo, i], 'p$i.png').path),
+      ];
+      final read = await Future.wait([
+        for (final path in paths) store.read(path),
+      ]);
+      for (var i = 0; i < paths.length; i++) {
+        expect(read[i], [...photo, i]);
+      }
+      // Errors come back as themselves, and the worker keeps going.
+      final bad = store.fileOf(paths.first);
+      bad.writeAsBytesSync(bad.readAsBytesSync()..[40] ^= 1);
+      await expectLater(
+        store.read(paths.first),
+        throwsA(isA<PhotoUnreadableException>()),
+      );
+      expect(await store.read(paths.last), [...photo, 11]);
+    });
+  });
+
+  group('migration in the background', () {
+    test('plain photos show until it has finished, then are refused', () async {
+      final plain = store.fileOf('attachments/old.jpg')
+        ..createSync(recursive: true)
+        ..writeAsBytesSync([1, 2]);
+      final migrating = store.sealPlainFiles();
+      // Readable straight away, whether or not it was reached yet.
+      expect(await store.read('attachments/old.jpg'), [1, 2]);
+      expect(await migrating, 1);
+      expect(PhotoCipher.isSealed(plain.readAsBytesSync()), isTrue);
+
+      // Once done, a plain file is something that shouldn't be there.
+      store.fileOf('attachments/late.jpg').writeAsBytesSync([3]);
+      await expectLater(
+        store.read('attachments/late.jpg'),
+        throwsA(isA<PhotoUnreadableException>()),
+      );
+    });
+
+    test('without a key, plain photos still show', () async {
+      final locked = PhotoStore(
+        store.root,
+        PhotoStore.attachmentsFolder,
+        PhotoKeys.unavailable(PhotoKeyProblem.lost),
+      );
+      locked.fileOf('attachments/old.jpg')
+        ..createSync(recursive: true)
+        ..writeAsBytesSync([5]);
+      await expectLater(
+        locked.sealPlainFiles(),
+        throwsA(isA<PhotoKeyUnavailableException>()),
+      );
+      expect(await locked.read('attachments/old.jpg'), [5]);
+    });
+  });
+
+  group('the photo key', () {
+    Future<bool> none() async => false;
+    Future<bool> some() async => true;
+
+    test('is made on first start, then read back', () async {
+      final keys = MemoryPhotoKeyStore();
+      final first = await keys.load(sealedPhotosExist: none);
+      expect(first.cipher, isNotNull);
+      expect(keys.value, isNotNull);
+      final again = await keys.load(sealedPhotosExist: some);
+      expect(again.require.keyBytes, first.require.keyBytes);
+    });
+
+    test(
+      'missing while encrypted photos exist: lost, never replaced',
+      () async {
+        final keys = MemoryPhotoKeyStore();
+        final loaded = await keys.load(sealedPhotosExist: some);
+        expect(loaded.cipher, isNull);
+        expect(loaded.problem, PhotoKeyProblem.lost);
+        // No new key hides the loss.
+        expect(keys.value, isNull);
+      },
+    );
+
+    test('corrupt: a clear state, kept as it was', () async {
+      for (final bad in ['not base64!', 'AAAA']) {
+        final keys = MemoryPhotoKeyStore(bad);
+        final loaded = await keys.load(sealedPhotosExist: some);
+        expect(loaded.problem, PhotoKeyProblem.corrupt);
+        expect(keys.value, bad);
+      }
+    });
+
+    test(
+      "a key store that fails or never answers doesn't hang start-up",
+      () async {
+        final failing = _FailingKeyStore(Future.error(StateError('keystore')));
+        expect(
+          (await failing.load(sealedPhotosExist: none)).problem,
+          PhotoKeyProblem.unreadable,
+        );
+        final silent = _FailingKeyStore(Completer<String?>().future);
+        final loaded = await silent.load(
+          sealedPhotosExist: none,
+          timeout: const Duration(milliseconds: 50),
+        );
+        expect(loaded.problem, PhotoKeyProblem.unreadable);
+        // Never overwritten: the real key may still be in there.
+        expect(failing.written || silent.written, isFalse);
+      },
+    );
+
+    test('lost is detected from the files on disk', () async {
+      final root = Directory(p.join(dir.path, 'support'));
+      expect(
+        await anySealedPhoto(root, [PhotoStore.attachmentsFolder]),
+        isFalse,
+      );
+      store.fileOf('attachments/plain.jpg')
+        ..createSync(recursive: true)
+        ..writeAsBytesSync([1]);
+      expect(
+        await anySealedPhoto(root, [PhotoStore.attachmentsFolder]),
+        isFalse,
+      );
+      await store.import(picked(photo).path);
+      expect(
+        await anySealedPhoto(root, [PhotoStore.attachmentsFolder]),
+        isTrue,
+      );
+    });
+
+    test("without it, photos can't be opened or saved", () async {
+      final path = await store.import(picked(photo).path);
+      final locked = PhotoStore(
+        store.root,
+        PhotoStore.attachmentsFolder,
+        PhotoKeys.unavailable(PhotoKeyProblem.lost),
+      );
+      await expectLater(
+        locked.read(path),
+        throwsA(isA<PhotoKeyUnavailableException>()),
+      );
+      await expectLater(
+        locked.import(picked(photo).path),
+        throwsA(isA<PhotoKeyUnavailableException>()),
+      );
+    });
+
+    testWidgets('without it, photos say so instead of looking broken', (
+      tester,
+    ) async {
+      final path = (await tester.runAsync(
+        () => store.import(picked(photo).path),
+      ))!;
+      final locked = PhotoStore(
+        store.root,
+        PhotoStore.attachmentsFolder,
+        PhotoKeys.unavailable(PhotoKeyProblem.lost),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: PhotoImage(image: locked.image(path), height: 200),
+          ),
+        ),
+      );
+      for (var i = 0; i < 20; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump();
+        if (find.byKey(const ValueKey('photos-locked')).evaluate().isNotEmpty) {
+          break;
+        }
+      }
+      expect(find.byKey(const ValueKey('photos-locked')), findsOneWidget);
+      expect(find.byIcon(Icons.broken_image_outlined), findsNothing);
+    });
+  });
+
+  group('share leftovers', () {
+    late Directory temporary;
+    Directory folder(String name) => Directory(p.join(temporary.path, name));
+    void leave(String name) => (File(
+      p.join(folder(name).path, 'x.jpg'),
+    )..createSync(recursive: true)).writeAsBytesSync([1]);
+
+    setUp(() => temporary = Directory(p.join(dir.path, 'cache'))..createSync());
+
+    test('clearing removes share_plus\'s own copies too', () async {
+      leave(SharedPhotoCache.folderName);
+      leave(SharedPhotoCache.sharePlusFolder);
+      leave('unrelated');
+      await SharedPhotoCache(temporary).clear();
+      expect(folder(SharedPhotoCache.folderName).existsSync(), isFalse);
+      expect(folder(SharedPhotoCache.sharePlusFolder).existsSync(), isFalse);
+      expect(folder('unrelated').existsSync(), isTrue);
+    });
+
+    testWidgets('on Android: ours go when the sheet returns, share_plus\'s '
+        'when Usra is back in front', (tester) async {
+      await tester.runAsync(() async {
+        leave(SharedPhotoCache.folderName);
+        leave(SharedPhotoCache.sharePlusFolder);
+        await SharedPhotoCache(temporary, android: true).clearAfterShare();
+      });
+      expect(folder(SharedPhotoCache.folderName).existsSync(), isFalse);
+      // WhatsApp may still be reading it.
+      expect(folder(SharedPhotoCache.sharePlusFolder).existsSync(), isTrue);
+
+      // Real async: the delete is file I/O, which the fake clock never runs.
+      await tester.runAsync(() async {
+        final binding = tester.binding;
+        binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+        binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+        binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+        binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+        // Deleted in the background: wait for it, up to a few seconds.
+        final sharePlus = folder(SharedPhotoCache.sharePlusFolder);
+        for (var i = 0; i < 100 && sharePlus.existsSync(); i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+        }
+      });
+      expect(folder(SharedPhotoCache.sharePlusFolder).existsSync(), isFalse);
+    });
+
+    testWidgets('on iOS: nothing is kept once the sheet returns', (
+      tester,
+    ) async {
+      await tester.runAsync(() async {
+        leave(SharedPhotoCache.folderName);
+        await SharedPhotoCache(temporary, android: false).clearAfterShare();
+      });
+      expect(folder(SharedPhotoCache.folderName).existsSync(), isFalse);
+    });
+  });
+}
+
+class _FailingKeyStore extends PhotoKeyStore {
+  _FailingKeyStore(this._read);
+
+  final Future<String?> _read;
+  var written = false;
+
+  @override
+  Future<String?> readRaw() => _read;
+
+  @override
+  Future<void> writeRaw(String value) async => written = true;
 }
 
 /// Whether [needle] appears anywhere in [haystack].
