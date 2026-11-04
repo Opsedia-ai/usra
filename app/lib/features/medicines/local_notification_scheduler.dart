@@ -77,7 +77,7 @@ class LocalNotificationScheduler implements ReminderScheduler {
     required String takenLabel,
     required String snoozeLabel,
   }) => InitializationSettings(
-    android: const AndroidInitializationSettings('@mipmap/ic_launcher'),
+    android: const AndroidInitializationSettings('@drawable/ic_stat_usra'),
     iOS: DarwinInitializationSettings(
       // Asked from the Medicines tab, when reminders are first needed.
       requestAlertPermission: false,
