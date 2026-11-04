@@ -78,7 +78,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
-  String get settingsPrivacy => 'Your data stays on this phone, encrypted.';
+  String get settingsPrivacy =>
+      'Your data stays on this phone. Records are encrypted.';
 
   @override
   String get recoveryNotice =>
@@ -87,6 +88,61 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notMedicalDevice =>
       'Usra is not a medical device. Always ask your doctor before medical decisions.';
+
+  @override
+  String get aboutTitle => 'About & privacy';
+
+  @override
+  String get aboutHint => 'How your data is kept, and the app version';
+
+  @override
+  String get aboutPrivacyHeading => 'Your privacy, in plain words';
+
+  @override
+  String get aboutPrivacyOnPhone =>
+      'Everything you record stays on this phone. Records are in an encrypted database; photos are in the app\'s private storage, never in your gallery or in cloud backups. We don\'t receive any of it and can\'t see it.';
+
+  @override
+  String get aboutPrivacyNoAccount =>
+      'No account, no sign-in, no ads and no tracking. We never sell or share anyone\'s data.';
+
+  @override
+  String get aboutPrivacyBackup =>
+      'A backup is an encrypted file you keep wherever you choose. Only your recovery key opens it, and we don\'t have it.';
+
+  @override
+  String get aboutPrivacyPhotos =>
+      'The camera and photos are used only when you choose, and text is read from them on this phone.';
+
+  @override
+  String get aboutPrivacyReminders =>
+      'Reminders are set on this phone. People\'s names and medicine names can show on the lock screen (the name as you typed it) and on the home-screen widget (first names).';
+
+  @override
+  String get aboutPrivacyGoogle =>
+      'The text reader is made by Google and may send Google technical data with a random install ID, not linked to you. Never your photos, the text or your records.';
+
+  @override
+  String get aboutMedicalHeading => 'Medical disclaimer';
+
+  @override
+  String get aboutMedicalBody =>
+      'Usra is not a medical device. It doesn\'t diagnose or treat, and it doesn\'t replace your doctor. Growth charts, vaccine dates, suggestions and text read from photos are for organising and general information, and can be wrong. Always ask your doctor or pharmacist before medical decisions. In an emergency, call 123 in Egypt or your local emergency number.';
+
+  @override
+  String aboutVersion(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get aboutPrivacyPolicy => 'Privacy policy';
+
+  @override
+  String get aboutTerms => 'Terms of use';
+
+  @override
+  String get aboutLinkFailed =>
+      'Couldn\'t open the page. Check your internet connection.';
 
   @override
   String get familyNew => 'New person';
@@ -744,7 +800,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tutorialPrivacyBody =>
-      'Everything is saved on this phone, encrypted. No account needed.';
+      'Everything is saved on this phone, and records are encrypted. No account needed.';
 
   @override
   String get tutorialFamilyTitle => 'Add your family';
@@ -1932,6 +1988,113 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get devUntickConfirm =>
       'Untick this milestone? The date you recorded will be removed.';
+
+  @override
+  String get accountTitle => 'Account';
+
+  @override
+  String get accountSettingsHint => 'Optional. Your records stay on this phone';
+
+  @override
+  String get accountPrivacy =>
+      'Your family\'s health records stay on this phone. An account doesn\'t upload them: it only gets things ready for syncing between your family\'s phones and for AI features later, and you\'ll choose before anything is shared.';
+
+  @override
+  String get accountSignInIntro =>
+      'Sign in with your mobile number. We\'ll text you a code.';
+
+  @override
+  String get countryEgypt => 'Egypt';
+
+  @override
+  String get countrySaudiArabia => 'Saudi Arabia';
+
+  @override
+  String get countryUae => 'UAE';
+
+  @override
+  String get accountPhone => 'Mobile number';
+
+  @override
+  String get accountPhoneInvalid => 'Check the mobile number';
+
+  @override
+  String get accountSendCode => 'Send code';
+
+  @override
+  String accountCodeSentTo(String phone) {
+    return 'Enter the 6-digit code we sent to $phone';
+  }
+
+  @override
+  String get accountCode => 'Code';
+
+  @override
+  String get accountVerify => 'Confirm';
+
+  @override
+  String get accountResend => 'Send the code again';
+
+  @override
+  String get accountCodeResent => 'Code sent again';
+
+  @override
+  String get accountChangeNumber => 'Change number';
+
+  @override
+  String get accountSignedIn => 'Signed in';
+
+  @override
+  String accountSignedInAs(String phone) {
+    return 'Signed in as $phone';
+  }
+
+  @override
+  String get accountSignOut => 'Sign out';
+
+  @override
+  String get accountSignOutConfirm =>
+      'Sign out? Your records stay on this phone.';
+
+  @override
+  String get accountDelete => 'Delete account';
+
+  @override
+  String get accountDeleteConfirm =>
+      'Delete your account? Your account, devices and credits are erased from our servers. The records on this phone stay here.';
+
+  @override
+  String get accountDeleted => 'Account deleted';
+
+  @override
+  String get accountErrorInvalidCode => 'That code isn\'t right or has expired';
+
+  @override
+  String get accountErrorTooMany =>
+      'Too many tries. Wait a little and try again';
+
+  @override
+  String get accountErrorNetwork =>
+      'No connection. Check the internet and try again';
+
+  @override
+  String get accountErrorGeneric => 'Something went wrong. Try again';
+
+  @override
+  String get accountRetry => 'Try again';
+
+  @override
+  String accountResendIn(int seconds) {
+    return 'Send the code again in ${seconds}s';
+  }
+
+  @override
+  String get accountErrorSignInAgain =>
+      'Your sign-in has expired. Sign in again';
+
+  @override
+  String get accountErrorFamilyHasMembers =>
+      'You created a family that other people are in. Their shared records would be deleted too, so this account can\'t be deleted yet.';
 
   @override
   String get lockTitle => 'Usra is locked';

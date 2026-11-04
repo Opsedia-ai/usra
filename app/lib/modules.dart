@@ -1,5 +1,6 @@
 import 'core/modules/feature_module.dart';
 import 'features/app_lock/app_lock_module.dart';
+import 'features/account/account_module.dart';
 import 'features/backup/backup_module.dart';
 import 'features/children/children_module.dart';
 import 'features/doctors/doctors_module.dart';
@@ -27,6 +28,7 @@ const List<FeatureModule> appModules = [
   ScanModule(),
   SettingsModule(),
   BackupModule(),
+  AccountModule(),
   TutorialModule(),
   AppLockModule(),
 ];

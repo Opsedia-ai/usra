@@ -22,9 +22,31 @@
   "settingsLanguage": "Language",
   "languageArabic": "العربية",
   "languageEnglish": "English",
-  "settingsPrivacy": "Your data stays on this phone, encrypted.",
+  "settingsPrivacy": "Your data stays on this phone. Records are encrypted.",
   "recoveryNotice": "We couldn't open your earlier records on this phone, so we kept them aside safely and started fresh. You can restore them from your backup in More.",
   "notMedicalDevice": "Usra is not a medical device. Always ask your doctor before medical decisions.",
+  "aboutTitle": "About & privacy",
+  "aboutHint": "How your data is kept, and the app version",
+  "aboutPrivacyHeading": "Your privacy, in plain words",
+  "aboutPrivacyOnPhone": "Everything you record stays on this phone. Records are in an encrypted database; photos are in the app's private storage, never in your gallery or in cloud backups. We don't receive any of it and can't see it.",
+  "aboutPrivacyNoAccount": "No account, no sign-in, no ads and no tracking. We never sell or share anyone's data.",
+  "aboutPrivacyBackup": "A backup is an encrypted file you keep wherever you choose. Only your recovery key opens it, and we don't have it.",
+  "aboutPrivacyPhotos": "The camera and photos are used only when you choose, and text is read from them on this phone.",
+  "aboutPrivacyReminders": "Reminders are set on this phone. People's names and medicine names can show on the lock screen (the name as you typed it) and on the home-screen widget (first names).",
+  "aboutPrivacyGoogle": "The text reader is made by Google and may send Google technical data with a random install ID, not linked to you. Never your photos, the text or your records.",
+  "aboutMedicalHeading": "Medical disclaimer",
+  "aboutMedicalBody": "Usra is not a medical device. It doesn't diagnose or treat, and it doesn't replace your doctor. Growth charts, vaccine dates, suggestions and text read from photos are for organising and general information, and can be wrong. Always ask your doctor or pharmacist before medical decisions. In an emergency, call 123 in Egypt or your local emergency number.",
+  "aboutVersion": "Version {version}",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutPrivacyPolicy": "Privacy policy",
+  "aboutTerms": "Terms of use",
+  "aboutLinkFailed": "Couldn't open the page. Check your internet connection.",
   "familyNew": "New person",
   "familyEdit": "Edit",
   "profileBirthDate": "Date of birth",
@@ -389,7 +411,7 @@
   "tutorialWelcomeTitle": "Hi, I'm Dr. Usra",
   "tutorialWelcomeBody": "Usra keeps your family's health in one place: doctor visits, tests, medicines and your doctors' numbers.",
   "tutorialPrivacyTitle": "Your data stays with you",
-  "tutorialPrivacyBody": "Everything is saved on this phone, encrypted. No account needed.",
+  "tutorialPrivacyBody": "Everything is saved on this phone, and records are encrypted. No account needed.",
   "tutorialFamilyTitle": "Add your family",
   "tutorialFamilyBody": "Add everyone you care for: kids, parents, grandparents. Each person gets their own page.",
   "tutorialColorsTitle": "Colours mean urgency",
@@ -1082,6 +1104,58 @@
   "growthCheckSave": "Save as a measurement",
   "devUntick": "Untick",
   "devUntickConfirm": "Untick this milestone? The date you recorded will be removed.",
+  "accountTitle": "Account",
+  "accountSettingsHint": "Optional. Your records stay on this phone",
+  "accountPrivacy": "Your family's health records stay on this phone. An account doesn't upload them: it only gets things ready for syncing between your family's phones and for AI features later, and you'll choose before anything is shared.",
+  "accountSignInIntro": "Sign in with your mobile number. We'll text you a code.",
+  "countryEgypt": "Egypt",
+  "countrySaudiArabia": "Saudi Arabia",
+  "countryUae": "UAE",
+  "accountPhone": "Mobile number",
+  "accountPhoneInvalid": "Check the mobile number",
+  "accountSendCode": "Send code",
+  "accountCodeSentTo": "Enter the 6-digit code we sent to {phone}",
+  "@accountCodeSentTo": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "accountCode": "Code",
+  "accountVerify": "Confirm",
+  "accountResend": "Send the code again",
+  "accountCodeResent": "Code sent again",
+  "accountChangeNumber": "Change number",
+  "accountSignedIn": "Signed in",
+  "accountSignedInAs": "Signed in as {phone}",
+  "@accountSignedInAs": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "accountSignOut": "Sign out",
+  "accountSignOutConfirm": "Sign out? Your records stay on this phone.",
+  "accountDelete": "Delete account",
+  "accountDeleteConfirm": "Delete your account? Your account, devices and credits are erased from our servers. The records on this phone stay here.",
+  "accountDeleted": "Account deleted",
+  "accountErrorInvalidCode": "That code isn't right or has expired",
+  "accountErrorTooMany": "Too many tries. Wait a little and try again",
+  "accountErrorNetwork": "No connection. Check the internet and try again",
+  "accountErrorGeneric": "Something went wrong. Try again",
+  "accountRetry": "Try again",
+  "accountResendIn": "Send the code again in {seconds}s",
+  "@accountResendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "accountErrorSignInAgain": "Your sign-in has expired. Sign in again",
+  "accountErrorFamilyHasMembers": "You created a family that other people are in. Their shared records would be deleted too, so this account can't be deleted yet.",
   "lockTitle": "Usra is locked",
   "lockEnterPin": "Enter your PIN",
   "lockUseBiometrics": "Unlock with fingerprint or face",
