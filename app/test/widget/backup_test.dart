@@ -12,9 +12,12 @@ import 'package:usra/core/backup/backup_service.dart';
 import 'package:usra/core/backup/recovery_key.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/preferences.dart';
+import 'package:usra/core/files/photo_crypto.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/core/routing/app_router.dart';
+import 'package:usra/core/screen_privacy.dart';
 import 'package:usra/features/backup/backup_providers.dart';
+import 'package:usra/features/backup/backup_screen.dart';
 
 /// Hands back a ready-made file instead of packing the database.
 class _FakeBackupService extends BackupService {
@@ -23,21 +26,28 @@ class _FakeBackupService extends BackupService {
         root: dir,
         databaseName: 'usra.sqlite',
         deviceKey: '0' * 64,
+        photoKeys: PhotoKeys.ready(PhotoCipher(List.filled(32, 0))),
         temporary: dir,
         folders: const [],
       );
 
   final made = <RecoveryKey>[];
 
+  /// Photos the next backup says it left out.
+  var skippedPhotos = 0;
+
   @override
-  Future<File> create(
+  Future<CreatedBackup> create(
     AppDatabase db,
     RecoveryKey key, {
     required String appVersion,
     DateTime? now,
   }) async {
     made.add(key);
-    return File('${root.path}/usra-backup-test.usra');
+    return CreatedBackup(
+      File('${root.path}/usra-backup-test.usra'),
+      skippedPhotos: skippedPhotos,
+    );
   }
 
   final opened = <(String, RecoveryKey)>[];
@@ -193,6 +203,24 @@ void main() {
     },
   );
 
+  testWidgets('a backup missing photos says so, not just "ready"', (
+    tester,
+  ) async {
+    await keys.write(RecoveryKey.generate());
+    service.skippedPhotos = 2;
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    await go(tester, '/settings/backup');
+    await tester.tap(find.byKey(const ValueKey('backup-now')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    final shown = tester
+        .widget<Text>(find.byKey(const ValueKey('backup-done')))
+        .data!;
+    expect(shown, contains('صورتين'));
+    expect(shown, contains('مقدرناش نفتحهم'));
+  });
+
   testWidgets('Home reminds to back up once the family has someone in it', (
     tester,
   ) async {
@@ -335,5 +363,75 @@ void main() {
     // And the backup page is one step away.
     await go(tester, '/settings/backup');
     expect(find.byKey(const ValueKey('backup-now')), findsOneWidget);
+  });
+
+  group('screen privacy', () {
+    late List<bool> secure;
+    setUp(() => secure = []);
+
+    Future<void> start(WidgetTester tester) async {
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        ScreenPrivacy.channel,
+        (call) async {
+          if (call.method == 'setSecure') secure.add(call.arguments as bool);
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          ScreenPrivacy.channel,
+          null,
+        ),
+      );
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('no screenshots of the recovery key', (tester) async {
+      await start(tester);
+      // "Block screenshots" is off by default.
+      expect(secure, [false]);
+
+      await go(tester, '$backupPath/key');
+      expect(find.byKey(const ValueKey('recovery-group-1')), findsOneWidget);
+      expect(secure, [false, true]);
+
+      await go(tester, backupPath);
+      expect(secure, [false, true, false]);
+
+      // Restore, where the key is typed, too.
+      await go(tester, '$backupPath/restore');
+      expect(secure.last, isTrue);
+    });
+
+    testWidgets('Block screenshots and Discreet notifications in Settings', (
+      tester,
+    ) async {
+      await start(tester);
+      await go(tester, '/settings');
+      Finder tile(String key) => find.descendant(
+        of: find.byKey(ValueKey(key)),
+        matching: find.byType(SwitchListTile),
+      );
+      final block = tile('settings-block-screenshots');
+      final discreet = tile('settings-discreet');
+      expect(tester.widget<SwitchListTile>(block).value, isFalse);
+      expect(tester.widget<SwitchListTile>(discreet).value, isTrue);
+
+      await tester.tap(block);
+      await tester.pumpAndSettle();
+      expect(secure, [false, true]);
+      expect(prefs.getBool(PrefKeys.blockScreenshots), isTrue);
+      // Leaving the recovery key keeps the whole app blocked.
+      await go(tester, '$backupPath/key');
+      await go(tester, backupPath);
+      expect(secure, [false, true]);
+
+      await go(tester, '/settings');
+      await tester.tap(discreet);
+      await tester.pumpAndSettle();
+      expect(prefs.getBool(PrefKeys.discreetNotifications), isFalse);
+      expect(find.text('تنبيهات من غير أسامي'), findsOneWidget);
+    });
   });
 }

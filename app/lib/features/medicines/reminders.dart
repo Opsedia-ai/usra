@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show Locale;
 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -15,6 +16,57 @@ const snoozeDuration = Duration(minutes: 10);
 /// planned reminders use the ids below it.
 const snoozeIdBase = 1000000;
 
+/// Which dose a notification is for, and nothing else: what its payload
+/// holds. The text is never saved there; it's rebuilt from the current
+/// settings whenever the notification is scheduled.
+class ReminderRef {
+  const ReminderRef({
+    required this.medicineId,
+    required this.scheduledAt,
+    required this.locale,
+    this.at,
+  });
+
+  final String medicineId;
+
+  /// The dose's planned time, the key its log is saved under.
+  final DateTime scheduledAt;
+
+  /// When it rings; unknown for payloads saved by older versions.
+  final DateTime? at;
+
+  /// The app's language when it was scheduled, for a snooze set from the
+  /// notification while the app isn't running.
+  final String locale;
+
+  String toPayload() => jsonEncode({
+    'm': medicineId,
+    's': scheduledAt.toUtc().millisecondsSinceEpoch,
+    if (at != null) 'a': at!.toUtc().millisecondsSinceEpoch,
+    'l': locale,
+  });
+
+  /// Reads [toPayload], and the payloads of older versions (which also
+  /// carried the text); null if [payload] isn't one of ours.
+  static ReminderRef? fromPayload(String? payload) {
+    if (payload == null) return null;
+    try {
+      final j = jsonDecode(payload);
+      if (j is! Map) return null;
+      DateTime utc(Object? ms) =>
+          DateTime.fromMillisecondsSinceEpoch(ms! as int, isUtc: true);
+      return ReminderRef(
+        medicineId: j['m'] as String,
+        scheduledAt: utc(j['s']),
+        at: j['a'] == null ? null : utc(j['a']),
+        locale: j['l'] as String? ?? 'ar',
+      );
+    } on Object {
+      return null;
+    }
+  }
+}
+
 /// One notification to show at [at], for one dose.
 class PlannedReminder {
   const PlannedReminder({
@@ -26,6 +78,7 @@ class PlannedReminder {
     required this.body,
     required this.takenLabel,
     required this.snoozeLabel,
+    this.locale = 'ar',
   });
 
   final int id;
@@ -39,58 +92,22 @@ class PlannedReminder {
   final String title;
   final String body;
 
-  /// The notification's action buttons, already in the app's language:
-  /// a background action may run where no localizations are loaded.
-  final String takenLabel;
+  /// The Taken button; none in discreet mode, where two identical
+  /// notifications could each mark someone else's dose.
+  final String? takenLabel;
   final String snoozeLabel;
+  final String locale;
 
-  /// The same dose again, [snoozeDuration] after [now].
-  PlannedReminder snoozed(DateTime now) => PlannedReminder(
-    id: snoozeIdFor(medicineId, scheduledAt),
-    at: now.add(snoozeDuration),
+  bool get discreet => takenLabel == null;
+
+  ReminderRef get ref => ReminderRef(
     medicineId: medicineId,
     scheduledAt: scheduledAt,
-    title: title,
-    body: body,
-    takenLabel: takenLabel,
-    snoozeLabel: snoozeLabel,
+    at: at,
+    locale: locale,
   );
 
-  /// Everything needed to act on, or snooze, this reminder from a
-  /// notification.
-  String toPayload() => jsonEncode({
-    'm': medicineId,
-    's': scheduledAt.toUtc().millisecondsSinceEpoch,
-    't': title,
-    'b': body,
-    'tl': takenLabel,
-    'sl': snoozeLabel,
-  });
-
-  /// Reads [toPayload]; null if [payload] isn't one of ours.
-  static PlannedReminder? fromPayload(String? payload) {
-    if (payload == null) return null;
-    try {
-      final j = jsonDecode(payload);
-      if (j is! Map) return null;
-      final scheduledAt = DateTime.fromMillisecondsSinceEpoch(
-        j['s'] as int,
-        isUtc: true,
-      );
-      return PlannedReminder(
-        id: snoozeIdFor(j['m'] as String, scheduledAt),
-        at: scheduledAt,
-        medicineId: j['m'] as String,
-        scheduledAt: scheduledAt,
-        title: j['t'] as String,
-        body: j['b'] as String,
-        takenLabel: j['tl'] as String,
-        snoozeLabel: j['sl'] as String,
-      );
-    } on Object {
-      return null;
-    }
-  }
+  String toPayload() => ref.toPayload();
 
   @override
   String toString() => 'PlannedReminder($id, $at, $title)';
@@ -110,19 +127,63 @@ int snoozeIdFor(String medicineId, DateTime scheduledAt) {
 
 /// Turns doses into notification text in the app's language.
 class ReminderTexts {
-  const ReminderTexts(this.l);
+  const ReminderTexts(this.l, {required this.discreet});
 
   final AppLocalizations l;
 
-  String title(Regimen r) => l.doseReminderTitle(
-    r.person.displayName,
-    [r.medicine.name, ?r.medicine.strength].join(' '),
-  );
+  /// "Discreet notifications": no person's or medicine's name, here or on
+  /// the home-screen widget, since both show on a phone others can see,
+  /// and no Taken button, since the doses can't be told apart.
+  final bool discreet;
+
+  String title(Regimen r) => discreet
+      ? l.doseReminderDiscreetTitle
+      : l.doseReminderTitle(
+          r.person.displayName,
+          [r.medicine.name, ?r.medicine.strength].join(' '),
+        );
 
   /// The amount and the doctor's words, as written; nothing added.
+  /// Discreet: just where to see which, as the words can name a condition.
   String body(Regimen r) {
+    if (discreet) return l.doseReminderDiscreetBody;
     final parts = [?r.schedule.amount, ?r.medicine.instructions];
     return parts.isEmpty ? l.doseReminderBody : parts.join(' · ');
+  }
+
+  /// The reminder for [r]'s dose planned at [scheduledAt], ringing [at].
+  PlannedReminder reminder(
+    Regimen r, {
+    required int id,
+    required DateTime at,
+    required DateTime scheduledAt,
+  }) => PlannedReminder(
+    id: id,
+    at: at,
+    medicineId: r.medicine.id,
+    scheduledAt: scheduledAt,
+    title: title(r),
+    body: body(r),
+    takenLabel: discreet ? null : l.doseTaken,
+    snoozeLabel: l.doseSnooze,
+    locale: l.localeName,
+  );
+
+  /// [ref]'s dose without reading the database: always discreet. For a
+  /// snooze pressed while the app isn't running.
+  static PlannedReminder generic(ReminderRef ref, {required DateTime at}) {
+    final l = lookupAppLocalizations(Locale(ref.locale));
+    return PlannedReminder(
+      id: snoozeIdFor(ref.medicineId, ref.scheduledAt),
+      at: at,
+      medicineId: ref.medicineId,
+      scheduledAt: ref.scheduledAt,
+      title: l.doseReminderDiscreetTitle,
+      body: l.doseReminderDiscreetBody,
+      takenLabel: null,
+      snoozeLabel: l.doseSnooze,
+      locale: l.localeName,
+    );
   }
 }
 
@@ -144,19 +205,105 @@ List<PlannedReminder> planReminders(
     if (d.log != null || !d.at.isAfter(now)) continue;
     if (out.length == max) break;
     out.add(
-      PlannedReminder(
+      texts.reminder(
+        d.regimen,
         id: out.length + 1,
         at: d.at,
-        medicineId: d.regimen.medicine.id,
         scheduledAt: d.scheduledAt,
-        title: texts.title(d.regimen),
-        body: texts.body(d.regimen),
-        takenLabel: texts.l.doseTaken,
-        snoozeLabel: texts.l.doseSnooze,
       ),
     );
   }
   return out;
+}
+
+/// [ref]'s reminder with this [id] ringing [at], in the current text;
+/// null to leave it as it is (its medicine was deleted).
+typedef ReminderRebuild = PlannedReminder? Function(
+  int id,
+  ReminderRef ref,
+  DateTime at,
+);
+
+/// A notification the phone has pending or on screen.
+typedef PhoneReminder = ({
+  int id,
+  String? title,
+  String? body,
+  String? payload,
+});
+
+/// What [diffReminders] asks the phone to do.
+class ReminderChanges {
+  const ReminderChanges({
+    this.cancel = const {},
+    this.schedule = const [],
+    this.repost = const [],
+  });
+
+  final Set<int> cancel;
+
+  /// Scheduled after [cancel].
+  final List<PlannedReminder> schedule;
+
+  /// On screen with old text: shown again in place, silently.
+  final List<PlannedReminder> repost;
+}
+
+/// How to make the phone's reminders match: planned reminders become
+/// exactly [wanted] (unchanged ones left alone, so one about to ring is
+/// never lost), snoozes in [doneSnoozes] are cancelled, and other snoozes
+/// and notifications on screen whose text is out of date (the language or
+/// discreet setting changed) are rewritten with [rebuild].
+ReminderChanges diffReminders({
+  required List<PhoneReminder> pending,
+  List<PhoneReminder> shown = const [],
+  required List<PlannedReminder> wanted,
+  Set<int> doneSnoozes = const {},
+  ReminderRebuild? rebuild,
+  required DateTime now,
+}) {
+  bool same(PlannedReminder r, PhoneReminder p) =>
+      r.toPayload() == p.payload && r.title == p.title && r.body == p.body;
+  final byId = {for (final r in wanted) r.id: r};
+  final cancel = <int>{};
+  final schedule = <PlannedReminder>[];
+  final kept = <int>{};
+  // Planned a moment ago; one that's due by now would be refused.
+  final soonest = now.add(const Duration(seconds: 1));
+  for (final p in pending) {
+    if (p.id < snoozeIdBase) {
+      final r = byId[p.id];
+      if (r != null && same(r, p)) {
+        kept.add(p.id);
+      } else {
+        cancel.add(p.id);
+      }
+      continue;
+    }
+    if (doneSnoozes.contains(p.id)) {
+      cancel.add(p.id);
+      continue;
+    }
+    final ref = ReminderRef.fromPayload(p.payload);
+    if (ref == null || rebuild == null) continue;
+    // Older versions didn't save when a snooze rings.
+    final at = ref.at ?? now.add(snoozeDuration);
+    final r = rebuild(p.id, ref, at.isBefore(soonest) ? soonest : at);
+    if (r == null || same(r, p)) continue;
+    cancel.add(p.id);
+    schedule.add(r);
+  }
+  for (final r in wanted) {
+    if (kept.contains(r.id) || r.at.isBefore(soonest)) continue;
+    schedule.add(r);
+  }
+  final repost = <PlannedReminder>[];
+  for (final s in shown) {
+    final ref = ReminderRef.fromPayload(s.payload);
+    final r = ref == null ? null : rebuild?.call(s.id, ref, ref.at ?? now);
+    if (r != null && (r.title != s.title || r.body != s.body)) repost.add(r);
+  }
+  return ReminderChanges(cancel: cancel, schedule: schedule, repost: repost);
 }
 
 /// Snooze ids of doses marked taken or skipped in [logs], however they
@@ -204,9 +351,12 @@ abstract interface class ReminderScheduler {
   /// Makes the planned reminders (not snoozes) exactly [reminders]:
   /// unchanged ones are left alone, so one about to ring is never lost.
   /// Snoozes in [doneSnoozes] are cancelled: their dose was marked since.
+  /// Other snoozes and notifications on screen get [rebuild]'s text if
+  /// theirs is out of date. See [diffReminders].
   Future<void> replaceAll(
     List<PlannedReminder> reminders, {
     Set<int> doneSnoozes = const {},
+    ReminderRebuild? rebuild,
   });
 
   /// Schedules one more reminder (a snooze), keeping the others.
@@ -334,6 +484,7 @@ class UnavailableReminderScheduler implements ReminderScheduler {
   Future<void> replaceAll(
     List<PlannedReminder> reminders, {
     Set<int> doneSnoozes = const {},
+    ReminderRebuild? rebuild,
   }) async {}
 
   @override

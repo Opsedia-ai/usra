@@ -10,6 +10,7 @@ import 'core/backup/recovery_key.dart';
 import 'core/database/app_database.dart';
 import 'core/database/connection.dart';
 import 'core/files/photo_store.dart';
+import 'core/log.dart';
 import 'core/preferences.dart';
 import 'core/providers.dart';
 import 'core/routing/app_router.dart';
@@ -25,8 +26,20 @@ import 'l10n/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  Log.installErrorHandlers();
   final key = await DatabaseKeyStore().readOrCreate();
   final file = await defaultDatabaseFile();
+  const photoFolders = [
+    PhotoStore.cardsFolder,
+    PhotoStore.attachmentsFolder,
+    PhotoStore.medicinesFolder,
+  ];
+  final photoKeyStore = SecurePhotoKeyStore();
+  // Never throws: without a key the app still opens, and photos say they
+  // can't be opened here until a backup is restored.
+  final photoKeys = await photoKeyStore.load(
+    sealedPhotosExist: () => anySealedPhoto(file.parent, photoFolders),
+  );
   try {
     await excludeDatabaseFromBackup(file, PhotoStore.excludeFromBackup);
   } catch (e, s) {
@@ -42,12 +55,10 @@ Future<void> main() async {
     root: file.parent,
     databaseName: p.basename(file.path),
     deviceKey: key,
+    photoKeys: photoKeys,
+    photoKeyStore: photoKeyStore,
     temporary: temporary,
-    folders: const [
-      PhotoStore.cardsFolder,
-      PhotoStore.attachmentsFolder,
-      PhotoStore.medicinesFolder,
-    ],
+    folders: photoFolders,
     files: const [FileDismissalStore.fileName],
     excludeFromBackup: PhotoStore.excludeFromBackup,
   );
@@ -70,12 +81,36 @@ Future<void> main() async {
     firstDismissals,
   ) = await (
     SharedPreferencesStore.open(),
-    PhotoStore.open(PhotoStore.cardsFolder),
-    PhotoStore.open(PhotoStore.attachmentsFolder),
-    PhotoStore.open(PhotoStore.medicinesFolder),
+    PhotoStore.open(PhotoStore.cardsFolder, photoKeys),
+    PhotoStore.open(PhotoStore.attachmentsFolder, photoKeys),
+    PhotoStore.open(PhotoStore.medicinesFolder, photoKeys),
     DoseActionInbox.open(),
     FileDismissalStore.open(),
   ).wait;
+
+  // Once, for photos saved before they were encrypted; resumes if the app
+  // was killed half way. Not awaited: the app opens meanwhile, showing
+  // those photos as they are until they're done.
+  final photoMigration = () async {
+    try {
+      await [
+        for (final store in [cardPhotos, attachments, medicinePhotos])
+          store.sealPlainFiles(),
+      ].wait;
+    } catch (e, s) {
+      FlutterError.reportError(
+        FlutterErrorDetails(exception: e, stack: s, library: 'photos'),
+      );
+    }
+  }();
+  try {
+    // Decrypted copies a share left behind.
+    await SharedPhotoCache(temporary).clear();
+  } catch (e, s) {
+    FlutterError.reportError(
+      FlutterErrorDetails(exception: e, stack: s, library: 'photos'),
+    );
+  }
 
   var dismissals = firstDismissals;
   // Read before the first frame, so the app never shows unlocked.
@@ -93,8 +128,6 @@ Future<void> main() async {
   final app = ValueNotifier<ProviderContainer?>(null);
   ProviderContainer container() => app.value!;
   late ReminderSync reminders;
-  AppLocalizations l() =>
-      lookupAppLocalizations(container().read(localeProvider));
   // Pressed while a restore swaps the data: replayed once it's back.
   final waiting = <DoseResponse>[];
   void onDoseResponse(DoseResponse r) {
@@ -110,7 +143,7 @@ Future<void> main() async {
       );
     } else {
       // Taken / Snooze only saves the dose and shows nothing: no unlock.
-      reminders.handleAction(r.reminder, status);
+      reminders.handleAction(r.dose, status);
     }
   }
 
@@ -122,6 +155,7 @@ Future<void> main() async {
       channelName: startup.doseChannelName,
       takenLabel: startup.doseTaken,
       snoozeLabel: startup.doseSnooze,
+      hiddenPreviewText: startup.doseReminderDiscreetTitle,
       onResponse: onDoseResponse,
     );
   } catch (e, s) {
@@ -160,7 +194,7 @@ Future<void> main() async {
     db: database,
     scheduler: scheduler,
     inbox: inbox,
-    texts: () => ReminderTexts(l()),
+    texts: () => reminderTextsOf(container()),
     widget: const HomeWidgetSnapshotPublisher(),
   );
 
@@ -176,6 +210,8 @@ Future<void> main() async {
       old.dispose();
       reminders.dispose();
       await database.close();
+      // The restore replaces the photo folders the migration works in.
+      await photoMigration;
       await backup.commit();
       restored = true;
     } catch (e, s) {
@@ -260,12 +296,12 @@ Future<void> main() async {
     ),
   );
   await reminders.start();
-  // Notification text follows the app's language.
-  // (Set up again for each restart's container.)
-  void followLocale() =>
-      container().listen(localeProvider, (_, _) => reminders.resync());
-  followLocale();
+  // Notification and widget text follow the app's language and the
+  // discreet setting. (Set up again for each restart's container.)
+  void followTexts() =>
+      resyncOnTextChange(container(), () => reminders.resync());
+  followTexts();
   app.addListener(() {
-    if (app.value != null) followLocale();
+    if (app.value != null) followTexts();
   });
 }

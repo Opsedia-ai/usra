@@ -42,10 +42,11 @@ class WidgetDose {
   /// [at] as "٨:٠٠ م", in the app's language.
   final String time;
 
-  /// First name only.
+  /// First name only; empty in discreet mode.
   final String person;
 
-  /// The medicine's name, without its strength.
+  /// The medicine's name, without its strength; "Dose due" in discreet
+  /// mode.
   final String medicine;
   final String medicineId;
 
@@ -75,6 +76,7 @@ class WidgetSnapshot {
     required this.stale,
     required this.taken,
     required this.doses,
+    this.discreet = false,
   });
 
   /// When the doses were read; a Taken pressed on the widget after this
@@ -92,6 +94,10 @@ class WidgetSnapshot {
   /// Not yet taken or skipped, soonest first.
   final List<WidgetDose> doses;
 
+  /// No names, and so no Taken button: rows that look alike could each
+  /// mark someone else's dose. A tap opens the app instead.
+  final bool discreet;
+
   static const version = 1;
 
   Map<String, Object> toJson() => {
@@ -103,6 +109,7 @@ class WidgetSnapshot {
     'empty': empty,
     'stale': stale,
     'taken': taken,
+    'discreet': discreet,
     'doses': [for (final d in doses) d.toJson()],
   };
 
@@ -118,12 +125,14 @@ String firstName(String displayName) {
 /// The widget's snapshot at [now]: doses from today to the end of
 /// tomorrow that aren't marked taken or skipped and haven't been due (or
 /// snoozed until) for over [widgetGrace], with text in [l]'s
-/// language. Call [ensureWidgetDateFormatting] first.
+/// language; [discreet] leaves out people's and medicines' names. Call
+/// [ensureWidgetDateFormatting] first.
 WidgetSnapshot buildWidgetSnapshot(
   List<Regimen> regimens,
   List<DoseLog> logs, {
   required DateTime now,
   required AppLocalizations l,
+  bool discreet = false,
 }) {
   final today = todayOf(now).from;
   final validUntil = DateTime(today.year, today.month, today.day + 2);
@@ -145,8 +154,8 @@ WidgetSnapshot buildWidgetSnapshot(
         at: d.at,
         until: until,
         time: time.format(d.at),
-        person: firstName(d.regimen.person.displayName),
-        medicine: d.regimen.medicine.name,
+        person: discreet ? '' : firstName(d.regimen.person.displayName),
+        medicine: discreet ? l.widgetDiscreetDose : d.regimen.medicine.name,
         medicineId: d.regimen.medicine.id,
       ),
     );
@@ -160,6 +169,7 @@ WidgetSnapshot buildWidgetSnapshot(
     stale: l.widgetStale,
     taken: l.doseTaken,
     doses: doses,
+    discreet: discreet,
   );
 }
 

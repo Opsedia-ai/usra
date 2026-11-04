@@ -544,9 +544,9 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
                               borderRadius: BorderRadius.circular(12),
                               child: PhotoImage(
                                 key: ValueKey('medicine-photo-preview-$i'),
-                                file: p.picked
-                                    ? File(p.path)
-                                    : store.fileOf(p.path),
+                                image: p.picked
+                                    ? FileImage(File(p.path))
+                                    : store.image(p.path),
                                 width: 110,
                                 height: 110,
                                 fit: BoxFit.cover,

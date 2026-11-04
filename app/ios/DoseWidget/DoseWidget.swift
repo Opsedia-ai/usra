@@ -28,7 +28,8 @@ struct WidgetDose: Decodable {
   var date: Date { Date(timeIntervalSince1970: TimeInterval(at) / 1000) }
   /// When it leaves the widget: an hour after it's due or its snooze ends.
   var untilDate: Date { Date(timeIntervalSince1970: TimeInterval(until) / 1000) }
-  var line: String { "\(time) · \(person) · \(medicine)" }
+  /// Discreet mode sends no person and a generic medicine.
+  var line: String { [time, person, medicine].filter { !$0.isEmpty }.joined(separator: " · ") }
 }
 
 struct WidgetSnapshot: Decodable {

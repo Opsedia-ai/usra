@@ -26,6 +26,9 @@ import flutter_local_notifications
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "UsraClock") {
       registerClockChannel(messenger: registrar.messenger())
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "UsraPrivacy") {
+      registerPrivacyChannels(messenger: registrar.messenger())
+    }
   }
 
   /// The app lock measures time away with this: CLOCK_MONOTONIC on iOS keeps
@@ -39,6 +42,49 @@ import flutter_local_notifications
       }
       result(Int(clock_gettime_nsec_np(CLOCK_MONOTONIC) / 1_000_000))
     }
+  }
+
+  /// The app-switcher cover (SceneDelegate) and the text a hidden
+  /// notification preview shows. Screenshots can't be blocked on iOS, so
+  /// `setSecure` isn't handled.
+  private func registerPrivacyChannels(messenger: FlutterBinaryMessenger) {
+    FlutterMethodChannel(name: "usra/screen_privacy", binaryMessenger: messenger)
+      .setMethodCallHandler { call, result in
+        switch call.method {
+        case "coverUntilReady":
+          let on = call.arguments as? Bool ?? false
+          SceneDelegate.current?.coverUntilReady = on
+          if !on { SceneDelegate.current?.uncover() }
+          result(nil)
+        case "uncover":
+          SceneDelegate.current?.uncover()
+          result(nil)
+        default:
+          result(FlutterMethodNotImplemented)
+        }
+      }
+    // The lock screen hides previews by default ("When Unlocked"); this
+    // replaces "Notification" with generic reminder text there.
+    FlutterMethodChannel(name: "usra/notification_privacy", binaryMessenger: messenger)
+      .setMethodCallHandler { call, result in
+        guard call.method == "setHiddenPreviewText", let text = call.arguments as? String else {
+          result(FlutterMethodNotImplemented)
+          return
+        }
+        let center = UNUserNotificationCenter.current()
+        center.getNotificationCategories { categories in
+          let replaced = categories.map {
+            UNNotificationCategory(
+              identifier: $0.identifier,
+              actions: $0.actions,
+              intentIdentifiers: $0.intentIdentifiers,
+              hiddenPreviewsBodyPlaceholder: text,
+              options: $0.options)
+          }
+          center.setNotificationCategories(Set(replaced))
+          DispatchQueue.main.async { result(nil) }
+        }
+      }
   }
 
   /// Keeps private folders (insurance card photos) out of iCloud backup.

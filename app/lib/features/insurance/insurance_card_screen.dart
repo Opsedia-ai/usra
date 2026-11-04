@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
@@ -65,7 +62,7 @@ class InsuranceCardScreen extends ConsumerWidget {
                 if (path != null) ...[
                   _Photo(
                     label: label,
-                    file: ref.watch(cardPhotoStoreProvider).fileOf(path),
+                    image: ref.watch(cardPhotoStoreProvider).image(path),
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -119,14 +116,14 @@ class InsuranceCardScreen extends ConsumerWidget {
 }
 
 class _Photo extends StatelessWidget {
-  const _Photo({required this.label, required this.file});
+  const _Photo({required this.label, required this.image});
 
   final String label;
-  final File file;
+  final ImageProvider image;
 
   @override
   Widget build(BuildContext context) {
-    final image = PhotoImage(file: file, semanticLabel: label);
+    final photo = PhotoImage(image: image, semanticLabel: label);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -139,13 +136,13 @@ class _Photo extends StatelessWidget {
             builder: (dialog) => Dialog.fullscreen(
               child: GestureDetector(
                 onTap: () => Navigator.pop(dialog),
-                child: InteractiveViewer(child: Center(child: image)),
+                child: InteractiveViewer(child: Center(child: photo)),
               ),
             ),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: image,
+            child: photo,
           ),
         ),
       ],
@@ -223,22 +220,13 @@ class _ShareButton extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     final failed = AppLocalizations.of(context).shareFailed;
     final box = context.findRenderObject() as RenderBox?;
-    final store = ref.read(cardPhotoStoreProvider);
-    final files = [
-      for (final path in [card.frontPhoto, card.backPhoto])
-        if (path != null && store.fileOf(path).existsSync())
-          XFile(store.fileOf(path).path, mimeType: photoMimeOf(path)),
-    ];
     try {
-      await ref.read(shareProvider)(
-        ShareParams(
-          text: insuranceShareText(person, card),
-          files: files.isEmpty ? null : files,
-          // iPad needs to know where to anchor the share sheet.
-          sharePositionOrigin: box == null
-              ? null
-              : box.localToGlobal(Offset.zero) & box.size,
-        ),
+      await shareStoredPhotos(
+        ref,
+        ref.read(cardPhotoStoreProvider),
+        [?card.frontPhoto, ?card.backPhoto],
+        text: insuranceShareText(person, card),
+        origin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
       );
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(failed)));

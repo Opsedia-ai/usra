@@ -68,6 +68,9 @@ abstract final class PrefKeys {
   /// Set on first start. Missing means a fresh install, so a lock left in
   /// the iOS Keychain by a deleted copy of the app is dropped.
   static const installed = 'installed';
+
+  static const discreetNotifications = 'discreet_notifications';
+  static const blockScreenshots = 'block_screenshots';
   static const all = {
     simpleMode,
     tutorialSeen,
@@ -75,6 +78,8 @@ abstract final class PrefKeys {
     lastBackupAt,
     appLockOffered,
     installed,
+    discreetNotifications,
+    blockScreenshots,
   };
 }
 
@@ -102,6 +107,36 @@ class SimpleModeController extends Notifier<bool> {
   Future<void> set(bool on) async {
     state = on;
     await ref.read(keyValueStoreProvider).setBool(PrefKeys.simpleMode, on);
+  }
+}
+
+/// Discreet notifications: reminders and the home-screen widget say "Time
+/// for a medicine" without anyone's or any medicine's name, since both show
+/// on a phone others can see. On unless switched off.
+final discreetNotificationsProvider = NotifierProvider<BoolPreference, bool>(
+  () => BoolPreference(PrefKeys.discreetNotifications, fallback: true),
+);
+
+/// Block screenshots and screen recording in the whole app. Off by default
+/// so families can screenshot the emergency card; the recovery key is
+/// always blocked.
+final blockScreenshotsProvider = NotifierProvider<BoolPreference, bool>(
+  () => BoolPreference(PrefKeys.blockScreenshots, fallback: false),
+);
+
+/// An on/off setting saved under [key].
+class BoolPreference extends Notifier<bool> {
+  BoolPreference(this.key, {required this.fallback});
+
+  final String key;
+  final bool fallback;
+
+  @override
+  bool build() => ref.watch(keyValueStoreProvider).getBool(key) ?? fallback;
+
+  Future<void> set(bool on) async {
+    state = on;
+    await ref.read(keyValueStoreProvider).setBool(key, on);
   }
 }
 

@@ -8,6 +8,7 @@ import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/core/routing/app_router.dart';
+import 'package:usra/core/screen_privacy.dart';
 import 'package:usra/core/security/app_lock.dart';
 
 import '../support/fake_lock.dart';
@@ -289,6 +290,62 @@ void main() {
     lifecycle(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('lock-screen')), findsOneWidget);
+  });
+
+  testWidgets('the native cover is held until the lock screen is drawn', (
+    tester,
+  ) async {
+    final calls = <String>[];
+    // What the native cover shows when Dart uncovers it.
+    final shown = <bool>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      ScreenPrivacy.channel,
+      (call) async {
+        // FLAG_SECURE follows its own setting.
+        if (call.method == 'setSecure') return null;
+        calls.add(
+          call.method == 'coverUntilReady'
+              ? 'coverUntilReady ${call.arguments}'
+              : call.method,
+        );
+        if (call.method == 'uncover') {
+          shown.add(
+            find.byKey(const ValueKey('lock-screen')).evaluate().isNotEmpty,
+          );
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        ScreenPrivacy.channel,
+        null,
+      ),
+    );
+    final lock = await lockedWith(tester, '258046');
+    await tester.pumpWidget(app(lock));
+    await tester.pumpAndSettle();
+    expect(calls, ['coverUntilReady true']);
+    await typePin(tester, '258046');
+
+    void lifecycle(AppLifecycleState s) =>
+        tester.binding.handleAppLifecycleStateChanged(s);
+    lifecycle(AppLifecycleState.inactive);
+    lifecycle(AppLifecycleState.hidden);
+    lifecycle(AppLifecycleState.paused);
+    clocks.pass(const Duration(minutes: 2));
+    lifecycle(AppLifecycleState.hidden);
+    lifecycle(AppLifecycleState.inactive);
+    lifecycle(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    // Uncovered only once the lock screen was on screen.
+    expect(calls.last, 'uncover');
+    expect(shown, [true]);
+
+    await typePin(tester, '258046');
+    await tester.runAsync(lock.disable);
+    await tester.pump();
+    expect(calls.last, 'coverUntilReady false');
   });
 
   testWidgets('turn the lock on from Settings, then off with the PIN', (

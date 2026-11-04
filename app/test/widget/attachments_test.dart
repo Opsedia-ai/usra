@@ -20,6 +20,9 @@ void main() {
   late SyncPhotoStore photos;
   final picked = <File>[];
   final shared = <ShareParams>[];
+  // What each shared file held while the share sheet was open.
+  final sharedBytes = <List<int>>[];
+  late SyncSharedPhotoCache shareCache;
 
   /// A new temporary file, like the picker hands back.
   String pick() {
@@ -41,8 +44,10 @@ void main() {
       Directory('${dir.path}/support'),
       PhotoStore.attachmentsFolder,
     );
+    shareCache = SyncSharedPhotoCache(Directory('${dir.path}/cache'));
     picked.clear();
     shared.clear();
+    sharedBytes.clear();
   });
   tearDown(() async {
     await db.close();
@@ -55,7 +60,13 @@ void main() {
       attachmentStoreProvider.overrideWithValue(photos),
       photoPickerProvider.overrideWithValue((_) async => pick()),
       multiPhotoPickerProvider.overrideWithValue(() async => [pick(), pick()]),
-      shareProvider.overrideWithValue((p) async => shared.add(p)),
+      sharedPhotoCacheProvider.overrideWithValue(shareCache),
+      shareProvider.overrideWithValue((p) async {
+        shared.add(p);
+        for (final f in p.files ?? <XFile>[]) {
+          sharedBytes.add(File(f.path).readAsBytesSync());
+        }
+      }),
     ],
     child: const UsraApp(),
   );
@@ -102,10 +113,14 @@ void main() {
     for (final a in saved) {
       expect(photos.fileOf(a.path).existsSync(), isTrue);
     }
-    expect(
-      [for (final a in saved) photos.fileOf(a.path).readAsBytesSync().single],
-      [0, 2],
-    );
+    expect([for (final a in saved) photos.readSync(a.path).single], [0, 2]);
+    // Encrypted on disk.
+    for (final a in saved) {
+      expect(
+        PhotoCipher.isSealed(photos.fileOf(a.path).readAsBytesSync()),
+        isTrue,
+      );
+    }
     // The picker's temporary copies are gone once saved.
     expect(picked.where((f) => f.existsSync()), isEmpty);
 
@@ -123,7 +138,9 @@ void main() {
     await tapKey(tester, 'record-thumb-1');
     expect(find.text('صورة 2 من 2'), findsOneWidget);
     await tapKey(tester, 'photo-share');
-    expect(shared.last.files!.single.path, photos.fileOf(saved[1].path).path);
+    // Decrypted for the share sheet, and the copy is gone afterwards.
+    expect(sharedBytes.last, [2]);
+    expect(shareCache.dir.existsSync(), isFalse);
     await tapKey(tester, 'photo-delete');
     await tapKey(tester, 'photo-delete-confirm');
     expect(find.byKey(const ValueKey('record-thumb-1')), findsNothing);

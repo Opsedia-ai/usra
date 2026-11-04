@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/tokens.dart';
 import '../../core/preferences.dart';
+import '../../core/screen_privacy.dart';
 import '../../core/security/app_lock.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/emergency_card_screen.dart';
@@ -27,6 +28,8 @@ class AppLockGate extends ConsumerStatefulWidget {
 class _AppLockGateState extends ConsumerState<AppLockGate>
     with WidgetsBindingObserver {
   late final AppLock _lock = ref.read(appLockProvider);
+  late final ScreenPrivacy _privacy = ref.read(screenPrivacyProvider);
+  bool? _nativeHold;
   late final AppLifecycleListener _life;
   final _navigator = GlobalKey<NavigatorState>();
 
@@ -41,6 +44,7 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
     WidgetsBinding.instance.addObserver(this);
     _life = AppLifecycleListener(onStateChange: _lifecycle);
     _lock.addListener(_changed);
+    _holdNativeCover();
   }
 
   @override
@@ -63,6 +67,7 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
       case AppLifecycleState.resumed:
         await _lock.movedToForeground();
         _cover(false);
+        _uncoverNativeWhenDrawn();
       case AppLifecycleState.detached:
         break;
     }
@@ -77,7 +82,26 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
   void _changed() {
     // No keyboard left up over the lock screen.
     if (_lock.locked) FocusManager.instance.primaryFocus?.unfocus();
+    _holdNativeCover();
     setState(() {});
+  }
+
+  /// With the lock on, the native app-switcher cover (S3) stays after the
+  /// app comes back until the lock has decided and that frame is drawn, so
+  /// the records never flash up before the lock screen.
+  void _holdNativeCover() {
+    final on = _lock.enabled;
+    if (on == _nativeHold) return;
+    _nativeHold = on;
+    unawaited(_privacy.coverUntilReady(on));
+  }
+
+  void _uncoverNativeWhenDrawn() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_privacy.uncover());
+    });
+    WidgetsBinding.instance.scheduleFrame();
   }
 
   /// While locked, back leaves the emergency card, and never reaches the

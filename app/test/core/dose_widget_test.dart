@@ -3,9 +3,12 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:usra/core/database/app_database.dart';
+import 'package:usra/core/preferences.dart';
 import 'package:usra/features/medicines/dose_widget.dart';
+import 'package:usra/features/medicines/medicines_providers.dart';
 import 'package:usra/features/medicines/reminder_sync.dart';
 import 'package:usra/features/medicines/reminders.dart';
 import 'package:usra/l10n/app_localizations.dart';
@@ -46,7 +49,11 @@ void main() {
         schedule: DoseScheduleInput(times: times, amount: 'قرص واحد'),
       );
 
-  Future<WidgetSnapshot> snapshotAt(DateTime now, {AppLocalizations? l}) async {
+  Future<WidgetSnapshot> snapshotAt(
+    DateTime now, {
+    AppLocalizations? l,
+    bool discreet = false,
+  }) async {
     final regimens = await db.watchRegimens().first;
     final logs = await db
         .watchDoseLogs(
@@ -54,7 +61,13 @@ void main() {
           to: now.add(const Duration(days: 3)),
         )
         .first;
-    return buildWidgetSnapshot(regimens, logs, now: now, l: l ?? ar);
+    return buildWidgetSnapshot(
+      regimens,
+      logs,
+      now: now,
+      l: l ?? ar,
+      discreet: discreet,
+    );
   }
 
   test('doses still due, soonest first, across the family', () async {
@@ -134,8 +147,11 @@ void main() {
   });
 
   test('only first names and medicine names leave the database', () async {
-    await medicine(omar, 'باراسيتامول', ['08:00']);
-    final json = (await snapshotAt(DateTime(2026, 11, 3, 7))).encode();
+    final id = await medicine(omar, 'باراسيتامول', ['08:00']);
+    // Without the random id, which can contain "500".
+    final json = (await snapshotAt(DateTime(2026, 11, 3, 7)))
+        .encode()
+        .replaceAll(id, '');
     expect(json, contains('عمر'));
     for (final secret in [
       'محمد',
@@ -153,6 +169,243 @@ void main() {
       dose.keys,
       unorderedEquals(['at', 'until', 'time', 'person', 'medicine', 'm']),
     );
+  });
+
+  test('discreet: no person or medicine names on the widget', () async {
+    await medicine(omar, 'باراسيتامول', ['08:00', '20:00']);
+    await medicine(mona, 'Augmentin', ['14:00']);
+    final s = await snapshotAt(DateTime(2026, 11, 3, 7), discreet: true);
+    expect(s.doses, hasLength(6));
+    expect(s.doses.first.person, isEmpty);
+    expect(s.doses.first.medicine, 'ميعاد جرعة');
+    expect(s.discreet, isTrue);
+    expect(jsonDecode(s.encode())['discreet'], isTrue);
+    final json = s.encode();
+    for (final secret in ['عمر', 'منى', 'باراسيتامول', 'Augmentin']) {
+      expect(json, isNot(contains(secret)), reason: secret);
+    }
+    final english = await snapshotAt(
+      DateTime(2026, 11, 3, 7),
+      l: en,
+      discreet: true,
+    );
+    expect(english.doses.first.medicine, 'Dose due');
+    // With names, the widget keeps its Taken buttons.
+    expect((await snapshotAt(DateTime(2026, 11, 3, 7))).discreet, isFalse);
+  });
+
+  test('discreet: two people due at once get no Taken anywhere', () async {
+    await medicine(omar, 'باراسيتامول', ['08:00']);
+    await medicine(mona, 'Augmentin', ['08:00']);
+    final now = DateTime(2026, 11, 3, 7);
+    final regimens = await db.watchRegimens().first;
+    final planned = planReminders(
+      regimens,
+      const [],
+      now: now,
+      texts: ReminderTexts(ar, discreet: true),
+      window: const Duration(hours: 2),
+    );
+    // Identical notifications: a Taken on one could log the other's dose.
+    expect(planned, hasLength(2));
+    expect(planned.map((r) => r.title).toSet(), {'ميعاد دوا'});
+    expect(planned.every((r) => r.takenLabel == null), isTrue);
+    expect(planned.every((r) => r.snoozeLabel == ar.doseSnooze), isTrue);
+    final widget = await snapshotAt(now, discreet: true);
+    expect(
+      widget.doses.take(2).map((d) => '${d.time} · ${d.medicine}').toSet(),
+      {'٨:٠٠ ص · ميعاد جرعة'},
+    );
+    expect(widget.discreet, isTrue);
+
+    // With names they can be told apart, and Taken stays.
+    final named = planReminders(
+      regimens,
+      const [],
+      now: now,
+      texts: ReminderTexts(ar, discreet: false),
+      window: const Duration(hours: 2),
+    );
+    expect(named.map((r) => r.title).toSet(), hasLength(2));
+    expect(named.every((r) => r.takenLabel == ar.doseTaken), isTrue);
+  });
+
+  test('a stored "off" wins over the default', () {
+    final on = ProviderContainer(
+      overrides: [
+        keyValueStoreProvider.overrideWithValue(MemoryKeyValueStore()),
+      ],
+    );
+    final off = ProviderContainer(
+      overrides: [
+        keyValueStoreProvider.overrideWithValue(
+          MemoryKeyValueStore({PrefKeys.discreetNotifications: false}),
+        ),
+      ],
+    );
+    addTearDown(on.dispose);
+    addTearDown(off.dispose);
+    expect(reminderTextsOf(on).discreet, isTrue);
+    expect(reminderTextsOf(off).discreet, isFalse);
+  });
+
+  test('switching discreet mode rewrites reminders, snoozes, notifications '
+      'on screen and the widget', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final dir = Directory.systemTemp.createTempSync('usra_widget');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final container = ProviderContainer(
+      overrides: [
+        keyValueStoreProvider.overrideWithValue(
+          MemoryKeyValueStore({PrefKeys.discreetNotifications: false}),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final widget = FakeWidgetSnapshotPublisher();
+    final scheduler = FakeReminderScheduler();
+    final now = DateTime(2026, 11, 3, 7);
+    final id = await medicine(omar, 'باراسيتامول', ['08:00', '20:00']);
+    final sync = ReminderSync(
+      db: db,
+      scheduler: scheduler,
+      inbox: DoseActionInbox(File('${dir.path}/a.jsonl')),
+      texts: () => reminderTextsOf(container),
+      widget: widget,
+      clock: () => now,
+    );
+    resyncOnTextChange(container, sync.resync);
+
+    // Names on: what the phone holds, as the real scheduler would see it.
+    await sync.resync();
+    const name = 'ميعاد دوا عمر محمد السيد: باراسيتامول 500 مجم';
+    expect(scheduler.planned.first.title, name);
+    expect(widget.last.doses.first.person, 'عمر');
+    PhoneReminder onPhone(PlannedReminder r) =>
+        (id: r.id, title: r.title, body: r.body, payload: r.toPayload());
+    // Yesterday's 20:00 snoozed until 07:05, and a 06:00 reminder still on
+    // screen (the same medicine, made up for the test).
+    final yesterday = DateTime(2026, 11, 2, 20).toUtc();
+    final snooze = scheduler.rebuild!(
+      snoozeIdFor(id, yesterday),
+      ReminderRef(medicineId: id, scheduledAt: yesterday, locale: 'ar'),
+      DateTime(2026, 11, 3, 7, 5),
+    )!;
+    expect(snooze.title, name);
+    final shown = scheduler.rebuild!(
+      77,
+      ReminderRef(
+        medicineId: id,
+        scheduledAt: DateTime(2026, 11, 3, 6).toUtc(),
+        locale: 'ar',
+      ),
+      DateTime(2026, 11, 3, 6),
+    )!;
+    final pending = [...scheduler.planned.map(onPhone), onPhone(snooze)];
+    // Nothing changed: nothing to do.
+    final same = diffReminders(
+      pending: pending,
+      shown: [onPhone(shown)],
+      wanted: scheduler.planned,
+      rebuild: scheduler.rebuild,
+      now: now,
+    );
+    expect(same.cancel, isEmpty);
+    expect(same.schedule, isEmpty);
+    expect(same.repost, isEmpty);
+
+    await container.read(discreetNotificationsProvider.notifier).set(true);
+    for (var i = 0; i < 100 && widget.published.length < 2; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(widget.last.doses.first.person, isEmpty);
+    expect(widget.last.discreet, isTrue);
+
+    final changes = diffReminders(
+      pending: pending,
+      shown: [onPhone(shown)],
+      wanted: scheduler.planned,
+      rebuild: scheduler.rebuild,
+      now: now,
+    );
+    // Every reminder and the snooze replaced once, none lost or doubled.
+    expect(changes.cancel, {...pending.map((p) => p.id)});
+    final ids = changes.schedule.map((r) => r.id).toList();
+    expect(ids.toSet(), {...pending.map((p) => p.id)});
+    expect(ids, hasLength(ids.toSet().length));
+    final again = changes.schedule.firstWhere((r) => r.id == snooze.id);
+    expect(again.at.isAtSameMomentAs(DateTime(2026, 11, 3, 7, 5)), isTrue);
+    expect(changes.repost.single.id, 77);
+    for (final r in [...changes.schedule, ...changes.repost]) {
+      expect(r.title, 'ميعاد دوا');
+      expect(r.takenLabel, isNull);
+      expect(r.toPayload(), isNot(contains('عمر')));
+    }
+
+    // Once applied, the phone matches.
+    final after = diffReminders(
+      pending: changes.schedule.map(onPhone).toList(),
+      shown: changes.repost.map(onPhone).toList(),
+      wanted: scheduler.planned,
+      rebuild: scheduler.rebuild,
+      now: now,
+    );
+    expect(after.cancel, isEmpty);
+    expect(after.schedule, isEmpty);
+    expect(after.repost, isEmpty);
+
+    // A snooze from an older version (text in its payload, no time) is
+    // rewritten too, ten minutes on.
+    final old = diffReminders(
+      pending: [
+        (
+          id: snooze.id,
+          title: name,
+          body: 'b',
+          payload: jsonEncode({
+            'm': id,
+            's': yesterday.millisecondsSinceEpoch,
+            't': name,
+          }),
+        ),
+      ],
+      wanted: const [],
+      rebuild: scheduler.rebuild,
+      now: now,
+    );
+    expect(old.schedule.single.title, 'ميعاد دوا');
+    expect(old.schedule.single.at, now.add(snoozeDuration));
+  });
+
+  test('a snooze after switching discreet on has no names', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final dir = Directory.systemTemp.createTempSync('usra_widget');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final scheduler = FakeReminderScheduler();
+    final now = DateTime(2026, 11, 3, 8, 2);
+    var discreet = false;
+    final id = await medicine(omar, 'باراسيتامول', ['08:00']);
+    final sync = ReminderSync(
+      db: db,
+      scheduler: scheduler,
+      inbox: DoseActionInbox(File('${dir.path}/a.jsonl')),
+      texts: () => ReminderTexts(ar, discreet: discreet),
+      clock: () => now,
+    );
+    // Pressed on a notification shown before the switch.
+    discreet = true;
+    await sync.handleAction(
+      ReminderRef(
+        medicineId: id,
+        scheduledAt: DateTime(2026, 11, 3, 8).toUtc(),
+        locale: 'ar',
+      ),
+      DoseOutcome.snoozed,
+    );
+    final s = scheduler.snoozes.single;
+    expect(s.title, 'ميعاد دوا');
+    expect(s.takenLabel, isNull);
+    expect(s.at, now.add(snoozeDuration));
   });
 
   test('English text and Western digits when the app is in English', () async {
@@ -180,7 +433,7 @@ void main() {
       db: db,
       scheduler: FakeReminderScheduler(),
       inbox: DoseActionInbox(File('${dir.path}/a.jsonl')),
-      texts: () => ReminderTexts(ar),
+      texts: () => ReminderTexts(ar, discreet: false),
       widget: widget,
       clock: () => now,
     );
@@ -215,7 +468,7 @@ void main() {
       db: db,
       scheduler: scheduler,
       inbox: inbox,
-      texts: () => ReminderTexts(ar),
+      texts: () => ReminderTexts(ar, discreet: false),
       widget: widget,
       clock: () => now,
     );
