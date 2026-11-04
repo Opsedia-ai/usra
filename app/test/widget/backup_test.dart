@@ -23,6 +23,7 @@ class _FakeBackupService extends BackupService {
         root: dir,
         databaseName: 'usra.sqlite',
         deviceKey: '0' * 64,
+        photoKey: List.filled(32, 0),
         temporary: dir,
         folders: const [],
       );

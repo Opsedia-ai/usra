@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../database/app_database.dart';
 import '../database/connection.dart';
+import '../files/photo_crypto.dart';
 import 'backup_archive.dart';
 import 'backup_crypto.dart';
 import 'recovery_key.dart';
@@ -58,11 +60,19 @@ class StagedRestore {
 /// [RecoveryKey]. The database inside is a `VACUUM INTO` snapshot re-keyed
 /// with a one-off key written in the manifest, so it is never on disk
 /// unencrypted, here or on the new phone.
+///
+/// Photos are the same: the phone's photo key never leaves it either. They
+/// go into the backup decrypted, inside the backup's encryption, and a
+/// restore encrypts them for the phone it runs on as they come out, so
+/// they never touch the disk unencrypted. That also keeps the inside of a
+/// backup the same as before photos were encrypted, so old and new
+/// backups restore both ways.
 class BackupService {
   BackupService({
     required this.root,
     required this.databaseName,
     required this.deviceKey,
+    required this.photoKey,
     required this.temporary,
     required this.folders,
     this.files = const [],
@@ -78,6 +88,10 @@ class BackupService {
   /// The phone's database key, only used to read and re-key snapshots.
   final String deviceKey;
 
+  /// The phone's photo key (see [PhotoCipher]), only used to decrypt photos
+  /// into a backup and encrypt restored ones.
+  final List<int> photoKey;
+
   /// Where new backup files are written before sharing.
   final Directory temporary;
 
@@ -89,7 +103,8 @@ class BackupService {
   final BackupKdf kdf;
   final int chunkSize;
 
-  /// Keeps a folder out of iCloud backup (photos aren't encrypted on disk).
+  /// Keeps a folder out of iCloud backup (its photo key stays on this
+  /// phone, so a copy elsewhere is no use).
   final Future<void> Function(Directory dir)? excludeFromBackup;
 
   static const _manifestName = 'manifest.json';
@@ -127,11 +142,12 @@ class BackupService {
     try {
       // Consistent even while the app keeps writing.
       await db.customStatement('VACUUM INTO ?', [snapshot]);
-      final (rootPath, folders, files, deviceKey, kdf, chunk) = (
+      final (rootPath, folders, files, deviceKey, photoKey, kdf, chunk) = (
         root.path,
         this.folders,
         this.files,
         this.deviceKey,
+        this.photoKey,
         this.kdf,
         chunkSize,
       );
@@ -143,6 +159,7 @@ class BackupService {
           folders: folders,
           files: files,
           deviceKey: deviceKey,
+          photoKey: photoKey,
           key: key,
           kdf: kdf,
           chunkSize: chunk,
@@ -169,12 +186,13 @@ class BackupService {
     await _clearStaging();
     await _staging.create(recursive: true);
     await excludeFromBackup?.call(_staging);
-    final (staging, databaseName, folders, files, deviceKey) = (
+    final (staging, databaseName, folders, files, deviceKey, photoKey) = (
       _staging.path,
       this.databaseName,
       this.folders,
       this.files,
       this.deviceKey,
+      this.photoKey,
     );
     try {
       final json = await Isolate.run(
@@ -185,6 +203,7 @@ class BackupService {
           folders: folders,
           files: files,
           deviceKey: deviceKey,
+          photoKey: photoKey,
           key: key,
           currentSchema: currentSchema,
         ),
@@ -321,6 +340,7 @@ Future<void> _pack({
   required List<String> folders,
   required List<String> files,
   required String deviceKey,
+  required List<int> photoKey,
   required RecoveryKey key,
   required BackupKdf kdf,
   required int chunkSize,
@@ -370,7 +390,6 @@ Future<void> _pack({
       photos.add((name, entity));
     }
   }
-  counts['photos'] = photos.length;
 
   final writer = await BackupFileWriter.create(
     File(out),
@@ -380,6 +399,34 @@ Future<void> _pack({
   );
   try {
     final tar = TarWriter(writer.add);
+    await tar.addFile(BackupService._databaseEntry, File(snapshot));
+    final cipher = PhotoCipher(photoKey);
+    var photoCount = 0;
+    for (final (name, file) in photos) {
+      final bytes = await file.readAsBytes();
+      final Uint8List photo;
+      if (!PhotoCipher.isSealed(bytes)) {
+        // Not reached yet by the start-up migration: still plain.
+        photo = bytes;
+      } else {
+        try {
+          photo = cipher.open(bytes);
+        } on PhotoUnreadableException {
+          // Damaged on this phone and shown as a broken image already; it
+          // mustn't stop the rest from being backed up.
+          continue;
+        }
+      }
+      await tar.addBytes(name, photo);
+      photoCount++;
+    }
+    counts['photos'] = photoCount;
+    for (final name in files) {
+      final file = File(p.join(root, name));
+      if (await file.exists()) await tar.addFile(name, file);
+    }
+    // Last, so it can count the photos; a restore reads it once everything
+    // is unpacked, wherever it is.
     await tar.addBytes(
       BackupService._manifestName,
       utf8.encode(
@@ -393,14 +440,6 @@ Future<void> _pack({
         }),
       ),
     );
-    await tar.addFile(BackupService._databaseEntry, File(snapshot));
-    for (final (name, file) in photos) {
-      await tar.addFile(name, file);
-    }
-    for (final name in files) {
-      final file = File(p.join(root, name));
-      if (await file.exists()) await tar.addFile(name, file);
-    }
     await tar.finish();
   } finally {
     await writer.close();
@@ -414,9 +453,16 @@ Future<Map<String, dynamic>> _unpack({
   required List<String> folders,
   required List<String> files,
   required String deviceKey,
+  required List<int> photoKey,
   required RecoveryKey key,
   required int currentSchema,
 }) async {
+  final cipher = PhotoCipher(photoKey);
+  bool isPhoto(String name) {
+    final parts = name.split('/');
+    return parts.length == 2 && folders.contains(parts.first);
+  }
+
   final reader = await BackupFileReader.open(File(backup), key);
   try {
     await extractTar(
@@ -428,9 +474,9 @@ Future<Map<String, dynamic>> _unpack({
             files.contains(name)) {
           return true;
         }
-        final parts = name.split('/');
-        return parts.length == 2 && folders.contains(parts.first);
+        return isPhoto(name);
       },
+      transform: (name) => isPhoto(name) ? cipher.seal : null,
     );
   } finally {
     await reader.close();

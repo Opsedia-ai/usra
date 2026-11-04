@@ -118,12 +118,16 @@ class _Source {
 }
 
 /// Unpacks the tar inside [reader] into [into]. [accept] says, for each
-/// entry name, whether to keep it; others are skipped. Returns the names
-/// written. Throws [BackupException] on anything malformed.
+/// entry name, whether to keep it; others are skipped. [transform] may give,
+/// for an entry, a function its whole content goes through in memory
+/// before it is written (photos are encrypted for this phone); such entries
+/// are limited to [maxTransformedSize]. Returns the names written. Throws
+/// [BackupException] on anything malformed.
 Future<List<String>> extractTar(
   BackupFileReader reader,
   Directory into, {
   required bool Function(String name) accept,
+  List<int> Function(Uint8List content)? Function(String name)? transform,
 }) async {
   final source = _Source(reader);
   final written = <String>[];
@@ -151,6 +155,16 @@ Future<List<String>> extractTar(
     }
     final file = File(p.joinAll([into.path, ...name.split('/')]));
     await file.parent.create(recursive: true);
+    final convert = transform?.call(name);
+    if (convert != null) {
+      if (size > maxTransformedSize) {
+        throw const BackupException(BackupFailure.damaged, 'entry too big');
+      }
+      await file.writeAsBytes(convert(await source.exactly(size)));
+      await source.exactly(padded - size);
+      written.add(name);
+      continue;
+    }
     final sink = file.openWrite();
     try {
       var left = size;
@@ -169,6 +183,10 @@ Future<List<String>> extractTar(
     written.add(name);
   }
 }
+
+/// The largest entry [extractTar] holds in memory to transform: far more
+/// than any photo the app saves.
+const maxTransformedSize = 64 << 20;
 
 (String, int) _parseHeader(Uint8List h) {
   String field(int offset, int length) {

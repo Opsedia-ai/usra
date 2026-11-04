@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
@@ -161,22 +160,13 @@ Future<void> sharePhotos(
   final messenger = ScaffoldMessenger.of(context);
   final failed = AppLocalizations.of(context).shareFailed;
   final box = context.findRenderObject() as RenderBox?;
-  final store = ref.read(attachmentStoreProvider);
-  final files = [
-    for (final a in photos)
-      if (store.fileOf(a.path) case final f when f.existsSync())
-        XFile(f.path, mimeType: photoMimeOf(a.path)),
-  ];
   try {
-    await ref.read(shareProvider)(
-      ShareParams(
-        text: text,
-        files: files.isEmpty ? null : files,
-        // iPad needs to know where to anchor the share sheet.
-        sharePositionOrigin: box == null
-            ? null
-            : box.localToGlobal(Offset.zero) & box.size,
-      ),
+    await shareStoredPhotos(
+      ref,
+      ref.read(attachmentStoreProvider),
+      [for (final a in photos) a.path],
+      text: text,
+      origin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
     );
   } catch (_) {
     messenger.showSnackBar(SnackBar(content: Text(failed)));
@@ -280,7 +270,7 @@ class _Thumbnails extends ConsumerWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: PhotoImage(
-                file: store.fileOf(a.path),
+                image: store.image(a.path),
                 fit: BoxFit.cover,
                 cacheWidth: pixels,
                 semanticLabel: l.photoPosition(i + 1, photos.length),
@@ -374,7 +364,7 @@ class _PhotoViewerState extends ConsumerState<_PhotoViewer> {
           maxScale: 5,
           child: Center(
             child: PhotoImage(
-              file: store.fileOf(photos[i].path),
+              image: store.image(photos[i].path),
               semanticLabel: l.photoPosition(i + 1, photos.length),
             ),
           ),

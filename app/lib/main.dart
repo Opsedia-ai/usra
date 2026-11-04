@@ -25,6 +25,7 @@ import 'l10n/app_localizations.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final key = await DatabaseKeyStore().readOrCreate();
+  final photoKey = await PhotoKeyStore().readOrCreate();
   final file = await defaultDatabaseFile();
   final (temporary, version) = await (
     getTemporaryDirectory(),
@@ -34,6 +35,7 @@ Future<void> main() async {
     root: file.parent,
     databaseName: p.basename(file.path),
     deviceKey: key,
+    photoKey: photoKey.keyBytes,
     temporary: temporary,
     folders: const [
       PhotoStore.cardsFolder,
@@ -62,12 +64,26 @@ Future<void> main() async {
     firstDismissals,
   ) = await (
     SharedPreferencesStore.open(),
-    PhotoStore.open(PhotoStore.cardsFolder),
-    PhotoStore.open(PhotoStore.attachmentsFolder),
-    PhotoStore.open(PhotoStore.medicinesFolder),
+    PhotoStore.open(PhotoStore.cardsFolder, photoKey),
+    PhotoStore.open(PhotoStore.attachmentsFolder, photoKey),
+    PhotoStore.open(PhotoStore.medicinesFolder, photoKey),
     DoseActionInbox.open(),
     FileDismissalStore.open(),
   ).wait;
+
+  try {
+    // Once, for photos saved before they were encrypted; resumes if the
+    // app was killed half way. Then decrypted copies a share left behind.
+    await [
+      for (final store in [cardPhotos, attachments, medicinePhotos])
+        store.sealPlainFiles(),
+    ].wait;
+    await SharedPhotoCache(temporary).clear();
+  } catch (e, s) {
+    FlutterError.reportError(
+      FlutterErrorDetails(exception: e, stack: s, library: 'photos'),
+    );
+  }
 
   var dismissals = firstDismissals;
   final recoveryKeys = SecureRecoveryKeyStore();

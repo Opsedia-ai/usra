@@ -10,6 +10,7 @@ import 'package:usra/core/backup/backup_service.dart';
 import 'package:usra/core/backup/recovery_key.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/database/connection.dart';
+import 'package:usra/core/files/photo_crypto.dart';
 
 /// Cheap Argon2id so the tests run fast; real backups use the standard cost.
 const _testKdf = BackupKdf(memory: 64, iterations: 1, parallelism: 1);
@@ -18,11 +19,13 @@ const _testKdf = BackupKdf(memory: 64, iterations: 1, parallelism: 1);
 class _Phone {
   _Phone(this.dir)
     : key = DatabaseKeyStore.generateKey(),
+      photos = PhotoCipher(PhotoCipher.generateKey()),
       root = Directory(p.join(dir.path, 'support'))..createSync(),
       temp = Directory(p.join(dir.path, 'tmp'))..createSync();
 
   final Directory dir;
   final String key;
+  final PhotoCipher photos;
   final Directory root;
   final Directory temp;
 
@@ -32,6 +35,7 @@ class _Phone {
     root: root,
     databaseName: 'usra.sqlite',
     deviceKey: key,
+    photoKey: photos.keyBytes,
     temporary: temp,
     folders: const ['insurance_cards', 'attachments', 'medicines'],
     files: const ['follow_up_dismissals.json'],
@@ -41,9 +45,17 @@ class _Phone {
 
   AppDatabase open() => AppDatabase(openEncryptedDatabase(dbFile, key));
 
-  void writePhoto(String relative, List<int> bytes) => (File(
-    p.join(root.path, relative),
-  )..createSync(recursive: true)).writeAsBytesSync(bytes);
+  File photoFile(String relative) => File(p.join(root.path, relative));
+
+  /// Saves a photo encrypted, as the app does; [plain] for one from before
+  /// photos were encrypted.
+  void writePhoto(String relative, List<int> bytes, {bool plain = false}) =>
+      (photoFile(relative)..createSync(recursive: true)).writeAsBytesSync(
+        plain ? bytes : photos.seal(bytes),
+      );
+
+  List<int> readPhoto(String relative) =>
+      photos.open(photoFile(relative).readAsBytesSync());
 }
 
 /// A database still at schema 5 (before medicines), as an older app left it.
@@ -78,7 +90,8 @@ void main() {
       await db.addProfile('ليلى');
       oldPhone.writePhoto('attachments/a1.jpg', photo);
       oldPhone.writePhoto('insurance_cards/c1.png', [1, 2, 3]);
-      oldPhone.writePhoto('medicines/box.front.jpg', [4]);
+      // Not reached by the start-up migration yet.
+      oldPhone.writePhoto('medicines/box.front.jpg', [4], plain: true);
       oldPhone.writePhoto('attachments/.DS_Store', [0]);
       File(p.join(oldPhone.root.path, 'follow_up_dismissals.json'))
           .writeAsStringSync('["x"]');
@@ -100,6 +113,7 @@ void main() {
     final raw = String.fromCharCodes(backup.readAsBytesSync());
     expect(raw, isNot(contains('manifest')));
     expect(raw, isNot(contains('attachments/')));
+    expect(_contains(backup.readAsBytesSync(), photo.sublist(0, 64)), isFalse);
     expect(oldPhone.temp.listSync(), [isA<File>()]);
 
     // The new phone already has some data of its own; it gets replaced.
@@ -130,9 +144,15 @@ void main() {
     addTearDown(db.close);
     final names = (await db.watchProfiles().first).map((p) => p.displayName);
     expect(names, ['أحمد', 'ليلى']);
+    // Encrypted again for the new phone, and only it can open them.
+    expect(newPhone.readPhoto('attachments/a1.jpg'), photo);
+    expect(newPhone.readPhoto('insurance_cards/c1.png'), [1, 2, 3]);
+    expect(newPhone.readPhoto('medicines/box.front.jpg'), [4]);
+    final restored = newPhone.photoFile('attachments/a1.jpg').readAsBytesSync();
+    expect(_contains(restored, photo.sublist(0, 64)), isFalse);
     expect(
-      File(p.join(newPhone.root.path, 'attachments/a1.jpg')).readAsBytesSync(),
-      photo,
+      () => oldPhone.photos.open(restored),
+      throwsA(isA<PhotoUnreadableException>()),
     );
     expect(
       File(p.join(newPhone.root.path, 'attachments/old.jpg')).existsSync(),
@@ -344,6 +364,44 @@ void main() {
     );
   });
 
+  test('a photo that no longer opens is left out, not the backup', () async {
+    oldPhone.writePhoto('attachments/good.jpg', photo);
+    oldPhone.writePhoto('attachments/bad.jpg', photo);
+    final bad = oldPhone.photoFile('attachments/bad.jpg');
+    final bytes = bad.readAsBytesSync();
+    bytes[bytes.length ~/ 2] ^= 1;
+    bad.writeAsBytesSync(bytes);
+    final db = oldPhone.open();
+    final File backup;
+    try {
+      backup = await oldPhone.service.create(db, recovery, appVersion: '1');
+    } finally {
+      await db.close();
+    }
+
+    final staged = await newPhone.service.stage(
+      backup,
+      recovery,
+      currentSchema: 6,
+    );
+    expect(staged.manifest.count('photos'), 1);
+    await newPhone.service.commit();
+    expect(newPhone.readPhoto('attachments/good.jpg'), photo);
+    expect(newPhone.photoFile('attachments/bad.jpg').existsSync(), isFalse);
+  });
+
+  test('restored photos never touch the disk unencrypted', () async {
+    final backup = await backupOldPhone();
+    await newPhone.service.stage(backup, recovery, currentSchema: 6);
+    final staging = Directory(p.join(newPhone.root.path, 'restore-staging'));
+    for (final f in staging.listSync(recursive: true).whereType<File>()) {
+      if (p.basename(f.path).startsWith('usra.sqlite')) continue;
+      if (p.basename(f.path) == 'follow_up_dismissals.json') continue;
+      expect(PhotoCipher.isSealed(f.readAsBytesSync()), isTrue, reason: f.path);
+    }
+    await newPhone.service.discardStaged();
+  });
+
   test('the file format refuses a hostile Argon2 cost', () {
     expect(
       const BackupKdf(
@@ -410,4 +468,16 @@ void main() {
       expect('${RecoveryKey.generate()}', isNot(contains(RegExp(r'\d'))));
     });
   });
+}
+
+/// Whether [needle] appears anywhere in [haystack].
+bool _contains(List<int> haystack, List<int> needle) {
+  outer:
+  for (var i = 0; i + needle.length <= haystack.length; i++) {
+    for (var j = 0; j < needle.length; j++) {
+      if (haystack[i + j] != needle[j]) continue outer;
+    }
+    return true;
+  }
+  return false;
 }

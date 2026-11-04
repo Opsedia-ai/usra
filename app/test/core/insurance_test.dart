@@ -146,6 +146,7 @@ void main() {
     final store = PhotoStore(
       Directory('${dir.path}/support'),
       PhotoStore.cardsFolder,
+      PhotoCipher(PhotoCipher.generateKey()),
     );
 
     final a = await store.import(picked.path);
@@ -153,7 +154,7 @@ void main() {
     expect(a, startsWith('insurance_cards/'));
     expect(a, endsWith('.jpg'));
     expect(a, isNot(b));
-    expect(store.fileOf(a).readAsBytesSync(), [1, 2]);
+    expect(await store.read(a), [1, 2]);
 
     await store.prune({b});
     expect(store.fileOf(a).existsSync(), isFalse);
