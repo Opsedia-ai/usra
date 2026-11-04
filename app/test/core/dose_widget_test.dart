@@ -3,9 +3,12 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:usra/core/database/app_database.dart';
+import 'package:usra/core/preferences.dart';
 import 'package:usra/features/medicines/dose_widget.dart';
+import 'package:usra/features/medicines/medicines_providers.dart';
 import 'package:usra/features/medicines/reminder_sync.dart';
 import 'package:usra/features/medicines/reminders.dart';
 import 'package:usra/l10n/app_localizations.dart';
@@ -46,7 +49,11 @@ void main() {
         schedule: DoseScheduleInput(times: times, amount: 'قرص واحد'),
       );
 
-  Future<WidgetSnapshot> snapshotAt(DateTime now, {AppLocalizations? l}) async {
+  Future<WidgetSnapshot> snapshotAt(
+    DateTime now, {
+    AppLocalizations? l,
+    bool discreet = false,
+  }) async {
     final regimens = await db.watchRegimens().first;
     final logs = await db
         .watchDoseLogs(
@@ -54,7 +61,13 @@ void main() {
           to: now.add(const Duration(days: 3)),
         )
         .first;
-    return buildWidgetSnapshot(regimens, logs, now: now, l: l ?? ar);
+    return buildWidgetSnapshot(
+      regimens,
+      logs,
+      now: now,
+      l: l ?? ar,
+      discreet: discreet,
+    );
   }
 
   test('doses still due, soonest first, across the family', () async {
@@ -134,8 +147,11 @@ void main() {
   });
 
   test('only first names and medicine names leave the database', () async {
-    await medicine(omar, 'باراسيتامول', ['08:00']);
-    final json = (await snapshotAt(DateTime(2026, 11, 3, 7))).encode();
+    final id = await medicine(omar, 'باراسيتامول', ['08:00']);
+    // Without the random id, which can contain "500".
+    final json = (await snapshotAt(DateTime(2026, 11, 3, 7)))
+        .encode()
+        .replaceAll(id, '');
     expect(json, contains('عمر'));
     for (final secret in [
       'محمد',
@@ -152,6 +168,74 @@ void main() {
     expect(
       dose.keys,
       unorderedEquals(['at', 'until', 'time', 'person', 'medicine', 'm']),
+    );
+  });
+
+  test('discreet: no person or medicine names on the widget', () async {
+    await medicine(omar, 'باراسيتامول', ['08:00', '20:00']);
+    await medicine(mona, 'Augmentin', ['14:00']);
+    final s = await snapshotAt(DateTime(2026, 11, 3, 7), discreet: true);
+    expect(s.doses, hasLength(6));
+    expect(s.doses.first.person, isEmpty);
+    expect(s.doses.first.medicine, 'جرعة دوا');
+    final json = s.encode();
+    for (final secret in ['عمر', 'منى', 'باراسيتامول', 'Augmentin']) {
+      expect(json, isNot(contains(secret)), reason: secret);
+    }
+    final english = await snapshotAt(
+      DateTime(2026, 11, 3, 7),
+      l: en,
+      discreet: true,
+    );
+    expect(english.doses.first.medicine, 'Medicine dose');
+  });
+
+  test('switching discreet mode re-plans reminders and republishes the '
+      'widget', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final dir = Directory.systemTemp.createTempSync('usra_widget');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final container = ProviderContainer(
+      overrides: [
+        keyValueStoreProvider.overrideWithValue(MemoryKeyValueStore()),
+      ],
+    );
+    addTearDown(container.dispose);
+    final widget = FakeWidgetSnapshotPublisher();
+    final scheduler = FakeReminderScheduler();
+    final now = DateTime(2026, 11, 3, 7);
+    await medicine(omar, 'باراسيتامول', ['08:00', '20:00']);
+    final sync = ReminderSync(
+      db: db,
+      scheduler: scheduler,
+      inbox: DoseActionInbox(File('${dir.path}/a.jsonl')),
+      texts: () => reminderTextsOf(container),
+      widget: widget,
+      clock: () => now,
+    );
+    resyncOnTextChange(container, sync.resync);
+
+    // On by default.
+    await sync.resync();
+    expect(scheduler.planned.first.title, 'ميعاد دوا');
+    expect(scheduler.planned.first.toPayload(), isNot(contains('عمر')));
+    expect(widget.last.doses.first.medicine, 'جرعة دوا');
+
+    await container.read(discreetNotificationsProvider.notifier).set(false);
+    for (var i = 0; i < 100 && widget.published.length < 2; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(
+      scheduler.planned.first.title,
+      'ميعاد دوا عمر محمد السيد: باراسيتامول 500 مجم',
+    );
+    expect(widget.last.doses.first.person, 'عمر');
+    expect(widget.last.doses.first.medicine, 'باراسيتامول');
+    expect(
+      container
+          .read(keyValueStoreProvider)
+          .getBool(PrefKeys.discreetNotifications),
+      isFalse,
     );
   });
 

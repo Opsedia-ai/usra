@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/backup/recovery_key.dart';
 import '../../core/design/tokens.dart';
+import '../../core/screen_privacy.dart';
 import '../../l10n/app_localizations.dart';
 import 'backup_providers.dart';
 
@@ -78,14 +79,18 @@ class _RecoveryKeyScreenState extends ConsumerState<RecoveryKeyScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final saved = ref.watch(savedRecoveryKeyProvider);
-    return Scaffold(
-      appBar: AppBar(title: Text(l.recoveryKeyTitle)),
-      body: saved.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => _create(l),
-        // Once confirming, the saved key is the new one; stay on this flow.
-        data: (key) =>
-            key == null || _saving || _confirming ? _create(l) : _show(l, key),
+    // The key opens every backup: no screenshots or screen recording.
+    return SecureScreen(
+      child: Scaffold(
+        appBar: AppBar(title: Text(l.recoveryKeyTitle)),
+        body: saved.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, _) => _create(l),
+          // Once confirming, the saved key is the new one; stay on this flow.
+          data: (key) => key == null || _saving || _confirming
+              ? _create(l)
+              : _show(l, key),
+        ),
       ),
     );
   }

@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/files/photo_store.dart';
+import '../../core/preferences.dart';
 import '../../core/providers.dart';
+import '../../l10n/app_localizations.dart';
 import 'dose_schedule.dart';
 import 'reminders.dart';
 
@@ -18,6 +20,21 @@ final reminderSchedulerProvider = Provider<ReminderScheduler>(
   (ref) =>
       throw UnimplementedError('reminderSchedulerProvider must be overridden'),
 );
+
+/// Reminder and widget text as [container] has it now: the app's language
+/// and the discreet setting.
+ReminderTexts reminderTextsOf(ProviderContainer container) => ReminderTexts(
+  lookupAppLocalizations(container.read(localeProvider)),
+  discreet: container.read(discreetNotificationsProvider),
+);
+
+/// Calls [resync] whenever [reminderTextsOf] would change, so scheduled
+/// reminders and the widget are rewritten in the new language or without
+/// (or with) names.
+void resyncOnTextChange(ProviderContainer container, void Function() resync) {
+  container.listen(localeProvider, (_, _) => resync());
+  container.listen(discreetNotificationsProvider, (_, _) => resync());
+}
 
 /// The current time. Overridden in tests.
 final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);

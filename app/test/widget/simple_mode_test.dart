@@ -89,6 +89,8 @@ void main() {
     // Reopened from More, skipped, and back on More.
     await tester.tap(find.text('المزيد').last);
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('settings-tutorial')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('settings-tutorial')));
     await tester.pumpAndSettle();
     expect(find.text('1 من 5'), findsOneWidget);

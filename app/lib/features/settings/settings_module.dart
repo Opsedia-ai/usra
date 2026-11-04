@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -79,6 +80,26 @@ class SettingsScreen extends ConsumerWidget {
                   subtitle: Text(l.settingsSimpleModeHint),
                 ),
                 const Divider(height: 1),
+                _PreferenceSwitch(
+                  key: const ValueKey('settings-discreet'),
+                  preference: discreetNotificationsProvider,
+                  icon: Icons.notifications_off_outlined,
+                  title: l.settingsDiscreet,
+                  subtitle: l.settingsDiscreetHint,
+                ),
+                const Divider(height: 1),
+                // iOS can't block screenshots; the switcher is covered on
+                // both.
+                if (defaultTargetPlatform == TargetPlatform.android) ...[
+                  _PreferenceSwitch(
+                    key: const ValueKey('settings-block-screenshots'),
+                    preference: blockScreenshotsProvider,
+                    icon: Icons.screenshot_monitor_outlined,
+                    title: l.settingsBlockScreenshots,
+                    subtitle: l.settingsBlockScreenshotsHint,
+                  ),
+                  const Divider(height: 1),
+                ],
                 ListTile(
                   key: const ValueKey('settings-backup'),
                   leading: const Icon(Icons.backup_outlined),
@@ -113,4 +134,38 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// An on/off [BoolPreference]; says so if it couldn't be saved.
+class _PreferenceSwitch extends ConsumerWidget {
+  const _PreferenceSwitch({
+    super.key,
+    required this.preference,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final NotifierProvider<BoolPreference, bool> preference;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => SwitchListTile(
+    value: ref.watch(preference),
+    onChanged: (on) async {
+      try {
+        await ref.read(preference.notifier).set(on);
+      } catch (_) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).saveFailed)),
+        );
+      }
+    },
+    secondary: Icon(icon),
+    title: Text(title),
+    subtitle: Text(subtitle),
+  );
 }

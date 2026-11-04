@@ -1946,4 +1946,24 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get devUntickConfirm =>
       'تشيل العلامة من المهارة دي؟ التاريخ اللي سجلته هيتمسح.';
+
+  @override
+  String get doseReminderDiscreetTitle => 'ميعاد دوا';
+
+  @override
+  String get widgetDiscreetDose => 'جرعة دوا';
+
+  @override
+  String get settingsDiscreet => 'تنبيهات من غير أسامي';
+
+  @override
+  String get settingsDiscreetHint =>
+      'التنبيهات وويدجت الشاشة الرئيسية بتقول \"ميعاد دوا\" بس، من غير اسم الشخص ولا اسم الدوا.';
+
+  @override
+  String get settingsBlockScreenshots => 'امنع تصوير الشاشة';
+
+  @override
+  String get settingsBlockScreenshotsHint =>
+      'مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق كله. مفتاح الاسترجاع محمي على طول. سيبها مقفولة لو عايز تصوّر كارت الطوارئ.';
 }

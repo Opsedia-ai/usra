@@ -64,8 +64,16 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   snapshot, `quick_check` on restore. `app/lib/core/backup/`.
 - **OS backup**: Android `allowBackup=false` plus data extraction rules that
   exclude everything; iOS photo folders excluded from iCloud backup.
-- **Notifications**: reminders use `NotificationVisibility.private`.
-- **Widget**: first name and medicine name only, no strength or condition.
+- **Notifications**: reminders use `NotificationVisibility.private`; with
+  Discreet notifications (default on, S4) they say "Time for a medicine"
+  with no person, medicine or instructions, in the payload too.
+- **Widget**: first name and medicine name only, no strength or condition;
+  "Medicine dose" and no name in discreet mode (S4).
+- **Screen privacy (S3)**: blank recent-apps card (Android 13+
+  `setRecentsScreenshotEnabled(false)`, `FLAG_SECURE` while paused below
+  13; launch-screen cover on iOS while inactive). `FLAG_SECURE` on the
+  recovery key and restore screens; optional "Block screenshots" for the
+  whole app (Android).
 - **Photos**: app private folder, never the gallery, EXIF not requested
   (`requestFullMetadata: false`).
 - **Backend**: RLS on every table, API roles start with no privileges,

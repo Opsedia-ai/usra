@@ -163,7 +163,12 @@ class DoseWidgetProvider : HomeWidgetProvider() {
                     continue
                 }
                 views.setViewVisibility(rows[i], View.VISIBLE)
-                views.setTextViewText(texts[i], "${dose.time} · ${dose.person} · ${dose.medicine}")
+                // Discreet mode sends no person and a generic medicine.
+                views.setTextViewText(
+                    texts[i],
+                    listOf(dose.time, dose.person, dose.medicine)
+                        .filter { it.isNotEmpty() }.joinToString(" · "),
+                )
                 // Only doses already due: a later one still has its
                 // reminder coming, which Taken here can't cancel.
                 if (dose.at <= now) {

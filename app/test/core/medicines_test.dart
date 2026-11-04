@@ -298,6 +298,35 @@ void main() {
     final ar = lookupAppLocalizations(const Locale('ar'));
     final texts = ReminderTexts(ar);
 
+    test('discreet: no person, medicine or instructions', () async {
+      final id = await paracetamol();
+      final regimens = await db.watchRegimens().first;
+      final now = DateTime(2026, 11, 3, 9);
+      for (final (l, title, body) in [
+        (ar, 'ميعاد دوا', 'دوس اتاخد بعد ما ياخده'),
+        (
+          lookupAppLocalizations(const Locale('en')),
+          'Time for a medicine',
+          "Tap Taken once it's done",
+        ),
+      ]) {
+        final planned = planReminders(
+          regimens,
+          const [],
+          now: now,
+          texts: ReminderTexts(l, discreet: true),
+          window: const Duration(days: 1),
+        );
+        expect(planned.first.title, title);
+        expect(planned.first.body, body);
+        // Without the random id, which can contain "500".
+        final payload = planned.first.toPayload().replaceAll(id, '');
+        for (final secret in ['عمر', 'باراسيتامول', '500', 'قرص', 'الأكل']) {
+          expect(payload, isNot(contains(secret)), reason: secret);
+        }
+      }
+    });
+
     test('one per dose not yet marked, in Arabic with the name', () async {
       final id = await paracetamol();
       final now = DateTime(2026, 11, 3, 9);

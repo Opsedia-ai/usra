@@ -1932,4 +1932,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get devUntickConfirm =>
       'Untick this milestone? The date you recorded will be removed.';
+
+  @override
+  String get doseReminderDiscreetTitle => 'Time for a medicine';
+
+  @override
+  String get widgetDiscreetDose => 'Medicine dose';
+
+  @override
+  String get settingsDiscreet => 'Discreet notifications';
+
+  @override
+  String get settingsDiscreetHint =>
+      'Reminders and the home-screen widget say \"Time for a medicine\", without the person\'s or the medicine\'s name.';
+
+  @override
+  String get settingsBlockScreenshots => 'Block screenshots';
+
+  @override
+  String get settingsBlockScreenshotsHint =>
+      'No screenshots or screen recording anywhere in the app. The recovery key is always protected. Leave off to screenshot the emergency card.';
 }

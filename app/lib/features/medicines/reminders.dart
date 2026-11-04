@@ -110,17 +110,25 @@ int snoozeIdFor(String medicineId, DateTime scheduledAt) {
 
 /// Turns doses into notification text in the app's language.
 class ReminderTexts {
-  const ReminderTexts(this.l);
+  const ReminderTexts(this.l, {this.discreet = false});
 
   final AppLocalizations l;
 
-  String title(Regimen r) => l.doseReminderTitle(
-    r.person.displayName,
-    [r.medicine.name, ?r.medicine.strength].join(' '),
-  );
+  /// "Discreet notifications": no person's or medicine's name, here or on
+  /// the home-screen widget, since both show on a phone others can see.
+  final bool discreet;
+
+  String title(Regimen r) => discreet
+      ? l.doseReminderDiscreetTitle
+      : l.doseReminderTitle(
+          r.person.displayName,
+          [r.medicine.name, ?r.medicine.strength].join(' '),
+        );
 
   /// The amount and the doctor's words, as written; nothing added.
+  /// Discreet: just how to mark it, as the words can name a condition.
   String body(Regimen r) {
+    if (discreet) return l.doseReminderBody;
     final parts = [?r.schedule.amount, ?r.medicine.instructions];
     return parts.isEmpty ? l.doseReminderBody : parts.join(' · ');
   }

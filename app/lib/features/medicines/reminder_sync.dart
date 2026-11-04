@@ -28,7 +28,8 @@ class ReminderSync with WidgetsBindingObserver {
   final ReminderScheduler scheduler;
   final DoseActionInbox inbox;
 
-  /// Notification text in the app's current language.
+  /// Notification and widget text in the app's current language and
+  /// discreet setting.
   final ReminderTexts Function() texts;
 
   /// The home-screen widget; none in tests that don't need it.
@@ -127,9 +128,17 @@ class ReminderSync with WidgetsBindingObserver {
     final widget = this.widget;
     if (widget == null) return;
     try {
-      final l = texts().l;
-      await ensureWidgetDateFormatting(l.localeName);
-      await widget.publish(buildWidgetSnapshot(regimens, logs, now: now, l: l));
+      final t = texts();
+      await ensureWidgetDateFormatting(t.l.localeName);
+      await widget.publish(
+        buildWidgetSnapshot(
+          regimens,
+          logs,
+          now: now,
+          l: t.l,
+          discreet: t.discreet,
+        ),
+      );
     } catch (e, s) {
       _report(e, s);
     }

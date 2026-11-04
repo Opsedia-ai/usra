@@ -3169,6 +3169,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Untick this milestone? The date you recorded will be removed.'**
   String get devUntickConfirm;
+
+  /// No description provided for @doseReminderDiscreetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time for a medicine'**
+  String get doseReminderDiscreetTitle;
+
+  /// No description provided for @widgetDiscreetDose.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine dose'**
+  String get widgetDiscreetDose;
+
+  /// No description provided for @settingsDiscreet.
+  ///
+  /// In en, this message translates to:
+  /// **'Discreet notifications'**
+  String get settingsDiscreet;
+
+  /// No description provided for @settingsDiscreetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders and the home-screen widget say \"Time for a medicine\", without the person\'s or the medicine\'s name.'**
+  String get settingsDiscreetHint;
+
+  /// No description provided for @settingsBlockScreenshots.
+  ///
+  /// In en, this message translates to:
+  /// **'Block screenshots'**
+  String get settingsBlockScreenshots;
+
+  /// No description provided for @settingsBlockScreenshotsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No screenshots or screen recording anywhere in the app. The recovery key is always protected. Leave off to screenshot the emergency card.'**
+  String get settingsBlockScreenshotsHint;
 }
 
 class _AppLocalizationsDelegate
