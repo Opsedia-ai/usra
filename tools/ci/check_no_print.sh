@@ -5,7 +5,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-pattern='\b(print|debugPrint|debugPrintStack|printError)[[:space:]]*\(|\bstd(out|err)\.(write|add)|import[[:space:]]+'"'"'dart:developer'"'"';'
+pattern='\b(print|debugPrint|debugPrintStack|printError)[[:space:]]*\('
+pattern+='|\bZone\.current\.print\b|\b(dumpErrorToConsole|presentError)\b'
+pattern+='|\bstd(out|err)\.'
+pattern+=$'|import[[:space:]]+[\'"]dart:developer[\'"]'
 if matches=$(grep -rnE --include='*.dart' --exclude='*.g.dart' "$pattern" app/lib \
     | grep -v '^app/lib/core/log\.dart:' \
     | grep -vE '^[^:]+:[0-9]+:[[:space:]]*//'); then

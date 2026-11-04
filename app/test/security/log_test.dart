@@ -19,6 +19,64 @@ void main() {
     Log.release = false;
   });
 
+  group('installErrorHandlers', () {
+    late FlutterExceptionHandler? flutterOnError;
+    late bool Function(Object, StackTrace)? platformOnError;
+    late DebugPrintCallback originalDebugPrint;
+
+    setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      flutterOnError = FlutterError.onError;
+      platformOnError = PlatformDispatcher.instance.onError;
+      originalDebugPrint = debugPrint;
+    });
+    tearDown(() {
+      FlutterError.onError = flutterOnError;
+      PlatformDispatcher.instance.onError = platformOnError;
+      debugPrint = originalDebugPrint;
+    });
+
+    const leak = 'Cannot read /data/Sara Ali/+201001234567.json';
+
+    test('reported and uncaught errors log the type only', () {
+      Log.installErrorHandlers();
+      expect(FlutterError.onError, isNot(FlutterError.presentError));
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: const FormatException(leak),
+          stack: StackTrace.current,
+        ),
+      );
+      expect(
+        PlatformDispatcher.instance.onError!(
+          StateError(leak),
+          StackTrace.current,
+        ),
+        isTrue,
+      );
+      expect(lines, [
+        '[usra] Framework error (FormatException)',
+        '[usra] Uncaught error (StateError)',
+      ]);
+    });
+
+    test(
+      'release builds silence debugPrint from the framework and plugins',
+      () {
+        final printed = <String?>[];
+        debugPrint = (message, {wrapWidth}) => printed.add(message);
+        Log.release = true;
+        Log.installErrorHandlers();
+        debugPrint(leak);
+        FlutterError.reportError(
+          FlutterErrorDetails(exception: const FormatException(leak)),
+        );
+        expect(printed, isEmpty);
+        expect(lines, isEmpty);
+      },
+    );
+  });
+
   test('debug builds log the event and the error type only', () {
     Log.error(
       'Saving failed',
@@ -60,8 +118,10 @@ void main() {
   test('nothing in lib/ prints except core/log.dart', () {
     final writes = RegExp(
       r'''\b(print|debugPrint|debugPrintStack|printError)\s*\(|'''
-      r'''\bstd(out|err)\.(write|add)|'''
-      r'''import\s+'dart:developer';''',
+      r'''\bZone\.current\.print\b|'''
+      r'''\b(dumpErrorToConsole|presentError)\b|'''
+      r'''\bstd(out|err)\.|'''
+      r'''import\s+['"]dart:developer['"]''',
     );
     final offenders = <String>[];
     final files = libFiles().where(

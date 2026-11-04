@@ -47,15 +47,24 @@ void main() {
     }
   });
 
-  test('no cleartext HTTP', () {
-    // Unset means false when targetSdk is 28 or later (Flutter targets 34+).
-    expect(attr('usesCleartextTraffic'), anyOf(isNull, 'false'));
-    final config = attr('networkSecurityConfig');
-    if (config == null) return;
-    final permitted = xmlResource(config).descendantElements
+  test('no cleartext HTTP and no user-installed CAs', () {
+    // Set explicitly: if unset, a library manifest could switch it on when
+    // the manifests are merged.
+    expect(attr('usesCleartextTraffic'), 'false');
+    final reference = attr('networkSecurityConfig');
+    expect(reference, isNotNull, reason: 'android:networkSecurityConfig');
+    final config = xmlResource(reference!).rootElement;
+    final base = config.getElement('base-config');
+    expect(base, isNotNull, reason: 'base-config');
+    expect(base!.getAttribute('cleartextTrafficPermitted'), 'false');
+    final permitted = config.descendantElements
         .map((e) => e.getAttribute('cleartextTrafficPermitted'))
         .whereType<String>();
     expect(permitted, everyElement('false'));
+    final sources = config
+        .findAllElements('certificates')
+        .map((e) => e.getAttribute('src'));
+    expect(sources, isNot(contains('user')));
   });
 
   test('the release manifest is not debuggable', () {

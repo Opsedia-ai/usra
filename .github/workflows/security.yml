@@ -2,6 +2,7 @@ name: Security
 
 # Security plan S5 and S19: secret scanning and the no-console-output check.
 # Third-party Actions are pinned to commit SHAs; Dependabot keeps them current.
+# GITLEAKS_VERSION is not seen by Dependabot: bump it and its sha256 by hand.
 
 on:
   pull_request:
@@ -24,6 +25,7 @@ env:
 jobs:
   gitleaks:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -50,6 +52,7 @@ jobs:
 
   no-console-output:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

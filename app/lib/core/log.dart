@@ -22,5 +22,22 @@ abstract final class Log {
     output('[usra] $event (${error.runtimeType})');
   }
 
+  /// Call first in `main()`. Flutter's default handlers print the
+  /// exception text and stack trace, in release builds too: framework
+  /// errors, [FlutterError.reportError] and uncaught async errors all go
+  /// through [error] instead. In release, `debugPrint` from the framework
+  /// and plugins is switched off as well.
+  static void installErrorHandlers() {
+    FlutterError.onError = (details) =>
+        error('Framework error', details.exception);
+    PlatformDispatcher.instance.onError = (e, _) {
+      error('Uncaught error', e);
+      return true;
+    };
+    if (kReleaseMode || release) debugPrint = _silent;
+  }
+
   static void _debugPrint(String line) => debugPrint(line);
+
+  static void _silent(String? message, {int? wrapWidth}) {}
 }
