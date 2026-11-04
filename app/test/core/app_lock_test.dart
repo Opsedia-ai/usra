@@ -200,6 +200,8 @@ void main() {
       now = now.subtract(const Duration(days: 1));
       expect(await lock.checkPin('1234'), PinCheck.blocked);
       expect(lock.waitRemaining, const Duration(seconds: 30));
+      // The restarted wait is saved too.
+      expect((await open()).waitRemaining, const Duration(seconds: 30));
       now = now.add(const Duration(seconds: 30));
       expect(await lock.checkPin('1234'), PinCheck.ok);
     });
@@ -231,6 +233,25 @@ void main() {
       expect(lock.locked, isTrue);
       expect((await open()).timeout, LockTimeout.immediately);
     });
+
+    test(
+      'the biometric prompt pausing the app doesn\'t start the clock',
+      () async {
+        final face = _FakeBiometrics(pass: true);
+        await (await open()).enable('1234', biometrics: true);
+        final lock = await AppLock.open(
+          store: store,
+          hasher: fastHasher,
+          biometrics: face,
+          clock: () => now,
+        );
+        await lock.setTimeout(LockTimeout.immediately);
+        face.onPrompt = lock.movedToBackground;
+        expect(await lock.checkBiometrics('why'), isTrue);
+        lock.movedToForeground();
+        expect(lock.locked, isFalse);
+      },
+    );
 
     test('never locks when off', () async {
       final lock = await open();
@@ -272,6 +293,7 @@ class _FakeBiometrics implements BiometricUnlock {
 
   bool pass;
   int asked = 0;
+  void Function()? onPrompt;
 
   @override
   Future<bool> available() async => true;
@@ -279,6 +301,7 @@ class _FakeBiometrics implements BiometricUnlock {
   @override
   Future<bool> authenticate(String reason) async {
     asked++;
+    onPrompt?.call();
     return pass;
   }
 }

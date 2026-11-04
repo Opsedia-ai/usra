@@ -170,7 +170,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
   }
 
   Future<void> _useBiometrics() async {
-    final ok = await _lock.biometrics.authenticate(
+    final ok = await _lock.authenticate(
       AppLocalizations.of(context).lockBiometricReason,
     );
     await _save(biometrics: ok);
@@ -436,7 +436,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
 
   Future<void> _setBiometrics(bool on) async {
     if (on &&
-        !await _lock.biometrics.authenticate(
+        !await _lock.authenticate(
           AppLocalizations.of(context).lockBiometricReason,
         )) {
       return;

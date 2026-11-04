@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -78,8 +79,14 @@ class LocalAuthBiometrics implements BiometricUnlock {
   @override
   Future<bool> available() async {
     try {
-      return await _auth.canCheckBiometrics &&
-          (await _auth.getAvailableBiometrics()).isNotEmpty;
+      if (!await _auth.canCheckBiometrics) return false;
+      final types = await _auth.getAvailableBiometrics();
+      // Android only: weak (Class 2) sensors, such as camera face unlock on
+      // budget phones, can be fooled by a photo. Offered only with a strong
+      // one. (The system prompt itself can't be limited to strong.)
+      return Platform.isAndroid
+          ? types.contains(BiometricType.strong)
+          : types.isNotEmpty;
     } catch (_) {
       return false;
     }
@@ -275,7 +282,9 @@ class AppLock extends ChangeNotifier {
   Future<PinCheck> checkPin(String pin) async {
     var c = _config;
     if (c == null) return PinCheck.ok;
+    final before = c;
     c = _clockMovedBack(c);
+    if (!identical(c, before)) await _save();
     if (waitRemaining > Duration.zero) return PinCheck.blocked;
     // Counted before the slow check and saved, so closing the app in the
     // middle of it isn't a free guess.
@@ -299,9 +308,23 @@ class AppLock extends ChangeNotifier {
   /// Fingerprint or face, when turned on. True when it unlocked.
   Future<bool> checkBiometrics(String reason) async {
     if (!biometricsEnabled) return false;
-    if (!await biometrics.authenticate(reason)) return false;
+    if (!await authenticate(reason)) return false;
     await _passed();
     return true;
+  }
+
+  bool _prompting = false;
+
+  /// The system biometric prompt. Some phones pause the app while it's up;
+  /// that isn't leaving the app, so it doesn't start the lock timeout.
+  Future<bool> authenticate(String reason) async {
+    _prompting = true;
+    try {
+      return await biometrics.authenticate(reason);
+    } finally {
+      _prompting = false;
+      _backgroundAt = null;
+    }
   }
 
   Future<void> _passed() async {
@@ -341,7 +364,7 @@ class AppLock extends ChangeNotifier {
 
   /// The app left the screen.
   void movedToBackground() {
-    if (_locked) return;
+    if (_locked || _prompting) return;
     _backgroundAt ??= _clock();
   }
 

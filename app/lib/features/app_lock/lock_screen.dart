@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/tokens.dart';
@@ -69,7 +70,13 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
   @override
   Future<bool> didPopRoute() async {
     if (!_lock.locked) return false;
-    await _navigator.currentState?.maybePop();
+    final navigator = _navigator.currentState;
+    if (navigator != null && navigator.canPop()) {
+      navigator.pop();
+    } else {
+      // On the lock screen itself, back leaves the app as usual.
+      await SystemNavigator.pop();
+    }
     return true;
   }
 
