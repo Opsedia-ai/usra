@@ -1,0 +1,26 @@
+# Security plan S19. Weekly, one grouped PR per ecosystem for minor and patch
+# updates; major updates come one by one so they can be reviewed. Security
+# updates (Dependabot alerts) are raised as soon as they are found.
+#
+# Not covered: the Supabase edge functions (Deno, supabase/deno.json). Dependabot
+# has no Deno ecosystem and there is no package.json; review deno.lock by hand.
+version: 2
+updates:
+  - package-ecosystem: pub
+    directory: /app
+    schedule:
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 5
+    groups:
+      pub-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: sunday
+    groups:
+      actions:
+        patterns: ["*"]

@@ -199,7 +199,8 @@ password_requirements = ""
 # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
 email_sent = 2
 # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
-sms_sent = 30
+# Usra: kept tight against SMS pumping; the hosted project needs the same (README).
+sms_sent = 10
 # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
 anonymous_users = 30
 # Number of sessions that can be refreshed in a 5 minute interval per IP address.
@@ -265,7 +266,8 @@ enable_confirmations = false
 # Template for sending OTP to users
 template = "Your Usra code is {{ .Code }}"
 # Controls the minimum amount of time that must pass before sending another sms otp.
-max_frequency = "5s"
+# Usra: 60s, matching the app's resend countdown; the server is what enforces it.
+max_frequency = "60s"
 
 # Use pre-defined map of phone number to OTP for testing.
 # Keys are the phone number with country code and without the + prefix.
@@ -433,6 +435,9 @@ enabled = true
 verify_jwt = true
 
 [functions.ocr-fallback]
+verify_jwt = true
+
+[functions.delete-account]
 verify_jwt = true
 
 [functions.revenuecat-webhook]
