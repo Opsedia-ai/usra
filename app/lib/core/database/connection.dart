@@ -98,6 +98,15 @@ Future<File> defaultDatabaseFile() async {
   return File(p.join(dir.path, 'usra.sqlite'));
 }
 
+/// Keeps [file], its -wal / -shm files and the rest of its folder out of
+/// iCloud backup by excluding the folder (see `PhotoStore.excludeFromBackup`).
+/// The copy couldn't be opened anyway (the key is this-device-only), but
+/// health data must not be in iCloud at all (Apple 5.1.3).
+Future<void> excludeDatabaseFromBackup(
+  File file,
+  Future<void> Function(Directory dir) exclude,
+) => exclude(file.parent);
+
 /// Opens [file], encrypted with SQLite3 Multiple Ciphers.
 QueryExecutor openEncryptedDatabase(File file, String hexKey) {
   _checkKey(hexKey);

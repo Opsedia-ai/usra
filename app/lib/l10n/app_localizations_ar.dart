@@ -77,7 +77,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
-  String get settingsPrivacy => 'بياناتك بتفضل على الموبايل ده ومتشفرة.';
+  String get settingsPrivacy =>
+      'بياناتك بتفضل على الموبايل ده، والسجلات متشفرة.';
 
   @override
   String get recoveryNotice =>
@@ -86,6 +87,60 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get notMedicalDevice =>
       'أسرة مش جهاز طبي. اسأل دكتورك دايماً قبل أي قرار طبي.';
+
+  @override
+  String get aboutTitle => 'عن أسرة والخصوصية';
+
+  @override
+  String get aboutHint => 'بياناتك بتتحفظ إزاي، ونسخة التطبيق';
+
+  @override
+  String get aboutPrivacyHeading => 'خصوصيتك، بكلام بسيط';
+
+  @override
+  String get aboutPrivacyOnPhone =>
+      'كل اللي بتسجله بيفضل على الموبايل ده. السجلات في قاعدة بيانات متشفرة، والصور في المساحة الخاصة بالتطبيق، عمرها ما بتروح معرض الصور ولا النسخ الاحتياطية على السحابة. إحنا مش بنستلم أي حاجة منهم ومنقدرش نشوفها.';
+
+  @override
+  String get aboutPrivacyNoAccount =>
+      'مفيش حساب ولا تسجيل دخول ولا إعلانات ولا تتبع. وعمرنا ما بنبيع ولا بنشارك بيانات حد.';
+
+  @override
+  String get aboutPrivacyBackup =>
+      'النسخة الاحتياطية ملف متشفر إنت بتحتفظ بيه في المكان اللي تختاره. ميتفتحش غير بمفتاح الاسترجاع بتاعك، وهو مش معانا.';
+
+  @override
+  String get aboutPrivacyPhotos =>
+      'الكاميرا والصور بتتستخدم بس لما إنت تختار، والكلام بيتقرا منها على الموبايل ده.';
+
+  @override
+  String get aboutPrivacyReminders =>
+      'التذكير بيتظبط على الموبايل ده. أسامي الأشخاص وأسامي الأدوية ممكن تظهر على شاشة القفل (الاسم زي ما كتبته) وفي الويدجت (الاسم الأول).';
+
+  @override
+  String get aboutPrivacyGoogle =>
+      'قارئ الكلام من جوجل، وممكن يبعت لجوجل بيانات تقنية برقم تثبيت عشوائي مش مربوط بيك. عمره ما بيبعت صورك ولا الكلام ولا سجلاتك.';
+
+  @override
+  String get aboutMedicalHeading => 'تنبيه طبي';
+
+  @override
+  String get aboutMedicalBody =>
+      'أسرة مش جهاز طبي. مش بتشخّص ولا بتعالج، ومش بديل عن دكتورك. منحنيات النمو ومواعيد التطعيمات والاقتراحات والكلام اللي بيتقرا من الصور للتنظيم والمعرفة العامة، وممكن تكون غلط. اسأل دكتورك أو الصيدلي دايماً قبل أي قرار طبي. وفي الطوارئ كلّم الإسعاف ١٢٣ في مصر أو رقم الطوارئ في بلدك.';
+
+  @override
+  String aboutVersion(String version) {
+    return 'النسخة $version';
+  }
+
+  @override
+  String get aboutPrivacyPolicy => 'سياسة الخصوصية';
+
+  @override
+  String get aboutTerms => 'شروط الاستخدام';
+
+  @override
+  String get aboutLinkFailed => 'مقدرناش نفتح الصفحة. اتأكد من النت.';
 
   @override
   String get familyNew => 'شخص جديد';
@@ -749,7 +804,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tutorialPrivacyBody =>
-      'كل حاجة متسجّلة على الموبايل ده ومتشفّرة. مش محتاج حساب.';
+      'كل حاجة متسجّلة على الموبايل ده، والسجلات متشفّرة. مش محتاج حساب.';
 
   @override
   String get tutorialFamilyTitle => 'ضيف عيلتك';
