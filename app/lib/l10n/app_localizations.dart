@@ -248,6 +248,96 @@ abstract class AppLocalizations {
   /// **'Usra is not a medical device. Always ask your doctor before medical decisions.'**
   String get notMedicalDevice;
 
+  /// No description provided for @aboutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About & privacy'**
+  String get aboutTitle;
+
+  /// No description provided for @aboutHint.
+  ///
+  /// In en, this message translates to:
+  /// **'How your data is kept, and the app version'**
+  String get aboutHint;
+
+  /// No description provided for @aboutPrivacyHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Your privacy, in plain words'**
+  String get aboutPrivacyHeading;
+
+  /// No description provided for @aboutPrivacyOnPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything you record stays on this phone, in an encrypted database. We don\'t receive it and can\'t see it.'**
+  String get aboutPrivacyOnPhone;
+
+  /// No description provided for @aboutPrivacyNoAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'No account, no sign-in, no ads and no tracking. We never sell or share anyone\'s data.'**
+  String get aboutPrivacyNoAccount;
+
+  /// No description provided for @aboutPrivacyBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'A backup is an encrypted file you keep wherever you choose. Only your recovery key opens it, and we don\'t have it.'**
+  String get aboutPrivacyBackup;
+
+  /// No description provided for @aboutPrivacyPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera and photos are used only when you choose, and text is read from them on this phone.'**
+  String get aboutPrivacyPhotos;
+
+  /// No description provided for @aboutPrivacyReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders are set on this phone. Medicine names can show on the lock screen and on the home-screen widget.'**
+  String get aboutPrivacyReminders;
+
+  /// No description provided for @aboutPrivacyGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'The text reader is made by Google and may send Google anonymous technical figures, never your photos, the text or your records.'**
+  String get aboutPrivacyGoogle;
+
+  /// No description provided for @aboutMedicalHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical disclaimer'**
+  String get aboutMedicalHeading;
+
+  /// No description provided for @aboutMedicalBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra is not a medical device. It doesn\'t diagnose or treat, and it doesn\'t replace your doctor. Growth charts, vaccine dates, suggestions and text read from photos are for organising and general information, and can be wrong. Always ask your doctor or pharmacist before medical decisions. In an emergency, call 123 in Egypt or your local emergency number.'**
+  String get aboutMedicalBody;
+
+  /// No description provided for @aboutVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String aboutVersion(String version);
+
+  /// No description provided for @aboutPrivacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get aboutPrivacyPolicy;
+
+  /// No description provided for @aboutTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of use'**
+  String get aboutTerms;
+
+  /// No description provided for @aboutLinkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the page. Check your internet connection.'**
+  String get aboutLinkFailed;
+
   /// No description provided for @familyNew.
   ///
   /// In en, this message translates to:

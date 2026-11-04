@@ -88,6 +88,60 @@ class AppLocalizationsAr extends AppLocalizations {
       'أسرة مش جهاز طبي. اسأل دكتورك دايماً قبل أي قرار طبي.';
 
   @override
+  String get aboutTitle => 'عن أسرة والخصوصية';
+
+  @override
+  String get aboutHint => 'بياناتك بتتحفظ إزاي، ونسخة التطبيق';
+
+  @override
+  String get aboutPrivacyHeading => 'خصوصيتك، بكلام بسيط';
+
+  @override
+  String get aboutPrivacyOnPhone =>
+      'كل اللي بتسجله بيفضل على الموبايل ده، في قاعدة بيانات متشفرة. إحنا مش بنستلمه ومنقدرش نشوفه.';
+
+  @override
+  String get aboutPrivacyNoAccount =>
+      'مفيش حساب ولا تسجيل دخول ولا إعلانات ولا تتبع. وعمرنا ما بنبيع ولا بنشارك بيانات حد.';
+
+  @override
+  String get aboutPrivacyBackup =>
+      'النسخة الاحتياطية ملف متشفر إنت بتحتفظ بيه في المكان اللي تختاره. ميتفتحش غير بمفتاح الاسترجاع بتاعك، وهو مش معانا.';
+
+  @override
+  String get aboutPrivacyPhotos =>
+      'الكاميرا والصور بتتستخدم بس لما إنت تختار، والكلام بيتقرا منها على الموبايل ده.';
+
+  @override
+  String get aboutPrivacyReminders =>
+      'التذكير بيتظبط على الموبايل ده. أسامي الأدوية ممكن تظهر على شاشة القفل وفي الويدجت.';
+
+  @override
+  String get aboutPrivacyGoogle =>
+      'قارئ الكلام من جوجل، وممكن يبعت لجوجل أرقام تقنية من غير ما تعرّف بيك، عمره ما بيبعت صورك ولا الكلام ولا سجلاتك.';
+
+  @override
+  String get aboutMedicalHeading => 'تنبيه طبي';
+
+  @override
+  String get aboutMedicalBody =>
+      'أسرة مش جهاز طبي. مش بتشخّص ولا بتعالج، ومش بديل عن دكتورك. منحنيات النمو ومواعيد التطعيمات والاقتراحات والكلام اللي بيتقرا من الصور للتنظيم والمعرفة العامة، وممكن تكون غلط. اسأل دكتورك أو الصيدلي دايماً قبل أي قرار طبي. وفي الطوارئ كلّم الإسعاف ١٢٣ في مصر أو رقم الطوارئ في بلدك.';
+
+  @override
+  String aboutVersion(String version) {
+    return 'النسخة $version';
+  }
+
+  @override
+  String get aboutPrivacyPolicy => 'سياسة الخصوصية';
+
+  @override
+  String get aboutTerms => 'شروط الاستخدام';
+
+  @override
+  String get aboutLinkFailed => 'مقدرناش نفتح الصفحة. اتأكد من النت.';
+
+  @override
   String get familyNew => 'شخص جديد';
 
   @override

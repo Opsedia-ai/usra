@@ -9,6 +9,7 @@ import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../backup/backup_screen.dart';
+import 'about_privacy_screen.dart';
 
 class SettingsModule extends FeatureModule {
   const SettingsModule();
@@ -29,6 +30,7 @@ class SettingsModule extends FeatureModule {
   @override
   List<RouteBase> get routes => [
     GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
+    GoRoute(path: aboutPath, builder: (_, _) => const AboutPrivacyScreen()),
   ];
 }
 
@@ -92,6 +94,14 @@ class SettingsScreen extends ConsumerWidget {
                   leading: const Icon(Icons.school_outlined),
                   title: Text(l.settingsTutorial),
                   onTap: ref.read(tutorialProvider.notifier).reopen,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  key: const ValueKey('settings-about'),
+                  leading: const Icon(Icons.privacy_tip_outlined),
+                  title: Text(l.aboutTitle),
+                  subtitle: Text(l.aboutHint),
+                  onTap: () => context.go(aboutPath),
                 ),
               ],
             ),

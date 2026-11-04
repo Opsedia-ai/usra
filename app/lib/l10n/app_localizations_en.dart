@@ -89,6 +89,61 @@ class AppLocalizationsEn extends AppLocalizations {
       'Usra is not a medical device. Always ask your doctor before medical decisions.';
 
   @override
+  String get aboutTitle => 'About & privacy';
+
+  @override
+  String get aboutHint => 'How your data is kept, and the app version';
+
+  @override
+  String get aboutPrivacyHeading => 'Your privacy, in plain words';
+
+  @override
+  String get aboutPrivacyOnPhone =>
+      'Everything you record stays on this phone, in an encrypted database. We don\'t receive it and can\'t see it.';
+
+  @override
+  String get aboutPrivacyNoAccount =>
+      'No account, no sign-in, no ads and no tracking. We never sell or share anyone\'s data.';
+
+  @override
+  String get aboutPrivacyBackup =>
+      'A backup is an encrypted file you keep wherever you choose. Only your recovery key opens it, and we don\'t have it.';
+
+  @override
+  String get aboutPrivacyPhotos =>
+      'The camera and photos are used only when you choose, and text is read from them on this phone.';
+
+  @override
+  String get aboutPrivacyReminders =>
+      'Reminders are set on this phone. Medicine names can show on the lock screen and on the home-screen widget.';
+
+  @override
+  String get aboutPrivacyGoogle =>
+      'The text reader is made by Google and may send Google anonymous technical figures, never your photos, the text or your records.';
+
+  @override
+  String get aboutMedicalHeading => 'Medical disclaimer';
+
+  @override
+  String get aboutMedicalBody =>
+      'Usra is not a medical device. It doesn\'t diagnose or treat, and it doesn\'t replace your doctor. Growth charts, vaccine dates, suggestions and text read from photos are for organising and general information, and can be wrong. Always ask your doctor or pharmacist before medical decisions. In an emergency, call 123 in Egypt or your local emergency number.';
+
+  @override
+  String aboutVersion(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get aboutPrivacyPolicy => 'Privacy policy';
+
+  @override
+  String get aboutTerms => 'Terms of use';
+
+  @override
+  String get aboutLinkFailed =>
+      'Couldn\'t open the page. Check your internet connection.';
+
+  @override
   String get familyNew => 'New person';
 
   @override
