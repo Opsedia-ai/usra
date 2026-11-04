@@ -279,6 +279,107 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  /// Saves [dataJson] as [profileId]'s one live record of [type] (a
+  /// setting kept with the person's records, like their vaccine plan):
+  /// updated in place when there is one, created otherwise.
+  Future<String> saveSingletonEvent({
+    required String profileId,
+    required String type,
+    required String dataJson,
+  }) async {
+    final now = DateTime.now().toUtc();
+    return transaction(() async {
+      final existing =
+          await (select(medicalEvents)
+                ..where(
+                  (e) =>
+                      e.profileId.equals(profileId) &
+                      e.type.equals(type) &
+                      e.deletedAt.isNull(),
+                )
+                ..orderBy([(e) => OrderingTerm.desc(e.updatedAt)])
+                ..limit(1))
+              .getSingleOrNull();
+      if (existing == null) {
+        final id = _uuid.v7();
+        await into(medicalEvents).insert(
+          MedicalEventsCompanion.insert(
+            id: id,
+            profileId: profileId,
+            type: type,
+            occurredAt: now,
+            dataJson: Value(dataJson),
+            updatedAt: now,
+          ),
+        );
+        await _queue('medical_event', id, 'upsert');
+        return id;
+      }
+      if (existing.dataJson != dataJson) {
+        await (update(
+          medicalEvents,
+        )..where((e) => e.id.equals(existing.id))).write(
+          MedicalEventsCompanion(
+            dataJson: Value(dataJson),
+            updatedAt: Value(now),
+          ),
+        );
+        await _queue('medical_event', existing.id, 'upsert');
+      }
+      return existing.id;
+    });
+  }
+
+  /// Adds [add] records and marks the records [remove] deleted, all or
+  /// nothing: the vaccine checklist saves this way.
+  Future<void> replaceEvents({
+    required String profileId,
+    List<({String type, DateTime occurredAt, String dataJson})> add = const [],
+    Iterable<String> remove = const [],
+  }) async {
+    final now = DateTime.now().toUtc();
+    await transaction(() async {
+      for (final id in remove) {
+        await (update(
+          medicalEvents,
+        )..where((e) => e.id.equals(id) & e.profileId.equals(profileId))).write(
+          MedicalEventsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+        );
+        await _queue('medical_event', id, 'delete');
+        await _softDeleteAttachments(attachments.eventId.equals(id), now);
+      }
+      for (final r in add) {
+        final id = _uuid.v7();
+        await into(medicalEvents).insert(
+          MedicalEventsCompanion.insert(
+            id: id,
+            profileId: profileId,
+            type: r.type,
+            occurredAt: r.occurredAt,
+            dataJson: Value(r.dataJson),
+            updatedAt: now,
+          ),
+        );
+        await _queue('medical_event', id, 'upsert');
+      }
+    });
+  }
+
+  /// Live records of [types], for everyone in the family, oldest first.
+  Future<List<MedicalEvent>> eventsOfTypes(Set<String> types) {
+    final query =
+        select(medicalEvents).join([
+            innerJoin(profiles, profiles.id.equalsExp(medicalEvents.profileId)),
+          ])
+          ..where(
+            medicalEvents.type.isIn(types) &
+                medicalEvents.deletedAt.isNull() &
+                profiles.deletedAt.isNull(),
+          )
+          ..orderBy([OrderingTerm.asc(medicalEvents.occurredAt)]);
+    return query.map((row) => row.readTable(medicalEvents)).get();
+  }
+
   /// A record's live attachments, in the order they were added.
   Stream<List<Attachment>> watchAttachments(String eventId) {
     final query = select(attachments)

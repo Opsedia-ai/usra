@@ -114,6 +114,7 @@ void main() {
       expect(vaccineKindsOf('IPV'), {VaccineKind.ipv});
       expect(vaccineKindsOf('الخماسي'), {VaccineKind.penta});
       expect(vaccineKindsOf('Hexavalent'), {
+        VaccineKind.hexa,
         VaccineKind.penta,
         VaccineKind.ipv,
       });
@@ -126,7 +127,9 @@ void main() {
       expect(vaccineKindsOf('شلل الأطفال بالحقن'), {VaccineKind.ipv});
       expect(vaccineKindsOf('شلل اطفال حقن'), {VaccineKind.ipv});
       expect(vaccineKindsOf('Polio injection'), {VaccineKind.ipv});
-      expect(vaccineKindsOf('Flu'), isEmpty);
+      expect(vaccineKindsOf('Flu'), {VaccineKind.flu});
+      expect(vaccineKindsOf('Measles vitamin'), {VaccineKind.mmr});
+      expect(vaccineKindsOf('vitamin A'), isEmpty);
       expect(vaccineKindsOf('  '), isEmpty);
     });
   });
@@ -145,10 +148,10 @@ void main() {
 
     test('done, overdue, due and later', () {
       final s = states([
-        (name: 'BCG', dose: null, date: DateTime(2026, 1, 2)),
-        (name: 'شلل', dose: null, date: DateTime(2026, 1, 2)),
-        (name: 'خماسي', dose: 1, date: DateTime(2026, 3, 1)),
-        (name: 'شلل', dose: null, date: DateTime(2026, 3, 1)),
+        (id: null, name: 'BCG', dose: null, date: DateTime(2026, 1, 2)),
+        (id: null, name: 'شلل', dose: null, date: DateTime(2026, 1, 2)),
+        (id: null, name: 'خماسي', dose: 1, date: DateTime(2026, 3, 1)),
+        (id: null, name: 'شلل', dose: null, date: DateTime(2026, 3, 1)),
       ], DateTime(2026, 5, 10));
       expect(s['bcg1'], DoseState.done);
       expect(s['opv0'], DoseState.done);
@@ -170,9 +173,9 @@ void main() {
 
     test('a numbered dose takes that dose, unnumbered fill the earliest', () {
       final s = states([
-        (name: 'MMR', dose: 2, date: DateTime(2027, 7, 1)),
-        (name: 'Pentavalent', dose: null, date: DateTime(2026, 3, 1)),
-        (name: 'Pentavalent', dose: null, date: DateTime(2026, 5, 1)),
+        (id: null, name: 'MMR', dose: 2, date: DateTime(2027, 7, 1)),
+        (id: null, name: 'Pentavalent', dose: null, date: DateTime(2026, 3, 1)),
+        (id: null, name: 'Pentavalent', dose: null, date: DateTime(2026, 5, 1)),
       ], DateTime(2027, 7, 2));
       expect(s['mmr1'], DoseState.overdue);
       expect(s['mmr2'], DoseState.done);
@@ -183,7 +186,7 @@ void main() {
 
     test('a hexavalent dose counts for pentavalent and IPV', () {
       final s = states([
-        (name: 'Hexa', dose: 1, date: DateTime(2026, 3, 1)),
+        (id: null, name: 'Hexa', dose: 1, date: DateTime(2026, 3, 1)),
       ], DateTime(2026, 3, 2));
       expect(s['penta1'], DoseState.done);
       expect(s['ipv1'], DoseState.done);
@@ -191,8 +194,8 @@ void main() {
 
     test('a numbered dose recorded twice is not the next dose', () {
       final s = states([
-        (name: 'IPV', dose: 1, date: DateTime(2026, 3, 1)),
-        (name: 'IPV', dose: 1, date: DateTime(2026, 3, 2)),
+        (id: null, name: 'IPV', dose: 1, date: DateTime(2026, 3, 1)),
+        (id: null, name: 'IPV', dose: 1, date: DateTime(2026, 3, 2)),
       ], DateTime(2026, 3, 3));
       expect(s['ipv1'], DoseState.done);
       expect(s['ipv2'], DoseState.later);

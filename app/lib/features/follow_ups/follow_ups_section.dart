@@ -14,6 +14,10 @@ import 'follow_ups_providers.dart';
 /// How many follow-ups Home shows across the family.
 const homeFollowUpCount = 3;
 
+/// The children module's schedule rule (`EgyptVaccineRule`), whose
+/// follow-ups Home leaves to its vaccine card.
+const homeVaccineRulePrefix = 'vaccines.egypt.';
+
 /// The family's next follow-ups on Home. Hidden until someone is added.
 class HomeFollowUps extends ConsumerWidget {
   const HomeFollowUps({super.key});
@@ -28,7 +32,11 @@ class HomeFollowUps extends ConsumerWidget {
       padding: const EdgeInsets.only(bottom: 16),
       child: _Section(
         key: const ValueKey('home-follow-ups'),
-        items: items.take(homeFollowUpCount).toList(),
+        // Home has its own vaccine card with the countdown.
+        items: items
+            .where((i) => !i.followUp.ruleId.startsWith(homeVaccineRulePrefix))
+            .take(homeFollowUpCount)
+            .toList(),
         showNames: true,
       ),
     );

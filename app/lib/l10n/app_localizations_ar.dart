@@ -600,11 +600,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'المنحنيات من معايير نمو الطفل بتاعة منظمة الصحة العالمية (المئين ٣ و١٥ و٥٠ و٨٥ و٩٧). للمعلومة بس؛ دكتور الأطفال هو اللي يقيّم نمو طفلك.';
 
   @override
-  String get vaccinesTitle => 'التطعيمات الإجبارية';
+  String get vaccinesTitle => 'التطعيمات';
 
   @override
-  String get vaccinesDisclaimer =>
-      'حسب جدول التطعيمات الإجبارية بتاع وزارة الصحة والسكان المصرية. الجداول بتتغير، وكارت التطعيم بتاع مكتب الصحة هو المرجع الرسمي.';
+  String vaccinesDisclaimer(String date) {
+    return 'التطعيمات الإجبارية حسب جدول وزارة الصحة والسكان المصرية، والاختيارية حسب الجداول المعتادة عند دكاترة الأطفال (اتراجعت $date). للمعلومة بس: الجداول بتتغير، وكارت التطعيم بتاع مكتب الصحة ودكتور الطفل هما المرجع.';
+  }
 
   @override
   String get vaccineAtBirth => 'عند الولادة';
@@ -1002,7 +1003,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get fuVaccinesDue => 'التطعيمات الإجبارية';
+  String get fuVaccinesDue => 'التطعيمات';
 
   @override
   String fuVaccinesAt(String age, String names) {
@@ -2325,4 +2326,225 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get doseReminderDiscreetBody => 'افتح أسرة عشان تشوف أنهي دوا';
+
+  @override
+  String get memberVaccines => 'التطعيمات';
+
+  @override
+  String get vaccineHexa => 'السداسي';
+
+  @override
+  String get vaccinePcv => 'المكورات الرئوية (PCV)';
+
+  @override
+  String get vaccineRota => 'الروتا';
+
+  @override
+  String get vaccineVaricella => 'الجديري المائي';
+
+  @override
+  String get vaccineHepA => 'الالتهاب الكبدي أ';
+
+  @override
+  String get vaccineMening => 'الحمى الشوكية (السحائي)';
+
+  @override
+  String get vaccineFlu => 'الإنفلونزا';
+
+  @override
+  String vaccineBoosterDose(String name) {
+    return '$name، جرعة منشطة';
+  }
+
+  @override
+  String get vaccineRequired => 'إجباري';
+
+  @override
+  String get vaccineOptional => 'اختياري';
+
+  @override
+  String get vaccineNotFollowed => 'مش في خطتك';
+
+  @override
+  String vaccineRequiredDone(int done, int total) {
+    return '$done/$total من الإجباري اتاخدوا';
+  }
+
+  @override
+  String vaccineOptionalDone(int done, int total) {
+    return '$done/$total من الاختياري اتاخدوا';
+  }
+
+  @override
+  String get vaccineFilterAll => 'الكل';
+
+  @override
+  String get vaccineFilterRequired => 'الإجباري';
+
+  @override
+  String get vaccineFilterOptional => 'الاختياري';
+
+  @override
+  String get vaccineFilterOverdue => 'المتأخر';
+
+  @override
+  String get vaccineFilterEmpty => 'مفيش حاجة هنا.';
+
+  @override
+  String get vaccinePlanTitle => 'خطة التطعيم';
+
+  @override
+  String get vaccineRouteTitle => 'الحقن بتتاخد إزاي؟';
+
+  @override
+  String get vaccineRouteGovernment => 'مكتب الصحة (ببلاش)';
+
+  @override
+  String get vaccineRouteGovernmentHint =>
+      'الخماسي وحقنة شلل الأطفال (سولك) كل واحدة لوحدها، وجرعة منشطة من الثلاثي البكتيري عند سنة ونص.';
+
+  @override
+  String get vaccineRouteHexavalent => 'السداسي (خاص)';
+
+  @override
+  String get vaccineRouteHexavalentHint =>
+      'حقنة سداسي واحدة بدل الخماسي وسولك عند شهرين و4 و6 شهور، وجرعة منشطة سداسي عند سنة ونص. نقط شلل الأطفال والدرن والكبدي ب عند الولادة والثلاثي الفيروسي زي ما هما.';
+
+  @override
+  String get vaccineOptionalTitle => 'التطعيمات الاختيارية اللي ماشيين عليها';
+
+  @override
+  String get vaccineOptionalHint =>
+      'مش في جدول الوزارة المجاني. اسأل دكتور الطفل ياخد أنهي واحد؛ اللي بتعلّم عليه بس هو اللي بنفكّرك بيه أو نعتبره متأخر.';
+
+  @override
+  String get vaccineSetupTitle => 'تجهيز التطعيمات';
+
+  @override
+  String get vaccineSetupOpen => 'الخطة والجرعات اللي اتاخدت';
+
+  @override
+  String get vaccineSetupGiven => 'الجرعات اللي اتاخدت';
+
+  @override
+  String get vaccineSetupGivenHint =>
+      'علّم على اللي في كارت الطفل. التاريخ هو ميعاد الجرعة إلا لو غيّرته.';
+
+  @override
+  String get vaccineSetupNoneYet => 'لسه مفيش جرعات جه ميعادها.';
+
+  @override
+  String get vaccineSetupSkip => 'بعدين';
+
+  @override
+  String get vaccineSetupSaved => 'التطعيمات اتحفظت';
+
+  @override
+  String get vaccineChangeDate => 'غيّر التاريخ';
+
+  @override
+  String get vaccineDoseGiven => 'اتاخدت';
+
+  @override
+  String get vaccineDoseDate => 'تاريخ الجرعة';
+
+  @override
+  String get vaccineDoseNote => 'ملاحظة';
+
+  @override
+  String get vaccineDoseNoteHint =>
+      'مثلاً: اتاخدت في العيادة، سخونية خفيفة بعدها';
+
+  @override
+  String vaccineDueOn(String date) {
+    return 'ميعادها $date';
+  }
+
+  @override
+  String get vaccineNextVisit => 'ميعاد التطعيم الجاي';
+
+  @override
+  String vaccineInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'بعد $days يوم',
+      few: 'بعد $days أيام',
+      two: 'بعد يومين',
+      one: 'بكره',
+      zero: 'النهارده',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'كان ميعاده من $days يوم',
+      few: 'كان ميعاده من $days أيام',
+      two: 'كان ميعاده من يومين',
+      one: 'كان ميعاده امبارح',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count جرعة متأخرة',
+      few: '$count جرعات متأخرة',
+      two: 'جرعتين متأخرين',
+      one: 'جرعة متأخرة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get vaccineAllDone => 'كل التطعيمات اللي في الخطة اتاخدت';
+
+  @override
+  String get vaccineOpenAll => 'كل التطعيمات';
+
+  @override
+  String get homeVaccinesTitle => 'التطعيمات';
+
+  @override
+  String get vaccineChannelName => 'مواعيد التطعيمات';
+
+  @override
+  String get vaccineReminderDiscreetTitle => 'فيه ميعاد تطعيم قرّب';
+
+  @override
+  String get vaccineReminderDiscreetTodayTitle => 'فيه ميعاد تطعيم النهارده';
+
+  @override
+  String get vaccineReminderDiscreetBody => 'افتح أسرة عشان تشوف التفاصيل';
+
+  @override
+  String vaccineReminderWeekTitle(String name) {
+    return '$name: تطعيمات بعد أسبوع';
+  }
+
+  @override
+  String vaccineReminderTodayTitle(String name) {
+    return '$name: تطعيمات النهارده';
+  }
+
+  @override
+  String get settingsVaccineReminders => 'تنبيهات التطعيمات';
+
+  @override
+  String settingsVaccineRemindersHint(String time) {
+    return 'قبلها بأسبوع ويوم الميعاد، الساعة $time';
+  }
+
+  @override
+  String get settingsVaccineReminderTime => 'ساعة التنبيه';
+
+  @override
+  String get vaccineSources => 'المصادر';
 }

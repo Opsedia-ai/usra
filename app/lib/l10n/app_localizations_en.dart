@@ -599,11 +599,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Curves: WHO Child Growth Standards (3rd, 15th, 50th, 85th and 97th percentiles). For information only; your pediatrician reads your child\'s growth.';
 
   @override
-  String get vaccinesTitle => 'Mandatory vaccinations';
+  String get vaccinesTitle => 'Vaccinations';
 
   @override
-  String get vaccinesDisclaimer =>
-      'Based on the Egyptian Ministry of Health and Population\'s mandatory schedule. Schedules change, so the child\'s health office card is the official record.';
+  String vaccinesDisclaimer(String date) {
+    return 'Required doses follow the Egyptian Ministry of Health and Population\'s schedule; optional ones follow common private-practice schedules (checked $date). For information only: schedules change, and the child\'s health office card and doctor are the reference.';
+  }
 
   @override
   String get vaccineAtBirth => 'At birth';
@@ -999,7 +1000,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get fuVaccinesDue => 'Mandatory vaccines';
+  String get fuVaccinesDue => 'Vaccinations';
 
   @override
   String fuVaccinesAt(String age, String names) {
@@ -2314,4 +2315,219 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get doseReminderDiscreetBody => 'Open Usra to see which';
+
+  @override
+  String get memberVaccines => 'Vaccinations';
+
+  @override
+  String get vaccineHexa => 'Hexavalent';
+
+  @override
+  String get vaccinePcv => 'Pneumococcal (PCV)';
+
+  @override
+  String get vaccineRota => 'Rotavirus';
+
+  @override
+  String get vaccineVaricella => 'Chickenpox (varicella)';
+
+  @override
+  String get vaccineHepA => 'Hepatitis A';
+
+  @override
+  String get vaccineMening => 'Meningococcal (MenACWY)';
+
+  @override
+  String get vaccineFlu => 'Influenza (flu)';
+
+  @override
+  String vaccineBoosterDose(String name) {
+    return '$name, booster';
+  }
+
+  @override
+  String get vaccineRequired => 'Required';
+
+  @override
+  String get vaccineOptional => 'Optional';
+
+  @override
+  String get vaccineNotFollowed => 'Not in your plan';
+
+  @override
+  String vaccineRequiredDone(int done, int total) {
+    return '$done/$total required done';
+  }
+
+  @override
+  String vaccineOptionalDone(int done, int total) {
+    return '$done/$total optional done';
+  }
+
+  @override
+  String get vaccineFilterAll => 'All';
+
+  @override
+  String get vaccineFilterRequired => 'Required';
+
+  @override
+  String get vaccineFilterOptional => 'Optional';
+
+  @override
+  String get vaccineFilterOverdue => 'Overdue';
+
+  @override
+  String get vaccineFilterEmpty => 'Nothing here.';
+
+  @override
+  String get vaccinePlanTitle => 'Vaccine plan';
+
+  @override
+  String get vaccineRouteTitle => 'How are the injections given?';
+
+  @override
+  String get vaccineRouteGovernment => 'Health office (free)';
+
+  @override
+  String get vaccineRouteGovernmentHint =>
+      'Pentavalent and the polio injection (IPV) as separate shots, with a DTP booster at 18 months.';
+
+  @override
+  String get vaccineRouteHexavalent => 'Private hexavalent';
+
+  @override
+  String get vaccineRouteHexavalentHint =>
+      'One hexavalent shot instead of pentavalent + IPV at 2, 4 and 6 months, and a hexavalent booster at 18 months. Oral polio drops, BCG, hepatitis B at birth and MMR stay the same.';
+
+  @override
+  String get vaccineOptionalTitle => 'Optional vaccines you follow';
+
+  @override
+  String get vaccineOptionalHint =>
+      'Not on the ministry\'s free schedule. Ask the child\'s doctor which ones to give; only the ones you tick are reminded or counted late.';
+
+  @override
+  String get vaccineSetupTitle => 'Set up vaccinations';
+
+  @override
+  String get vaccineSetupOpen => 'Plan and doses given';
+
+  @override
+  String get vaccineSetupGiven => 'Doses already given';
+
+  @override
+  String get vaccineSetupGivenHint =>
+      'Tick what\'s on the child\'s card. The date is the due date unless you change it.';
+
+  @override
+  String get vaccineSetupNoneYet => 'No doses are due yet.';
+
+  @override
+  String get vaccineSetupSkip => 'Later';
+
+  @override
+  String get vaccineSetupSaved => 'Vaccinations saved';
+
+  @override
+  String get vaccineChangeDate => 'Change date';
+
+  @override
+  String get vaccineDoseGiven => 'Given';
+
+  @override
+  String get vaccineDoseDate => 'Date given';
+
+  @override
+  String get vaccineDoseNote => 'Note';
+
+  @override
+  String get vaccineDoseNoteHint =>
+      'e.g. given at the clinic, slight fever after';
+
+  @override
+  String vaccineDueOn(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String get vaccineNextVisit => 'Next vaccine visit';
+
+  @override
+  String vaccineInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'In $days days',
+      one: 'Tomorrow',
+      zero: 'Today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Was due $days days ago',
+      one: 'Was due yesterday',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count doses overdue',
+      one: '1 dose overdue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get vaccineAllDone => 'All planned vaccines are given';
+
+  @override
+  String get vaccineOpenAll => 'All vaccinations';
+
+  @override
+  String get homeVaccinesTitle => 'Vaccines';
+
+  @override
+  String get vaccineChannelName => 'Vaccine reminders';
+
+  @override
+  String get vaccineReminderDiscreetTitle => 'A vaccine visit is coming up';
+
+  @override
+  String get vaccineReminderDiscreetTodayTitle => 'A vaccine visit is today';
+
+  @override
+  String get vaccineReminderDiscreetBody => 'Open Usra to see the details';
+
+  @override
+  String vaccineReminderWeekTitle(String name) {
+    return '$name: vaccines in a week';
+  }
+
+  @override
+  String vaccineReminderTodayTitle(String name) {
+    return '$name: vaccines today';
+  }
+
+  @override
+  String get settingsVaccineReminders => 'Vaccine reminders';
+
+  @override
+  String settingsVaccineRemindersHint(String time) {
+    return 'A week before and on the day, at $time';
+  }
+
+  @override
+  String get settingsVaccineReminderTime => 'Reminder time';
+
+  @override
+  String get vaccineSources => 'Sources';
 }

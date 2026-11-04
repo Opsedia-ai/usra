@@ -25,9 +25,16 @@ class ReminderRef {
     required this.scheduledAt,
     required this.locale,
     this.at,
+    this.profileId,
   });
 
+  /// Empty for a vaccine visit.
   final String medicineId;
+
+  /// The child, for a vaccine visit reminder; null for a dose.
+  final String? profileId;
+
+  bool get isVaccine => profileId != null;
 
   /// The dose's planned time, the key its log is saved under.
   final DateTime scheduledAt;
@@ -40,7 +47,7 @@ class ReminderRef {
   final String locale;
 
   String toPayload() => jsonEncode({
-    'm': medicineId,
+    if (profileId != null) 'v': profileId else 'm': medicineId,
     's': scheduledAt.toUtc().millisecondsSinceEpoch,
     if (at != null) 'a': at!.toUtc().millisecondsSinceEpoch,
     'l': locale,
@@ -55,8 +62,10 @@ class ReminderRef {
       if (j is! Map) return null;
       DateTime utc(Object? ms) =>
           DateTime.fromMillisecondsSinceEpoch(ms! as int, isUtc: true);
+      final child = j['v'] as String?;
       return ReminderRef(
-        medicineId: j['m'] as String,
+        medicineId: child == null ? j['m'] as String : '',
+        profileId: child,
         scheduledAt: utc(j['s']),
         at: j['a'] == null ? null : utc(j['a']),
         locale: j['l'] as String? ?? 'ar',
@@ -79,7 +88,23 @@ class PlannedReminder {
     required this.takenLabel,
     required this.snoozeLabel,
     this.locale = 'ar',
+    this.profileId,
   });
+
+  /// A vaccine visit for this child, with no buttons (see
+  /// `vaccine_reminders.dart`); [medicineId] is empty then.
+  PlannedReminder.vaccine({
+    required this.id,
+    required this.at,
+    required String this.profileId,
+    required DateTime dueOn,
+    required this.title,
+    required this.body,
+    this.locale = 'ar',
+  }) : medicineId = '',
+       scheduledAt = dueOn,
+       takenLabel = null,
+       snoozeLabel = null;
 
   final int id;
 
@@ -93,10 +118,18 @@ class PlannedReminder {
   final String body;
 
   /// The Taken button; none in discreet mode, where two identical
-  /// notifications could each mark someone else's dose.
+  /// notifications could each mark someone else's dose, nor on a vaccine
+  /// visit.
   final String? takenLabel;
-  final String snoozeLabel;
+
+  /// None on a vaccine visit: a week's notice needs no snooze.
+  final String? snoozeLabel;
   final String locale;
+
+  /// The child, for a vaccine visit.
+  final String? profileId;
+
+  bool get isVaccine => profileId != null;
 
   bool get discreet => takenLabel == null;
 
@@ -105,6 +138,7 @@ class PlannedReminder {
     scheduledAt: scheduledAt,
     at: at,
     locale: locale,
+    profileId: profileId,
   );
 
   String toPayload() => ref.toPayload();

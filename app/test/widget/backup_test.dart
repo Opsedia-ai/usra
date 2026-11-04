@@ -418,6 +418,9 @@ void main() {
       expect(tester.widget<SwitchListTile>(block).value, isFalse);
       expect(tester.widget<SwitchListTile>(discreet).value, isTrue);
 
+      // The settings list is taller than the test screen.
+      await tester.ensureVisible(block);
+      await tester.pumpAndSettle();
       await tester.tap(block);
       await tester.pumpAndSettle();
       expect(secure, [false, true]);
@@ -428,6 +431,8 @@ void main() {
       expect(secure, [false, true]);
 
       await go(tester, '/settings');
+      await tester.ensureVisible(discreet);
+      await tester.pumpAndSettle();
       await tester.tap(discreet);
       await tester.pumpAndSettle();
       expect(prefs.getBool(PrefKeys.discreetNotifications), isFalse);

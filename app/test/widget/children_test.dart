@@ -88,7 +88,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('member-growth')));
     await tester.pumpAndSettle();
 
-    expect(find.text('التطعيمات الإجبارية'), findsOneWidget);
+    expect(find.byKey(const ValueKey('vaccine-summary')), findsOneWidget);
     expect(
       chipText('growth-status-weight', 'في المدى المعتاد'),
       findsOneWidget,
@@ -97,11 +97,20 @@ void main() {
       chipText('growth-status-height', 'اتكلم مع دكتور الأطفال'),
       findsOneWidget,
     );
+    // Two of the 18 required doses are recorded.
+    expect(chipText('vaccine-required-$kid', '2/18'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('vaccine-open-all')));
+    await tester.pumpAndSettle();
     expect(chipText('dose-opv-0', 'اتاخد'), findsOneWidget);
     expect(chipText('dose-hepB-0', 'متأخر'), findsOneWidget);
     expect(chipText('dose-bcg-1', 'اتاخد'), findsOneWidget);
     expect(chipText('dose-mmr-1', 'معاده'), findsNothing);
     expect(find.textContaining('كارت التطعيم'), findsOneWidget);
+    // Optional vaccines aren't followed by default: never overdue.
+    expect(find.byKey(const ValueKey('dose-pcv-1')), findsNothing);
+
+    router.go('/family/$kid/growth');
+    await tester.pumpAndSettle();
 
     // A new measurement goes through the generic record form.
     await tester.tap(find.byKey(const ValueKey('growth-add')));

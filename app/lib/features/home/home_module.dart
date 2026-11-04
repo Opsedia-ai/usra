@@ -9,6 +9,7 @@ import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
 import '../../l10n/app_localizations.dart';
 import '../backup/backup_notices.dart';
+import '../children/vaccines_screen.dart' show HomeVaccines;
 import '../family/family_screen.dart';
 import '../follow_ups/follow_ups_section.dart';
 import '../pregnancy/pregnancy_widgets.dart';
@@ -65,6 +66,7 @@ class HomeScreen extends ConsumerWidget {
         const SizedBox(height: 24),
         const _EmergencyCards(),
         const HomePregnancies(),
+        const HomeVaccines(),
         const HomeFollowUps(),
         Card(
           child: Padding(

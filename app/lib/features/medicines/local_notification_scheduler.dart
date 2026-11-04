@@ -12,6 +12,9 @@ import '../../l10n/app_localizations.dart';
 import 'reminders.dart';
 
 const _channelId = 'doses';
+
+/// Vaccine visits ring on their own channel, so either can be silenced.
+const _vaccineChannelId = 'vaccines';
 const _category = 'dose';
 
 /// Discreet reminders: Snooze only (iOS fixes a category's buttons).
@@ -43,6 +46,7 @@ class LocalNotificationScheduler implements ReminderScheduler {
   /// app's language (iOS fixes action labels here, once per launch).
   static Future<LocalNotificationScheduler> init({
     required String channelName,
+    required String vaccineChannelName,
     required String takenLabel,
     required String snoozeLabel,
     required String hiddenPreviewText,
@@ -66,6 +70,13 @@ class LocalNotificationScheduler implements ReminderScheduler {
         _channelId,
         channelName,
         importance: Importance.max,
+      ),
+    );
+    await android?.createNotificationChannel(
+      AndroidNotificationChannel(
+        _vaccineChannelId,
+        vaccineChannelName,
+        importance: Importance.high,
       ),
     );
     if (Platform.isIOS) await _hideLockScreenText(hiddenPreviewText);
@@ -244,7 +255,9 @@ class LocalNotificationScheduler implements ReminderScheduler {
       return [
         for (final n in await _plugin.getActiveNotifications())
           if (n.id != null &&
-              (n.channelId == null || n.channelId == _channelId))
+              (n.channelId == null ||
+                  n.channelId == _channelId ||
+                  n.channelId == _vaccineChannelId))
             (id: n.id!, title: n.title, body: n.body, payload: n.payload),
       ];
     } on Object {
@@ -289,10 +302,10 @@ Future<void> _schedule(
 NotificationDetails _details(PlannedReminder r, {bool silent = false}) =>
     NotificationDetails(
       android: AndroidNotificationDetails(
-        _channelId,
+        r.isVaccine ? _vaccineChannelId : _channelId,
         // Only used if the channel was never created; init creates it.
-        _channelId,
-        importance: Importance.max,
+        r.isVaccine ? _vaccineChannelId : _channelId,
+        importance: r.isVaccine ? Importance.high : Importance.max,
         priority: Priority.high,
         category: AndroidNotificationCategory.reminder,
         // Hidden on a secure lock screen when the phone hides sensitive
@@ -302,11 +315,17 @@ NotificationDetails _details(PlannedReminder r, {bool silent = false}) =>
         actions: [
           if (r.takenLabel case final taken?)
             AndroidNotificationAction(takenActionId, taken),
-          AndroidNotificationAction(snoozeActionId, r.snoozeLabel),
+          if (r.snoozeLabel case final snooze?)
+            AndroidNotificationAction(snoozeActionId, snooze),
         ],
       ),
       iOS: DarwinNotificationDetails(
-        categoryIdentifier: r.discreet ? _discreetCategory : _category,
+        // A vaccine visit has no buttons: no category.
+        categoryIdentifier: r.isVaccine
+            ? null
+            : r.discreet
+            ? _discreetCategory
+            : _category,
         presentSound: silent ? false : null,
         presentBanner: silent ? false : null,
       ),

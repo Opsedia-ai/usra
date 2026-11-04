@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../children/growth.dart' show isUnderFive;
 
 const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -106,7 +107,13 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
       );
       return;
     }
-    if (mounted) context.go('/family/$savedId');
+    if (!mounted) return;
+    // A new young child: tick the vaccines they already had.
+    if (id == null && isUnderFive(_birthDate, DateTime.now())) {
+      context.go('/family/$savedId/vaccines/setup?first=1');
+    } else {
+      context.go('/family/$savedId');
+    }
   }
 
   @override

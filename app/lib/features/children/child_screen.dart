@@ -12,9 +12,9 @@ import '../../core/design/tokens.dart';
 import '../../core/records/record_type.dart' show decodeRecordData;
 import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
-import 'egypt_vaccines.dart';
 import 'growth.dart';
 import 'growth_check.dart';
+import 'vaccines_screen.dart' show VaccineSummaryCard;
 
 /// One measurement on a chart: age in months and the value.
 typedef GrowthPoint = ({double months, double value, DateTime date});
@@ -35,22 +35,6 @@ List<GrowthPoint> growthPoints(
             (months: m, value: v.toDouble(), date: e.occurredAt),
   ];
 }
-
-/// The child's `vaccine` records, for matching against the schedule.
-List<VaccineRecord> vaccineRecords(List<MedicalEvent> events) => [
-  for (final e in events)
-    if (e.type == 'vaccine')
-      if (decodeRecordData(e.dataJson) case final data)
-        if (data['vaccine'] case final String name)
-          (
-            name: name,
-            dose: switch (data['dose']) {
-              final num d => d.toInt(),
-              _ => null,
-            },
-            date: e.occurredAt,
-          ),
-];
 
 /// Growth charts and the vaccination schedule for a child under five.
 ///
@@ -133,18 +117,8 @@ class _Body extends StatelessWidget {
         ],
         const SizedBox(height: 28),
         Text(l.vaccinesTitle, style: text.titleLarge),
-        const SizedBox(height: 6),
-        Text(
-          l.vaccinesDisclaimer,
-          style: text.bodySmall?.copyWith(color: UsraColors.textMuted),
-        ),
         const SizedBox(height: 8),
-        for (final status in matchSchedule(
-          birthDate: birth,
-          records: vaccineRecords(events),
-          now: now,
-        ))
-          _DoseTile(status: status),
+        VaccineSummaryCard(profile: profile),
       ],
     );
   }
@@ -416,48 +390,3 @@ class _ChartPainter extends CustomPainter {
       old.male != male ||
       old.indicator != indicator;
 }
-
-class _DoseTile extends StatelessWidget {
-  const _DoseTile({required this.status});
-
-  final DoseStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    String date(DateTime d) => DateFormat.yMMMd(locale).format(d);
-    final dose = status.dose;
-    final label = switch (status.state) {
-      DoseState.done => l.vaccineDone(date(status.givenOn!)),
-      DoseState.overdue => l.vaccineOverdue(date(status.dueOn)),
-      DoseState.due => l.vaccineDue(date(status.dueOn)),
-      DoseState.later => l.vaccineLater(date(status.dueOn)),
-    };
-    return ListTile(
-      key: ValueKey('dose-${dose.kind.name}-${dose.dose}'),
-      contentPadding: EdgeInsets.zero,
-      title: Text(
-        dose.dose == 0
-            ? l.vaccineZeroDose(vaccineName(l, dose.kind))
-            : l.vaccineDoseName(vaccineName(l, dose.kind), dose.dose),
-      ),
-      subtitle: Text(
-        dose.ageMonths == 0
-            ? l.vaccineAtBirth
-            : l.vaccineAtMonths(dose.ageMonths),
-      ),
-      trailing: SeverityChip(severity: status.state.severity, label: label),
-    );
-  }
-}
-
-String vaccineName(AppLocalizations l, VaccineKind kind) => switch (kind) {
-  VaccineKind.hepB => l.vaccineHepB,
-  VaccineKind.bcg => l.vaccineBcg,
-  VaccineKind.opv => l.vaccineOpv,
-  VaccineKind.ipv => l.vaccineIpv,
-  VaccineKind.penta => l.vaccinePenta,
-  VaccineKind.mmr => l.vaccineMmr,
-  VaccineKind.dtp => l.vaccineDtp,
-};

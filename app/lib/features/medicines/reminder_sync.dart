@@ -21,6 +21,7 @@ class ReminderSync with WidgetsBindingObserver {
     required this.inbox,
     required this.texts,
     this.widget,
+    this.vaccines,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
 
@@ -34,6 +35,10 @@ class ReminderSync with WidgetsBindingObserver {
 
   /// The home-screen widget; none in tests that don't need it.
   final WidgetSnapshotPublisher? widget;
+
+  /// Vaccine visit reminders to schedule alongside the doses (see
+  /// `children/vaccine_reminders.dart`); none when null.
+  final Future<List<PlannedReminder>> Function(DateTime now)? vaccines;
   final DateTime Function() _clock;
 
   StreamSubscription<void>? _changes;
@@ -51,6 +56,8 @@ class ReminderSync with WidgetsBindingObserver {
             db.medicines,
             db.doseSchedules,
             db.doseLogs,
+            // Vaccine doses ticked and vaccine plans changed.
+            db.medicalEvents,
           ]),
         )
         .listen((_) => _soon());
@@ -118,12 +125,25 @@ class ReminderSync with WidgetsBindingObserver {
     }
     // Each on its own: a broken widget never stops reminders.
     final t = texts();
+    var vaccineReminders = const <PlannedReminder>[];
+    try {
+      vaccineReminders = await vaccines?.call(now) ?? const [];
+    } catch (e, s) {
+      // Dose reminders still go out.
+      _report(e, s);
+    }
     try {
       await scheduler.replaceAll(
-        planReminders(regimens, logs, now: now, texts: t),
+        [
+          ...planReminders(regimens, logs, now: now, texts: t),
+          ...vaccineReminders,
+        ]..sort((a, b) => a.at.compareTo(b.at)),
         doneSnoozes: doneSnoozeIds(logs),
         // Snoozes and notifications on screen follow the settings too.
         rebuild: (id, ref, at) {
+          if (ref.isVaccine) {
+            return vaccineReminders.where((r) => r.id == id).firstOrNull;
+          }
           final r = _regimenOf(regimens, ref.medicineId);
           return r == null
               ? null
@@ -171,6 +191,8 @@ class ReminderSync with WidgetsBindingObserver {
 
   /// A Taken or Snooze action handled while the app is running.
   Future<void> handleAction(ReminderRef dose, String status) async {
+    // Vaccine visits have no buttons.
+    if (dose.isVaccine) return;
     final now = _clock();
     final saved = await _save(dose.medicineId, dose.scheduledAt, status, now);
     if (!saved || status != DoseOutcome.snoozed) return;

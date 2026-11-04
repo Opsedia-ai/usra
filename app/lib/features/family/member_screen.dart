@@ -117,6 +117,14 @@ class MemberScreen extends ConsumerWidget {
                       icon: const Icon(Icons.child_care_outlined),
                       label: Text(l.memberGrowth),
                     ),
+                  if (isUnderFive(p.birthDate, DateTime.now()))
+                    OutlinedButton.icon(
+                      key: const ValueKey('member-vaccines'),
+                      onPressed: () =>
+                          context.go('/family/$profileId/vaccines'),
+                      icon: const Icon(Icons.vaccines_outlined),
+                      label: Text(l.memberVaccines),
+                    ),
                   if (showsMilestones(p.birthDate, DateTime.now()))
                     OutlinedButton.icon(
                       key: const ValueKey('member-development'),
