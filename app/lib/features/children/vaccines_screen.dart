@@ -6,11 +6,13 @@ import 'package:intl/intl.dart' show DateFormat;
 import '../../core/database/app_database.dart';
 import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
+import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/family_screen.dart' show profilesProvider;
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import '../follow_ups/follow_ups_providers.dart' show todayProvider;
+import '../medicines/medicines_providers.dart' show reminderSchedulerProvider;
 import 'child_vaccines.dart';
 import 'egypt_vaccine_sources.dart';
 import 'egypt_vaccines.dart';
@@ -28,6 +30,37 @@ ChildVaccines? watchChildVaccines(WidgetRef ref, Profile profile) {
 
 String _fmt(BuildContext context, DateTime d) =>
     DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag()).format(d);
+
+/// Picks the day a dose was given: from the birth date (or the recorded
+/// date, if a record says earlier) to today.
+Future<DateTime?> pickGivenDate(
+  BuildContext context, {
+  required DateTime initial,
+  required DateTime birthDate,
+}) {
+  final now = DateTime.now();
+  final start = givenDateOn(initial, now);
+  return showDatePicker(
+    context: context,
+    initialDate: start,
+    firstDate: start.isBefore(birthDate) ? start : birthDate,
+    lastDate: now,
+  );
+}
+
+/// Vaccine reminders need notifications, which until now were only asked
+/// for from the Medicines tab: ask once the family has a vaccine plan (the
+/// phone shows its prompt only the first time). Never blocks saving.
+Future<void> askForReminderAccess(WidgetRef ref) async {
+  if (!ref.read(vaccineRemindersProvider)) return;
+  try {
+    final scheduler = ref.read(reminderSchedulerProvider);
+    if ((await scheduler.access()).notifications) return;
+    await scheduler.requestAccess(exactAlarms: false);
+  } catch (_) {
+    // No notifications on this phone; the vaccine page still works.
+  }
+}
 
 /// The next visit as a chip label and colour; null when nothing is left.
 (String, Severity)? nextVisitChip(
@@ -443,7 +476,11 @@ class _DoseSheet extends ConsumerStatefulWidget {
 
 class _DoseSheetState extends ConsumerState<_DoseSheet> {
   late bool _given = widget.status.done;
-  late DateTime _date = widget.status.givenOn ?? widget.status.dueOn;
+  // A dose not yet given defaults to its due date, never a future one.
+  late DateTime _date = givenDateOn(
+    widget.status.givenOn ?? widget.status.dueOn,
+    DateTime.now(),
+  );
   late final _note = TextEditingController(
     text: widget.child.plan.notes[widget.status.dose.key] ?? '',
   );
@@ -470,13 +507,14 @@ class _DoseSheetState extends ConsumerState<_DoseSheet> {
           dataJson: plan.toJson(),
         );
       }
-      final dateChanged =
-          s.givenOn != null && !DateUtils.isSameDay(s.givenOn, _date);
-      if (_given != s.done || (_given && dateChanged)) {
+      final changes = vaccineRecordChanges(l, child.statuses, {
+        s.dose.key: _given ? _date : null,
+      });
+      if (changes.add.isNotEmpty || changes.remove.isNotEmpty) {
         await db.replaceEvents(
           profileId: child.profile.id,
-          remove: s.done ? s.recordIds : const [],
-          add: [if (_given) vaccineRecordFor(l, s.dose, _date)],
+          remove: changes.remove,
+          add: changes.add,
         );
       }
     } catch (_) {
@@ -527,13 +565,10 @@ class _DoseSheetState extends ConsumerState<_DoseSheet> {
               title: Text(l.vaccineDoseDate),
               subtitle: Text(_fmtc(_date)),
               onTap: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: _date.isAfter(DateTime.now())
-                      ? DateTime.now()
-                      : _date,
-                  firstDate: widget.child.profile.birthDate!,
-                  lastDate: DateTime.now(),
+                final picked = await pickGivenDate(
+                  context,
+                  initial: _date,
+                  birthDate: widget.child.profile.birthDate!,
                 );
                 if (picked != null) setState(() => _date = picked);
               },
@@ -736,13 +771,10 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
                     tooltip: l.vaccineChangeDate,
                     icon: const Icon(Icons.edit_calendar_outlined),
                     onPressed: () async {
-                      final now = DateTime.now();
-                      final initial = _dateOf(s);
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: initial.isAfter(now) ? now : initial,
-                        firstDate: profile.birthDate!,
-                        lastDate: now,
+                      final picked = await pickGivenDate(
+                        context,
+                        initial: _dateOf(s),
+                        birthDate: profile.birthDate!,
                       );
                       if (picked != null) {
                         setState(() => _dates[s.dose.key] = picked);
@@ -755,7 +787,9 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
         FilledButton(
           key: const ValueKey('vaccine-setup-save'),
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-          onPressed: _saving ? null : () => _save(profile, plan, checklist),
+          onPressed: _saving
+              ? null
+              : () => _save(profile, plan, statuses, checklist),
           child: Text(l.familySave),
         ),
       ],
@@ -764,15 +798,13 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
 
   /// The given date for a ticked dose: its record's, the one chosen, or
   /// the due date (never in the future).
-  DateTime _dateOf(DoseStatus s) {
-    final d = s.givenOn ?? _dates[s.dose.key] ?? s.dueOn;
-    final now = DateTime.now();
-    return d.isAfter(now) ? DateTime(now.year, now.month, now.day) : d;
-  }
+  DateTime _dateOf(DoseStatus s) =>
+      givenDateOn(s.givenOn ?? _dates[s.dose.key] ?? s.dueOn, DateTime.now());
 
   Future<void> _save(
     Profile profile,
     VaccinePlan plan,
+    List<DoseStatus> statuses,
     List<DoseStatus> checklist,
   ) async {
     final l = AppLocalizations.of(context);
@@ -785,16 +817,14 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
         type: VaccinePlanFields.type,
         dataJson: plan.toJson(),
       );
+      final changes = vaccineRecordChanges(l, statuses, {
+        for (final s in checklist)
+          if (ticked(s) != s.done) s.dose.key: ticked(s) ? _dateOf(s) : null,
+      });
       await db.replaceEvents(
         profileId: profile.id,
-        remove: [
-          for (final s in checklist)
-            if (s.done && !ticked(s)) ...s.recordIds,
-        ],
-        add: [
-          for (final s in checklist)
-            if (!s.done && ticked(s)) vaccineRecordFor(l, s.dose, _dateOf(s)),
-        ],
+        remove: changes.remove,
+        add: changes.add,
       );
     } catch (_) {
       if (!mounted) return;
@@ -803,6 +833,8 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
           .showSnackBar(SnackBar(content: Text(l.saveFailed)));
       return;
     }
+    if (!mounted) return;
+    await askForReminderAccess(ref);
     if (!mounted) return;
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(l.vaccineSetupSaved)));

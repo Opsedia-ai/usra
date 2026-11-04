@@ -12,6 +12,7 @@ import '../../core/security/app_lock.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/account_screen.dart';
 import '../backup/backup_screen.dart';
+import '../children/vaccines_screen.dart' show askForReminderAccess;
 import 'about_privacy_screen.dart';
 
 class SettingsModule extends FeatureModule {
@@ -225,8 +226,10 @@ class _VaccineReminderSettings extends ConsumerWidget {
         SwitchListTile(
           key: const ValueKey('settings-vaccine-reminders'),
           value: on,
-          onChanged: (v) =>
-              guarded(() => ref.read(vaccineRemindersProvider.notifier).set(v)),
+          onChanged: (v) => guarded(() async {
+            await ref.read(vaccineRemindersProvider.notifier).set(v);
+            if (v) await askForReminderAccess(ref);
+          }),
           secondary: const Icon(Icons.vaccines_outlined),
           title: Text(l.settingsVaccineReminders),
           subtitle: Text(l.settingsVaccineRemindersHint(time.format(context))),

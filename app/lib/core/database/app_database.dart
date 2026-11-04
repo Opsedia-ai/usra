@@ -365,6 +365,20 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  /// Emits when a record of [types] is added, changed or deleted (and
+  /// once at the start); changes to other records don't.
+  Stream<void> watchEventChanges(Set<String> types) =>
+      (select(medicalEvents)..where((e) => e.type.isIn(types)))
+          .watch()
+          .map(
+            (rows) => [
+              for (final e in rows)
+                '${e.id}:${e.updatedAt.microsecondsSinceEpoch}:'
+                    '${e.deletedAt != null}',
+            ].join(','),
+          )
+          .distinct();
+
   /// Live records of [types], for everyone in the family, oldest first.
   Future<List<MedicalEvent>> eventsOfTypes(Set<String> types) {
     final query =

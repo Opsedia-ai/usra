@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../../core/design/tokens.dart';
+import '../../core/follow_ups/follow_up.dart' show dayOf;
 import 'growth.dart';
 
 /// A vaccine on Egypt's childhood schedules: the ministry's required ones
@@ -499,13 +500,11 @@ List<DoseStatus> matchSchedule({
     if (open != null) give(open, r);
   }
 
-  final today = DateTime.utc(now.year, now.month, now.day);
+  final today = dayOf(now);
   DoseState stateOf(ScheduledDose dose, DateTime due) {
     if (given.containsKey(dose)) return DoseState.done;
     if (!plan.follows(dose)) return DoseState.notFollowed;
-    final days = today
-        .difference(DateTime.utc(due.year, due.month, due.day))
-        .inDays;
+    final days = today.difference(dayOf(due)).inDays;
     if (days > overdueAfterDays) return DoseState.overdue;
     if (days >= -dueSoonDays) return DoseState.due;
     return DoseState.later;
@@ -571,13 +570,8 @@ class NextVaccineVisit {
 
   /// Days from [today] to [date]; negative when it has passed (still
   /// within the month's grace).
-  int? daysFrom(DateTime today) => date == null
-      ? null
-      : DateTime.utc(
-          date!.year,
-          date!.month,
-          date!.day,
-        ).difference(DateTime.utc(today.year, today.month, today.day)).inDays;
+  int? daysFrom(DateTime today) =>
+      date == null ? null : dayOf(date!).difference(dayOf(today)).inDays;
 
   bool get isEmpty => date == null && overdue.isEmpty;
 

@@ -4159,6 +4159,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sources'**
   String get vaccineSources;
+
+  /// No description provided for @reminderHiddenPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'A reminder from Usra'**
+  String get reminderHiddenPreview;
 }
 
 class _AppLocalizationsDelegate

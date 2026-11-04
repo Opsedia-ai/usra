@@ -2547,4 +2547,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get vaccineSources => 'المصادر';
+
+  @override
+  String get reminderHiddenPreview => 'تنبيه من أسرة';
 }

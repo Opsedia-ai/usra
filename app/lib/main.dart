@@ -160,7 +160,7 @@ Future<void> main() async {
       vaccineChannelName: startup.vaccineChannelName,
       takenLabel: startup.doseTaken,
       snoozeLabel: startup.doseSnooze,
-      hiddenPreviewText: startup.doseReminderDiscreetTitle,
+      hiddenPreviewText: startup.reminderHiddenPreview,
       onResponse: onDoseResponse,
     );
   } catch (e, s) {
@@ -201,6 +201,7 @@ Future<void> main() async {
     inbox: inbox,
     texts: () => reminderTextsOf(container()),
     widget: const HomeWidgetSnapshotPublisher(),
+    vaccineChanges: database.watchEventChanges(vaccineRecordTypes),
     vaccines: (now) {
       final c = container();
       final texts = reminderTextsOf(c);

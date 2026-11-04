@@ -1385,5 +1385,6 @@
     }
   },
   "settingsVaccineReminderTime": "Reminder time",
-  "vaccineSources": "Sources"
+  "vaccineSources": "Sources",
+  "reminderHiddenPreview": "A reminder from Usra"
 }

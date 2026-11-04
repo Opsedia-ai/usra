@@ -752,5 +752,6 @@
   "settingsVaccineReminders": "تنبيهات التطعيمات",
   "settingsVaccineRemindersHint": "قبلها بأسبوع ويوم الميعاد، الساعة {time}",
   "settingsVaccineReminderTime": "ساعة التنبيه",
-  "vaccineSources": "المصادر"
+  "vaccineSources": "المصادر",
+  "reminderHiddenPreview": "تنبيه من أسرة"
 }

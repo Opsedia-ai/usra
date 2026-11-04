@@ -77,7 +77,7 @@ class ChildVaccines {
 /// The `vaccine` record the checklist writes for [dose] given on [date]:
 /// the vaccine's name in the app's language (which [vaccineKindsOf] reads
 /// back) and the dose number.
-({String type, DateTime occurredAt, String dataJson}) vaccineRecordFor(
+NewVaccineRecord vaccineRecordFor(
   AppLocalizations l,
   ScheduledDose dose,
   DateTime date,
@@ -120,3 +120,57 @@ String doseName(AppLocalizations l, ScheduledDose dose) {
 /// "At birth", "At 4 months".
 String doseAge(AppLocalizations l, ScheduledDose dose) =>
     dose.ageMonths == 0 ? l.vaccineAtBirth : l.vaccineAtMonths(dose.ageMonths);
+
+/// A record the vaccine screens add.
+typedef NewVaccineRecord = ({
+  String type,
+  DateTime occurredAt,
+  String dataJson,
+});
+
+/// [date] as a calendar day, never later than [today]: a dose can't have
+/// been given in the future.
+DateTime givenDateOn(DateTime date, DateTime today) {
+  final day = DateTime(date.year, date.month, date.day);
+  final last = DateTime(today.year, today.month, today.day);
+  return day.isAfter(last) ? last : day;
+}
+
+/// The records to remove and add so that each dose in [changes] becomes
+/// given on its date (non-null) or not given (null), and nothing else
+/// changes.
+///
+/// One record can count for several doses (a hexavalent shot counts for
+/// pentavalent and IPV on the government route). When such a record has to
+/// go, the other doses it covered get a record of their own, with the same
+/// date, so unticking one dose never unticks another.
+({List<NewVaccineRecord> add, Set<String> remove}) vaccineRecordChanges(
+  AppLocalizations l,
+  List<DoseStatus> statuses,
+  Map<String, DateTime?> changes,
+) {
+  final remove = <String>{};
+  final add = <NewVaccineRecord>[];
+  for (final s in statuses) {
+    if (!changes.containsKey(s.dose.key)) continue;
+    final date = changes[s.dose.key];
+    final unchanged = date == null
+        ? !s.done
+        : s.done && s.givenOn != null && _sameDay(s.givenOn!, date);
+    if (unchanged) continue;
+    if (s.done) remove.addAll(s.recordIds);
+    if (date != null) add.add(vaccineRecordFor(l, s.dose, date));
+  }
+  for (final s in statuses) {
+    if (!s.done || changes.containsKey(s.dose.key) || s.recordIds.isEmpty) {
+      continue;
+    }
+    // Still given through a record that stays: nothing to do.
+    if (!s.recordIds.every(remove.contains)) continue;
+    add.add(vaccineRecordFor(l, s.dose, s.givenOn!));
+  }
+  return (add: add, remove: remove);
+}
+
+bool _sameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;

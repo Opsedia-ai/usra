@@ -10,11 +10,20 @@ import 'package:usra/core/providers.dart';
 import 'package:usra/features/children/child_vaccines.dart';
 import 'package:usra/features/children/egypt_vaccines.dart';
 import 'package:usra/features/children/growth.dart';
+import 'package:usra/features/medicines/medicines_providers.dart';
+import 'package:usra/features/medicines/reminders.dart';
+
+import '../support/fake_reminder_scheduler.dart';
 
 void main() {
   late AppDatabase db;
+  late FakeReminderScheduler scheduler;
 
   setUp(() {
+    // Notifications not allowed yet, as on a phone with no medicines.
+    scheduler = FakeReminderScheduler(
+      granted: const ReminderAccess(notifications: false),
+    )..afterRequest = const ReminderAccess(notifications: true);
     db = AppDatabase(
       DatabaseConnection(
         NativeDatabase.memory(),
@@ -25,7 +34,10 @@ void main() {
   tearDown(() => db.close());
 
   Widget app() => ProviderScope(
-    overrides: [databaseProvider.overrideWithValue(db)],
+    overrides: [
+      databaseProvider.overrideWithValue(db),
+      reminderSchedulerProvider.overrideWithValue(scheduler),
+    ],
     child: const UsraApp(),
   );
 
@@ -78,7 +90,11 @@ void main() {
     for (final key in ['hepB-0', 'bcg-1', 'opv-0', 'hexa-1', 'pcv-1']) {
       await tapKey(tester, 'setup-$key');
     }
+    expect(scheduler.requests, 0);
     await tapKey(tester, 'vaccine-setup-save');
+    // Vaccine reminders need notifications: asked for once the plan is saved.
+    expect(scheduler.requests, 1);
+    expect(scheduler.lastRequestedExactAlarms, isFalse);
 
     // The vaccine page, with the counter.
     expect(find.text('التطعيمات'), findsWidgets);
@@ -180,5 +196,67 @@ void main() {
     await tester.runAsync(() => db.softDeleteProfile(kid));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('home-vaccines')), findsNothing);
+  });
+
+  testWidgets('dose sheet: a later dose is never given in the future, and a '
+      'record from before the birth date can be re-dated', (tester) async {
+    tester.view.physicalSize = const Size(1170, 9000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    final today = DateUtils.dateOnly(DateTime.now());
+    final birth = addMonths(today, -7);
+    final kid = (await tester.runAsync(() async {
+      final kid = await db.addProfile('ليلى', birthDate: birth);
+      // Typed before the birth date was corrected.
+      await db.addEvent(
+        profileId: kid,
+        type: 'vaccine',
+        occurredAt: birth.subtract(const Duration(days: 3)),
+        dataJson: '{"vaccine": "BCG"}',
+      );
+      return kid;
+    }))!;
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    GoRouter.of(tester.element(find.byType(Scaffold).first))
+        .go('/family/$kid/vaccines');
+    await tester.pumpAndSettle();
+
+    // The 9-month polio drops, marked given at 7 months.
+    await tapKey(tester, 'dose-opv-4');
+    await tapKey(tester, 'dose-given');
+    await tapKey(tester, 'dose-save');
+    final records = vaccineRecords(
+      (await tester.runAsync(() => db.watchTimeline(kid).first))!,
+    );
+    final opv = records.firstWhere((r) => r.dose == 4);
+    expect(DateUtils.dateOnly(opv.date), today);
+
+    // The early BCG record opens the date picker without an error.
+    await tapKey(tester, 'dose-bcg-1');
+    await tapKey(tester, 'dose-date');
+    expect(tester.takeException(), isNull);
+    expect(find.byType(DatePickerDialog), findsOneWidget);
+  });
+
+  testWidgets('turning vaccine reminders on in Settings asks for '
+      'notifications', (tester) async {
+    tester.view.physicalSize = const Size(1170, 9000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    GoRouter.of(tester.element(find.byType(Scaffold).first)).go('/settings');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('settings-vaccine-time')), findsOneWidget);
+    await tapKey(tester, 'settings-vaccine-reminders');
+    expect(find.byKey(const ValueKey('settings-vaccine-time')), findsNothing);
+    expect(scheduler.requests, 0);
+    await tapKey(tester, 'settings-vaccine-reminders');
+    expect(scheduler.requests, 1);
+    // Already allowed: not asked again.
+    await tapKey(tester, 'settings-vaccine-reminders');
+    await tapKey(tester, 'settings-vaccine-reminders');
+    expect(scheduler.requests, 1);
   });
 }

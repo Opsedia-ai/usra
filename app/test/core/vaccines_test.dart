@@ -10,6 +10,8 @@ import 'package:usra/features/children/child_vaccines.dart';
 import 'package:usra/features/children/egypt_vaccines.dart';
 import 'package:usra/features/children/growth.dart';
 import 'package:usra/features/children/vaccine_reminders.dart';
+import 'package:usra/features/family/profile_form_screen.dart'
+    show pathAfterProfileSave;
 import 'package:usra/features/medicines/reminder_sync.dart';
 import 'package:usra/features/medicines/reminders.dart';
 import 'package:usra/l10n/app_localizations.dart';
@@ -616,6 +618,220 @@ void main() {
       await sync.resync();
       expect(scheduler.planned, isEmpty);
       sync.dispose();
+    });
+  });
+
+  group('review fixes', () {
+    final birth = DateTime(2026, 1, 1);
+    List<DoseStatus> gov(List<VaccineRecord> records) => matchSchedule(
+      birthDate: birth,
+      records: records,
+      now: DateTime(2026, 5, 2),
+    );
+
+    test('unticking one dose keeps the other dose a shared record covered', () {
+      // On the government route one hexavalent record counts twice.
+      final statuses = gov([
+        rec('Hexa', DateTime(2026, 3, 1), dose: 1, id: 'h'),
+      ]);
+      final c = vaccineRecordChanges(en, statuses, {'ipv-1': null});
+      expect(c.remove, {'h'});
+      expect(c.add, hasLength(1));
+      final added = jsonDecode(c.add.single.dataJson) as Map;
+      expect(vaccineKindsOf(added['vaccine'] as String), {VaccineKind.penta});
+      expect(added['dose'], 1);
+      expect(c.add.single.occurredAt, DateTime(2026, 3, 1, 12));
+
+      // Applied, penta-1 is still given and IPV-1 isn't.
+      final after = gov([
+        for (final a in c.add)
+          rec(
+            (jsonDecode(a.dataJson) as Map)['vaccine'] as String,
+            a.occurredAt,
+            dose: 1,
+          ),
+      ]);
+      String state(String key) =>
+          after.firstWhere((s) => s.dose.key == key).state.name;
+      expect(state('penta-1'), 'done');
+      expect(state('ipv-1'), isNot('done'));
+    });
+
+    test('re-dating one dose keeps the other on its old date', () {
+      final statuses = gov([
+        rec('Hexa', DateTime(2026, 3, 1), dose: 1, id: 'h'),
+      ]);
+      final c = vaccineRecordChanges(en, statuses, {
+        'penta-1': DateTime(2026, 3, 4),
+      });
+      expect(c.remove, {'h'});
+      expect(
+        {for (final a in c.add) a.occurredAt},
+        {DateTime(2026, 3, 4, 12), DateTime(2026, 3, 1, 12)},
+      );
+    });
+
+    test('no change, and a dose with its own second record', () {
+      final statuses = gov([
+        rec('Hexa', DateTime(2026, 3, 1), dose: 1, id: 'h'),
+        rec('Pentavalent', DateTime(2026, 3, 1), dose: 1, id: 'p'),
+      ]);
+      // Same day: nothing to do.
+      final same = vaccineRecordChanges(en, statuses, {
+        'penta-1': DateTime(2026, 3, 1, 18),
+        'pcv-1': null,
+      });
+      expect(same.add, isEmpty);
+      expect(same.remove, isEmpty);
+      // Unticking IPV removes the hexa record; penta-1 still has 'p'.
+      final c = vaccineRecordChanges(en, statuses, {'ipv-1': null});
+      expect(c.remove, {'h'});
+      expect(c.add, isEmpty);
+    });
+
+    test('a given date is never in the future', () {
+      final today = DateTime(2026, 5, 2, 15);
+      expect(givenDateOn(DateTime(2026, 8, 1), today), DateTime(2026, 5, 2));
+      expect(givenDateOn(DateTime(2026, 3, 1, 9), today), DateTime(2026, 3, 1));
+    });
+
+    test('a vaccine notification is rebuilt by its visit, not its id', () {
+      PlannedReminder visit(int id, String child, DateTime due, String title) =>
+          PlannedReminder.vaccine(
+            id: id,
+            at: DateTime(due.year, due.month, due.day, 10),
+            profileId: child,
+            dueOn: due,
+            title: title,
+            body: '',
+          );
+      final laila = visit(
+        vaccineReminderIdBase + 1,
+        'laila',
+        DateTime(2026, 3, 1),
+        'Laila',
+      );
+      // Re-planned: Laila's visit is now second, Youssef's first.
+      final planned = [
+        visit(
+          vaccineReminderIdBase + 1,
+          'youssef',
+          DateTime(2026, 2, 20),
+          'Youssef',
+        ),
+        visit(
+          vaccineReminderIdBase + 2,
+          'laila',
+          DateTime(2026, 3, 1),
+          'Laila (new text)',
+        ),
+      ];
+      final rebuilt = vaccineReminderFor(planned, laila.id, laila.ref)!;
+      expect(rebuilt.id, laila.id);
+      expect(rebuilt.title, 'Laila (new text)');
+      expect(rebuilt.profileId, 'laila');
+      // A visit no longer planned is left alone.
+      expect(
+        vaccineReminderFor(planned.take(1).toList(), laila.id, laila.ref),
+        isNull,
+      );
+    });
+
+    test('the iOS lock-screen placeholder suits doses and vaccines', () {
+      for (final l in [ar, en]) {
+        expect(l.reminderHiddenPreview, isNot(l.doseReminderDiscreetTitle));
+        expect(l.reminderHiddenPreview, isNot(contains('دوا')));
+        expect(l.reminderHiddenPreview, isNot(contains('medicine')));
+      }
+    });
+
+    test('a new child under five goes to the vaccine setup', () {
+      final today = DateTime(2026, 5, 2);
+      expect(
+        pathAfterProfileSave(
+          'k',
+          isNew: true,
+          birthDate: DateTime(2026, 1, 1),
+          today: today,
+        ),
+        '/family/k/vaccines/setup?first=1',
+      );
+      // Edited, grown up, or no birth date: their page.
+      expect(
+        pathAfterProfileSave(
+          'k',
+          isNew: false,
+          birthDate: DateTime(2026, 1, 1),
+          today: today,
+        ),
+        '/family/k',
+      );
+      expect(
+        pathAfterProfileSave(
+          'k',
+          isNew: true,
+          birthDate: DateTime(1990, 1, 1),
+          today: today,
+        ),
+        '/family/k',
+      );
+      expect(
+        pathAfterProfileSave('k', isNew: true, birthDate: null, today: today),
+        '/family/k',
+      );
+    });
+  });
+
+  group('change stream', () {
+    late AppDatabase db;
+    setUp(
+      () => db = AppDatabase(
+        DatabaseConnection(
+          NativeDatabase.memory(),
+          closeStreamsSynchronously: true,
+        ),
+      ),
+    );
+    tearDown(() => db.close());
+
+    test('vaccine records re-plan reminders; other records do not', () async {
+      final id = await db.addProfile('ليلى', birthDate: DateTime(2026, 1, 1));
+      var emitted = 0;
+      final sub = db
+          .watchEventChanges(vaccineRecordTypes)
+          .listen((_) => emitted++);
+      addTearDown(sub.cancel);
+      Future<void> settle() =>
+          Future<void>.delayed(const Duration(milliseconds: 50));
+      await settle();
+      expect(emitted, 1); // the first reading
+      await db.addEvent(
+        profileId: id,
+        type: 'growth',
+        occurredAt: DateTime(2026, 3, 1),
+        dataJson: '{"weightKg": 5}',
+      );
+      await settle();
+      expect(emitted, 1);
+      await db.replaceEvents(
+        profileId: id,
+        add: [
+          vaccineRecordFor(
+            ar,
+            egyptMandatorySchedule.first,
+            DateTime(2026, 1, 1),
+          ),
+        ],
+      );
+      await settle();
+      expect(emitted, 2);
+      await db.saveSingletonEvent(
+        profileId: id,
+        type: VaccinePlanFields.type,
+        dataJson: const VaccinePlan(optional: {VaccineKind.flu}).toJson(),
+      );
+      await settle();
+      expect(emitted, 3);
     });
   });
 }

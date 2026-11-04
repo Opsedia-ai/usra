@@ -250,6 +250,34 @@ List<PlannedReminder> planReminders(
   return out;
 }
 
+/// The current text for the vaccine notification [ref] under [id], found
+/// in [planned] by its child, visit and ringing time (ids are positions in
+/// the plan, so they move when it changes); null if that visit isn't
+/// planned any more, to leave it as it is.
+PlannedReminder? vaccineReminderFor(
+  List<PlannedReminder> planned,
+  int id,
+  ReminderRef ref,
+) {
+  for (final r in planned) {
+    if (r.profileId != ref.profileId ||
+        !r.scheduledAt.isAtSameMomentAs(ref.scheduledAt) ||
+        (ref.at != null && !r.at.isAtSameMomentAs(ref.at!))) {
+      continue;
+    }
+    return PlannedReminder.vaccine(
+      id: id,
+      at: r.at,
+      profileId: r.profileId!,
+      dueOn: r.scheduledAt,
+      title: r.title,
+      body: r.body,
+      locale: r.locale,
+    );
+  }
+  return null;
+}
+
 /// [ref]'s reminder with this [id] ringing [at], in the current text;
 /// null to leave it as it is (its medicine was deleted).
 typedef ReminderRebuild = PlannedReminder? Function(

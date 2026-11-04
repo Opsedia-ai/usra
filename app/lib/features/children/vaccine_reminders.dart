@@ -4,6 +4,9 @@ import '../medicines/reminders.dart' show PlannedReminder, snoozeIdBase;
 import 'child_vaccines.dart';
 import 'egypt_vaccines.dart';
 
+/// The records vaccine reminders are planned from.
+const vaccineRecordTypes = {'vaccine', VaccinePlanFields.type};
+
 /// Vaccine reminders use ids from here, under [snoozeIdBase], so they are
 /// "planned" reminders and never collide with medicine ones (1-60).
 const vaccineReminderIdBase = 900000;
@@ -122,7 +125,7 @@ Future<List<PlannedReminder>> loadVaccineReminders(
 }) async {
   if (!settings.enabled) return const [];
   final profiles = await db.watchProfiles().first;
-  final events = await db.eventsOfTypes({'vaccine', VaccinePlanFields.type});
+  final events = await db.eventsOfTypes(vaccineRecordTypes);
   final byProfile = <String, List<MedicalEvent>>{};
   for (final e in events) {
     (byProfile[e.profileId] ??= []).add(e);

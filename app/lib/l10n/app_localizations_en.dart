@@ -2530,4 +2530,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vaccineSources => 'Sources';
+
+  @override
+  String get reminderHiddenPreview => 'A reminder from Usra';
 }
