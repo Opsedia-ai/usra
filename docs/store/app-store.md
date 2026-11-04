@@ -25,10 +25,10 @@ Play listing so both stores say the same thing.
 سجلات وأدوية وتطعيمات العيلة
 ```
 
-### Promotional text (108/170)
+### Promotional text (117/170)
 
 ```text
-كل صحة العيلة على موبايلك ومتشفرة: ملف لكل فرد، تذكير بالأدوية، تطعيمات الأطفال، ونسخة احتياطية في إيدك إنت.
+كل صحة العيلة على موبايلك، والسجلات متشفرة: ملف لكل فرد، تذكير بالأدوية، تطعيمات الأطفال، ونسخة احتياطية في إيدك إنت.
 ```
 
 ### Keywords (96/100 bytes)
@@ -61,10 +61,10 @@ Usra: Family Health File
 Records, medicines & vaccines
 ```
 
-### Promotional text (138/170)
+### Promotional text (146/170)
 
 ```text
-The whole family's health on your phone, encrypted: a file for each person, medicine reminders, children's vaccines and a backup you keep.
+The whole family's health on your phone, records encrypted: a file for each person, medicine reminders, children's vaccines and a backup you keep.
 ```
 
 ### Keywords (92/100 bytes)
@@ -86,5 +86,5 @@ The first version of Usra: a health file for each person, medicine reminders, va
 ## App Review notes (App Store Connect → App Review Information)
 
 ```text
-Usra stores everything on the device in an encrypted database. There is no account or sign-in, so no demo account is needed. Camera and photo access are asked only when the user photographs an insurance card, a report or a medicine box; text is read on the device with Google ML Kit. Notifications are medicine reminders the user sets. Usra does not use HealthKit and keeps no health data in iCloud: backups are an encrypted file the user shares to a place they choose, opened with a recovery key only the user holds. Usra does not diagnose, treat or calculate doses; follow-up suggestions are informational and cite their sources.
+Usra stores everything on the device: records in an encrypted database, photos in the app's private storage (excluded from iCloud backup). There is no account or sign-in, so no demo account is needed. Camera and photo access are asked only when the user photographs an insurance card, a report or a medicine box; text is read on the device with Google ML Kit. Notifications are medicine reminders the user sets. Usra does not use HealthKit and keeps no health data in iCloud (its database and photo folders are excluded from device backup): backups are an encrypted file the user shares to a place they choose, opened with a recovery key only the user holds. Usra does not diagnose, treat or calculate doses; follow-up suggestions are informational and cite their sources.
 ```

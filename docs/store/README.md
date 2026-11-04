@@ -42,8 +42,14 @@ Notes:
 ## Before submitting
 
 - [ ] Final name after the trademark and store-name checks (`docs/decisions.md`, open questions).
-- [ ] Support e-mail, website and the hosted privacy policy URL (the app has a placeholder:
-      `app/lib/features/settings/about_privacy_screen.dart`, `privacyPolicyUrl`).
+- [ ] Support e-mail, website and the hosted privacy policy URL. Store builds must pass
+      `--dart-define=USRA_RELEASE=true --dart-define=USRA_WEBSITE=https://<domain>`;
+      with `USRA_RELEASE` and no `USRA_WEBSITE` the compile fails on purpose
+      (`releaseWebsiteCheck` in `app/lib/features/settings/about_privacy_screen.dart`),
+      so the placeholder `https://usra.example` can't ship. The app opens
+      `<domain>/ar/privacy`, `/en/privacy`, `/ar/terms`, `/en/terms`.
+- [ ] Photos: until S1 (photo encryption) lands, texts say only records are encrypted;
+      see the TODO in `data-safety.md`.
 - [ ] Gulf listing (KSA/UAE): swap "العيلة" for "الأسرة" and Egyptian phrasing for
       Modern Standard / Gulf phrasing; drop "Egypt's vaccine schedule" until a Gulf
       schedule ships.

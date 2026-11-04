@@ -9,18 +9,28 @@ this file whenever a permission, SDK or network call is added; the M6 cloud feat
 | Capability | Where in the code | Data leaves the phone? |
 | --- | --- | --- |
 | Encrypted database (SQLite3 Multiple Ciphers), key in Keystore / Keychain | `core/database/`, `flutter_secure_storage` | No |
-| Photos of cards, reports, medicine boxes, stored in app storage | `core/files/photo_store.dart`, `image_picker` | No |
-| Text recognition on photos (Latin script) | `core/ocr/`, `google_mlkit_text_recognition` (bundled model) | Photos and text: no. Google ML Kit may send its own anonymous usage and diagnostics data, see below |
+| Photos of cards, reports, medicine boxes: **plain files** in the app's private storage (not encrypted yet, see S1 below) | `core/files/photo_store.dart` | No |
+| Taking / picking those photos | `image_picker` | No |
+| Text recognition on photos (Latin script) | `core/ocr/`, `google_mlkit_text_recognition` (bundled model) | Photos and text: no. Google ML Kit may send its own diagnostics with a random per-installation ID, see below |
 | Medicine reminders, Taken / Snooze buttons | `features/medicines/`, `flutter_local_notifications` | No |
-| Home-screen widget with today's doses | `features/medicines/dose_widget.dart`, `home_widget` | No (shown on the home screen) |
+| Home-screen widget with today's doses (first names and medicine names) | `features/medicines/dose_widget.dart`, `home_widget` | No (shown on the home screen) |
+| Reminder notifications (the person's name as entered and the medicine name, visible on the lock screen) | `features/medicines/local_notification_scheduler.dart` | No |
 | Encrypted backup file, shared by the user to a place they choose | `core/backup/`, `share_plus`, `file_picker` | Only where the user sends it, encrypted; we never receive it |
 | Call / WhatsApp a doctor, open links | `features/doctors/`, `url_launcher` | Opens the other app; nothing sent by Usra |
 | App version shown in About | `package_info_plus` | No |
 | Accounts, analytics, crash reporting, ads, payments | none in v1 | – |
 
 Android OS backup and device-to-device transfer are switched off for all app data
-(`android:allowBackup="false"`, `res/xml/data_extraction_rules.xml`), and nothing is
-written to iCloud (Apple 5.1.3).
+(`android:allowBackup="false"`, `res/xml/data_extraction_rules.xml`). On iOS the
+database folder (`usra.sqlite`, its `-wal`/`-shm`, and the photo folders inside it) is
+marked `isExcludedFromBackup` at every start (`excludeDatabaseFromBackup` in
+`core/database/connection.dart`, called from `main.dart`), and each photo folder again
+when a photo is saved, so no health data goes to iCloud or iTunes backups (Apple 5.1.3).
+
+> **TODO when S1 lands** (`docs/security.md`, photo encryption): say photos are
+> encrypted in the privacy policy (§1, §9, en/ar), `aboutPrivacyOnPhone` (ARB en/ar),
+> `google-play.md` and `app-store.md`, and update the photos row above. Until then,
+> every text says only records are encrypted; photos are "in the app's private storage".
 
 ### Permissions
 
@@ -56,8 +66,11 @@ app information (package name, app version), a per-installation identifier, API
 configuration and performance metrics, to measure and improve the SDK. Images and
 recognised text are processed on the device and not sent.
 
-The answers below therefore declare ML Kit's diagnostics. If Google's page says that
-the bundled text-recognition model sends nothing, drop those rows.
+The answers below therefore declare ML Kit's diagnostics **and its per-installation
+identifier**, the same way on Play and Apple. It is random, not linked to the user's
+identity and not used for tracking, but it is an identifier, so no text calls this
+data "anonymous". If Google's page says that the bundled text-recognition model sends
+nothing, drop those rows in both forms.
 
 ## Google Play: Data safety form
 
@@ -65,7 +78,7 @@ the bundled text-recognition model sends nothing, drop those rows.
 | --- | --- |
 | Does your app collect or share any of the required user data types? | **Yes** (only because of ML Kit diagnostics; otherwise No) |
 | Is all of the user data collected by your app encrypted in transit? | **Yes** (ML Kit sends over HTTPS) |
-| Do you provide a way for users to request that their data be deleted? | **No** account or server copy exists. Explain in the policy: deleting the app deletes all data; ML Kit data is anonymous and held by Google |
+| Do you provide a way for users to request that their data be deleted? | **No** account or server copy exists. Explain in the policy: deleting the app deletes all data; ML Kit data is held by Google, keyed by a random install ID we cannot look up |
 
 Data types (everything else: not collected, not shared):
 
@@ -125,13 +138,14 @@ Statements to have ready (the Console may ask):
 | Question | Answer |
 | --- | --- |
 | Do you or your third-party partners collect data from this app? | **Yes**, only because of ML Kit (if Google's iOS page confirms it; otherwise **No, Data Not Collected**) |
-| Data types | **Diagnostics → Performance Data** and **Other Diagnostic Data** |
+| Data types | **Diagnostics → Performance Data**, **Diagnostics → Other Diagnostic Data**, **Identifiers → Device ID** (ML Kit's per-installation ID; matches Play's "Device or other IDs") |
 | Linked to the user's identity? | No |
 | Used for tracking? | No |
 | Purposes | Analytics (third party's SDK measurement) |
 
-Health & Fitness, Photos, User Content, Contact Info, Identifiers (IDFA), Location,
-Purchases, Financial Info: **not collected**, for the same reasons as Play.
+Health & Fitness, Photos, User Content, Contact Info, Identifiers → User ID, IDFA
+(advertising), Location, Purchases, Financial Info: **not collected**, for the same
+reasons as Play.
 
 ### Privacy manifest
 
@@ -149,7 +163,7 @@ build, not in this change.
 | 1.4.2 Drug dosage calculators | None. OCR returns a name and strength only, never a dose |
 | 5.1.1 Data collection and storage | No account; privacy policy linked in App Store Connect and in the app (More → About & privacy) |
 | 5.1.1(ix) Highly regulated field | Submitted by Opsedia as an organisation |
-| 5.1.3 Health and health research | No HealthKit; no health data in iCloud; no data used for ads or sold |
+| 5.1.3 Health and health research | No HealthKit; database and photo folders excluded from iCloud backup; no data used for ads or sold |
 | Age rating questionnaire | "Medical or Treatment Information": **Infrequent/Mild**. Expected rating 9+ / 12+ depending on the new questionnaire |
 | Regulated medical device question (EU) | **No** |
 

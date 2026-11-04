@@ -233,7 +233,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsPrivacy.
   ///
   /// In en, this message translates to:
-  /// **'Your data stays on this phone, encrypted.'**
+  /// **'Your data stays on this phone. Records are encrypted.'**
   String get settingsPrivacy;
 
   /// No description provided for @recoveryNotice.
@@ -269,7 +269,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutPrivacyOnPhone.
   ///
   /// In en, this message translates to:
-  /// **'Everything you record stays on this phone, in an encrypted database. We don\'t receive it and can\'t see it.'**
+  /// **'Everything you record stays on this phone. Records are in an encrypted database; photos are in the app\'s private storage, never in your gallery or in cloud backups. We don\'t receive any of it and can\'t see it.'**
   String get aboutPrivacyOnPhone;
 
   /// No description provided for @aboutPrivacyNoAccount.
@@ -293,13 +293,13 @@ abstract class AppLocalizations {
   /// No description provided for @aboutPrivacyReminders.
   ///
   /// In en, this message translates to:
-  /// **'Reminders are set on this phone. Medicine names can show on the lock screen and on the home-screen widget.'**
+  /// **'Reminders are set on this phone. People\'s names and medicine names can show on the lock screen (the name as you typed it) and on the home-screen widget (first names).'**
   String get aboutPrivacyReminders;
 
   /// No description provided for @aboutPrivacyGoogle.
   ///
   /// In en, this message translates to:
-  /// **'The text reader is made by Google and may send Google anonymous technical figures, never your photos, the text or your records.'**
+  /// **'The text reader is made by Google and may send Google technical data with a random install ID, not linked to you. Never your photos, the text or your records.'**
   String get aboutPrivacyGoogle;
 
   /// No description provided for @aboutMedicalHeading.
@@ -1487,7 +1487,7 @@ abstract class AppLocalizations {
   /// No description provided for @tutorialPrivacyBody.
   ///
   /// In en, this message translates to:
-  /// **'Everything is saved on this phone, encrypted. No account needed.'**
+  /// **'Everything is saved on this phone, and records are encrypted. No account needed.'**
   String get tutorialPrivacyBody;
 
   /// No description provided for @tutorialFamilyTitle.

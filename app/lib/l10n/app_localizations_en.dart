@@ -78,7 +78,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
-  String get settingsPrivacy => 'Your data stays on this phone, encrypted.';
+  String get settingsPrivacy =>
+      'Your data stays on this phone. Records are encrypted.';
 
   @override
   String get recoveryNotice =>
@@ -99,7 +100,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutPrivacyOnPhone =>
-      'Everything you record stays on this phone, in an encrypted database. We don\'t receive it and can\'t see it.';
+      'Everything you record stays on this phone. Records are in an encrypted database; photos are in the app\'s private storage, never in your gallery or in cloud backups. We don\'t receive any of it and can\'t see it.';
 
   @override
   String get aboutPrivacyNoAccount =>
@@ -115,11 +116,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutPrivacyReminders =>
-      'Reminders are set on this phone. Medicine names can show on the lock screen and on the home-screen widget.';
+      'Reminders are set on this phone. People\'s names and medicine names can show on the lock screen (the name as you typed it) and on the home-screen widget (first names).';
 
   @override
   String get aboutPrivacyGoogle =>
-      'The text reader is made by Google and may send Google anonymous technical figures, never your photos, the text or your records.';
+      'The text reader is made by Google and may send Google technical data with a random install ID, not linked to you. Never your photos, the text or your records.';
 
   @override
   String get aboutMedicalHeading => 'Medical disclaimer';
@@ -799,7 +800,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tutorialPrivacyBody =>
-      'Everything is saved on this phone, encrypted. No account needed.';
+      'Everything is saved on this phone, and records are encrypted. No account needed.';
 
   @override
   String get tutorialFamilyTitle => 'Add your family';

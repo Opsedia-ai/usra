@@ -10,8 +10,9 @@ Version: draft 0.1 · Last updated: [date of publication]
 
 Usra (أسرة) is made by [Opsedia legal name], [registered address] ("Opsedia", "we").
 This policy explains what happens to information in the Usra app. The short version:
-**the family's health information stays on your phone, encrypted. We do not receive
-it, we have no account for you, and there are no ads or tracking.**
+**the family's health information stays on your phone: records in an encrypted
+database, photos in the app's private storage. We do not receive it, we have no
+account for you, and there are no ads or tracking.**
 
 ## 1. Information you put in Usra
 
@@ -22,8 +23,11 @@ pregnancy details; doctors and their phone numbers; insurance cards; health spen
 and photos of cards, reports and medicine boxes.
 
 This is health information, which the law treats as sensitive. **It is stored only on
-your device**, in a database encrypted with a key kept in your phone's secure storage
-(Android Keystore / iOS Keychain). Opsedia has no copy and cannot see it.
+your device.** Records are kept in a database encrypted with a key held in your
+phone's secure storage (Android Keystore / iOS Keychain). Photos are kept as files in
+the app's private storage, which other apps cannot open; they are never put in your
+gallery or in iCloud or Android device backups. Photos are not yet encrypted
+separately from the phone's own protection. Opsedia has no copy and cannot see any of it.
 
 When you add information about another person (a child, a parent, your spouse), you
 confirm you are their parent or guardian, or that they agreed to it.
@@ -37,16 +41,18 @@ confirm you are their parent or guardian, or that they agreed to it.
   the text are not sent anywhere. A photo taken only to read a medicine's name is not
   kept; a photo you save with a medicine is kept with it.
 - **Reminders.** Medicine reminders are local notifications scheduled on the phone.
-  Their text (for example the medicine name) can appear on your lock screen, and
-  today's doses can appear on the home-screen widget if you add it. You can change
-  this in your phone's notification settings or remove the widget.
+  Their text, including the person's name as you entered it and the medicine name, can appear on
+  your lock screen, and today's doses (first names and medicine names) can appear on
+  the home-screen widget if you add it. You can change this in your phone's
+  notification settings or remove the widget.
 - **Suggestions.** Follow-up suggestions, growth charts and vaccine dates are worked
   out on the phone from what you recorded, using published guidelines named in the app.
 
 ## 3. Backups
 
 Usra does not back your data up to our servers, to iCloud or to Android's automatic
-backup (these are switched off for Usra). Instead, you can make a **backup file**,
+backup: Usra's database and photos are excluded from iCloud and iTunes device
+backups, and Android backup and device transfer are switched off for Usra. Instead, you can make a **backup file**,
 encrypted on the phone, and save or send it where you choose (for example Google
 Drive, Files or WhatsApp to yourself). That place is run by its own provider under
 its own privacy policy.
@@ -59,8 +65,8 @@ including us, can open the backup.
 
 - **Google ML Kit diagnostics.** The text-recognition library from Google may send
   Google technical information such as the device model, OS version, app version, a
-  random installation identifier and performance figures, to measure and improve the
-  library. It does not include your photos, the text read from them or your health
+  random installation identifier (not linked to your name or account) and performance
+  figures, to measure and improve the library. It does not include your photos, the text read from them or your health
   records. See Google's ML Kit data disclosure: [link].
 - **Things you choose to open or share.** Calling or messaging a doctor opens your
   phone or WhatsApp app; sharing an insurance card, a record or a backup file uses
@@ -83,7 +89,9 @@ whether registration or a licence is needed, e.g. Egypt PDPC.]
 ## 6. Keeping and deleting
 
 Your records stay on the phone until you delete them in the app or uninstall Usra,
-which removes the database, the photos and the key. Backup files you made stay where
+which deletes the database and the photos. On iPhone, the phone may keep the unused
+database key in its Keychain after Usra is removed; it cannot open anything, because
+the database it belonged to is gone. Backup files you made stay where
 you saved them until you delete them there.
 
 ## 7. Your rights
@@ -102,9 +110,11 @@ or guardian.
 ## 9. Security
 
 The database is encrypted with a random 256-bit key (SQLite3 Multiple Ciphers) kept
-in the phone's secure storage. Backup files are encrypted with XChaCha20-Poly1305
-using a key derived from your recovery key (Argon2id). Neither key is ever sent to us. Protect your phone with a screen lock: anyone who can
-unlock your phone can open Usra.
+in the phone's secure storage. Photos are kept in the app's private storage, protected
+by the phone's own storage encryption and app sandbox; encrypting them separately is
+planned. Backup files, photos included, are encrypted with XChaCha20-Poly1305 using a
+key derived from your recovery key (Argon2id). Neither key is ever sent to us. Protect
+your phone with a screen lock: anyone who can unlock your phone can open Usra.
 
 ## 10. Later optional cloud features (not in the current version)
 

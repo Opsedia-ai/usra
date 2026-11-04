@@ -17,7 +17,7 @@ person's records. The Arabic set shows the app in Arabic (RTL); the English set 
 | 5 | Child: growth chart + vaccines | نمو الأطفال وتطعيماتهم | Children's growth and vaccines |
 | 6 | Pregnancy week by week | الحمل أسبوع بأسبوع | Pregnancy, week by week |
 | 7 | Insurance cards + doctors | كروت التأمين والدكاترة معاك دايماً | Insurance cards and doctors, always with you |
-| 8 | Backup / privacy | بياناتك على موبايلك ومتشفرة | Your data stays on your phone, encrypted |
+| 8 | Backup / privacy | بياناتك على موبايلك، مش على سيرفرات | Your data stays on your phone, not our servers |
 
 Optional feature graphic (Play, 1024×500): Dr. Usra with the line
 "ملف صحة العيلة" / "The family's health file".

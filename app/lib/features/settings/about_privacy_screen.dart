@@ -8,10 +8,34 @@ import '../backup/backup_providers.dart';
 
 const aboutPath = '/settings/about';
 
-/// Where the privacy policy and terms (docs/legal) are hosted.
-/// TODO(M5): placeholder until the domain is chosen; must match the URL
-/// given to Google Play and App Store Connect.
-const usraWebsite = 'https://usra.example';
+/// Where the privacy policy and terms (docs/legal) are hosted. Store builds
+/// pass the real site, the same one given to Google Play and App Store
+/// Connect:
+///
+///     flutter build appbundle --dart-define=USRA_RELEASE=true \
+///       --dart-define=USRA_WEBSITE=https://<real domain>
+const usraWebsite = String.fromEnvironment(
+  'USRA_WEBSITE',
+  defaultValue: placeholderWebsite,
+);
+
+/// Used until the domain is chosen; links to it are dead.
+const placeholderWebsite = 'https://usra.example';
+
+/// True only in store builds (`--dart-define=USRA_RELEASE=true`).
+const isStoreRelease = bool.fromEnvironment('USRA_RELEASE');
+
+/// Fails the compile of a store build that still has the placeholder site:
+/// a const assert is checked while compiling, release builds included.
+const releaseWebsiteCheck = _ReleaseWebsiteCheck();
+
+class _ReleaseWebsiteCheck {
+  const _ReleaseWebsiteCheck()
+    : assert(
+        !isStoreRelease || usraWebsite != placeholderWebsite,
+        'Store build without USRA_WEBSITE: set the hosted privacy policy site.',
+      );
+}
 
 Uri privacyPolicyUrl(String languageCode) =>
     Uri.parse('$usraWebsite/$languageCode/privacy');

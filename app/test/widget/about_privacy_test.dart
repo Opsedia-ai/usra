@@ -84,6 +84,27 @@ void main() {
     },
   );
 
+  testWidgets('the back arrow returns to More', (tester) async {
+    await openAbout(tester);
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('settings-about')), findsOneWidget);
+  });
+
+  testWidgets('the placeholder site is only allowed outside store builds', (
+    tester,
+  ) async {
+    // Store builds set USRA_RELEASE and USRA_WEBSITE; without USRA_WEBSITE
+    // releaseWebsiteCheck stops the compile.
+    expect(releaseWebsiteCheck, isNotNull);
+    if (isStoreRelease) {
+      expect(usraWebsite, isNot(placeholderWebsite));
+      expect(Uri.parse(usraWebsite).scheme, 'https');
+    }
+  });
+
   testWidgets('policy and terms open in the browser, in the app language', (
     tester,
   ) async {

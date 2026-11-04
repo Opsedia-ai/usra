@@ -101,7 +101,7 @@ class SettingsScreen extends ConsumerWidget {
                   leading: const Icon(Icons.privacy_tip_outlined),
                   title: Text(l.aboutTitle),
                   subtitle: Text(l.aboutHint),
-                  onTap: () => context.go(aboutPath),
+                  onTap: () => context.push(aboutPath),
                 ),
               ],
             ),

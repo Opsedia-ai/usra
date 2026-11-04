@@ -77,7 +77,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
-  String get settingsPrivacy => 'بياناتك بتفضل على الموبايل ده ومتشفرة.';
+  String get settingsPrivacy =>
+      'بياناتك بتفضل على الموبايل ده، والسجلات متشفرة.';
 
   @override
   String get recoveryNotice =>
@@ -98,7 +99,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutPrivacyOnPhone =>
-      'كل اللي بتسجله بيفضل على الموبايل ده، في قاعدة بيانات متشفرة. إحنا مش بنستلمه ومنقدرش نشوفه.';
+      'كل اللي بتسجله بيفضل على الموبايل ده. السجلات في قاعدة بيانات متشفرة، والصور في المساحة الخاصة بالتطبيق، عمرها ما بتروح معرض الصور ولا النسخ الاحتياطية على السحابة. إحنا مش بنستلم أي حاجة منهم ومنقدرش نشوفها.';
 
   @override
   String get aboutPrivacyNoAccount =>
@@ -114,11 +115,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutPrivacyReminders =>
-      'التذكير بيتظبط على الموبايل ده. أسامي الأدوية ممكن تظهر على شاشة القفل وفي الويدجت.';
+      'التذكير بيتظبط على الموبايل ده. أسامي الأشخاص وأسامي الأدوية ممكن تظهر على شاشة القفل (الاسم زي ما كتبته) وفي الويدجت (الاسم الأول).';
 
   @override
   String get aboutPrivacyGoogle =>
-      'قارئ الكلام من جوجل، وممكن يبعت لجوجل أرقام تقنية من غير ما تعرّف بيك، عمره ما بيبعت صورك ولا الكلام ولا سجلاتك.';
+      'قارئ الكلام من جوجل، وممكن يبعت لجوجل بيانات تقنية برقم تثبيت عشوائي مش مربوط بيك. عمره ما بيبعت صورك ولا الكلام ولا سجلاتك.';
 
   @override
   String get aboutMedicalHeading => 'تنبيه طبي';
@@ -803,7 +804,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tutorialPrivacyBody =>
-      'كل حاجة متسجّلة على الموبايل ده ومتشفّرة. مش محتاج حساب.';
+      'كل حاجة متسجّلة على الموبايل ده، والسجلات متشفّرة. مش محتاج حساب.';
 
   @override
   String get tutorialFamilyTitle => 'ضيف عيلتك';

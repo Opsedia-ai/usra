@@ -20,7 +20,7 @@ Counts are `characters / limit`; check with `python3 tools/store/check_lengths.p
 سجل صحة العيلة كلها على موبايلك: زيارات، أدوية بمواعيدها، تطعيمات وأكتر
 ```
 
-### Full description (1607/4000)
+### Full description (1660/4000)
 
 ```text
 أسرة بتجمع صحة العيلة كلها في مكان واحد على موبايلك، بالعربي وبكلام بسيط.
@@ -54,7 +54,7 @@ Counts are `characters / limit`; check with `python3 tools/store/check_lengths.p
 • الوضع البسيط: كلام وزراير أكبر وتابات أقل، علشان يستخدموا الموبايل لوحدهم.
 
 خصوصيتك الأول
-• بيانات العيلة بتفضل على الموبايل ده ومتشفرة. مفيش حساب ولا تسجيل دخول.
+• بيانات العيلة بتفضل على الموبايل ده: السجلات متشفرة، والصور في مساحة التطبيق الخاصة مش في المعرض. مفيش حساب ولا تسجيل دخول.
 • مفيش إعلانات ولا تتبع، ومش بنبيع ولا بنشارك بيانات حد.
 • النسخة الاحتياطية ملف متشفر إنت اللي بتحتفظ بيه (درايف، الملفات، أو واتساب لنفسك)، ومفتاح الاسترجاع معاك إنت بس.
 
@@ -81,7 +81,7 @@ Usra: Family Health File
 Your whole family's health records, medicine reminders and vaccines, in Arabic
 ```
 
-### Full description (2014/4000)
+### Full description (2077/4000)
 
 ```text
 Usra keeps the whole family's health in one place on your phone, in simple Arabic or English.
@@ -115,7 +115,7 @@ For grandparents
 • Simple Mode: bigger text and buttons, fewer tabs, so they can use the phone on their own.
 
 Your privacy first
-• The family's data stays on this phone, encrypted. No account, no sign-in.
+• The family's data stays on this phone: records encrypted, photos in the app's private storage, not your gallery. No account, no sign-in.
 • No ads, no tracking. We never sell or share anyone's data.
 • Backups are an encrypted file you keep (Drive, Files, or WhatsApp to yourself), and only you hold the recovery key.
 
