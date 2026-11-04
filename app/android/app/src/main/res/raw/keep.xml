@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Release builds shrink unused resources. The notification icon is named
+     only from Dart (local_notification_scheduler.dart), so R8 can't see it is
+     used; without this, reminders would fail silently in release. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_usra" />

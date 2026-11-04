@@ -1,0 +1,7 @@
+# Copy to android/key.properties (gitignored) and fill in. See docs/release.md.
+# storeFile is relative to android/ (or absolute). Keep the keystore outside
+# the repo, e.g. ~/keys/usra-upload.jks; never commit it.
+storeFile=/Users/you/keys/usra-upload.jks
+storePassword=change-me
+keyAlias=upload
+keyPassword=change-me
