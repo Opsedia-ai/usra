@@ -29,6 +29,16 @@ void main() {
     }
   }
 
+  test('the database folder is kept out of iCloud backup', () async {
+    final excluded = <String>[];
+    await excludeDatabaseFromBackup(
+      file,
+      (dir) async => excluded.add(dir.path),
+    );
+    // The folder, so usra.sqlite-wal and -shm are covered too.
+    expect(excluded, [file.parent.path]);
+  });
+
   test('the bundled SQLite supports encryption', () {
     // The cipher build refuses keys on in-memory databases, so use a file.
     final db = sqlite3.open(file.path);
