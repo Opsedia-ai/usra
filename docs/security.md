@@ -64,6 +64,16 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   snapshot, `quick_check` on restore. `app/lib/core/backup/`.
 - **OS backup**: Android `allowBackup=false` plus data extraction rules that
   exclude everything; iOS photo folders excluded from iCloud backup.
+- **App lock** (S2): optional 4–6 digit PIN, stored only as a salted
+  Argon2id hash (19 MiB, 2 passes) in Keystore / Keychain this-device-only,
+  checked in constant time; fingerprint or face through `local_auth`,
+  biometrics only (not the phone's own PIN). Wrong tries are counted before
+  each check and saved: after 5, a wait of 30 s doubling to at most an hour,
+  kept across restarts. Locks on cold start and after a chosen time in the
+  background; covers every page, and notification / widget deep links wait
+  until unlocked. No reset that skips the PIN: wipe app data and restore a
+  backup with the recovery key. Emergency card on the lock screen is opt-in.
+  `app/lib/core/security/`, `app/lib/features/app_lock/`.
 - **Notifications**: reminders use `NotificationVisibility.private`.
 - **Widget**: first name and medicine name only, no strength or condition.
 - **Photos**: app private folder, never the gallery, EXIF not requested

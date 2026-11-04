@@ -61,11 +61,20 @@ abstract final class PrefKeys {
   static const tutorialSeen = 'tutorial_seen';
   static const elderTutorialSeen = 'tutorial_elder_seen';
   static const lastBackupAt = 'last_backup_at';
+
+  /// The first-run offer to turn on the app lock was answered.
+  static const appLockOffered = 'app_lock_offered';
+
+  /// Set on first start. Missing means a fresh install, so a lock left in
+  /// the iOS Keychain by a deleted copy of the app is dropped.
+  static const installed = 'installed';
   static const all = {
     simpleMode,
     tutorialSeen,
     elderTutorialSeen,
     lastBackupAt,
+    appLockOffered,
+    installed,
   };
 }
 

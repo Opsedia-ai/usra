@@ -13,6 +13,7 @@ import 'core/files/photo_store.dart';
 import 'core/preferences.dart';
 import 'core/providers.dart';
 import 'core/routing/app_router.dart';
+import 'core/security/app_lock.dart';
 import 'features/backup/backup_providers.dart';
 import 'features/follow_ups/dismissals.dart';
 import 'features/medicines/dose_widget.dart';
@@ -70,6 +71,14 @@ Future<void> main() async {
   ).wait;
 
   var dismissals = firstDismissals;
+  // Read before the first frame, so the app never shows unlocked.
+  final freshInstall = preferences.getBool(PrefKeys.installed) != true;
+  final lock = await AppLock.open(
+    store: SecureLockStore(),
+    biometrics: LocalAuthBiometrics(),
+    freshInstall: freshInstall,
+  );
+  if (freshInstall) await preferences.setBool(PrefKeys.installed, true);
   final recoveryKeys = SecureRecoveryKeyStore();
 
   // Null while a restore swaps the data underneath.
@@ -87,8 +96,12 @@ Future<void> main() async {
     }
     final status = r.status;
     if (status == null) {
-      container().read(routerProvider).go('/medicines');
+      // Opening the app from a reminder waits for the lock.
+      lock.runWhenUnlocked(
+        () => container().read(routerProvider).go('/medicines'),
+      );
     } else {
+      // Taken / Snooze only saves the dose and shows nothing: no unlock.
       reminders.handleAction(r.reminder, status);
     }
   }
@@ -117,6 +130,7 @@ Future<void> main() async {
     overrides: [
       databaseProvider.overrideWithValue(database),
       keyValueStoreProvider.overrideWithValue(preferences),
+      appLockProvider.overrideWithValue(lock),
       cardPhotoStoreProvider.overrideWithValue(cardPhotos),
       attachmentStoreProvider.overrideWithValue(attachments),
       medicinePhotoStoreProvider.overrideWithValue(medicinePhotos),
@@ -230,9 +244,12 @@ Future<void> main() async {
   } catch (_) {
     // No widget on this platform; the app works without it.
   }
-  // During a restore there is briefly no container; the tap is dropped.
+  // Waits for the lock. During a restore there is briefly no container;
+  // the tap is dropped.
   await HomeWidgetSnapshotPublisher.onTap(
-    () => app.value?.read(routerProvider).go('/medicines'),
+    () => lock.runWhenUnlocked(
+      () => app.value?.read(routerProvider).go('/medicines'),
+    ),
   );
   await reminders.start();
   // Notification text follows the app's language.

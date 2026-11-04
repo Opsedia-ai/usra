@@ -1932,4 +1932,149 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get devUntickConfirm =>
       'Untick this milestone? The date you recorded will be removed.';
+
+  @override
+  String get lockTitle => 'Usra is locked';
+
+  @override
+  String get lockEnterPin => 'Enter your PIN';
+
+  @override
+  String get lockUseBiometrics => 'Unlock with fingerprint or face';
+
+  @override
+  String get lockBiometricReason => 'Unlock Usra to see your family\'s records';
+
+  @override
+  String get lockWrongPin => 'Wrong PIN. Try again.';
+
+  @override
+  String lockWait(String time) {
+    return 'Too many wrong tries. Try again in $time.';
+  }
+
+  @override
+  String get lockForgot => 'Forgot your PIN?';
+
+  @override
+  String get lockForgotTitle => 'If you forget your PIN';
+
+  @override
+  String get lockForgotBody =>
+      'To keep your family\'s records private, nothing can skip the PIN, not even us.\n\nTo start again:\n1. Remove Usra\'s data. On Android: phone Settings › Apps › Usra › Storage › Clear data. On iPhone: delete Usra and install it again. This deletes everything Usra keeps on this phone.\n2. Open Usra and restore your latest backup with your recovery key (More › Backup).\n\nWithout a backup and its recovery key, the records can\'t be brought back.';
+
+  @override
+  String get lockEmergency => 'Emergency info';
+
+  @override
+  String get lockEmergencyPick => 'Whose emergency card?';
+
+  @override
+  String get lockEmergencyNone => 'No one has been added yet.';
+
+  @override
+  String get pinOk => 'OK';
+
+  @override
+  String get pinDelete => 'Delete';
+
+  @override
+  String get pinLengthHint => '4 to 6 numbers';
+
+  @override
+  String pinEntered(int count) {
+    return '$count of 6 numbers typed';
+  }
+
+  @override
+  String get lockSetupNewPin => 'Choose a PIN';
+
+  @override
+  String get lockSetupConfirmPin => 'Type the same PIN again';
+
+  @override
+  String get lockSetupMismatch => 'The two PINs are different. Choose again.';
+
+  @override
+  String get lockSetupCurrentPin => 'Enter your current PIN';
+
+  @override
+  String get lockSetupBiometricsTitle => 'Use your fingerprint or face too?';
+
+  @override
+  String get lockSetupBiometricsBody =>
+      'Opens Usra faster. The PIN always works too.';
+
+  @override
+  String get lockSetupBiometricsYes => 'Yes, use it';
+
+  @override
+  String get lockSetupDone => 'App lock is on';
+
+  @override
+  String get lockSetupWriteDown =>
+      'Keep your PIN somewhere safe. If you forget it, the only way back in is to remove Usra\'s data and restore a backup.';
+
+  @override
+  String get lockOfferTitle => 'Lock Usra with a PIN?';
+
+  @override
+  String get lockOfferBody =>
+      'If your phone is lost or someone else picks it up, your family\'s records stay closed. You can unlock with your fingerprint or face too.';
+
+  @override
+  String get lockOfferYes => 'Set up the lock';
+
+  @override
+  String get lockOfferSkip => 'Not now';
+
+  @override
+  String get lockOfferLater =>
+      'You can turn it on any time from More › App lock.';
+
+  @override
+  String get settingsAppLock => 'App lock';
+
+  @override
+  String get settingsAppLockOn => 'On: PIN needed to open Usra';
+
+  @override
+  String get settingsAppLockOff => 'Off: anyone with the phone can open Usra';
+
+  @override
+  String get lockSettingsSwitch => 'Lock with a PIN';
+
+  @override
+  String get lockSettingsChangePin => 'Change PIN';
+
+  @override
+  String get lockSettingsBiometrics => 'Fingerprint or face';
+
+  @override
+  String get lockSettingsBiometricsHint => 'Unlock without typing the PIN';
+
+  @override
+  String get lockSettingsTimeout => 'Lock again after leaving Usra';
+
+  @override
+  String get lockTimeoutImmediately => 'Right away';
+
+  @override
+  String get lockTimeoutOneMinute => '1 minute';
+
+  @override
+  String get lockTimeoutFiveMinutes => '5 minutes';
+
+  @override
+  String get lockSettingsEmergency => 'Emergency card on the lock screen';
+
+  @override
+  String get lockSettingsEmergencyHint =>
+      'Lets a paramedic see blood type, allergies and conditions without the PIN. Anyone holding the phone can see them too.';
+
+  @override
+  String get lockVerifyTitle => 'Confirm it\'s you';
+
+  @override
+  String get lockOffDone => 'App lock is off';
 }

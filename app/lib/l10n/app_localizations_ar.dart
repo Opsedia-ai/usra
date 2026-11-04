@@ -1946,4 +1946,148 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get devUntickConfirm =>
       'تشيل العلامة من المهارة دي؟ التاريخ اللي سجلته هيتمسح.';
+
+  @override
+  String get lockTitle => 'أسرة مقفولة';
+
+  @override
+  String get lockEnterPin => 'اكتب الرقم السري';
+
+  @override
+  String get lockUseBiometrics => 'افتح ببصمة الصباع أو الوش';
+
+  @override
+  String get lockBiometricReason => 'افتح أسرة عشان تشوف سجلات عيلتك';
+
+  @override
+  String get lockWrongPin => 'الرقم السري غلط. جرّب تاني.';
+
+  @override
+  String lockWait(String time) {
+    return 'محاولات غلط كتير. جرّب تاني بعد $time.';
+  }
+
+  @override
+  String get lockForgot => 'نسيت الرقم السري؟';
+
+  @override
+  String get lockForgotTitle => 'لو نسيت الرقم السري';
+
+  @override
+  String get lockForgotBody =>
+      'عشان سجلات عيلتك تفضل سر، مفيش حاجة تعدّي الرقم السري، ولا حتى إحنا.\n\nعشان تبدأ من جديد:\n1. امسح بيانات أسرة. على أندرويد: إعدادات الموبايل › التطبيقات › أسرة › التخزين › مسح البيانات. على الآيفون: امسح أسرة ونزّلها تاني. ده بيمسح كل حاجة أسرة شايلاها على الموبايل ده.\n2. افتح أسرة ورجّع آخر نسخة احتياطية بمفتاح الاسترجاع (المزيد › النسخة الاحتياطية).\n\nمن غير نسخة احتياطية ومفتاحها، السجلات مش هترجع.';
+
+  @override
+  String get lockEmergency => 'معلومات الطوارئ';
+
+  @override
+  String get lockEmergencyPick => 'كارت طوارئ مين؟';
+
+  @override
+  String get lockEmergencyNone => 'لسه محدش اتضاف.';
+
+  @override
+  String get pinOk => 'تمام';
+
+  @override
+  String get pinDelete => 'امسح';
+
+  @override
+  String get pinLengthHint => 'من 4 لـ 6 أرقام';
+
+  @override
+  String pinEntered(int count) {
+    return 'اتكتب $count من 6 أرقام';
+  }
+
+  @override
+  String get lockSetupNewPin => 'اختار رقم سري';
+
+  @override
+  String get lockSetupConfirmPin => 'اكتب نفس الرقم السري تاني';
+
+  @override
+  String get lockSetupMismatch => 'الرقمين مختلفين. اختار تاني.';
+
+  @override
+  String get lockSetupCurrentPin => 'اكتب الرقم السري الحالي';
+
+  @override
+  String get lockSetupBiometricsTitle => 'تستخدم بصمة الصباع أو الوش كمان؟';
+
+  @override
+  String get lockSetupBiometricsBody =>
+      'بتفتح أسرة أسرع. والرقم السري بيشتغل دايماً برضه.';
+
+  @override
+  String get lockSetupBiometricsYes => 'أيوه، استخدمها';
+
+  @override
+  String get lockSetupDone => 'قفل التطبيق اشتغل';
+
+  @override
+  String get lockSetupWriteDown =>
+      'احفظ الرقم السري في مكان أمان. لو نسيته، الطريقة الوحيدة إنك تمسح بيانات أسرة وترجّع نسخة احتياطية.';
+
+  @override
+  String get lockOfferTitle => 'تقفل أسرة برقم سري؟';
+
+  @override
+  String get lockOfferBody =>
+      'لو الموبايل ضاع أو حد تاني مسكه، سجلات عيلتك تفضل مقفولة. وتقدر تفتح ببصمة صباعك أو وشك كمان.';
+
+  @override
+  String get lockOfferYes => 'اعمل القفل';
+
+  @override
+  String get lockOfferSkip => 'مش دلوقتي';
+
+  @override
+  String get lockOfferLater => 'تقدر تشغّله في أي وقت من المزيد › قفل التطبيق.';
+
+  @override
+  String get settingsAppLock => 'قفل التطبيق';
+
+  @override
+  String get settingsAppLockOn => 'شغّال: لازم الرقم السري عشان تفتح أسرة';
+
+  @override
+  String get settingsAppLockOff => 'مقفول: أي حد معاه الموبايل يقدر يفتح أسرة';
+
+  @override
+  String get lockSettingsSwitch => 'اقفل برقم سري';
+
+  @override
+  String get lockSettingsChangePin => 'غيّر الرقم السري';
+
+  @override
+  String get lockSettingsBiometrics => 'بصمة الصباع أو الوش';
+
+  @override
+  String get lockSettingsBiometricsHint => 'افتح من غير ما تكتب الرقم السري';
+
+  @override
+  String get lockSettingsTimeout => 'اقفل تاني بعد ما تخرج من أسرة بـ';
+
+  @override
+  String get lockTimeoutImmediately => 'على طول';
+
+  @override
+  String get lockTimeoutOneMinute => 'دقيقة';
+
+  @override
+  String get lockTimeoutFiveMinutes => '5 دقايق';
+
+  @override
+  String get lockSettingsEmergency => 'كارت الطوارئ على شاشة القفل';
+
+  @override
+  String get lockSettingsEmergencyHint =>
+      'بيخلي المسعف يشوف فصيلة الدم والحساسية والأمراض من غير الرقم السري. وأي حد ماسك الموبايل يقدر يشوفهم برضه.';
+
+  @override
+  String get lockVerifyTitle => 'أكّد إنه إنت';
+
+  @override
+  String get lockOffDone => 'قفل التطبيق اتقفل';
 }
