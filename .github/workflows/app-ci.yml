@@ -12,17 +12,46 @@ on:
 permissions:
   contents: read
 
+# A new push to a PR cancels its older run; main runs always finish.
+concurrency:
+  group: app-ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   test:
-    # `labeled` is only a trigger so `release-build` can start the release
-    # job below; other labels don't re-run CI.
-    if: github.event.action != 'labeled' || github.event.label.name == 'release-build'
+    # `labeled` is only a trigger so `android-build` / `release-build` can
+    # start the build jobs below; other labels don't re-run CI.
+    if: >-
+      github.event.action != 'labeled' ||
+      github.event.label.name == 'android-build' ||
+      github.event.label.name == 'release-build'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      native: ${{ steps.changes.outputs.native }}
     defaults:
       run:
         working-directory: app
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+      # The Android build is the slowest job (~10 min). Dart-only changes
+      # can't break it, so PRs build it only when native code, plugins or
+      # the build setup change.
+      - name: Did native code, plugins or the build change?
+        id: changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          changed=$(git diff --name-only "$BASE"...HEAD)
+          echo "$changed"
+          if echo "$changed" | grep -Eq '^app/(android|ios)/|^app/pubspec\.(yaml|lock)$|^\.github/workflows/app-ci\.yml$|^tools/ci/'; then
+            echo "native=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "native=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
@@ -37,10 +66,16 @@ jobs:
       - run: flutter analyze
       - run: flutter test
 
+  # PRs only: main pushes build the release bundle below, which compiles
+  # the same code. Label a PR `android-build` to force it.
   build-android:
     needs: test
-    if: github.event.action != 'labeled'
+    if: >-
+      github.event_name == 'pull_request' &&
+      (needs.test.outputs.native == 'true' ||
+       contains(github.event.pull_request.labels.*.name, 'android-build'))
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: app
@@ -87,6 +122,7 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'release-build')
     needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     defaults:
       run:
         working-directory: app
