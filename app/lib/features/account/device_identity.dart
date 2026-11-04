@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'account_secure_storage.dart';
+
 /// Each account's X25519 key pair on this phone and its device row.
 ///
 /// Only the public key is ever sent: family keys for sync will be wrapped
@@ -25,21 +27,14 @@ abstract class DeviceIdentityStore {
 /// The app opts out of Android backups, so these never leave the phone.
 class SecureDeviceIdentityStore implements DeviceIdentityStore {
   SecureDeviceIdentityStore([FlutterSecureStorage? storage])
-    : _storage =
-          storage ??
-          const FlutterSecureStorage(
-            iOptions: IOSOptions(
-              accessibility: KeychainAccessibility.first_unlock_this_device,
-              synchronizable: false,
-            ),
-          );
+    : _storage = storage ?? accountSecureStorage;
 
   static String _privateKeyName(String userId) =>
-      'usra.account.$userId.device_key.private.v1';
+      '$accountKeyPrefix$userId.device_key.private.v1';
   static String _publicKeyName(String userId) =>
-      'usra.account.$userId.device_key.public.v1';
+      '$accountKeyPrefix$userId.device_key.public.v1';
   static String _deviceIdName(String userId) =>
-      'usra.account.$userId.device_id';
+      '$accountKeyPrefix$userId.device_id';
 
   final FlutterSecureStorage _storage;
 

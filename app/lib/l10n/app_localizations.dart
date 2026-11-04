@@ -3347,8 +3347,14 @@ abstract class AppLocalizations {
   /// No description provided for @accountErrorSignInAgain.
   ///
   /// In en, this message translates to:
-  /// **'Your sign-in has expired. Sign out and sign in again'**
+  /// **'Your sign-in has expired. Sign in again'**
   String get accountErrorSignInAgain;
+
+  /// No description provided for @accountErrorFamilyHasMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'You created a family that other people are in. Their shared records would be deleted too, so this account can\'t be deleted yet.'**
+  String get accountErrorFamilyHasMembers;
 }
 
 class _AppLocalizationsDelegate

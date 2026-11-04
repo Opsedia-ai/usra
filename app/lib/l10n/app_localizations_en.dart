@@ -2034,5 +2034,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountErrorSignInAgain =>
-      'Your sign-in has expired. Sign out and sign in again';
+      'Your sign-in has expired. Sign in again';
+
+  @override
+  String get accountErrorFamilyHasMembers =>
+      'You created a family that other people are in. Their shared records would be deleted too, so this account can\'t be deleted yet.';
 }

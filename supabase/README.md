@@ -88,7 +88,7 @@ and never echo request bodies or log health data, phone numbers or codes.
 | --- | --- | --- | --- |
 | `ai-doctor` | user JWT | `{ snapshot, locale?: "ar"\|"en", request_id?: uuid }` | `{ report: { findings[], urgent, disclaimer }, credits: { charged, balance }, model }` |
 | `ocr-fallback` | user JWT | `{ image_base64, media_type?, consent: true }` (≤ 300 KB, JPEG/PNG/WebP) | `{ medications: [{ name, strength, dose, frequency, duration, confidence }], quota }` |
-| `delete-account` | user JWT | `{ confirm: true }` | `{ status: "deleted" \| "not_found" }`; `400 confirmation_required`, `502 delete_failed` |
+| `delete-account` | user JWT | `{ confirm: true }` | `{ status: "deleted" \| "not_found" }`; `400 confirmation_required`, `409 family_has_members`, `502 delete_failed` |
 | `revenuecat-webhook` | `Authorization` = shared secret | RevenueCat webhook body | `{ status: "applied" \| "duplicate" \| "ignored" }` |
 | `send-sms-hook` | Standard Webhooks signature | Supabase Auth hook payload | `{}` or `{ error: { http_code, message } }` |
 
@@ -124,9 +124,19 @@ matching and the user confirms before anything is saved.
 
 Deletes the caller's own `auth.users` row with the service role (the user id
 comes from the JWT, never the body). `accounts`, `devices`, `push_tokens`,
-the credits ledger, families they created and those families' ciphertext all
-go with it through `on delete cascade` (`tests/database/account_deletion.test.sql`).
-The app then forgets its device key pair. Records on the phone are untouched.
+the credits ledger, their family memberships, families they created and those
+families' ciphertext all go with it through `on delete cascade`
+(`tests/database/account_deletion.test.sql`). The app then wipes its session
+and device key pair. Records on the phone are untouched.
+
+- **Retry-safe:** if the delete went through but the response was lost, the
+  retry's token is still genuine but its user is gone; Auth says
+  `user_not_found` and the function answers `200 { status: "not_found" }`.
+- **Shared families are protected:** while a family the user created has
+  other members, the function refuses with `409 family_has_members`
+  (`account_deletion_blockers()`), because the cascade would delete the other
+  members' records too. v2 sync must add a way to hand ownership over (or
+  leave the family) before this can be lifted.
 
 ### revenuecat-webhook
 
@@ -214,7 +224,8 @@ URL and anon key (never the service-role key):
 flutter run --dart-define=SUPABASE_URL=https://<ref>.supabase.co --dart-define=SUPABASE_ANON_KEY=<anon key>
 ```
 
-The URL must be `https://` (anything else counts as not configured).
+The URL must be `https://` (anything else counts as not configured, so
+the local `http://127.0.0.1` stack can't be used from the app).
 Without them the account entry in Settings is hidden and the account route
 redirects to Settings, and the app makes no network calls for accounts. With them, Supabase starts only when the account
 screen is opened. Sign-in is phone + SMS code; on sign-in the app sets
@@ -225,6 +236,22 @@ this-device-only, Android backups off), ready for wrapping the family key in
 v2 sync. The session and Auth's PKCE items are in secure storage too. Sign-out
 deletes the device row (best effort) and wipes the session and that
 account's key pair; delete-account does the same after the server delete.
+Both wait for any device setup still running after sign-in. iOS keeps Keychain
+items after the app is deleted, so on the first run of an install the app
+wipes any `usra.account.*` secure-storage keys left by an earlier install
+(the database and recovery keys are outside that prefix).
+
+## Founder setup checklist (hosted project)
+
+`config.toml` only configures the local stack. Set the same in the hosted
+project's dashboard before shipping a build with accounts:
+
+- [ ] Auth → Providers → Phone: on; Auth → Hooks → Send SMS → the `send-sms-hook` URL (see Deploying).
+- [ ] Auth → Rate limits: **SMS sent per hour** tight for launch (local: 10), **OTP verifications** per 5 min per IP ≤ 30.
+- [ ] Auth → Phone: **minimum interval between OTP sends = 60 seconds** (the app's resend countdown is only a convenience; this is what stops a script).
+- [ ] Watch SMS spend at Unifonic/Twilio and set a spending alert (SMS pumping).
+- [ ] Share only the project URL (`https://`) and the anon key with the app build; never the service-role key.
+- [ ] `supabase functions deploy delete-account` before shipping a build with accounts.
 
 ## Regulatory gates (from the technical design)
 

@@ -1,7 +1,7 @@
 -- pgTAP: deleting an account (what the delete-account function does) removes
 -- everything that user owns, and nothing of anyone else's. Run with: supabase test db
 begin;
-select plan(12);
+select plan(16);
 
 insert into auth.users (id, phone) values
   ('33333333-3333-3333-3333-333333333333', '201000000003'),
@@ -30,6 +30,17 @@ insert into public.e2ee_records (family_id, record_id, ciphertext) values
   ('ffffffff-0000-0000-0000-000000000004', 'eeeeeeee-0000-0000-0000-000000000004', '\xcafe');
 insert into public.e2ee_records (family_id, record_id, ciphertext) values
   ('ffffffff-0000-0000-0000-000000000003', 'eeeeeeee-0000-0000-0000-000000000001', '\xdeadbeef');
+
+-- The delete-account function refuses while a family the user created has
+-- other members (it would take their records with it).
+select is(public.account_deletion_blockers('44444444-4444-4444-4444-444444444444'), 1,
+  'creator of a family with another member is blocked');
+select is(public.account_deletion_blockers('33333333-3333-3333-3333-333333333333'), 0,
+  'a family with only its creator, and memberships elsewhere, do not block');
+select ok(not has_function_privilege('authenticated', 'public.account_deletion_blockers(uuid)', 'execute'),
+  'apps cannot call the blocker check');
+select ok(not has_function_privilege('anon', 'public.account_deletion_blockers(uuid)', 'execute'),
+  'anonymous callers cannot call the blocker check');
 
 select lives_ok($$ delete from auth.users where id = '33333333-3333-3333-3333-333333333333' $$,
   'deleting the auth user succeeds even though the credits ledger is append-only');

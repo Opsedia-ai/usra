@@ -1132,5 +1132,6 @@
       }
     }
   },
-  "accountErrorSignInAgain": "Your sign-in has expired. Sign out and sign in again"
+  "accountErrorSignInAgain": "Your sign-in has expired. Sign in again",
+  "accountErrorFamilyHasMembers": "You created a family that other people are in. Their shared records would be deleted too, so this account can't be deleted yet."
 }

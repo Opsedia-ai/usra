@@ -17,6 +17,9 @@ class FakeAuthGateway implements AuthGateway {
   var deleted = 0;
   var restores = 0;
 
+  /// While set, sendCode / registerDevice wait for it.
+  Completer<void>? holdSend, holdRegister;
+
   /// Thrown by the next call of that kind.
   AccountException? failSend, failVerify, failSetUp, failDelete;
 
@@ -44,6 +47,7 @@ class FakeAuthGateway implements AuthGateway {
       throw e;
     }
     codesSent.add(phone);
+    await holdSend?.future;
   }
 
   @override
@@ -89,6 +93,7 @@ class FakeAuthGateway implements AuthGateway {
   }) async {
     _setUpCall();
     registerCalls.add(deviceId);
+    await holdRegister?.future;
     final id = deviceId != null && devices.containsKey(deviceId)
         ? deviceId
         : 'device-${devices.length + 1}';

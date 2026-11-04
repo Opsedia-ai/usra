@@ -2044,6 +2044,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get accountErrorSignInAgain =>
-      'الدخول انتهى. اخرج من الحساب وادخل تاني';
+  String get accountErrorSignInAgain => 'الدخول انتهى. ادخل تاني';
+
+  @override
+  String get accountErrorFamilyHasMembers =>
+      'إنت عامل عيلة فيها ناس تانيين، ومسح الحساب هيمسح سجلاتهم المشتركة كمان، فمينفعش يتمسح دلوقتي.';
 }

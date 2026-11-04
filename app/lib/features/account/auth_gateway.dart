@@ -22,6 +22,10 @@ enum AccountErrorKind {
 
   /// The session is no longer valid: sign in again.
   sessionExpired,
+
+  /// The account owns a family that has other members, so it can't be
+  /// deleted yet (that would delete their shared records too).
+  familyHasMembers,
   unknown,
 }
 
@@ -71,6 +75,7 @@ abstract class AuthGateway {
   /// Ends the session and wipes it from the phone, even offline.
   Future<void> signOut();
 
-  /// Deletes the account and everything the server holds for it.
+  /// Deletes the account and everything the server holds for it, and
+  /// wipes the session from the phone. Succeeds if it was already deleted.
   Future<void> deleteAccount();
 }

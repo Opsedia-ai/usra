@@ -19,6 +19,11 @@ String accountErrorText(AppLocalizations l, Object error) => switch (error) {
   AccountException(kind: AccountErrorKind.tooManyRequests) =>
     l.accountErrorTooMany,
   AccountException(kind: AccountErrorKind.network) => l.accountErrorNetwork,
+  AccountException(kind: AccountErrorKind.sessionExpired) =>
+    l.accountErrorSignInAgain,
+  AccountException(kind: AccountErrorKind.familyHasMembers) =>
+    l.accountErrorFamilyHasMembers,
+  AccountException(kind: AccountErrorKind.unknown) => l.accountErrorGeneric,
   _ => l.accountErrorGeneric,
 };
 
@@ -122,7 +127,10 @@ class _PrivacyNote extends StatelessWidget {
 mixin _Busy<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   var busy = false;
 
+  /// Does nothing while another action runs, so a keyboard submit can't
+  /// send twice past the disabled button.
   Future<bool> run(Future<void> Function() action) async {
+    if (busy) return false;
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     setState(() => busy = true);
@@ -157,6 +165,7 @@ class _PhoneFormState extends ConsumerState<_PhoneForm> with _Busy<_PhoneForm> {
   }
 
   Future<void> _send() async {
+    if (busy) return;
     if (_country.toE164(_phone.text) == null) {
       setState(() => _invalid = true);
       return;

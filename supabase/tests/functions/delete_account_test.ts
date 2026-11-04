@@ -2,14 +2,19 @@ import { assertEquals } from "jsr:@std/assert@1";
 import { HttpError, withHttp } from "../../functions/_shared/http.ts";
 import { createDeleteAccountHandler } from "../../functions/delete-account/handler.ts";
 
-function setup(opts: { user?: string | null; result?: boolean; fail?: boolean } = {}) {
+function setup(
+  opts: { user?: string | null; gone?: boolean; result?: boolean; fail?: boolean; blockers?: number } = {},
+) {
   const deleted: string[] = [];
   const handler = withHttp(createDeleteAccountHandler({
     getUserId: () =>
-      opts.user === null
+      opts.gone
+        ? Promise.resolve(null)
+        : opts.user === null
         ? Promise.reject(new HttpError(401, "unauthorized", "Invalid or expired session"))
         : Promise.resolve(opts.user ?? "user-1"),
     deleter: {
+      blockers: () => Promise.resolve(opts.blockers ?? 0),
       deleteUser: (id) => {
         if (opts.fail) return Promise.reject(new Error("boom"));
         deleted.push(id);
@@ -65,4 +70,20 @@ Deno.test("delete-account: reports an already deleted user and backend failures"
 Deno.test("delete-account: only POST", async () => {
   const res = await setup().call(undefined, "GET");
   assertEquals(res.status, 405);
+});
+
+Deno.test("delete-account: a retry after the user is already gone answers not_found", async () => {
+  const { call, deleted } = setup({ gone: true });
+  const res = await call({ confirm: true });
+  assertEquals(res.status, 200);
+  assertEquals(await res.json(), { status: "not_found" });
+  assertEquals(deleted, []);
+});
+
+Deno.test("delete-account: refuses while a family the user created has other members", async () => {
+  const { call, deleted } = setup({ blockers: 1 });
+  const res = await call({ confirm: true });
+  assertEquals(res.status, 409);
+  assertEquals((await res.json()).error.code, "family_has_members");
+  assertEquals(deleted, []);
 });

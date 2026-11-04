@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +55,7 @@ void main() {
           ),
           if (configured) authGatewayProvider.overrideWithValue(gateway),
           deviceIdentityStoreProvider.overrideWithValue(ids),
+          accountReinstallCheckProvider.overrideWithValue(() async {}),
           ...extra,
         ],
         child: const UsraApp(),
@@ -170,6 +173,45 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('account-change-number')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('account-phone')), findsOneWidget);
+  });
+
+  testWidgets('pressing Enter twice while sending sends one code', (
+    tester,
+  ) async {
+    await openAccount(tester);
+    gateway.holdSend = Completer();
+    await tester.enterText(
+      find.byKey(const ValueKey('account-phone')),
+      '01001234567',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    gateway.holdSend!.complete();
+    await tester.pumpAndSettle();
+    expect(gateway.codesSent, ['+201001234567']);
+  });
+
+  testWidgets('a family with other members blocks delete, plainly', (
+    tester,
+  ) async {
+    const id = 'user-201001234567';
+    gateway.signedIn = const AccountUser(id: id, phone: '+201001234567');
+    await ids.saveDeviceId(id, 'device-1');
+    await openAccount(tester);
+    gateway.failDelete = const AccountException(
+      AccountErrorKind.familyHasMembers,
+    );
+    await tester.tap(find.byKey(const ValueKey('account-delete')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('account-confirm')));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('إنت عامل عيلة فيها ناس تانيين'),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('account-signed-in')), findsOneWidget);
   });
 
   testWidgets('too many codes shows a wait message', (tester) async {

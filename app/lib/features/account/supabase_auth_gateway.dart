@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:io' show SocketException;
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' show ClientException;
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
+import 'account_secure_storage.dart';
 import 'auth_gateway.dart';
 import 'supabase_config.dart';
 
@@ -15,15 +15,26 @@ import 'supabase_config.dart';
 /// Supabase starts on the first call, not with the app, so nothing touches
 /// the network until someone opens the account screen.
 class SupabaseAuthGateway implements AuthGateway {
-  SupabaseAuthGateway(this.config);
+  /// [client] and [wipeLocal] replace the real Supabase client and the
+  /// secure-storage wipe in tests.
+  SupabaseAuthGateway(
+    this.config, {
+    @visibleForTesting Future<sb.SupabaseClient> Function()? client,
+    @visibleForTesting Future<void> Function()? wipeLocal,
+  }) : _clientOverride = client,
+       _wipe = wipeLocal ?? _wipeLocalSession;
 
   final SupabaseConfig config;
+  final Future<sb.SupabaseClient> Function()? _clientOverride;
+  final Future<void> Function() _wipe;
 
   // One client for the process: the app's provider container is rebuilt
   // after a restore, Supabase is not.
   static Future<sb.SupabaseClient>? _started;
 
-  Future<sb.SupabaseClient> _client() => _started ??=
+  Future<sb.SupabaseClient> _client() => _clientOverride?.call() ?? _start();
+
+  Future<sb.SupabaseClient> _start() => _started ??=
       sb.Supabase.initialize(
         url: config.url,
         // The anon key goes in the same `apikey` header.
@@ -74,19 +85,20 @@ class SupabaseAuthGateway implements AuthGateway {
   });
 
   @override
-  Future<AccountUser> verifyCode(String phone, String code) => _guard(() async {
-    final client = await _client();
-    final res = await client.auth.verifyOTP(
-      phone: phone,
-      token: code,
-      type: sb.OtpType.sms,
-    );
-    final user = _user(res.user ?? res.session?.user);
-    if (user == null) {
-      throw const AccountException(AccountErrorKind.invalidCode);
-    }
-    return user;
-  });
+  Future<AccountUser> verifyCode(String phone, String code) =>
+      _guard(call: _Call.verify, () async {
+        final client = await _client();
+        final res = await client.auth.verifyOTP(
+          phone: phone,
+          token: code,
+          type: sb.OtpType.sms,
+        );
+        final user = _user(res.user ?? res.session?.user);
+        if (user == null) {
+          throw const AccountException(AccountErrorKind.invalidCode);
+        }
+        return user;
+      });
 
   @override
   Future<void> updateAccount({
@@ -159,7 +171,7 @@ class SupabaseAuthGateway implements AuthGateway {
     } catch (_) {
       // Offline, the server's copy of the session just expires.
     } finally {
-      await _wipeLocalSession();
+      await _wipe();
     }
   }
 
@@ -168,8 +180,10 @@ class SupabaseAuthGateway implements AuthGateway {
     await const SecureAuthItemStorage().clear();
   }
 
+  /// Succeeds also when the account was already deleted (a retry after a
+  /// lost response answers `not_found`).
   @override
-  Future<void> deleteAccount() => _guard(() async {
+  Future<void> deleteAccount() => _guard(call: _Call.delete, () async {
     final client = await _client();
     await client.functions.invoke('delete-account', body: {'confirm': true});
     try {
@@ -177,29 +191,29 @@ class SupabaseAuthGateway implements AuthGateway {
       await client.auth.signOut(scope: sb.SignOutScope.local);
     } catch (_) {
     } finally {
-      await _wipeLocalSession();
+      await _wipe();
     }
   });
 
-  /// Runs [call], turning failures into [AccountException]. Only the code
-  /// check reads a rejection as a wrong code; elsewhere a 401/403 means the
+  /// Runs [run], turning failures into [AccountException]. Only the code
+  /// check reads a rejection as a wrong code; elsewhere a 401 means the
   /// session is gone.
   static Future<T> _guard<T>(
-    Future<T> Function() call, {
-    bool verifying = false,
+    Future<T> Function() run, {
+    _Call call = _Call.other,
   }) async {
     try {
-      return await call();
+      return await run();
     } on AccountException {
       rethrow;
     } on sb.AuthRetryableFetchException {
       throw const AccountException(AccountErrorKind.network);
     } on sb.AuthException catch (e) {
-      throw AccountException(_kind(e.statusCode, e.code, verifying));
+      throw AccountException(_kind(e.statusCode, e.code, call));
     } on sb.FunctionException catch (e) {
-      throw AccountException(_kind('${e.status}', null, verifying));
+      throw AccountException(_kind('${e.status}', _errorCode(e.details), call));
     } on sb.PostgrestException catch (e) {
-      throw AccountException(_kind(null, e.code, verifying));
+      throw AccountException(_kind(null, e.code, call));
     } on SocketException {
       throw const AccountException(AccountErrorKind.network);
     } on ClientException {
@@ -211,23 +225,25 @@ class SupabaseAuthGateway implements AuthGateway {
     }
   }
 
-  @visibleForTesting
-  static AccountErrorKind kindOf(
-    String? status,
-    String? code,
-    bool verifying,
-  ) => _kind(status, code, verifying);
+  // Our functions answer `{ "error": { "code": ... } }`.
+  static String? _errorCode(Object? details) => switch (details) {
+    {'error': {'code': final String code}} => code,
+    _ => null,
+  };
 
-  static AccountErrorKind _kind(String? status, String? code, bool verifying) {
+  static AccountErrorKind _kind(String? status, String? code, _Call call) {
     if (status == '429' || (code?.startsWith('over_') ?? false)) {
       return AccountErrorKind.tooManyRequests;
     }
-    if (verifying &&
+    if (call == _Call.verify &&
         (code == 'otp_expired' ||
             code == 'invalid_credentials' ||
             status == '403' ||
             status == '401')) {
       return AccountErrorKind.invalidCode;
+    }
+    if (call == _Call.delete && code == 'family_has_members') {
+      return AccountErrorKind.familyHasMembers;
     }
     if (status == '401' ||
         code == 'session_not_found' ||
@@ -243,12 +259,9 @@ class SupabaseAuthGateway implements AuthGateway {
   static String bytea(List<int> bytes) => _bytea(bytes);
 }
 
-const _secure = FlutterSecureStorage(
-  iOptions: IOSOptions(
-    accessibility: KeychainAccessibility.first_unlock_this_device,
-    synchronizable: false,
-  ),
-);
+enum _Call { verify, delete, other }
+
+const _secure = accountSecureStorage;
 
 /// Keeps the Supabase session (with its refresh token) in Android Keystore /
 /// iOS Keychain, this device only, instead of shared preferences.
@@ -282,22 +295,33 @@ class SecureAuthItemStorage extends sb.GotrueAsyncStorage {
 
   static const _prefix = 'usra.account.auth.';
 
+  // The keys written, so clear() needn't read the rest of secure storage.
+  static const _index = '${_prefix}index';
+
+  Future<Set<String>> _keys() async =>
+      (await _secure.read(key: _index))?.split('\n').toSet() ?? {};
+
   @override
   Future<String?> getItem({required String key}) =>
       _secure.read(key: '$_prefix$key');
 
   @override
-  Future<void> setItem({required String key, required String value}) =>
-      _secure.write(key: '$_prefix$key', value: value);
+  Future<void> setItem({required String key, required String value}) async {
+    await _secure.write(
+      key: _index,
+      value: ({...await _keys(), key}).join('\n'),
+    );
+    await _secure.write(key: '$_prefix$key', value: value);
+  }
 
   @override
   Future<void> removeItem({required String key}) =>
       _secure.delete(key: '$_prefix$key');
 
   Future<void> clear() async {
-    final all = await _secure.readAll();
-    for (final key in all.keys.where((k) => k.startsWith(_prefix))) {
-      await _secure.delete(key: key);
+    for (final key in await _keys()) {
+      await _secure.delete(key: '$_prefix$key');
     }
+    await _secure.delete(key: _index);
   }
 }

@@ -1,12 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
+import 'package:usra/features/account/account_secure_storage.dart';
 import 'package:usra/features/account/account_providers.dart';
 import 'package:usra/features/account/auth_gateway.dart';
 import 'package:usra/features/account/device_identity.dart';
 import 'package:usra/features/account/phone_number.dart';
-import 'package:usra/features/account/supabase_auth_gateway.dart';
 import 'package:usra/features/account/supabase_config.dart';
 import 'package:usra/features/backup/backup_providers.dart';
 
@@ -71,28 +75,6 @@ void main() {
     expect(displayPhone('+966501234567'), '\u2066+966 50••••567\u2069');
   });
 
-  test(
-    'error mapping: only the code check reads a rejection as a wrong code',
-    () {
-      AccountErrorKind k(String? s, String? c, {bool v = false}) =>
-          SupabaseAuthGateway.kindOf(s, c, v);
-      expect(k('403', 'otp_expired', v: true), AccountErrorKind.invalidCode);
-      expect(k('403', null), AccountErrorKind.unknown);
-      expect(k('401', null), AccountErrorKind.sessionExpired);
-      expect(k(null, 'PGRST303'), AccountErrorKind.sessionExpired);
-      expect(k('429', null), AccountErrorKind.tooManyRequests);
-      expect(
-        k('400', 'over_sms_send_rate_limit', v: true),
-        AccountErrorKind.tooManyRequests,
-      );
-      expect(k('500', null), AccountErrorKind.unknown);
-    },
-  );
-
-  test('public keys go to PostgREST as bytea hex', () {
-    expect(SupabaseAuthGateway.bytea([0, 1, 171, 255]), r'\x0001abff');
-  });
-
   test('cloud is configured only with a URL and an anon key', () {
     expect(SupabaseConfig.none.isConfigured, isFalse);
     expect(SupabaseConfig.fromEnvironment.isConfigured, isFalse);
@@ -107,6 +89,10 @@ void main() {
       const SupabaseConfig(url: 'not a url', anonKey: 'k').isConfigured,
       isFalse,
     );
+    // HTTPS only.
+    for (final url in ['http://x.supabase.co', 'http://127.0.0.1:54321']) {
+      expect(SupabaseConfig(url: url, anonKey: 'k').isConfigured, isFalse);
+    }
     expect(
       const SupabaseConfig(
         url: 'https://x.supabase.co',
@@ -116,9 +102,33 @@ void main() {
     );
   });
 
+  test('after a reinstall, only account secrets are wiped, once', () async {
+    FlutterSecureStorage.setMockInitialValues({
+      'usra.account.session.v1': 'old session',
+      'usra.account.u1.device_key.private.v1': 'old key',
+      'usra.account.u1.device_id': 'device-1',
+      'usra.db.key.v1': 'database key',
+      'usra.backup.recovery_key.v1': 'recovery key',
+    });
+    const storage = FlutterSecureStorage();
+    final prefs = MemoryKeyValueStore();
+    await wipeAccountSecretsAfterReinstall(prefs, storage);
+    expect(await storage.readAll(), {
+      'usra.db.key.v1': 'database key',
+      'usra.backup.recovery_key.v1': 'recovery key',
+    });
+    expect(prefs.getBool(accountInstalledPref), isTrue);
+
+    // Same install later: what it saved since is kept.
+    await storage.write(key: 'usra.account.session.v1', value: 'new');
+    await wipeAccountSecretsAfterReinstall(prefs, storage);
+    expect(await storage.read(key: 'usra.account.session.v1'), 'new');
+  });
+
   group('account controller', () {
     late FakeAuthGateway gateway;
     late MemoryDeviceIdentityStore ids;
+    late List<int> reinstallChecks;
 
     ProviderContainer make({bool configured = true}) {
       final c = ProviderContainer(
@@ -127,6 +137,9 @@ void main() {
           deviceIdentityStoreProvider.overrideWithValue(ids),
           devicePlatformProvider.overrideWithValue('ios'),
           appVersionProvider.overrideWithValue('1.2.0+7'),
+          accountReinstallCheckProvider.overrideWithValue(() async {
+            reinstallChecks.add(gateway.restores);
+          }),
         ],
       );
       addTearDown(c.dispose);
@@ -136,6 +149,104 @@ void main() {
     setUp(() {
       gateway = FakeAuthGateway();
       ids = MemoryDeviceIdentityStore();
+      reinstallChecks = [];
+    });
+
+    Future<AccountController> signedIn(ProviderContainer c) async {
+      final account = c.read(accountProvider.notifier);
+      await c.read(accountProvider.future);
+      await account.sendCode(AccountCountry.egypt, '01001234567');
+      await account.verifyCode(FakeAuthGateway.validCode);
+      return account;
+    }
+
+    test('checks for a reinstall before restoring the session', () async {
+      final c = make();
+      await c.read(accountProvider.future);
+      expect(reinstallChecks, [0]);
+      expect(gateway.restores, 1);
+    });
+
+    test('sign-out waits for the setup still running after sign-in', () async {
+      final c = make();
+      final account = c.read(accountProvider.notifier);
+      await c.read(accountProvider.future);
+      await account.sendCode(AccountCountry.egypt, '01001234567');
+      gateway.holdRegister = Completer();
+      final verifying = account.verifyCode(FakeAuthGateway.validCode);
+      await pumpEventQueue();
+      expect(c.read(accountProvider).value, isA<AccountSignedIn>());
+      expect(gateway.registerCalls, [null]);
+
+      final signingOut = account.signOut();
+      await pumpEventQueue();
+      expect(ids.keys, isNotEmpty, reason: 'sign-out is still waiting');
+      gateway.holdRegister!.complete();
+      await (verifying, signingOut).wait;
+
+      // The row the setup made is deleted and nothing is left behind.
+      expect(gateway.deletedDevices, ['device-1']);
+      expect(gateway.devices, isEmpty);
+      expect(ids.keys, isEmpty);
+      expect(ids.devices, isEmpty);
+      expect(c.read(accountProvider).value, isA<AccountSignedOut>());
+    });
+
+    test('delete waits for the setup still running after sign-in', () async {
+      gateway.signedIn = const AccountUser(id: 'u1', phone: '+201001234567');
+      gateway.holdRegister = Completer();
+      final c = make();
+      // Restored but not registered yet: setup starts in the background.
+      await c.read(accountProvider.future);
+      await pumpEventQueue();
+      final deleting = c.read(accountProvider.notifier).deleteAccount();
+      await pumpEventQueue();
+      expect(gateway.deleted, 0);
+      gateway.holdRegister!.complete();
+      await deleting;
+      expect(gateway.deleted, 1);
+      expect(ids.keys, isEmpty);
+      expect(ids.devices, isEmpty);
+    });
+
+    test(
+      'delete with a dead session wipes the phone and asks to sign in',
+      () async {
+        final c = make();
+        final account = await signedIn(c);
+        gateway.failDelete = const AccountException(
+          AccountErrorKind.sessionExpired,
+        );
+        await expectLater(
+          account.deleteAccount(),
+          throwsA(
+            isA<AccountException>().having(
+              (e) => e.kind,
+              'kind',
+              AccountErrorKind.sessionExpired,
+            ),
+          ),
+        );
+        expect(c.read(accountProvider).value, isA<AccountSignedOut>());
+        expect(gateway.signedIn, isNull);
+        expect(ids.keys, isEmpty);
+        expect(ids.devices, isEmpty);
+      },
+    );
+
+    test('a shared family blocks delete and keeps everything', () async {
+      final c = make();
+      final account = await signedIn(c);
+      gateway.failDelete = const AccountException(
+        AccountErrorKind.familyHasMembers,
+      );
+      await expectLater(
+        account.deleteAccount(),
+        throwsA(isA<AccountException>()),
+      );
+      expect(c.read(accountProvider).value, isA<AccountSignedIn>());
+      expect(ids.keys, isNotEmpty);
+      expect(ids.devices, isNotEmpty);
     });
 
     test('without a cloud it stays signed out and calls nothing', () async {

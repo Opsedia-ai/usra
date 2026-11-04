@@ -4,9 +4,11 @@ import 'dart:io' show Platform;
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../backup/backup_providers.dart' show appVersionProvider;
 import 'auth_gateway.dart';
+import 'account_secure_storage.dart';
 import 'device_identity.dart';
 import 'phone_number.dart';
 import 'supabase_auth_gateway.dart';
@@ -23,6 +25,13 @@ final authGatewayProvider = Provider<AuthGateway?>((ref) {
   final config = ref.watch(supabaseConfigProvider);
   return config.isConfigured ? SupabaseAuthGateway(config) : null;
 });
+
+/// Runs before the account backend starts; see
+/// [wipeAccountSecretsAfterReinstall]. Overridden in tests.
+final accountReinstallCheckProvider = Provider<Future<void> Function()>(
+  (ref) =>
+      () => wipeAccountSecretsAfterReinstall(ref.read(keyValueStoreProvider)),
+);
 
 final deviceIdentityStoreProvider = Provider<DeviceIdentityStore>(
   (ref) => SecureDeviceIdentityStore(),
@@ -71,6 +80,7 @@ class AccountController extends AsyncNotifier<AccountState> {
   Future<AccountState> build() async {
     final gateway = ref.watch(authGatewayProvider);
     if (gateway == null) return const AccountSignedOut();
+    await ref.read(accountReinstallCheckProvider)();
     final user = await gateway.restore();
     final changes = gateway.userChanges.listen((changed) {
       if (changed == null && state.value is AccountSignedIn) {
@@ -87,7 +97,7 @@ class AccountController extends AsyncNotifier<AccountState> {
     if (user == null) return const AccountSignedOut();
     // Signed in before but this phone isn't registered yet (it was offline).
     final ids = ref.read(deviceIdentityStoreProvider);
-    if (await ids.deviceId(user.id) == null) unawaited(_setUp(user));
+    if (await ids.deviceId(user.id) == null) unawaited(_startSetUp(user));
     return AccountSignedIn(user);
   }
 
@@ -117,8 +127,23 @@ class AccountController extends AsyncNotifier<AccountState> {
     }
     final user = await _gateway.verifyCode(current.phone, code);
     state = AsyncData(AccountSignedIn(user));
-    await _setUp(user);
+    await _startSetUp(user);
   }
+
+  /// The setup after sign-in, while it runs. Sign-out and delete wait for
+  /// it, so it can't save a key or device id after they wiped them.
+  Future<bool>? _setUpRunning;
+
+  Future<bool> _startSetUp(AccountUser user) {
+    final running = _setUp(user);
+    _setUpRunning = running;
+    running.whenComplete(() {
+      if (identical(_setUpRunning, running)) _setUpRunning = null;
+    });
+    return running;
+  }
+
+  Future<void> _settle() async => await _setUpRunning;
 
   /// Saves the account's country and language and registers this phone
   /// with its public key. Best effort: tried again the next time the
@@ -155,6 +180,7 @@ class AccountController extends AsyncNotifier<AccountState> {
   /// Removes this phone's device row (best effort), ends the session and
   /// wipes the session and this account's device key from the phone.
   Future<void> signOut() async {
+    await _settle();
     final current = state.value;
     if (current is AccountSignedIn) {
       final ids = ref.read(deviceIdentityStoreProvider);
@@ -184,9 +210,21 @@ class AccountController extends AsyncNotifier<AccountState> {
   /// Deletes the account on the server, then wipes this phone's session
   /// and device key. Records on the phone are not touched.
   Future<void> deleteAccount() async {
+    await _settle();
     final current = state.value;
     if (current is! AccountSignedIn) return;
-    await _gateway.deleteAccount();
+    try {
+      await _gateway.deleteAccount();
+    } on AccountException catch (e) {
+      if (e.kind != AccountErrorKind.sessionExpired) rethrow;
+      // The server no longer takes this session (revoked, or the account
+      // is already gone). It's useless on this phone either way: wipe it
+      // and the device key, and ask to sign in again to finish.
+      await _gateway.signOut();
+      await _forget(current.user.id);
+      state = const AsyncData(AccountSignedOut());
+      rethrow;
+    }
     state = const AsyncData(AccountSignedOut());
     await _forget(current.user.id);
   }
