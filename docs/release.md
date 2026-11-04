@@ -101,3 +101,7 @@ cd app && dart run flutter_launcher_icons && dart run flutter_native_splash:crea
 ```
 
 The generators also rewrite `ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json`, `ios/Runner.xcodeproj/project.pbxproj` and `ios/Runner/Info.plist` (and add unused iPad PNGs). Keep the regenerated PNGs and revert those files with `git checkout`, deleting any PNG the old `Contents.json` doesn't list.
+
+### Saving CI minutes
+
+The debug Android build (`build-android`) runs on a PR only when it changes `app/android/`, `app/ios/`, `app/pubspec.yaml`/`pubspec.lock`, `tools/ci/` or the workflow itself; Dart-only and docs PRs run just the tests. Add the `android-build` label to force it. Main pushes skip the debug build because the release bundle job compiles the same code. A new push to a PR cancels that PR's older run.
