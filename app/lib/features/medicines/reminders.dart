@@ -250,6 +250,23 @@ List<PlannedReminder> planReminders(
   return out;
 }
 
+/// Dose and vaccine reminders in the order the phone should keep them when
+/// it holds only so many (iOS: 64 pending): the [reserve] nearest vaccine
+/// visits first, so a week of medicines can't crowd them all out, then the
+/// rest by time.
+List<PlannedReminder> prioritiseReminders(
+  List<PlannedReminder> doses,
+  List<PlannedReminder> vaccines, {
+  int reserve = 4,
+}) {
+  final byTime = [...vaccines]..sort((a, b) => a.at.compareTo(b.at));
+  return [
+    ...byTime.take(reserve),
+    ...[...doses, ...byTime.skip(reserve)]
+      ..sort((a, b) => a.at.compareTo(b.at)),
+  ];
+}
+
 /// The current text for the vaccine notification [ref] under [id], found
 /// in [planned] by its child, visit and ringing time (ids are positions in
 /// the plan, so they move when it changes); null if that visit isn't

@@ -744,8 +744,8 @@
   "vaccineOpenAll": "كل التطعيمات",
   "homeVaccinesTitle": "التطعيمات",
   "vaccineChannelName": "مواعيد التطعيمات",
-  "vaccineReminderDiscreetTitle": "فيه ميعاد تطعيم قرّب",
-  "vaccineReminderDiscreetTodayTitle": "فيه ميعاد تطعيم النهارده",
+  "vaccineReminderDiscreetTitle": "فيه ميعاد زيارة صحية قرّب",
+  "vaccineReminderDiscreetTodayTitle": "فيه ميعاد زيارة صحية النهارده",
   "vaccineReminderDiscreetBody": "افتح أسرة عشان تشوف التفاصيل",
   "vaccineReminderWeekTitle": "{name}: تطعيمات بعد أسبوع",
   "vaccineReminderTodayTitle": "{name}: تطعيمات النهارده",
@@ -753,5 +753,10 @@
   "settingsVaccineRemindersHint": "قبلها بأسبوع ويوم الميعاد، الساعة {time}",
   "settingsVaccineReminderTime": "ساعة التنبيه",
   "vaccineSources": "المصادر",
-  "reminderHiddenPreview": "تنبيه من أسرة"
+  "reminderHiddenPreview": "تنبيه من أسرة",
+  "vaccineTooLate": "فات السن المسموح: اسأل الدكتور",
+  "vaccineNotNeeded": "مش محتاجها في السن ده",
+  "vaccineRemoveRecordTitle": "تمسح التسجيل اللي كتبته؟",
+  "vaccineRemoveRecordBody": "الجرعة دي اتسجلت بإيدك، ويمكن معاها صورة الكارت أو الدكتور أو التكلفة. لو شلت العلامة، التسجيل ده هيتشال من سجل الطفل.",
+  "vaccineRemoveRecordConfirm": "امسح"
 }

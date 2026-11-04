@@ -140,10 +140,10 @@ class ReminderSync with WidgetsBindingObserver {
     }
     try {
       await scheduler.replaceAll(
-        [
-          ...planReminders(regimens, logs, now: now, texts: t),
-          ...vaccineReminders,
-        ]..sort((a, b) => a.at.compareTo(b.at)),
+        prioritiseReminders(
+          planReminders(regimens, logs, now: now, texts: t),
+          vaccineReminders,
+        ),
         doneSnoozes: doneSnoozeIds(logs),
         // Snoozes and notifications on screen follow the settings too.
         rebuild: (id, ref, at) {

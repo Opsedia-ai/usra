@@ -119,7 +119,33 @@ Data: `app/lib/features/children/egypt_vaccines.dart`; sources shown in the app:
 - **MMR:** government 12 and 18 months on both routes.
 - **Overdue:** a dose is "due" from two weeks before its date and "overdue" a month after it (unchanged).
 
-**Needs medical review before release:** OPV on the hexavalent route (item 4), the hexavalent booster replacing the DTP booster, the optional defaults (PCV booster age, hepatitis A second dose, MenACWY single dose at 12 m, varicella second dose at 15 m), and the first-season influenza modelling.
+### Catch-up, minimum intervals and age limits (added after review, Nov 2026)
+
+Egyptian sources give ages, not catch-up rules, so the app uses the US CDC catch-up table (minimum intervals) and WHO / CDC rotavirus age limits:
+
+- **Minimum intervals:** a dose is never due before its interval after the previous dose of the same vaccine (given, or at the earliest today when that one is still missing).
+  - Pentavalent, hexavalent, IPV, OPV, PCV and MMR: 4 weeks. The OPV birth dose doesn't count.
+  - DTP or hexavalent booster: 6 months after the third DTP-containing dose, whichever product it was.
+  - Varicella: 3 months. Hepatitis A: 6 months. Influenza: 4 weeks.
+  - So a child who starts late sees only the first missing dose of each series as overdue, and the rest as a catch-up chain.
+- **Rotavirus:** dose 1 no later than 14 weeks 6 days (CDC; WHO says between 6 and 15 weeks), and the last dose by 24 weeks (Rotarix label).
+  - CDC allows up to 8 months and WHO 32 weeks for the last dose. The app uses the stricter Rotarix limit; RotaTeq families should ask their doctor.
+  - Past either limit the dose shows "Past the age limit: ask your doctor". It is never overdue, never reminded and not counted.
+- **PCV catch-up (healthy children):** the number of doses depends on the age at the first dose.
+  - Under 7 months: 4 doses. 7–11 months: 3. 12–23 months: 2, 8 weeks apart. From 24 months: 1.
+  - A child aged 24 months or more with an unfinished series needs one more dose, and is done once a dose was given from 24 months.
+  - The last dose of a series of 2 or more is given from 12 months and 8 weeks after the previous one.
+  - Doses not needed show "Not needed at this age".
+  - **Simplification:** CDC lets an infant who had dose 1 before 7 months and resumes at 7–11 months finish in 3 doses. The app still asks for 4, which errs towards an extra dose. Needs doctor confirmation.
+- **Not modelled:** Hib-specific catch-up inside pentavalent or hexavalent (fewer Hib doses after 12 months), and the IPV "final dose from 4 years" rule (out of the under-five window). These need doctor confirmation.
+
+Catch-up sources (opened 2026-11-04):
+
+19. "Catch-up Immunization Schedule for Children and Adolescents" (Addendum updated July 2, 2025), US CDC. https://www.cdc.gov/vaccines/hcp/imz-schedules/child-adolescent-catch-up.html. Updated 2 Jul 2025.
+20. "Catch-Up Guidance for Healthy Children 4 Months through 4 Years of Age: Pneumococcal Conjugate Vaccine (PCV)", US CDC. https://www.cdc.gov/vaccines/schedules/downloads/child/job-aids/pneumococcal.pdf. Revised Jan 2025.
+21. "Age of administration of rotavirus vaccines" (GACVS, extract from the 17–18 June 2009 meeting), WHO. https://www.who.int/groups/global-advisory-committee-on-vaccine-safety/topics/rotavirus-vaccines/age. Published in WER, 7 Aug 2009.
+
+**Needs medical review before release:** the catch-up modelling above (intervals, the PCV simplification, the rotavirus limits), OPV on the hexavalent route (item 4), the hexavalent booster replacing the DTP booster, the optional defaults (PCV booster age, hepatitis A second dose, MenACWY single dose at 12 m, varicella second dose at 15 m), and the first-season influenza modelling.
 
 ## Sources
 

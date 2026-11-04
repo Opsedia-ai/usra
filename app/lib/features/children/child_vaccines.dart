@@ -50,6 +50,7 @@ ChildVaccines? childVaccines(
   return ChildVaccines(
     profile: profile,
     plan: plan,
+    userRecordIds: userVaccineRecordIds(events),
     statuses: matchSchedule(
       birthDate: birth!,
       records: vaccineRecords(events),
@@ -64,7 +65,11 @@ class ChildVaccines {
     required this.profile,
     required this.plan,
     required this.statuses,
+    this.userRecordIds = const {},
   });
+
+  /// The family's own vaccine records; see [userVaccineRecordIds].
+  final Set<String> userRecordIds;
 
   final Profile profile;
   final VaccinePlan plan;
@@ -87,6 +92,7 @@ NewVaccineRecord vaccineRecordFor(
   dataJson: jsonEncode({
     'vaccine': vaccineName(l, dose.kind),
     'dose': dose.dose,
+    checklistSourceKey: checklistSource,
   }),
 );
 
@@ -136,30 +142,60 @@ DateTime givenDateOn(DateTime date, DateTime today) {
   return day.isAfter(last) ? last : day;
 }
 
-/// The records to remove and add so that each dose in [changes] becomes
-/// given on its date (non-null) or not given (null), and nothing else
-/// changes.
+/// Marks the `vaccine` records the checklist and dose sheet write, so
+/// unticking one of those never needs asking; records the family typed
+/// (perhaps with a photo of the card, a doctor or a cost) do.
+const checklistSourceKey = 'source';
+const checklistSource = 'checklist';
+
+/// The family's own `vaccine` records (not written by the checklist).
+Set<String> userVaccineRecordIds(List<MedicalEvent> events) => {
+  for (final e in events)
+    if (e.type == 'vaccine' && e.deletedAt == null)
+      if (decodeRecordData(e.dataJson)[checklistSourceKey] != checklistSource)
+        e.id,
+};
+
+/// What saving the vaccine screens does to the records.
+typedef VaccineRecordChanges = ({
+  List<NewVaccineRecord> add,
+  Set<String> remove,
+  Map<String, DateTime> redate,
+});
+
+/// The record changes that make each dose in [changes] given on its date
+/// (non-null) or not given (null), and change nothing else.
 ///
-/// One record can count for several doses (a hexavalent shot counts for
-/// pentavalent and IPV on the government route). When such a record has to
-/// go, the other doses it covered get a record of their own, with the same
-/// date, so unticking one dose never unticks another.
-({List<NewVaccineRecord> add, Set<String> remove}) vaccineRecordChanges(
+/// - A new date moves the dose's records in place ([redate]), keeping their
+///   photos, doctor, cost and notes. A shared record (one hexavalent shot
+///   counting for pentavalent and IPV) moves with it: it was one shot.
+/// - Unticking removes the dose's records; any other dose such a record also
+///   covered gets a record of its own with the same date, so unticking one
+///   dose never unticks another.
+VaccineRecordChanges vaccineRecordChanges(
   AppLocalizations l,
   List<DoseStatus> statuses,
   Map<String, DateTime?> changes,
 ) {
   final remove = <String>{};
   final add = <NewVaccineRecord>[];
+  final redate = <String, DateTime>{};
   for (final s in statuses) {
     if (!changes.containsKey(s.dose.key)) continue;
     final date = changes[s.dose.key];
-    final unchanged = date == null
-        ? !s.done
-        : s.done && s.givenOn != null && _sameDay(s.givenOn!, date);
-    if (unchanged) continue;
-    if (s.done) remove.addAll(s.recordIds);
-    if (date != null) add.add(vaccineRecordFor(l, s.dose, date));
+    if (date == null) {
+      if (s.done) remove.addAll(s.recordIds);
+    } else if (!s.done) {
+      add.add(vaccineRecordFor(l, s.dose, date));
+    } else if (s.givenOn != null && !_sameDay(s.givenOn!, date)) {
+      if (s.recordIds.isEmpty) {
+        add.add(vaccineRecordFor(l, s.dose, date));
+      } else {
+        for (final id in s.recordIds) {
+          redate[id] = DateTime(date.year, date.month, date.day, 12);
+        }
+      }
+    }
   }
   for (final s in statuses) {
     if (!s.done || changes.containsKey(s.dose.key) || s.recordIds.isEmpty) {
@@ -169,7 +205,7 @@ DateTime givenDateOn(DateTime date, DateTime today) {
     if (!s.recordIds.every(remove.contains)) continue;
     add.add(vaccineRecordFor(l, s.dose, s.givenOn!));
   }
-  return (add: add, remove: remove);
+  return (add: add, remove: remove, redate: redate);
 }
 
 bool _sameDay(DateTime a, DateTime b) =>

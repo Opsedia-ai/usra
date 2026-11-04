@@ -50,6 +50,10 @@ class ScheduledDose {
     this.ageMonths, {
     this.required = true,
     this.alsoCountedBy = const {},
+    this.aliasFromMonths = 0,
+    this.minIntervalDays = 0,
+    this.minIntervalMonths = 0,
+    this.maxAgeDays,
   });
 
   final VaccineKind kind;
@@ -67,13 +71,36 @@ class ScheduledDose {
   /// the hexavalent booster).
   final Set<VaccineKind> alsoCountedBy;
 
+  /// [alsoCountedBy] applies only to records given from this age (months):
+  /// a hexavalent shot counts as the DTP booster only when given as a
+  /// booster, not as an infant dose.
+  final int aliasFromMonths;
+
+  /// The least time after the previous dose of the same vaccine (CDC
+  /// catch-up minimum intervals): this dose is never due earlier.
+  final int minIntervalDays;
+  final int minIntervalMonths;
+
+  /// The last age (days from birth) this dose may be given, for vaccines
+  /// with an upper age limit (rotavirus). Later, it's "too late".
+  final int? maxAgeDays;
+
   /// Stable id, e.g. `penta-2`; what notes are saved under.
   String get key => '${kind.name}-$dose';
 
   DateTime dueOn(DateTime birthDate) => addMonths(birthDate, ageMonths);
 
-  bool accepts(VaccineKind recorded) =>
-      recorded == kind || alsoCountedBy.contains(recorded);
+  /// Whether a record of [recorded] given at [ageMonths] counts for this
+  /// dose.
+  bool accepts(VaccineKind recorded, {int ageMonths = 0}) =>
+      recorded == kind ||
+      (alsoCountedBy.contains(recorded) && ageMonths >= aliasFromMonths);
+
+  /// The earliest day after a previous dose given (or giveable) on [prev].
+  DateTime earliestAfter(DateTime prev) =>
+      plusDays(addMonths(prev, minIntervalMonths), minIntervalDays);
+
+  bool get hasInterval => minIntervalDays > 0 || minIntervalMonths > 0;
 
   @override
   String toString() => 'ScheduledDose($key @ $ageMonths m)';
@@ -92,21 +119,30 @@ const egyptMandatorySchedule = <ScheduledDose>[
   ScheduledDose(VaccineKind.hepB, 0, 0),
   ScheduledDose(VaccineKind.bcg, 1, 0),
   ScheduledDose(VaccineKind.opv, 0, 0),
+  // The birth dose doesn't count towards the interval of the series.
   ScheduledDose(VaccineKind.opv, 1, 2),
   ScheduledDose(VaccineKind.ipv, 1, 2),
   ScheduledDose(VaccineKind.penta, 1, 2),
-  ScheduledDose(VaccineKind.opv, 2, 4),
-  ScheduledDose(VaccineKind.ipv, 2, 4),
-  ScheduledDose(VaccineKind.penta, 2, 4),
-  ScheduledDose(VaccineKind.opv, 3, 6),
-  ScheduledDose(VaccineKind.ipv, 3, 6),
-  ScheduledDose(VaccineKind.penta, 3, 6),
-  ScheduledDose(VaccineKind.opv, 4, 9),
-  ScheduledDose(VaccineKind.opv, 5, 12),
+  ScheduledDose(VaccineKind.opv, 2, 4, minIntervalDays: 28),
+  ScheduledDose(VaccineKind.ipv, 2, 4, minIntervalDays: 28),
+  ScheduledDose(VaccineKind.penta, 2, 4, minIntervalDays: 28),
+  ScheduledDose(VaccineKind.opv, 3, 6, minIntervalDays: 28),
+  ScheduledDose(VaccineKind.ipv, 3, 6, minIntervalDays: 28),
+  ScheduledDose(VaccineKind.penta, 3, 6, minIntervalDays: 28),
+  ScheduledDose(VaccineKind.opv, 4, 9, minIntervalDays: 28),
+  ScheduledDose(VaccineKind.opv, 5, 12, minIntervalDays: 28),
   ScheduledDose(VaccineKind.mmr, 1, 12),
-  ScheduledDose(VaccineKind.opv, 6, 18),
-  ScheduledDose(VaccineKind.mmr, 2, 18),
-  ScheduledDose(VaccineKind.dtp, 1, 18),
+  ScheduledDose(VaccineKind.opv, 6, 18, minIntervalDays: 28),
+  ScheduledDose(VaccineKind.mmr, 2, 18, minIntervalDays: 28),
+  // DTP-containing dose 4: at least 6 months after dose 3. A hexavalent
+  // booster counts for it.
+  ScheduledDose(
+    VaccineKind.dtp,
+    1,
+    18,
+    alsoCountedBy: {VaccineKind.hexa},
+    aliasFromMonths: 12,
+  ),
 ];
 
 /// The private hexavalent route: the hexavalent shot at 2, 4 and 6 months
@@ -115,36 +151,63 @@ const egyptMandatorySchedule = <ScheduledDose>[
 /// stay as on the government card.
 const _hexavalentDoses = <ScheduledDose>[
   ScheduledDose(VaccineKind.hexa, 1, 2),
-  ScheduledDose(VaccineKind.hexa, 2, 4),
-  ScheduledDose(VaccineKind.hexa, 3, 6),
-  ScheduledDose(VaccineKind.hexa, 4, 18, alsoCountedBy: {VaccineKind.dtp}),
+  ScheduledDose(VaccineKind.hexa, 2, 4, minIntervalDays: 28),
+  ScheduledDose(VaccineKind.hexa, 3, 6, minIntervalDays: 28),
+  ScheduledDose(
+    VaccineKind.hexa,
+    4,
+    18,
+    alsoCountedBy: {VaccineKind.dtp},
+    minIntervalMonths: 6,
+  ),
 ];
+
+/// The DTP booster comes 6 months after the third pentavalent dose; kept
+/// apart from the data above because its interval runs from another
+/// vaccine (see [matchSchedule]).
+const _dtpBoosterAfterMonths = 6;
 
 /// Optional vaccines, as commonly given in Egyptian private practice. One
 /// usual schedule each; the child's doctor may use another.
 const egyptOptionalDoses = <ScheduledDose>[
-  // Pneumococcal conjugate (PCV13 / PCV10): 3 + 1.
+  // Pneumococcal conjugate (PCV13 / PCV10): 3 + 1; the booster from 12
+  // months, 8 weeks after the previous dose. Children who start late need
+  // fewer doses (see [pcvDosesNeeded]).
   ScheduledDose(VaccineKind.pcv, 1, 2, required: false),
-  ScheduledDose(VaccineKind.pcv, 2, 4, required: false),
-  ScheduledDose(VaccineKind.pcv, 3, 6, required: false),
-  ScheduledDose(VaccineKind.pcv, 4, 12, required: false),
-  // Rotavirus (Rotarix, by mouth): 2 doses, before 24 weeks of age.
-  ScheduledDose(VaccineKind.rota, 1, 2, required: false),
-  ScheduledDose(VaccineKind.rota, 2, 4, required: false),
+  ScheduledDose(VaccineKind.pcv, 2, 4, required: false, minIntervalDays: 28),
+  ScheduledDose(VaccineKind.pcv, 3, 6, required: false, minIntervalDays: 28),
+  ScheduledDose(VaccineKind.pcv, 4, 12, required: false, minIntervalDays: 56),
+  // Rotavirus (Rotarix, by mouth): dose 1 by 14 weeks 6 days (not started
+  // later), the series finished by 24 weeks.
+  ScheduledDose(VaccineKind.rota, 1, 2, required: false, maxAgeDays: 104),
+  ScheduledDose(
+    VaccineKind.rota,
+    2,
+    4,
+    required: false,
+    minIntervalDays: 28,
+    maxAgeDays: 168,
+  ),
   // Varicella (chickenpox): second dose at least 3 months later (some
   // doctors give it at 4-6 years).
   ScheduledDose(VaccineKind.varicella, 1, 12, required: false),
-  ScheduledDose(VaccineKind.varicella, 2, 15, required: false),
-  // Hepatitis A: 2 doses 6-12 months apart.
+  ScheduledDose(
+    VaccineKind.varicella,
+    2,
+    15,
+    required: false,
+    minIntervalMonths: 3,
+  ),
+  // Hepatitis A: 2 doses at least 6 months apart.
   ScheduledDose(VaccineKind.hepA, 1, 12, required: false),
-  ScheduledDose(VaccineKind.hepA, 2, 18, required: false),
+  ScheduledDose(VaccineKind.hepA, 2, 18, required: false, minIntervalMonths: 6),
   // Meningococcal ACWY conjugate: one dose from 12 months (ages vary by
   // brand; needs the doctor's confirmation).
   ScheduledDose(VaccineKind.mening, 1, 12, required: false),
-  // Influenza: from 6 months; 2 doses a month apart the first season, then
-  // once a year.
+  // Influenza: from 6 months; 2 doses at least 4 weeks apart the first
+  // season, then once a year.
   ScheduledDose(VaccineKind.flu, 1, 6, required: false),
-  ScheduledDose(VaccineKind.flu, 2, 7, required: false),
+  ScheduledDose(VaccineKind.flu, 2, 7, required: false, minIntervalDays: 28),
 ];
 
 /// The full schedule for [route]: the required doses, then every optional
@@ -161,16 +224,8 @@ List<ScheduledDose> egyptSchedule(VaccineRoute route) {
       ..._hexavalentDoses,
     ],
   };
-  final all = [...required, ...egyptOptionalDoses];
   // Stable: same-age doses keep the order above.
-  return [
-    for (final (_, d)
-        in (all.indexed.toList()..sort((a, b) {
-          final byAge = a.$2.ageMonths.compareTo(b.$2.ageMonths);
-          return byAge != 0 ? byAge : a.$1.compareTo(b.$1);
-        })))
-      d,
-  ];
+  return _byAge([...required, ...egyptOptionalDoses]);
 }
 
 /// What a family has chosen for one child: the route and which optional
@@ -412,6 +467,13 @@ enum DoseState {
 
   /// An optional vaccine the family doesn't follow: never due or overdue.
   notFollowed,
+
+  /// Past the age this vaccine may be given (rotavirus): ask the doctor.
+  /// Never due, overdue or reminded.
+  tooLate,
+
+  /// Not needed at this age: a late start needs fewer doses (PCV).
+  notNeeded,
 }
 
 extension DoseStateSeverity on DoseState {
@@ -419,7 +481,10 @@ extension DoseStateSeverity on DoseState {
     DoseState.done => Severity.good,
     DoseState.overdue => Severity.actSoon,
     DoseState.due => Severity.headsUp,
-    DoseState.later || DoseState.notFollowed => Severity.info,
+    DoseState.later ||
+    DoseState.notFollowed ||
+    DoseState.tooLate ||
+    DoseState.notNeeded => Severity.info,
   };
 }
 
@@ -439,6 +504,9 @@ class DoseStatus {
   });
 
   final ScheduledDose dose;
+
+  /// When it's due: its age on the schedule, or later when the previous
+  /// dose came late (minimum interval).
   final DateTime dueOn;
   final DoseState state;
   final DateTime? givenOn;
@@ -452,38 +520,73 @@ class DoseStatus {
 
   bool get done => state == DoseState.done;
 
-  /// Still to be given, in the plan.
-  bool get open => followed && !done;
+  /// Still to be given, in the plan: due, overdue or later.
+  bool get open =>
+      followed &&
+      (state == DoseState.overdue ||
+          state == DoseState.due ||
+          state == DoseState.later);
 }
 
-/// Matches a child's vaccine records to the schedule for [plan].
-///
-/// A record with a dose number takes that dose; one without (or with a
-/// number the schedule doesn't have) takes the earliest dose of its vaccine
-/// still open, oldest record first. Records of optional vaccines count
-/// whether or not the plan follows them.
-List<DoseStatus> matchSchedule({
-  required DateTime birthDate,
-  required List<VaccineRecord> records,
-  required DateTime now,
-  VaccinePlan plan = VaccinePlan.standard,
-}) {
-  final schedule = egyptSchedule(plan.route);
-  final given = <ScheduledDose, DateTime>{};
-  final ids = <ScheduledDose, List<String>>{};
+/// The calendar day [days] after [date] (local, so clock changes don't
+/// shift it by an hour).
+DateTime plusDays(DateTime date, int days) =>
+    DateTime(date.year, date.month, date.day + days);
+
+/// Whole months from [birth] to [on].
+int fullMonths(DateTime birth, DateTime on) {
+  var m = (on.year - birth.year) * 12 + on.month - birth.month;
+  if (addMonths(birth, m).isAfter(DateTime(on.year, on.month, on.day))) m--;
+  return m;
+}
+
+/// How many PCV doses a healthy child needs, by the age they started
+/// (CDC catch-up guidance): before 7 months 4 (3 + booster), 7-11 months 3,
+/// 12-23 months 2, from 24 months 1. A child 24 months or older with an
+/// unfinished series needs one more dose, and is done once a dose was given
+/// from 24 months.
+int pcvDosesNeeded(DateTime birth, List<DateTime> given, DateTime today) {
+  final dates = [...given]..sort();
+  final start = fullMonths(birth, dates.firstOrNull ?? today);
+  var needed = start < 7
+      ? 4
+      : start < 12
+      ? 3
+      : start < 24
+      ? 2
+      : 1;
+  if (fullMonths(birth, today) >= 24 && dates.length < needed) {
+    final afterTwo = dates.any((d) => fullMonths(birth, d) >= 24);
+    needed = afterTwo ? dates.length : dates.length + 1;
+  }
+  return needed;
+}
+
+/// Matches records to [schedule]: a record with a dose number takes that
+/// dose; one without (or with a number the schedule doesn't have) takes the
+/// earliest dose of its vaccine still open, oldest record first.
+Map<ScheduledDose, ({DateTime date, List<String> ids})> _match(
+  List<ScheduledDose> schedule,
+  List<VaccineRecord> records,
+  DateTime birthDate,
+) {
+  final given = <ScheduledDose, ({DateTime date, List<String> ids})>{};
   void give(ScheduledDose d, VaccineRecord r) {
-    given.putIfAbsent(d, () => r.date);
-    if (r.id case final id?) (ids[d] ??= []).add(id);
+    final g = given[d] ??= (date: r.date, ids: <String>[]);
+    if (r.id case final id?) g.ids.add(id);
   }
 
   final sorted = [...records]..sort((a, b) => a.date.compareTo(b.date));
   final unnumbered = <(VaccineKind, VaccineRecord)>[];
   for (final r in sorted) {
+    final age = fullMonths(birthDate, r.date);
     for (final kind in vaccineKindsOf(r.name)) {
       final match = r.dose == null
           ? null
           : schedule
-                .where((d) => d.kind == kind && d.dose == r.dose)
+                .where(
+                  (d) => d.dose == r.dose && d.accepts(kind, ageMonths: age),
+                )
                 .firstOrNull;
       if (match == null) {
         unnumbered.add((kind, r));
@@ -494,17 +597,159 @@ List<DoseStatus> matchSchedule({
     }
   }
   for (final (kind, r) in unnumbered) {
+    final age = fullMonths(birthDate, r.date);
     final open = schedule
-        .where((d) => d.accepts(kind) && !given.containsKey(d))
+        .where((d) => d.accepts(kind, ageMonths: age) && !given.containsKey(d))
         .firstOrNull;
     if (open != null) give(open, r);
   }
+  return given;
+}
 
-  final today = dayOf(now);
-  DoseState stateOf(ScheduledDose dose, DateTime due) {
+/// On the hexavalent route, infant positions (1-3) where the child had
+/// pentavalent or IPV from the health office instead: those positions show
+/// pentavalent + IPV, so a switch mid-way never marks covered doses as
+/// missing, and a missing IPV shows as just that.
+List<ScheduledDose> _mixedHexavalent(
+  List<ScheduledDose> schedule,
+  List<VaccineRecord> records,
+  DateTime birthDate,
+) {
+  final separate = [
+    for (final r in records)
+      if (!vaccineKindsOf(r.name).contains(VaccineKind.hexa)) r,
+  ];
+  if (separate.isEmpty) return schedule;
+  final gov = _match(egyptMandatorySchedule, separate, birthDate);
+  final positions = {
+    for (final d in gov.keys)
+      if (d.kind == VaccineKind.penta || d.kind == VaccineKind.ipv) d.dose,
+  };
+  if (positions.isEmpty) return schedule;
+  final mixed = [
+    for (final d in schedule)
+      if (d.kind == VaccineKind.hexa && positions.contains(d.dose))
+        ...egyptMandatorySchedule.where(
+          (g) =>
+              (g.kind == VaccineKind.penta || g.kind == VaccineKind.ipv) &&
+              g.dose == d.dose,
+        )
+      else
+        d,
+  ];
+  return _byAge(mixed);
+}
+
+List<ScheduledDose> _byAge(List<ScheduledDose> doses) => [
+  for (final (_, d)
+      in (doses.indexed.toList()..sort((a, b) {
+        final byAge = a.$2.ageMonths.compareTo(b.$2.ageMonths);
+        return byAge != 0 ? byAge : a.$1.compareTo(b.$1);
+      })))
+    d,
+];
+
+/// Matches a child's vaccine records to the schedule for [plan].
+///
+/// Records of optional vaccines count whether or not the plan follows
+/// them. Each dose is due at its age on the schedule, but never before its
+/// minimum interval after the previous dose of the same vaccine (given, or
+/// at the earliest today when still missing), so a late start becomes a
+/// catch-up rather than a list of overdue doses. Doses past their upper age
+/// are "too late", and PCV doses a late starter doesn't need are "not
+/// needed".
+List<DoseStatus> matchSchedule({
+  required DateTime birthDate,
+  required List<VaccineRecord> records,
+  required DateTime now,
+  VaccinePlan plan = VaccinePlan.standard,
+}) {
+  var schedule = egyptSchedule(plan.route);
+  if (plan.route == VaccineRoute.hexavalent) {
+    schedule = _mixedHexavalent(schedule, records, birthDate);
+  }
+  final given = _match(schedule, records, birthDate);
+  final today = DateTime(now.year, now.month, now.day);
+  final pcvNeeded = pcvDosesNeeded(birthDate, [
+    for (final e in given.entries)
+      if (e.key.kind == VaccineKind.pcv) e.value.date,
+  ], today);
+
+  // Due dates and upper ages, dose by dose within each vaccine.
+  final due = <ScheduledDose, DateTime>{};
+  final tooLate = <ScheduledDose>{};
+  // Earliest day each dose was or can be given, for the next dose.
+  final earliest = <ScheduledDose, DateTime>{};
+  final series = <VaccineKind, List<ScheduledDose>>{};
+  for (final d in schedule) {
+    (series[d.kind] ??= []).add(d);
+  }
+  DateTime later(DateTime a, DateTime b) => a.isAfter(b) ? a : b;
+  DateTime? earliestOf(VaccineKind kind, int dose) => series[kind]
+      ?.where((d) => d.dose == dose)
+      .map((d) => earliest[d])
+      .firstOrNull;
+  // Penta, IPV and OPV first: the DTP and hexavalent boosters count from
+  // them.
+  final order = [...series.keys]
+    ..sort((a, b) {
+      int rank(VaccineKind k) =>
+          k == VaccineKind.dtp || k == VaccineKind.hexa ? 1 : 0;
+      return rank(a).compareTo(rank(b));
+    });
+  for (final kind in order) {
+    final doses = series[kind]!..sort((a, b) => a.dose.compareTo(b.dose));
+    DateTime? prev;
+    var prevTooLate = false;
+    for (final d in doses) {
+      var date = d.dueOn(birthDate);
+      if (prev != null && d.hasInterval) {
+        date = later(date, d.earliestAfter(prev));
+      }
+      // The boosters: 6 months after the third DTP-containing dose,
+      // whichever product it was (mixed routes).
+      if (d.kind == VaccineKind.dtp ||
+          (d.kind == VaccineKind.hexa && d.dose == 4)) {
+        final third =
+            earliestOf(VaccineKind.hexa, 3) ?? earliestOf(VaccineKind.penta, 3);
+        if (third != null) {
+          date = later(date, addMonths(third, _dtpBoosterAfterMonths));
+        }
+      }
+      // PCV for a late starter: the last dose needed is the booster, from
+      // 12 months and 8 weeks after the previous one.
+      if (d.kind == VaccineKind.pcv && d.dose == pcvNeeded && pcvNeeded > 1) {
+        date = later(date, addMonths(birthDate, 12));
+        if (prev != null) {
+          date = later(date, plusDays(prev, 56));
+        }
+      }
+      due[d] = date;
+      final g = given[d];
+      final last = d.maxAgeDays == null
+          ? null
+          : plusDays(birthDate, d.maxAgeDays!);
+      final late =
+          g == null &&
+          (prevTooLate ||
+              (last != null && (today.isAfter(last) || date.isAfter(last))));
+      if (late) tooLate.add(d);
+      prevTooLate = late;
+      earliest[d] = g == null
+          ? later(date, today)
+          : DateTime(g.date.year, g.date.month, g.date.day);
+      prev = earliest[d];
+    }
+  }
+
+  DoseState stateOf(ScheduledDose dose) {
     if (given.containsKey(dose)) return DoseState.done;
     if (!plan.follows(dose)) return DoseState.notFollowed;
-    final days = today.difference(dayOf(due)).inDays;
+    if (dose.kind == VaccineKind.pcv && dose.dose > pcvNeeded) {
+      return DoseState.notNeeded;
+    }
+    if (tooLate.contains(dose)) return DoseState.tooLate;
+    final days = dayOf(today).difference(dayOf(due[dose]!)).inDays;
     if (days > overdueAfterDays) return DoseState.overdue;
     if (days >= -dueSoonDays) return DoseState.due;
     return DoseState.later;
@@ -514,10 +759,10 @@ List<DoseStatus> matchSchedule({
     for (final dose in schedule)
       DoseStatus(
         dose: dose,
-        dueOn: dose.dueOn(birthDate),
-        state: stateOf(dose, dose.dueOn(birthDate)),
-        givenOn: given[dose],
-        recordIds: ids[dose] ?? const [],
+        dueOn: due[dose]!,
+        state: stateOf(dose),
+        givenOn: given[dose]?.date,
+        recordIds: given[dose]?.ids ?? const [],
         followed: plan.follows(dose),
       ),
   ];
@@ -534,6 +779,9 @@ typedef VaccineProgress = ({
 VaccineProgress vaccineProgress(List<DoseStatus> statuses) {
   var (rd, rt, od, ot) = (0, 0, 0, 0);
   for (final s in statuses) {
+    if (s.state == DoseState.notNeeded || s.state == DoseState.tooLate) {
+      continue;
+    }
     if (s.dose.required) {
       rt++;
       if (s.done) rd++;

@@ -8,9 +8,11 @@ import '../../core/design/theme.dart';
 import '../../core/design/tokens.dart';
 import '../../l10n/app_localizations.dart';
 import '../backup/backup_notices.dart';
+import '../children/vaccines_screen.dart' show HomeVaccines;
 import '../family/family_screen.dart';
 
-/// Home in Simple Mode: a greeting and four big buttons, nothing else.
+/// Home in Simple Mode: a greeting, the next vaccine visit of any young
+/// child, and four big buttons.
 /// See design/screens/SimpleMode.dc.html.
 class SimpleHome extends ConsumerWidget {
   const SimpleHome({super.key});
@@ -46,6 +48,8 @@ class SimpleHome extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 24),
+        // A grandchild's next vaccine visit, when there's one.
+        const HomeVaccines(),
         _BigButton(
           key: const ValueKey('simple-medicines'),
           icon: Icons.medication_outlined,

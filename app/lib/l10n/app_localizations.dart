@@ -4109,13 +4109,13 @@ abstract class AppLocalizations {
   /// No description provided for @vaccineReminderDiscreetTitle.
   ///
   /// In en, this message translates to:
-  /// **'A vaccine visit is coming up'**
+  /// **'A health visit is coming up'**
   String get vaccineReminderDiscreetTitle;
 
   /// No description provided for @vaccineReminderDiscreetTodayTitle.
   ///
   /// In en, this message translates to:
-  /// **'A vaccine visit is today'**
+  /// **'A health visit is today'**
   String get vaccineReminderDiscreetTodayTitle;
 
   /// No description provided for @vaccineReminderDiscreetBody.
@@ -4165,6 +4165,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A reminder from Usra'**
   String get reminderHiddenPreview;
+
+  /// No description provided for @vaccineTooLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Past the age limit: ask your doctor'**
+  String get vaccineTooLate;
+
+  /// No description provided for @vaccineNotNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not needed at this age'**
+  String get vaccineNotNeeded;
+
+  /// No description provided for @vaccineRemoveRecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the record you entered?'**
+  String get vaccineRemoveRecordTitle;
+
+  /// No description provided for @vaccineRemoveRecordBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This dose was entered by hand, maybe with a photo of the card, the doctor or the cost. Unticking it removes that record from the child\'s history.'**
+  String get vaccineRemoveRecordBody;
+
+  /// No description provided for @vaccineRemoveRecordConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get vaccineRemoveRecordConfirm;
 }
 
 class _AppLocalizationsDelegate

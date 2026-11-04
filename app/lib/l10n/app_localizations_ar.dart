@@ -2516,10 +2516,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get vaccineChannelName => 'مواعيد التطعيمات';
 
   @override
-  String get vaccineReminderDiscreetTitle => 'فيه ميعاد تطعيم قرّب';
+  String get vaccineReminderDiscreetTitle => 'فيه ميعاد زيارة صحية قرّب';
 
   @override
-  String get vaccineReminderDiscreetTodayTitle => 'فيه ميعاد تطعيم النهارده';
+  String get vaccineReminderDiscreetTodayTitle =>
+      'فيه ميعاد زيارة صحية النهارده';
 
   @override
   String get vaccineReminderDiscreetBody => 'افتح أسرة عشان تشوف التفاصيل';
@@ -2550,4 +2551,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reminderHiddenPreview => 'تنبيه من أسرة';
+
+  @override
+  String get vaccineTooLate => 'فات السن المسموح: اسأل الدكتور';
+
+  @override
+  String get vaccineNotNeeded => 'مش محتاجها في السن ده';
+
+  @override
+  String get vaccineRemoveRecordTitle => 'تمسح التسجيل اللي كتبته؟';
+
+  @override
+  String get vaccineRemoveRecordBody =>
+      'الجرعة دي اتسجلت بإيدك، ويمكن معاها صورة الكارت أو الدكتور أو التكلفة. لو شلت العلامة، التسجيل ده هيتشال من سجل الطفل.';
+
+  @override
+  String get vaccineRemoveRecordConfirm => 'امسح';
 }

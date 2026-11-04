@@ -1356,8 +1356,8 @@
   "vaccineOpenAll": "All vaccinations",
   "homeVaccinesTitle": "Vaccines",
   "vaccineChannelName": "Vaccine reminders",
-  "vaccineReminderDiscreetTitle": "A vaccine visit is coming up",
-  "vaccineReminderDiscreetTodayTitle": "A vaccine visit is today",
+  "vaccineReminderDiscreetTitle": "A health visit is coming up",
+  "vaccineReminderDiscreetTodayTitle": "A health visit is today",
   "vaccineReminderDiscreetBody": "Open Usra to see the details",
   "vaccineReminderWeekTitle": "{name}: vaccines in a week",
   "@vaccineReminderWeekTitle": {
@@ -1386,5 +1386,10 @@
   },
   "settingsVaccineReminderTime": "Reminder time",
   "vaccineSources": "Sources",
-  "reminderHiddenPreview": "A reminder from Usra"
+  "reminderHiddenPreview": "A reminder from Usra",
+  "vaccineTooLate": "Past the age limit: ask your doctor",
+  "vaccineNotNeeded": "Not needed at this age",
+  "vaccineRemoveRecordTitle": "Remove the record you entered?",
+  "vaccineRemoveRecordBody": "This dose was entered by hand, maybe with a photo of the card, the doctor or the cost. Unticking it removes that record from the child's history.",
+  "vaccineRemoveRecordConfirm": "Remove"
 }

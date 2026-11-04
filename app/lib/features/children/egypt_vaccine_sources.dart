@@ -57,4 +57,23 @@ const egyptVaccineSources = <VaccineSource>[
     date: '2026-06-10',
     url: 'https://almanassa.com/en/stories/32274',
   ),
+  (
+    title: 'Catch-up Immunization Schedule for Children and Adolescents',
+    publisher: 'US CDC (minimum intervals, rotavirus ages)',
+    date: '2025-07-02',
+    url: 'https://www.cdc.gov/vaccines/hcp/imz-schedules/child-adolescent-catch-up.html',
+  ),
+  (
+    title:
+        'Catch-Up Guidance for Healthy Children 4 Months through 4 Years: PCV',
+    publisher: 'US CDC (PCV catch-up)',
+    date: '2025-01',
+    url: 'https://www.cdc.gov/vaccines/schedules/downloads/child/job-aids/pneumococcal.pdf',
+  ),
+  (
+    title: 'Age of administration of rotavirus vaccines',
+    publisher: 'WHO GACVS',
+    date: '2009-08-07',
+    url: 'https://www.who.int/groups/global-advisory-committee-on-vaccine-safety/topics/rotavirus-vaccines/age',
+  ),
 ];

@@ -2499,10 +2499,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vaccineChannelName => 'Vaccine reminders';
 
   @override
-  String get vaccineReminderDiscreetTitle => 'A vaccine visit is coming up';
+  String get vaccineReminderDiscreetTitle => 'A health visit is coming up';
 
   @override
-  String get vaccineReminderDiscreetTodayTitle => 'A vaccine visit is today';
+  String get vaccineReminderDiscreetTodayTitle => 'A health visit is today';
 
   @override
   String get vaccineReminderDiscreetBody => 'Open Usra to see the details';
@@ -2533,4 +2533,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reminderHiddenPreview => 'A reminder from Usra';
+
+  @override
+  String get vaccineTooLate => 'Past the age limit: ask your doctor';
+
+  @override
+  String get vaccineNotNeeded => 'Not needed at this age';
+
+  @override
+  String get vaccineRemoveRecordTitle => 'Remove the record you entered?';
+
+  @override
+  String get vaccineRemoveRecordBody =>
+      'This dose was entered by hand, maybe with a photo of the card, the doctor or the cost. Unticking it removes that record from the child\'s history.';
+
+  @override
+  String get vaccineRemoveRecordConfirm => 'Remove';
 }

@@ -325,10 +325,15 @@ void main() {
       expect(planned.every((r) => r.takenLabel == null), isTrue);
       expect(planned.every((r) => r.snoozeLabel == null), isTrue);
       expect(planned.map((r) => r.id), [
-        vaccineReminderIdBase + 1,
-        vaccineReminderIdBase + 2,
+        vaccineReminderId('kid', DateTime(2026, 3, 1), 7),
+        vaccineReminderId('kid', DateTime(2026, 3, 1), 0),
       ]);
-      expect(planned.every((r) => r.id < snoozeIdBase), isTrue);
+      expect(
+        planned.every(
+          (r) => r.id >= vaccineReminderIdBase && r.id < snoozeIdBase,
+        ),
+        isTrue,
+      );
     });
 
     test('discreet: no child or vaccine name', () {
@@ -339,12 +344,14 @@ void main() {
         settings: const VaccineReminderSettings(),
         texts: VaccineReminderTexts(en, discreet: true),
       );
-      expect(planned.first.title, 'A vaccine visit is coming up');
-      expect(planned.last.title, 'A vaccine visit is today');
+      expect(planned.first.title, 'A health visit is coming up');
+      expect(planned.last.title, 'A health visit is today');
       for (final r in planned) {
         expect(r.body, 'Open Usra to see the details');
         expect('${r.title} ${r.body}', isNot(contains('ليلى')));
         expect('${r.title} ${r.body}', isNot(contains('Pentavalent')));
+        // Not even that it's a vaccine.
+        expect('${r.title} ${r.body}'.toLowerCase(), isNot(contains('vaccin')));
         expect(r.at.hour, 10);
       }
       final arabic = planVaccineReminders(
@@ -353,7 +360,7 @@ void main() {
         settings: const VaccineReminderSettings(),
         texts: VaccineReminderTexts(ar, discreet: true),
       );
-      expect(arabic.first.title, 'فيه ميعاد تطعيم قرّب');
+      expect(arabic.first.title, 'فيه ميعاد زيارة صحية قرّب');
       expect(arabic.first.locale, 'ar');
     });
 
@@ -389,16 +396,21 @@ void main() {
         ),
         isEmpty,
       );
-      // Overdue doses (up to 12 months) ring nothing; the 18-month visit does.
+      // Nothing given by 16 months: overdue doses ring nothing; the next
+      // doses of each series come 4 weeks after the missing ones could be
+      // given (today), so the first reminder is for 12 June.
       final late = DateTime(2027, 5, 15);
+      final catchUp = planVaccineReminders(
+        [kid([], late)],
+        now: late,
+        settings: const VaccineReminderSettings(),
+        texts: VaccineReminderTexts(en, discreet: true),
+      );
+      expect(catchUp.first.at, DateTime(2027, 6, 5, 10));
+      expect(catchUp.first.scheduledAt, DateTime(2027, 6, 12));
       expect(
-        planVaccineReminders(
-          [kid([], late)],
-          now: late,
-          settings: const VaccineReminderSettings(),
-          texts: VaccineReminderTexts(en, discreet: true),
-        ).map((r) => r.at),
-        [DateTime(2027, 6, 24, 10), DateTime(2027, 7, 1, 10)],
+        catchUp.every((r) => !r.scheduledAt.isBefore(DateTime(2027, 5, 15))),
+        isTrue,
       );
       expect(
         planVaccineReminders(
@@ -472,9 +484,37 @@ void main() {
       final c = childVaccines(profile, events, now)!;
       expect(c.plan, VaccinePlan.standard);
       final byKey = {for (final s in c.statuses) s.dose.key: s.state};
-      // Same answers as the schedule had before plans existed.
-      final before = states(birth, vaccineRecords(events), now);
-      expect(byKey, before);
+      // The answers the schedule gave before plans existed (pinned, not
+      // recomputed), for every required dose. One intended change: polio
+      // drops 2 now wait 4 weeks after the missing dose 1 (minimum
+      // interval) instead of being "due".
+      const old = {
+        'hepB-0': DoseState.overdue,
+        'bcg-1': DoseState.done,
+        'opv-0': DoseState.done,
+        'opv-1': DoseState.overdue,
+        'ipv-1': DoseState.overdue,
+        'penta-1': DoseState.done,
+        'opv-2': DoseState.due,
+        'ipv-2': DoseState.done,
+        'penta-2': DoseState.done,
+        'opv-3': DoseState.later,
+        'ipv-3': DoseState.later,
+        'penta-3': DoseState.later,
+        'opv-4': DoseState.later,
+        'opv-5': DoseState.later,
+        'mmr-1': DoseState.later,
+        'opv-6': DoseState.later,
+        'mmr-2': DoseState.later,
+        'dtp-1': DoseState.later,
+      };
+      expect(
+        {
+          for (final e in byKey.entries)
+            if (old.containsKey(e.key)) e.key: e.value,
+        },
+        {...old, 'opv-2': DoseState.later},
+      );
       expect(byKey['opv-0'], DoseState.done);
       expect(byKey['bcg-1'], DoseState.done);
       expect(byKey['penta-1'], DoseState.done);
@@ -580,15 +620,15 @@ void main() {
         DateTime(2026, 3, 1, 10),
       ]);
       expect(scheduler.planned.map((r) => r.title).toSet(), {
-        'A vaccine visit is coming up',
-        'A vaccine visit is today',
+        'A health visit is coming up',
+        'A health visit is today',
       });
       // Its payload names the child (opened on tap).
       final ref = scheduler.planned.first.ref;
       expect(ref.profileId, kid);
       // A vaccine notification on screen is rewritten from the new plan.
       expect(
-        scheduler.rebuild!(vaccineReminderIdBase + 1, ref, now)?.title,
+        scheduler.rebuild!(scheduler.planned.first.id, ref, now)?.title,
         scheduler.planned.first.title,
       );
 
@@ -657,18 +697,16 @@ void main() {
       expect(state('ipv-1'), isNot('done'));
     });
 
-    test('re-dating one dose keeps the other on its old date', () {
+    test('re-dating a dose moves its record in place (one shot)', () {
       final statuses = gov([
         rec('Hexa', DateTime(2026, 3, 1), dose: 1, id: 'h'),
       ]);
       final c = vaccineRecordChanges(en, statuses, {
         'penta-1': DateTime(2026, 3, 4),
       });
-      expect(c.remove, {'h'});
-      expect(
-        {for (final a in c.add) a.occurredAt},
-        {DateTime(2026, 3, 4, 12), DateTime(2026, 3, 1, 12)},
-      );
+      expect(c.remove, isEmpty);
+      expect(c.add, isEmpty);
+      expect(c.redate, {'h': DateTime(2026, 3, 4, 12)});
     });
 
     test('no change, and a dose with its own second record', () {
@@ -832,6 +870,453 @@ void main() {
       );
       await settle();
       expect(emitted, 3);
+    });
+  });
+
+  group('independent review: medical logic', () {
+    final birth = DateTime(2026, 1, 1);
+    DoseStatus status(
+      String key,
+      List<VaccineRecord> records,
+      DateTime now, {
+      VaccinePlan plan = VaccinePlan.standard,
+    }) => matchSchedule(
+      birthDate: birth,
+      records: records,
+      now: now,
+      plan: plan,
+    ).firstWhere((s) => s.dose.key == key);
+    const rota = VaccinePlan(optional: {VaccineKind.rota});
+
+    group('rotavirus age limits', () {
+      test('dose 1 after 14 weeks 6 days is too late, never overdue', () {
+        // 7 months old, rotavirus just chosen.
+        final now = DateTime(2026, 8, 1);
+        for (final key in ['rota-1', 'rota-2']) {
+          final s = status(key, [], now, plan: rota);
+          expect(s.state, DoseState.tooLate, reason: key);
+          expect(s.open, isFalse);
+        }
+        final c = ChildVaccines(
+          profile: child('kid', birth),
+          plan: rota,
+          statuses: matchSchedule(
+            birthDate: birth,
+            records: [],
+            now: now,
+            plan: rota,
+          ),
+        );
+        expect(
+          c.next.overdue.map((s) => s.dose.kind),
+          isNot(contains(VaccineKind.rota)),
+        );
+        expect(
+          planVaccineReminders(
+            [c],
+            now: now,
+            settings: const VaccineReminderSettings(),
+            texts: VaccineReminderTexts(en, discreet: false),
+          ).map((r) => r.body).join(),
+          isNot(contains('Rotavirus')),
+        );
+        // Not counted in the progress either.
+        expect(vaccineProgress(c.statuses).optionalTotal, 0);
+      });
+
+      test('within the limits it is due; the last dose by 24 weeks', () {
+        expect(
+          status('rota-1', [], DateTime(2026, 3, 1), plan: rota).state,
+          DoseState.due,
+        );
+        // Dose 1 at 14 weeks: dose 2 four weeks later, still before 24 weeks.
+        final first = rec('Rotarix', birth.add(const Duration(days: 98)));
+        final s2 = status('rota-2', [first], DateTime(2026, 4, 10), plan: rota);
+        expect(s2.state, isNot(DoseState.tooLate));
+        // Due at 4 months (1 May) but 4 weeks after dose 1 (9 April).
+        expect(s2.dueOn, DateTime(2026, 5, 7));
+        // Dose 1 at 22 weeks: dose 2 can't fit before 24 weeks.
+        final lateFirst = rec('Rotarix', birth.add(const Duration(days: 154)));
+        expect(
+          status('rota-2', [lateFirst], DateTime(2026, 6, 5), plan: rota).state,
+          DoseState.tooLate,
+        );
+        // Past 24 weeks without dose 2.
+        expect(
+          status('rota-2', [first], DateTime(2026, 7, 1), plan: rota).state,
+          DoseState.tooLate,
+        );
+      });
+    });
+
+    group('minimum intervals', () {
+      test('hepatitis A dose 2 at least 6 months after dose 1', () {
+        const plan = VaccinePlan(optional: {VaccineKind.hepA});
+        final s = status(
+          'hepA-2',
+          [rec('Hepatitis A', DateTime(2027, 6, 1))], // dose 1 at 17 months
+          DateTime(2027, 7, 2),
+          plan: plan,
+        );
+        expect(s.dueOn, DateTime(2027, 12, 1));
+        expect(s.state, DoseState.later);
+      });
+
+      test('varicella 3 months, flu 4 weeks after the previous dose', () {
+        final v = status(
+          'varicella-2',
+          [rec('Varicella', DateTime(2027, 3, 1))], // 14 months
+          DateTime(2027, 3, 2),
+          plan: const VaccinePlan(optional: {VaccineKind.varicella}),
+        );
+        expect(v.dueOn, DateTime(2027, 6, 1));
+        final f = status(
+          'flu-2',
+          [rec('Flu', DateTime(2026, 11, 1))], // 10 months
+          DateTime(2026, 11, 2),
+          plan: const VaccinePlan(optional: {VaccineKind.flu}),
+        );
+        expect(f.dueOn, DateTime(2026, 11, 29));
+        expect(f.state, isNot(DoseState.overdue));
+      });
+
+      test(
+        'a late start is a catch-up: only the first missing dose is overdue',
+        () {
+          // 10 months, nothing on the card.
+          final now = DateTime(2026, 11, 1);
+          expect(status('penta-1', [], now).state, DoseState.overdue);
+          final p2 = status('penta-2', [], now);
+          expect(p2.state, DoseState.later);
+          expect(p2.dueOn, DateTime(2026, 11, 29));
+          expect(status('penta-3', [], now).dueOn, DateTime(2026, 12, 27));
+          // Penta 1 given late: penta 2 is due 4 weeks after it.
+          final given = [rec('Penta', DateTime(2026, 10, 20), dose: 1)];
+          expect(status('penta-2', given, now).dueOn, DateTime(2026, 11, 17));
+        },
+      );
+
+      test('the DTP booster comes 6 months after the third dose', () {
+        final records = [
+          rec('Penta', DateTime(2026, 3, 1), dose: 1),
+          rec('Penta', DateTime(2026, 5, 1), dose: 2),
+          rec('Penta', DateTime(2027, 4, 1), dose: 3), // late, 15 months
+        ];
+        expect(
+          status('dtp-1', records, DateTime(2027, 4, 2)).dueOn,
+          DateTime(2027, 10, 1),
+        );
+      });
+    });
+
+    group('PCV catch-up', () {
+      const pcv = VaccinePlan(optional: {VaccineKind.pcv});
+      Map<String, DoseState> pcvStates(List<VaccineRecord> r, DateTime now) => {
+        for (final s in matchSchedule(
+          birthDate: birth,
+          records: r,
+          now: now,
+          plan: pcv,
+        ))
+          if (s.dose.kind == VaccineKind.pcv) s.dose.key: s.state,
+      };
+
+      test('started at 24 months or later: one dose', () {
+        final s = pcvStates([], DateTime(2028, 3, 1)); // 26 months
+        expect(s['pcv-1'], DoseState.overdue);
+        expect([
+          s['pcv-2'],
+          s['pcv-3'],
+          s['pcv-4'],
+        ], everyElement(DoseState.notNeeded));
+        final done = pcvStates([
+          rec('PCV', DateTime(2028, 3, 1)),
+        ], DateTime(2028, 3, 2));
+        expect(done.values.where((v) => v == DoseState.done), hasLength(1));
+        expect(done.values, isNot(contains(DoseState.overdue)));
+        expect(done.values, isNot(contains(DoseState.due)));
+      });
+
+      test('started at 12-23 months: two doses 8 weeks apart', () {
+        final s = status(
+          'pcv-2',
+          [rec('PCV', DateTime(2027, 3, 1))], // 14 months
+          DateTime(2027, 3, 2),
+          plan: pcv,
+        );
+        expect(s.dueOn, DateTime(2027, 4, 26));
+        expect(
+          pcvStates([
+            rec('PCV', DateTime(2027, 3, 1)),
+          ], DateTime(2027, 3, 2))['pcv-3'],
+          DoseState.notNeeded,
+        );
+        expect(
+          pcvDosesNeeded(birth, [DateTime(2027, 3, 1)], DateTime(2027, 3, 2)),
+          2,
+        );
+      });
+
+      test('started at 7-11 months: 3 doses; infants: 4', () {
+        expect(
+          pcvDosesNeeded(birth, [DateTime(2026, 9, 1)], DateTime(2026, 9, 2)),
+          3,
+        );
+        expect(pcvDosesNeeded(birth, [], DateTime(2026, 3, 1)), 4);
+        // Two infant doses, then nothing until 2 years: one more.
+        expect(
+          pcvDosesNeeded(birth, [
+            DateTime(2026, 3, 1),
+            DateTime(2026, 5, 1),
+          ], DateTime(2028, 2, 1)),
+          3,
+        );
+      });
+    });
+
+    group('route switching', () {
+      const hexa = VaccinePlan(route: VaccineRoute.hexavalent);
+
+      test('health office doses then private hexavalent', () {
+        final records = [
+          rec('الخماسي', DateTime(2026, 3, 1), dose: 1),
+          rec('سولك', DateTime(2026, 3, 1), dose: 1),
+          rec('Hexyon', DateTime(2026, 5, 1), dose: 2),
+        ];
+        final s = {
+          for (final d in matchSchedule(
+            birthDate: birth,
+            records: records,
+            now: DateTime(2026, 5, 2),
+            plan: hexa,
+          ))
+            d.dose.key: d.state,
+        };
+        // Position 1 shows what was given, not a missing hexavalent.
+        expect(s['penta-1'], DoseState.done);
+        expect(s['ipv-1'], DoseState.done);
+        expect(s.containsKey('hexa-1'), isFalse);
+        expect(s['hexa-2'], DoseState.done);
+        expect(s['hexa-3'], DoseState.later);
+      });
+
+      test('pentavalent without IPV shows just the IPV as missing', () {
+        final s = {
+          for (final d in matchSchedule(
+            birthDate: birth,
+            records: [rec('Pentavalent', DateTime(2026, 3, 1), dose: 1)],
+            now: DateTime(2026, 4, 15),
+            plan: hexa,
+          ))
+            d.dose.key: d.state,
+        };
+        expect(s['penta-1'], DoseState.done);
+        expect(s['ipv-1'], DoseState.overdue);
+        expect(s.containsKey('hexa-1'), isFalse);
+      });
+
+      test('a hexavalent booster counts for the DTP booster, and back', () {
+        final hexaBooster = [rec('Infanrix hexa', DateTime(2027, 7, 1))];
+        // Government route: the 18-month hexa counts as the DTP booster.
+        expect(
+          status('dtp-1', hexaBooster, DateTime(2027, 7, 2)).state,
+          DoseState.done,
+        );
+        // But an infant hexavalent dose doesn't.
+        expect(
+          status('dtp-1', [
+            rec('Hexa', DateTime(2026, 3, 1)),
+          ], DateTime(2026, 3, 2)).state,
+          isNot(DoseState.done),
+        );
+        // Hexavalent route: a DTP booster counts for the hexa booster.
+        expect(
+          status(
+            'hexa-4',
+            [rec('DTP', DateTime(2027, 7, 1))],
+            DateTime(2027, 7, 2),
+            plan: hexa,
+          ).state,
+          DoseState.done,
+        );
+        expect(vaccineKindsOf('Hexa'), contains(VaccineKind.hexa));
+      });
+    });
+  });
+
+  group('independent review: reminders', () {
+    final birth = DateTime(2026, 1, 1);
+    ChildVaccines kid(String id, DateTime birth, DateTime now) => ChildVaccines(
+      profile: child(id, birth, name: id),
+      plan: VaccinePlan.standard,
+      statuses: matchSchedule(birthDate: birth, records: [], now: now),
+    );
+    List<PlannedReminder> plan(List<ChildVaccines> c, DateTime now) =>
+        planVaccineReminders(
+          c,
+          now: now,
+          settings: const VaccineReminderSettings(),
+          texts: VaccineReminderTexts(en, discreet: false),
+        );
+
+    test('ids are stable per child, visit and lead, across re-plans', () {
+      final laila = birth, youssef = DateTime(2026, 1, 10);
+      final before = plan([
+        kid('laila', laila, DateTime(2026, 2, 1)),
+        kid('youssef', youssef, DateTime(2026, 2, 1)),
+      ], DateTime(2026, 2, 1, 9));
+      // A week later Laila's week-before reminder has rung and dropped out.
+      final after = plan([
+        kid('laila', laila, DateTime(2026, 2, 23)),
+        kid('youssef', youssef, DateTime(2026, 2, 23)),
+      ], DateTime(2026, 2, 23, 9));
+      String key(PlannedReminder r) =>
+          '${r.profileId}|${r.scheduledAt}|${r.at}';
+      final idsBefore = {for (final r in before) key(r): r.id};
+      for (final r in after) {
+        if (idsBefore[key(r)] case final id?) expect(r.id, id, reason: key(r));
+      }
+      expect(after.length, lessThan(before.length));
+      expect({for (final r in before) r.id}.length, before.length);
+      expect(before.every((r) => r.id > 60 && r.id < snoozeIdBase), isTrue);
+    });
+
+    test('a resync leaves a shown vaccine notification as it is', () {
+      final now1 = DateTime(2026, 2, 1, 9);
+      final first = plan([
+        kid('laila', birth, now1),
+        kid('youssef', DateTime(2026, 1, 10), now1),
+      ], now1);
+      final weekBefore = first.firstWhere((r) => r.profileId == 'laila');
+      // It rang; the next day the app re-plans.
+      final now2 = DateTime(2026, 2, 23, 9);
+      final second = plan([
+        kid('laila', birth, now2),
+        kid('youssef', DateTime(2026, 1, 10), now2),
+      ], now2);
+      final changes = diffReminders(
+        pending: [
+          for (final r in second)
+            (id: r.id, title: r.title, body: r.body, payload: r.toPayload()),
+        ],
+        shown: [
+          (
+            id: weekBefore.id,
+            title: weekBefore.title,
+            body: weekBefore.body,
+            payload: weekBefore.toPayload(),
+          ),
+        ],
+        wanted: second,
+        rebuild: (id, ref, at) => vaccineReminderFor(second, id, ref),
+        now: now2,
+      );
+      expect(changes.repost, isEmpty);
+      expect(changes.cancel, isEmpty);
+      expect(changes.schedule, isEmpty);
+    });
+
+    test('iOS budget: the nearest vaccine visits are kept first', () {
+      final now = DateTime(2026, 2, 1, 9);
+      final vaccines = plan([kid('laila', birth, now)], now);
+      final doses = [
+        for (var i = 0; i < 70; i++)
+          PlannedReminder(
+            id: i + 1,
+            at: now.add(Duration(hours: i + 1)),
+            medicineId: 'm',
+            scheduledAt: now.add(Duration(hours: i + 1)),
+            title: 'dose',
+            body: '',
+            takenLabel: null,
+            snoozeLabel: 's',
+          ),
+      ];
+      final kept = prioritiseReminders(doses, vaccines).take(64).toList();
+      expect(kept.where((r) => r.isVaccine), hasLength(vaccines.length));
+      expect(kept.where((r) => !r.isVaccine), hasLength(64 - vaccines.length));
+      // Doses still go soonest first.
+      final doseTimes = [
+        for (final r in kept)
+          if (!r.isVaccine) r.at,
+      ];
+      expect(doseTimes, [...doseTimes]..sort());
+    });
+  });
+
+  group('independent review: keeping the family\'s records', () {
+    late AppDatabase db;
+    setUp(
+      () => db = AppDatabase(
+        DatabaseConnection(
+          NativeDatabase.memory(),
+          closeStreamsSynchronously: true,
+        ),
+      ),
+    );
+    tearDown(() => db.close());
+
+    test('a new date keeps the record, its fields and its photo', () async {
+      final birth = DateTime(2026, 1, 1);
+      final kid = await db.addProfile('ليلى', birthDate: birth);
+      final id = await db.addEvent(
+        profileId: kid,
+        type: 'vaccine',
+        occurredAt: DateTime(2026, 3, 1),
+        dataJson: jsonEncode({'vaccine': 'Pentavalent', 'dose': 1}),
+        costMinor: 25000,
+        currency: 'EGP',
+        photos: ['attachments/card.jpg'],
+      );
+      final events = await db.watchTimeline(kid).first;
+      final statuses = matchSchedule(
+        birthDate: birth,
+        records: vaccineRecords(events),
+        now: DateTime(2026, 3, 10),
+      );
+      final changes = vaccineRecordChanges(en, statuses, {
+        'penta-1': DateTime(2026, 3, 3),
+      });
+      await db.replaceEvents(
+        profileId: kid,
+        add: changes.add,
+        remove: changes.remove,
+        redate: changes.redate,
+      );
+      final after = (await db.watchTimeline(kid).first).single;
+      expect(after.id, id);
+      expect(after.occurredAt, DateTime(2026, 3, 3, 12));
+      expect(after.costMinor, 25000);
+      expect(after.dataJson, events.single.dataJson);
+      expect(await db.watchAttachments(id).first, hasLength(1));
+    });
+
+    test('records typed by hand are told apart from checklist ones', () async {
+      final kid = await db.addProfile('ليلى', birthDate: DateTime(2026, 1, 1));
+      final typed = await db.addEvent(
+        profileId: kid,
+        type: 'vaccine',
+        occurredAt: DateTime(2026, 1, 1),
+        dataJson: '{"vaccine": "BCG"}',
+      );
+      await db.replaceEvents(
+        profileId: kid,
+        add: [
+          vaccineRecordFor(
+            ar,
+            egyptMandatorySchedule.first,
+            DateTime(2026, 1, 1),
+          ),
+        ],
+      );
+      final events = await db.watchTimeline(kid).first;
+      expect(userVaccineRecordIds(events), {typed});
+      final c = childVaccines(
+        (await db.watchProfile(kid).first)!,
+        events,
+        DateTime(2026, 2, 1),
+      )!;
+      expect(c.userRecordIds, {typed});
     });
   });
 }

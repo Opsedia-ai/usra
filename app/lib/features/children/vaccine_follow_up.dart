@@ -26,9 +26,10 @@ class EgyptVaccineRule extends FollowUpRule {
     ]..sort((a, b) => a.dueOn.compareTo(b.dueOn));
     if (open.isEmpty) return const [];
     final months = open.first.dose.ageMonths;
+    // Doses due the same day (a catch-up dose's day can move from its age).
     final doses = [
       for (final s in open)
-        if (s.dose.ageMonths == months) s.dose,
+        if (dayOf(s.dueOn) == dayOf(open.first.dueOn)) s.dose,
     ];
     return [
       FollowUp(

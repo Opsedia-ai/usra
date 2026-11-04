@@ -158,11 +158,13 @@ class MemberScreen extends ConsumerWidget {
               MemberFollowUps(profileId: profileId),
               const SizedBox(height: 28),
               // Quick logs (feeds, diapers...) live on their own screens.
+              // Types this version doesn't know (written by a newer one,
+              // e.g. a restored backup) are hidden rather than shown raw.
               ...timeline
                   .whenData(
                     (all) => [
                       for (final e in all)
-                        if (types[e.type]?.inTimeline ?? true) e,
+                        if (types[e.type]?.inTimeline ?? false) e,
                     ],
                   )
                   .when(

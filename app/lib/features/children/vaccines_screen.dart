@@ -62,6 +62,54 @@ Future<void> askForReminderAccess(WidgetRef ref) async {
   }
 }
 
+/// Asks before unticking a dose would remove a record the family entered
+/// by hand (it may hold a photo, doctor or cost); true to go ahead.
+Future<bool> confirmRemovingUserRecords(
+  BuildContext context,
+  VaccineRecordChanges changes,
+  Set<String> userRecordIds,
+) async {
+  if (!changes.remove.any(userRecordIds.contains)) return true;
+  final l = AppLocalizations.of(context);
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (c) => AlertDialog(
+      key: const ValueKey('vaccine-remove-confirm'),
+      title: Text(l.vaccineRemoveRecordTitle),
+      content: Text(l.vaccineRemoveRecordBody),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(c).pop(false),
+          child: Text(l.familyCancel),
+        ),
+        FilledButton(
+          key: const ValueKey('vaccine-remove-ok'),
+          onPressed: () => Navigator.of(c).pop(true),
+          child: Text(l.vaccineRemoveRecordConfirm),
+        ),
+      ],
+    ),
+  );
+  return ok ?? false;
+}
+
+/// Saves [changes] in one transaction; nothing when there are none.
+Future<void> applyVaccineChanges(
+  AppDatabase db,
+  String profileId,
+  VaccineRecordChanges changes,
+) async {
+  if (changes.add.isEmpty && changes.remove.isEmpty && changes.redate.isEmpty) {
+    return;
+  }
+  await db.replaceEvents(
+    profileId: profileId,
+    add: changes.add,
+    remove: changes.remove,
+    redate: changes.redate,
+  );
+}
+
 /// The next visit as a chip label and colour; null when nothing is left.
 (String, Severity)? nextVisitChip(
   BuildContext context,
@@ -428,6 +476,8 @@ class DoseTile extends StatelessWidget {
       DoseState.due => l.vaccineDue(date(status.dueOn)),
       DoseState.later => l.vaccineLater(date(status.dueOn)),
       DoseState.notFollowed => l.vaccineNotFollowed,
+      DoseState.tooLate => l.vaccineTooLate,
+      DoseState.notNeeded => l.vaccineNotNeeded,
     };
     final muted = Theme.of(context).textTheme.bodySmall
         ?.copyWith(color: UsraColors.textMuted);
@@ -497,6 +547,18 @@ class _DoseSheetState extends ConsumerState<_DoseSheet> {
     final db = ref.read(databaseProvider);
     final s = widget.status;
     final child = widget.child;
+    // Asked first, before anything is saved.
+    final changes = vaccineRecordChanges(l, child.statuses, {
+      s.dose.key: _given ? _date : null,
+    });
+    if (!await confirmRemovingUserRecords(
+      context,
+      changes,
+      child.userRecordIds,
+    )) {
+      return;
+    }
+    if (!mounted) return;
     setState(() => _saving = true);
     try {
       final plan = child.plan.withNote(s.dose.key, _note.text);
@@ -507,16 +569,7 @@ class _DoseSheetState extends ConsumerState<_DoseSheet> {
           dataJson: plan.toJson(),
         );
       }
-      final changes = vaccineRecordChanges(l, child.statuses, {
-        s.dose.key: _given ? _date : null,
-      });
-      if (changes.add.isNotEmpty || changes.remove.isNotEmpty) {
-        await db.replaceEvents(
-          profileId: child.profile.id,
-          remove: changes.remove,
-          add: changes.add,
-        );
-      }
+      await applyVaccineChanges(db, child.profile.id, changes);
     } catch (_) {
       if (!mounted) return;
       setState(() => _saving = false);
@@ -810,6 +863,19 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
     final l = AppLocalizations.of(context);
     final db = ref.read(databaseProvider);
     bool ticked(DoseStatus s) => _toggled[s.dose.key] ?? s.done;
+    final changes = vaccineRecordChanges(l, statuses, {
+      for (final s in checklist)
+        if (ticked(s) != s.done) s.dose.key: ticked(s) ? _dateOf(s) : null,
+    });
+    final events = ref.read(timelineProvider(profile.id)).value ?? const [];
+    if (!await confirmRemovingUserRecords(
+      context,
+      changes,
+      userVaccineRecordIds(events),
+    )) {
+      return;
+    }
+    if (!mounted) return;
     setState(() => _saving = true);
     try {
       await db.saveSingletonEvent(
@@ -817,15 +883,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
         type: VaccinePlanFields.type,
         dataJson: plan.toJson(),
       );
-      final changes = vaccineRecordChanges(l, statuses, {
-        for (final s in checklist)
-          if (ticked(s) != s.done) s.dose.key: ticked(s) ? _dateOf(s) : null,
-      });
-      await db.replaceEvents(
-        profileId: profile.id,
-        remove: changes.remove,
-        add: changes.add,
-      );
+      await applyVaccineChanges(db, profile.id, changes);
     } catch (_) {
       if (!mounted) return;
       setState(() => _saving = false);

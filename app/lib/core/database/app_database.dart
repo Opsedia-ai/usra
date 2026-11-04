@@ -332,13 +332,28 @@ class AppDatabase extends _$AppDatabase {
 
   /// Adds [add] records and marks the records [remove] deleted, all or
   /// nothing: the vaccine checklist saves this way.
+  ///
+  /// [redate] moves records to a new date in place, keeping everything else
+  /// on them (photos, doctor, cost).
   Future<void> replaceEvents({
     required String profileId,
     List<({String type, DateTime occurredAt, String dataJson})> add = const [],
     Iterable<String> remove = const [],
+    Map<String, DateTime> redate = const {},
   }) async {
     final now = DateTime.now().toUtc();
     await transaction(() async {
+      for (final MapEntry(key: id, value: date) in redate.entries) {
+        await (update(
+          medicalEvents,
+        )..where((e) => e.id.equals(id) & e.profileId.equals(profileId))).write(
+          MedicalEventsCompanion(
+            occurredAt: Value(date),
+            updatedAt: Value(now),
+          ),
+        );
+        await _queue('medical_event', id, 'upsert');
+      }
       for (final id in remove) {
         await (update(
           medicalEvents,

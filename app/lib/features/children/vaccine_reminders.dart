@@ -7,9 +7,23 @@ import 'egypt_vaccines.dart';
 /// The records vaccine reminders are planned from.
 const vaccineRecordTypes = {'vaccine', VaccinePlanFields.type};
 
-/// Vaccine reminders use ids from here, under [snoozeIdBase], so they are
-/// "planned" reminders and never collide with medicine ones (1-60).
+/// Vaccine reminders use ids from [vaccineReminderIdBase] up to (not
+/// including) [snoozeIdBase]: "planned" reminders that never collide with
+/// medicine ones (1-60) or snoozes.
 const vaccineReminderIdBase = 900000;
+const _vaccineIdRange = snoozeIdBase - vaccineReminderIdBase;
+
+/// A stable id for one reminder: the same child, visit day and lead always
+/// get the same id, so re-planning leaves a scheduled or shown reminder
+/// alone. FNV-1a, as `String.hashCode` isn't stable across runs.
+int vaccineReminderId(String profileId, DateTime dueOn, int leadDays) {
+  var hash = 0x811c9dc5;
+  final day = '${dueOn.year}-${dueOn.month}-${dueOn.day}';
+  for (final unit in '$profileId|$day|$leadDays'.codeUnits) {
+    hash = ((hash ^ unit) * 0x01000193) & 0xffffffff;
+  }
+  return vaccineReminderIdBase + hash % _vaccineIdRange;
+}
 
 /// At most this many vaccine reminders are scheduled at once.
 const maxVaccineReminders = 20;
@@ -64,11 +78,12 @@ List<PlannedReminder> planVaccineReminders(
 }) {
   if (!settings.enabled) return const [];
   final today = DateTime(now.year, now.month, now.day);
-  final horizon = today.add(const Duration(days: vaccineReminderHorizonDays));
+  final horizon = plusDays(today, vaccineReminderHorizonDays);
   final hour = settings.minutes ~/ 60, minute = settings.minutes % 60;
   final out =
       <
         ({
+          int lead,
           DateTime at,
           Profile child,
           DateTime dueOn,
@@ -92,6 +107,7 @@ List<PlannedReminder> planVaccineReminders(
         final at = DateTime(due.year, due.month, due.day - lead, hour, minute);
         if (!at.isAfter(now)) continue;
         out.add((
+          lead: lead,
           at: at,
           child: c.profile,
           dueOn: due,
@@ -102,10 +118,23 @@ List<PlannedReminder> planVaccineReminders(
     }
   }
   out.sort((a, b) => a.at.compareTo(b.at));
+  final used = <int>{};
+  int idFor(Profile child, DateTime dueOn, int lead) {
+    var id = vaccineReminderId(child.id, dueOn, lead);
+    // A collision (very rare): the next free id, the same on every run
+    // since reminders are taken in time order.
+    while (!used.add(id)) {
+      id =
+          vaccineReminderIdBase +
+          (id - vaccineReminderIdBase + 1) % _vaccineIdRange;
+    }
+    return id;
+  }
+
   return [
-    for (final (i, r) in out.take(max).indexed)
+    for (final r in out.take(max))
       PlannedReminder.vaccine(
-        id: vaccineReminderIdBase + i + 1,
+        id: idFor(r.child, r.dueOn, r.lead),
         at: r.at,
         profileId: r.child.id,
         dueOn: r.dueOn,

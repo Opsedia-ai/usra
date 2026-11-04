@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
+import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/features/children/child_vaccines.dart';
 import 'package:usra/features/children/egypt_vaccines.dart';
@@ -258,5 +259,121 @@ void main() {
     await tapKey(tester, 'settings-vaccine-reminders');
     await tapKey(tester, 'settings-vaccine-reminders');
     expect(scheduler.requests, 1);
+  });
+
+  testWidgets('unticking a dose the family typed asks first', (tester) async {
+    tester.view.physicalSize = const Size(1170, 9000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    final birth = addMonths(DateUtils.dateOnly(DateTime.now()), -3);
+    final kid = (await tester.runAsync(() async {
+      final kid = await db.addProfile('ليلى', birthDate: birth);
+      await db.addEvent(
+        profileId: kid,
+        type: 'vaccine',
+        occurredAt: birth,
+        dataJson: '{"vaccine": "BCG"}',
+        photos: ['attachments/card.jpg'],
+      );
+      return kid;
+    }))!;
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    GoRouter.of(tester.element(find.byType(Scaffold).first))
+        .go('/family/$kid/vaccines');
+    await tester.pumpAndSettle();
+    Future<int> records() async => vaccineRecords(
+      (await tester.runAsync(() => db.watchTimeline(kid).first))!,
+    ).length;
+
+    await tapKey(tester, 'dose-bcg-1');
+    await tapKey(tester, 'dose-given');
+    await tapKey(tester, 'dose-save');
+    expect(
+      find.byKey(const ValueKey('vaccine-remove-confirm')),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('إلغاء'));
+    await tester.pumpAndSettle();
+    expect(await records(), 1);
+    expect(find.byKey(const ValueKey('dose-save')), findsOneWidget);
+
+    await tapKey(tester, 'dose-save');
+    await tapKey(tester, 'vaccine-remove-ok');
+    expect(await records(), 0);
+    expect(inKey('dose-bcg-1', 'اتاخد'), findsNothing);
+
+    // A dose ticked in the app is unticked without asking.
+    await tapKey(tester, 'dose-hepB-0');
+    await tapKey(tester, 'dose-given');
+    await tapKey(tester, 'dose-save');
+    expect(await records(), 1);
+    await tapKey(tester, 'dose-hepB-0');
+    await tapKey(tester, 'dose-given');
+    await tapKey(tester, 'dose-save');
+    expect(find.byKey(const ValueKey('vaccine-remove-confirm')), findsNothing);
+    expect(await records(), 0);
+  });
+
+  testWidgets('Simple Mode Home shows the next vaccine visit', (tester) async {
+    tester.view.physicalSize = const Size(1170, 6000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    final kid = (await tester.runAsync(
+      () => db.addProfile(
+        'يوسف',
+        birthDate: addMonths(DateUtils.dateOnly(DateTime.now()), -1),
+      ),
+    ))!;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          reminderSchedulerProvider.overrideWithValue(scheduler),
+          keyValueStoreProvider.overrideWithValue(
+            MemoryKeyValueStore({
+              PrefKeys.simpleMode: true,
+              PrefKeys.tutorialSeen: true,
+              PrefKeys.elderTutorialSeen: true,
+            }),
+          ),
+        ],
+        child: const UsraApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('simple-greeting')), findsOneWidget);
+    expect(find.byKey(ValueKey('home-vaccines-$kid')), findsOneWidget);
+    expect(find.byKey(const ValueKey('simple-medicines')), findsOneWidget);
+  });
+
+  testWidgets('the hidden vaccine plan never shows in the timeline', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 6000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    final kid = (await tester.runAsync(() async {
+      final kid = await db.addProfile('ليلى', birthDate: DateTime(2026, 1, 1));
+      await db.saveSingletonEvent(
+        profileId: kid,
+        type: VaccinePlanFields.type,
+        dataJson: const VaccinePlan(optional: {VaccineKind.pcv}).toJson(),
+      );
+      // A record type this version doesn't know (from a newer build).
+      await db.addEvent(
+        profileId: kid,
+        type: 'fromTheFuture',
+        occurredAt: DateTime(2026, 2, 1),
+      );
+      return kid;
+    }))!;
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    GoRouter.of(tester.element(find.byType(Scaffold).first)).go('/family/$kid');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('vaccinePlan'), findsNothing);
+    expect(find.textContaining('fromTheFuture'), findsNothing);
+    expect(find.text('خطة التطعيم'), findsNothing);
   });
 }
