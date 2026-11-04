@@ -78,6 +78,12 @@ Future<void> main() async {
       for (final store in [cardPhotos, attachments, medicinePhotos])
         store.sealPlainFiles(),
     ].wait;
+  } catch (e, s) {
+    FlutterError.reportError(
+      FlutterErrorDetails(exception: e, stack: s, library: 'photos'),
+    );
+  }
+  try {
     await SharedPhotoCache(temporary).clear();
   } catch (e, s) {
     FlutterError.reportError(

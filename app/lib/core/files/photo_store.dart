@@ -196,34 +196,40 @@ Future<int> sealPlainPhotos(Directory dir, PhotoCipher cipher) async {
     }
   }
   var sealed = 0;
+  Object? failure;
   for (final entity in candidates) {
-    final name = p.basename(entity.path);
-    // Only the magic on every start, not the whole photo.
-    final head = await entity
-        .openRead(0, PhotoCipher.magic.length)
-        .fold(<int>[], (all, piece) => all..addAll(piece));
-    if (PhotoCipher.isSealed(head)) continue;
-    final plain = await entity.readAsBytes();
-    final part = File(p.join(dir.path, '.$name$_partSuffix'));
-    await part.writeAsBytes(cipher.seal(plain), flush: true);
-    // Read back from disk: the plain photo goes only once this opens to
-    // exactly the same bytes.
-    final check = cipher.open(await part.readAsBytes());
-    if (!_same(check, plain)) {
-      await part.delete();
-      throw StateError('Encrypted photo did not read back the same');
+    // One photo that fails mustn't keep the rest plain; it is tried again
+    // on the next start.
+    try {
+      if (await _sealPlainPhoto(entity, cipher)) sealed++;
+    } catch (e) {
+      failure ??= e;
     }
-    await part.rename(entity.path);
-    sealed++;
   }
+  if (failure != null) throw failure;
   return sealed;
 }
 
-bool _same(List<int> a, List<int> b) {
-  if (a.length != b.length) return false;
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) return false;
+/// Seals [file] in place if it's plain; false if it was sealed already.
+Future<bool> _sealPlainPhoto(File file, PhotoCipher cipher) async {
+  // Only the magic on every start, not the whole photo.
+  final head = await file
+      .openRead(0, PhotoCipher.magic.length)
+      .fold(<int>[], (all, piece) => all..addAll(piece));
+  if (PhotoCipher.isSealed(head)) return false;
+  final plain = await file.readAsBytes();
+  final part = File(
+    p.join(file.parent.path, '.${p.basename(file.path)}$_partSuffix'),
+  );
+  await part.writeAsBytes(cipher.seal(plain), flush: true);
+  // Read back from disk: the plain photo goes only once this opens to
+  // exactly the same bytes.
+  final check = cipher.open(await part.readAsBytes());
+  if (!listEquals(check, plain)) {
+    await part.delete();
+    throw StateError('Encrypted photo did not read back the same');
   }
+  await part.rename(file.path);
   return true;
 }
 

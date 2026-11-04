@@ -210,6 +210,19 @@ void main() {
       expect(await store.read('attachments/b.jpg'), [7, 7]);
     });
 
+    test('one photo that fails does not keep the rest plain', () async {
+      writePlain('a.jpg', [1]);
+      writePlain('b.jpg', [2]);
+      writePlain('c.jpg', [3]);
+      final locked = store.fileOf('attachments/b.jpg');
+      Process.runSync('chmod', ['000', locked.path]);
+      addTearDown(() => Process.runSync('chmod', ['644', locked.path]));
+
+      await expectLater(store.sealPlainFiles(), throwsA(anything));
+      expect(await store.read('attachments/a.jpg'), [1]);
+      expect(await store.read('attachments/c.jpg'), [3]);
+    });
+
     test('no folder yet is fine', () async {
       expect(await store.sealPlainFiles(), 0);
     });
