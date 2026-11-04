@@ -37,7 +37,7 @@ Play listing so both stores say the same thing.
 روشتة,دواء,تطعيمات,تحاليل,حمل,اطفال,تأمين,دكتور,منبه
 ```
 
-### Description (1607/4000)
+### Description
 
 Same text as the Play full description (Arabic), `google-play.md`.
 
@@ -73,7 +73,7 @@ The whole family's health on your phone, encrypted: a file for each person, medi
 medical records,medicine reminder,pill,vaccine,pregnancy,baby,growth,doctor,insurance,arabic
 ```
 
-### Description (2014/4000)
+### Description
 
 Same text as the Play full description (English), `google-play.md`.
 

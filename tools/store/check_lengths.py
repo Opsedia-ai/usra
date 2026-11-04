@@ -12,9 +12,10 @@ import sys
 
 DOCS = pathlib.Path(__file__).resolve().parents[2] / "docs" / "store"
 FIELD = re.compile(
-    r"^(### [^\n(]+\()(\d+)/(\d+)( bytes)?\)\n+```text\n(.*?)\n```",
+    r"^(### [^\n]*\()(\d+)/(\d+)( bytes)?\)\n+```text\n(.*?)\n```",
     re.M | re.S,
 )
+COUNTED = re.compile(r"^### [^\n]*\(\d+/\d+( bytes)?\)$", re.M)
 
 
 def main():
@@ -36,6 +37,11 @@ def main():
             return m.group(0).replace(f"({m.group(2)}/", f"({n}/", 1)
 
         new = FIELD.sub(check, text)
+        # A counted heading without a text block right after it is never checked.
+        unchecked = len(COUNTED.findall(text)) - len(FIELD.findall(text))
+        if unchecked:
+            over += 1
+            print(f"{path.name}: {unchecked} counted heading(s) without a ```text block")
         if fix and new != text:
             path.write_text(new, encoding="utf-8")
     sys.exit(1 if over else 0)

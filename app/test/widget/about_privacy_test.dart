@@ -73,7 +73,13 @@ void main() {
       expect(find.textContaining('قاعدة بيانات متشفرة'), findsOneWidget);
       expect(find.textContaining('مفيش حساب'), findsOneWidget);
       expect(find.text('تنبيه طبي'), findsOneWidget);
-      expect(find.textContaining('أسرة مش جهاز طبي'), findsWidgets);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('about-medical')),
+          matching: find.textContaining('أسرة مش جهاز طبي'),
+        ),
+        findsOneWidget,
+      );
       expect(find.text('النسخة 0.1.0+1'), findsOneWidget);
     },
   );
