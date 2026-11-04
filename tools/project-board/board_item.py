@@ -10,7 +10,7 @@ import json
 import subprocess
 import sys
 
-ORG, NUMBER, REPO = "Opsedia-ai", "2", "Usra_medical_history"
+ORG, NUMBER, REPO = "Opsedia-ai", "2", "usra"
 
 
 def gh(*args):

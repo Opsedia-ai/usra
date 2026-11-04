@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 ORG = "Opsedia-ai"
-REPO = "Usra_medical_history"
+REPO = "usra"
 TITLE = "Usra roadmap"
 
 

@@ -8,9 +8,9 @@ security seriously and thank everyone who reports responsibly.
 Please report privately. Do **not** open a public issue or pull request.
 
 Use GitHub's private vulnerability reporting: open the
-[Security tab](https://github.com/Opsedia-ai/Usra_medical_history/security)
+[Security tab](https://github.com/Opsedia-ai/usra/security)
 of this repository and choose **Report a vulnerability**
-([direct link](https://github.com/Opsedia-ai/Usra_medical_history/security/advisories/new)).
+([direct link](https://github.com/Opsedia-ai/usra/security/advisories/new)).
 Only the maintainers see the report.
 
 Include what you found, how to reproduce it (steps, app version, device and
