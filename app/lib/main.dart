@@ -10,6 +10,7 @@ import 'core/backup/recovery_key.dart';
 import 'core/database/app_database.dart';
 import 'core/database/connection.dart';
 import 'core/files/photo_store.dart';
+import 'core/log.dart';
 import 'core/preferences.dart';
 import 'core/providers.dart';
 import 'core/routing/app_router.dart';
@@ -24,6 +25,7 @@ import 'l10n/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  Log.installErrorHandlers();
   final key = await DatabaseKeyStore().readOrCreate();
   final file = await defaultDatabaseFile();
   try {

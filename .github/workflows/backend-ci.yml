@@ -7,6 +7,9 @@ on:
     branches: [main]
     paths: ["supabase/**", ".github/workflows/backend-ci.yml"]
 
+permissions:
+  contents: read
+
 jobs:
   functions:
     runs-on: ubuntu-latest
@@ -14,8 +17,8 @@ jobs:
       run:
         working-directory: supabase
     steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
           deno-version: v2.x
       - run: deno fmt --check functions tests/functions
@@ -26,8 +29,8 @@ jobs:
   database:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1.7.3
         with:
           version: latest
       - name: Throwaway SMS hook secret for this run (config.toml requires one)

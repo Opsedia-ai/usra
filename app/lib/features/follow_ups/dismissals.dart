@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+
+import '../../core/log.dart';
 
 /// Follow-ups hidden for their current cycle ([FollowUp.cycleKey]s).
 ///
@@ -100,7 +101,7 @@ class DismissedFollowUps extends Notifier<Set<String>> {
     try {
       await ref.read(dismissalStoreProvider).save(keys);
     } on FileSystemException catch (e) {
-      debugPrint('Could not save follow-up dismissals: $e');
+      Log.error('Could not save follow-up dismissals', e);
     }
   }
 }
