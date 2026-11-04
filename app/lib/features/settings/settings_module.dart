@@ -8,6 +8,7 @@ import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/account_screen.dart';
 import '../backup/backup_screen.dart';
 
 class SettingsModule extends FeatureModule {
@@ -87,6 +88,7 @@ class SettingsScreen extends ConsumerWidget {
                   onTap: () => context.go(backupPath),
                 ),
                 const Divider(height: 1),
+                const AccountSettingsTile(),
                 ListTile(
                   key: const ValueKey('settings-tutorial'),
                   leading: const Icon(Icons.school_outlined),

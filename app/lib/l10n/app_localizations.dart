@@ -3169,6 +3169,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Untick this milestone? The date you recorded will be removed.'**
   String get devUntickConfirm;
+
+  /// No description provided for @accountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get accountTitle;
+
+  /// No description provided for @accountSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Your records stay on this phone'**
+  String get accountSettingsHint;
+
+  /// No description provided for @accountPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family\'s health records stay on this phone. An account doesn\'t upload them: it only gets things ready for syncing between your family\'s phones and for AI features later, and you\'ll choose before anything is shared.'**
+  String get accountPrivacy;
+
+  /// No description provided for @accountSignInIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with your mobile number. We\'ll text you a code.'**
+  String get accountSignInIntro;
+
+  /// No description provided for @countryEgypt.
+  ///
+  /// In en, this message translates to:
+  /// **'Egypt'**
+  String get countryEgypt;
+
+  /// No description provided for @countrySaudiArabia.
+  ///
+  /// In en, this message translates to:
+  /// **'Saudi Arabia'**
+  String get countrySaudiArabia;
+
+  /// No description provided for @countryUae.
+  ///
+  /// In en, this message translates to:
+  /// **'UAE'**
+  String get countryUae;
+
+  /// No description provided for @accountPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile number'**
+  String get accountPhone;
+
+  /// No description provided for @accountPhoneInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the mobile number'**
+  String get accountPhoneInvalid;
+
+  /// No description provided for @accountSendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get accountSendCode;
+
+  /// No description provided for @accountCodeSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code we sent to {phone}'**
+  String accountCodeSentTo(String phone);
+
+  /// No description provided for @accountCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get accountCode;
+
+  /// No description provided for @accountVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get accountVerify;
+
+  /// No description provided for @accountResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the code again'**
+  String get accountResend;
+
+  /// No description provided for @accountCodeResent.
+  ///
+  /// In en, this message translates to:
+  /// **'Code sent again'**
+  String get accountCodeResent;
+
+  /// No description provided for @accountChangeNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Change number'**
+  String get accountChangeNumber;
+
+  /// No description provided for @accountSignedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in'**
+  String get accountSignedIn;
+
+  /// No description provided for @accountSignedInAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as {phone}'**
+  String accountSignedInAs(String phone);
+
+  /// No description provided for @accountSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get accountSignOut;
+
+  /// No description provided for @accountSignOutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out? Your records stay on this phone.'**
+  String get accountSignOutConfirm;
+
+  /// No description provided for @accountDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get accountDelete;
+
+  /// No description provided for @accountDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your account? Your account, devices and credits are erased from our servers. The records on this phone stay here.'**
+  String get accountDeleteConfirm;
+
+  /// No description provided for @accountDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted'**
+  String get accountDeleted;
+
+  /// No description provided for @accountErrorInvalidCode.
+  ///
+  /// In en, this message translates to:
+  /// **'That code isn\'t right or has expired'**
+  String get accountErrorInvalidCode;
+
+  /// No description provided for @accountErrorTooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries. Wait a little and try again'**
+  String get accountErrorTooMany;
+
+  /// No description provided for @accountErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. Check the internet and try again'**
+  String get accountErrorNetwork;
+
+  /// No description provided for @accountErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Try again'**
+  String get accountErrorGeneric;
+
+  /// No description provided for @accountRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get accountRetry;
 }
 
 class _AppLocalizationsDelegate

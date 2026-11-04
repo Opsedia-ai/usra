@@ -25,6 +25,7 @@ supabase/
     ai-doctor/                Dr. Usra AI: credits + LLM + schema-checked findings
     ocr-fallback/             cloud reading of medicine photos (Arabic, handwriting)
     revenuecat-webhook/       purchases -> credits_ledger / entitlements
+    delete-account/           in-app "Delete account": removes the auth user, everything cascades
     send-sms-hook/            Supabase Auth Send SMS hook (Unifonic or Twilio)
   tests/
     functions/                Deno unit tests (no network, no database)
@@ -87,6 +88,7 @@ and never echo request bodies or log health data, phone numbers or codes.
 | --- | --- | --- | --- |
 | `ai-doctor` | user JWT | `{ snapshot, locale?: "ar"\|"en", request_id?: uuid }` | `{ report: { findings[], urgent, disclaimer }, credits: { charged, balance }, model }` |
 | `ocr-fallback` | user JWT | `{ image_base64, media_type?, consent: true }` (≤ 300 KB, JPEG/PNG/WebP) | `{ medications: [{ name, strength, dose, frequency, duration, confidence }], quota }` |
+| `delete-account` | user JWT | `{ confirm: true }` | `{ status: "deleted" \| "not_found" }`; `400 confirmation_required`, `502 delete_failed` |
 | `revenuecat-webhook` | `Authorization` = shared secret | RevenueCat webhook body | `{ status: "applied" \| "duplicate" \| "ignored" }` |
 | `send-sms-hook` | Standard Webhooks signature | Supabase Auth hook payload | `{}` or `{ error: { http_code, message } }` |
 
@@ -117,6 +119,14 @@ per `OCR_QUOTA_WINDOW_DAYS`), then asks the vision model (`MedicationReader`,
 default Claude via `OCR_MODEL`) for structured JSON. Missing fields come back
 as `null`. The image is never stored. The phone runs the result through drug
 matching and the user confirms before anything is saved.
+
+### delete-account
+
+Deletes the caller's own `auth.users` row with the service role (the user id
+comes from the JWT, never the body). `accounts`, `devices`, `push_tokens`,
+the credits ledger, families they created and those families' ciphertext all
+go with it through `on delete cascade` (`tests/database/account_deletion.test.sql`).
+The app then forgets its device key pair. Records on the phone are untouched.
 
 ### revenuecat-webhook
 
@@ -186,7 +196,7 @@ curl -X POST http://127.0.0.1:54321/functions/v1/ai-doctor \
 supabase link --project-ref <ref>
 supabase db push
 supabase secrets set --env-file ./functions/.env
-supabase functions deploy ai-doctor ocr-fallback
+supabase functions deploy ai-doctor ocr-fallback delete-account
 supabase functions deploy revenuecat-webhook send-sms-hook --no-verify-jwt
 ```
 
@@ -194,6 +204,23 @@ Then, in the dashboard: Auth → Hooks → Send SMS → HTTPS → the
 `send-sms-hook` URL (copy the generated secret into `SEND_SMS_HOOK_SECRETS`),
 and in RevenueCat set the webhook URL and the Authorization header to
 `REVENUECAT_WEBHOOK_SECRET`.
+
+## The app
+
+Accounts are optional and off unless the app is built with the project's
+URL and anon key (never the service-role key):
+
+```bash
+flutter run --dart-define=SUPABASE_URL=https://<ref>.supabase.co --dart-define=SUPABASE_ANON_KEY=<anon key>
+```
+
+Without them the account entry in Settings is hidden and the app makes no
+network calls for accounts. With them, Supabase starts only when the account
+screen is opened. Sign-in is phone + SMS code; on sign-in the app sets
+`accounts.country` / `locale` and adds (or updates) its `devices` row with an
+X25519 public key whose private half stays in the phone's secure storage,
+ready for wrapping the family key in v2 sync. The session is kept in secure
+storage too.
 
 ## Regulatory gates (from the technical design)
 
@@ -207,5 +234,4 @@ in Egypt get the PDPL cross-border licence or use an in-region model endpoint
 - Server-side country gate for AI Doctor (e.g. block `accounts.country = 'SA'`).
 - Family key wrapping per device, invites and key rotation for v2 sync.
 - `pg_cron` job for `expire_stale_reservations()`.
-- Account-deletion Edge Function (delete the `auth.users` row; everything cascades).
 - A Google Cloud Vision `MedicationReader` if it reads Arabic prescriptions better.

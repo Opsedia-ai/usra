@@ -1946,4 +1946,95 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get devUntickConfirm =>
       'تشيل العلامة من المهارة دي؟ التاريخ اللي سجلته هيتمسح.';
+
+  @override
+  String get accountTitle => 'الحساب';
+
+  @override
+  String get accountSettingsHint => 'اختياري. سجلاتك فاضلة على الموبايل ده';
+
+  @override
+  String get accountPrivacy =>
+      'سجلات العيلة الصحية فاضلة على الموبايل ده. الحساب مش بيرفعها: هو بس بيجهّز لمزامنة موبايلات العيلة ولخدمات الذكاء الاصطناعي بعدين، وإنت اللي هتختار قبل ما أي حاجة تتبعت.';
+
+  @override
+  String get accountSignInIntro => 'ادخل برقم موبايلك، وهنبعتلك كود في رسالة.';
+
+  @override
+  String get countryEgypt => 'مصر';
+
+  @override
+  String get countrySaudiArabia => 'السعودية';
+
+  @override
+  String get countryUae => 'الإمارات';
+
+  @override
+  String get accountPhone => 'رقم الموبايل';
+
+  @override
+  String get accountPhoneInvalid => 'اتأكد من رقم الموبايل';
+
+  @override
+  String get accountSendCode => 'ابعت الكود';
+
+  @override
+  String accountCodeSentTo(String phone) {
+    return 'اكتب الكود اللي فيه ٦ أرقام اللي بعتناه على $phone';
+  }
+
+  @override
+  String get accountCode => 'الكود';
+
+  @override
+  String get accountVerify => 'تأكيد';
+
+  @override
+  String get accountResend => 'ابعت الكود تاني';
+
+  @override
+  String get accountCodeResent => 'الكود اتبعت تاني';
+
+  @override
+  String get accountChangeNumber => 'غيّر الرقم';
+
+  @override
+  String get accountSignedIn => 'إنت داخل على حسابك';
+
+  @override
+  String accountSignedInAs(String phone) {
+    return 'داخل برقم $phone';
+  }
+
+  @override
+  String get accountSignOut => 'اخرج من الحساب';
+
+  @override
+  String get accountSignOutConfirm =>
+      'تخرج من الحساب؟ سجلاتك فاضلة على الموبايل.';
+
+  @override
+  String get accountDelete => 'امسح الحساب';
+
+  @override
+  String get accountDeleteConfirm =>
+      'تمسح حسابك؟ الحساب والأجهزة والرصيد هيتمسحوا من السيرفرات بتاعتنا. السجلات اللي على الموبايل ده هتفضل زي ما هي.';
+
+  @override
+  String get accountDeleted => 'الحساب اتمسح';
+
+  @override
+  String get accountErrorInvalidCode => 'الكود ده مش صح أو انتهى';
+
+  @override
+  String get accountErrorTooMany => 'محاولات كتير. استنى شوية وجرّب تاني';
+
+  @override
+  String get accountErrorNetwork => 'مفيش اتصال. اتأكد من النت وجرّب تاني';
+
+  @override
+  String get accountErrorGeneric => 'حصلت مشكلة. جرّب تاني';
+
+  @override
+  String get accountRetry => 'جرّب تاني';
 }

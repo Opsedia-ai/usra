@@ -1932,4 +1932,98 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get devUntickConfirm =>
       'Untick this milestone? The date you recorded will be removed.';
+
+  @override
+  String get accountTitle => 'Account';
+
+  @override
+  String get accountSettingsHint => 'Optional. Your records stay on this phone';
+
+  @override
+  String get accountPrivacy =>
+      'Your family\'s health records stay on this phone. An account doesn\'t upload them: it only gets things ready for syncing between your family\'s phones and for AI features later, and you\'ll choose before anything is shared.';
+
+  @override
+  String get accountSignInIntro =>
+      'Sign in with your mobile number. We\'ll text you a code.';
+
+  @override
+  String get countryEgypt => 'Egypt';
+
+  @override
+  String get countrySaudiArabia => 'Saudi Arabia';
+
+  @override
+  String get countryUae => 'UAE';
+
+  @override
+  String get accountPhone => 'Mobile number';
+
+  @override
+  String get accountPhoneInvalid => 'Check the mobile number';
+
+  @override
+  String get accountSendCode => 'Send code';
+
+  @override
+  String accountCodeSentTo(String phone) {
+    return 'Enter the 6-digit code we sent to $phone';
+  }
+
+  @override
+  String get accountCode => 'Code';
+
+  @override
+  String get accountVerify => 'Confirm';
+
+  @override
+  String get accountResend => 'Send the code again';
+
+  @override
+  String get accountCodeResent => 'Code sent again';
+
+  @override
+  String get accountChangeNumber => 'Change number';
+
+  @override
+  String get accountSignedIn => 'Signed in';
+
+  @override
+  String accountSignedInAs(String phone) {
+    return 'Signed in as $phone';
+  }
+
+  @override
+  String get accountSignOut => 'Sign out';
+
+  @override
+  String get accountSignOutConfirm =>
+      'Sign out? Your records stay on this phone.';
+
+  @override
+  String get accountDelete => 'Delete account';
+
+  @override
+  String get accountDeleteConfirm =>
+      'Delete your account? Your account, devices and credits are erased from our servers. The records on this phone stay here.';
+
+  @override
+  String get accountDeleted => 'Account deleted';
+
+  @override
+  String get accountErrorInvalidCode => 'That code isn\'t right or has expired';
+
+  @override
+  String get accountErrorTooMany =>
+      'Too many tries. Wait a little and try again';
+
+  @override
+  String get accountErrorNetwork =>
+      'No connection. Check the internet and try again';
+
+  @override
+  String get accountErrorGeneric => 'Something went wrong. Try again';
+
+  @override
+  String get accountRetry => 'Try again';
 }
