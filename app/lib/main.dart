@@ -16,6 +16,7 @@ import 'core/providers.dart';
 import 'core/routing/app_router.dart';
 import 'core/security/app_lock.dart';
 import 'features/backup/backup_providers.dart';
+import 'features/children/vaccine_reminders.dart';
 import 'features/follow_ups/dismissals.dart';
 import 'features/medicines/dose_widget.dart';
 import 'features/medicines/local_notification_scheduler.dart';
@@ -138,8 +139,11 @@ Future<void> main() async {
     final status = r.status;
     if (status == null) {
       // Opening the app from a reminder waits for the lock.
+      final child = r.dose.profileId;
       lock.runWhenUnlocked(
-        () => container().read(routerProvider).go('/medicines'),
+        () => container()
+            .read(routerProvider)
+            .go(child == null ? '/medicines' : '/family/$child/vaccines'),
       );
     } else {
       // Taken / Snooze only saves the dose and shows nothing: no unlock.
@@ -153,9 +157,10 @@ Future<void> main() async {
   try {
     notifications = await LocalNotificationScheduler.init(
       channelName: startup.doseChannelName,
+      vaccineChannelName: startup.vaccineChannelName,
       takenLabel: startup.doseTaken,
       snoozeLabel: startup.doseSnooze,
-      hiddenPreviewText: startup.doseReminderDiscreetTitle,
+      hiddenPreviewText: startup.reminderHiddenPreview,
       onResponse: onDoseResponse,
     );
   } catch (e, s) {
@@ -196,6 +201,20 @@ Future<void> main() async {
     inbox: inbox,
     texts: () => reminderTextsOf(container()),
     widget: const HomeWidgetSnapshotPublisher(),
+    vaccineChanges: database.watchEventChanges(vaccineRecordTypes),
+    vaccines: (now) {
+      final c = container();
+      final texts = reminderTextsOf(c);
+      return loadVaccineReminders(
+        database,
+        now: now,
+        settings: VaccineReminderSettings(
+          enabled: c.read(vaccineRemindersProvider),
+          minutes: c.read(vaccineReminderMinutesProvider),
+        ),
+        texts: VaccineReminderTexts(texts.l, discreet: texts.discreet),
+      );
+    },
   );
 
   // Swaps a staged backup in and starts the app again on it. The old

@@ -1169,14 +1169,14 @@ abstract class AppLocalizations {
   /// No description provided for @vaccinesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Mandatory vaccinations'**
+  /// **'Vaccinations'**
   String get vaccinesTitle;
 
   /// No description provided for @vaccinesDisclaimer.
   ///
   /// In en, this message translates to:
-  /// **'Based on the Egyptian Ministry of Health and Population\'s mandatory schedule. Schedules change, so the child\'s health office card is the official record.'**
-  String get vaccinesDisclaimer;
+  /// **'Required doses follow the Egyptian Ministry of Health and Population\'s schedule; optional ones follow common private-practice schedules (checked {date}). For information only: schedules change, and the child\'s health office card and doctor are the reference.'**
+  String vaccinesDisclaimer(String date);
 
   /// No description provided for @vaccineAtBirth.
   ///
@@ -1817,7 +1817,7 @@ abstract class AppLocalizations {
   /// No description provided for @fuVaccinesDue.
   ///
   /// In en, this message translates to:
-  /// **'Mandatory vaccines'**
+  /// **'Vaccinations'**
   String get fuVaccinesDue;
 
   /// No description provided for @fuVaccinesAt.
@@ -3817,6 +3817,384 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open Usra to see which'**
   String get doseReminderDiscreetBody;
+
+  /// No description provided for @memberVaccines.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccinations'**
+  String get memberVaccines;
+
+  /// No description provided for @vaccineHexa.
+  ///
+  /// In en, this message translates to:
+  /// **'Hexavalent'**
+  String get vaccineHexa;
+
+  /// No description provided for @vaccinePcv.
+  ///
+  /// In en, this message translates to:
+  /// **'Pneumococcal (PCV)'**
+  String get vaccinePcv;
+
+  /// No description provided for @vaccineRota.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotavirus'**
+  String get vaccineRota;
+
+  /// No description provided for @vaccineVaricella.
+  ///
+  /// In en, this message translates to:
+  /// **'Chickenpox (varicella)'**
+  String get vaccineVaricella;
+
+  /// No description provided for @vaccineHepA.
+  ///
+  /// In en, this message translates to:
+  /// **'Hepatitis A'**
+  String get vaccineHepA;
+
+  /// No description provided for @vaccineMening.
+  ///
+  /// In en, this message translates to:
+  /// **'Meningococcal (MenACWY)'**
+  String get vaccineMening;
+
+  /// No description provided for @vaccineFlu.
+  ///
+  /// In en, this message translates to:
+  /// **'Influenza (flu)'**
+  String get vaccineFlu;
+
+  /// No description provided for @vaccineBoosterDose.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, booster'**
+  String vaccineBoosterDose(String name);
+
+  /// No description provided for @vaccineRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get vaccineRequired;
+
+  /// No description provided for @vaccineOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get vaccineOptional;
+
+  /// No description provided for @vaccineNotFollowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in your plan'**
+  String get vaccineNotFollowed;
+
+  /// No description provided for @vaccineRequiredDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{done}/{total} required done'**
+  String vaccineRequiredDone(int done, int total);
+
+  /// No description provided for @vaccineOptionalDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{done}/{total} optional done'**
+  String vaccineOptionalDone(int done, int total);
+
+  /// No description provided for @vaccineFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get vaccineFilterAll;
+
+  /// No description provided for @vaccineFilterRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get vaccineFilterRequired;
+
+  /// No description provided for @vaccineFilterOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get vaccineFilterOptional;
+
+  /// No description provided for @vaccineFilterOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get vaccineFilterOverdue;
+
+  /// No description provided for @vaccineFilterEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here.'**
+  String get vaccineFilterEmpty;
+
+  /// No description provided for @vaccinePlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine plan'**
+  String get vaccinePlanTitle;
+
+  /// No description provided for @vaccineRouteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How are the injections given?'**
+  String get vaccineRouteTitle;
+
+  /// No description provided for @vaccineRouteGovernment.
+  ///
+  /// In en, this message translates to:
+  /// **'Health office (free)'**
+  String get vaccineRouteGovernment;
+
+  /// No description provided for @vaccineRouteGovernmentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pentavalent and the polio injection (IPV) as separate shots, with a DTP booster at 18 months.'**
+  String get vaccineRouteGovernmentHint;
+
+  /// No description provided for @vaccineRouteHexavalent.
+  ///
+  /// In en, this message translates to:
+  /// **'Private hexavalent'**
+  String get vaccineRouteHexavalent;
+
+  /// No description provided for @vaccineRouteHexavalentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One hexavalent shot instead of pentavalent + IPV at 2, 4 and 6 months, and a hexavalent booster at 18 months. Oral polio drops, BCG, hepatitis B at birth and MMR stay the same.'**
+  String get vaccineRouteHexavalentHint;
+
+  /// No description provided for @vaccineOptionalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional vaccines you follow'**
+  String get vaccineOptionalTitle;
+
+  /// No description provided for @vaccineOptionalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on the ministry\'s free schedule. Ask the child\'s doctor which ones to give; only the ones you tick are reminded or counted late.'**
+  String get vaccineOptionalHint;
+
+  /// No description provided for @vaccineSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up vaccinations'**
+  String get vaccineSetupTitle;
+
+  /// No description provided for @vaccineSetupOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan and doses given'**
+  String get vaccineSetupOpen;
+
+  /// No description provided for @vaccineSetupGiven.
+  ///
+  /// In en, this message translates to:
+  /// **'Doses already given'**
+  String get vaccineSetupGiven;
+
+  /// No description provided for @vaccineSetupGivenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick what\'s on the child\'s card. The date is the due date unless you change it.'**
+  String get vaccineSetupGivenHint;
+
+  /// No description provided for @vaccineSetupNoneYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No doses are due yet.'**
+  String get vaccineSetupNoneYet;
+
+  /// No description provided for @vaccineSetupSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get vaccineSetupSkip;
+
+  /// No description provided for @vaccineSetupSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccinations saved'**
+  String get vaccineSetupSaved;
+
+  /// No description provided for @vaccineChangeDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Change date'**
+  String get vaccineChangeDate;
+
+  /// No description provided for @vaccineDoseGiven.
+  ///
+  /// In en, this message translates to:
+  /// **'Given'**
+  String get vaccineDoseGiven;
+
+  /// No description provided for @vaccineDoseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date given'**
+  String get vaccineDoseDate;
+
+  /// No description provided for @vaccineDoseNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get vaccineDoseNote;
+
+  /// No description provided for @vaccineDoseNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. given at the clinic, slight fever after'**
+  String get vaccineDoseNoteHint;
+
+  /// No description provided for @vaccineDueOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String vaccineDueOn(String date);
+
+  /// No description provided for @vaccineNextVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Next vaccine visit'**
+  String get vaccineNextVisit;
+
+  /// No description provided for @vaccineInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{Today} =1{Tomorrow} other{In {days} days}}'**
+  String vaccineInDays(int days);
+
+  /// No description provided for @vaccineDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{Was due yesterday} other{Was due {days} days ago}}'**
+  String vaccineDaysAgo(int days);
+
+  /// No description provided for @vaccineOverdueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dose overdue} other{{count} doses overdue}}'**
+  String vaccineOverdueCount(int count);
+
+  /// No description provided for @vaccineAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'All planned vaccines are given'**
+  String get vaccineAllDone;
+
+  /// No description provided for @vaccineOpenAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All vaccinations'**
+  String get vaccineOpenAll;
+
+  /// No description provided for @homeVaccinesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccines'**
+  String get homeVaccinesTitle;
+
+  /// No description provided for @vaccineChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine reminders'**
+  String get vaccineChannelName;
+
+  /// No description provided for @vaccineReminderDiscreetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A health visit is coming up'**
+  String get vaccineReminderDiscreetTitle;
+
+  /// No description provided for @vaccineReminderDiscreetTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A health visit is today'**
+  String get vaccineReminderDiscreetTodayTitle;
+
+  /// No description provided for @vaccineReminderDiscreetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Usra to see the details'**
+  String get vaccineReminderDiscreetBody;
+
+  /// No description provided for @vaccineReminderWeekTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: vaccines in a week'**
+  String vaccineReminderWeekTitle(String name);
+
+  /// No description provided for @vaccineReminderTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: vaccines today'**
+  String vaccineReminderTodayTitle(String name);
+
+  /// No description provided for @settingsVaccineReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine reminders'**
+  String get settingsVaccineReminders;
+
+  /// No description provided for @settingsVaccineRemindersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A week before and on the day, at {time}'**
+  String settingsVaccineRemindersHint(String time);
+
+  /// No description provided for @settingsVaccineReminderTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder time'**
+  String get settingsVaccineReminderTime;
+
+  /// No description provided for @vaccineSources.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources'**
+  String get vaccineSources;
+
+  /// No description provided for @reminderHiddenPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'A reminder from Usra'**
+  String get reminderHiddenPreview;
+
+  /// No description provided for @vaccineTooLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Past the age limit: ask your doctor'**
+  String get vaccineTooLate;
+
+  /// No description provided for @vaccineNotNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not needed at this age'**
+  String get vaccineNotNeeded;
+
+  /// No description provided for @vaccineRemoveRecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the record you entered?'**
+  String get vaccineRemoveRecordTitle;
+
+  /// No description provided for @vaccineRemoveRecordBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This dose was entered by hand, maybe with a photo of the card, the doctor or the cost. Unticking it removes that record from the child\'s history.'**
+  String get vaccineRemoveRecordBody;
+
+  /// No description provided for @vaccineRemoveRecordConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get vaccineRemoveRecordConfirm;
 }
 
 class _AppLocalizationsDelegate

@@ -8,11 +8,13 @@ import '../../core/records/record_type.dart';
 import '../../l10n/app_localizations.dart';
 import 'child_screen.dart';
 import 'development_screen.dart';
+import 'egypt_vaccines.dart' show VaccinePlanFields;
 import 'growth.dart';
 import 'infant_log.dart';
 import 'infant_log_screen.dart';
 import 'milestones.dart';
 import 'vaccine_follow_up.dart';
+import 'vaccines_screen.dart';
 
 /// Under-fives: WHO growth charts, Egypt's mandatory vaccinations, CDC's
 /// milestones checklist, and a feeds/sleep/diapers log for babies.
@@ -30,6 +32,17 @@ class ChildrenModule extends FeatureModule {
       builder: (_, s) => ChildScreen(profileId: s.pathParameters['id']!),
     ),
     GoRoute(
+      path: '/family/:id/vaccines',
+      builder: (_, s) => VaccinesScreen(profileId: s.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/family/:id/vaccines/setup',
+      builder: (_, s) => VaccineSetupScreen(
+        profileId: s.pathParameters['id']!,
+        first: s.uri.queryParameters['first'] == '1',
+      ),
+    ),
+    GoRoute(
       path: '/family/:id/development',
       builder: (_, s) => DevelopmentScreen(profileId: s.pathParameters['id']!),
     ),
@@ -44,6 +57,17 @@ class ChildrenModule extends FeatureModule {
 
   @override
   List<RecordTypeDefinition> get recordTypes => [
+    // The family's vaccine plan (route, optional vaccines, notes): edited
+    // on the vaccine setup page, never from the "add record" list.
+    RecordTypeDefinition(
+      key: VaccinePlanFields.type,
+      icon: Icons.vaccines_outlined,
+      label: (c) => _l(c).vaccinePlanTitle,
+      hasCost: false,
+      appliesTo: (_, _) => false,
+      inTimeline: false,
+      fields: const [],
+    ),
     RecordTypeDefinition(
       key: 'growth',
       icon: Icons.straighten_outlined,

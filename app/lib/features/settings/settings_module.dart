@@ -12,6 +12,7 @@ import '../../core/security/app_lock.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/account_screen.dart';
 import '../backup/backup_screen.dart';
+import '../children/vaccines_screen.dart' show askForReminderAccess;
 import 'about_privacy_screen.dart';
 
 class SettingsModule extends FeatureModule {
@@ -107,6 +108,8 @@ class SettingsScreen extends ConsumerWidget {
                   subtitle: l.settingsDiscreetHint,
                 ),
                 const Divider(height: 1),
+                const _VaccineReminderSettings(),
+                const Divider(height: 1),
                 // iOS can't block screenshots; the switcher is covered on
                 // both.
                 if (defaultTargetPlatform == TargetPlatform.android) ...[
@@ -196,4 +199,61 @@ class _PreferenceSwitch extends ConsumerWidget {
     title: Text(title),
     subtitle: Text(subtitle),
   );
+}
+
+/// Vaccine visit reminders on or off, and their time of day.
+class _VaccineReminderSettings extends ConsumerWidget {
+  const _VaccineReminderSettings();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final minutes = ref.watch(vaccineReminderMinutesProvider);
+    final time = TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60);
+    final on = ref.watch(vaccineRemindersProvider);
+    Future<void> guarded(Future<void> Function() save) async {
+      try {
+        await save();
+      } catch (_) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l.saveFailed)));
+      }
+    }
+
+    return Column(
+      children: [
+        SwitchListTile(
+          key: const ValueKey('settings-vaccine-reminders'),
+          value: on,
+          onChanged: (v) => guarded(() async {
+            await ref.read(vaccineRemindersProvider.notifier).set(v);
+            if (v) await askForReminderAccess(ref);
+          }),
+          secondary: const Icon(Icons.vaccines_outlined),
+          title: Text(l.settingsVaccineReminders),
+          subtitle: Text(l.settingsVaccineRemindersHint(time.format(context))),
+        ),
+        if (on)
+          ListTile(
+            key: const ValueKey('settings-vaccine-time'),
+            leading: const Icon(Icons.schedule),
+            title: Text(l.settingsVaccineReminderTime),
+            trailing: Text(time.format(context)),
+            onTap: () async {
+              final picked = await showTimePicker(
+                context: context,
+                initialTime: time,
+              );
+              if (picked == null) return;
+              await guarded(
+                () => ref
+                    .read(vaccineReminderMinutesProvider.notifier)
+                    .set(picked.hour * 60 + picked.minute),
+              );
+            },
+          ),
+      ],
+    );
+  }
 }

@@ -28,12 +28,15 @@ ReminderTexts reminderTextsOf(ProviderContainer container) => ReminderTexts(
   discreet: container.read(discreetNotificationsProvider),
 );
 
-/// Calls [resync] whenever [reminderTextsOf] would change, so scheduled
+/// Calls [resync] whenever [reminderTextsOf] or the vaccine reminder
+/// settings would change, so scheduled
 /// reminders and the widget are rewritten in the new language or without
 /// (or with) names.
 void resyncOnTextChange(ProviderContainer container, void Function() resync) {
   container.listen(localeProvider, (_, _) => resync());
   container.listen(discreetNotificationsProvider, (_, _) => resync());
+  container.listen(vaccineRemindersProvider, (_, _) => resync());
+  container.listen(vaccineReminderMinutesProvider, (_, _) => resync());
 }
 
 /// The current time. Overridden in tests.

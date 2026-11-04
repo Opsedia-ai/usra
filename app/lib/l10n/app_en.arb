@@ -272,8 +272,8 @@
     }
   },
   "growthSource": "Curves: WHO Child Growth Standards (3rd, 15th, 50th, 85th and 97th percentiles). For information only; your pediatrician reads your child's growth.",
-  "vaccinesTitle": "Mandatory vaccinations",
-  "vaccinesDisclaimer": "Based on the Egyptian Ministry of Health and Population's mandatory schedule. Schedules change, so the child's health office card is the official record.",
+  "vaccinesTitle": "Vaccinations",
+  "vaccinesDisclaimer": "Required doses follow the Egyptian Ministry of Health and Population's schedule; optional ones follow common private-practice schedules (checked {date}). For information only: schedules change, and the child's health office card and doctor are the reference.",
   "vaccineAtBirth": "At birth",
   "vaccineAtMonths": "{months, plural, =1{At 1 month} other{At {months} months}}",
   "@vaccineAtMonths": {
@@ -522,7 +522,7 @@
       }
     }
   },
-  "fuVaccinesDue": "Mandatory vaccines",
+  "fuVaccinesDue": "Vaccinations",
   "fuVaccinesAt": "{age}: {names}",
   "@fuVaccinesAt": {
     "placeholders": {
@@ -1245,5 +1245,151 @@
   "settingsDiscreetHint": "Reminders and the home-screen widget say \"Time for a medicine\", without the person's or the medicine's name.",
   "settingsBlockScreenshots": "Block screenshots",
   "settingsBlockScreenshotsHint": "No screenshots or screen recording anywhere in the app. The recovery key is always protected. Leave off to screenshot the emergency card.",
-  "doseReminderDiscreetBody": "Open Usra to see which"
+  "doseReminderDiscreetBody": "Open Usra to see which",
+  "@vaccinesDisclaimer": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "memberVaccines": "Vaccinations",
+  "vaccineHexa": "Hexavalent",
+  "vaccinePcv": "Pneumococcal (PCV)",
+  "vaccineRota": "Rotavirus",
+  "vaccineVaricella": "Chickenpox (varicella)",
+  "vaccineHepA": "Hepatitis A",
+  "vaccineMening": "Meningococcal (MenACWY)",
+  "vaccineFlu": "Influenza (flu)",
+  "vaccineBoosterDose": "{name}, booster",
+  "@vaccineBoosterDose": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineRequired": "Required",
+  "vaccineOptional": "Optional",
+  "vaccineNotFollowed": "Not in your plan",
+  "vaccineRequiredDone": "{done}/{total} required done",
+  "@vaccineRequiredDone": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "vaccineOptionalDone": "{done}/{total} optional done",
+  "@vaccineOptionalDone": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "vaccineFilterAll": "All",
+  "vaccineFilterRequired": "Required",
+  "vaccineFilterOptional": "Optional",
+  "vaccineFilterOverdue": "Overdue",
+  "vaccineFilterEmpty": "Nothing here.",
+  "vaccinePlanTitle": "Vaccine plan",
+  "vaccineRouteTitle": "How are the injections given?",
+  "vaccineRouteGovernment": "Health office (free)",
+  "vaccineRouteGovernmentHint": "Pentavalent and the polio injection (IPV) as separate shots, with a DTP booster at 18 months.",
+  "vaccineRouteHexavalent": "Private hexavalent",
+  "vaccineRouteHexavalentHint": "One hexavalent shot instead of pentavalent + IPV at 2, 4 and 6 months, and a hexavalent booster at 18 months. Oral polio drops, BCG, hepatitis B at birth and MMR stay the same.",
+  "vaccineOptionalTitle": "Optional vaccines you follow",
+  "vaccineOptionalHint": "Not on the ministry's free schedule. Ask the child's doctor which ones to give; only the ones you tick are reminded or counted late.",
+  "vaccineSetupTitle": "Set up vaccinations",
+  "vaccineSetupOpen": "Plan and doses given",
+  "vaccineSetupGiven": "Doses already given",
+  "vaccineSetupGivenHint": "Tick what's on the child's card. The date is the due date unless you change it.",
+  "vaccineSetupNoneYet": "No doses are due yet.",
+  "vaccineSetupSkip": "Later",
+  "vaccineSetupSaved": "Vaccinations saved",
+  "vaccineChangeDate": "Change date",
+  "vaccineDoseGiven": "Given",
+  "vaccineDoseDate": "Date given",
+  "vaccineDoseNote": "Note",
+  "vaccineDoseNoteHint": "e.g. given at the clinic, slight fever after",
+  "vaccineDueOn": "Due {date}",
+  "@vaccineDueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineNextVisit": "Next vaccine visit",
+  "vaccineInDays": "{days, plural, =0{Today} =1{Tomorrow} other{In {days} days}}",
+  "@vaccineInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "vaccineDaysAgo": "{days, plural, =1{Was due yesterday} other{Was due {days} days ago}}",
+  "@vaccineDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "vaccineOverdueCount": "{count, plural, =1{1 dose overdue} other{{count} doses overdue}}",
+  "@vaccineOverdueCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vaccineAllDone": "All planned vaccines are given",
+  "vaccineOpenAll": "All vaccinations",
+  "homeVaccinesTitle": "Vaccines",
+  "vaccineChannelName": "Vaccine reminders",
+  "vaccineReminderDiscreetTitle": "A health visit is coming up",
+  "vaccineReminderDiscreetTodayTitle": "A health visit is today",
+  "vaccineReminderDiscreetBody": "Open Usra to see the details",
+  "vaccineReminderWeekTitle": "{name}: vaccines in a week",
+  "@vaccineReminderWeekTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineReminderTodayTitle": "{name}: vaccines today",
+  "@vaccineReminderTodayTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsVaccineReminders": "Vaccine reminders",
+  "settingsVaccineRemindersHint": "A week before and on the day, at {time}",
+  "@settingsVaccineRemindersHint": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsVaccineReminderTime": "Reminder time",
+  "vaccineSources": "Sources",
+  "reminderHiddenPreview": "A reminder from Usra",
+  "vaccineTooLate": "Past the age limit: ask your doctor",
+  "vaccineNotNeeded": "Not needed at this age",
+  "vaccineRemoveRecordTitle": "Remove the record you entered?",
+  "vaccineRemoveRecordBody": "This dose was entered by hand, maybe with a photo of the card, the doctor or the cost. Unticking it removes that record from the child's history.",
+  "vaccineRemoveRecordConfirm": "Remove"
 }

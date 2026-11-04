@@ -71,6 +71,11 @@ abstract final class PrefKeys {
 
   static const discreetNotifications = 'discreet_notifications';
   static const blockScreenshots = 'block_screenshots';
+
+  /// Vaccine visit reminders on (default) or off, and their time of day in
+  /// minutes after midnight (default 10:00).
+  static const vaccineReminders = 'vaccine_reminders';
+  static const vaccineReminderMinutes = 'vaccine_reminder_minutes';
   static const all = {
     simpleMode,
     tutorialSeen,
@@ -80,6 +85,8 @@ abstract final class PrefKeys {
     installed,
     discreetNotifications,
     blockScreenshots,
+    vaccineReminders,
+    vaccineReminderMinutes,
   };
 }
 
@@ -123,6 +130,34 @@ final discreetNotificationsProvider = NotifierProvider<BoolPreference, bool>(
 final blockScreenshotsProvider = NotifierProvider<BoolPreference, bool>(
   () => BoolPreference(PrefKeys.blockScreenshots, fallback: false),
 );
+
+/// Vaccine visit reminders, a week before and on the day. On unless
+/// switched off.
+final vaccineRemindersProvider = NotifierProvider<BoolPreference, bool>(
+  () => BoolPreference(PrefKeys.vaccineReminders, fallback: true),
+);
+
+/// When vaccine reminders ring, in minutes after midnight: 10:00 unless
+/// changed.
+final vaccineReminderMinutesProvider = NotifierProvider<IntPreference, int>(
+  () => IntPreference(PrefKeys.vaccineReminderMinutes, fallback: 600),
+);
+
+/// A number saved under [key].
+class IntPreference extends Notifier<int> {
+  IntPreference(this.key, {required this.fallback});
+
+  final String key;
+  final int fallback;
+
+  @override
+  int build() => ref.watch(keyValueStoreProvider).getInt(key) ?? fallback;
+
+  Future<void> set(int value) async {
+    state = value;
+    await ref.read(keyValueStoreProvider).setInt(key, value);
+  }
+}
 
 /// An on/off setting saved under [key].
 class BoolPreference extends Notifier<bool> {

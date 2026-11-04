@@ -1,0 +1,171 @@
+import '../../core/database/app_database.dart';
+import '../../l10n/app_localizations.dart';
+import '../medicines/reminders.dart' show PlannedReminder, snoozeIdBase;
+import 'child_vaccines.dart';
+import 'egypt_vaccines.dart';
+
+/// The records vaccine reminders are planned from.
+const vaccineRecordTypes = {'vaccine', VaccinePlanFields.type};
+
+/// Vaccine reminders use ids from [vaccineReminderIdBase] up to (not
+/// including) [snoozeIdBase]: "planned" reminders that never collide with
+/// medicine ones (1-60) or snoozes.
+const vaccineReminderIdBase = 900000;
+const _vaccineIdRange = snoozeIdBase - vaccineReminderIdBase;
+
+/// A stable id for one reminder: the same child, visit day and lead always
+/// get the same id, so re-planning leaves a scheduled or shown reminder
+/// alone. FNV-1a, as `String.hashCode` isn't stable across runs.
+int vaccineReminderId(String profileId, DateTime dueOn, int leadDays) {
+  var hash = 0x811c9dc5;
+  final day = '${dueOn.year}-${dueOn.month}-${dueOn.day}';
+  for (final unit in '$profileId|$day|$leadDays'.codeUnits) {
+    hash = ((hash ^ unit) * 0x01000193) & 0xffffffff;
+  }
+  return vaccineReminderIdBase + hash % _vaccineIdRange;
+}
+
+/// At most this many vaccine reminders are scheduled at once.
+const maxVaccineReminders = 20;
+
+/// Reminders are planned for visits up to this many days ahead; the app
+/// re-plans every time it opens.
+const vaccineReminderHorizonDays = 60;
+
+/// The reminder before a visit rings this many days ahead.
+const vaccineReminderLeadDays = 7;
+
+class VaccineReminderSettings {
+  const VaccineReminderSettings({this.enabled = true, this.minutes = 600});
+
+  final bool enabled;
+
+  /// Time of day, in minutes after midnight (10:00 by default).
+  final int minutes;
+}
+
+/// Vaccine reminder text in the app's language. Discreet: no child's or
+/// vaccine's name, here or on the lock screen.
+class VaccineReminderTexts {
+  const VaccineReminderTexts(this.l, {required this.discreet});
+
+  final AppLocalizations l;
+  final bool discreet;
+
+  String title(Profile child, {required bool today}) =>
+      switch ((discreet, today)) {
+        (true, false) => l.vaccineReminderDiscreetTitle,
+        (true, true) => l.vaccineReminderDiscreetTodayTitle,
+        (false, false) => l.vaccineReminderWeekTitle(child.displayName),
+        (false, true) => l.vaccineReminderTodayTitle(child.displayName),
+      };
+
+  String body(List<ScheduledDose> doses) => discreet
+      ? l.vaccineReminderDiscreetBody
+      : {for (final d in doses) vaccineName(l, d.kind)}.join('، ');
+}
+
+/// The vaccine reminders to have scheduled at [now]: for every visit in the
+/// next [vaccineReminderHorizonDays] days with doses still to give, one a
+/// week before and one on the day, at the chosen time. Overdue doses get
+/// none (Home shows them). Soonest first, at most [max].
+List<PlannedReminder> planVaccineReminders(
+  List<ChildVaccines> children, {
+  required DateTime now,
+  required VaccineReminderSettings settings,
+  required VaccineReminderTexts texts,
+  int max = maxVaccineReminders,
+}) {
+  if (!settings.enabled) return const [];
+  final today = DateTime(now.year, now.month, now.day);
+  final horizon = plusDays(today, vaccineReminderHorizonDays);
+  final hour = settings.minutes ~/ 60, minute = settings.minutes % 60;
+  final out =
+      <
+        ({
+          int lead,
+          DateTime at,
+          Profile child,
+          DateTime dueOn,
+          bool today,
+          List<ScheduledDose> doses,
+        })
+      >[];
+  for (final c in children) {
+    final byDate = <DateTime, List<ScheduledDose>>{};
+    for (final s in c.statuses) {
+      if (!s.open || s.dueOn.isBefore(today) || s.dueOn.isAfter(horizon)) {
+        continue;
+      }
+      (byDate[s.dueOn] ??= []).add(s.dose);
+    }
+    for (final MapEntry(key: due, value: doses) in byDate.entries) {
+      for (final (lead, isToday) in [
+        (vaccineReminderLeadDays, false),
+        (0, true),
+      ]) {
+        final at = DateTime(due.year, due.month, due.day - lead, hour, minute);
+        if (!at.isAfter(now)) continue;
+        out.add((
+          lead: lead,
+          at: at,
+          child: c.profile,
+          dueOn: due,
+          today: isToday,
+          doses: doses,
+        ));
+      }
+    }
+  }
+  out.sort((a, b) => a.at.compareTo(b.at));
+  final used = <int>{};
+  int idFor(Profile child, DateTime dueOn, int lead) {
+    var id = vaccineReminderId(child.id, dueOn, lead);
+    // A collision (very rare): the next free id, the same on every run
+    // since reminders are taken in time order.
+    while (!used.add(id)) {
+      id =
+          vaccineReminderIdBase +
+          (id - vaccineReminderIdBase + 1) % _vaccineIdRange;
+    }
+    return id;
+  }
+
+  return [
+    for (final r in out.take(max))
+      PlannedReminder.vaccine(
+        id: idFor(r.child, r.dueOn, r.lead),
+        at: r.at,
+        profileId: r.child.id,
+        dueOn: r.dueOn,
+        title: texts.title(r.child, today: r.today),
+        body: texts.body(r.doses),
+        locale: texts.l.localeName,
+      ),
+  ];
+}
+
+/// Reads every child's plan and vaccine records and plans their reminders.
+Future<List<PlannedReminder>> loadVaccineReminders(
+  AppDatabase db, {
+  required DateTime now,
+  required VaccineReminderSettings settings,
+  required VaccineReminderTexts texts,
+}) async {
+  if (!settings.enabled) return const [];
+  final profiles = await db.watchProfiles().first;
+  final events = await db.eventsOfTypes(vaccineRecordTypes);
+  final byProfile = <String, List<MedicalEvent>>{};
+  for (final e in events) {
+    (byProfile[e.profileId] ??= []).add(e);
+  }
+  return planVaccineReminders(
+    [
+      for (final p in profiles)
+        ?childVaccines(p, byProfile[p.id] ?? const [], now),
+    ],
+    now: now,
+    settings: settings,
+    texts: texts,
+  );
+}

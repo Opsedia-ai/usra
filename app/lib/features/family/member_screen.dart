@@ -117,6 +117,14 @@ class MemberScreen extends ConsumerWidget {
                       icon: const Icon(Icons.child_care_outlined),
                       label: Text(l.memberGrowth),
                     ),
+                  if (isUnderFive(p.birthDate, DateTime.now()))
+                    OutlinedButton.icon(
+                      key: const ValueKey('member-vaccines'),
+                      onPressed: () =>
+                          context.go('/family/$profileId/vaccines'),
+                      icon: const Icon(Icons.vaccines_outlined),
+                      label: Text(l.memberVaccines),
+                    ),
                   if (showsMilestones(p.birthDate, DateTime.now()))
                     OutlinedButton.icon(
                       key: const ValueKey('member-development'),
@@ -150,11 +158,13 @@ class MemberScreen extends ConsumerWidget {
               MemberFollowUps(profileId: profileId),
               const SizedBox(height: 28),
               // Quick logs (feeds, diapers...) live on their own screens.
+              // Types this version doesn't know (written by a newer one,
+              // e.g. a restored backup) are hidden rather than shown raw.
               ...timeline
                   .whenData(
                     (all) => [
                       for (final e in all)
-                        if (types[e.type]?.inTimeline ?? true) e,
+                        if (types[e.type]?.inTimeline ?? false) e,
                     ],
                   )
                   .when(

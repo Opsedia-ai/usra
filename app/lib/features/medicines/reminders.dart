@@ -25,9 +25,16 @@ class ReminderRef {
     required this.scheduledAt,
     required this.locale,
     this.at,
+    this.profileId,
   });
 
+  /// Empty for a vaccine visit.
   final String medicineId;
+
+  /// The child, for a vaccine visit reminder; null for a dose.
+  final String? profileId;
+
+  bool get isVaccine => profileId != null;
 
   /// The dose's planned time, the key its log is saved under.
   final DateTime scheduledAt;
@@ -40,7 +47,7 @@ class ReminderRef {
   final String locale;
 
   String toPayload() => jsonEncode({
-    'm': medicineId,
+    if (profileId != null) 'v': profileId else 'm': medicineId,
     's': scheduledAt.toUtc().millisecondsSinceEpoch,
     if (at != null) 'a': at!.toUtc().millisecondsSinceEpoch,
     'l': locale,
@@ -55,8 +62,10 @@ class ReminderRef {
       if (j is! Map) return null;
       DateTime utc(Object? ms) =>
           DateTime.fromMillisecondsSinceEpoch(ms! as int, isUtc: true);
+      final child = j['v'] as String?;
       return ReminderRef(
-        medicineId: j['m'] as String,
+        medicineId: child == null ? j['m'] as String : '',
+        profileId: child,
         scheduledAt: utc(j['s']),
         at: j['a'] == null ? null : utc(j['a']),
         locale: j['l'] as String? ?? 'ar',
@@ -79,7 +88,23 @@ class PlannedReminder {
     required this.takenLabel,
     required this.snoozeLabel,
     this.locale = 'ar',
+    this.profileId,
   });
+
+  /// A vaccine visit for this child, with no buttons (see
+  /// `vaccine_reminders.dart`); [medicineId] is empty then.
+  PlannedReminder.vaccine({
+    required this.id,
+    required this.at,
+    required String this.profileId,
+    required DateTime dueOn,
+    required this.title,
+    required this.body,
+    this.locale = 'ar',
+  }) : medicineId = '',
+       scheduledAt = dueOn,
+       takenLabel = null,
+       snoozeLabel = null;
 
   final int id;
 
@@ -93,10 +118,18 @@ class PlannedReminder {
   final String body;
 
   /// The Taken button; none in discreet mode, where two identical
-  /// notifications could each mark someone else's dose.
+  /// notifications could each mark someone else's dose, nor on a vaccine
+  /// visit.
   final String? takenLabel;
-  final String snoozeLabel;
+
+  /// None on a vaccine visit: a week's notice needs no snooze.
+  final String? snoozeLabel;
   final String locale;
+
+  /// The child, for a vaccine visit.
+  final String? profileId;
+
+  bool get isVaccine => profileId != null;
 
   bool get discreet => takenLabel == null;
 
@@ -105,6 +138,7 @@ class PlannedReminder {
     scheduledAt: scheduledAt,
     at: at,
     locale: locale,
+    profileId: profileId,
   );
 
   String toPayload() => ref.toPayload();
@@ -214,6 +248,51 @@ List<PlannedReminder> planReminders(
     );
   }
   return out;
+}
+
+/// Dose and vaccine reminders in the order the phone should keep them when
+/// it holds only so many (iOS: 64 pending): the [reserve] nearest vaccine
+/// visits first, so a week of medicines can't crowd them all out, then the
+/// rest by time.
+List<PlannedReminder> prioritiseReminders(
+  List<PlannedReminder> doses,
+  List<PlannedReminder> vaccines, {
+  int reserve = 4,
+}) {
+  final byTime = [...vaccines]..sort((a, b) => a.at.compareTo(b.at));
+  return [
+    ...byTime.take(reserve),
+    ...[...doses, ...byTime.skip(reserve)]
+      ..sort((a, b) => a.at.compareTo(b.at)),
+  ];
+}
+
+/// The current text for the vaccine notification [ref] under [id], found
+/// in [planned] by its child, visit and ringing time (ids are positions in
+/// the plan, so they move when it changes); null if that visit isn't
+/// planned any more, to leave it as it is.
+PlannedReminder? vaccineReminderFor(
+  List<PlannedReminder> planned,
+  int id,
+  ReminderRef ref,
+) {
+  for (final r in planned) {
+    if (r.profileId != ref.profileId ||
+        !r.scheduledAt.isAtSameMomentAs(ref.scheduledAt) ||
+        (ref.at != null && !r.at.isAtSameMomentAs(ref.at!))) {
+      continue;
+    }
+    return PlannedReminder.vaccine(
+      id: id,
+      at: r.at,
+      profileId: r.profileId!,
+      dueOn: r.scheduledAt,
+      title: r.title,
+      body: r.body,
+      locale: r.locale,
+    );
+  }
+  return null;
 }
 
 /// [ref]'s reminder with this [id] ringing [at], in the current text;

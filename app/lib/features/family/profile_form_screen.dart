@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../children/growth.dart' show isUnderFive;
 
 const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -106,7 +107,16 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
       );
       return;
     }
-    if (mounted) context.go('/family/$savedId');
+    if (mounted) {
+      context.go(
+        pathAfterProfileSave(
+          savedId,
+          isNew: id == null,
+          birthDate: _birthDate,
+          today: DateTime.now(),
+        ),
+      );
+    }
   }
 
   @override
@@ -207,3 +217,14 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
     );
   }
 }
+
+/// Where saving a profile leads: a new child under five goes to the vaccine
+/// setup, to tick the doses they already had; everyone else to their page.
+String pathAfterProfileSave(
+  String id, {
+  required bool isNew,
+  required DateTime? birthDate,
+  required DateTime today,
+}) => isNew && isUnderFive(birthDate, today)
+    ? '/family/$id/vaccines/setup?first=1'
+    : '/family/$id';
