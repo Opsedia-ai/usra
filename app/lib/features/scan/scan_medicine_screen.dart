@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/files/photo_store.dart';
+import '../../core/log.dart';
 import '../../core/ocr/medicine_name_extractor.dart';
 import '../../core/ocr/ocr_service.dart';
 import '../../l10n/app_localizations.dart';
@@ -86,8 +87,8 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
           _choose(suggestions.first);
         }
       }
-    } catch (e, stack) {
-      debugPrint('Medicine scan failed: $e\n$stack');
+    } catch (e) {
+      Log.error('Medicine scan failed', e);
       if (!mounted || _photo != path) return;
       setState(() {
         _reading = false;

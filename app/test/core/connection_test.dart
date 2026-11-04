@@ -44,6 +44,16 @@ void main() {
     expect(latin1.decode(bytes), isNot(contains('secret medical note')));
   });
 
+  test('the database cannot be read without its key', () {
+    writeRow(file, keyA);
+    final db = sqlite3.open(file.path);
+    addTearDown(db.close);
+    expect(
+      () => db.select('SELECT count(*) FROM sqlite_master;'),
+      throwsA(isA<SqliteException>()),
+    );
+  });
+
   test('the right key keeps the existing file', () {
     writeRow(file, keyA);
     expect(prepareDatabaseFile(file, keyA), DatabaseOpenOutcome.ready);
