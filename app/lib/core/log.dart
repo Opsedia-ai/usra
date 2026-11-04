@@ -7,7 +7,8 @@ import 'package:flutter/foundation.dart';
 /// data, names, phone numbers, file paths or tokens. Pass a constant string
 /// as [event], never one built from data.
 ///
-/// A test fails if `print(` or `debugPrint(` appears anywhere else in lib/.
+/// Tests fail if `print(` or `debugPrint(` appears anywhere else in lib/,
+/// or if an [event] is anything but a plain string literal.
 abstract final class Log {
   /// Replaced in tests to capture output and to act as a release build.
   @visibleForTesting

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:usra/core/log.dart';
@@ -13,7 +14,10 @@ void main() {
     lines = [];
     Log.output = lines.add;
   });
-  tearDown(() => Log.release = false);
+  tearDown(() {
+    Log.output = debugPrint;
+    Log.release = false;
+  });
 
   test('debug builds log the event and the error type only', () {
     Log.error(
@@ -29,6 +33,30 @@ void main() {
     expect(lines, isEmpty);
   });
 
+  Iterable<File> libFiles() =>
+      Directory('lib')
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.dart'))
+          .where((f) => !f.path.endsWith('.g.dart'));
+
+  test('Log.error events are fixed text, never built from data', () {
+    final call = RegExp(r'Log\.error\(\s*');
+    final fixedText = RegExp(r"^'[^'$\n]*'\s*,");
+    final offenders = <String>[];
+    for (final file in libFiles()) {
+      final code = file.readAsStringSync();
+      for (final m in call.allMatches(code)) {
+        if (!fixedText.hasMatch(code.substring(m.end))) {
+          offenders.add(
+            '${file.path}: ${code.substring(m.start).split('\n').first}',
+          );
+        }
+      }
+    }
+    expect(offenders, isEmpty, reason: "Pass a plain 'string' as the event.");
+  });
+
   test('nothing in lib/ prints except core/log.dart', () {
     final writes = RegExp(
       r'''\b(print|debugPrint|debugPrintStack|printError)\s*\(|'''
@@ -36,12 +64,9 @@ void main() {
       r'''import\s+'dart:developer';''',
     );
     final offenders = <String>[];
-    final files = Directory('lib')
-        .listSync(recursive: true)
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.dart'))
-        .where((f) => !f.path.endsWith('.g.dart'))
-        .where((f) => !p.equals(f.path, p.join('lib', 'core', 'log.dart')));
+    final files = libFiles().where(
+      (f) => !p.equals(f.path, p.join('lib', 'core', 'log.dart')),
+    );
     for (final file in files) {
       final lines = file.readAsLinesSync();
       for (var i = 0; i < lines.length; i++) {

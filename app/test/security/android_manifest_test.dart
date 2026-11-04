@@ -31,7 +31,9 @@ void main() {
   });
 
   test('Android 12+ cloud backup and device transfer copy nothing', () {
-    final rules = xmlResource(attr('dataExtractionRules')!).rootElement;
+    final reference = attr('dataExtractionRules');
+    expect(reference, isNotNull, reason: 'android:dataExtractionRules');
+    final rules = xmlResource(reference!).rootElement;
     const domains = {'root', 'file', 'database', 'sharedpref', 'external'};
     for (final section in ['cloud-backup', 'device-transfer']) {
       final element = rules.getElement(section);
