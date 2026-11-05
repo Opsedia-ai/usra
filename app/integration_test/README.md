@@ -27,5 +27,5 @@ flutter drive --driver=test_driver/integration_test.dart \
 sizes).
 
 On Apple Silicon, ML Kit has no simulator slice: run
-`tools/ios/mlkit_simulator.sh` after `pod install` (from the iOS build PR)
-before building for the simulator.
+`tools/ios/mlkit_simulator.sh` after `pod install` before building for the
+simulator (and delete `app/ios/Pods` before a device build).

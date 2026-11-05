@@ -50,6 +50,24 @@ class JourneyDriver {
     await tester.ensureVisible(finder);
   }
 
+  /// Waits up to [max] for [finder] to show, then expects it.
+  Future<void> waitFor(
+    Finder finder, {
+    Duration max = const Duration(seconds: 10),
+  }) async {
+    for (var waited = Duration.zero; waited < max; waited += _step) {
+      if (finder.evaluate().isNotEmpty) break;
+      // On a device pump() ignores the duration: wait in real time.
+      if (tester.binding is LiveTestWidgetsFlutterBinding) {
+        await Future<void>.delayed(_step);
+      }
+      await tester.pump(_step);
+    }
+    expect(finder, findsWidgets);
+  }
+
+  static const _step = Duration(milliseconds: 200);
+
   Future<void> tapKey(String key) => tap(find.byKey(ValueKey(key)));
 
   /// A bottom-bar tab by position (0 = Home).
@@ -92,7 +110,8 @@ final journeys = <Journey>[
     await d.type('rx-item-0-name', 'Panadol 120 mg/5 ml');
     await d.type('rx-item-0-dose', '5 مل كل 6 ساعات');
     await d.tapKey('rx-save');
-    expect(find.textContaining('Panadol'), findsWidgets);
+    // Saving seals the photo first; on a phone that takes a moment.
+    await d.waitFor(find.textContaining('Panadol'));
   }),
   Journey('find the emergency card', 1, (d) async {
     await d.tapKey('home-emergency-${d.family.fatma}');
