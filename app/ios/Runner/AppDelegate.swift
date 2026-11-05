@@ -12,7 +12,7 @@ import flutter_local_notifications
   ) -> Bool {
     // Medicine reminders: show them while the app is open too, and let the
     // Taken / Snooze buttons run without opening the app.
-    UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
+    UNUserNotificationCenter.current().delegate = self
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

@@ -1,37 +1,35 @@
 # Dose widget (iOS)
 
 `DoseWidget.swift` is the WidgetKit extension for the home-screen widget
-that shows the next three doses today. It has **not been built yet**: there
-was no Xcode where it was written (it only type-checks against the macOS
-SDK). Until the steps below are done, the iOS app builds and runs as before
-and simply has no widget.
+that shows the next three doses today. It is the `DoseWidget` app extension
+target in `Runner.xcodeproj` (bundle id `com.opsedia.usra.DoseWidget`, iOS
+15.5 like Runner), embedded in `Runner.app/PlugIns/` by Runner's *Embed
+Foundation Extensions* phase. CI (`build-ios`) checks the `.appex` is there.
 
 The app writes the snapshot through `home_widget`
 (`HomeWidgetSnapshotPublisher` in `lib/features/medicines/dose_widget.dart`)
-to the App Group `group.com.opsedia.usra`, key `dose_widget_snapshot`.
+to the App Group `group.com.opsedia.usra`, key `dose_widget_snapshot`. Both
+targets claim the group in their `.entitlements`.
 
-## One-time Xcode steps
+## Files
 
-1. Open `ios/Runner.xcworkspace`.
-2. **File → New → Target… → Widget Extension.** Product name `DoseWidget`,
-   untick *Include Live Activity* and *Include Configuration App Intent*,
-   embed in `Runner`. When Xcode asks to activate the scheme, choose
-   *Cancel* (keep the Runner scheme).
-3. Delete the Swift files Xcode generated in the new `DoseWidget` group and
-   add this folder's `DoseWidget.swift` to the `DoseWidget` target only.
-   Keep the generated `Info.plist` and `Assets.xcassets`.
-4. Set the `DoseWidget` target's *Minimum Deployments* to iOS 15.5 (same as
-   Runner) and its bundle id to `com.opsedia.usra.DoseWidget`.
-5. **Signing & Capabilities → + Capability → App Groups** on *both* the
-   `Runner` and `DoseWidget` targets, and tick `group.com.opsedia.usra`
-   (create it in the developer account if it doesn't exist). This adds
-   `Runner.entitlements` and `DoseWidget.entitlements`.
-6. In **Build Phases** of `Runner`, drag *Embed Foundation Extensions* (or
-   *Embed App Extensions*) above *Thin Binary* / *Run Script*; otherwise
-   Flutter's build fails with a dependency cycle.
-7. Build and run on a phone or simulator, add the widget (long-press the
-   home screen → +), mark a dose in the app and check the widget updates;
-   tap it and check the Medicines tab opens.
+- `Info.plist`: the extension point; version and build number come from
+  Flutter's `Generated.xcconfig` through `DoseWidget.xcconfig`, so they
+  always match the app's (App Store Connect rejects a mismatch).
+- `DoseWidget.entitlements`, `../Runner/Runner.entitlements`: the App Group.
+- No Pods: the widget only uses WidgetKit, SwiftUI and `UserDefaults`.
+
+## Before the first signed build
+
+Create the App Group `group.com.opsedia.usra` and the App ID
+`com.opsedia.usra.DoseWidget` (App Groups capability on both App IDs) in
+the developer account; the provisioning profiles must include the group.
+
+## Changing the target
+
+The target was added with the `xcodeproj` gem, not the Xcode GUI. Keep the
+*Embed Foundation Extensions* phase above *Thin Binary* in Runner's build
+phases, or Flutter's build fails with a dependency cycle.
 
 `Runner/Info.plist` already registers the `usra` URL scheme the widget opens
 the app with (`usra://widget/medicines?homeWidget`).

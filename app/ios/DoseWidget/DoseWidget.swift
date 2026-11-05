@@ -1,7 +1,6 @@
 // Home-screen widget: the next three doses today across the family.
 //
-// NOT BUILT YET: written without Xcode. Add the extension target and the
-// App Group as README.md in this folder says, then build and try it.
+// The `DoseWidget` app extension target in Runner.xcodeproj (see README.md).
 //
 // The database is encrypted, so the widget never reads it: the app saves a
 // small snapshot (first names, medicine names, times; see
