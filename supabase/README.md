@@ -164,7 +164,9 @@ against `device_sessions` itself.
   memberships `reset`, flags rotations and lets the account enrol again. If
   that phone signs out (is revoked) or doesn't enrol within 72 hours, the
   account may start a new reset, again with the full 7-day wait, so it is
-  never locked out and the delay is never shortened.
+  never locked out and the delay is never shortened. While that new reset is
+  open, any other phone gets `reset_in_progress` (only the phone that started
+  it may enrol).
 - **Family log** (`append-family-log`). The function strict-parses the entry
   (valid UTF-8, no duplicate keys, depth ≤ 8, integers only, ≤ 16 KiB, exactly
   the fields of its type) and checks
