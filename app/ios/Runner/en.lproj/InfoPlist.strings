@@ -2,3 +2,5 @@
 "NSFaceIDUsageDescription" = "Usra uses Face ID to unlock your family's health records. Your face data stays with iOS and never reaches Usra.";
 "NSCameraUsageDescription" = "Usra uses the camera to photograph insurance cards, reports and medicine boxes. Photos, and any text read from them, stay on this phone.";
 "NSPhotoLibraryUsageDescription" = "Usra lets you pick a photo of an insurance card, a report or a medicine box. Photos, and any text read from them, stay on this phone.";
+/* The name under the icon, as on Android (values-en/strings.xml app_name). */
+"CFBundleDisplayName" = "Usra";
