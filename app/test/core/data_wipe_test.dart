@@ -104,9 +104,21 @@ void main() {
     expect(await wiper().resumeIfInterrupted(), isFalse);
   });
 
-  test('a step that fails is tried again at the next start, a few times '
-      'at most', () async {
+  test('a settings or reminder step that fails is reported, but never '
+      'wipes again at the next start', () async {
     failPrefs = true;
+    expect(await wiper().wipe(), isFalse);
+    expect(root.listSync(), isEmpty);
+    expect(await wiper().interrupted, isFalse);
+  });
+
+  test('files that can\'t be deleted are tried again at the next start, a '
+      'few times at most', () async {
+    // A cached file the wipe can't remove: its folder is read-only.
+    final stuck = Directory(p.join(temp.path, 'stuck'))..createSync();
+    File(p.join(stuck.path, 'x')).writeAsStringSync('x');
+    Process.runSync('chmod', ['555', stuck.path]);
+    addTearDown(() => Process.runSync('chmod', ['755', stuck.path]));
     expect(await wiper().wipe(), isFalse);
     // The rest still went.
     expect(await const FlutterSecureStorage().readAll(), isEmpty);

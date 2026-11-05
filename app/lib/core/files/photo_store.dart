@@ -130,13 +130,16 @@ class PhotoStore {
   /// backup or there is no photo key.
   Future<String> import(String sourcePath) async {
     final cipher = keys.require;
+    final created = !await _dir.exists();
     await _dir.create(recursive: true);
     // Cheap and idempotent, so done every time rather than trusting an
     // earlier call.
     await excludeFromBackup(_dir);
     // iOS: photos are unreadable while the phone is locked (S9); files
-    // saved in the folder take this from it.
-    await protectFiles(_dir, FileProtection.complete, contents: false);
+    // saved in the folder take this from it. Set again at each start.
+    if (created) {
+      await protectFiles(_dir, FileProtection.complete, contents: false);
+    }
     final ext = p.extension(sourcePath).toLowerCase();
     final relative = p.join(
       folder,

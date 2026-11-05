@@ -235,6 +235,7 @@ Future<void> main() async {
   late final Future<void> Function(StagedRestore, RecoveryKey)
   restoreAndRestart;
   late final Future<void> Function() wipeAndRestart;
+  late final Future<void> Function(bool complete) reopenAfterWipe;
   ProviderContainer build({RestoreOutcome? restore, WipeOutcome? wipe}) =>
       ProviderContainer(
         overrides: [
@@ -383,6 +384,19 @@ Future<void> main() async {
     final complete = await wiper.wipe();
     waiting.clear();
     await lock.forgetAfterWipe();
+    try {
+      await reopenAfterWipe(complete);
+    } catch (e, s) {
+      // Nothing to show without a database: the next start opens it (or
+      // finishes the wipe) instead.
+      FlutterError.reportError(
+        FlutterErrorDetails(exception: e, stack: s, library: 'wipe'),
+      );
+    } finally {
+      wiping = false;
+    }
+  };
+  reopenAfterWipe = (complete) async {
     key = await DatabaseKeyStore().readOrCreate();
     final fresh = await photoKeyStore.load(
       sealedPhotosExist: () async => false,
@@ -402,7 +416,6 @@ Future<void> main() async {
       wipe: complete ? WipeOutcome.done : WipeOutcome.incomplete,
     );
     reminders = newReminders();
-    wiping = false;
     await reminders.start();
   };
   lock.onTooManyFailures = wipeAndRestart;

@@ -73,29 +73,39 @@ class DataWiper {
     return true;
   }
 
-  /// Deletes it all. True when every step worked; otherwise the marker
-  /// stays and the next start tries again.
+  /// Deletes it all. True when every step worked. If keys or files
+  /// couldn't be deleted the marker stays and the next start tries again.
   Future<bool> wipe() async {
     final attempt = await _readAttempt() + 1;
     await root.create(recursive: true);
     await _marker.writeAsString(jsonEncode({'attempt': attempt}), flush: true);
     var ok = true;
+    // Only keys and files are worth running the whole wipe again for at the
+    // next start: a reminder or the widget that can't be reached must not
+    // erase records added since, start after start.
+    var mustRetry = false;
     // Each step runs whatever the one before did; [report] logs a fixed
     // event (S5: never the error's text).
     Future<void> step(
       Future<void> Function()? run,
-      void Function(Object e) report,
-    ) async {
+      void Function(Object e) report, {
+      bool critical = false,
+    }) async {
       if (run == null) return;
       try {
         await run();
       } catch (e) {
         ok = false;
+        if (critical) mustRetry = true;
         report(e);
       }
     }
 
-    await step(_deleteKeys, (e) => Log.error('Wipe keys failed', e));
+    await step(
+      _deleteKeys,
+      (e) => Log.error('Wipe keys failed', e),
+      critical: true,
+    );
     await step(
       cancelNotifications,
       (e) => Log.error('Wipe notifications failed', e),
@@ -104,13 +114,15 @@ class DataWiper {
     await step(
       () => _emptyFolder(root, keep: _marker),
       (e) => Log.error('Wipe files failed', e),
+      critical: true,
     );
     await step(
       () => _emptyFolder(temporary),
       (e) => Log.error('Wipe cache failed', e),
+      critical: true,
     );
     await step(clearPreferences, (e) => Log.error('Wipe settings failed', e));
-    if (ok || attempt >= maxAttempts) {
+    if (!mustRetry || attempt >= maxAttempts) {
       // Given up after a few tries: never wipe again on every start, over
       // records the family has added since.
       await _marker.delete();

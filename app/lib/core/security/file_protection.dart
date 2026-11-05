@@ -33,6 +33,7 @@ Future<void> protectFiles(
   Directory dir,
   FileProtection level, {
   bool contents = true,
+  bool skipFolders = false,
 }) async {
   if (!Platform.isIOS) return;
   try {
@@ -41,6 +42,7 @@ Future<void> protectFiles(
       'path': dir.path,
       'level': level.name,
       'contents': contents,
+      'skipFolders': skipFolders,
     });
   } catch (e) {
     Log.error('File protection failed', e);
@@ -55,7 +57,9 @@ Future<void> protectAppFiles(
   Directory root,
   Iterable<String> photoFolders,
 ) async {
-  await protectFiles(root, FileProtection.untilFirstUnlock);
+  // The folder and the files directly in it; the photo folders below get
+  // their own class and are never downgraded, even for a moment.
+  await protectFiles(root, FileProtection.untilFirstUnlock, skipFolders: true);
   for (final folder in photoFolders) {
     await protectFiles(
       Directory(p.join(root.path, folder)),

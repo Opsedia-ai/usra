@@ -195,6 +195,7 @@ import flutter_local_notifications
     let type: FileProtectionType =
       level == "complete" ? .complete : .completeUntilFirstUserAuthentication
     let contents = args["contents"] as? Bool ?? true
+    let skipFolders = args["skipFolders"] as? Bool ?? false
     DispatchQueue.global(qos: .utility).async {
       let manager = FileManager.default
       var failed = false
@@ -205,6 +206,10 @@ import flutter_local_notifications
       }
       if contents, let items = manager.enumerator(atPath: path) {
         for case let item as String in items {
+          if skipFolders, items.fileAttributes?[.type] as? FileAttributeType == .typeDirectory {
+            items.skipDescendants()
+            continue
+          }
           let full = (path as NSString).appendingPathComponent(item)
           do {
             try manager.setAttributes([.protectionKey: type], ofItemAtPath: full)
