@@ -88,6 +88,20 @@ Check in it: reminders fire (including after a reboot), the home-screen widget u
 
 Before the first production release the store listing, content rating, Data safety form and privacy policy have to be filled in; that is tracked separately.
 
+## Rolling back a release that changed the database schema
+
+Rollback is **fix forward**: ship a new build with a higher version code,
+never an older one. If an older build does open a newer database (sideload,
+or a rollback in a store track), Drift calls `onUpgrade` with
+`from > to`; our migrations only act on `from < N`, so the older build
+opens the database as it is, keeps the newer tables and columns it doesn't
+know, and sets `user_version` back to its own version. The next update then
+runs the newer migrations again, which is why they must be safe to repeat
+(`createTable` is `IF NOT EXISTS`; added columns go through
+`_addColumnIfMissing`). `test/core/sick_days_test.dart` checks this for v8
+(a v7 build opens a v8 database, then the v8 build opens it again with its
+data). Backups made on a newer schema are refused by an older build.
+
 ## CI
 
 `.github/workflows/app-ci.yml` builds a debug-signed, obfuscated release bundle (job `build-android-release`) on pushes to `main` that touch `app/**` or the workflow file, so R8, obfuscation or signing breakage shows up before release day. Add the `release-build` label to a PR to run it there too. It does not upload the bundle or use the upload key. Its Dart symbols are kept as a workflow artifact for 7 days, for debugging CI builds only.
