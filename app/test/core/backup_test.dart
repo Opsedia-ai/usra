@@ -13,6 +13,7 @@ import 'package:usra/core/backup/recovery_key.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/database/connection.dart';
 import 'package:usra/core/files/photo_crypto.dart';
+import 'package:usra/features/labs/lab_report.dart';
 
 /// Cheap Argon2id so the tests run fast; real backups use the standard cost.
 const _testKdf = BackupKdf(memory: 64, iterations: 1, parallelism: 1);
@@ -231,6 +232,50 @@ void main() {
       'medicines',
       'follow_up_dismissals.json',
     });
+  });
+
+  test('lab reports restore with their results and PDFs', () async {
+    final db = oldPhone.open();
+    final mom = await db.addProfile('فاطمة');
+    const report = LabReport(
+      lab: 'Alfa',
+      tests: [
+        LabTest(
+          name: 'HbA1c',
+          value: 7.4,
+          unit: '%',
+          range: LabRange(low: 4, high: 5.6),
+        ),
+        LabTest(name: 'TSH', value: 2.1, unit: 'uIU/mL'),
+      ],
+    );
+    final pdf = List<int>.generate(3000, (i) => (i * 13) % 256);
+    oldPhone.writePhoto('attachments/report.pdf', pdf);
+    await db.addEvent(
+      profileId: mom,
+      type: 'lab',
+      occurredAt: DateTime(2026, 10, 5),
+      dataJson: jsonEncode(report.toData()),
+      pdfs: ['attachments/report.pdf'],
+    );
+    final backup = (await oldPhone.service.create(
+      db,
+      recovery,
+      appVersion: '0.1.0+1',
+      now: DateTime.utc(2026, 11, 3),
+    )).file;
+    await db.close();
+
+    await newPhone.service.stage(backup, recovery, currentSchema: 7);
+    await newPhone.service.commit();
+    final restored = newPhone.open();
+    addTearDown(restored.close);
+    final event = (await restored.eventsOfTypes({'lab'})).single;
+    expect(LabReport.of(event).tests, report.tests);
+    expect(LabReport.of(event).lab, 'Alfa');
+    final file = (await restored.watchAttachments(event.id).first).single;
+    expect(file.kind, 'pdf');
+    expect(newPhone.readPhoto(file.path), pdf);
   });
 
   test('the restored database opens only with the new phone\'s key', () async {

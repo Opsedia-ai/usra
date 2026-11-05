@@ -56,6 +56,7 @@ class RecordTypeDefinition {
     this.requireOneOf = const [],
     this.appliesTo,
     this.inTimeline = true,
+    this.screens = const RecordTypeScreens(),
   });
 
   final String key;
@@ -83,6 +84,9 @@ class RecordTypeDefinition {
   /// False for quick logs (feeds, diapers, ticked milestones) that would
   /// flood a person's timeline; their module's screen lists them instead.
   final bool inTimeline;
+
+  /// The type's own pages, where the generic form and field list don't fit.
+  final RecordTypeScreens screens;
 
   String labelOf(BuildContext context) => label?.call(context) ?? key;
 
@@ -126,6 +130,31 @@ class RecordTypeDefinition {
     if (requireOneOf.isNotEmpty && noneFilled) problems.addAll(requireOneOf);
     return problems;
   }
+}
+
+/// Pages a record type brings when the generic ones don't fit it (a lab
+/// report holds a list of results, which the generic form can't edit).
+class RecordTypeScreens {
+  const RecordTypeScreens({
+    this.add,
+    this.editPath,
+    this.details,
+    this.shareLines,
+  });
+
+  /// Shown at `/family/<profileId>/add/<type>` instead of the generic form.
+  final Widget Function(String profileId)? add;
+
+  /// Where a saved record is changed; the record page offers Edit when set.
+  final String Function(String profileId, String eventId)? editPath;
+
+  /// Shown on the record page instead of the field list (the date and cost
+  /// stay).
+  final Widget Function(BuildContext context, MedicalEvent event)? details;
+
+  /// The shared text's lines instead of the field list.
+  final List<String> Function(BuildContext context, MedicalEvent event)?
+  shareLines;
 }
 
 /// A record's `dataJson` as a map; empty when missing or malformed.
