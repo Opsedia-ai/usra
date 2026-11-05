@@ -479,7 +479,7 @@ abstract class AppLocalizations {
   /// No description provided for @recordLab.
   ///
   /// In en, this message translates to:
-  /// **'Lab test'**
+  /// **'Lab results'**
   String get recordLab;
 
   /// No description provided for @recordVaccine.
@@ -553,6 +553,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unit'**
   String get fieldUnit;
+
+  /// No description provided for @recordPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF {number}'**
+  String recordPdf(int number);
+
+  /// No description provided for @fieldLab.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab'**
+  String get fieldLab;
+
+  /// No description provided for @fieldOrderedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested by (optional)'**
+  String get fieldOrderedBy;
+
+  /// No description provided for @fieldTests.
+  ///
+  /// In en, this message translates to:
+  /// **'Tests'**
+  String get fieldTests;
+
+  /// No description provided for @labResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Results'**
+  String get labResultsTitle;
+
+  /// No description provided for @labTestNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Test {number}'**
+  String labTestNumber(int number);
+
+  /// No description provided for @labTestName.
+  ///
+  /// In en, this message translates to:
+  /// **'Test name'**
+  String get labTestName;
+
+  /// No description provided for @labTestValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get labTestValue;
+
+  /// No description provided for @labTestUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get labTestUnit;
+
+  /// No description provided for @labTestRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Range printed by the lab'**
+  String get labTestRange;
+
+  /// No description provided for @labTestRangeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 4 - 11 or < 200'**
+  String get labTestRangeHint;
+
+  /// No description provided for @labAddTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Add another test'**
+  String get labAddTest;
+
+  /// No description provided for @labRemoveTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this test'**
+  String get labRemoveTest;
+
+  /// No description provided for @labNeedOneTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one test with its result'**
+  String get labNeedOneTest;
+
+  /// No description provided for @labFlagHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Above the lab\'s range'**
+  String get labFlagHigh;
+
+  /// No description provided for @labFlagLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Below the lab\'s range'**
+  String get labFlagLow;
+
+  /// No description provided for @labFlagNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Within the lab\'s range'**
+  String get labFlagNormal;
+
+  /// No description provided for @labFlagUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'No range to compare with'**
+  String get labFlagUnknown;
+
+  /// No description provided for @labInfoNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Compared only with the range printed on the report. This isn\'t a diagnosis: ask your doctor what the results mean for you.'**
+  String get labInfoNote;
+
+  /// No description provided for @labScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the report from a photo'**
+  String get labScanTitle;
+
+  /// No description provided for @labScanCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get labScanCamera;
+
+  /// No description provided for @labScanGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'From the gallery'**
+  String get labScanGallery;
+
+  /// No description provided for @labScanHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone reads printed English results itself; nothing is sent anywhere. The photo is kept, encrypted, with the report. Check every value against the paper before saving.'**
+  String get labScanHelp;
+
+  /// No description provided for @labScanReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the report…'**
+  String get labScanReading;
+
+  /// No description provided for @labScanFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {count} results. Highlighted boxes are ones the phone wasn\'t sure of: check them against the paper.'**
+  String labScanFound(int count);
+
+  /// No description provided for @labScanNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t find results in this photo. Type them in; the photo is kept with the report.'**
+  String get labScanNothing;
+
+  /// No description provided for @labScanFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the photo'**
+  String get labScanFailed;
+
+  /// No description provided for @labScanSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 test was already in the form, so its new reading wasn\'t added.} other{{count} tests were already in the form, so their new readings weren\'t added.}}'**
+  String labScanSkipped(int count);
+
+  /// No description provided for @labScanReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Use the new reading} other{Use the {count} new readings}}'**
+  String labScanReplace(int count);
+
+  /// No description provided for @labScanNothingNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing new on this photo: its results are already here.'**
+  String get labScanNothingNew;
+
+  /// No description provided for @labCheckThis.
+  ///
+  /// In en, this message translates to:
+  /// **'Check this against the paper'**
+  String get labCheckThis;
+
+  /// No description provided for @labConfirmRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches the paper'**
+  String get labConfirmRow;
+
+  /// No description provided for @labConfirmFirstCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the marked boxes first'**
+  String get labConfirmFirstCheck;
+
+  /// No description provided for @labConfirmNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Before saving, confirm each row read from the photo, and check every marked box, against the paper.'**
+  String get labConfirmNeeded;
+
+  /// No description provided for @labCheckedIt.
+  ///
+  /// In en, this message translates to:
+  /// **'I checked it'**
+  String get labCheckedIt;
+
+  /// No description provided for @labPickRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Several ranges are printed: pick the one that applies'**
+  String get labPickRange;
+
+  /// No description provided for @labScanPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo of the report'**
+  String get labScanPhoto;
+
+  /// No description provided for @labPhotoFullScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Full screen'**
+  String get labPhotoFullScreen;
+
+  /// No description provided for @labAttachPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a PDF'**
+  String get labAttachPdf;
+
+  /// No description provided for @labRemovePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the PDF'**
+  String get labRemovePdf;
+
+  /// No description provided for @labRangeLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab\'s range: {range}'**
+  String labRangeLine(String range);
+
+  /// No description provided for @labLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest: {value} on {date}'**
+  String labLatest(String value, String date);
+
+  /// No description provided for @labNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No lab results with numbers yet.'**
+  String get labNoResults;
+
+  /// No description provided for @labUnitsApart.
+  ///
+  /// In en, this message translates to:
+  /// **'Results in different units are shown apart, never converted.'**
+  String get labUnitsApart;
+
+  /// No description provided for @labAllResults.
+  ///
+  /// In en, this message translates to:
+  /// **'All results'**
+  String get labAllResults;
+
+  /// No description provided for @labAddReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a lab report'**
+  String get labAddReport;
+
+  /// No description provided for @memberLabs.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab results'**
+  String get memberLabs;
 
   /// No description provided for @fieldVaccine.
   ///

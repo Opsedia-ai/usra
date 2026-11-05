@@ -256,6 +256,7 @@ class AppDatabase extends _$AppDatabase {
     String? currency,
     String? doctorId,
     List<String> photos = const [],
+    List<String> pdfs = const [],
   }) async {
     final id = _uuid.v7();
     await transaction(() async {
@@ -276,8 +277,49 @@ class AppDatabase extends _$AppDatabase {
       for (final path in photos) {
         await _insertAttachment(id, path);
       }
+      for (final path in pdfs) {
+        await _insertAttachment(id, path, kind: 'pdf');
+      }
     });
     return id;
+  }
+
+  /// Changes a live record in place and attaches more files to it; its
+  /// other attachments stay. Throws if the record is gone.
+  Future<void> updateEvent(
+    String id, {
+    required DateTime occurredAt,
+    required String dataJson,
+    int? costMinor,
+    String? currency,
+    String? doctorId,
+    List<String> photos = const [],
+    List<String> pdfs = const [],
+  }) async {
+    final now = DateTime.now().toUtc();
+    await transaction(() async {
+      final changed =
+          await (update(
+            medicalEvents,
+          )..where((e) => e.id.equals(id) & e.deletedAt.isNull())).write(
+            MedicalEventsCompanion(
+              occurredAt: Value(occurredAt),
+              dataJson: Value(dataJson),
+              costMinor: Value(costMinor),
+              currency: Value(currency),
+              doctorId: Value(doctorId),
+              updatedAt: Value(now),
+            ),
+          );
+      if (changed == 0) throw StateError('Record $id not found');
+      await _queue('medical_event', id, 'upsert');
+      for (final path in photos) {
+        await _insertAttachment(id, path);
+      }
+      for (final path in pdfs) {
+        await _insertAttachment(id, path, kind: 'pdf');
+      }
+    });
   }
 
   static String? _clean(String? v) =>
@@ -444,8 +486,8 @@ class AppDatabase extends _$AppDatabase {
     return query.watch();
   }
 
-  /// How many live attachments each of a person's records has; records
-  /// without any are left out.
+  /// How many live photos each of a person's records has (PDFs aren't
+  /// counted); records without any are left out.
   Stream<Map<String, int>> watchAttachmentCounts(String profileId) {
     final count = attachments.id.count();
     final query =
@@ -459,6 +501,7 @@ class AppDatabase extends _$AppDatabase {
           ..addColumns([attachments.eventId, count])
           ..where(
             medicalEvents.profileId.equals(profileId) &
+                attachments.kind.equals('photo') &
                 attachments.deletedAt.isNull(),
           )
           ..groupBy([attachments.eventId]);

@@ -165,7 +165,7 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
     final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
-    router.go('/family/$mom/add/lab');
+    router.go('/family/$mom/add/scan');
     await tester.pumpAndSettle();
     await tapKey(tester, 'record-photo-gallery');
     expect(picked.every((f) => f.existsSync()), isTrue);

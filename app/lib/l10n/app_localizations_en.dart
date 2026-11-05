@@ -224,7 +224,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordScan => 'Scan or X-ray';
 
   @override
-  String get recordLab => 'Lab test';
+  String get recordLab => 'Lab results';
 
   @override
   String get recordVaccine => 'Vaccine';
@@ -261,6 +261,181 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fieldUnit => 'Unit';
+
+  @override
+  String recordPdf(int number) {
+    return 'PDF $number';
+  }
+
+  @override
+  String get fieldLab => 'Lab';
+
+  @override
+  String get fieldOrderedBy => 'Requested by (optional)';
+
+  @override
+  String get fieldTests => 'Tests';
+
+  @override
+  String get labResultsTitle => 'Results';
+
+  @override
+  String labTestNumber(int number) {
+    return 'Test $number';
+  }
+
+  @override
+  String get labTestName => 'Test name';
+
+  @override
+  String get labTestValue => 'Result';
+
+  @override
+  String get labTestUnit => 'Unit';
+
+  @override
+  String get labTestRange => 'Range printed by the lab';
+
+  @override
+  String get labTestRangeHint => 'e.g. 4 - 11 or < 200';
+
+  @override
+  String get labAddTest => 'Add another test';
+
+  @override
+  String get labRemoveTest => 'Remove this test';
+
+  @override
+  String get labNeedOneTest => 'Add at least one test with its result';
+
+  @override
+  String get labFlagHigh => 'Above the lab\'s range';
+
+  @override
+  String get labFlagLow => 'Below the lab\'s range';
+
+  @override
+  String get labFlagNormal => 'Within the lab\'s range';
+
+  @override
+  String get labFlagUnknown => 'No range to compare with';
+
+  @override
+  String get labInfoNote =>
+      'Compared only with the range printed on the report. This isn\'t a diagnosis: ask your doctor what the results mean for you.';
+
+  @override
+  String get labScanTitle => 'Read the report from a photo';
+
+  @override
+  String get labScanCamera => 'Take a photo';
+
+  @override
+  String get labScanGallery => 'From the gallery';
+
+  @override
+  String get labScanHelp =>
+      'The phone reads printed English results itself; nothing is sent anywhere. The photo is kept, encrypted, with the report. Check every value against the paper before saving.';
+
+  @override
+  String get labScanReading => 'Reading the report…';
+
+  @override
+  String labScanFound(int count) {
+    return 'Found $count results. Highlighted boxes are ones the phone wasn\'t sure of: check them against the paper.';
+  }
+
+  @override
+  String get labScanNothing =>
+      'Couldn\'t find results in this photo. Type them in; the photo is kept with the report.';
+
+  @override
+  String get labScanFailed => 'Couldn\'t read the photo';
+
+  @override
+  String labScanSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count tests were already in the form, so their new readings weren\'t added.',
+      one: '1 test was already in the form, so its new reading wasn\'t added.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labScanReplace(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Use the $count new readings',
+      one: 'Use the new reading',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get labScanNothingNew =>
+      'Nothing new on this photo: its results are already here.';
+
+  @override
+  String get labCheckThis => 'Check this against the paper';
+
+  @override
+  String get labConfirmRow => 'Matches the paper';
+
+  @override
+  String get labConfirmFirstCheck => 'Check the marked boxes first';
+
+  @override
+  String get labConfirmNeeded =>
+      'Before saving, confirm each row read from the photo, and check every marked box, against the paper.';
+
+  @override
+  String get labCheckedIt => 'I checked it';
+
+  @override
+  String get labPickRange =>
+      'Several ranges are printed: pick the one that applies';
+
+  @override
+  String get labScanPhoto => 'The photo of the report';
+
+  @override
+  String get labPhotoFullScreen => 'Full screen';
+
+  @override
+  String get labAttachPdf => 'Add a PDF';
+
+  @override
+  String get labRemovePdf => 'Remove the PDF';
+
+  @override
+  String labRangeLine(String range) {
+    return 'Lab\'s range: $range';
+  }
+
+  @override
+  String labLatest(String value, String date) {
+    return 'Latest: $value on $date';
+  }
+
+  @override
+  String get labNoResults => 'No lab results with numbers yet.';
+
+  @override
+  String get labUnitsApart =>
+      'Results in different units are shown apart, never converted.';
+
+  @override
+  String get labAllResults => 'All results';
+
+  @override
+  String get labAddReport => 'Add a lab report';
+
+  @override
+  String get memberLabs => 'Lab results';
 
   @override
   String get fieldVaccine => 'Vaccine';

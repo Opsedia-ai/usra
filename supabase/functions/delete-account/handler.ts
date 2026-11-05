@@ -1,13 +1,13 @@
 // delete-account: in-app "Delete account". Removes the caller's auth user;
-// accounts, devices, push tokens, credits, family memberships and the
-// families they created (with their ciphertext) all go with it through
-// `on delete cascade`. Health records on the phone are not touched (they
-// never left it).
+// accounts, devices, push tokens, credits and family memberships go with it
+// through `on delete cascade`, and a family left with no members is removed
+// with its ciphertext. A family the user created but no longer owns stays.
+// Health records on the phone are not touched (they never left it).
 
 import { type Handler, HttpError, isRecord, json, readJson } from "../_shared/http.ts";
 
 export interface AccountDeleter {
-  /** Families the user created that have other members (see the migration). */
+  /** Families the user owns that have other members (see the migrations). */
   blockers(userId: string): Promise<number>;
   /** Deletes the auth user. Resolves false if there was no such user. */
   deleteUser(userId: string): Promise<boolean>;
@@ -34,10 +34,10 @@ export function createDeleteAccountHandler(deps: DeleteAccountDeps): Handler {
 
     let deleted: boolean;
     try {
-      // Deleting would take other members' shared records with it. Until
-      // ownership can be handed over (v2 sync), refuse.
+      // The owner of a family with other members must hand ownership over
+      // first (a signed transfer_owner entry in the family log).
       if (await deps.deleter.blockers(userId) > 0) {
-        throw new HttpError(409, "family_has_members", "A family you created has other members");
+        throw new HttpError(409, "family_has_members", "A family you own has other members");
       }
       deleted = await deps.deleter.deleteUser(userId);
     } catch (err) {
