@@ -136,6 +136,21 @@ void main() {
     expect(scan.unknown[1].date, DateTime(2025, 7, 7));
   });
 
+  test('a dose row that also prints its next visit is still read', () {
+    final scan = read(['MMR  1st dose  1/3/2026  next  1/9/2026']);
+    expect(scan.doses.single.key, 'mmr-1');
+    expect(scan.doses.single.date, DateTime(2026, 3, 1));
+    // A row only about the next visit is not a dose.
+    expect(read(['Next visit: 1/9/2025']).isEmpty, isTrue);
+  });
+
+  test('ages in years', () {
+    expect(VaccineCardParser.ageMonthsIn('4 6 years'), 72);
+    expect(VaccineCardParser.ageMonthsIn('2 سنه'), 24);
+    expect(VaccineCardParser.ageMonthsIn('جرعه صفر'), isNull);
+    expect(VaccineCardParser.ordinalIn('جرعه صفر'), 0);
+  });
+
   test('a date in the future is the next visit, not a dose', () {
     final scan = read(['MMR  12 months  1/12/2026']);
     expect(scan.isEmpty, isTrue);

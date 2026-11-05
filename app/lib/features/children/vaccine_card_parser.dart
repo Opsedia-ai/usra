@@ -111,8 +111,10 @@ class VaccineCardParser {
         words = words.replaceRange(m.start, m.end, ' ');
       }
       final plain = _plain(words);
-      if (_label.hasMatch(plain)) continue;
       final groups = kindsIn(words);
+      // About the child or the office, not a dose. A dose row may still
+      // print its next visit ("next", "موعد").
+      if (groups.isEmpty && _label.hasMatch(plain)) continue;
       final shown = words.replaceAll(RegExp(r'\s+'), ' ').trim();
       if (groups.isEmpty) {
         if (RegExp('[A-Za-zء-ي]{2}').hasMatch(shown)) {
@@ -261,10 +263,12 @@ class VaccineCardParser {
     final m = RegExp(r'(?<![\d.])(\d{1,2}) ?(شهر|شهور|اشهر|months?|mo?\b)')
         .firstMatch(plain);
     if (m != null) return int.parse(m[1]!);
-    if (RegExp(r'(?<![\d.])(سنه|سنة|عام|year|1 ?(سنه|year))(?! ?و)')
-        .hasMatch(plain)) {
-      return 12;
-    }
+    // "2 سنه", "4 years": that many years ("4 6 years" is the last number).
+    final years = RegExp(
+      r'(?<![\d.])(\d{1,2}) ?(سنه|سنين|سنوات|عام|اعوام|years?|y\b)',
+    ).firstMatch(plain);
+    if (years != null) return 12 * int.parse(years[1]!);
+    if (RegExp(r'(سنه|سنة|عام|year)(?! ?و)').hasMatch(plain)) return 12;
     return null;
   }
 
@@ -308,7 +312,7 @@ class VaccineCardParser {
 
   // Checked in order, after [normalizeVaccineName] (ة → ه, أ → ا, ى → ي).
   static final _ordinals = <(int, RegExp)>[
-    (0, RegExp(r'صفريه|الصفريه|صفر\b|zero|\b0 dose|dose 0')),
+    (0, RegExp(r'صفريه|الصفريه|صفر(?![ء-ي])|zero|\b0 dose|dose 0')),
     (1, RegExp(r'الاولي|اولي|\b1st\b|\bfirst\b|dose 1\b|جرعه 1\b')),
     (2, RegExp(r'الثانيه|ثانيه|التانيه|\b2nd\b|\bsecond\b|dose 2\b|جرعه 2\b')),
     (3, RegExp(r'الثالثه|ثالثه|التالته|\b3rd\b|\bthird\b|dose 3\b|جرعه 3\b')),

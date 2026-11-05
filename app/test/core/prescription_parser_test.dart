@@ -222,9 +222,35 @@ void main() {
     });
 
     test('a name read with a slip is marked', () {
-      final scan = read(['Augrnentin 1g tab', '1x2 for 5 days']);
+      final scan = read(
+        ['Augrnentin 1g tab', '1x2 for 5 days'],
+        confidences: [0.9, 0.9],
+      );
       expect(scan.items.single.name, 'Augmentin');
       expect(scan.items.single.unsure, contains(RxField.name));
+    });
+
+    test('a near spelling with no confidence (iOS) is not suggested', () {
+      final scan = read(['Augrnentin 1g tab', '1x2 for 5 days']);
+      expect(scan.items, isEmpty);
+      expect(scan.unclear, isTrue);
+    });
+
+    test('handwriting under a printed letterhead is unclear, not empty', () {
+      final scan = read(
+        [
+          'Dr. Sara Adel',
+          'Pediatrics',
+          'Cairo University',
+          'Tel 0100 123 4567',
+          'Clinic: Nasr City',
+          'xx scrawl',
+          'yy scrawl',
+        ],
+        confidences: [0.95, 0.95, 0.95, 0.95, 0.95, 0.3, 0.35],
+      );
+      expect(scan.items, isEmpty);
+      expect(scan.unclear, isTrue);
     });
 
     test('no instructions: the dose stays empty and is marked', () {

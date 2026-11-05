@@ -797,7 +797,12 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
           added++;
         }
       }
-      _unknown.addAll(scan.unknown);
+      // A second photo of the same card doesn't list its rows twice.
+      for (final row in scan.unknown) {
+        if (!_unknown.any((u) => u.text == row.text && u.date == row.date)) {
+          _unknown.add(row);
+        }
+      }
       _scanMessages = [
         if (added > 0)
           l.vaccineScanFound(added)

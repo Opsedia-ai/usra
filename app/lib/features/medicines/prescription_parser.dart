@@ -115,7 +115,9 @@ class PrescriptionParser {
     }
 
     final items = <RxCandidate>[];
-    var skippedUnsure = false;
+    // Lines read unsurely (handwriting under a printed letterhead): if no
+    // medicine was read, the page is unclear, not empty.
+    var skippedUnsure = confidences.where((c) => c < unsureBelow).length >= 2;
     for (var i = 0; i < rows.length; i++) {
       final head = _medicineRow(rows[i]);
       if (head == null) {
@@ -180,6 +182,13 @@ class PrescriptionParser {
     var isKnown = false;
     if (known.isNotEmpty) {
       name = known.first;
+      // Matched only as a near spelling ("Augrnentin"). Without the
+      // recogniser's confidence (iOS) that may be handwriting read as a
+      // name: never suggested then.
+      if (!rest.toLowerCase().contains(name.toLowerCase()) &&
+          confidence == null) {
+        return (null, true);
+      }
       final at = rest.toLowerCase().indexOf(name.toLowerCase());
       if (at >= 0 && at <= 3) {
         nameEnd = at + name.length;
