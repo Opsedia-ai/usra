@@ -39,13 +39,17 @@ supabase/
 | Table | Holds | Who can read | Who can write |
 | --- | --- | --- | --- |
 | `accounts` | 1:1 with `auth.users`: country, locale | own row | own `country`, `locale` |
-| `devices` | platform, app version, device public key (for wrapping the family key) | own | own |
-| `push_tokens` | FCM tokens | own | own |
+| `devices` | platform, app version, X25519 + Ed25519 public keys (immutable), `status` pending / approved / revoked, the session that registered it | own | insert (keys, platform, version); update `app_version`, `last_seen_at` of this session's own device; delete own device, others only from an approved device. Status only through `approve_device` / `revoke_device` |
+| `device_sessions` | Auth session id → device (set by `bind-device`, B2) | nobody | service role (`bind_device_session`) |
+| `push_tokens` | FCM tokens | this session's own device | this session's own device only |
 | `entitlements` | Usra Plus status and expiry | own | service role (webhook) |
 | `credits_ledger` | append-only AI credit movements | own | service role, through functions only |
 | `purchase_events` | processed RevenueCat event ids (idempotency) | nobody | service role |
-| `families`, `family_members` | membership and roles (owner, guardian, cared_for, viewer) | members | owner |
-| `e2ee_records` | `family_id`, `record_id`, `key_version`, `ciphertext`, `updated_at`, `deleted_at` | members | owner, guardian |
+| `families` | creator (null once deleted), current key version, rotation pending | members on an approved device | create: approved device; delete: `delete_family()` (owner, approved device) |
+| `family_members` | membership and roles (owner, guardian, cared_for, viewer); one owner | members on an approved device | only through the family log (`append_family_log`) |
+| `family_invites` | role, sha256 of the one-time code, expiry, accepted / used / revoked | owner on an approved device | `create_family_invite()`, `revoke_family_invite()` (owner, approved device) |
+| `family_log` | signed, hash-chained membership log (`hash = sha256(entry)`) | members on an approved device | service role (`append_family_log`, compare-and-set on the head) |
+| `e2ee_records` | `family_id`, random v4 `sync_id`, `revision`, `key_version`, padded `ciphertext` (required), `deleted_at` | members on an approved device | `push_e2ee_records()` only (owner, guardian) |
 | `ai_runs` | model, token counts, status per AI run | own | service role |
 | `ocr_requests` | one row per cloud OCR call (timestamp only) | own | service role |
 
@@ -70,18 +74,57 @@ Every table has RLS on. The API roles start with no privileges on new tables
   refunds the credits. Schedule it with pg_cron, for example every 5 minutes:
   `select cron.schedule('expire-reservations', '*/5 * * * *', 'select public.expire_stale_reservations()');`
 
-### End-to-end-encrypted records (v2 sync)
+### End-to-end-encrypted sync (v2): what the database enforces today
 
-The phone encrypts each record with the family key (AES-256-GCM) before
-upload. The server sees ids, a key version, timestamps and ciphertext only,
-not even the record type. `updated_at` is set by the server, so conflicts are
-last writer wins on server time. Deletes are soft (`deleted_at`, ciphertext
-may be dropped). Wrapping the family key per device and rotating it when a
-member leaves is still to be designed (see Follow-ups).
+The design is [`docs/sync-design.md`](../docs/sync-design.md). Migration
+`20261105000001_sync_blockers_b0.sql` closes its B0 blockers; the Edge
+Functions that check signatures (`bind-device`, `approve-device`,
+`append-family-log`, B2–B5) are still to come.
 
-The end-to-end design in [`docs/sync-design.md`](../docs/sync-design.md)
-replaces these notes (XChaCha20-Poly1305, per-field merge, approved-device
-sessions, a signed family log); its section 20 lists the schema changes.
+- **Approved-device sessions.** A JWT counts for sync only when its
+  `session_id` is bound to an approved device of the user
+  (`private.device_ok()`). A session that only proved an SMS code reads no
+  ciphertext, log, families or members and can't create or delete families,
+  create, accept or revoke invites, or push records.
+- **Devices.** Keys can't change after insert, for any role (a new key is a
+  new device). Every device starts `pending`. `approve_device(device,
+  approver)` (service role) approves it from another approved device of the
+  same account; `approver = null` is allowed once per account
+  (`accounts.sync_enrolled_at`). `revoke_device` is final, drops the
+  device's sessions and push tokens, and (for an approved device) flags a
+  key rotation in every family of its user. The trust columns can't be
+  changed by the API roles directly, the service role included.
+- **Push tokens** are readable and writable only for this session's device:
+  the bound device, or before binding the device rows this session
+  registered.
+- **Family log.** `append_family_log(family, seq, prev_hash, entry, sig)`
+  (service role, after the Edge Function checked the Ed25519 signature and
+  strict JSON) appends only on top of the current head, checks who may write
+  each entry type, and mirrors it into `family_members`, `devices`
+  (`revoke_device`) and `families` (`current_key_version`,
+  `rotation_pending`). Entry fields used by the mirror: `v`, `family`, `seq`,
+  `prev` (base64url), `type`, `by` (device id), and `user`, `role`, `reason`,
+  `device`, `key_version`, `invite` by type.
+- **Joining.** `accept_family_invite` only marks the invite accepted. The
+  person becomes a member when the owner's phone appends `add_member` naming
+  that invite, for that person and that role; each invite is used once.
+  Revoked invites are kept (they count towards the 20-a-day limit).
+- **Removing.** `remove_member` with reason `account_deleted` is accepted
+  only once the account is gone (its membership row went with it, and the
+  delete already flagged the rotation); `reset` is refused until
+  `account_resets` exists (B3). Any membership delete flags a rotation.
+- **Records.** `push_e2ee_records(family, log_seq, records)` takes up to 100
+  records (2 MiB) as `{ sync_id, key_version, ciphertext (base64), deleted,
+  expected_revision }`. The batch is refused unless `log_seq` is the log
+  head (`stale_log`) and no rotation is pending (`rotation_pending`). Each
+  record must use the current key version (`stale_key`) and the revision the
+  writer merged, 0 for new (`revision_conflict`, with the current row).
+  Ciphertext is padded plaintext of 256 B–64 KiB (power of two) + 40 bytes;
+  sync ids are random UUID v4. `pull_e2ee_changes(family, after_txid,
+  after_sync, limit)` pages by transaction id.
+- **Deleting.** `delete_family()` needs the owner role and an approved
+  device. Deleting an account clears `families.created_by` instead of
+  cascading; a family left with no members is removed with its ciphertext.
 
 ## Edge Functions
 
@@ -128,19 +171,22 @@ matching and the user confirms before anything is saved.
 
 Deletes the caller's own `auth.users` row with the service role (the user id
 comes from the JWT, never the body). `accounts`, `devices`, `push_tokens`,
-the credits ledger, their family memberships, families they created and those
-families' ciphertext all go with it through `on delete cascade`
+the credits ledger and their family memberships go with it through
+`on delete cascade`; a family left with no members goes too, with its
+ciphertext. A family they created but handed over stays
 (`tests/database/account_deletion.test.sql`). The app then wipes its session
 and device key pair. Records on the phone are untouched.
 
 - **Retry-safe:** if the delete went through but the response was lost, the
   retry's token is still genuine but its user is gone; Auth says
   `user_not_found` and the function answers `200 { status: "not_found" }`.
-- **Shared families are protected:** while a family the user created has
+- **Shared families are protected:** while the user owns a family that has
   other members, the function refuses with `409 family_has_members`
-  (`account_deletion_blockers()`), because the cascade would delete the other
-  members' records too. v2 sync must add a way to hand ownership over (or
-  leave the family) before this can be lifted.
+  (`account_deletion_blockers()`, keyed on the owner role). The owner hands
+  over first (a signed `transfer_owner` log entry). B10 will also require an
+  approved-device session here.
+  The database enforces the same rule for any delete of the owner's account
+  (a trigger refuses to drop an owner's membership while others remain).
 
 ### revenuecat-webhook
 
@@ -267,6 +313,6 @@ in Egypt get the PDPL cross-border licence or use an in-region model endpoint
 ## Follow-ups
 
 - Server-side country gate for AI Doctor (e.g. block `accounts.country = 'SA'`).
-- Family key wrapping per device, invites and key rotation for v2 sync.
+- v2 sync Edge Functions and tables still to build: `bind-device`, `approve-device`, `append-family-log`, key wraps, blobs (sync design B1–B13).
 - `pg_cron` job for `expire_stale_reservations()`.
 - A Google Cloud Vision `MedicationReader` if it reads Arabic prescriptions better.

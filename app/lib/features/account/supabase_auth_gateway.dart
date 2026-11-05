@@ -129,13 +129,13 @@ class SupabaseAuthGateway implements AuthGateway {
     final key = _bytea(publicKey);
     final now = DateTime.now().toUtc().toIso8601String();
     if (deviceId != null) {
+      // A device's key never changes on the server (a new key is a new
+      // device row), so only these two columns are sent. The update matches
+      // nothing if this session didn't register the row; then it registers
+      // a new one.
       final updated = await client
           .from('devices')
-          .update({
-            'app_version': appVersion,
-            'public_key': key,
-            'last_seen_at': now,
-          })
+          .update({'app_version': appVersion, 'last_seen_at': now})
           .eq('id', deviceId)
           .select('id');
       if (updated.isNotEmpty) return deviceId;
