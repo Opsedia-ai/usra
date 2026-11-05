@@ -353,6 +353,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get labScanFailed => 'Couldn\'t read the photo';
 
   @override
+  String labScanSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count tests were already in the form, so their new readings weren\'t added.',
+      one: '1 test was already in the form, so its new reading wasn\'t added.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labScanReplace(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Use the $count new readings',
+      one: 'Use the new reading',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get labScanNothingNew =>
       'Nothing new on this photo: its results are already here.';
 

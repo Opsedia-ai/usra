@@ -82,7 +82,8 @@ class LabRange {
   bool get isEmpty => !isNumeric && (text == null || text!.trim().isEmpty);
 
   static const _n = r'([+-]?[\d,]*\d(?:\.\d+)?)';
-  static final _between = RegExp('^$_n\\s*(?:-|to|:)\\s*$_n\$');
+  // Not ":", which is a titre ("1:80").
+  static final _between = RegExp('^$_n\\s*(?:-|to)\\s*$_n\$');
   static final _below = RegExp(
     '^(<=|≤|=<|<|up\\s*to|less\\s*than|below|till|lower\\s*than)\\s*$_n\$',
   );

@@ -352,6 +352,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get labScanFailed => 'مقدرناش نقرا الصورة';
 
   @override
+  String labScanSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تحاليل كانوا موجودين، فقراءتهم الجديدة متضافتش.',
+      one: 'تحليل كان موجود، فقراءته الجديدة متضافتش.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labScanReplace(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'استخدم القراءات الجديدة ($count)',
+      one: 'استخدم القراءة الجديدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get labScanNothingNew =>
       'مفيش جديد في الصورة دي: نتايجها موجودة هنا خلاص.';
 

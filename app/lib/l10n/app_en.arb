@@ -131,6 +131,22 @@
   },
   "labScanNothing": "Couldn't find results in this photo. Type them in; the photo is kept with the report.",
   "labScanFailed": "Couldn't read the photo",
+  "labScanSkipped": "{count, plural, =1{1 test was already in the form, so its new reading wasn't added.} other{{count} tests were already in the form, so their new readings weren't added.}}",
+  "@labScanSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labScanReplace": "{count, plural, =1{Use the new reading} other{Use the {count} new readings}}",
+  "@labScanReplace": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "labScanNothingNew": "Nothing new on this photo: its results are already here.",
   "labCheckThis": "Check this against the paper",
   "labConfirmRow": "Matches the paper",

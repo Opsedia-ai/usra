@@ -2,7 +2,9 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:usra/core/ocr/ocr_service.dart';
+import 'package:usra/features/labs/lab_report.dart';
 import 'package:usra/features/labs/lab_report_parser.dart';
+import 'package:usra/features/labs/lab_tests.dart';
 
 import '../support/fake_ocr_service.dart';
 
@@ -303,5 +305,85 @@ void main() {
       ocrOf(['TSH  2.1  uIU/mL  0.27 - 4.2', 'TSH  2.1  uIU/mL  0.27 - 4.2']),
     );
     expect(scan.tests, hasLength(1));
+  });
+
+  group('re-review inputs', () {
+    LabCandidate row(String text) => parser.parseRow(text)!;
+    LabRange range(LabCandidate c) => LabRange.parse(c.range);
+
+    test('decimal commas in ranges, read like values and marked', () {
+      final tsh = row('TSH 0,350 µIU/mL 0,27 - 4,20');
+      expect(tsh.value, '0.35');
+      expect(tsh.range, '0.27 - 4.20');
+      expect((range(tsh).low, range(tsh).high), (0.27, 4.2));
+      expect(tsh.unsure, containsAll([LabField.value, LabField.range]));
+
+      final glucose = row('Glucose 6,1 mmol/L 3,9 - 5,5');
+      expect(glucose.value, '6.1');
+      expect((range(glucose).low, range(glucose).high), (3.9, 5.5));
+      expect(glucose.unsure, contains(LabField.range));
+      final read = LabTest.readValue(glucose.value);
+      expect(labFlagOf(read.value, range(glucose)), LabFlag.high);
+
+      final creat = row('Creatinine 1,2 mg/dL 0,6 - 1,3');
+      expect(creat.value, '1.2');
+      expect((range(creat).low, range(creat).high), (0.6, 1.3));
+      expect(creat.unsure, contains(LabField.range));
+
+      // Printed the wrong way round: read, but marked.
+      expect(
+        row('Hemoglobin 13.5 g/dL 15.5 - 12.0').unsure,
+        contains(LabField.range),
+      );
+    });
+
+    test('names with numbers in them stay names', () {
+      final ca125 = row('CA 125 35 U/mL 0 - 35');
+      expect((ca125.name, ca125.value, ca125.unit), ('CA 125', '35', 'U/mL'));
+      expect(labSeriesKey(ca125.name), 'ca125');
+      expect(
+        (
+          row('CA 19-9 12 U/mL 0 - 37').name,
+          row('CA 19-9 12 U/mL 0 - 37').value,
+        ),
+        ('CA 19-9', '12'),
+      );
+      expect(row('CA 15-3 20 U/mL 0 - 30').name, 'CA 15-3');
+      expect(
+        (row('T4 8.1 ug/dL 5 - 12').name, row('T4 8.1 ug/dL 5 - 12').value),
+        ('T4', '8.1'),
+      );
+      expect(row('B12 400 pg/mL 197 - 771').value, '400');
+      expect(row('D3 25 ng/mL 30 - 100').value, '25');
+      expect(row('HbA1c 6.1 % 4 - 5.6').value, '6.1');
+      // A known name left with a number right after it, then another
+      // number: which is which is unclear.
+      final odd = row('CA 99 35 U/mL 0 - 35');
+      expect(odd.unsure, containsAll([LabField.name, LabField.value]));
+    });
+
+    test('T3 reads its result', () {
+      final t3 = row('T3 1.2 ng/mL 0.8 - 2.0');
+      expect(
+        (t3.name, t3.value, t3.unit, t3.range),
+        ('T3', '1.2', 'ng/mL', '0.8 - 2.0'),
+      );
+    });
+
+    test('a titre is a result, not a range', () {
+      final widal = row('Widal O 1:80 <1:80');
+      expect(widal.value, '1:80');
+      expect(widal.range, '');
+      expect(LabRange.parse('1:80').isNumeric, isFalse);
+      expect(LabTest.readValue('1:80'), (value: null, text: '1:80'));
+    });
+
+    test('negative results are kept', () {
+      final be = row('Base Excess -2.5 mmol/L -2 - +2');
+      expect((be.value, be.unit, be.range), ('-2.5', 'mmol/L', '-2 - +2'));
+      final read = LabTest.readValue(be.value);
+      expect(read.value, -2.5);
+      expect(labFlagOf(read.value, range(be)), LabFlag.low);
+    });
   });
 }

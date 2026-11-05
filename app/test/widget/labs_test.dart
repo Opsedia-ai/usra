@@ -195,6 +195,10 @@ void main() {
     // The same page photographed again adds nothing new.
     await tapKey(tester, 'lab-scan-camera');
     expect(find.byKey(const ValueKey('lab-test-name-4')), findsNothing);
+    // ...and says so, offering the new readings where they differ (the
+    // corrected haemoglobin, the picked vitamin D range).
+    expect(find.byKey(const ValueKey('lab-scan-skipped')), findsOneWidget);
+    expect(find.byKey(const ValueKey('lab-scan-replace')), findsOneWidget);
     await tapKey(tester, 'record-photo-remove-1');
 
     // One more typed by hand, and a PDF.
@@ -383,5 +387,28 @@ void main() {
     picking.complete(pick('pdf'));
     await tester.pumpAndSettle();
     expect(cleanups, 1);
+  });
+
+  testWidgets('a new photo of a test already here can replace its row', (
+    tester,
+  ) async {
+    final mom = (await tester.runAsync(() => db.addProfile('فاطمة')))!;
+    ocr.result = ocrOf(['TSH  2.1  uIU/mL  0.27 - 4.2']);
+    await start(tester, '/family/$mom/add/lab');
+    await tapKey(tester, 'lab-scan-camera');
+    await type(tester, 'lab-test-value-0', '2.4');
+    await tapKey(tester, 'lab-confirm-0');
+    expect(find.byKey(const ValueKey('lab-confirm-needed')), findsNothing);
+
+    // A clearer photo reads it again.
+    ocr.result = ocrOf(['TSH  2.7  uIU/mL  0.27 - 4.2']);
+    await tapKey(tester, 'lab-scan-camera');
+    expect(field(tester, 'lab-test-value-0'), '2.4');
+    expect(find.byKey(const ValueKey('lab-test-name-1')), findsNothing);
+    await tapKey(tester, 'lab-scan-replace');
+    expect(field(tester, 'lab-test-value-0'), '2.7');
+    expect(find.byKey(const ValueKey('lab-scan-replace')), findsNothing);
+    // The new reading has to be confirmed again.
+    expect(find.byKey(const ValueKey('lab-confirm-needed')), findsOneWidget);
   });
 }

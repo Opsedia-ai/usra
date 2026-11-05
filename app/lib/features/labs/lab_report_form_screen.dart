@@ -158,6 +158,12 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
   /// The last photo only had results already in the form.
   bool _scannedRepeat = false;
 
+  /// Tests on the last photo that were already in the form, so not added.
+  int _skipped = 0;
+
+  /// Of those, the ones whose new reading differs: offered as replacements.
+  List<LabCandidate> _replaceable = const [];
+
   /// The last photo read, shown beside the rows to check them against.
   String? _scanPhoto;
 
@@ -271,12 +277,24 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
     setState(() {
       _reading = false;
       // The same page photographed again adds only what's new.
-      final have = {for (final r in _rows) r.identity};
-      final fresh = [
-        for (final c in scan.tests)
-          if (!have.contains('${labSeriesKey(c.name)}|${labUnitKey(c.unit)}'))
-            c,
-      ];
+      final have = {for (final r in _rows) r.identity: r};
+      final fresh = <LabCandidate>[];
+      final replaceable = <LabCandidate>[];
+      var skipped = 0;
+      for (final c in scan.tests) {
+        final existing = have['${labSeriesKey(c.name)}|${labUnitKey(c.unit)}'];
+        if (existing == null) {
+          fresh.add(c);
+          continue;
+        }
+        skipped++;
+        if (existing.value.text.trim() != c.value.trim() ||
+            existing.range.text.trim() != c.range.trim()) {
+          replaceable.add(c);
+        }
+      }
+      _skipped = skipped;
+      _replaceable = replaceable;
       _scanned = fresh.length;
       _scannedRepeat = scan.tests.isNotEmpty && fresh.isEmpty;
       if (fresh.isNotEmpty) {
@@ -338,6 +356,22 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
   }
 
   void _addRow() => setState(() => _rows.add(_TestRow()));
+
+  /// Puts the new readings in place of the rows they match; each must be
+  /// checked and confirmed again.
+  void _useNewReadings() {
+    setState(() {
+      for (final c in _replaceable) {
+        final key = '${labSeriesKey(c.name)}|${labUnitKey(c.unit)}';
+        final i = _rows.indexWhere((r) => r.identity == key);
+        if (i < 0) continue;
+        _rows[i].dispose();
+        _rows[i] = _TestRow.candidate(c);
+      }
+      _replaceable = const [];
+      _skipped = 0;
+    });
+  }
 
   void _removeRow(int i) {
     setState(() {
@@ -445,6 +479,9 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
                   reading: _reading,
                   found: _scanned,
                   repeat: _scannedRepeat,
+                  skipped: _skipped,
+                  replaceable: _replaceable.length,
+                  onReplace: busy ? null : _useNewReadings,
                   onScan: busy ? null : _scan,
                 ),
                 const SizedBox(height: 20),
@@ -612,12 +649,18 @@ class _ScanCard extends StatelessWidget {
     required this.reading,
     required this.found,
     required this.repeat,
+    required this.skipped,
+    required this.replaceable,
+    required this.onReplace,
     required this.onScan,
   });
 
   final bool reading;
   final int? found;
   final bool repeat;
+  final int skipped;
+  final int replaceable;
+  final VoidCallback? onReplace;
   final ValueChanged<ImageSource>? onScan;
 
   @override
@@ -690,6 +733,23 @@ class _ScanCard extends StatelessWidget {
                 key: const ValueKey('lab-scan-result'),
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
+            ],
+            if (skipped > 0) ...[
+              const SizedBox(height: 8),
+              Text(
+                l.labScanSkipped(skipped),
+                key: const ValueKey('lab-scan-skipped'),
+              ),
+              if (replaceable > 0)
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton.icon(
+                    key: const ValueKey('lab-scan-replace'),
+                    onPressed: onReplace,
+                    icon: const Icon(Icons.swap_horiz),
+                    label: Text(l.labScanReplace(replaceable)),
+                  ),
+                ),
             ],
           ],
         ),

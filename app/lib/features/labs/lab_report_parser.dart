@@ -263,23 +263,32 @@ class LabReportParser {
         (words.length <= 3 && words.skip(1).every(_labelWords.contains));
   }
 
-  static final _valueToken = RegExp(r'^[<>≤≥]?\d+(?:\.\d+)?\*?$');
+  // A result: "13.5", "<0.5", "-2.5" (base excess), "1:80" (a titre).
+  static final _valueToken = RegExp(
+    r'^([<>≤≥]?[+-]?\d+(?:\.\d+)?\*?|[<>≤≥]?1:\d+)$',
+  );
+
+  static bool _numberLike(String w) =>
+      _valueToken.hasMatch(w) ||
+      _commaNumber.hasMatch(w) ||
+      (_misreadNumber.hasMatch(w) && RegExp(r'\d').hasMatch(w));
 
   // Read as digits when they sit inside a number: O/o for 0, l/I for 1.
   static final _misreadNumber = RegExp(r'^[<>]?[\dOoIl]+(?:\.[\dOoIl]+)?$');
 
   // A number with thousands or decimal commas: "250,000", "12,5".
-  static final _commaNumber = RegExp(r'^[<>]?\d[\d,]*,\d+(?:\.\d+)?\*?$');
+  static final _commaNumber = RegExp(r'^[<>]?[+-]?\d[\d,]*,\d+(?:\.\d+)?\*?$');
 
   // A value with its unit run in: "4.5x10^3/uL", "6.1%", "13.5g/dL".
-  static final _runIn = RegExp(r'^([<>]?\d+(?:\.\d+)?)([^\d.,].*)$');
+  static final _runIn = RegExp(r'^([<>]?[+-]?\d+(?:\.\d+)?)([^\d.,:].*)$');
 
   static final _printedFlag = RegExp(
     r'^(h|l|hh|ll|high|low|\*+|n|normal|abnormal|\(h\)|\(l\)|\[h\]|\[l\])$',
     caseSensitive: false,
   );
 
-  static const _num = r'([+-]?\d+(?:\.\d+)?)';
+  // A bound: not the start of a titre ("1:80") or of a longer number.
+  static const _num = r'([+-]?\d+(?:\.\d+)?)(?![\d:.])';
   static final _ranges = [
     RegExp('$_num\\s*(?:-|to)\\s*$_num', caseSensitive: false),
     RegExp(
@@ -341,7 +350,17 @@ class LabReportParser {
 
     final unsure = <LabField>{};
     var at = -1;
-    for (var i = 1; i < words.length; i++) {
+    // A known test whose name has a number in it ("CA 125", "CA 19-9",
+    // "T3", "Vitamin B 12"): the longest known name at the start, when a
+    // result follows it, wins over reading its number as the result.
+    for (var k = math.min(4, words.length - 1); k >= 1; k--) {
+      if (matchLabTest(words.sublist(0, k).join(' ')) == null) continue;
+      if (!_numberLike(words[k])) continue;
+      at = k;
+      break;
+    }
+    final knownName = at > 0;
+    for (var i = 1; at < 0 && i < words.length; i++) {
       var fixedHere = false;
       final nameSoFar = words.sublist(0, i).join(' ');
       if (RegExp('[A-Za-z]').allMatches(nameSoFar).length < 2) continue;
@@ -381,6 +400,32 @@ class LabReportParser {
       break;
     }
     if (at < 0) return null;
+    // Make the value token plain (misread digits, commas), marking it.
+    if (knownName && !_valueToken.hasMatch(words[at])) {
+      final w = words[at];
+      if (_commaNumber.hasMatch(w)) {
+        final sign = RegExp('^[<>]').firstMatch(w)?[0] ?? '';
+        final n = parseLabNumber(w.substring(sign.length).replaceAll('*', ''));
+        if (n.value == null) return null;
+        words[at] = '$sign${formatLabNumber(n.value!)}';
+      } else {
+        words[at] = w
+            .replaceAll(RegExp('[Oo]'), '0')
+            .replaceAll(RegExp('[Il]'), '1');
+      }
+      unsure.add(LabField.value);
+    }
+    // A known name, then two numbers that aren't a range ("CA 125 35" read
+    // as calcium 125): which is the name and which the result is unclear.
+    if (at + 1 < words.length) {
+      final next = at + 1 < words.length ? words[at + 1] : '';
+      final after = at + 2 < words.length ? words[at + 2] : '';
+      if (RegExp(r'^\d+$').hasMatch(next) &&
+          !RegExp(r'^(-|to)$', caseSensitive: false).hasMatch(after) &&
+          matchLabTest(words.sublist(0, at).join(' ')) != null) {
+        unsure.addAll({LabField.name, LabField.value});
+      }
+    }
 
     final name = words
         .sublist(0, at)
@@ -388,7 +433,11 @@ class LabReportParser {
         .replaceAll(RegExp(r'[\s:.\-=]+$'), '')
         .trim();
     if (name.length < 2 || _isLabel(name, colonAfterFirst)) return null;
-    if (!RegExp('[A-Za-z]{2}').hasMatch(name) && name.length < 3) return null;
+    if (!knownName &&
+        !RegExp('[A-Za-z]{2}').hasMatch(name) &&
+        name.length < 3) {
+      return null;
+    }
 
     var value = words[at].replaceAll('*', '');
     final rest = words.sublist(at + 1);
@@ -398,13 +447,27 @@ class LabReportParser {
     }
     if (RegExp('^[<>≤≥]').hasMatch(value)) unsure.add(LabField.value);
 
-    // Thousands in the range too ("150,000 - 450,000").
+    // Commas in the range read by the same rules as values: thousands
+    // ("150,000 - 450,000") or decimals ("0,27 - 4,20"). Any comma read
+    // means the range is worth a look.
+    var rangeRewritten = false;
     var tail = rest
         .map((t) {
-          if (!RegExp(r'^\(?\d[\d,]*,\d{3}\)?$').hasMatch(t)) return t;
-          final bare = t.replaceAll(RegExp(r'[()]'), '');
-          final n = parseLabNumber(bare).value;
-          return n == null ? t : t.replaceFirst(bare, formatLabNumber(n));
+          final bare = t.replaceAll(RegExp(r'[()\[\]]'), '');
+          if (!RegExp(r'^[<>]?[+-]?\d[\d,]*,\d+(\.\d+)?$').hasMatch(bare)) {
+            return t;
+          }
+          final sign = RegExp('^[<>]').firstMatch(bare)?[0] ?? '';
+          final digits = bare.substring(sign.length);
+          final n = parseLabNumber(digits);
+          if (n.value == null) return t;
+          rangeRewritten = true;
+          // Keep the printed digits (4,20 → 4.20), so it shows as printed.
+          final plain =
+              RegExp(r'^[+-]?[1-9]\d{0,2}(,\d{3})+(\.\d+)?$').hasMatch(digits)
+              ? digits.replaceAll(',', '')
+              : digits.replaceAll(',', '.');
+          return t.replaceFirst(bare, '$sign$plain');
         })
         .join(' ');
     // Every printed range on the row, left to right, without overlaps.
@@ -421,6 +484,15 @@ class LabReportParser {
     final ranges = <String>[];
     if (found.length == 1) {
       range = found.single[0]!.trim();
+      if (rangeRewritten) unsure.add(LabField.range);
+      // Printed the wrong way round ("15.5 - 12"): read, but check it.
+      final m = found.single;
+      if (m.groupCount >= 2 && m[2] != null) {
+        final a = double.tryParse(m[1]!);
+        final b = double.tryParse(m[2]!);
+        // (Only the "a - b" form has two bounds.)
+        if (a != null && b != null && a > b) unsure.add(LabField.range);
+      }
     } else if (found.length > 1) {
       // By age, sex or level: the person picks. No range, no flag, until
       // they do.

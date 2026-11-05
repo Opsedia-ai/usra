@@ -173,6 +173,7 @@ const knownLabTests = <KnownLabTest>[
     '25 hydroxy vitamin d',
     'vit d',
     'vit d3',
+    'd3',
     'فيتامين د3',
     'فيتامين دال',
   ]),
@@ -219,6 +220,11 @@ const knownLabTests = <KnownLabTest>[
   KnownLabTest('potassium', 'Potassium', 'البوتاسيوم', ['k', 'بوتاسيوم']),
   KnownLabTest('sodium', 'Sodium', 'الصوديوم', ['na', 'صوديوم']),
   KnownLabTest('psa', 'PSA', 'PSA', ['total psa', 'psa total']),
+  KnownLabTest('ca125', 'CA 125', 'CA 125', ['ca125', 'ca-125']),
+  KnownLabTest('ca199', 'CA 19-9', 'CA 19-9', ['ca19-9', 'ca 199']),
+  KnownLabTest('ca153', 'CA 15-3', 'CA 15-3', ['ca15-3', 'ca 153']),
+  KnownLabTest('t3', 'Total T3', 'Total T3', ['t3', 'tt3', 't3 total']),
+  KnownLabTest('t4', 'Total T4', 'Total T4', ['t4', 'tt4', 't4 total']),
 ];
 
 /// A test name compared loosely: normalised like other typed text, with

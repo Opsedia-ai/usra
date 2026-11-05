@@ -716,6 +716,18 @@ abstract class AppLocalizations {
   /// **'Couldn\'t read the photo'**
   String get labScanFailed;
 
+  /// No description provided for @labScanSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 test was already in the form, so its new reading wasn\'t added.} other{{count} tests were already in the form, so their new readings weren\'t added.}}'**
+  String labScanSkipped(int count);
+
+  /// No description provided for @labScanReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Use the new reading} other{Use the {count} new readings}}'**
+  String labScanReplace(int count);
+
   /// No description provided for @labScanNothingNew.
   ///
   /// In en, this message translates to:
