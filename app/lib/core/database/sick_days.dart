@@ -17,8 +17,9 @@ abstract final class TemperatureUnit {
   static const all = {celsius, fahrenheit};
 }
 
-/// A medicine given with a reminder on, and what the reminder needs: the
-/// saved medicine (for its instructions), who took it and the sick day.
+/// A saved medicine given in a sick day still going on, and what a
+/// reminder needs: the medicine (for its instructions), who took it and
+/// the sick day.
 class NextDoseSource {
   const NextDoseSource({
     required this.given,
@@ -70,7 +71,7 @@ extension SickDayDatabase on AppDatabase {
       startedAt: Value(startedAt.toUtc()),
       endedAt: Value(endedAt?.toUtc()),
       symptomsJson: Value(jsonEncode(symptoms.toSet().toList())),
-      notes: Value(_blankToNull(notes)),
+      notes: Value(AppDatabase._clean(notes)),
       updatedAt: Value(now),
     );
     await transaction(() async {
@@ -294,7 +295,7 @@ extension SickDayDatabase on AppDatabase {
       medicineId: Value(medicineId),
       prescriptionId: Value(prescriptionId),
       name: Value(name.trim()),
-      amount: Value(_blankToNull(amount)),
+      amount: Value(AppDatabase._clean(amount)),
       givenAt: Value(givenAt.toUtc()),
       remindNext: Value(remindNext),
       updatedAt: Value(now),
@@ -322,8 +323,9 @@ extension SickDayDatabase on AppDatabase {
     });
   }
 
-  /// Medicines given with "remind me" on, in sick days still going on, for
-  /// people and medicines not deleted: what next-dose reminders come from.
+  /// Saved medicines given in sick days still going on, for people and
+  /// medicines not deleted, with "remind me" on or off: a reminder comes
+  /// from the latest dose of each medicine, and only if that one asked.
   Stream<List<NextDoseSource>> watchNextDoseSources() {
     final query =
         select(givenMedicines).join([
@@ -338,7 +340,6 @@ extension SickDayDatabase on AppDatabase {
           innerJoin(profiles, profiles.id.equalsExp(sickEpisodes.profileId)),
         ])..where(
           givenMedicines.deletedAt.isNull() &
-              givenMedicines.remindNext.equals(true) &
               sickEpisodes.deletedAt.isNull() &
               sickEpisodes.endedAt.isNull() &
               medicines.deletedAt.isNull() &
@@ -356,11 +357,6 @@ extension SickDayDatabase on AppDatabase {
       ],
     );
   }
-}
-
-String? _blankToNull(String? s) {
-  final t = s?.trim();
-  return t == null || t.isEmpty ? null : t;
 }
 
 /// The symptom keys saved in `SickEpisodes.symptomsJson`.

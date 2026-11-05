@@ -297,10 +297,10 @@ class _GivenTile extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final dateTime = DateFormat.MMMd(locale).add_jm();
-    final next = showNext ? nextDoseAllowedAt(given, medicine) : null;
-    final interval = next == null
-        ? null
-        : minimumIntervalIn(medicine?.instructions);
+    final interval = showNext && medicine?.id == given.medicineId
+        ? minimumIntervalIn(medicine?.instructions)
+        : null;
+    final next = interval == null ? null : given.givenAt.add(interval.duration);
     return ListTile(
       key: ValueKey('given-${given.id}'),
       contentPadding: EdgeInsets.zero,

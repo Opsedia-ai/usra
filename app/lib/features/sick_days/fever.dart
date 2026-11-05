@@ -89,7 +89,12 @@ enum AgeGroup { under3Months, months3to6, under2, child, adult, unknown }
 AgeGroup ageGroupOf(DateTime? birthDate, DateTime on) {
   if (birthDate == null) return AgeGroup.unknown;
   final b = DateTime(birthDate.year, birthDate.month, birthDate.day);
-  DateTime plusMonths(int m) => DateTime(b.year, b.month + m, b.day);
+  // Born on the 31st: a month later is the last day of a shorter month.
+  DateTime plusMonths(int m) {
+    final last = DateTime(b.year, b.month + m + 1, 0).day;
+    return DateTime(b.year, b.month + m, b.day > last ? last : b.day);
+  }
+
   final day = DateTime(on.year, on.month, on.day);
   if (day.isBefore(plusMonths(3))) return AgeGroup.under3Months;
   if (day.isBefore(plusMonths(6))) return AgeGroup.months3to6;

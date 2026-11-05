@@ -28,6 +28,10 @@ class _WhenField extends StatelessWidget {
   final DateTime? first;
   final String keyPrefix;
 
+  /// Never later than now: a time in the future would move the chart and
+  /// the next-dose time.
+  void _set(DateTime v) => onChanged(v.isAfter(now) ? now : v);
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -51,7 +55,7 @@ class _WhenField extends StatelessWidget {
                     helpText: l.readingDate,
                   );
                   if (d != null) {
-                    onChanged(
+                    _set(
                       DateTime(
                         d.year,
                         d.month,
@@ -77,7 +81,7 @@ class _WhenField extends StatelessWidget {
                     helpText: l.readingTime,
                   );
                   if (t != null) {
-                    onChanged(
+                    _set(
                       DateTime(
                         value.year,
                         value.month,

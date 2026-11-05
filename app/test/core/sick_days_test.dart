@@ -139,11 +139,12 @@ void main() {
         name: 'Paracetamol syrup',
         givenAt: DateTime(2026, 11, 4, 9),
       );
-      expect(await db.watchNextDoseSources().first, hasLength(1));
+      // Both doses: the latest decides whether a reminder rings.
+      expect(await db.watchNextDoseSources().first, hasLength(2));
       await db.setEpisodeEnded(e, DateTime(2026, 11, 5));
       expect(await db.watchNextDoseSources().first, isEmpty);
       await db.setEpisodeEnded(e, null);
-      expect(await db.watchNextDoseSources().first, hasLength(1));
+      expect(await db.watchNextDoseSources().first, hasLength(2));
       await db.softDeleteMedicine(m);
       expect(await db.watchNextDoseSources().first, isEmpty);
     });
@@ -208,6 +209,10 @@ void main() {
       expect(ageGroupOf(b, DateTime(2028, 1, 15)), AgeGroup.child);
       expect(ageGroupOf(b, DateTime(2044, 1, 15)), AgeGroup.adult);
       expect(ageGroupOf(null, DateTime(2026)), AgeGroup.unknown);
+      // Born on the 30th: 3 months later is the last day of February.
+      final late = DateTime(2025, 11, 30);
+      expect(ageGroupOf(late, DateTime(2026, 2, 27)), AgeGroup.under3Months);
+      expect(ageGroupOf(late, DateTime(2026, 2, 28)), AgeGroup.months3to6);
     });
 
     SickEpisode episode({List<String> symptoms = const [], DateTime? ended}) =>
@@ -524,6 +529,27 @@ void main() {
       }
       expect(en.nextDoseDiscreetTitle, 'A reminder from Usra');
       expect(ar.nextDoseDiscreetTitle, 'تذكير من أسرة');
+    });
+
+    test('a later dose without a reminder cancels the earlier one', () async {
+      await give(DateTime(2026, 11, 4, 8));
+      await give(DateTime(2026, 11, 4, 11), remind: false);
+      expect(
+        await loadNextDoseReminders(
+          db,
+          now: DateTime(2026, 11, 4, 12),
+          texts: NextDoseTexts(en, discreet: false),
+        ),
+        isEmpty,
+      );
+      // Asked again on the next dose: from that one.
+      await give(DateTime(2026, 11, 4, 17));
+      final r = (await loadNextDoseReminders(
+        db,
+        now: DateTime(2026, 11, 4, 18),
+        texts: NextDoseTexts(en, discreet: false),
+      )).single;
+      expect(r.at, DateTime(2026, 11, 4, 23));
     });
 
     test('off unless asked for', () async {

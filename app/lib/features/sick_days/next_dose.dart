@@ -164,7 +164,9 @@ class NextDoseTexts {
 }
 
 /// One reminder per medicine per sick day, from the latest time it was
-/// given, at the time its own instructions allow the next dose. Includes
+/// given (and only if that entry asked for one: a later dose without a
+/// reminder cancels an earlier one's), at the time its own instructions
+/// allow the next dose. Includes
 /// times already passed (for rewriting notifications on screen); the
 /// caller schedules only future ones. At most [max], soonest first.
 List<PlannedReminder> planNextDoseReminders(
@@ -184,6 +186,7 @@ List<PlannedReminder> planNextDoseReminders(
   }
   final out = <PlannedReminder>[];
   for (final s in latest.values) {
+    if (!s.given.remindNext) continue;
     final interval = minimumIntervalIn(s.medicine.instructions);
     if (interval == null) continue;
     final at = s.given.givenAt.add(interval.duration);
