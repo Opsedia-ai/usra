@@ -70,6 +70,93 @@ sharing with a caregiver, app lock.
 | Android | Not yet | Yes |
 | Elders, insurance, spending, doctors | No | Yes |
 
+## Full feature comparison (5 Nov 2026)
+
+Jojo v1.2 (store listing, release notes, website, privacy policy; it was #2 in
+Egypt's Top Free Medical apps that day) against Usra's `main` plus open PRs.
+Hands-on screenshots of Jojo are still to be added: iPhone Mirroring needs
+iCloud on the Mac.
+
+✅ has it · ◐ partly · — no · PR = built, in review
+
+| Area | Feature | Jojo | Usra |
+| --- | --- | --- | --- |
+| **Family** | Several children | ✅ | ✅ |
+| | Adults and grandparents | ✅ | ✅ |
+| | Simple Mode for elders (big controls) | — | ✅ |
+| | Guided tutorial (Dr. Usra) | — | ✅ |
+| **Vaccines** | Egypt MoHP/VACSERA schedule, required + optional | ✅ | ✅ |
+| | Government vs private (hexavalent) route | ✅ | ✅ |
+| | Tick vaccines already given when adding a child | ✅ | ✅ |
+| | Next vaccines on Home | ✅ | ✅ (countdown) |
+| | "Date passed but not recorded" wording | ✅ | ✅ (overdue / too late, ask the doctor) |
+| | Vaccine reminders (week before, on the day) | — | ✅ |
+| | Age limits and minimum gaps (rotavirus, catch-up) | ? | ✅ |
+| | Notes per dose | ✅ | ✅ |
+| | Read a vaccination card from a photo | ✅ | PR #12 |
+| | Vaccination record PDF to share | — | ✅ |
+| | Other countries: record vaccines by hand | ✅ | ✅ |
+| **Medicines** | Prescription with doctor, diagnosis, several medicines | ✅ | ✅ |
+| | Dose, how often, how long; "day 3 of 7" | ✅ | ✅ |
+| | Today's doses on Home, tick when given | ✅ | ✅ |
+| | Reminders that ring, with Taken/Snooze | — (not stated) | ✅ |
+| | Home-screen widget | — | ✅ (Android; iOS PR #10) |
+| | Discreet notifications (no names) | — | ✅ |
+| | Medicine box photo → name | — | ✅ |
+| | Read a prescription from a photo | ✅ | PR #12 |
+| | "Every N hours" schedules, as-needed medicines | ◐ | ✅ |
+| **Labs** | Lab report from photo **or PDF**, read on the phone | ✅ | ✅ (photo reading; PDF attached, not read) |
+| | Values with the lab's printed range, High/Low | ✅ | ✅ |
+| | Unsure values highlighted, confirm before saving | ✅ | ✅ (every row must be confirmed) |
+| | Trend chart per test | — | ✅ |
+| **Sick days** | Fever log, medicine given, reminder | ◐ (privacy policy only) | ✅ |
+| | Lock-screen live status with child's name | ◐ | — (by choice: privacy) |
+| | Age-based warning signs with sources | — | ✅ |
+| **Growth** | WHO weight, height, head circumference | — | ✅ |
+| | CDC milestones | — | ✅ |
+| | Infant feeds / sleep / diapers | — | ✅ |
+| **Other care** | Pregnancy mode | — | ✅ |
+| | Check-up and screening follow-ups (children and adults) | — | ✅ |
+| | Emergency card | — | ✅ |
+| | Doctors directory with call/WhatsApp | — | ✅ |
+| | Insurance cards | — | ✅ |
+| | Spending dashboard | — | ✅ |
+| | Doctor summary PDF | — | ✅ |
+| | Timeline of all records | ✅ | ✅ |
+| **Privacy and security** | No account needed | ✅ | ✅ (account optional) |
+| | Data only on the phone | ✅ | ✅ |
+| | Encrypted database and photos | iOS data protection | ✅ SQLCipher + XChaCha20 |
+| | App lock (PIN, Face ID) | — | ✅ |
+| | Recents/screenshot privacy | — | ✅ |
+| | Delete all data | ✅ | ✅ (also erase after 10 wrong PINs, opt-in) |
+| | Analytics | Opt-in, anonymous (PostHog EU) | None |
+| **Backup** | Moves to a new phone automatically | ✅ (iCloud / computer backup) | — (manual encrypted file + monthly reminder) |
+| | Encrypted, cross-platform (iPhone ↔ Android) | — | ✅ |
+| **Platforms** | iPhone | ✅ (iOS 18+) | ✅ (built, not yet on a device) |
+| | Android | — | ✅ |
+| **Languages** | Arabic and English | ✅ | ✅ (Egyptian Arabic first) |
+| **Price** | | Free ("first 100 families") | Free |
+
+**Where Jojo is still ahead:**
+
+1. **Backup without effort.** Jojo's data moves to a new iPhone with the
+   normal iCloud backup. Usra deliberately keeps health data out of iCloud
+   (Apple 5.1.3, our privacy promise) and asks the family to save an
+   encrypted file.
+2. **Reading PDFs.** Jojo reads lab PDFs; Usra attaches PDFs but only reads
+   photos.
+3. **Focus.** Three things done simply. Usra does much more, which is
+   harder to make feel calm; the UX audit (separate PR) checks this.
+
+Proposals that follow from this:
+
+| # | Proposal | Size |
+| --- | --- | --- |
+| C11 | **Automatic encrypted backup**: optional weekly backup of the encrypted file to a folder the user picks once (iCloud Drive, Google Drive or Files), still unreadable without the recovery key; shows "last backup" on Home | M |
+| C12 | **Read lab PDFs**: extract text from text-based PDFs on the device (fall back to rendering a page to an image for the existing reader) | S |
+| C13 | **Calm Home for parents**: a child-focused Home (next vaccine, today's doses, last fever) that hides adult features until used; follow the UX audit's findings | M |
+| C14 | **Store page**: lead with "no account, stays on your phone", then reminders that ring, growth and milestones, the whole family, Android | S |
+
 ## Proposals
 
 Ordered by value to Egyptian parents and how directly they answer Jojo. Every
