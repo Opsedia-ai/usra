@@ -162,6 +162,9 @@ class PrescriptionParser {
       }
       final text = dose.join(' ');
       c = _withInstructions(c, text, unsure);
+      // Cut from a row that held more than one medicine: its course may be
+      // the other one's.
+      if (wasSplit && c.days != null) c.unsure.add(RxField.days);
       items.add(c);
     }
     return PrescriptionScan(
@@ -298,11 +301,12 @@ class PrescriptionParser {
   List<({int start, int end, String name})> _namesAt(String text) {
     final found = <({int start, int end, String name})>[];
     for (final n in names?.knownIn(text) ?? const <String>[]) {
-      final m = RegExp(
+      for (final m in RegExp(
         '(?<![A-Za-z])${RegExp.escape(n)}(?![A-Za-z])',
         caseSensitive: false,
-      ).firstMatch(text);
-      if (m != null) found.add((start: m.start, end: m.end, name: n));
+      ).allMatches(text)) {
+        found.add((start: m.start, end: m.end, name: n));
+      }
     }
     return found..sort((a, b) => a.start.compareTo(b.start));
   }
@@ -310,16 +314,18 @@ class PrescriptionParser {
   /// [row] cut before each listed name after the first one; the pieces
   /// are marked as split.
   List<(OcrRow, bool)> _splitAtNames(OcrRow row) {
-    final at = _namesAt(row.text);
-    if (at.length < 2 || _isLabel(row.text)) return [(row, false)];
-    final cuts = <int>[];
-    var end = at.first.end;
-    for (final n in at.skip(1)) {
-      if (n.start < end) continue;
-      cuts.add(n.start);
-      end = n.end;
+    if (_isLabel(row.text)) return [(row, false)];
+    // Where a medicine could start: each listed name (the same one twice
+    // too), and each cell after a wide gap that starts with a Latin name
+    // and has a strength or form ("Zisrocin 500mg tab").
+    final starts = <int>{for (final n in _namesAt(row.text)) n.start};
+    for (final gap in RegExp(r'\s{2,}').allMatches(row.text)) {
+      final cell = row.text.substring(gap.end).split(RegExp(r'\s{2,}')).first;
+      if (_cellStartsMedicine(cell)) starts.add(gap.end);
     }
-    if (cuts.isEmpty) return [(row, false)];
+    final sorted = starts.toList()..sort();
+    if (sorted.length < 2) return [(row, false)];
+    final cuts = sorted.skip(1).toList();
     final bounds = [0, ...cuts, row.text.length];
     return [
       for (var k = 0; k + 1 < bounds.length; k++)
@@ -333,6 +339,25 @@ class PrescriptionParser {
         ),
     ];
   }
+
+  /// A cell that reads like another medicine: a Latin word that isn't an
+  /// instruction, then a strength or a form in the same cell.
+  static bool _cellStartsMedicine(String cell) {
+    final w = RegExp(r'^[A-Za-z][A-Za-z\-]{2,}').firstMatch(cell.trimLeft());
+    if (w == null || _instructionOnly.hasMatch(w[0]!)) return false;
+    final rest = cell.trimLeft().substring(w.end);
+    return MedicineNameExtractor.strengthIn(rest) != null ||
+        RegExp(
+          r'\b(?:tabs?|tablets?|caps?|capsules?|syrup|syr|syp|susp|amps?|'
+          r'ampoules?|inj|vial|supps?|drops?|cream|oint|gel|spray|sachets?|eff)\b',
+          caseSensitive: false,
+        ).hasMatch(rest);
+  }
+
+  static final _instructionOnly = RegExp(
+    '^(${_instructionList.join('|')})\$',
+    caseSensitive: false,
+  );
 
   /// A numbered line ("2- Zisrocin", "3) Tab ..."): a new medicine.
   static final _numbered = RegExp(
@@ -406,31 +431,32 @@ class PrescriptionParser {
           .replaceAll(RegExp(r'\s+'), ' ');
 
   static const _daily =
-      r'(?:daily|a day|per day|/ ?day|each day|every day|in a day|'
-      r'يوميا|يومي|في اليوم|فى اليوم|باليوم|(?<![ء-ي])كل يوم|في النهار)';
+      r'(?:daily|a day|per day|/ ?day|each day|every day|in a day)(?![a-z])|'
+      r'(?:يوميا|يومي|في اليوم|فى اليوم|باليوم|(?<![ء-ي])كل يوم|في النهار)'
+      r'(?![ء-ي])';
 
   /// "1x3", "½x2" (one, or part of one, so many times a day). "2x3" could
   /// be read either way round, so it isn't one of them.
   static final _xTimes = RegExp(
     r'(?<![\d.])(?:1|½|¼|1/2|1/4|0\.5)\s*x\s*([1-4])(?![\d.])'
-    r'(?!\s*(?:days?|d\b|يوم|ايام|weeks?|wks?|اسابيع|اسبوع|months?|شهر))'
-    '(?:\\s*$_daily)?',
+    r'(?!\s*(?:days?|d\b|يوم(?!ي)|ايام|weeks?|wks?|اسابيع|اسبوع|months?|شهر))'
+    '(?:\\s*(?:$_daily))?',
   );
 
   static final _perDayWords = <(RegExp, int?)>[
-    (RegExp('\\b(?:once|one time)\\s*$_daily'), 1),
-    (RegExp('\\b(?:twice|two times)\\s*$_daily'), 2),
-    (RegExp('\\b(?:thrice|three times)\\s*$_daily'), 3),
-    (RegExp('\\bfour times\\s*$_daily'), 4),
-    (RegExp('(?<![\\d.])([1-6])\\s*times?\\s*$_daily'), null),
+    (RegExp('\\b(?:once|one time)\\s*(?:$_daily)'), 1),
+    (RegExp('\\b(?:twice|two times)\\s*(?:$_daily)'), 2),
+    (RegExp('\\b(?:thrice|three times)\\s*(?:$_daily)'), 3),
+    (RegExp('\\bfour times\\s*(?:$_daily)'), 4),
+    (RegExp('(?<![\\d.])([1-6])\\s*times?\\s*(?:$_daily)'), null),
     (RegExp(r'\b(?:b\.?i\.?d|b\.i\.d\.)(?![a-z])\.?'), 2),
     (RegExp(r'\b(?:t\.?i\.?d|t\.?d\.?s)(?![a-z])\.?'), 3),
     (RegExp(r'\b(?:q\.?i\.?d|q\.?d\.?s)(?![a-z])\.?'), 4),
-    (RegExp('مره (?:واحده )?$_daily'), 1),
-    (RegExp('مرتين $_daily'), 2),
-    (RegExp('(?<![\\d])(?:3|ثلاث|تلات|ثلاثه|تلاته) مرات $_daily'), 3),
-    (RegExp('(?<![\\d])(?:4|اربع|اربعه) مرات $_daily'), 4),
-    (RegExp('(?<![\\d.])([1256]) مرات $_daily'), null),
+    (RegExp('مره (?:واحده )?(?:$_daily)'), 1),
+    (RegExp('مرتين (?:$_daily)'), 2),
+    (RegExp('(?<![\\d])(?:3|ثلاث|تلات|ثلاثه|تلاته) مرات (?:$_daily)'), 3),
+    (RegExp('(?<![\\d])(?:4|اربع|اربعه) مرات (?:$_daily)'), 4),
+    (RegExp('(?<![\\d.])([1256]) مرات (?:$_daily)'), null),
   ];
 
   static final _hoursForms = [
@@ -450,8 +476,35 @@ class PrescriptionParser {
   static final _oftenWords = RegExp(
     r'\b(?:once|twice|thrice|times?|daily|od|o\.d|qd|q\.d|bd|b\.d|qod|q\.o\.d|'
     r'hs|nocte|mane|weekly|monthly|yearly|every|each|alternate|other)\b|'
-    r'\d\s*x\s*\d|(?<![ء-ي])(?:مره|مرتين|مرات|يوميا|يومي|كل|اسبوعيا|شهريا|'
-    r'يوم بعد يوم|يوم ويوم)(?![ء-ي])',
+    r'\d\s*x\s*\d|\bx\s*\d|(?<![ء-ي])(?:مره|مرتين|مرات|يوميا|يومي|كل|اسبوعيا|'
+    r'شهريا|يوم بعد يوم|يوم ويوم)(?![ء-ي])',
+  );
+
+  /// Wording that makes how often or how long unsafe to read from the rest
+  /// of the line, checked before anything is taken out of it: a dose on
+  /// some days only ("every other day", "كل يومين", "biweekly", "mon wed
+  /// fri", "twice a week"), or a dose that changes ("then", "ثم", "stop").
+  static final _irregular = RegExp(
+    r'\b(?:every other|alternate|qod|q\.o\.d|(?:bi|fort)?weekly|'
+    r'(?:bi|fort)?nightly|(?:bi|semi)?monthly|yearly|fortnight|weekdays?|'
+    r'weekends?|mon|tues?|wed|thu|thurs?|fri|sat|sun|monday|tuesday|'
+    r'wednesday|thursday|friday|saturday|sunday|then|followed by|after that|'
+    r'stop)\b|'
+    r'\b(?:every|each)\s+(?:\d+|other|second|third|few)\s*(?:days?|weeks?|months?)\b|'
+    r'\bevery\s+(?:week|month|year)\b|'
+    r'(?<!for )\b(?:a|per|in a|each|/)\s*(?:week|month|year)\b|'
+    r'(?<![ء-ي])كل\s*(?:\d+\s*(?:يوم|ايام|اسابيع|اسبوع|شهور|شهر)|يومين|اسبوع|'
+    r'اسبوعين|شهر|سنه)|'
+    r'يوم بعد يوم|يوم ويوم|اسبوعيا|شهريا|سنويا|(?<![ء-ي])ثم(?![ء-ي])|بعدين|'
+    r'بعد كده|بعد ذلك|السبت|الاحد|الاثنين|الاتنين|الثلاثاء|التلات|الاربعاء|'
+    r'الاربع|الخميس|الجمعه|في الاسبوع|فى الاسبوع|في الشهر|فى الشهر|'
+    r'بالاسبوع|بالشهر',
+  );
+
+  /// When in the day, without how often: "at night", "قبل النوم".
+  static final _timeOfDay = RegExp(
+    r'\b(?:at night|nights?|bedtime|nocte|hs|morning|mane|evening)\b|'
+    r'قبل النوم|بالليل|ليلا|بليل|الصبح|صباحا|مساء|المسا',
   );
 
   static String _blank(String t, Match m) =>
@@ -462,7 +515,10 @@ class PrescriptionParser {
   static ({int? perDay, int? everyHours, bool unsure}) frequencyIn(
     String dose,
   ) {
+    const marked = (perDay: null, everyHours: null, unsure: true);
+    const none = (perDay: null, everyHours: null, unsure: false);
     var t = _plain(dose);
+    if (_irregular.hasMatch(t)) return marked;
     final perDay = <int>{};
     final hours = <int>{};
     void take(RegExp r, void Function(Match) found) {
@@ -472,6 +528,10 @@ class PrescriptionParser {
       }
     }
 
+    // How long ("x 5 days") isn't how often.
+    for (final (r, _) in _dayForms) {
+      take(r, (_) {});
+    }
     take(_xTimes, (m) => perDay.add(int.parse(m[1]!)));
     for (final (r, n) in _perDayWords) {
       take(r, (m) => perDay.add(n ?? int.parse(m[1]!)));
@@ -481,23 +541,28 @@ class PrescriptionParser {
     }
     var asNeeded = false;
     take(_asNeeded, (_) => asNeeded = true);
+    // "every day", "a day" with no count: daily, but how many times?
+    var bareDaily = false;
+    take(RegExp(_daily), (_) => bareDaily = true);
+    final timeOfDay = _timeOfDay.hasMatch(t);
     final leftOver = _oftenWords.hasMatch(t);
-    const none = (perDay: null, everyHours: null, unsure: false);
     if (perDay.isEmpty && hours.isEmpty) {
-      return leftOver ? (perDay: null, everyHours: null, unsure: true) : none;
+      return leftOver || bareDaily || timeOfDay ? marked : none;
     }
     const offered = [4, 6, 8, 12];
     final agree =
         perDay.length <= 1 &&
         hours.length <= 1 &&
         (perDay.isEmpty || hours.isEmpty || perDay.single * hours.single == 24);
-    if (leftOver || asNeeded || !agree) {
-      return (perDay: null, everyHours: null, unsure: true);
-    }
+    // "at night" fits once a day only.
+    final timeFits =
+        !timeOfDay ||
+        (hours.isEmpty && perDay.length == 1 && perDay.single == 1);
+    if (leftOver || asNeeded || !agree || !timeFits) return marked;
     if (hours.isNotEmpty) {
       return offered.contains(hours.single)
           ? (perDay: null, everyHours: hours.single, unsure: false)
-          : (perDay: null, everyHours: null, unsure: true);
+          : marked;
     }
     return (perDay: perDay.single, everyHours: null, unsure: false);
   }
@@ -509,7 +574,8 @@ class PrescriptionParser {
   /// offers (4, 6, 8 or 12 hours) and nothing else on the text disagrees.
   static int? everyHoursIn(String dose) => frequencyIn(dose).everyHours;
 
-  static const _for = r'(?:for|x|لمده|مده|لمدت|duration:?)\s*';
+  // "x 5 days", but not the "x3" of "1x3".
+  static const _for = r'(?:for|(?<![\d½¼/.])x|لمده|مده|لمدت|duration:?)\s*';
 
   static final _dayForms = <(RegExp, int Function(Match))>[
     (
@@ -529,17 +595,16 @@ class PrescriptionParser {
     ),
   ];
 
-  /// Wording that makes a course length unsafe to read: a dose that
-  /// changes ("then"), or a dose repeated on some days ("weekly", "every
-  /// 7 days", "every other day").
-  static final _notACourse = RegExp(
-    r'\b(?:then|after that|followed by|weekly|monthly|alternate|qod|'
-    r'every other)\b|(?:every|each|(?<![ء-ي])كل)\s*\d*\s*(?:days?|weeks?|months?|يوم|ايام|اسبوع|شهر)|'
-    r'ثم|بعدين|بعد كده|بعد ذلك|اسبوعيا|شهريا|يوم بعد يوم|يوم ويوم',
+  /// A course with no set end: "till finished", "for life", "على طول".
+  static final _openEnded = RegExp(
+    r'\b(?:till|until|for life|lifelong|indefinitely|finished|ongoing|'
+    r'long term|chronic)\b|مدى الحياه|مدي الحياه|على طول|علي طول|لحد ما|'
+    r'حتى ي|حتي ي|لما يخلص|مستمر',
   );
 
   static final _lengthWords = RegExp(
-    r'\b(?:days?|weeks?|wks?|months?|years?)\b|ايام|يوم(?!ي)|اسبوع|اسابيع|شهر|سنه',
+    r'\b(?:days?|d|nights?|weeks?|wks?|months?|years?)\b|ايام|يوم(?!ي)|'
+    r'ليالي|ليله|اسبوع|اسابيع|شهر|سنه',
   );
 
   /// How many days the course lasts, when printed plainly ("for 7 days",
@@ -547,7 +612,13 @@ class PrescriptionParser {
   /// [unsure] when there was wording about it.
   static ({int? days, bool unsure}) durationIn(String dose) {
     var t = _plain(dose);
-    final unsafe = _notACourse.hasMatch(t);
+    if (_irregular.hasMatch(t) || _openEnded.hasMatch(t)) {
+      return (days: null, unsure: true);
+    }
+    // "once a day", "every day": how often, not how long.
+    for (final m in RegExp(_daily).allMatches(t).toList().reversed) {
+      t = _blank(t, m);
+    }
     final found = <int>{};
     for (final (r, value) in _dayForms) {
       for (final m in r.allMatches(t).toList().reversed) {
@@ -556,7 +627,6 @@ class PrescriptionParser {
       }
     }
     final leftOver = _lengthWords.hasMatch(t);
-    if (unsafe) return (days: null, unsure: found.isNotEmpty || leftOver);
     if (found.isEmpty) return (days: null, unsure: leftOver);
     if (found.length > 1 || leftOver) return (days: null, unsure: true);
     final n = found.single;

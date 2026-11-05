@@ -479,4 +479,112 @@ void main() {
       expect(long('after meals').unsure, isFalse);
     });
   });
+
+  group('re-review of PR #12: the exact inputs', () {
+    ({int? perDay, int? everyHours, bool unsure}) often(String s) =>
+        PrescriptionParser.frequencyIn(s);
+    ({int? days, bool unsure}) long(String s) =>
+        PrescriptionParser.durationIn(s);
+    void markedTimes(String s) {
+      expect(often(s).perDay, isNull, reason: s);
+      expect(often(s).everyHours, isNull, reason: s);
+      expect(often(s).unsure, isTrue, reason: s);
+    }
+
+    test('N1: every two days / every other day in Arabic', () {
+      for (final s in [
+        'مرة كل يومين',
+        'مرتين كل يومين',
+        '1x1 كل يومين',
+        '١×١ كل يومين',
+        '1x1 كل يوم بعد يوم',
+        'مرة كل يوم بعد يوم',
+      ]) {
+        markedTimes(s);
+      }
+      // Every day is still daily.
+      expect(often('مرة كل يوم').perDay, 1);
+    });
+
+    test('N2: biweekly, bimonthly, weekdays', () {
+      for (final s in [
+        '1x1 biweekly',
+        '1x1 bimonthly',
+        '1x1 mon wed fri',
+        'twice daily on weekdays',
+      ]) {
+        markedTimes(s);
+      }
+    });
+
+    test('N3: a second medicine on the row never shares a course', () {
+      final adol = read(['1- Adol 500mg tab 1x3   Adol 120mg syrup 5ml 1x3']);
+      expect(adol.items.map((i) => i.strength), ['500mg', '120mg']);
+      expect(adol.items.map((i) => i.dose), ['1x3', '5ml 1x3']);
+      for (final i in adol.items) {
+        expect(i.unsure, contains(RxField.dose));
+      }
+
+      final aug = read([
+        '1- Augmentin 1g tab 1x2 for 7 days     Augmentin 457mg susp 5ml 1x2',
+      ]);
+      expect(aug.items, hasLength(2));
+      expect(aug.items[0].days, 7);
+      expect(aug.items[0].unsure, containsAll({RxField.dose, RxField.days}));
+      expect(aug.items[1].days, isNull);
+
+      final mixed = read([
+        '1- Adol 500mg tab 1x3      Zisrocin 500mg tab for 3 days',
+      ]);
+      expect(mixed.items.map((i) => i.name), ['Adol', 'Zisrocin']);
+      expect(mixed.items[0].days, isNull, reason: "Zisrocin's course");
+      expect(mixed.items[0].timesPerDay, 3);
+      expect(mixed.items[1].days, 3);
+      expect(mixed.items[1].unsure, containsAll({RxField.dose, RxField.days}));
+    });
+
+    test('N4: a tapering course leaves times empty and marked', () {
+      for (final s in [
+        '4 tabs for 3 days then 1x2 for 3 days',
+        '1x2 for 3 days then 1 tab',
+        '1x2 then stop',
+        '1x3 لمدة 3 أيام ثم 1x2',
+      ]) {
+        markedTimes(s);
+        expect(long(s).days, isNull, reason: s);
+        expect(long(s).unsure, isTrue, reason: s);
+      }
+    });
+
+    test('N5: wording left empty is marked; "1x3 d" fills no days', () {
+      markedTimes('1 tab at night');
+      markedTimes('قرص قبل النوم');
+      markedTimes('1 tab x 3 per day');
+      // Once a day at night fits.
+      expect(often('1x1 at night').perDay, 1);
+      expect(long('1x1 for 7 nights').days, isNull);
+      expect(long('1x1 for 7 nights').unsure, isTrue);
+      expect(long('1x2 till finished').days, isNull);
+      expect(long('1x2 till finished').unsure, isTrue);
+      expect(long('1x1 for life').unsure, isTrue);
+      expect(long('1x3 d').days, isNull);
+      expect(long('1x3 d').unsure, isTrue);
+    });
+
+    test('N6: the common safe forms are read again', () {
+      expect(often('1x3 يوميا').perDay, 3);
+      expect(often('١×٣ يوميا').perDay, 3);
+      expect(often('1x3 يوميا').unsure, isFalse);
+      expect(often('once a day for 10 days').perDay, 1);
+      expect(long('once a day for 10 days').days, 10);
+      expect(long('once a day for 10 days').unsure, isFalse);
+      expect(long('1 tab every day for 5 days').days, 5);
+      expect(long('1 tab every day for 5 days').unsure, isFalse);
+      // "every day" alone says daily, not how many times: marked.
+      markedTimes('1 tab every day for 5 days');
+      expect(long('1x1 for a week').days, 7);
+      expect(long('1x3 x 5 days').days, 5);
+      expect(often('1x3 x 5 days').perDay, 3);
+    });
+  });
 }
