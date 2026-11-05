@@ -423,7 +423,8 @@ beacon_bytes = UTF-8 JSON { "v": 1, "family", "device", "seq", "h": <head hash>,
 beacon_sig   = Ed25519(dsig, "usra/v1/head" || 0x00 || beacon_bytes)
 ```
 
-stored one row per device in `family_heads` (newest only). Phones read all
+stored one row per device in `family_heads` (newest only, published through
+the `publish-head` Edge Function, which checks the signature). Phones read all
 beacons of the family on every sync and check them:
 
 - A beacon whose `(seq, h)` is not on the phone's chain, at a `seq` the phone
@@ -452,9 +453,13 @@ lists this.
 ### Appending
 
 Phones append through the `append-family-log` Edge Function, which checks
-the same rules (signature with WebCrypto Ed25519, authorisation, `seq`, `prev`)
-and, in one transaction, inserts the entry and updates `family_members`,
-`devices` and `families.current_key_version`. Two phones racing to append get
+the same rules (strict JSON, signature with WebCrypto Ed25519 plus the strict
+checks of section 5, authorisation, `seq`, `prev`) and, in one transaction,
+inserts the entry and updates `family_members`, `family_devices` (the current
+devices of each member), `devices` and `families.current_key_version`; a
+`rotate_key` request also carries the history blob and every wrap of the new
+epoch (section 10). Numbers in log entries are plain integers. The exact field
+names per type are listed in `supabase/README.md`. Two phones racing to append get
 a unique-key conflict on `(family_id, seq)`; the loser refetches, re-checks
 and retries. The server's checks only keep honest-server state tidy; the
 phones' checks are the ones that matter.
@@ -467,9 +472,14 @@ phones' checks are the ones that matter.
 `pending` when it registers its public keys after sign-in.
 
 **Session binding.** After sign-in, the phone calls `bind-device` with
-`Ed25519(dsig, "usra/v1/bind-session" || session_id || server_nonce)`. The
-function checks the signature against the device's registered key and
-stores `(session_id → device_id)` in `device_sessions`. Row-level security on
+`Ed25519(dsig, "usra/v1/bind-session" || 0x00 || session_id (16 bytes) || server_nonce (32 bytes))`.
+The function checks the signature against the device's registered key and
+stores `(session_id → device_id)` in `device_sessions`. A phone has one live
+session: binding a new one unbinds the older ones. So after a **lost
+session** (refresh token revoked or expired) the app signs in again and binds
+its existing device row by proving its key; it registers a new device only
+when that row is gone or revoked. Public keys alone never identify a device
+(they are public). Row-level security on
 every sync table calls `private.device_ok()`, which is true only if the
 JWT's `session_id` is bound to an **approved** device of `auth.uid()`. A
 session that only proved an SMS code therefore reads and writes nothing in
@@ -548,9 +558,11 @@ talks someone into approving is still a risk (section 14).
    recovery key (checked locally with its check digits first).
 2. N fetches `account_recovery.salt` and KDF settings (allowed for a pending
    device; 5 tries per account per day), derives the recovery device keys, and
-   proves them by signing a server challenge with `rsig`. `recover-device`
-   checks the signature against `account_recovery.recovery_signing_public_key`
-   and approves N.
+   proves them by signing a server challenge with `rsig`: the same
+   `"usra/v1/approve-device"` message as way 1, step 3, over N's keys and the
+   nonce, so the recovery device "approves" N. `recover-device` checks the
+   signature against the recovery device's key (a `devices` row of kind
+   `recovery`, named in `account_recovery`) and approves N.
 3. N downloads each family log, checks that the derived recovery public keys
    are the current recovery device of this user **in the log** (not just in
    `account_recovery`), then, acting as the recovery device, appends
@@ -629,9 +641,10 @@ the server must never see the invite secret.
    the family id and the family's **genesis hash**.
 2. The invitee, on an approved device, calls `accept_family_invite` with the
    **lookup hash**, not the secret (today the function takes the code and
-   hashes it on the server; B9 changes this). The server records them as a
-   **pending** member (`family_members.status = 'pending'`); RLS gives pending
-   members nothing.
+   hashes it on the server; B9 changes this). The server records the invite
+   as accepted by them; until the owner's `add_member` they have no
+   `family_members` row, so RLS gives them nothing. (`family_members.status`
+   is `active` or `reset`.)
 3. The invitee's phone posts its user id and device public keys (phones
    and recovery device) with
    `mac = HMAC-SHA256(HKDF(invite_secret, info = "usra/v1/invite-mac"), user_id || devices)`.
@@ -1329,6 +1342,32 @@ only as strong as these grants:
 
 B0 has its own card, marked as a blocker. Plus one card for the external review: **"Sync: external crypto review of
 the E2EE design"** (section 18).
+
+### Implemented so far
+
+- **B0**: `20261105000001_sync_blockers_b0.sql`.
+- **B1–B4, B5, B6, B9**: `20261105000002_sync_log_devices.sql` and the Edge
+  Functions `bind-device`, `approve-device`, `recover-device`,
+  `append-family-log` and `publish-head` (contracts in `supabase/README.md`).
+  Choices made while building them:
+  - Server nonces are single-use rows in `device_challenges`, bound to the
+    user, the Auth session, the purpose and the device, valid 5 minutes.
+  - The recovery device is a `devices` row of kind `recovery` (no platform,
+    never a session), so log entries it signs are checked like any other.
+  - Per-family device state (`family_devices`) mirrors the log's current
+    devices: wraps and beacons hang off it, and records, wraps, epochs and
+    beacons need a session whose phone is in it. An owner's `revoke_device`
+    of another member's phone therefore cuts that phone's access to the
+    family at once (the open item from B0).
+  - The `rotate_key` entry names its fields `key_version`, `kc`, `history`
+    (SHA-256 of the history blob) and `recipients` (SHA-256 of the
+    concatenated 16-byte ids of every current device, sorted bytewise).
+  - The server also checks the comparison-code commitment on reveal
+    (honest-server only; E checks it too).
+  - Account reset: the phone that started the reset is the one that stays;
+    cancelling needs an approved phone whose approval is 7+ days older than
+    the reset.
+- Still to build: B7's tombstone purge, B8, B10–B13.
 
 ### SQL sketches
 
