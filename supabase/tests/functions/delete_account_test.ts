@@ -80,7 +80,7 @@ Deno.test("delete-account: a retry after the user is already gone answers not_fo
   assertEquals(deleted, []);
 });
 
-Deno.test("delete-account: refuses while a family the user created has other members", async () => {
+Deno.test("delete-account: refuses while a family the user owns has other members", async () => {
   const { call, deleted } = setup({ blockers: 1 });
   const res = await call({ confirm: true });
   assertEquals(res.status, 409);
