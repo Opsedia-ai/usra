@@ -451,6 +451,7 @@ Future<void> shareStoredPhotos(
 String photoMimeOf(String path) => switch (p.extension(path).toLowerCase()) {
   '.png' => 'image/png',
   '.heic' => 'image/heic',
+  '.pdf' => 'application/pdf',
   _ => 'image/jpeg',
 };
 

@@ -69,7 +69,7 @@
   "fieldInvalid": "Check this value",
   "recordVisit": "Doctor visit",
   "recordScan": "Scan or X-ray",
-  "recordLab": "Lab test",
+  "recordLab": "Lab results",
   "recordVaccine": "Vaccine",
   "recordSurgery": "Surgery",
   "fieldDoctorName": "Doctor",
@@ -82,6 +82,81 @@
   "fieldTest": "Test",
   "fieldValue": "Value",
   "fieldUnit": "Unit",
+  "recordPdf": "PDF {number}",
+  "@recordPdf": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "fieldLab": "Lab",
+  "fieldOrderedBy": "Requested by (optional)",
+  "fieldTests": "Tests",
+  "labResultsTitle": "Results",
+  "labTestNumber": "Test {number}",
+  "@labTestNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "labTestName": "Test name",
+  "labTestValue": "Result",
+  "labTestUnit": "Unit",
+  "labTestRange": "Range printed by the lab",
+  "labTestRangeHint": "e.g. 4 - 11 or < 200",
+  "labAddTest": "Add another test",
+  "labRemoveTest": "Remove this test",
+  "labNeedOneTest": "Add at least one test with its result",
+  "labFlagHigh": "Above the lab's range",
+  "labFlagLow": "Below the lab's range",
+  "labFlagNormal": "Within the lab's range",
+  "labFlagUnknown": "No range to compare with",
+  "labInfoNote": "Compared only with the range printed on the report. This isn't a diagnosis: ask your doctor what the results mean for you.",
+  "labScanTitle": "Read the report from a photo",
+  "labScanCamera": "Take a photo",
+  "labScanGallery": "From the gallery",
+  "labScanHelp": "The phone reads printed English results itself; nothing is sent anywhere. The photo is kept, encrypted, with the report. Check every value against the paper before saving.",
+  "labScanReading": "Reading the report…",
+  "labScanFound": "Found {count} results. Highlighted boxes are ones the phone wasn't sure of: check them against the paper.",
+  "@labScanFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labScanNothing": "Couldn't find results in this photo. Type them in; the photo is kept with the report.",
+  "labScanFailed": "Couldn't read the photo",
+  "labCheckThis": "Check this against the paper",
+  "labAttachPdf": "Add a PDF",
+  "labRemovePdf": "Remove the PDF",
+  "labRangeLine": "Lab's range: {range}",
+  "@labRangeLine": {
+    "placeholders": {
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "labLatest": "Latest: {value} on {date}",
+  "@labLatest": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "labNoResults": "No lab results with numbers yet.",
+  "labUnitsApart": "Results in different units are shown apart, never converted.",
+  "labAllResults": "All results",
+  "labAddReport": "Add a lab report",
+  "memberLabs": "Lab results",
   "fieldVaccine": "Vaccine",
   "fieldDose": "Dose number",
   "fieldNextDue": "Next dose",

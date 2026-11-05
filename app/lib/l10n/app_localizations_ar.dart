@@ -219,7 +219,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordScan => 'أشعة';
 
   @override
-  String get recordLab => 'تحليل';
+  String get recordLab => 'تحاليل';
 
   @override
   String get recordVaccine => 'تطعيم';
@@ -256,6 +256,131 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get fieldUnit => 'الوحدة';
+
+  @override
+  String recordPdf(int number) {
+    return 'ملف PDF $number';
+  }
+
+  @override
+  String get fieldLab => 'المعمل';
+
+  @override
+  String get fieldOrderedBy => 'الدكتور اللي طلبها (اختياري)';
+
+  @override
+  String get fieldTests => 'التحاليل';
+
+  @override
+  String get labResultsTitle => 'النتايج';
+
+  @override
+  String labTestNumber(int number) {
+    return 'تحليل $number';
+  }
+
+  @override
+  String get labTestName => 'اسم التحليل';
+
+  @override
+  String get labTestValue => 'النتيجة';
+
+  @override
+  String get labTestUnit => 'الوحدة';
+
+  @override
+  String get labTestRange => 'المعدل المكتوب في ورقة المعمل';
+
+  @override
+  String get labTestRangeHint => 'مثلاً 4 - 11 أو < 200';
+
+  @override
+  String get labAddTest => 'زوّد تحليل';
+
+  @override
+  String get labRemoveTest => 'شيل التحليل ده';
+
+  @override
+  String get labNeedOneTest => 'اكتب تحليل واحد على الأقل بنتيجته';
+
+  @override
+  String get labFlagHigh => 'أعلى من معدل المعمل';
+
+  @override
+  String get labFlagLow => 'أقل من معدل المعمل';
+
+  @override
+  String get labFlagNormal => 'في حدود معدل المعمل';
+
+  @override
+  String get labFlagUnknown => 'مفيش معدل نقارن بيه';
+
+  @override
+  String get labInfoNote =>
+      'المقارنة بالمعدل المكتوب في ورقة المعمل بس. ده مش تشخيص: اسأل دكتورك النتايج دي معناها إيه بالنسبة لك.';
+
+  @override
+  String get labScanTitle => 'اقرا الورقة من صورة';
+
+  @override
+  String get labScanCamera => 'صوّر الورقة';
+
+  @override
+  String get labScanGallery => 'من المعرض';
+
+  @override
+  String get labScanHelp =>
+      'الموبايل بيقرا النتايج المطبوعة بالإنجليزي بنفسه، ومفيش حاجة بتتبعت لأي حتة. الصورة بتتحفظ متشفرة مع التقرير. راجع كل رقم على الورقة قبل ما تحفظ.';
+
+  @override
+  String get labScanReading => 'بنقرا الورقة…';
+
+  @override
+  String labScanFound(int count) {
+    return 'لقينا $count نتيجة. الخانات المعلّمة الموبايل مكانش متأكد منها: راجعها على الورقة.';
+  }
+
+  @override
+  String get labScanNothing =>
+      'ملقيناش نتايج في الصورة دي. اكتبها بإيدك، والصورة هتتحفظ مع التقرير.';
+
+  @override
+  String get labScanFailed => 'مقدرناش نقرا الصورة';
+
+  @override
+  String get labCheckThis => 'راجع دي على الورقة';
+
+  @override
+  String get labAttachPdf => 'ضيف ملف PDF';
+
+  @override
+  String get labRemovePdf => 'شيل الملف';
+
+  @override
+  String labRangeLine(String range) {
+    return 'معدل المعمل: $range';
+  }
+
+  @override
+  String labLatest(String value, String date) {
+    return 'آخر نتيجة: $value يوم $date';
+  }
+
+  @override
+  String get labNoResults => 'لسه مفيش نتايج تحاليل بأرقام.';
+
+  @override
+  String get labUnitsApart =>
+      'النتايج بوحدات مختلفة بتظهر لوحدها، ومن غير تحويل.';
+
+  @override
+  String get labAllResults => 'كل النتايج';
+
+  @override
+  String get labAddReport => 'ضيف نتيجة تحاليل';
+
+  @override
+  String get memberLabs => 'التحاليل';
 
   @override
   String get fieldVaccine => 'التطعيم';

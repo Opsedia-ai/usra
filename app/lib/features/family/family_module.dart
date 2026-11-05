@@ -152,29 +152,6 @@ class FamilyModule extends FeatureModule {
       ],
     ),
     RecordTypeDefinition(
-      key: 'lab',
-      icon: Icons.science_outlined,
-      label: (c) => _l(c).recordLab,
-      fields: [
-        FieldSpec(
-          key: 'test',
-          kind: FieldKind.text,
-          required: true,
-          label: (c) => _l(c).fieldTest,
-        ),
-        FieldSpec(
-          key: 'value',
-          kind: FieldKind.number,
-          label: (c) => _l(c).fieldValue,
-        ),
-        FieldSpec(
-          key: 'unit',
-          kind: FieldKind.text,
-          label: (c) => _l(c).fieldUnit,
-        ),
-      ],
-    ),
-    RecordTypeDefinition(
       key: 'vaccine',
       icon: Icons.vaccines_outlined,
       label: (c) => _l(c).recordVaccine,

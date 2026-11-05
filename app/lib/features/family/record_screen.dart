@@ -38,6 +38,13 @@ class RecordScreen extends ConsumerWidget {
         title: Text(e == null ? '' : type?.labelOf(context) ?? e.type),
         actions: [
           if (e != null) ...[
+            if (type?.screens.editPath case final edit?)
+              IconButton(
+                key: const ValueKey('record-edit'),
+                tooltip: l.familyEdit,
+                icon: const Icon(Icons.edit_outlined),
+                onPressed: () => context.go(edit(profileId, e.id)),
+              ),
             // Its own context, so the iPad share sheet points at it.
             Builder(
               builder: (button) => IconButton(
@@ -69,6 +76,10 @@ class RecordScreen extends ConsumerWidget {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: _Line(label: label, value: value),
                 ),
+              if (type?.screens.details case final details?) ...[
+                details(context, e),
+                const SizedBox(height: 12),
+              ],
               if (photos.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text(
@@ -76,7 +87,29 @@ class RecordScreen extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
-                _Thumbnails(photos: photos),
+                _Thumbnails(
+                  photos: [
+                    for (final a in photos)
+                      if (!_isPdf(a)) a,
+                  ],
+                ),
+                for (final (i, a) in [
+                  for (final a in photos)
+                    if (_isPdf(a)) a,
+                ].indexed)
+                  Builder(
+                    builder: (tile) => ListTile(
+                      key: ValueKey('record-pdf-$i'),
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.picture_as_pdf_outlined,
+                        color: UsraColors.primary,
+                      ),
+                      title: Text(l.recordPdf(i + 1)),
+                      trailing: const Icon(Icons.share_outlined),
+                      onTap: () => sharePhotos(tile, ref, [a]),
+                    ),
+                  ),
               ],
             ],
           );
@@ -95,11 +128,13 @@ class RecordScreen extends ConsumerWidget {
     final locale = Localizations.localeOf(context).toLanguageTag();
     final data = decodeRecordData(e.dataJson);
     final currency = e.currency;
+    final ownDetails = type?.screens.details != null;
     return [
       (l.recordDate, DateFormat.yMMMd(locale).format(e.occurredAt)),
-      for (final f in type?.fields ?? const <FieldSpec>[])
-        if (data[f.key] case final v?)
-          (f.labelOf(context), displayFieldValue(context, f, v)),
+      if (!ownDetails)
+        for (final f in type?.fields ?? const <FieldSpec>[])
+          if (data[f.key] case final v?)
+            (f.labelOf(context), displayFieldValue(context, f, v)),
       if (e.costMinor != null)
         (
           l.recordCost,
@@ -125,6 +160,7 @@ class RecordScreen extends ConsumerWidget {
     final text = [
       title,
       for (final (label, value) in _lines(context, e, type)) '$label: $value',
+      ...?type?.screens.shareLines?.call(context, e),
     ].join('\n');
     return sharePhotos(context, ref, photos, text: text);
   }
@@ -148,6 +184,8 @@ class RecordScreen extends ConsumerWidget {
     if (context.mounted) context.go('/family/$profileId');
   }
 }
+
+bool _isPdf(Attachment a) => a.kind == 'pdf';
 
 /// Opens the share sheet with [photos] that are still on the phone,
 /// anchored (on iPad) to the widget [context] belongs to.
@@ -325,8 +363,11 @@ class _PhotoViewerState extends ConsumerState<_PhotoViewer> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final photos =
-        ref.watch(attachmentsProvider(widget.eventId)).value ?? const [];
+    final photos = [
+      for (final a
+          in ref.watch(attachmentsProvider(widget.eventId)).value ?? const [])
+        if (!_isPdf(a)) a,
+    ];
     final store = ref.watch(attachmentStoreProvider);
     final index = photos.isEmpty ? 0 : _index.clamp(0, photos.length - 1);
     return Scaffold(

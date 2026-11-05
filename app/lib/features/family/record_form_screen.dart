@@ -32,6 +32,7 @@ class RecordFormScreen extends ConsumerWidget {
         body: Center(child: Text(l.profileNotFound)),
       );
     }
+    if (type.screens.add case final add?) return add(profileId);
     final doctors = type.doctorField == null
         ? const <DoctorChoice>[]
         : [
