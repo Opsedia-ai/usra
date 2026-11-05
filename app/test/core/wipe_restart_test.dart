@@ -74,7 +74,7 @@ void main() {
     await ids.saveDeviceId('u1', 'd1');
     await restart()();
     // The normal sign-out ran: this phone's device row went too.
-    expect(gateway.deletedDevices, ['d1']);
+    expect(gateway.revokedDevices, ['d1']);
     expect(steps, ['sign-out', 'close', 'wipe', 'reopen']);
     expect(reopenedWith, WipeOutcome.done);
     expect(gateway.localForgets, 2);

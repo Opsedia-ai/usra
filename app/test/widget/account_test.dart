@@ -243,7 +243,7 @@ void main() {
     expect(find.byKey(const ValueKey('account-phone')), findsOneWidget);
     expect(ids.devices, isEmpty);
     expect(ids.keys, isEmpty);
-    expect(gateway.deletedDevices, ['device-1']);
+    expect(gateway.revokedDevices, ['device-1']);
 
     // Back in, then delete (cancelling once first).
     await tester.enterText(
