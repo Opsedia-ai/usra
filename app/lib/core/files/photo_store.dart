@@ -394,6 +394,17 @@ class SharedPhotoCache {
     return files;
   }
 
+  /// Writes a file made on the phone (a PDF report) next to the photo
+  /// copies, so it's deleted the same way: when the sheet returns, at the
+  /// next start and by the wipe.
+  Future<XFile> writeOut(String name, Uint8List bytes, String mimeType) async {
+    final dir = await _folder(folderName);
+    await dir.create(recursive: true);
+    final file = File(p.join(dir.path, p.basename(name)));
+    await file.writeAsBytes(bytes, flush: true);
+    return XFile(file.path, mimeType: mimeType);
+  }
+
   /// Deletes our decrypted copies.
   Future<void> clearCopies() => _delete(folderName);
 

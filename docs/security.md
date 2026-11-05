@@ -159,6 +159,17 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   protection, with "Don't ask again" (all shares go through
   `shareStoredPhotos`). `lib/core/security/sensitive_clipboard.dart`,
   `share_warning.dart`.
+- **PDF reports (C4, C10)**: the vaccination record and the doctor
+  summary are made on the phone with the `pdf` package (no network, no
+  print service), from the records already in the database, with only the
+  sections the user picks. Sharing goes through the same warning as photos.
+  The file is written to the share folder in the cache (`usra-share/`),
+  deleted when the sheet returns, and otherwise by the start-up sweep and
+  the wipe, like decrypted photo copies. File names say what it is, never
+  whose (`usra-doctor-summary.pdf`); the PDF's properties carry no name or
+  subject. Errors log a fixed event and the error type only. A shared PDF
+  is not encrypted: whoever receives it can read it, which the warning
+  says. `lib/features/reports/`.
 - **Rooted / jailbroken phone (S8)**: checked on the phone, nothing sent:
   Android `su` binaries (fixed paths and `PATH`), Magisk paths, test-keys
   builds; iOS Cydia/Sileo/Zebra, `/var/jb` and other jailbreak files, a

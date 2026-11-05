@@ -4946,6 +4946,384 @@ abstract class AppLocalizations {
   /// **'Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart.'**
   String get growthNoPrematurity;
 
+  /// No description provided for @reportAppLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Made with Usra (أسرة), a family health app'**
+  String get reportAppLine;
+
+  /// No description provided for @reportGenerated.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated on {date}'**
+  String reportGenerated(String date);
+
+  /// No description provided for @reportPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} of {total}'**
+  String reportPage(int page, int total);
+
+  /// No description provided for @reportVaccinationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccination record'**
+  String get reportVaccinationTitle;
+
+  /// No description provided for @reportVaccinationDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'An informational record made by the family in the Usra app from their own entries. Not an official vaccination certificate: check with the child\'s vaccination card.'**
+  String get reportVaccinationDisclaimer;
+
+  /// No description provided for @reportName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get reportName;
+
+  /// No description provided for @reportRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccination route'**
+  String get reportRoute;
+
+  /// No description provided for @reportRouteGovernment.
+  ///
+  /// In en, this message translates to:
+  /// **'Government (health office)'**
+  String get reportRouteGovernment;
+
+  /// No description provided for @reportRoutePrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private (hexavalent)'**
+  String get reportRoutePrivate;
+
+  /// No description provided for @reportDosesGiven.
+  ///
+  /// In en, this message translates to:
+  /// **'Doses given'**
+  String get reportDosesGiven;
+
+  /// No description provided for @reportNoDosesGiven.
+  ///
+  /// In en, this message translates to:
+  /// **'No doses recorded yet'**
+  String get reportNoDosesGiven;
+
+  /// No description provided for @reportUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming doses'**
+  String get reportUpcoming;
+
+  /// No description provided for @reportNoUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'No doses left on the schedule'**
+  String get reportNoUpcoming;
+
+  /// No description provided for @reportUpcomingOverFive.
+  ///
+  /// In en, this message translates to:
+  /// **'The schedule in Usra follows children until age 5.'**
+  String get reportUpcomingOverFive;
+
+  /// No description provided for @reportColVaccine.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine'**
+  String get reportColVaccine;
+
+  /// No description provided for @reportColDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get reportColDate;
+
+  /// No description provided for @reportColNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get reportColNotes;
+
+  /// No description provided for @reportColDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get reportColDue;
+
+  /// No description provided for @reportOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get reportOverdue;
+
+  /// No description provided for @reportSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health summary for the doctor'**
+  String get reportSummaryTitle;
+
+  /// No description provided for @reportSummaryDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'A summary made by the family in the Usra app from their own records. Informational only: check against the original prescriptions and reports.'**
+  String get reportSummaryDisclaimer;
+
+  /// No description provided for @reportAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get reportAge;
+
+  /// No description provided for @reportSectionBasics.
+  ///
+  /// In en, this message translates to:
+  /// **'Age and blood type'**
+  String get reportSectionBasics;
+
+  /// No description provided for @reportSectionMedicines.
+  ///
+  /// In en, this message translates to:
+  /// **'Current medicines'**
+  String get reportSectionMedicines;
+
+  /// No description provided for @reportSectionVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent doctor visits'**
+  String get reportSectionVisits;
+
+  /// No description provided for @reportSectionLabs.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent lab results'**
+  String get reportSectionLabs;
+
+  /// No description provided for @reportSectionGrowth.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth'**
+  String get reportSectionGrowth;
+
+  /// No description provided for @reportSectionVaccines.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccines'**
+  String get reportSectionVaccines;
+
+  /// No description provided for @reportColMedicine.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine'**
+  String get reportColMedicine;
+
+  /// No description provided for @reportColHowTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'As written by the doctor'**
+  String get reportColHowTaken;
+
+  /// No description provided for @reportColDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor'**
+  String get reportColDoctor;
+
+  /// No description provided for @reportColDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason / diagnosis'**
+  String get reportColDetails;
+
+  /// No description provided for @reportColTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test'**
+  String get reportColTest;
+
+  /// No description provided for @reportColResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get reportColResult;
+
+  /// No description provided for @reportColRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab\'s range'**
+  String get reportColRange;
+
+  /// No description provided for @reportColMeasure.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement'**
+  String get reportColMeasure;
+
+  /// No description provided for @reportColValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get reportColValue;
+
+  /// No description provided for @reportColPercentile.
+  ///
+  /// In en, this message translates to:
+  /// **'WHO percentile'**
+  String get reportColPercentile;
+
+  /// No description provided for @reportAsNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'When needed'**
+  String get reportAsNeeded;
+
+  /// No description provided for @reportSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {date}'**
+  String reportSince(String date);
+
+  /// No description provided for @reportUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'until {date}'**
+  String reportUntil(String date);
+
+  /// No description provided for @reportVaccineProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} doses in the plan given'**
+  String reportVaccineProgress(int done, int total);
+
+  /// No description provided for @reportVaccineNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next vaccine visit'**
+  String get reportVaccineNext;
+
+  /// No description provided for @reportVaccineOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get reportVaccineOverdue;
+
+  /// No description provided for @reportGrowthNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Percentiles from the WHO Child Growth Standards (under 5). Informational, not a diagnosis.'**
+  String get reportGrowthNote;
+
+  /// No description provided for @reportNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing recorded'**
+  String get reportNothing;
+
+  /// No description provided for @memberDoctorSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary for the doctor'**
+  String get memberDoctorSummary;
+
+  /// No description provided for @reportSummaryIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'A short PDF summary to show or send to a doctor. Choose what goes in.'**
+  String get reportSummaryIntro;
+
+  /// No description provided for @reportChooseSections.
+  ///
+  /// In en, this message translates to:
+  /// **'What to include'**
+  String get reportChooseSections;
+
+  /// No description provided for @reportLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language of the PDF'**
+  String get reportLanguage;
+
+  /// No description provided for @reportSharePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Share PDF'**
+  String get reportSharePdf;
+
+  /// No description provided for @reportIncludeNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Include my notes on each dose'**
+  String get reportIncludeNotes;
+
+  /// No description provided for @reportVaccinationShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share vaccination record'**
+  String get reportVaccinationShare;
+
+  /// No description provided for @reportVaccinationIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'A PDF of the doses given and the ones coming up, for a school, nursery or doctor.'**
+  String get reportVaccinationIntro;
+
+  /// No description provided for @reportPickOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose at least one section'**
+  String get reportPickOne;
+
+  /// No description provided for @reportOnPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Made on this phone. The file is deleted from the phone once it\'s shared.'**
+  String get reportOnPhone;
+
+  /// No description provided for @reportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t make the PDF'**
+  String get reportFailed;
+
+  /// No description provided for @reportNeedsBirthDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a date of birth to the profile first.'**
+  String get reportNeedsBirthDate;
+
+  /// No description provided for @reportFlagHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get reportFlagHigh;
+
+  /// No description provided for @reportFlagLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get reportFlagLow;
+
+  /// No description provided for @reportTooLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Too late for this vaccine: ask the doctor'**
+  String get reportTooLate;
+
+  /// No description provided for @reportTooLateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Too late (ask the doctor)'**
+  String get reportTooLateLabel;
+
+  /// No description provided for @reportSimpleIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'A PDF with this person\'s health details, medicines, visits and tests, to show or send to a doctor.'**
+  String get reportSimpleIntro;
+
   /// No description provided for @memberSickDays.
   ///
   /// In en, this message translates to:

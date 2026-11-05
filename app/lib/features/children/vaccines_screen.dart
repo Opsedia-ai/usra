@@ -13,6 +13,7 @@ import '../family/family_screen.dart' show profilesProvider;
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import '../follow_ups/follow_ups_providers.dart' show todayProvider;
 import '../medicines/medicines_providers.dart' show reminderSchedulerProvider;
+import '../reports/reports_screens.dart' show shareVaccinationRecord;
 import 'child_vaccines.dart';
 import 'egypt_vaccine_sources.dart';
 import 'egypt_vaccines.dart';
@@ -349,6 +350,17 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
       appBar: AppBar(
         title: Text(l.vaccinesTitle),
         leading: BackButton(onPressed: () => context.go('/family/$id')),
+        actions: [
+          // Its own context, so an iPad's share sheet points at the button.
+          Builder(
+            builder: (button) => IconButton(
+              key: const ValueKey('vaccines-share-pdf'),
+              tooltip: l.reportVaccinationShare,
+              icon: const Icon(Icons.picture_as_pdf_outlined),
+              onPressed: () => shareVaccinationRecord(button, ref, id),
+            ),
+          ),
+        ],
       ),
       body: switch (profile) {
         AsyncError(:final error) => Center(child: Text('$error')),

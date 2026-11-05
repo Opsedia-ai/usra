@@ -55,24 +55,35 @@ List<String> weekdayNames(BuildContext context) {
 }
 
 /// "Every day · 8:00 AM, 8:00 PM · 1 tablet".
-String scheduleSummary(BuildContext context, DoseSchedule s) {
-  final l = AppLocalizations.of(context);
+String scheduleSummary(BuildContext context, DoseSchedule s) =>
+    scheduleSummaryIn(AppLocalizations.of(context), s);
+
+/// [scheduleSummary] in [l]'s language, without a [BuildContext] (for a
+/// PDF made in a language other than the app's). [withAmount] false leaves
+/// out the amount, for callers that place it themselves.
+String scheduleSummaryIn(
+  AppLocalizations l,
+  DoseSchedule s, {
+  bool withAmount = true,
+}) {
+  final locale = l.localeName;
+  final comma = l.localeName.startsWith('ar') ? '، ' : ', ';
+  final weekday = DateFormat.E(locale);
   final days = switch ((s.everyNDays, s.weekdays)) {
     (final n?, _) when n > 1 => l.scheduleEveryNDays(n),
     (_, final mask?) => [
-      for (final (i, name) in weekdayNames(context).indexed)
-        if (mask & (1 << i) != 0) name,
-    ].join(_comma(context)),
+      // 2024-01-01 was a Monday.
+      for (var i = 0; i < 7; i++)
+        if (mask & (1 << i) != 0) weekday.format(DateTime(2024, 1, 1 + i)),
+    ].join(comma),
     _ => l.scheduleEveryDay,
   };
+  final clock = DateFormat.jm(locale);
   final times = DoseTime.parseList(s.times)
-      .map((t) => formatDoseClock(context, t))
-      .join(_comma(context));
-  return [days, times, ?s.amount].join(' · ');
+      .map((t) => clock.format(t.on(DateTime(2000))))
+      .join(comma);
+  return [days, times, if (withAmount) ?s.amount].join(' · ');
 }
-
-String _comma(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'ar' ? '، ' : ', ';
 
 /// Past its last day.
 bool medicineEnded(Medicine m, DateTime now) {
