@@ -1141,7 +1141,7 @@
   "diaperDirty": "Dirty",
   "diaperBoth": "Wet and dirty",
   "growthCheckTitle": "Quick check",
-  "growthCheckIntro": "Type today's weight or height and see where it falls on the WHO curves at {age}.",
+  "growthCheckIntro": "Type today's weight, height or head circumference and see where it falls on the WHO curves at {age}.",
   "@growthCheckIntro": {
     "placeholders": {
       "age": {
@@ -1439,5 +1439,115 @@
   "vaccineNotNeeded": "Not needed at this age",
   "vaccineRemoveRecordTitle": "Remove the record you entered?",
   "vaccineRemoveRecordBody": "This dose was entered by hand, maybe with a photo of the card, the doctor or the cost. Unticking it removes that record from the child's history.",
-  "vaccineRemoveRecordConfirm": "Remove"
+  "vaccineRemoveRecordConfirm": "Remove",
+  "growthHeadForAge": "Head circumference for age",
+  "prescriptionsSection": "Prescriptions",
+  "prescriptionAdd": "Add prescription",
+  "prescriptionNew": "New prescription",
+  "prescriptionEdit": "Edit prescription",
+  "prescriptionDate": "Date (first day of treatment)",
+  "prescriptionDiagnosis": "Diagnosis or reason",
+  "prescriptionNotes": "Notes",
+  "prescriptionPhotos": "Photo of the prescription",
+  "prescriptionMedicines": "Medicines",
+  "prescriptionAddMedicine": "Add another medicine",
+  "prescriptionMedicineN": "Medicine {n}",
+  "@prescriptionMedicineN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "prescriptionRemoveMedicine": "Remove this medicine",
+  "prescriptionDose": "Dose, as the doctor wrote it",
+  "prescriptionDoseHint": "e.g. 5 ml after meals",
+  "prescriptionTimesPerDay": "Times a day (you can change the times)",
+  "prescriptionTimesN": "{count, plural, =1{Once} =2{Twice} other{{count} times}}",
+  "@prescriptionTimesN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "prescriptionDuration": "For how long",
+  "prescriptionOngoing": "Ongoing",
+  "prescriptionForDays": "A set number of days",
+  "prescriptionDays": "Number of days",
+  "prescriptionDaysInvalid": "Enter a number of days, 1 or more",
+  "prescriptionNoDoseAdvice": "Write each medicine exactly as it is on the prescription. Usra never suggests or calculates a dose.",
+  "prescriptionNeedsTimes": "Add at least one time, or no reminders will ring",
+  "prescriptionStop": "Stop the whole prescription",
+  "prescriptionResume": "Resume the prescription",
+  "prescriptionDeleteConfirm": "Delete this prescription, its medicines and their history? Its photos will be removed from this phone.",
+  "prescriptionNotFound": "This prescription was deleted",
+  "prescriptionTitle": "Prescription of {date}",
+  "@prescriptionTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "prescriptionCount": "{count, plural, =1{1 medicine} other{{count} medicines}}",
+  "@prescriptionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "prescriptionDaysCount": "{count, plural, =1{1 day} other{{count} days}}",
+  "@prescriptionDaysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "prescriptionLink": "Prescription",
+  "courseDayOf": "Day {day} of {total}",
+  "@courseDayOf": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "prescriptionMoveTitle": "Move the courses too?",
+  "prescriptionMoveBody": "Courses that haven't ended can start on the new date. Courses already over keep their dates and get no reminders back.",
+  "prescriptionMoveYes": "Move them",
+  "prescriptionMoveKeep": "Keep their dates",
+  "prescriptionRemoveConfirm": "Take {name} off this prescription? It will be stopped, so its reminders end. Its dose history stays on its own page.",
+  "@prescriptionRemoveConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "prescriptionEveryHours": "Every few hours",
+  "prescriptionInterval": "As the doctor wrote",
+  "prescriptionEveryNHours": "{n, plural, =1{Every hour} other{Every {n} hours}}",
+  "@prescriptionEveryNHours": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "prescriptionFirstDose": "First one at {time}",
+  "@prescriptionFirstDose": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "prescriptionTimesHint": "Check the times match what the doctor wrote, e.g. every 8 hours.",
+  "growthNoPrematurity": "Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart."
 }

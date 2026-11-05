@@ -124,6 +124,18 @@ class Medicines extends Table {
   TextColumn get instructions => text().nullable()();
   TextColumn get doctorId => text().nullable()();
 
+  /// The prescription it was written on, if any (schema v7).
+  TextColumn get prescriptionId =>
+      text().nullable().references(Prescriptions, #id)();
+
+  /// Its place on the prescription, as entered (schema v7).
+  IntColumn get position => integer().nullable()();
+
+  /// Stopped by stopping the whole prescription, not on its own (schema
+  /// v7); resuming the prescription restarts only these.
+  BoolColumn get stoppedWithPrescription =>
+      boolean().withDefault(const Constant(false))();
+
   /// First and last day (inclusive), stored as UTC midnight.
   DateTimeColumn get startOn => dateTime()();
   DateTimeColumn get endOn => dateTime().nullable()();
@@ -133,6 +145,36 @@ class Medicines extends Table {
   TextColumn get photosJson => text().withDefault(const Constant('[]'))();
 
   /// False once the person stops taking it; kept for history.
+  BoolColumn get active => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// One prescription from a doctor: the date, who wrote it, why, and a photo
+/// of the paper (schema v7). Its medicines point back to it with
+/// `Medicines.prescriptionId`. The app records what the doctor wrote; it
+/// never suggests or computes a dose.
+class Prescriptions extends Table {
+  TextColumn get id => text()();
+  TextColumn get profileId => text().references(Profiles, #id)();
+  TextColumn get doctorId => text().nullable()();
+
+  /// The day it was written, stored as UTC midnight.
+  DateTimeColumn get prescribedOn => dateTime()();
+
+  /// The diagnosis or reason, as the family writes it.
+  TextColumn get diagnosis => text().nullable()();
+  TextColumn get notes => text().nullable()();
+
+  /// Photos of the prescription: a JSON list of paths relative to the app's
+  /// private folder, in the medicines photo store (see `PhotoStore`).
+  TextColumn get photosJson => text().withDefault(const Constant('[]'))();
+
+  /// False when none of its medicines is taken any more (kept in step with
+  /// them by the database).
   BoolColumn get active => boolean().withDefault(const Constant(true))();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();

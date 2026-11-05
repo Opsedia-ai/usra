@@ -98,6 +98,13 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   show it by default), so with discreet off names can show there on
   Android; iOS hides previews when locked by default and shows generic
   text instead.
+- **Doses (medical safety, Apple 1.4.2)**: the app records what the
+  doctor wrote and never suggests or computes a dose. Dose text is saved
+  word for word. Reminder-time shortcuts on a prescription ("3 times a
+  day", "every 8 hours from 08:00") only lay times out on the clock; the
+  interval is the one the person reads off the prescription, the times
+  stay editable, and the form says to check them against it. The only
+  arithmetic is calendar days (a course's last day, "day 3 of 7").
 - **Widget**: first name and medicine name only, no strength or condition;
   in discreet mode "Dose due" with no name and no Taken button (a tap
   opens the app).
@@ -232,7 +239,7 @@ with the cloud features (M6).
 | --- | --- | --- | --- |
 | S12 | **Session and device keys in secure storage** | P2 | supabase_flutter defaults to SharedPreferences; use a secure-storage `LocalStorage`. Device keypair this-device-only. (Sent to the accounts PR.) |
 | S13 | **OTP abuse controls** | P2 | Per-number and per-IP limits in the SMS hook, cooldown, block premium-rate destinations, generic errors (no account enumeration), alert on spikes (SMS pumping fraud). |
-| S14 | **E2EE sync design review** | P2 | Family key (random 256-bit) wraps every record key; wrapped per device with X25519; key rotation when a member or device is removed; signed membership changes; new device must be approved from an existing device or with the recovery key. Written design + threat review before code. |
+| S14 | **E2EE sync design review** | P2 | Design written for review: [`docs/sync-design.md`](sync-design.md). Family key per epoch (XChaCha20-Poly1305 records, a random key per file), wrapped to each device with HPKE (X25519); signed hash-chained family log for members, devices and key epochs; signed records; rotation when a member or device is removed; new devices approved from an existing phone (QR or comparison code) or with the recovery key, never by SMS alone. Needs the external crypto review (its section 18) before sync code. **Blocker before any sync code:** close the existing grant and RLS gaps listed as B0 in that doc (device keys overwritable and `devices` insert on all columns, push tokens writable for other devices, family delete from an SMS-only session, direct membership / invite / record writes, `families.created_by` cascade), each with a pgTAP test. |
 | S15 | **Account takeover** | P2 | Notify all devices when a new device joins; new device sees no data until approved; SIM-swap note in the UI. |
 | S16 | **AI and cloud OCR consent** | P2 | Explicit per-use consent, show exactly what is sent, strip names and IDs before sending, provider with zero data retention / no training (contract), never logged; region notes in the privacy policy. |
 | S17 | **Backend hardening** | P2 | Rate limits in a shared store (the in-memory limiter resets per instance), JWT verification on every function, CORS locked to the app, Postgres backups encrypted, Supabase MFA on the dashboard for every admin, least-privilege service keys, audit log of admin actions, secrets rotation runbook. |
@@ -271,4 +278,5 @@ with the cloud features (M6).
 2. **Before public launch:** S7–S11 (done, S9 and S8's attestation part
    pending as noted), S22 pen test, S23–S25.
 3. **With cloud (M6):** S12–S18, starting with the E2EE design review (S14)
+   and its B0 grant fixes
    before any sync code.

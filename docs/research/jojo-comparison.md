@@ -95,5 +95,5 @@ Positioning (store texts and marketing):
   encrypted backup you can move to a new phone, and Android.
 - Like Jojo, say "no account needed" in the first screenshot.
 
-Suggested order: C1 + C2 + C3 together (one vaccine release; built in Nov 2026, schedule research in `egypt-vaccine-schedule.md`), then C5 + C9,
+Suggested order: C1 + C2 + C3 together (one vaccine release; built in Nov 2026, schedule research in `egypt-vaccine-schedule.md`), then C5 + C9 (built in Nov 2026),
 then C6 + C7, then C4 + C10, then C8.

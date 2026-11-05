@@ -96,3 +96,16 @@ final todayDosesProvider = Provider<AsyncValue<List<PlannedDose>>>((ref) {
 final reminderAccessProvider = FutureProvider<ReminderAccess>(
   (ref) => ref.watch(reminderSchedulerProvider).access(),
 );
+
+final prescriptionsProvider = StreamProvider.family<List<Prescription>, String>(
+  (ref, profileId) => ref.watch(databaseProvider).watchPrescriptions(profileId),
+);
+
+final prescriptionProvider = StreamProvider.family<Prescription?, String>(
+  (ref, id) => ref.watch(databaseProvider).watchPrescription(id),
+);
+
+final prescriptionMedicinesProvider =
+    StreamProvider.family<List<Medicine>, String>(
+      (ref, id) => ref.watch(databaseProvider).watchPrescriptionMedicines(id),
+    );

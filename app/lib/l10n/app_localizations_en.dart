@@ -2103,7 +2103,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String growthCheckIntro(String age) {
-    return 'Type today\'s weight or height and see where it falls on the WHO curves at $age.';
+    return 'Type today\'s weight, height or head circumference and see where it falls on the WHO curves at $age.';
   }
 
   @override
@@ -2676,4 +2676,186 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vaccineRemoveRecordConfirm => 'Remove';
+
+  @override
+  String get growthHeadForAge => 'Head circumference for age';
+
+  @override
+  String get prescriptionsSection => 'Prescriptions';
+
+  @override
+  String get prescriptionAdd => 'Add prescription';
+
+  @override
+  String get prescriptionNew => 'New prescription';
+
+  @override
+  String get prescriptionEdit => 'Edit prescription';
+
+  @override
+  String get prescriptionDate => 'Date (first day of treatment)';
+
+  @override
+  String get prescriptionDiagnosis => 'Diagnosis or reason';
+
+  @override
+  String get prescriptionNotes => 'Notes';
+
+  @override
+  String get prescriptionPhotos => 'Photo of the prescription';
+
+  @override
+  String get prescriptionMedicines => 'Medicines';
+
+  @override
+  String get prescriptionAddMedicine => 'Add another medicine';
+
+  @override
+  String prescriptionMedicineN(int n) {
+    return 'Medicine $n';
+  }
+
+  @override
+  String get prescriptionRemoveMedicine => 'Remove this medicine';
+
+  @override
+  String get prescriptionDose => 'Dose, as the doctor wrote it';
+
+  @override
+  String get prescriptionDoseHint => 'e.g. 5 ml after meals';
+
+  @override
+  String get prescriptionTimesPerDay =>
+      'Times a day (you can change the times)';
+
+  @override
+  String prescriptionTimesN(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count times',
+      two: 'Twice',
+      one: 'Once',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prescriptionDuration => 'For how long';
+
+  @override
+  String get prescriptionOngoing => 'Ongoing';
+
+  @override
+  String get prescriptionForDays => 'A set number of days';
+
+  @override
+  String get prescriptionDays => 'Number of days';
+
+  @override
+  String get prescriptionDaysInvalid => 'Enter a number of days, 1 or more';
+
+  @override
+  String get prescriptionNoDoseAdvice =>
+      'Write each medicine exactly as it is on the prescription. Usra never suggests or calculates a dose.';
+
+  @override
+  String get prescriptionNeedsTimes =>
+      'Add at least one time, or no reminders will ring';
+
+  @override
+  String get prescriptionStop => 'Stop the whole prescription';
+
+  @override
+  String get prescriptionResume => 'Resume the prescription';
+
+  @override
+  String get prescriptionDeleteConfirm =>
+      'Delete this prescription, its medicines and their history? Its photos will be removed from this phone.';
+
+  @override
+  String get prescriptionNotFound => 'This prescription was deleted';
+
+  @override
+  String prescriptionTitle(String date) {
+    return 'Prescription of $date';
+  }
+
+  @override
+  String prescriptionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count medicines',
+      one: '1 medicine',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String prescriptionDaysCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prescriptionLink => 'Prescription';
+
+  @override
+  String courseDayOf(int day, int total) {
+    return 'Day $day of $total';
+  }
+
+  @override
+  String get prescriptionMoveTitle => 'Move the courses too?';
+
+  @override
+  String get prescriptionMoveBody =>
+      'Courses that haven\'t ended can start on the new date. Courses already over keep their dates and get no reminders back.';
+
+  @override
+  String get prescriptionMoveYes => 'Move them';
+
+  @override
+  String get prescriptionMoveKeep => 'Keep their dates';
+
+  @override
+  String prescriptionRemoveConfirm(String name) {
+    return 'Take $name off this prescription? It will be stopped, so its reminders end. Its dose history stays on its own page.';
+  }
+
+  @override
+  String get prescriptionEveryHours => 'Every few hours';
+
+  @override
+  String get prescriptionInterval => 'As the doctor wrote';
+
+  @override
+  String prescriptionEveryNHours(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Every $n hours',
+      one: 'Every hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String prescriptionFirstDose(String time) {
+    return 'First one at $time';
+  }
+
+  @override
+  String get prescriptionTimesHint =>
+      'Check the times match what the doctor wrote, e.g. every 8 hours.';
+
+  @override
+  String get growthNoPrematurity =>
+      'Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart.';
 }

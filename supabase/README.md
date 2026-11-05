@@ -79,6 +79,10 @@ last writer wins on server time. Deletes are soft (`deleted_at`, ciphertext
 may be dropped). Wrapping the family key per device and rotating it when a
 member leaves is still to be designed (see Follow-ups).
 
+The end-to-end design in [`docs/sync-design.md`](../docs/sync-design.md)
+replaces these notes (XChaCha20-Poly1305, per-field merge, approved-device
+sessions, a signed family log); its section 20 lists the schema changes.
+
 ## Edge Functions
 
 All functions answer JSON errors as `{ "error": { "code", "message", ... } }`

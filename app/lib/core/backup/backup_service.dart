@@ -388,6 +388,7 @@ const _countedTables = {
   'people': 'profiles',
   'records': 'medical_events',
   'medicines': 'medicines',
+  'prescriptions': 'prescriptions',
   'doctors': 'doctors',
   'insuranceCards': 'insurance_cards',
   'attachments': 'attachments',

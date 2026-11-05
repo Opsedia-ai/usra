@@ -80,3 +80,27 @@ bool medicineEnded(Medicine m, DateTime now) {
   return end != null &&
       DateTime(now.year, now.month, now.day).isAfter(storedDay(end));
 }
+
+/// A calendar date as UTC midnight, so clock changes can't shorten a day.
+DateTime _utcDay(DateTime d) => DateTime.utc(d.year, d.month, d.day);
+
+/// How many days a course with a last day lasts, counting both ends; null
+/// when it goes on.
+int? courseDays(Medicine m) => m.endOn == null
+    ? null
+    : _utcDay(storedDay(m.endOn!))
+              .difference(_utcDay(storedDay(m.startOn)))
+              .inDays +
+          1;
+
+/// Where a course with a last day stands on [now]: day [day] of [total],
+/// both counting the first day. Null for a medicine that goes on, or when
+/// [now] is before the first day or after the last. Calendar arithmetic
+/// only; nothing about doses.
+({int day, int total})? courseProgress(Medicine m, DateTime now) {
+  final total = courseDays(m);
+  if (total == null) return null;
+  final day = _utcDay(now).difference(_utcDay(storedDay(m.startOn))).inDays + 1;
+  if (day < 1 || day > total) return null;
+  return (day: day, total: total);
+}

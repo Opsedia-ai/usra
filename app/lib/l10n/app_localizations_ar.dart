@@ -2116,7 +2116,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String growthCheckIntro(String age) {
-    return 'اكتب الوزن أو الطول النهارده وشوف مكانه على منحنيات منظمة الصحة العالمية في سن $age.';
+    return 'اكتب الوزن أو الطول أو محيط الراس النهارده وشوف مكانه على منحنيات منظمة الصحة العالمية في سن $age.';
   }
 
   @override
@@ -2694,4 +2694,193 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get vaccineRemoveRecordConfirm => 'امسح';
+
+  @override
+  String get growthHeadForAge => 'محيط الراس حسب السن';
+
+  @override
+  String get prescriptionsSection => 'الروشتات';
+
+  @override
+  String get prescriptionAdd => 'ضيف روشتة';
+
+  @override
+  String get prescriptionNew => 'روشتة جديدة';
+
+  @override
+  String get prescriptionEdit => 'عدّل الروشتة';
+
+  @override
+  String get prescriptionDate => 'التاريخ (أول يوم علاج)';
+
+  @override
+  String get prescriptionDiagnosis => 'التشخيص أو السبب';
+
+  @override
+  String get prescriptionNotes => 'ملاحظات';
+
+  @override
+  String get prescriptionPhotos => 'صورة الروشتة';
+
+  @override
+  String get prescriptionMedicines => 'الأدوية';
+
+  @override
+  String get prescriptionAddMedicine => 'ضيف دوا كمان';
+
+  @override
+  String prescriptionMedicineN(int n) {
+    return 'دوا $n';
+  }
+
+  @override
+  String get prescriptionRemoveMedicine => 'شيل الدوا ده';
+
+  @override
+  String get prescriptionDose => 'الجرعة زي ما الدكتور كتبها';
+
+  @override
+  String get prescriptionDoseHint => 'مثلاً ٥ مل بعد الأكل';
+
+  @override
+  String get prescriptionTimesPerDay =>
+      'كام مرة في اليوم (تقدر تغيّر المواعيد)';
+
+  @override
+  String prescriptionTimesN(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مرة',
+      few: '$count مرات',
+      two: 'مرتين',
+      one: 'مرة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prescriptionDuration => 'لمدة قد إيه';
+
+  @override
+  String get prescriptionOngoing => 'مستمر';
+
+  @override
+  String get prescriptionForDays => 'عدد أيام محدد';
+
+  @override
+  String get prescriptionDays => 'عدد الأيام';
+
+  @override
+  String get prescriptionDaysInvalid => 'اكتب عدد أيام، ١ أو أكتر';
+
+  @override
+  String get prescriptionNoDoseAdvice =>
+      'اكتب كل دوا زي ما هو مكتوب في الروشتة بالظبط. أسرة عمرها ما بتقترح ولا بتحسب جرعة.';
+
+  @override
+  String get prescriptionNeedsTimes =>
+      'ضيف ميعاد واحد على الأقل، وإلا مفيش تنبيهات هترن';
+
+  @override
+  String get prescriptionStop => 'وقّف الروشتة كلها';
+
+  @override
+  String get prescriptionResume => 'رجّع الروشتة تاني';
+
+  @override
+  String get prescriptionDeleteConfirm =>
+      'تمسح الروشتة دي وأدويتها وسجلها؟ صورها هتتمسح من الموبايل ده.';
+
+  @override
+  String get prescriptionNotFound => 'الروشتة دي اتمسحت';
+
+  @override
+  String prescriptionTitle(String date) {
+    return 'روشتة $date';
+  }
+
+  @override
+  String prescriptionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دوا',
+      few: '$count أدوية',
+      two: 'دوايين',
+      one: 'دوا واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String prescriptionDaysCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم',
+      few: '$count أيام',
+      two: 'يومين',
+      one: 'يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prescriptionLink => 'الروشتة';
+
+  @override
+  String courseDayOf(int day, int total) {
+    return 'اليوم $day من $total';
+  }
+
+  @override
+  String get prescriptionMoveTitle => 'تنقل مواعيد العلاج كمان؟';
+
+  @override
+  String get prescriptionMoveBody =>
+      'العلاج اللي لسه مخلصش ممكن يبدأ من التاريخ الجديد. اللي خلص خلاص هيفضل بتواريخه ومش هترجعله تنبيهات.';
+
+  @override
+  String get prescriptionMoveYes => 'انقلها';
+
+  @override
+  String get prescriptionMoveKeep => 'سيب تواريخها';
+
+  @override
+  String prescriptionRemoveConfirm(String name) {
+    return 'تشيل $name من الروشتة دي؟ هيتوقف وتنبيهاته هتخلص. سجل جرعاته هيفضل في صفحته.';
+  }
+
+  @override
+  String get prescriptionEveryHours => 'كل كام ساعة';
+
+  @override
+  String get prescriptionInterval => 'زي ما الدكتور كتب';
+
+  @override
+  String prescriptionEveryNHours(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'كل $n ساعة',
+      few: 'كل $n ساعات',
+      two: 'كل ساعتين',
+      one: 'كل ساعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String prescriptionFirstDose(String time) {
+    return 'أول مرة الساعة $time';
+  }
+
+  @override
+  String get prescriptionTimesHint =>
+      'اتأكد إن المواعيد زي ما الدكتور كتب، مثلاً كل ٨ ساعات.';
+
+  @override
+  String get growthNoPrematurity =>
+      'السن محسوب من يوم الولادة من غير تصحيح للأطفال المبتسرين. لو طفلك اتولد بدري، اسأل دكتور الأطفال إزاي تقرا المنحنى ده.';
 }
