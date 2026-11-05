@@ -153,7 +153,7 @@ List<String> labShareLines(BuildContext context, MedicalEvent event) {
     if (report.orderedBy != null) '${l.fieldOrderedBy}: ${report.orderedBy}',
     for (final t in report.tests)
       [
-        '${t.name}: ${labValueText(t)}',
+        '${t.name}: ${[t.shownValue, ?t.unit].join(' ')}',
         if (!t.range.isEmpty) '(${l.labRangeLine(t.range.format())})',
         if (t.flag != LabFlag.unknown) '- ${labFlagLabel(l, t.flag)}',
       ].join(' '),

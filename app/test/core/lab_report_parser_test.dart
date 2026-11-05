@@ -174,6 +174,10 @@ void main() {
     expect(wbc.unit, 'x10^3/uL');
     expect(wbc.range, '4 - 11');
 
+    // A misread folded into the name stays marked.
+    final b12 = parser.parseRow('Vitamin B 1O  2O5  pg/mL  197 - 771')!;
+    expect(b12.unsure, contains(LabField.value));
+
     expect(parser.parseRow('Hematology'), isNull);
     expect(parser.parseRow('Test  Result  Unit  Normal Range'), isNull);
   });

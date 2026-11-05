@@ -39,7 +39,7 @@ class LabRange {
   bool get isNumeric => low != null || high != null;
   bool get isEmpty => !isNumeric && (text == null || text!.trim().isEmpty);
 
-  static final _number = r'(\d+(?:\.\d+)?)';
+  static final _number = r'(-?\d+(?:\.\d+)?)';
   static final _between = RegExp('^$_number\\s*(?:-|to|:)\\s*$_number\$');
   static final _below = RegExp(
     '^(?:<=?|≤|up\\s*to|less\\s*than|below|till|lower\\s*than)\\s*$_number\$',
@@ -136,7 +136,12 @@ class LabTest {
   static ({double? value, String? text}) readValue(String raw) {
     final t = raw.trim();
     if (t.isEmpty) return (value: null, text: null);
-    final n = parseLocalizedNumber(t.replaceAll(',', '.'));
+    // "250,000" is thousands; "12,5" a decimal comma.
+    final western = toWesternDigits(t);
+    final plain = RegExp(r'^\d{1,3}(,\d{3})+(\.\d+)?$').hasMatch(western)
+        ? western.replaceAll(',', '')
+        : western.replaceAll(',', '.');
+    final n = parseLocalizedNumber(plain);
     if (n != null) return (value: n.toDouble(), text: null);
     return (value: null, text: t);
   }
@@ -273,6 +278,18 @@ class LabPoint {
   final String name;
 
   LabFlag get flag => labFlagOf(value, range);
+
+  @override
+  bool operator ==(Object other) =>
+      other is LabPoint &&
+      other.eventId == eventId &&
+      other.date == date &&
+      other.value == value &&
+      other.range == range &&
+      other.name == name;
+
+  @override
+  int get hashCode => Object.hash(eventId, date, value, range, name);
 }
 
 /// One test in one unit across a person's reports, oldest first. The same

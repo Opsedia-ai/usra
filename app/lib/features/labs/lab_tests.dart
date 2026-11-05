@@ -240,6 +240,11 @@ final Map<String, KnownLabTest> _byKey = {
     for (final name in [t.id, t.en, t.ar, ...t.aliases]) labTestKey(name): t,
 };
 
+/// Every name a known test goes by, compared loosely, for suggestions.
+final List<(String, KnownLabTest)> labTestNames = [
+  for (final MapEntry(:key, :value) in _byKey.entries) (key, value),
+];
+
 /// The known test a typed or printed name is, if any.
 KnownLabTest? matchLabTest(String name) => _byKey[labTestKey(name)];
 

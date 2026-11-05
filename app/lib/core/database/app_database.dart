@@ -463,8 +463,8 @@ class AppDatabase extends _$AppDatabase {
     return query.watch();
   }
 
-  /// How many live attachments each of a person's records has; records
-  /// without any are left out.
+  /// How many live photos each of a person's records has (PDFs aren't
+  /// counted); records without any are left out.
   Stream<Map<String, int>> watchAttachmentCounts(String profileId) {
     final count = attachments.id.count();
     final query =
@@ -478,6 +478,7 @@ class AppDatabase extends _$AppDatabase {
           ..addColumns([attachments.eventId, count])
           ..where(
             medicalEvents.profileId.equals(profileId) &
+                attachments.kind.equals('photo') &
                 attachments.deletedAt.isNull(),
           )
           ..groupBy([attachments.eventId]);

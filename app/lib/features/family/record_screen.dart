@@ -82,11 +82,13 @@ class RecordScreen extends ConsumerWidget {
               ],
               if (photos.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                Text(
-                  l.recordPhotos,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
+                if (photos.any((a) => !_isPdf(a))) ...[
+                  Text(
+                    l.recordPhotos,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                ],
                 _Thumbnails(
                   photos: [
                     for (final a in photos)

@@ -284,5 +284,13 @@ void main() {
     await tapKey(tester, 'record-save');
     expect(find.text('مطلوب'), findsOneWidget);
     expect(await tester.runAsync(() => db.eventsOfTypes({'lab'})), isEmpty);
+
+    // A PDF picked and taken back out still leaves no plain copy behind.
+    await tapKey(tester, 'lab-attach-pdf');
+    await tapKey(tester, 'lab-pdf-remove-0');
+    expect(cleanups, 0);
+    GoRouter.of(tester.element(find.byType(Scaffold).first)).go('/family/$mom');
+    await tester.pumpAndSettle();
+    expect(cleanups, 1);
   });
 }

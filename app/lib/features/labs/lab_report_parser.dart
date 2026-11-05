@@ -179,6 +179,7 @@ class LabReportParser {
     final unsure = <LabField>{};
     var at = -1;
     for (var i = 1; i < words.length; i++) {
+      var fixedHere = false;
       final nameSoFar = words.sublist(0, i).join(' ');
       if (RegExp('[A-Za-z]').allMatches(nameSoFar).length < 2) continue;
       var w = words[i];
@@ -187,11 +188,11 @@ class LabReportParser {
         if (_misreadNumber.hasMatch(w) && RegExp(r'\d').hasMatch(w)) {
           w = w.replaceAll(RegExp('[Oo]'), '0').replaceAll(RegExp('[Il]'), '1');
           words[i] = w;
-          unsure.add(LabField.value);
+          fixedHere = true;
         } else if (RegExp(r'^\d+,\d+$').hasMatch(w)) {
           // A decimal comma: "12,5".
           words[i] = w.replaceAll(',', '.');
-          unsure.add(LabField.value);
+          fixedHere = true;
         } else {
           continue;
         }
@@ -203,9 +204,9 @@ class LabReportParser {
           (_valueToken.hasMatch(next) ||
               (_misreadNumber.hasMatch(next) &&
                   RegExp(r'\d').hasMatch(next)))) {
-        unsure.remove(LabField.value);
         continue;
       }
+      if (fixedHere) unsure.add(LabField.value);
       at = i;
       break;
     }

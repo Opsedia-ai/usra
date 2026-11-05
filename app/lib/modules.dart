@@ -20,10 +20,10 @@ import 'features/tutorial/tutorial_module.dart';
 const List<FeatureModule> appModules = [
   HomeModule(),
   FamilyModule(),
+  LabsModule(),
   FollowUpsModule(),
   ChildrenModule(),
   PregnancyModule(),
-  LabsModule(),
   MedicinesModule(),
   DoctorsModule(),
   SpendingModule(),

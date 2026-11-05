@@ -28,6 +28,9 @@ void main() {
       expect(LabRange.parse('>60'), const LabRange(low: 60));
       expect(LabRange.parse('Negative'), const LabRange(text: 'Negative'));
       expect(LabRange.parse('  '), LabRange.none);
+      expect(LabRange.parse('-2 - 2'), const LabRange(low: -2, high: 2));
+      expect(labFlagOf(-5, LabRange.parse('-2 - +2')), LabFlag.unknown);
+      expect(labFlagOf(-5, LabRange.parse('-2 - 2')), LabFlag.low);
       expect(const LabRange(low: 4, high: 11.5).format(), '4 - 11.5');
       expect(const LabRange(high: 200).format(), '< 200');
     });
@@ -93,6 +96,9 @@ void main() {
     expect(LabTest.readValue('12,5'), (value: 12.5, text: null));
     expect(LabTest.readValue('<0.5'), (value: null, text: '<0.5'));
     expect(LabTest.readValue(' '), (value: null, text: null));
+    // Thousands, not a decimal comma.
+    expect(LabTest.readValue('250,000'), (value: 250000.0, text: null));
+    expect(LabTest.readValue('1,250.5'), (value: 1250.5, text: null));
   });
 
   test('names in Arabic and English are the same test', () {

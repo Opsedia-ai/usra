@@ -130,6 +130,9 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
   bool _costInvalid = false;
   bool _reading = false;
 
+  /// A PDF was picked at some point, so the picker left a plain copy.
+  bool _pickedPdf = false;
+
   /// How many results the last photo gave, shown until the next one.
   int? _scanned;
 
@@ -195,7 +198,7 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
     }
     // Picked files are plain temporary copies: never leave them behind.
     _photos.forEach(discardPicked);
-    if (_pdfs.isNotEmpty) _cleanUpPicked();
+    if (_pickedPdf) _cleanUpPicked();
     super.dispose();
   }
 
@@ -281,7 +284,9 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
       messenger.showSnackBar(SnackBar(content: Text(failed)));
       return;
     }
-    if (path == null || !mounted) return;
+    if (path == null) return;
+    _pickedPdf = true;
+    if (!mounted) return;
     setState(() => _pdfs.add(path!));
   }
 
@@ -717,16 +722,12 @@ class _TestCard extends StatelessWidget {
                     optionsBuilder: (value) {
                       final typed = labTestKey(value.text);
                       if (typed.isEmpty) return const [];
-                      return knownLabTests
-                          .where(
-                            (t) => [
-                              t.en,
-                              t.ar,
-                              t.id,
-                              ...t.aliases,
-                            ].any((n) => labTestKey(n).contains(typed)),
-                          )
-                          .take(6);
+                      final found = <KnownLabTest>{};
+                      for (final (key, test) in labTestNames) {
+                        if (key.contains(typed)) found.add(test);
+                        if (found.length == 6) break;
+                      }
+                      return found;
                     },
                     onSelected: (_) => _edited(LabField.name),
                     fieldViewBuilder: (context, controller, focus, submit) =>

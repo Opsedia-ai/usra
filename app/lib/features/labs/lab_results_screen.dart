@@ -172,7 +172,7 @@ class _SeriesCard extends StatelessWidget {
                   key: const ValueKey('lab-chart'),
                   painter: LabChartPainter(
                     points: series.points,
-                    dateLabel: DateFormat.yMMM(locale).format,
+                    locale: locale,
                   ),
                 ),
               ),
@@ -216,10 +216,12 @@ class _SeriesCard extends StatelessWidget {
 /// (triangle up: above, down: below, circle: within or no range), so the
 /// chart doesn't rely on colour alone.
 class LabChartPainter extends CustomPainter {
-  LabChartPainter({required this.points, required this.dateLabel});
+  LabChartPainter({required this.points, required this.locale});
 
   final List<LabPoint> points;
-  final String Function(DateTime) dateLabel;
+  final String locale;
+
+  String dateLabel(DateTime d) => DateFormat.yMMM(locale).format(d);
 
   static const _left = 44.0;
   static const _bottom = 22.0;
@@ -364,5 +366,6 @@ class LabChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(LabChartPainter old) => !listEquals(old.points, points);
+  bool shouldRepaint(LabChartPainter old) =>
+      old.locale != locale || !listEquals(old.points, points);
 }
