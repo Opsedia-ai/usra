@@ -131,6 +131,7 @@ class BackupService {
   /// phone, so a copy elsewhere is no use).
   final Future<void> Function(Directory dir)? excludeFromBackup;
 
+  static const _backupPrefix = 'usra-backup-';
   static const _manifestName = 'manifest.json';
   static const _databaseEntry = 'database.sqlite';
   static const _stagingName = 'restore-staging';
@@ -150,19 +151,11 @@ class BackupService {
     DateTime? now,
   }) async {
     final createdAt = (now ?? DateTime.now()).toUtc();
-    // Earlier backups already shared; encrypted, but no use kept here.
-    await for (final old in temporary.list()) {
-      final name = p.basename(old.path);
-      if (old is File &&
-          name.startsWith('usra-backup-') &&
-          name.endsWith('.usra')) {
-        await old.delete();
-      }
-    }
-    final work = await temporary.createTemp('usra-backup-');
+    await clearLeftovers();
+    final work = await temporary.createTemp(_backupPrefix);
     final snapshot = p.join(work.path, 'snapshot.sqlite');
     final stamp = createdAt.toIso8601String().substring(0, 10);
-    final out = File(p.join(temporary.path, 'usra-backup-$stamp.usra'));
+    final out = File(p.join(temporary.path, '$_backupPrefix$stamp.usra'));
     try {
       // Consistent even while the app keeps writing.
       await db.customStatement('VACUUM INTO ?', [snapshot]);
@@ -198,6 +191,26 @@ class BackupService {
     } finally {
       await work.delete(recursive: true);
     }
+  }
+
+  /// Deletes what earlier backups left in [temporary] (S11): backup files
+  /// already shared (encrypted, but no use kept here) and the work folder
+  /// of one the app was killed while making, with its database snapshot
+  /// (encrypted too, with this phone's key). Run at start-up and before
+  /// each backup. The recovery key is never written to any of them.
+  Future<void> clearLeftovers() async {
+    if (!await temporary.exists()) return;
+    await for (final entity in temporary.list(followLinks: false)) {
+      if (p.basename(entity.path).startsWith(_backupPrefix)) {
+        await entity.delete(recursive: true);
+      }
+    }
+  }
+
+  /// Deletes a backup file once it was shared or saved: the copy that
+  /// matters is wherever the family put it.
+  Future<void> discardCreated(CreatedBackup backup) async {
+    if (await backup.file.exists()) await backup.file.delete();
   }
 
   /// Decrypts [backup] with [key] into a staging folder and checks it,

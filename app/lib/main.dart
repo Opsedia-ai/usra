@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -15,6 +18,10 @@ import 'core/preferences.dart';
 import 'core/providers.dart';
 import 'core/routing/app_router.dart';
 import 'core/security/app_lock.dart';
+import 'core/security/data_wipe.dart';
+import 'core/security/file_protection.dart';
+import 'features/account/account_providers.dart';
+import 'features/account/account_secure_storage.dart';
 import 'features/backup/backup_providers.dart';
 import 'features/children/vaccine_reminders.dart';
 import 'features/follow_ups/dismissals.dart';
@@ -28,13 +35,59 @@ import 'l10n/app_localizations.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Log.installErrorHandlers();
-  final key = await DatabaseKeyStore().readOrCreate();
-  final file = await defaultDatabaseFile();
+  final (file, temporary, version) = await (
+    defaultDatabaseFile(),
+    getTemporaryDirectory(),
+    PackageInfo.fromPlatform(),
+  ).wait;
+  final root = file.parent;
   const photoFolders = [
     PhotoStore.cardsFolder,
     PhotoStore.attachmentsFolder,
     PhotoStore.medicinesFolder,
   ];
+  SharedPreferencesStore? openPreferences;
+  final wiper = DataWiper(
+    root: root,
+    temporary: temporary,
+    secureStorage: const [
+      // Every set of options a key is written with (iOS looks Keychain
+      // items up by them).
+      FlutterSecureStorage(
+        iOptions: IOSOptions(
+          accessibility: KeychainAccessibility.first_unlock_this_device,
+        ),
+        aOptions: AndroidOptions(resetOnError: false),
+      ),
+      accountSecureStorage,
+      FlutterSecureStorage(),
+    ],
+    // The app's own store once it's open, so its cache is emptied too.
+    clearPreferences: () async =>
+        (openPreferences ?? await SharedPreferencesStore.open()).clearAll(),
+    cancelNotifications: () => FlutterLocalNotificationsPlugin().cancelAll(),
+    clearWidget: () async {
+      await HomeWidgetSnapshotPublisher.init();
+      await HomeWidget.saveWidgetData<String>(
+        HomeWidgetSnapshotPublisher.dataKey,
+        null,
+      );
+      await HomeWidget.updateWidget(
+        qualifiedAndroidName: HomeWidgetSnapshotPublisher.androidProvider,
+        iOSName: HomeWidgetSnapshotPublisher.iOSKind,
+      );
+    },
+  );
+  // "Delete all my data" the app was killed in the middle of: finished
+  // before any key is read, so nothing from before opens again.
+  try {
+    await wiper.resumeIfInterrupted();
+  } catch (e, s) {
+    FlutterError.reportError(
+      FlutterErrorDetails(exception: e, stack: s, library: 'wipe'),
+    );
+  }
+  var key = await DatabaseKeyStore().readOrCreate();
   final photoKeyStore = SecurePhotoKeyStore();
   // Never throws: without a key the app still opens, and photos say they
   // can't be opened here until a backup is restored.
@@ -48,12 +101,8 @@ Future<void> main() async {
       FlutterErrorDetails(exception: e, stack: s, library: 'database'),
     );
   }
-  final (temporary, version) = await (
-    getTemporaryDirectory(),
-    PackageInfo.fromPlatform(),
-  ).wait;
-  final backup = BackupService(
-    root: file.parent,
+  BackupService newBackup() => BackupService(
+    root: root,
     databaseName: p.basename(file.path),
     deviceKey: key,
     photoKeys: photoKeys,
@@ -63,6 +112,7 @@ Future<void> main() async {
     files: const [FileDismissalStore.fileName],
     excludeFromBackup: PhotoStore.excludeFromBackup,
   );
+  var backup = newBackup();
   try {
     // A restore the app was killed in the middle of: put the old data back.
     await backup.recoverInterrupted();
@@ -71,6 +121,16 @@ Future<void> main() async {
       FlutterErrorDetails(exception: e, stack: s, library: 'backup'),
     );
   }
+  try {
+    // A backup the app was killed while making or sharing (S11).
+    await backup.clearLeftovers();
+  } catch (e, s) {
+    FlutterError.reportError(
+      FlutterErrorDetails(exception: e, stack: s, library: 'backup'),
+    );
+  }
+  // iOS Data Protection (S9). Not awaited: the app opens meanwhile.
+  var protection = protectAppFiles(root, photoFolders);
   var outcome = prepareDatabaseFile(file, key);
   var database = AppDatabase(openEncryptedDatabase(file, key));
   final (
@@ -113,6 +173,7 @@ Future<void> main() async {
     );
   }
 
+  openPreferences = preferences;
   var dismissals = firstDismissals;
   // Read before the first frame, so the app never shows unlocked.
   final freshInstall = preferences.getBool(PrefKeys.installed) != true;
@@ -173,28 +234,32 @@ Future<void> main() async {
       notifications ?? const UnavailableReminderScheduler();
   late final Future<void> Function(StagedRestore, RecoveryKey)
   restoreAndRestart;
-  ProviderContainer build({RestoreOutcome? restore}) => ProviderContainer(
-    overrides: [
-      databaseProvider.overrideWithValue(database),
-      keyValueStoreProvider.overrideWithValue(preferences),
-      appLockProvider.overrideWithValue(lock),
-      cardPhotoStoreProvider.overrideWithValue(cardPhotos),
-      attachmentStoreProvider.overrideWithValue(attachments),
-      medicinePhotoStoreProvider.overrideWithValue(medicinePhotos),
-      reminderSchedulerProvider.overrideWithValue(scheduler),
-      dismissalStoreProvider.overrideWithValue(dismissals),
-      databaseRecoveredProvider.overrideWithValue(
-        outcome == DatabaseOpenOutcome.recoveredFromUnreadableFile,
-      ),
-      backupServiceProvider.overrideWithValue(backup),
-      recoveryKeyStoreProvider.overrideWithValue(recoveryKeys),
-      appVersionProvider.overrideWithValue(
-        '${version.version}+${version.buildNumber}',
-      ),
-      restoreAndRestartProvider.overrideWithValue(restoreAndRestart),
-      restoreOutcomeProvider.overrideWithValue(restore),
-    ],
-  );
+  late final Future<void> Function() wipeAndRestart;
+  ProviderContainer build({RestoreOutcome? restore, WipeOutcome? wipe}) =>
+      ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          keyValueStoreProvider.overrideWithValue(preferences),
+          appLockProvider.overrideWithValue(lock),
+          cardPhotoStoreProvider.overrideWithValue(cardPhotos),
+          attachmentStoreProvider.overrideWithValue(attachments),
+          medicinePhotoStoreProvider.overrideWithValue(medicinePhotos),
+          reminderSchedulerProvider.overrideWithValue(scheduler),
+          dismissalStoreProvider.overrideWithValue(dismissals),
+          databaseRecoveredProvider.overrideWithValue(
+            outcome == DatabaseOpenOutcome.recoveredFromUnreadableFile,
+          ),
+          backupServiceProvider.overrideWithValue(backup),
+          recoveryKeyStoreProvider.overrideWithValue(recoveryKeys),
+          appVersionProvider.overrideWithValue(
+            '${version.version}+${version.buildNumber}',
+          ),
+          restoreAndRestartProvider.overrideWithValue(restoreAndRestart),
+          restoreOutcomeProvider.overrideWithValue(restore),
+          wipeAndRestartProvider.overrideWithValue(wipeAndRestart),
+          wipeOutcomeProvider.overrideWithValue(wipe),
+        ],
+      );
   ReminderSync newReminders() => ReminderSync(
     db: database,
     scheduler: scheduler,
@@ -231,6 +296,7 @@ Future<void> main() async {
       await database.close();
       // The restore replaces the photo folders the migration works in.
       await photoMigration;
+      await protection;
       await backup.commit();
       restored = true;
     } catch (e, s) {
@@ -250,6 +316,8 @@ Future<void> main() async {
     outcome = prepareDatabaseFile(file, key);
     database = AppDatabase(openEncryptedDatabase(file, key));
     dismissals = await FileDismissalStore.open();
+    // The restored files came in with the staging folder's class.
+    protection = protectAppFiles(root, photoFolders);
     if (restored) {
       try {
         await recoveryKeys.write(recoveryKey);
@@ -277,6 +345,67 @@ Future<void> main() async {
     waiting.clear();
     await reminders.start();
   };
+
+  // Signs out, deletes everything (S10) and starts again as on first run:
+  // new keys, empty database, settings back to their defaults.
+  var wiping = false;
+  wipeAndRestart = () async {
+    final old = app.value;
+    if (wiping || old == null) return;
+    wiping = true;
+    // While the session is still there, so the account's device row goes
+    // too. Best effort: offline, the session is deleted with the keys.
+    try {
+      if (old.read(authGatewayProvider) != null) {
+        await old.read(accountProvider.future).timeout(_signOutTimeout);
+        await old
+            .read(accountProvider.notifier)
+            .signOut()
+            .timeout(_signOutTimeout);
+      }
+    } catch (e) {
+      Log.error('Wipe sign-out failed', e);
+    }
+    app.value = null;
+    try {
+      await WidgetsBinding.instance.endOfFrame;
+      old.dispose();
+      reminders.dispose();
+      await database.close();
+      // Nothing may still be writing in the folders being deleted.
+      await photoMigration;
+      await protection;
+    } catch (e, s) {
+      FlutterError.reportError(
+        FlutterErrorDetails(exception: e, stack: s, library: 'wipe'),
+      );
+    }
+    final complete = await wiper.wipe();
+    waiting.clear();
+    await lock.forgetAfterWipe();
+    key = await DatabaseKeyStore().readOrCreate();
+    final fresh = await photoKeyStore.load(
+      sealedPhotosExist: () async => false,
+    );
+    if (fresh.cipher case final cipher?) photoKeys.replace(cipher);
+    backup = newBackup();
+    outcome = prepareDatabaseFile(file, key);
+    database = AppDatabase(openEncryptedDatabase(file, key));
+    dismissals = await FileDismissalStore.open();
+    try {
+      await preferences.setBool(PrefKeys.installed, true);
+    } catch (e) {
+      Log.error('Wipe settings failed', e);
+    }
+    protection = protectAppFiles(root, photoFolders);
+    app.value = build(
+      wipe: complete ? WipeOutcome.done : WipeOutcome.incomplete,
+    );
+    reminders = newReminders();
+    wiping = false;
+    await reminders.start();
+  };
+  lock.onTooManyFailures = wipeAndRestart;
 
   app.value = build();
   reminders = newReminders();
@@ -324,3 +453,6 @@ Future<void> main() async {
     if (app.value != null) followTexts();
   });
 }
+
+/// How long "Delete all my data" waits for the account to sign out.
+const _signOutTimeout = Duration(seconds: 10);

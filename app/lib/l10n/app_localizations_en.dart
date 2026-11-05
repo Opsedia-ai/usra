@@ -118,6 +118,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Reminders are set on this phone. People\'s names and medicine names can show on the lock screen (the name as you typed it) and on the home-screen widget (first names).';
 
   @override
+  String get aboutPrivacyDelete =>
+      'You can erase everything Usra keeps on this phone at any time: More › Delete all my data.';
+
+  @override
   String get aboutPrivacyGoogle =>
       'The text reader is made by Google and may send Google technical data with a random install ID, not linked to you. Never your photos, the text or your records.';
 
@@ -1396,6 +1400,121 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recoveryKeyShowAgain => 'Show the key again';
+
+  @override
+  String get recoveryKeyCopy => 'Copy the key';
+
+  @override
+  String get recoveryKeyCopied =>
+      'Copied. It\'s cleared from the clipboard in a minute: paste it into your password manager now.';
+
+  @override
+  String get shareWarningTitle => 'Share outside Usra?';
+
+  @override
+  String get shareWarningBody =>
+      'Once it\'s sent, Usra\'s lock and encryption no longer protect it: the other app, and anyone who sees that chat or folder, can open it. Check you\'ve picked the right person.';
+
+  @override
+  String get shareWarningDontAsk => 'Don\'t ask again';
+
+  @override
+  String get shareWarningCancel => 'Cancel';
+
+  @override
+  String get shareWarningGo => 'Share';
+
+  @override
+  String get rootWarningTitle => 'This phone\'s protections are switched off';
+
+  @override
+  String get rootWarningBody =>
+      'This phone looks rooted or jailbroken. Other apps on it may be able to read Usra\'s files and see the screen, so your family\'s records are less safe here.\n\nUsra keeps working as normal. If you can, use a phone that isn\'t modified, and keep the app lock on.';
+
+  @override
+  String get rootWarningOk => 'I understand';
+
+  @override
+  String get settingsDeleteAll => 'Delete all my data';
+
+  @override
+  String get settingsDeleteAllHint =>
+      'Erase everything Usra keeps on this phone';
+
+  @override
+  String get wipeTitle => 'Delete all my data';
+
+  @override
+  String get wipeIntro =>
+      'This erases everything Usra keeps on this phone and starts it again as new:';
+
+  @override
+  String get wipeList =>
+      '• Every person, record, medicine, doctor and insurance card\n• All photos\n• The keys that lock them, the recovery key saved on this phone and the app lock\n• Reminders, the home-screen widget and settings\n• You\'re signed out of your account (the account itself stays; delete it from Account first if you want)';
+
+  @override
+  String get wipeKeeps =>
+      'Backup files you saved somewhere else (Drive, WhatsApp, Files) aren\'t touched. They still open with your recovery key, so you can bring the records back.';
+
+  @override
+  String get wipeNoUndo =>
+      'This can\'t be undone. Without a backup and its recovery key, the records are gone for good.';
+
+  @override
+  String get wipeBackupFirst => 'Make a backup first';
+
+  @override
+  String get wipeConfirmWord => 'DELETE';
+
+  @override
+  String wipeTypeLabel(String word) {
+    return 'Type $word to confirm';
+  }
+
+  @override
+  String get wipeButton => 'Delete everything';
+
+  @override
+  String get wipeWorking => 'Deleting…';
+
+  @override
+  String get wipeDoneNotice =>
+      'Everything Usra kept on this phone was deleted.';
+
+  @override
+  String get wipeIncompleteNotice =>
+      'Some of Usra\'s data couldn\'t be deleted. Usra will try again the next time it starts.';
+
+  @override
+  String get lockSettingsWipe => 'Erase after 10 wrong PINs';
+
+  @override
+  String get lockSettingsWipeHint =>
+      'Deletes all data on this phone after 10 wrong PINs in a row';
+
+  @override
+  String get lockWipeConfirmTitle => 'Erase after 10 wrong PINs?';
+
+  @override
+  String get lockWipeConfirmBody =>
+      'After 10 wrong PINs in a row, Usra deletes everything it keeps on this phone, with no way to undo it. A child playing with the phone could set it off.\n\nTurn this on only if you have a recent backup and its recovery key.';
+
+  @override
+  String get lockWipeConfirmYes => 'Turn on';
+
+  @override
+  String get lockWipeCancel => 'Cancel';
+
+  @override
+  String lockTriesBeforeWipe(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count more wrong PINs erase everything',
+      one: '1 more wrong PIN erases everything',
+    );
+    return '$_temp0';
+  }
 
   @override
   String recoveryKeyMismatch(String groups) {

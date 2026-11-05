@@ -329,20 +329,26 @@ class _PinEntryState extends ConsumerState<PinEntry> {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     final wait = _lock.waitRemaining;
-    final message = wait > Duration.zero
+    var message = wait > Duration.zero
         ? l.lockWait(_minutesSeconds(wait))
         : switch (_result) {
             PinCheck.wrong || PinCheck.blocked => l.lockWrongPin,
             PinCheck.unavailable => l.lockUnavailable,
             _ => _lock.unreadable ? l.lockUnavailable : null,
           };
+    // "Erase after 10 wrong PINs" is on: say how close it is.
+    final left = _lock.triesBeforeWipe;
+    if (left != null && _lock.failures > 0) {
+      final warning = l.lockTriesBeforeWipe(left);
+      message = message == null ? warning : '$message\n$warning';
+    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(widget.title, style: text.titleMedium),
         const SizedBox(height: 4),
         SizedBox(
-          height: 40,
+          height: left != null && _lock.failures > 0 ? 64 : 40,
           child: message == null
               ? null
               : Text(

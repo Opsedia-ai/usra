@@ -13,7 +13,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 
+import '../preferences.dart';
 import '../security/app_lock.dart';
+import '../security/file_protection.dart';
+import '../security/share_warning.dart';
 import '../../l10n/app_localizations.dart';
 import 'photo_crypto.dart';
 import 'photo_worker.dart';
@@ -131,6 +134,9 @@ class PhotoStore {
     // Cheap and idempotent, so done every time rather than trusting an
     // earlier call.
     await excludeFromBackup(_dir);
+    // iOS: photos are unreadable while the phone is locked (S9); files
+    // saved in the folder take this from it.
+    await protectFiles(_dir, FileProtection.complete, contents: false);
     final ext = p.extension(sourcePath).toLowerCase();
     final relative = p.join(
       folder,
@@ -418,7 +424,8 @@ class SharedPhotoCache {
 }
 
 /// Shares stored photos with [text] through the share sheet, decrypting
-/// them to [SharedPhotoCache] for as long as the share takes.
+/// them to [SharedPhotoCache] for as long as the share takes. Warns first
+/// that they leave the app's protection ([confirmShareOutside]).
 Future<void> shareStoredPhotos(
   WidgetRef ref,
   PhotoStore store,
@@ -427,10 +434,14 @@ Future<void> shareStoredPhotos(
   Rect? origin,
 }) async {
   // Read now: the screen may be gone once the photos are decrypted.
-  final (cache, share) = (
+  final (cache, share, prefs) = (
     ref.read(sharedPhotoCacheProvider),
     ref.read(shareProvider),
+    ref.read(keyValueStoreProvider),
   );
+  if (!ref.context.mounted || !await confirmShareOutside(ref.context, prefs)) {
+    return;
+  }
   await cache.clear();
   try {
     final files = await cache.copyOut(store, paths);

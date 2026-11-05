@@ -117,6 +117,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'التذكير بيتظبط على الموبايل ده. أسامي الأشخاص وأسامي الأدوية ممكن تظهر على شاشة القفل (الاسم زي ما كتبته) وفي الويدجت (الاسم الأول).';
 
   @override
+  String get aboutPrivacyDelete =>
+      'تقدر تمسح كل حاجة أسرة شايلاها على الموبايل ده في أي وقت: المزيد › امسح كل بياناتي.';
+
+  @override
   String get aboutPrivacyGoogle =>
       'قارئ الكلام من جوجل، وممكن يبعت لجوجل بيانات تقنية برقم تثبيت عشوائي مش مربوط بيك. عمره ما بيبعت صورك ولا الكلام ولا سجلاتك.';
 
@@ -1404,6 +1408,121 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recoveryKeyShowAgain => 'اعرض المفتاح تاني';
+
+  @override
+  String get recoveryKeyCopy => 'انسخ المفتاح';
+
+  @override
+  String get recoveryKeyCopied =>
+      'اتنسخ. هيتمسح من الحافظة بعد دقيقة: الصقه في مدير كلمات السر دلوقتي.';
+
+  @override
+  String get shareWarningTitle => 'تبعته برّه أسرة؟';
+
+  @override
+  String get shareWarningBody =>
+      'أول ما يتبعت، قفل أسرة وتشفيرها مش هيحموه: التطبيق التاني، وأي حد يشوف المحادثة أو الفولدر ده، يقدر يفتحه. اتأكد إنك اخترت الشخص الصح.';
+
+  @override
+  String get shareWarningDontAsk => 'متسألنيش تاني';
+
+  @override
+  String get shareWarningCancel => 'إلغاء';
+
+  @override
+  String get shareWarningGo => 'ابعت';
+
+  @override
+  String get rootWarningTitle => 'حماية الموبايل ده مقفولة';
+
+  @override
+  String get rootWarningBody =>
+      'الموبايل ده شكله معمول له روت أو جيلبريك. تطبيقات تانية عليه ممكن تقرا ملفات أسرة وتشوف الشاشة، فسجلات عيلتك أقل أمان هنا.\n\nأسرة هتشتغل عادي. لو تقدر، استخدم موبايل مش متعدّل، وخلّي قفل التطبيق شغال.';
+
+  @override
+  String get rootWarningOk => 'فهمت';
+
+  @override
+  String get settingsDeleteAll => 'امسح كل بياناتي';
+
+  @override
+  String get settingsDeleteAllHint =>
+      'امسح كل حاجة أسرة شايلاها على الموبايل ده';
+
+  @override
+  String get wipeTitle => 'امسح كل بياناتي';
+
+  @override
+  String get wipeIntro =>
+      'ده بيمسح كل حاجة أسرة شايلاها على الموبايل ده ويبدأها من جديد:';
+
+  @override
+  String get wipeList =>
+      '• كل الأشخاص والسجلات والأدوية والدكاترة وكروت التأمين\n• كل الصور\n• المفاتيح اللي قافلة عليهم، ومفتاح الاسترجاع المحفوظ على الموبايل ده، وقفل التطبيق\n• التذكيرات وويدجت الشاشة الرئيسية والإعدادات\n• هتخرج من حسابك (الحساب نفسه هيفضل؛ امسحه من الحساب الأول لو عايز)';
+
+  @override
+  String get wipeKeeps =>
+      'ملفات النسخ الاحتياطية اللي حفظتها في مكان تاني (درايف، واتساب، الملفات) مش هتتلمس. لسه بتتفتح بمفتاح الاسترجاع، فتقدر ترجّع السجلات.';
+
+  @override
+  String get wipeNoUndo =>
+      'ده مينفعش يترجع. من غير نسخة احتياطية ومفتاحها، السجلات هتروح خالص.';
+
+  @override
+  String get wipeBackupFirst => 'اعمل نسخة احتياطية الأول';
+
+  @override
+  String get wipeConfirmWord => 'امسح';
+
+  @override
+  String wipeTypeLabel(String word) {
+    return 'اكتب $word للتأكيد';
+  }
+
+  @override
+  String get wipeButton => 'امسح كل حاجة';
+
+  @override
+  String get wipeWorking => 'بيتمسح…';
+
+  @override
+  String get wipeDoneNotice =>
+      'كل حاجة أسرة كانت شايلاها على الموبايل ده اتمسحت.';
+
+  @override
+  String get wipeIncompleteNotice =>
+      'شوية من بيانات أسرة مااتمسحوش. أسرة هتحاول تاني أول ما تفتح المرة الجاية.';
+
+  @override
+  String get lockSettingsWipe => 'امسح بعد ١٠ أرقام سرية غلط';
+
+  @override
+  String get lockSettingsWipeHint =>
+      'بيمسح كل البيانات على الموبايل ده بعد ١٠ أرقام سرية غلط ورا بعض';
+
+  @override
+  String get lockWipeConfirmTitle => 'تمسح بعد ١٠ أرقام سرية غلط؟';
+
+  @override
+  String get lockWipeConfirmBody =>
+      'بعد ١٠ أرقام سرية غلط ورا بعض، أسرة هتمسح كل حاجة شايلاها على الموبايل ده، ومفيش رجوع. طفل بيلعب بالموبايل ممكن يعملها.\n\nشغّلها بس لو عندك نسخة احتياطية جديدة ومفتاح استرجاعها.';
+
+  @override
+  String get lockWipeConfirmYes => 'شغّل';
+
+  @override
+  String get lockWipeCancel => 'إلغاء';
+
+  @override
+  String lockTriesBeforeWipe(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أرقام سرية غلط كمان تمسح كل حاجة',
+      one: 'رقم سري غلط كمان واحد يمسح كل حاجة',
+    );
+    return '$_temp0';
+  }
 
   @override
   String recoveryKeyMismatch(String groups) {

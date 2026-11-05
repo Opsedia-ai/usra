@@ -33,6 +33,7 @@
   "aboutPrivacyBackup": "A backup is an encrypted file you keep wherever you choose. Only your recovery key opens it, and we don't have it.",
   "aboutPrivacyPhotos": "The camera and photos are used only when you choose, and text is read from them on this phone.",
   "aboutPrivacyReminders": "Reminders are set on this phone. People's names and medicine names can show on the lock screen (the name as you typed it) and on the home-screen widget (first names).",
+  "aboutPrivacyDelete": "You can erase everything Usra keeps on this phone at any time: More › Delete all my data.",
   "aboutPrivacyGoogle": "The text reader is made by Google and may send Google technical data with a random install ID, not linked to you. Never your photos, the text or your records.",
   "aboutMedicalHeading": "Medical disclaimer",
   "aboutMedicalBody": "Usra is not a medical device. It doesn't diagnose or treat, and it doesn't replace your doctor. Growth charts, vaccine dates, suggestions and text read from photos are for organising and general information, and can be wrong. Always ask your doctor or pharmacist before medical decisions. In an emergency, call 123 in Egypt or your local emergency number.",
@@ -774,6 +775,51 @@
   },
   "recoveryKeyConfirm": "Confirm",
   "recoveryKeyShowAgain": "Show the key again",
+  "recoveryKeyCopy": "Copy the key",
+  "recoveryKeyCopied": "Copied. It's cleared from the clipboard in a minute: paste it into your password manager now.",
+  "shareWarningTitle": "Share outside Usra?",
+  "shareWarningBody": "Once it's sent, Usra's lock and encryption no longer protect it: the other app, and anyone who sees that chat or folder, can open it. Check you've picked the right person.",
+  "shareWarningDontAsk": "Don't ask again",
+  "shareWarningCancel": "Cancel",
+  "shareWarningGo": "Share",
+  "rootWarningTitle": "This phone's protections are switched off",
+  "rootWarningBody": "This phone looks rooted or jailbroken. Other apps on it may be able to read Usra's files and see the screen, so your family's records are less safe here.\n\nUsra keeps working as normal. If you can, use a phone that isn't modified, and keep the app lock on.",
+  "rootWarningOk": "I understand",
+  "settingsDeleteAll": "Delete all my data",
+  "settingsDeleteAllHint": "Erase everything Usra keeps on this phone",
+  "wipeTitle": "Delete all my data",
+  "wipeIntro": "This erases everything Usra keeps on this phone and starts it again as new:",
+  "wipeList": "• Every person, record, medicine, doctor and insurance card\n• All photos\n• The keys that lock them, the recovery key saved on this phone and the app lock\n• Reminders, the home-screen widget and settings\n• You're signed out of your account (the account itself stays; delete it from Account first if you want)",
+  "wipeKeeps": "Backup files you saved somewhere else (Drive, WhatsApp, Files) aren't touched. They still open with your recovery key, so you can bring the records back.",
+  "wipeNoUndo": "This can't be undone. Without a backup and its recovery key, the records are gone for good.",
+  "wipeBackupFirst": "Make a backup first",
+  "wipeConfirmWord": "DELETE",
+  "wipeTypeLabel": "Type {word} to confirm",
+  "@wipeTypeLabel": {
+    "placeholders": {
+      "word": {
+        "type": "String"
+      }
+    }
+  },
+  "wipeButton": "Delete everything",
+  "wipeWorking": "Deleting…",
+  "wipeDoneNotice": "Everything Usra kept on this phone was deleted.",
+  "wipeIncompleteNotice": "Some of Usra's data couldn't be deleted. Usra will try again the next time it starts.",
+  "lockSettingsWipe": "Erase after 10 wrong PINs",
+  "lockSettingsWipeHint": "Deletes all data on this phone after 10 wrong PINs in a row",
+  "lockWipeConfirmTitle": "Erase after 10 wrong PINs?",
+  "lockWipeConfirmBody": "After 10 wrong PINs in a row, Usra deletes everything it keeps on this phone, with no way to undo it. A child playing with the phone could set it off.\n\nTurn this on only if you have a recent backup and its recovery key.",
+  "lockWipeConfirmYes": "Turn on",
+  "lockWipeCancel": "Cancel",
+  "lockTriesBeforeWipe": "{count, plural, =1{1 more wrong PIN erases everything} other{{count} more wrong PINs erase everything}}",
+  "@lockTriesBeforeWipe": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "recoveryKeyMismatch": "Group {groups} doesn't match. Check your paper.",
   "@recoveryKeyMismatch": {
     "placeholders": {

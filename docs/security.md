@@ -7,7 +7,7 @@ sensitive personal data with stricter rules. This plan says what we protect,
 what is already in the code, what is missing, and when each gap must be
 closed.
 
-Status is checked against the code on 2026-11-04. Each work item is a card on
+Status is checked against the code on 2026-11-05. Each work item is a card on
 the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
 "Security").
 
@@ -123,6 +123,65 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   left out; a restore encrypts them for the new phone as it unpacks.
   Rolling the app back past this needs a forward fix (photos stay
   encrypted), so it ships with a staged rollout. `app/lib/core/files/`.
+- **Clipboard and sharing (S7)**: the recovery key can only be copied
+  with its own button (the digits aren't selectable). Android marks the
+  clip sensitive (`EXTRA_IS_SENSITIVE`: hidden from the Android 13+
+  "copied" preview and keyboard clipboard history) and clears it after
+  60 s if it's still ours (by label and timestamp; checked when the app
+  next has focus, since Android 10+ hides the clipboard from background
+  apps, and Android 13+ clears it after an hour anyway). iOS puts it on the
+  pasteboard local-only (no Universal Clipboard) with a 60 s expiry. Sharing
+  an insurance card, record or photo warns once that it leaves the app's
+  protection, with "Don't ask again" (all shares go through
+  `shareStoredPhotos`). `lib/core/security/sensitive_clipboard.dart`,
+  `share_warning.dart`.
+- **Rooted / jailbroken phone (S8)**: checked on the phone, nothing sent:
+  Android `su` binaries (fixed paths and `PATH`), Magisk paths, test-keys
+  builds; iOS Cydia/Sileo/Zebra, `/var/jb` and other jailbreak files, a
+  write outside the sandbox, injected tweak loaders (skipped in the
+  simulator). Warned once, in plain words, after the lock and the first-run
+  tour; never blocks. No SDK: the open-source ones (RootBeer,
+  DTTJailbreakDetection) add little over these checks and are barely
+  maintained, the commercial RASP ones are heavy and report to their
+  vendor, and for a warning a heuristic is enough (anyone can hide root
+  from any of them). `lib/core/security/device_integrity.dart`.
+- **iOS Data Protection (S9)**: photo folders are
+  `NSFileProtectionComplete` (set on the folder, so new photos inherit it,
+  and on existing files at each start and after a restore). The database
+  folder and its small files are
+  `NSFileProtectionCompleteUntilFirstUserAuthentication`, on purpose:
+  Taken / Snooze on a reminder runs while the phone may be locked and
+  writes the dose inbox file (`dose_actions.jsonl`) next to the database,
+  and the database itself when the app is still running; iOS can also
+  start the app in the background for that action, and a database that
+  can't be opened at start-up would be treated as damaged and moved aside.
+  Android keeps app data in credential-encrypted storage (like the iOS
+  class above). `lib/core/security/file_protection.dart`. Not yet checked
+  on a device.
+- **Delete all my data (S10)**: Settings › Delete all my data, after
+  typing a word (and the PIN when the app lock is on): signs out of the
+  account (best effort; offline, the session goes with the keys), then
+  deletes every Keystore / Keychain item (`usra.*`: database, photo,
+  recovery and app-lock keys, account session and device keys), cancels
+  every notification, empties the widget, deletes the private folder
+  (database, photos, inbox, restore leftovers) and the cache (backup
+  files, share copies), clears all settings, and starts again as on first
+  run with new keys. Keys go first, so a wipe cut short has already made
+  the rest unreadable; a marker file makes the next start finish it (at
+  most 3 tries). Optional "Erase after 10 wrong PINs" in the app-lock
+  settings (off by default, warns before turning on, the PIN to turn
+  off); with the waits after 5 wrong PINs, 10 takes at least a quarter of
+  an hour. Backup files saved elsewhere are untouched and still restore.
+  `lib/core/security/data_wipe.dart`.
+- **Backup file hygiene (S11)**: the database snapshot for a backup is
+  made with `VACUUM INTO`, which keeps the database's encryption, then
+  re-keyed; it lives in a work folder deleted as soon as the backup is
+  written (or fails). The backup file is deleted from the phone once the
+  share sheet is done. Leftovers from a backup the app was killed while
+  making, and a half-unpacked restore, are cleared at the next start. The
+  recovery key is never written to any file, file name or share text, only
+  to the Keystore / Keychain (tested). The recovery key screen warns it's
+  the only way in.
 - **Backend**: RLS on every table, API roles start with no privileges,
   credits through functions only with locking, idempotent purchase webhook
   with signature check, in-memory rate limiter, body size limits, AI/OCR
@@ -145,11 +204,11 @@ with the cloud features (M6).
 | S4 | **Discreet mode** | P0 | Setting to show "Time for your medicine" instead of medicine/person names in notifications and the widget. Default on for the lock screen. |
 | S5 | **No PHI in logs** | P0 | Replace `debugPrint` of exceptions with a logger that is silent in release and never prints record data. Lint/grep check in CI for `print(`/`debugPrint(` outside the logger. |
 | S6 | **Release hardening** | P0 | R8/obfuscation with `--obfuscate --split-debug-info` (symbols kept privately), `debuggable=false`, no cleartext (`usesCleartextTraffic=false` + network security config), iOS ATS default. Android done in the M5 release PR (#19, `docs/release.md`); symbols must be archived per release. iOS ATS still to check when iOS is built. |
-| S7 | **Clipboard and sharing** | P1 | Clear copied recovery key from the clipboard after 60 s; mark it sensitive on Android 13+. Warn before sharing an insurance card or record outside the app. |
-| S8 | **Root / jailbreak and tamper signal** | P1 | Warn the user (don't block: many budget phones in Egypt are rooted). Later, Play Integrity / App Attest for paid cloud APIs. |
-| S9 | **iOS data protection** | P1 | `NSFileProtectionComplete` on the database and photo folders where background reminders allow it (reminders don't read the DB), otherwise `CompleteUntilFirstUserAuthentication`. Verify on device. |
-| S10 | **Wipe** | P1 | "Delete all my data" in settings: DB, photos, keys, prefs, notifications, widget snapshot. Also wipe after too many wrong PINs (optional). |
-| S11 | **Backup file hygiene** | P1 | Delete the plaintext staging snapshot right after encryption (check), warn that the recovery key is the only way in, never store the recovery key next to the backup. |
+| S7 | **Clipboard and sharing** | P1 | Done (see section 3). Clear copied recovery key from the clipboard after 60 s; mark it sensitive on Android 13+. Warn before sharing an insurance card or record outside the app. |
+| S8 | **Root / jailbreak and tamper signal** | P1 | Warning done (see section 3); Play Integrity / App Attest still to do. Warn the user (don't block: many budget phones in Egypt are rooted). Later, Play Integrity / App Attest for paid cloud APIs. |
+| S9 | **iOS data protection** | P1 | Done in code (see section 3: photos Complete, database UntilFirstUserAuthentication because reminder actions write next to it while locked); verify on a device. `NSFileProtectionComplete` on the database and photo folders where background reminders allow it (reminders don't read the DB), otherwise `CompleteUntilFirstUserAuthentication`. Verify on device. |
+| S10 | **Wipe** | P1 | Done (see section 3). "Delete all my data" in settings: DB, photos, keys, prefs, notifications, widget snapshot. Also wipe after too many wrong PINs (optional). |
+| S11 | **Backup file hygiene** | P1 | Done (see section 3). Delete the plaintext staging snapshot right after encryption (check), warn that the recovery key is the only way in, never store the recovery key next to the backup. |
 
 ### Accounts and cloud (M6)
 
@@ -193,6 +252,7 @@ with the cloud features (M6).
 1. **Now (with M5):** S1 photo encryption, S2 app lock, S3 screen privacy,
    S4 discreet mode, S5 logging, S19–S21 CI and repo hygiene, S6 in the
    release PR, S20 tests alongside each.
-2. **Before public launch:** S7–S11, S22 pen test, S23–S25.
+2. **Before public launch:** S7–S11 (done, S9 and S8's attestation part
+   pending as noted), S22 pen test, S23–S25.
 3. **With cloud (M6):** S12–S18, starting with the E2EE design review (S14)
    before any sync code.

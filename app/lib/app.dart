@@ -7,6 +7,7 @@ import 'core/providers.dart';
 import 'core/routing/app_router.dart';
 import 'features/app_lock/lock_screen.dart';
 import 'core/screen_privacy.dart';
+import 'core/security/root_warning.dart';
 import 'l10n/app_localizations.dart';
 
 /// Simple Mode grows text up to this, so screens still fit when the phone's
@@ -31,8 +32,11 @@ class UsraApp extends ConsumerWidget {
       routerConfig: ref.watch(routerProvider),
       // Always wrapped, so switching modes or locking doesn't rebuild the
       // page stack. The lock covers every page, deep links included.
-      builder: (context, child) =>
-          _textScale(context, AppLockGate(child: child!), simple: simple),
+      builder: (context, child) => _textScale(
+        context,
+        AppLockGate(child: RootWarning(child: child!)),
+        simple: simple,
+      ),
     );
   }
 }

@@ -89,6 +89,7 @@ class AboutPrivacyScreen extends ConsumerWidget {
                 _Point(Icons.photo_camera_outlined, l.aboutPrivacyPhotos),
                 _Point(Icons.notifications_none, l.aboutPrivacyReminders),
                 _Point(Icons.text_fields, l.aboutPrivacyGoogle),
+                _Point(Icons.delete_forever_outlined, l.aboutPrivacyDelete),
               ],
             ),
           ),

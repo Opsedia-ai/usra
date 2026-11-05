@@ -512,6 +512,43 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
     await _guard(() => _lock.setTimeout(timeout));
   }
 
+  /// Turning it on is tightening, but can't be undone by mistake, so it
+  /// warns first; turning it off is loosening, so it needs the PIN.
+  Future<void> _setWipe(bool on) async {
+    if (on) {
+      final l = AppLocalizations.of(context);
+      final yes = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          icon: const Icon(
+            Icons.delete_forever_outlined,
+            color: UsraColors.emergency,
+          ),
+          title: Text(l.lockWipeConfirmTitle),
+          content: SingleChildScrollView(child: Text(l.lockWipeConfirmBody)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l.lockWipeCancel),
+            ),
+            FilledButton(
+              key: const ValueKey('app-lock-wipe-yes'),
+              style: FilledButton.styleFrom(
+                backgroundColor: UsraColors.emergency,
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l.lockWipeConfirmYes),
+            ),
+          ],
+        ),
+      );
+      if (yes != true) return;
+    } else if (!await _loosen()) {
+      return;
+    }
+    await _guard(() => _lock.setWipeOnFailures(on));
+  }
+
   Future<void> _setEmergency(String profileId, bool on) async {
     if (on && !await _loosen()) return;
     await _guard(() => _lock.setEmergencyProfile(profileId, on));
@@ -622,6 +659,20 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
                           subtitle: Text(l.lockEmergencyFor),
                         ),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Card(
+                  child: SwitchListTile(
+                    key: const ValueKey('app-lock-wipe'),
+                    value: _lock.wipeOnFailures,
+                    onChanged: _setWipe,
+                    secondary: const Icon(
+                      Icons.delete_forever_outlined,
+                      color: UsraColors.emergency,
+                    ),
+                    title: Text(l.lockSettingsWipe),
+                    subtitle: Text(l.lockSettingsWipeHint),
                   ),
                 ),
               ],
