@@ -1,0 +1,420 @@
+import 'package:intl/intl.dart';
+
+import '../../core/database/app_database.dart';
+import '../../core/records/record_type.dart' show decodeRecordData;
+import '../../core/util/dates.dart';
+import '../../l10n/app_localizations.dart';
+import '../children/child_vaccines.dart';
+import '../children/egypt_vaccines.dart';
+import '../children/growth.dart';
+import '../family/family_screen.dart' show ageInYears;
+import '../medicines/dose_schedule.dart' show DoseTime;
+import '../medicines/medicine_text.dart' show medicineEnded;
+import 'report.dart';
+
+/// What the family can put in the doctor summary (C10).
+enum SummarySection {
+  basics,
+  allergies,
+  conditions,
+  medicines,
+  visits,
+  labs,
+
+  /// Children only.
+  growth,
+
+  /// Children only.
+  vaccines,
+}
+
+/// Growth and vaccines are offered for children (under 18 with a birth
+/// date); everything else for everyone.
+List<SummarySection> summarySectionsFor(Profile profile, DateTime now) {
+  final age = ageInYears(profile.birthDate, now);
+  final child = age != null && age < 18;
+  return [
+    for (final s in SummarySection.values)
+      if (child || (s != SummarySection.growth && s != SummarySection.vaccines))
+        s,
+  ];
+}
+
+/// Everything the summary reads, loaded once when it's made.
+class SummaryInputs {
+  const SummaryInputs({
+    required this.profile,
+    required this.events,
+    this.medicines = const [],
+    this.doctors = const {},
+  });
+
+  final Profile profile;
+
+  /// Live records, newest first (the timeline order).
+  final List<MedicalEvent> events;
+
+  /// The person's medicines with their schedule (null: taken as needed).
+  final List<(Medicine, DoseSchedule?)> medicines;
+
+  /// Saved doctors by id, for visits linked to one.
+  final Map<String, Doctor> doctors;
+
+  static Future<SummaryInputs?> load(AppDatabase db, String profileId) async {
+    final profile = await db.watchProfile(profileId).first;
+    if (profile == null) return null;
+    final (events, medicines, doctors) = await (
+      db.watchTimeline(profileId).first,
+      db.watchMedicines(profileId).first,
+      db.watchDoctors().first,
+    ).wait;
+    return SummaryInputs(
+      profile: profile,
+      events: events,
+      medicines: [
+        for (final m in medicines) (m, await db.watchDoseSchedule(m.id).first),
+      ],
+      doctors: {for (final d in doctors) d.id: d},
+    );
+  }
+}
+
+/// How many visits and lab reports the one page holds.
+const summaryVisits = 5;
+const summaryLabReports = 3;
+
+/// The doctor summary for [inputs] in [l]'s language, with only the
+/// [sections] the family picked (in their usual order). Doses are copied
+/// as written; nothing is worked out.
+Report doctorSummary({
+  required AppLocalizations l,
+  required SummaryInputs inputs,
+  required Set<SummarySection> sections,
+  required DateTime now,
+}) {
+  final locale = l.localeName;
+  final profile = inputs.profile;
+  String date(DateTime d) => DateFormat.yMMMd(locale).format(d);
+  String number(num n) => NumberFormat.decimalPattern(locale).format(n);
+  final comma = locale.startsWith('ar') ? '، ' : ', ';
+  final today = DateTime(now.year, now.month, now.day);
+  final offered = summarySectionsFor(profile, today);
+  final birth = profile.birthDate;
+
+  ReportSection basics() {
+    final age = ageInYears(birth, today);
+    return ReportSection(
+      id: 'basics',
+      heading: l.reportSectionBasics,
+      fields: [
+        if (birth != null)
+          ReportField(l.profileBirthDate, date(storedDay(birth))),
+        if (age != null) ReportField(l.reportAge, _age(l, birth!, today, age)),
+        if (profile.sex case final sex?)
+          ReportField(
+            l.profileSex,
+            sex == 'male' ? l.sexMale : (sex == 'female' ? l.sexFemale : sex),
+          ),
+        ReportField(l.profileBloodType, profile.bloodType ?? l.reportNothing),
+      ],
+    );
+  }
+
+  ReportSection freeText(String id, String heading, String? value) =>
+      ReportSection(
+        id: id,
+        heading: heading,
+        rows: [
+          for (final line in (value ?? '').split('\n'))
+            if (line.trim().isNotEmpty) [line.trim()],
+        ],
+        empty: l.reportNothing,
+      );
+
+  ReportSection medicines() {
+    final rows = <List<String>>[];
+    for (final (m, schedule) in inputs.medicines) {
+      if (!m.active || medicineEnded(m, today)) continue;
+      if (today.isBefore(storedDay(m.startOn))) continue;
+      final how = <String>[
+        if (schedule == null)
+          l.reportAsNeeded
+        else ...[
+          ?schedule.amount,
+          switch ((schedule.everyNDays, schedule.weekdays)) {
+            (final n?, _) when n > 1 => l.scheduleEveryNDays(n),
+            (_, final mask?) => [
+              for (var i = 0; i < 7; i++)
+                if (mask & (1 << i) != 0)
+                  DateFormat.E(locale).format(DateTime(2024, 1, 1 + i)),
+            ].join(comma),
+            _ => l.scheduleEveryDay,
+          },
+          DoseTime.parseList(schedule.times)
+              .map((t) => DateFormat.jm(locale).format(t.on(DateTime(2000))))
+              .join(comma),
+        ],
+        ?m.instructions,
+        [
+          l.reportSince(date(storedDay(m.startOn))),
+          if (m.endOn != null) l.reportUntil(date(storedDay(m.endOn!))),
+        ].join(' '),
+      ];
+      rows.add([
+        [m.name, ?m.strength].join(' '),
+        how.where((s) => s.trim().isNotEmpty).join(' · '),
+      ]);
+    }
+    return ReportSection(
+      id: 'medicines',
+      heading: l.reportSectionMedicines,
+      columns: [l.reportColMedicine, l.reportColHowTaken],
+      rows: rows,
+      empty: l.reportNothing,
+    );
+  }
+
+  ReportSection visits() {
+    final rows = <List<String>>[];
+    for (final e in inputs.events) {
+      if (rows.length == summaryVisits) break;
+      if (e.type != 'visit' || e.occurredAt.isAfter(now)) continue;
+      final data = decodeRecordData(e.dataJson);
+      final doctor =
+          _text(data['doctorName']) ?? inputs.doctors[e.doctorId]?.name;
+      rows.add([
+        date(e.occurredAt),
+        doctor ?? '',
+        [?_text(data['reason']), ?_text(data['diagnosis'])].join(' · '),
+      ]);
+    }
+    return ReportSection(
+      id: 'visits',
+      heading: l.reportSectionVisits,
+      columns: [l.reportColDate, l.reportColDoctor, l.reportColDetails],
+      rows: rows,
+      empty: l.reportNothing,
+    );
+  }
+
+  ReportSection labs() {
+    final rows = <List<String>>[];
+    var reports = 0;
+    for (final e in inputs.events) {
+      if (reports == summaryLabReports) break;
+      if (e.type != 'lab' || e.occurredAt.isAfter(now)) continue;
+      final tests = labTestsOf(decodeRecordData(e.dataJson));
+      if (tests.isEmpty) continue;
+      reports++;
+      for (final t in tests) {
+        rows.add([
+          date(e.occurredAt),
+          t.name,
+          [?t.value, ?t.unit].join(' '),
+          t.range ?? '',
+        ]);
+      }
+    }
+    return ReportSection(
+      id: 'labs',
+      heading: l.reportSectionLabs,
+      columns: [
+        l.reportColDate,
+        l.reportColTest,
+        l.reportColResult,
+        l.reportColRange,
+      ],
+      rows: rows,
+      empty: l.reportNothing,
+    );
+  }
+
+  ReportSection growth() {
+    final sex = profile.sex;
+    final rows = <List<String>>[];
+    var anyPercentile = false;
+    for (final (indicator, label) in [
+      (GrowthIndicator.weight, l.fieldWeightKg),
+      (GrowthIndicator.height, l.fieldHeightCm),
+      (GrowthIndicator.head, l.fieldHeadCm),
+    ]) {
+      for (final e in inputs.events) {
+        if (e.type != 'growth' || e.occurredAt.isAfter(now)) continue;
+        final value = decodeRecordData(e.dataJson)[GrowthFields.of(indicator)];
+        if (value is! num || value <= 0) continue;
+        final reading = birth == null || (sex != 'male' && sex != 'female')
+            ? null
+            : readGrowth(
+                indicator,
+                male: sex == 'male',
+                months: ageInMonths(birth, e.occurredAt),
+                value: value.toDouble(),
+              );
+        if (reading != null) anyPercentile = true;
+        rows.add([
+          label,
+          number(value),
+          date(e.occurredAt),
+          reading?.percentileLabel ?? '',
+        ]);
+        break;
+      }
+    }
+    return ReportSection(
+      id: 'growth',
+      heading: l.reportSectionGrowth,
+      columns: [
+        l.reportColMeasure,
+        l.reportColValue,
+        l.reportColDate,
+        l.reportColPercentile,
+      ],
+      rows: rows,
+      empty: l.reportNothing,
+      note: anyPercentile ? l.reportGrowthNote : null,
+    );
+  }
+
+  ReportSection vaccines() {
+    final fields = <ReportField>[];
+    final rows = <List<String>>[];
+    if (birth != null) {
+      final plan = vaccinePlanOf(inputs.events);
+      final statuses = matchSchedule(
+        birthDate: birth,
+        records: vaccineRecords(inputs.events),
+        now: today,
+        plan: plan,
+      );
+      final p = vaccineProgress(statuses);
+      fields.add(
+        ReportField(
+          plan.route == VaccineRoute.government
+              ? l.reportRouteGovernment
+              : l.reportRoutePrivate,
+          l.reportVaccineProgress(
+            p.requiredDone + p.optionalDone,
+            p.requiredTotal + p.optionalTotal,
+          ),
+        ),
+      );
+      if (isUnderFive(birth, today)) {
+        final next = NextVaccineVisit.of(statuses);
+        if (next.date case final d?) {
+          fields.add(
+            ReportField(
+              l.reportVaccineNext,
+              '${date(d)}: ${next.doses.map((x) => doseName(l, x)).join(comma)}',
+            ),
+          );
+        }
+        if (next.overdue.isNotEmpty) {
+          fields.add(
+            ReportField(
+              l.reportVaccineOverdue,
+              next.overdue.map((s) => doseName(l, s.dose)).join(comma),
+            ),
+          );
+        }
+      }
+      final given = [
+        for (final s in statuses)
+          if (s.done && s.givenOn != null) s,
+      ]..sort((a, b) => b.givenOn!.compareTo(a.givenOn!));
+      for (final s in given.take(6)) {
+        rows.add([doseName(l, s.dose), date(s.givenOn!)]);
+      }
+    }
+    return ReportSection(
+      id: 'vaccines',
+      heading: l.reportSectionVaccines,
+      fields: fields,
+      columns: [l.reportColVaccine, l.reportColDate],
+      rows: rows,
+      empty: l.reportNothing,
+    );
+  }
+
+  return Report(
+    languageCode: locale.split('_').first,
+    title: l.reportSummaryTitle,
+    appLine: l.reportAppLine,
+    generated: l.reportGenerated(date(today)),
+    disclaimer: l.reportSummaryDisclaimer,
+    pageLabel: l.reportPage,
+    fields: [ReportField(l.reportName, profile.displayName)],
+    sections: [
+      for (final s in offered)
+        if (sections.contains(s))
+          switch (s) {
+            SummarySection.basics => basics(),
+            SummarySection.allergies => freeText(
+              'allergies',
+              l.profileAllergies,
+              profile.allergies,
+            ),
+            SummarySection.conditions => freeText(
+              'conditions',
+              l.profileConditions,
+              profile.conditions,
+            ),
+            SummarySection.medicines => medicines(),
+            SummarySection.visits => visits(),
+            SummarySection.labs => labs(),
+            SummarySection.growth => growth(),
+            SummarySection.vaccines => vaccines(),
+          },
+    ],
+  );
+}
+
+/// Under 2: months ("18 months"); then years.
+String _age(AppLocalizations l, DateTime birth, DateTime today, int years) {
+  if (years >= 2) return l.ageYears(years);
+  final months = fullMonths(storedDay(birth), today);
+  return months < 1 ? l.ageYears(0) : l.fuAgeMonths(months);
+}
+
+String? _text(Object? v) =>
+    v is String && v.trim().isNotEmpty ? v.trim() : (v is num ? '$v' : null);
+
+/// One test on a lab record.
+typedef LabLine = ({String name, String? value, String? unit, String? range});
+
+/// The tests on a lab record's data, in either shape: one `{test, value,
+/// unit}` (a single typed result), or `tests: [{name, value | valueText,
+/// unit, low, high, rangeText}]` (a lab report with several).
+List<LabLine> labTestsOf(Map<String, Object?> data) {
+  String? range(Map<Object?, Object?> t) {
+    if (_text(t['rangeText']) case final r?) return r;
+    final (low, high) = (_text(t['low']), _text(t['high']));
+    if (low != null && high != null) return '$low – $high';
+    if (low != null) return '≥ $low';
+    if (high != null) return '≤ $high';
+    return null;
+  }
+
+  if (data['tests'] case final List<Object?> tests) {
+    return [
+      for (final t in tests)
+        if (t is Map<Object?, Object?>)
+          if (_text(t['name']) case final name?)
+            (
+              name: name,
+              value: _text(t['value']) ?? _text(t['valueText']),
+              unit: _text(t['unit']),
+              range: range(t),
+            ),
+    ];
+  }
+  final name = _text(data['test']);
+  if (name == null) return const [];
+  return [
+    (
+      name: name,
+      value: _text(data['value']),
+      unit: _text(data['unit']),
+      range: null,
+    ),
+  ];
+}

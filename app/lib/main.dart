@@ -33,11 +33,13 @@ import 'features/medicines/local_notification_scheduler.dart';
 import 'features/medicines/medicines_providers.dart';
 import 'features/medicines/reminder_sync.dart';
 import 'features/medicines/reminders.dart';
+import 'features/reports/report.dart' show registerReportFontLicense;
 import 'l10n/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Log.installErrorHandlers();
+  registerReportFontLicense();
   final (file, temporary, version) = await (
     defaultDatabaseFile(),
     getTemporaryDirectory(),

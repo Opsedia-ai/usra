@@ -2858,4 +2858,196 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get growthNoPrematurity =>
       'Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart.';
+
+  @override
+  String get reportAppLine => 'Made with Usra (أسرة), a family health app';
+
+  @override
+  String reportGenerated(String date) {
+    return 'Generated on $date';
+  }
+
+  @override
+  String reportPage(int page, int total) {
+    return 'Page $page of $total';
+  }
+
+  @override
+  String get reportVaccinationTitle => 'Vaccination record';
+
+  @override
+  String get reportVaccinationDisclaimer =>
+      'An informational record made by the family in the Usra app from their own entries. Not an official vaccination certificate: check with the child\'s vaccination card.';
+
+  @override
+  String get reportName => 'Name';
+
+  @override
+  String get reportRoute => 'Vaccination route';
+
+  @override
+  String get reportRouteGovernment => 'Government (health office)';
+
+  @override
+  String get reportRoutePrivate => 'Private (hexavalent)';
+
+  @override
+  String get reportDosesGiven => 'Doses given';
+
+  @override
+  String get reportNoDosesGiven => 'No doses recorded yet';
+
+  @override
+  String get reportUpcoming => 'Upcoming doses';
+
+  @override
+  String get reportNoUpcoming => 'No doses left on the schedule';
+
+  @override
+  String get reportUpcomingOverFive =>
+      'The schedule in Usra follows children until age 5.';
+
+  @override
+  String get reportColVaccine => 'Vaccine';
+
+  @override
+  String get reportColDate => 'Date';
+
+  @override
+  String get reportColNotes => 'Notes';
+
+  @override
+  String get reportColDue => 'Due';
+
+  @override
+  String get reportOverdue => 'Overdue';
+
+  @override
+  String get reportSummaryTitle => 'Health summary for the doctor';
+
+  @override
+  String get reportSummaryDisclaimer =>
+      'A summary made by the family in the Usra app from their own records. Informational only: check against the original prescriptions and reports.';
+
+  @override
+  String get reportAge => 'Age';
+
+  @override
+  String get reportSectionBasics => 'Age and blood type';
+
+  @override
+  String get reportSectionMedicines => 'Current medicines';
+
+  @override
+  String get reportSectionVisits => 'Recent doctor visits';
+
+  @override
+  String get reportSectionLabs => 'Recent lab results';
+
+  @override
+  String get reportSectionGrowth => 'Growth';
+
+  @override
+  String get reportSectionVaccines => 'Vaccines';
+
+  @override
+  String get reportColMedicine => 'Medicine';
+
+  @override
+  String get reportColHowTaken => 'As written by the doctor';
+
+  @override
+  String get reportColDoctor => 'Doctor';
+
+  @override
+  String get reportColDetails => 'Reason / diagnosis';
+
+  @override
+  String get reportColTest => 'Test';
+
+  @override
+  String get reportColResult => 'Result';
+
+  @override
+  String get reportColRange => 'Lab\'s range';
+
+  @override
+  String get reportColMeasure => 'Measurement';
+
+  @override
+  String get reportColValue => 'Value';
+
+  @override
+  String get reportColPercentile => 'WHO percentile';
+
+  @override
+  String get reportAsNeeded => 'When needed';
+
+  @override
+  String reportSince(String date) {
+    return 'Since $date';
+  }
+
+  @override
+  String reportUntil(String date) {
+    return 'until $date';
+  }
+
+  @override
+  String reportVaccineProgress(int done, int total) {
+    return '$done of $total doses in the plan given';
+  }
+
+  @override
+  String get reportVaccineNext => 'Next vaccine visit';
+
+  @override
+  String get reportVaccineOverdue => 'Overdue';
+
+  @override
+  String get reportGrowthNote =>
+      'Percentiles from the WHO Child Growth Standards (under 5). Informational, not a diagnosis.';
+
+  @override
+  String get reportNothing => 'Nothing recorded';
+
+  @override
+  String get memberDoctorSummary => 'Summary for the doctor';
+
+  @override
+  String get reportSummaryIntro =>
+      'A one-page PDF to show or send to a doctor. Choose what goes in.';
+
+  @override
+  String get reportChooseSections => 'What to include';
+
+  @override
+  String get reportLanguage => 'Language of the PDF';
+
+  @override
+  String get reportSharePdf => 'Share PDF';
+
+  @override
+  String get reportIncludeNotes => 'Include my notes on each dose';
+
+  @override
+  String get reportVaccinationShare => 'Share vaccination record';
+
+  @override
+  String get reportVaccinationIntro =>
+      'A PDF of the doses given and the ones coming up, for a school, nursery or doctor.';
+
+  @override
+  String get reportPickOne => 'Choose at least one section';
+
+  @override
+  String get reportOnPhone =>
+      'Made on this phone. The file is deleted from the phone once it\'s shared.';
+
+  @override
+  String get reportFailed => 'Couldn\'t make the PDF';
+
+  @override
+  String get reportNeedsBirthDate =>
+      'Add a date of birth to the profile first.';
 }

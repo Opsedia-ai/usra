@@ -34,6 +34,7 @@ dependencies:
   local_auth: ^3.0.2
   supabase_flutter: ^2.18.3
   http: ^1.6.0
+  pdf: ^3.13.1
 
 dev_dependencies:
   flutter_test:
@@ -50,6 +51,10 @@ flutter:
   generate: true
   assets:
     - assets/medicines/egypt_medicine_names.txt
+    # PDF reports (OFL 1.1, see OFL.txt there).
+    - assets/fonts/amiri/Amiri-Regular.ttf
+    - assets/fonts/amiri/Amiri-Bold.ttf
+    - assets/fonts/amiri/OFL.txt
 
 hooks:
   user_defines:
