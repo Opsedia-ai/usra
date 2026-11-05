@@ -597,6 +597,19 @@ person says they lost them) offers **account reset**:
 A SIM-swapper can start a reset, but the real person is warned on every
 phone for a week and can cancel it.
 
+**Race after an unclaimed reset.** If the phone that started a completed reset
+is revoked or doesn't enrol within 72 hours, the account (now not enrolled)
+may start a new reset. Two phones can race for it, for example the real
+person's new phone and a SIM-swapper's. The first `start_account_reset` opens
+the reset, and that phone is the only one that may enrol when it completes;
+any other phone gets `reset_in_progress` and is not joined in. There is no
+approved phone left to cancel it, so a SIM-swapper who wins this race holds the
+account after 7 days, exactly as with a reset on an account that has no older
+phone (section 14). What protects the person is what protects any reset: the
+7-day wait, the reset check on every launch of their phones, and support. The
+loser can start a new reset only once this one completes and is itself
+unclaimed.
+
 A SIM-swapper who strikes **before** the person ever turns on sync can make
 the account's first device and genesis. The real person then finds their
 account already enrolled and must use an account reset. If the attacker's
