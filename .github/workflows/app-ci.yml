@@ -160,7 +160,8 @@ jobs:
       # The CocoaPods version line is ignored: the runner's CocoaPods may be
       # newer than the one that wrote the lock.
       - name: CocoaPods integration is committed
-        run: git diff --exit-code -I '^COCOAPODS: ' -- ios/
+        run: |
+          git diff --exit-code -I '^COCOAPODS: ' -- ios/
 
   # Proves the Play release path (R8, resource shrinking, every ABI) still
   # builds. Main pushes only, as it is the slowest job and PRs already get
