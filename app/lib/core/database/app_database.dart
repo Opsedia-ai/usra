@@ -15,6 +15,7 @@ part 'app_database.g.dart';
     InsuranceCards,
     Attachments,
     Medicines,
+    Prescriptions,
     DoseSchedules,
     DoseLogs,
     OutboxEntries,
@@ -26,7 +27,7 @@ class AppDatabase extends _$AppDatabase {
   static const _uuid = Uuid();
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -50,6 +51,11 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(doseSchedules);
         await m.createTable(doseLogs);
         await m.createIndex(doseLogsDose);
+      }
+      if (from < 7) {
+        await m.createTable(prescriptions);
+        // A table created above (from < 6) already has the column.
+        if (from >= 6) await m.addColumn(medicines, medicines.prescriptionId);
       }
     },
     beforeOpen: (details) async {
@@ -208,6 +214,19 @@ class AppDatabase extends _$AppDatabase {
               .get();
       for (final medicineId in medicineIds) {
         await _softDeleteMedicine(medicineId, now);
+      }
+
+      final prescriptionIds =
+          await (selectOnly(prescriptions)
+                ..addColumns([prescriptions.id])
+                ..where(
+                  prescriptions.profileId.equals(id) &
+                      prescriptions.deletedAt.isNull(),
+                ))
+              .map((row) => row.read(prescriptions.id)!)
+              .get();
+      for (final prescriptionId in prescriptionIds) {
+        await _softDeletePrescription(prescriptionId, now);
       }
     });
   }
@@ -888,15 +907,219 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// Medicine photo files still used by a live medicine.
+  /// Files in the medicines photo store still used by a live medicine or
+  /// prescription.
   Future<Set<String>> liveMedicinePhotos() async {
     final query = selectOnly(medicines)
       ..addColumns([medicines.photosJson])
       ..where(medicines.deletedAt.isNull());
+    final rx = selectOnly(prescriptions)
+      ..addColumns([prescriptions.photosJson])
+      ..where(prescriptions.deletedAt.isNull());
     return {
       for (final r in await query.get())
         ...decodeMedicinePhotos(r.read(medicines.photosJson)!),
+      for (final r in await rx.get())
+        ...decodeMedicinePhotos(r.read(prescriptions.photosJson)!),
     };
+  }
+
+  /// A person's live prescriptions, newest first.
+  Stream<List<Prescription>> watchPrescriptions(String profileId) {
+    final query = select(prescriptions)
+      ..where((p) => p.profileId.equals(profileId) & p.deletedAt.isNull())
+      ..orderBy([
+        (p) => OrderingTerm.desc(p.prescribedOn),
+        (p) => OrderingTerm.desc(p.id),
+      ]);
+    return query.watch();
+  }
+
+  Stream<Prescription?> watchPrescription(String id) {
+    return (select(prescriptions)
+          ..where((p) => p.id.equals(id) & p.deletedAt.isNull()))
+        .watchSingleOrNull();
+  }
+
+  /// The live medicines written on a prescription, in the order added.
+  Stream<List<Medicine>> watchPrescriptionMedicines(String prescriptionId) {
+    final query = select(medicines)
+      ..where(
+        (m) => m.prescriptionId.equals(prescriptionId) & m.deletedAt.isNull(),
+      )
+      ..orderBy([(m) => OrderingTerm.asc(m.id)]);
+    return query.watch();
+  }
+
+  /// Saves a prescription and all its medicines, schedules included, in one
+  /// transaction: creates it, or updates [id] when given. Items with a
+  /// `medicineId` update that medicine; the prescription's other medicines
+  /// no longer in [items] are deleted. Every medicine takes the
+  /// prescription's doctor and active state. Returns the prescription's id.
+  ///
+  /// Doses are stored as the text the doctor wrote; nothing is computed.
+  Future<String> savePrescription({
+    String? id,
+    required String profileId,
+    String? doctorId,
+    required DateTime prescribedOn,
+    String? diagnosis,
+    String? notes,
+    List<String> photos = const [],
+    bool active = true,
+    required List<PrescriptionItemInput> items,
+  }) async {
+    if (items.isEmpty) {
+      throw ArgumentError.value(items, 'items', 'needs at least one medicine');
+    }
+    for (final item in items) {
+      if (item.name.trim().isEmpty) {
+        throw ArgumentError.value(item.name, 'name', 'must not be empty');
+      }
+      if (item.days != null && item.days! < 1) {
+        throw ArgumentError.value(item.days, 'days', 'must be at least 1');
+      }
+    }
+    final prescriptionId = id ?? _uuid.v7();
+    final now = DateTime.now().toUtc();
+    final row = PrescriptionsCompanion(
+      id: Value(prescriptionId),
+      profileId: Value(profileId),
+      doctorId: Value(doctorId),
+      prescribedOn: Value(_day(prescribedOn)),
+      diagnosis: Value(_clean(diagnosis)),
+      notes: Value(_clean(notes)),
+      photosJson: Value(jsonEncode(photos)),
+      active: Value(active),
+      updatedAt: Value(now),
+    );
+    await transaction(() async {
+      if (id == null) {
+        await into(prescriptions).insert(row);
+      } else {
+        final changed = await (update(
+          prescriptions,
+        )..where((p) => p.id.equals(id) & p.deletedAt.isNull())).write(row);
+        if (changed == 0) throw StateError('Prescription $id not found');
+      }
+      await _queue('prescription', prescriptionId, 'upsert');
+
+      final current =
+          await (selectOnly(medicines)
+                ..addColumns([medicines.id])
+                ..where(
+                  medicines.prescriptionId.equals(prescriptionId) &
+                      medicines.deletedAt.isNull(),
+                ))
+              .map((r) => r.read(medicines.id)!)
+              .get()
+              .then((ids) => ids.toSet());
+      final kept = <String>{};
+      for (final item in items) {
+        final existing = item.medicineId;
+        if (existing != null && !current.contains(existing)) {
+          throw StateError('Medicine $existing is not on this prescription');
+        }
+        final start = _day(item.startOn ?? prescribedOn);
+        final medicineId = existing ?? _uuid.v7();
+        final medicine = MedicinesCompanion(
+          id: Value(medicineId),
+          profileId: Value(profileId),
+          prescriptionId: Value(prescriptionId),
+          name: Value(item.name.trim()),
+          strength: Value(_clean(item.strength)),
+          form: Value(_clean(item.form)),
+          instructions: Value(_clean(item.dose)),
+          doctorId: Value(doctorId),
+          startOn: Value(start),
+          endOn: Value(
+            item.days == null
+                ? null
+                : start.add(Duration(days: item.days! - 1)),
+          ),
+          active: Value(active),
+          updatedAt: Value(now),
+        );
+        if (existing == null) {
+          await into(medicines).insert(medicine);
+        } else {
+          kept.add(existing);
+          await (update(
+            medicines,
+          )..where((m) => m.id.equals(existing))).write(medicine);
+        }
+        await _queue('medicine', medicineId, 'upsert');
+        await _replaceSchedule(
+          medicineId,
+          item.times.isEmpty ? null : DoseScheduleInput(times: item.times),
+          now,
+        );
+      }
+      for (final removed in current.difference(kept)) {
+        await _softDeleteMedicine(removed, now);
+      }
+    });
+    return prescriptionId;
+  }
+
+  /// Stops or restarts a prescription and every medicine on it.
+  Future<void> setPrescriptionActive(String id, bool active) async {
+    final now = DateTime.now().toUtc();
+    await transaction(() async {
+      final changed =
+          await (update(
+            prescriptions,
+          )..where((p) => p.id.equals(id) & p.deletedAt.isNull())).write(
+            PrescriptionsCompanion(
+              active: Value(active),
+              updatedAt: Value(now),
+            ),
+          );
+      if (changed == 0) throw StateError('Prescription $id not found');
+      await _queue('prescription', id, 'upsert');
+      final ids =
+          await (selectOnly(medicines)
+                ..addColumns([medicines.id])
+                ..where(
+                  medicines.prescriptionId.equals(id) &
+                      medicines.deletedAt.isNull(),
+                ))
+              .map((r) => r.read(medicines.id)!)
+              .get();
+      for (final medicineId in ids) {
+        await (update(medicines)..where((m) => m.id.equals(medicineId))).write(
+          MedicinesCompanion(active: Value(active), updatedAt: Value(now)),
+        );
+        await _queue('medicine', medicineId, 'upsert');
+      }
+    });
+  }
+
+  /// Marks a prescription and its medicines (with their schedules and dose
+  /// logs) deleted. Prune photos with `liveMedicinePhotos()` afterwards.
+  Future<void> softDeletePrescription(String id) async {
+    await transaction(
+      () => _softDeletePrescription(id, DateTime.now().toUtc()),
+    );
+  }
+
+  Future<void> _softDeletePrescription(String id, DateTime now) async {
+    await (update(prescriptions)..where((p) => p.id.equals(id))).write(
+      PrescriptionsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+    );
+    await _queue('prescription', id, 'delete');
+    final ids =
+        await (selectOnly(medicines)
+              ..addColumns([medicines.id])
+              ..where(
+                medicines.prescriptionId.equals(id) &
+                    medicines.deletedAt.isNull(),
+              ))
+            .map((r) => r.read(medicines.id)!)
+            .get();
+    for (final medicineId in ids) {
+      await _softDeleteMedicine(medicineId, now);
+    }
   }
 
   /// Every medicine someone in the family is taking now with a schedule,
@@ -1212,6 +1435,39 @@ class DoseScheduleInput {
   final int? weekdays;
   final int? everyNDays;
   final String? amount;
+}
+
+/// One medicine on a prescription, as entered in the prescription form.
+class PrescriptionItemInput {
+  const PrescriptionItemInput({
+    this.medicineId,
+    required this.name,
+    this.strength,
+    this.form,
+    this.dose,
+    this.times = const [],
+    this.startOn,
+    this.days,
+  });
+
+  /// The medicine to update; null for a new one.
+  final String? medicineId;
+  final String name;
+  final String? strength;
+  final String? form;
+
+  /// The dose exactly as the doctor wrote it, e.g. "5 مل بعد الأكل".
+  /// Saved as the medicine's instructions; never computed.
+  final String? dose;
+
+  /// "HH:mm" local times; empty for no reminders.
+  final List<String> times;
+
+  /// First day; the prescription's date when null.
+  final DateTime? startOn;
+
+  /// How many days the course lasts, counting the first; null goes on.
+  final int? days;
 }
 
 /// A medicine being taken on a schedule, and who takes it.

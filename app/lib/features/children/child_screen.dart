@@ -167,12 +167,11 @@ class _GrowthCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              indicator == GrowthIndicator.weight
-                  ? l.growthWeightForAge
-                  : l.growthHeightForAge,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text(switch (indicator) {
+              GrowthIndicator.weight => l.growthWeightForAge,
+              GrowthIndicator.height => l.growthHeightForAge,
+              GrowthIndicator.head => l.growthHeadForAge,
+            }, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             if (latest == null)
               Text(l.growthNoData)

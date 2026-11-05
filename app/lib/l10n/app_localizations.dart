@@ -3239,7 +3239,7 @@ abstract class AppLocalizations {
   /// No description provided for @growthCheckIntro.
   ///
   /// In en, this message translates to:
-  /// **'Type today\'s weight or height and see where it falls on the WHO curves at {age}.'**
+  /// **'Type today\'s weight, height or head circumference and see where it falls on the WHO curves at {age}.'**
   String growthCheckIntro(String age);
 
   /// No description provided for @growthCheckSave.
@@ -4195,6 +4195,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove'**
   String get vaccineRemoveRecordConfirm;
+
+  /// No description provided for @growthHeadForAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Head circumference for age'**
+  String get growthHeadForAge;
+
+  /// No description provided for @prescriptionsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Prescriptions'**
+  String get prescriptionsSection;
+
+  /// No description provided for @prescriptionAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add prescription'**
+  String get prescriptionAdd;
+
+  /// No description provided for @prescriptionNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New prescription'**
+  String get prescriptionNew;
+
+  /// No description provided for @prescriptionEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit prescription'**
+  String get prescriptionEdit;
+
+  /// No description provided for @prescriptionDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date (first day of treatment)'**
+  String get prescriptionDate;
+
+  /// No description provided for @prescriptionDiagnosis.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnosis or reason'**
+  String get prescriptionDiagnosis;
+
+  /// No description provided for @prescriptionNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get prescriptionNotes;
+
+  /// No description provided for @prescriptionPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo of the prescription'**
+  String get prescriptionPhotos;
+
+  /// No description provided for @prescriptionMedicines.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicines'**
+  String get prescriptionMedicines;
+
+  /// No description provided for @prescriptionAddMedicine.
+  ///
+  /// In en, this message translates to:
+  /// **'Add another medicine'**
+  String get prescriptionAddMedicine;
+
+  /// No description provided for @prescriptionMedicineN.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine {n}'**
+  String prescriptionMedicineN(int n);
+
+  /// No description provided for @prescriptionRemoveMedicine.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this medicine'**
+  String get prescriptionRemoveMedicine;
+
+  /// No description provided for @prescriptionDose.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose, as the doctor wrote it'**
+  String get prescriptionDose;
+
+  /// No description provided for @prescriptionDoseHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 5 ml after meals'**
+  String get prescriptionDoseHint;
+
+  /// No description provided for @prescriptionTimesPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Times a day (you can change the times)'**
+  String get prescriptionTimesPerDay;
+
+  /// No description provided for @prescriptionTimesN.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Once} =2{Twice} other{{count} times}}'**
+  String prescriptionTimesN(int count);
+
+  /// No description provided for @prescriptionDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'For how long'**
+  String get prescriptionDuration;
+
+  /// No description provided for @prescriptionOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongoing'**
+  String get prescriptionOngoing;
+
+  /// No description provided for @prescriptionForDays.
+  ///
+  /// In en, this message translates to:
+  /// **'A set number of days'**
+  String get prescriptionForDays;
+
+  /// No description provided for @prescriptionDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of days'**
+  String get prescriptionDays;
+
+  /// No description provided for @prescriptionDaysInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number of days from 1 to 365'**
+  String get prescriptionDaysInvalid;
+
+  /// No description provided for @prescriptionNoDoseAdvice.
+  ///
+  /// In en, this message translates to:
+  /// **'Write each medicine exactly as it is on the prescription. Usra never suggests or calculates a dose.'**
+  String get prescriptionNoDoseAdvice;
+
+  /// No description provided for @prescriptionNeedsTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one time, or no reminders will ring'**
+  String get prescriptionNeedsTimes;
+
+  /// No description provided for @prescriptionStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop the whole prescription'**
+  String get prescriptionStop;
+
+  /// No description provided for @prescriptionResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume the prescription'**
+  String get prescriptionResume;
+
+  /// No description provided for @prescriptionDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this prescription, its medicines and their history? Its photos will be removed from this phone.'**
+  String get prescriptionDeleteConfirm;
+
+  /// No description provided for @prescriptionNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This prescription was deleted'**
+  String get prescriptionNotFound;
+
+  /// No description provided for @prescriptionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Prescription of {date}'**
+  String prescriptionTitle(String date);
+
+  /// No description provided for @prescriptionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 medicine} other{{count} medicines}}'**
+  String prescriptionCount(int count);
+
+  /// No description provided for @prescriptionDaysCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String prescriptionDaysCount(int count);
+
+  /// No description provided for @prescriptionLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Prescription'**
+  String get prescriptionLink;
+
+  /// No description provided for @courseDayOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day} of {total}'**
+  String courseDayOf(int day, int total);
 }
 
 class _AppLocalizationsDelegate

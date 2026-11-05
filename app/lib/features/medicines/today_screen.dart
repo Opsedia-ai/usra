@@ -152,6 +152,14 @@ class DoseCard extends ConsumerWidget {
                           Text(r.schedule.amount!, style: text.bodyMedium),
                         if (r.medicine.instructions != null)
                           Text(r.medicine.instructions!, style: text.bodySmall),
+                        if (courseProgress(r.medicine, dose.at) case final c?)
+                          Text(
+                            l.courseDayOf(c.day, c.total),
+                            key: ValueKey('dose-course-$id'),
+                            style: text.labelLarge?.copyWith(
+                              color: UsraColors.primary,
+                            ),
+                          ),
                       ],
                     ),
                   ),

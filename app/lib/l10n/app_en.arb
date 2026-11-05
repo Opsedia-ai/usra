@@ -1093,7 +1093,7 @@
   "diaperDirty": "Dirty",
   "diaperBoth": "Wet and dirty",
   "growthCheckTitle": "Quick check",
-  "growthCheckIntro": "Type today's weight or height and see where it falls on the WHO curves at {age}.",
+  "growthCheckIntro": "Type today's weight, height or head circumference and see where it falls on the WHO curves at {age}.",
   "@growthCheckIntro": {
     "placeholders": {
       "age": {
@@ -1391,5 +1391,83 @@
   "vaccineNotNeeded": "Not needed at this age",
   "vaccineRemoveRecordTitle": "Remove the record you entered?",
   "vaccineRemoveRecordBody": "This dose was entered by hand, maybe with a photo of the card, the doctor or the cost. Unticking it removes that record from the child's history.",
-  "vaccineRemoveRecordConfirm": "Remove"
+  "vaccineRemoveRecordConfirm": "Remove",
+  "growthHeadForAge": "Head circumference for age",
+  "prescriptionsSection": "Prescriptions",
+  "prescriptionAdd": "Add prescription",
+  "prescriptionNew": "New prescription",
+  "prescriptionEdit": "Edit prescription",
+  "prescriptionDate": "Date (first day of treatment)",
+  "prescriptionDiagnosis": "Diagnosis or reason",
+  "prescriptionNotes": "Notes",
+  "prescriptionPhotos": "Photo of the prescription",
+  "prescriptionMedicines": "Medicines",
+  "prescriptionAddMedicine": "Add another medicine",
+  "prescriptionMedicineN": "Medicine {n}",
+  "@prescriptionMedicineN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "prescriptionRemoveMedicine": "Remove this medicine",
+  "prescriptionDose": "Dose, as the doctor wrote it",
+  "prescriptionDoseHint": "e.g. 5 ml after meals",
+  "prescriptionTimesPerDay": "Times a day (you can change the times)",
+  "prescriptionTimesN": "{count, plural, =1{Once} =2{Twice} other{{count} times}}",
+  "@prescriptionTimesN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "prescriptionDuration": "For how long",
+  "prescriptionOngoing": "Ongoing",
+  "prescriptionForDays": "A set number of days",
+  "prescriptionDays": "Number of days",
+  "prescriptionDaysInvalid": "Enter a number of days from 1 to 365",
+  "prescriptionNoDoseAdvice": "Write each medicine exactly as it is on the prescription. Usra never suggests or calculates a dose.",
+  "prescriptionNeedsTimes": "Add at least one time, or no reminders will ring",
+  "prescriptionStop": "Stop the whole prescription",
+  "prescriptionResume": "Resume the prescription",
+  "prescriptionDeleteConfirm": "Delete this prescription, its medicines and their history? Its photos will be removed from this phone.",
+  "prescriptionNotFound": "This prescription was deleted",
+  "prescriptionTitle": "Prescription of {date}",
+  "@prescriptionTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "prescriptionCount": "{count, plural, =1{1 medicine} other{{count} medicines}}",
+  "@prescriptionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "prescriptionDaysCount": "{count, plural, =1{1 day} other{{count} days}}",
+  "@prescriptionDaysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "prescriptionLink": "Prescription",
+  "courseDayOf": "Day {day} of {total}",
+  "@courseDayOf": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  }
 }

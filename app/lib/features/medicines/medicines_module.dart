@@ -6,10 +6,12 @@ import '../../l10n/app_localizations.dart';
 import 'medicine_form_screen.dart';
 import 'medicine_list_screen.dart';
 import 'medicine_screen.dart';
+import 'prescription_form_screen.dart';
+import 'prescription_screen.dart';
 import 'today_screen.dart';
 
-/// Medicines as the doctor prescribed them, today's doses for the family,
-/// and reminders at dose times.
+/// Medicines and prescriptions as the doctor wrote them, today's doses for
+/// the family, and reminders at dose times.
 class MedicinesModule extends FeatureModule {
   const MedicinesModule();
 
@@ -51,6 +53,36 @@ class MedicinesModule extends FeatureModule {
               builder: (_, s) => MedicineFormScreen(
                 profileId: s.pathParameters['id']!,
                 medicineId: s.pathParameters['medicineId'],
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+    // A prescription with several medicines, entered in one go (C5).
+    GoRoute(
+      path: '/family/:id/prescriptions',
+      redirect: (_, s) => s.uri.pathSegments.length == 3
+          ? '/family/${s.pathParameters['id']}/medicines'
+          : null,
+      routes: [
+        GoRoute(
+          path: 'new',
+          builder: (_, s) =>
+              PrescriptionFormScreen(profileId: s.pathParameters['id']!),
+        ),
+        GoRoute(
+          path: ':prescriptionId',
+          builder: (_, s) => PrescriptionScreen(
+            profileId: s.pathParameters['id']!,
+            prescriptionId: s.pathParameters['prescriptionId']!,
+          ),
+          routes: [
+            GoRoute(
+              path: 'edit',
+              builder: (_, s) => PrescriptionFormScreen(
+                profileId: s.pathParameters['id']!,
+                prescriptionId: s.pathParameters['prescriptionId'],
               ),
             ),
           ],

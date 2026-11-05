@@ -9,8 +9,10 @@ import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider;
 import 'medicine_text.dart';
 import 'medicines_providers.dart';
+import 'prescription_screen.dart' show prescriptionTitle;
 
-/// One person's medicines: the ones taken now first, then stopped ones.
+/// One person's prescriptions, newest first, then their medicines: the
+/// ones taken now first, then stopped ones.
 class MedicineListScreen extends ConsumerWidget {
   const MedicineListScreen({super.key, required this.profileId});
 
@@ -34,24 +36,80 @@ class MedicineListScreen extends ConsumerWidget {
       body: medicines.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
-        data: (list) => list.isEmpty
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
+        data: (list) {
+          final prescriptions =
+              ref.watch(prescriptionsProvider(profileId)).value ?? const [];
+          final text = Theme.of(context).textTheme;
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+            children: [
+              FilledButton.tonalIcon(
+                key: const ValueKey('prescription-add'),
+                style: FilledButton.styleFrom(minimumSize: const Size(0, 56)),
+                onPressed: () =>
+                    context.go('/family/$profileId/prescriptions/new'),
+                icon: const Icon(Icons.receipt_long_outlined),
+                label: Text(l.prescriptionAdd),
+              ),
+              if (prescriptions.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                Text(l.prescriptionsSection, style: text.titleMedium),
+                const SizedBox(height: 8),
+                for (final p in prescriptions)
+                  _PrescriptionTile(profileId: profileId, prescription: p),
+              ],
+              const SizedBox(height: 20),
+              if (list.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Text(
                     l.medicinesEmpty,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    style: text.bodyLarge,
                   ),
-                ),
-              )
-            : ListView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-                children: [
-                  for (final m in list)
-                    _MedicineTile(profileId: profileId, medicine: m),
-                ],
-              ),
+                )
+              else
+                for (final m in list)
+                  _MedicineTile(profileId: profileId, medicine: m),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _PrescriptionTile extends ConsumerWidget {
+  const _PrescriptionTile({
+    required this.profileId,
+    required this.prescription,
+  });
+
+  final String profileId;
+  final Prescription prescription;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final p = prescription;
+    final count =
+        ref.watch(prescriptionMedicinesProvider(p.id)).value?.length ?? 0;
+    return Card(
+      child: ListTile(
+        key: ValueKey('prescription-${p.id}'),
+        onTap: () => context.go('/family/$profileId/prescriptions/${p.id}'),
+        leading: const CircleAvatar(
+          backgroundColor: UsraColors.primaryTint,
+          child: Icon(Icons.receipt_long_outlined, color: UsraColors.primary),
+        ),
+        title: Text(prescriptionTitle(context, p)),
+        subtitle: Text(
+          [
+            ?p.diagnosis,
+            l.prescriptionCount(count),
+            if (!p.active) l.medicineStopped,
+          ].join(' · '),
+        ),
       ),
     );
   }
@@ -67,7 +125,8 @@ class _MedicineTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final schedule = ref.watch(doseScheduleProvider(medicine.id)).value;
-    final ended = medicineEnded(medicine, DateTime.now());
+    final now = ref.watch(clockProvider)();
+    final ended = medicineEnded(medicine, now);
     return Card(
       child: ListTile(
         key: ValueKey('medicine-${medicine.id}'),
@@ -94,6 +153,15 @@ class _MedicineTile extends ConsumerWidget {
                 child: SeverityChip(
                   severity: Severity.info,
                   label: medicine.active ? l.medicineEnded : l.medicineStopped,
+                ),
+              )
+            else if (courseProgress(medicine, now) case final c?)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: SeverityChip(
+                  key: ValueKey('medicine-course-${medicine.id}'),
+                  severity: Severity.good,
+                  label: l.courseDayOf(c.day, c.total),
                 ),
               ),
           ],
