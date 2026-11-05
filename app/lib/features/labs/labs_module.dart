@@ -29,7 +29,7 @@ class LabsModule extends FeatureModule {
       path: '/family/:id/labs/test/:test',
       builder: (_, s) => LabTrendScreen(
         profileId: s.pathParameters['id']!,
-        testKey: s.pathParameters['test']!,
+        routeId: s.pathParameters['test']!,
       ),
     ),
     GoRoute(

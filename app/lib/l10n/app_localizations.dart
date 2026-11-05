@@ -710,11 +710,59 @@ abstract class AppLocalizations {
   /// **'Couldn\'t read the photo'**
   String get labScanFailed;
 
+  /// No description provided for @labScanNothingNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing new on this photo: its results are already here.'**
+  String get labScanNothingNew;
+
   /// No description provided for @labCheckThis.
   ///
   /// In en, this message translates to:
   /// **'Check this against the paper'**
   String get labCheckThis;
+
+  /// No description provided for @labConfirmRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches the paper'**
+  String get labConfirmRow;
+
+  /// No description provided for @labConfirmFirstCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the marked boxes first'**
+  String get labConfirmFirstCheck;
+
+  /// No description provided for @labConfirmNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Before saving, confirm each row read from the photo, and check every marked box, against the paper.'**
+  String get labConfirmNeeded;
+
+  /// No description provided for @labCheckedIt.
+  ///
+  /// In en, this message translates to:
+  /// **'I checked it'**
+  String get labCheckedIt;
+
+  /// No description provided for @labPickRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Several ranges are printed: pick the one that applies'**
+  String get labPickRange;
+
+  /// No description provided for @labScanPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo of the report'**
+  String get labScanPhoto;
+
+  /// No description provided for @labPhotoFullScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Full screen'**
+  String get labPhotoFullScreen;
 
   /// No description provided for @labAttachPdf.
   ///

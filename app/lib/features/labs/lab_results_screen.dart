@@ -94,13 +94,13 @@ class LabTrendScreen extends ConsumerWidget {
   const LabTrendScreen({
     super.key,
     required this.profileId,
-    required this.testKey,
+    required this.routeId,
   });
 
   final String profileId;
 
-  /// `labSeriesKey` of the test.
-  final String testKey;
+  /// `LabSeries.routeId` of the test.
+  final String routeId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -108,7 +108,7 @@ class LabTrendScreen extends ConsumerWidget {
     final events = ref.watch(timelineProvider(profileId)).value;
     final series = events == null
         ? const <LabSeries>[]
-        : labSeriesOf(events).where((s) => s.testKey == testKey).toList();
+        : labSeriesOf(events).where((s) => s.routeId == routeId).toList();
     return Scaffold(
       appBar: AppBar(
         title: Text(series.isEmpty ? l.memberLabs : series.first.name),

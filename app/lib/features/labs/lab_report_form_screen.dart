@@ -54,6 +54,8 @@ class _TestRow {
     String unit = '',
     String range = '',
     Set<LabField> unsure = const {},
+    this.ranges = const [],
+    this.scanned = false,
   }) : name = TextEditingController(text: name),
        value = TextEditingController(text: value),
        unit = TextEditingController(text: unit),
@@ -73,6 +75,8 @@ class _TestRow {
     unit: c.unit ?? '',
     range: c.range,
     unsure: c.unsure,
+    ranges: c.ranges,
+    scanned: true,
   );
 
   final TextEditingController name;
@@ -82,8 +86,22 @@ class _TestRow {
   final focus = FocusNode();
 
   /// What the phone read but wasn't sure of; cleared field by field as the
-  /// person edits.
+  /// person edits it or says they checked it.
   final Set<LabField> unsure;
+
+  /// Several ranges printed on the row: the person picks one.
+  final List<String> ranges;
+
+  /// Read from a photo: it must be confirmed against the paper.
+  final bool scanned;
+  bool confirmed = false;
+
+  /// Read from a photo and not yet checked: Save waits for it.
+  bool get needsCheck => scanned && (!confirmed || unsure.isNotEmpty);
+
+  /// The same test in the same unit: a photo of the same page again
+  /// doesn't add it twice, even after its value was corrected here.
+  String get identity => '${labSeriesKey(name.text)}|${labUnitKey(unit.text)}';
 
   bool get isBlank =>
       name.text.trim().isEmpty &&
@@ -94,7 +112,8 @@ class _TestRow {
   LabTest? toTest() {
     final n = name.text.trim();
     final v = LabTest.readValue(value.text);
-    if (n.isEmpty || (v.value == null && v.text == null)) return null;
+    // A name with no result is allowed (old records had some).
+    if (n.isEmpty) return null;
     final u = unit.text.trim();
     return LabTest(
       name: n,
@@ -135,6 +154,18 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
 
   /// How many results the last photo gave, shown until the next one.
   int? _scanned;
+
+  /// The last photo only had results already in the form.
+  bool _scannedRepeat = false;
+
+  /// The last photo read, shown beside the rows to check them against.
+  String? _scanPhoto;
+
+  /// The date came from the photo and hasn't been checked yet.
+  bool _dateUnsure = false;
+
+  /// Something read from a photo still waits to be checked.
+  bool get _needsCheck => _dateUnsure || _rows.any((r) => r.needsCheck);
 
   bool get _editing => widget.eventId != null;
 
@@ -220,6 +251,7 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
     // Kept with the report, whatever the phone reads from it.
     setState(() {
       _photos.add(path!);
+      _scanPhoto = path;
       _reading = true;
       _scanned = null;
     });
@@ -238,16 +270,27 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
     if (!mounted) return;
     setState(() {
       _reading = false;
-      _scanned = scan.tests.length;
-      if (scan.tests.isNotEmpty) {
+      // The same page photographed again adds only what's new.
+      final have = {for (final r in _rows) r.identity};
+      final fresh = [
+        for (final c in scan.tests)
+          if (!have.contains('${labSeriesKey(c.name)}|${labUnitKey(c.unit)}'))
+            c,
+      ];
+      _scanned = fresh.length;
+      _scannedRepeat = scan.tests.isNotEmpty && fresh.isEmpty;
+      if (fresh.isNotEmpty) {
         final blanks = _rows.where((r) => r.isBlank).toList();
         for (final r in blanks) {
           _rows.remove(r);
           r.dispose();
         }
-        _rows.addAll(scan.tests.map(_TestRow.candidate));
+        _rows.addAll(fresh.map(_TestRow.candidate));
       }
-      if (scan.date != null && !_dateTouched) _date = scan.date!;
+      if (scan.date != null && !_dateTouched && scan.date != _date) {
+        _date = scan.date!;
+        _dateUnsure = true;
+      }
       if (scan.lab != null && _lab.text.trim().isEmpty) _lab.text = scan.lab!;
       if (scan.orderedBy != null && _doctor.text.trim().isEmpty) {
         _doctor.text = scan.orderedBy!;
@@ -286,7 +329,11 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
     }
     if (path == null) return;
     _pickedPdf = true;
-    if (!mounted) return;
+    if (!mounted) {
+      // Closed while picking: its plain copy goes now.
+      await _cleanUpPicked();
+      return;
+    }
     setState(() => _pdfs.add(path!));
   }
 
@@ -300,7 +347,7 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
   }
 
   Future<void> _submit() async {
-    if (_submitting) return;
+    if (_submitting || _needsCheck) return;
     final l = AppLocalizations.of(context);
     final filled = _rows.where((r) => !r.isBlank).toList();
     final tests = [for (final r in filled) r.toTest()];
@@ -397,6 +444,7 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
                 _ScanCard(
                   reading: _reading,
                   found: _scanned,
+                  repeat: _scannedRepeat,
                   onScan: busy ? null : _scan,
                 ),
                 const SizedBox(height: 20),
@@ -413,11 +461,18 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
                       setState(() {
                         _date = picked;
                         _dateTouched = true;
+                        _dateUnsure = false;
                       });
                     }
                   },
                   child: InputDecorator(
-                    decoration: InputDecoration(labelText: l.recordDate),
+                    decoration: _unsureDecoration(
+                      context,
+                      label: l.recordDate,
+                      unsure: _dateUnsure,
+                      checkKey: 'lab-unsure-date',
+                      onChecked: () => setState(() => _dateUnsure = false),
+                    ),
                     child: Text(DateFormat.yMMMd(locale).format(_date)),
                   ),
                 ),
@@ -466,6 +521,8 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
                 const SizedBox(height: 4),
                 const LabInfoNote(),
                 const SizedBox(height: 12),
+                if (_scanPhoto case final photo? when _photos.contains(photo))
+                  _ScanPhoto(path: photo),
                 for (final (i, row) in _rows.indexed) ...[
                   _TestCard(
                     key: ObjectKey(row),
@@ -528,10 +585,19 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
                       : (i) => setState(() => _pdfs.removeAt(i)),
                 ),
                 const SizedBox(height: 28),
+                if (_needsCheck)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      l.labConfirmNeeded,
+                      key: const ValueKey('lab-confirm-needed'),
+                      style: TextStyle(color: Severity.headsUp.foreground),
+                    ),
+                  ),
                 FilledButton(
                   key: const ValueKey('record-save'),
                   style: FilledButton.styleFrom(minimumSize: const Size(0, 56)),
-                  onPressed: busy ? null : _submit,
+                  onPressed: busy || _needsCheck ? null : _submit,
                   child: Text(l.familySave),
                 ),
               ],
@@ -545,11 +611,13 @@ class _ScanCard extends StatelessWidget {
   const _ScanCard({
     required this.reading,
     required this.found,
+    required this.repeat,
     required this.onScan,
   });
 
   final bool reading;
   final int? found;
+  final bool repeat;
   final ValueChanged<ImageSource>? onScan;
 
   @override
@@ -614,7 +682,11 @@ class _ScanCard extends StatelessWidget {
             if (found != null) ...[
               const SizedBox(height: 12),
               Text(
-                found == 0 ? l.labScanNothing : l.labScanFound(found!),
+                repeat
+                    ? l.labScanNothingNew
+                    : found == 0
+                    ? l.labScanNothing
+                    : l.labScanFound(found!),
                 key: const ValueKey('lab-scan-result'),
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
@@ -650,29 +722,15 @@ class _TestCard extends StatelessWidget {
     String label, {
     String? hint,
     String? error,
-  }) {
-    final unsure = row.unsure.contains(field);
-    final l = AppLocalizations.of(context);
-    return InputDecoration(
-      labelText: label,
-      hintText: hint,
-      errorText: error,
-      // Marked with words and an icon, not only a colour.
-      helperText: unsure ? l.labCheckThis : null,
-      helperStyle: unsure
-          ? TextStyle(color: Severity.headsUp.foreground)
-          : null,
-      filled: unsure,
-      fillColor: unsure ? Severity.headsUp.background : null,
-      suffixIcon: unsure
-          ? Icon(
-              Icons.help_outline,
-              key: ValueKey('lab-unsure-${field.name}-$index'),
-              color: Severity.headsUp.foreground,
-            )
-          : null,
-    );
-  }
+  }) => _unsureDecoration(
+    context,
+    label: label,
+    hint: hint,
+    error: error,
+    unsure: row.unsure.contains(field),
+    checkKey: 'lab-unsure-${field.name}-$index',
+    onChecked: () => _edited(field),
+  );
 
   void _edited(LabField field) {
     row.unsure.remove(field);
@@ -686,7 +744,6 @@ class _TestCard extends StatelessWidget {
     final blank = row.isBlank;
     final test = row.toTest();
     final nameMissing = submitted && !blank && row.name.text.trim().isEmpty;
-    final valueMissing = submitted && !blank && row.value.text.trim().isEmpty;
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -787,7 +844,6 @@ class _TestCard extends StatelessWidget {
                             context,
                             LabField.value,
                             l.labTestValue,
-                            error: valueMissing ? l.fieldRequired : null,
                           ),
                         ),
                       ),
@@ -819,7 +875,51 @@ class _TestCard extends StatelessWidget {
                       hint: l.labTestRangeHint,
                     ),
                   ),
-                  if (test != null) ...[
+                  if (row.ranges.isNotEmpty &&
+                      row.range.text.trim().isEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      l.labPickRange,
+                      style: TextStyle(color: Severity.headsUp.foreground),
+                    ),
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        for (final (j, printed) in row.ranges.indexed)
+                          ActionChip(
+                            key: ValueKey('lab-range-choice-$index-$j'),
+                            label: Text('\u2066$printed\u2069'),
+                            onPressed: () {
+                              row.range.text = printed;
+                              _edited(LabField.range);
+                            },
+                          ),
+                      ],
+                    ),
+                  ],
+                  if (row.scanned) ...[
+                    const SizedBox(height: 4),
+                    CheckboxListTile(
+                      key: ValueKey('lab-confirm-$index'),
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      value: row.confirmed,
+                      title: Text(l.labConfirmRow),
+                      subtitle: row.unsure.isEmpty
+                          ? null
+                          : Text(l.labConfirmFirstCheck),
+                      onChanged: row.unsure.isNotEmpty
+                          ? null
+                          : (v) {
+                              row.confirmed = v ?? false;
+                              onChanged();
+                            },
+                    ),
+                  ],
+                  // No flag on a row read from the photo until it's confirmed.
+                  if (test != null && (!row.scanned || row.confirmed)) ...[
                     const SizedBox(height: 10),
                     Align(
                       alignment: AlignmentDirectional.centerStart,
@@ -958,6 +1058,107 @@ class _Files extends StatelessWidget {
           label: Text(l.labAttachPdf),
         ),
       ],
+    );
+  }
+}
+
+/// A box's look: marked (words, icon, colour) while the phone isn't sure of
+/// it, with a button to say it was checked against the paper.
+InputDecoration _unsureDecoration(
+  BuildContext context, {
+  required String label,
+  required bool unsure,
+  required String checkKey,
+  required VoidCallback onChecked,
+  String? hint,
+  String? error,
+}) {
+  final l = AppLocalizations.of(context);
+  return InputDecoration(
+    labelText: label,
+    hintText: hint,
+    errorText: error,
+    helperText: unsure ? l.labCheckThis : null,
+    helperStyle: unsure ? TextStyle(color: Severity.headsUp.foreground) : null,
+    filled: unsure,
+    fillColor: unsure ? Severity.headsUp.background : null,
+    suffixIcon: unsure
+        ? IconButton(
+            key: ValueKey(checkKey),
+            tooltip: l.labCheckedIt,
+            onPressed: onChecked,
+            icon: Icon(Icons.task_alt, color: Severity.headsUp.foreground),
+          )
+        : null,
+  );
+}
+
+/// The photo just read, next to the rows, to check them against: pinch to
+/// zoom, or open it full screen.
+class _ScanPhoto extends StatelessWidget {
+  const _ScanPhoto({required this.path});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final image = FileImage(File(path));
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: ColoredBox(
+              color: Colors.black,
+              child: SizedBox(
+                height: 260,
+                child: InteractiveViewer(
+                  key: const ValueKey('lab-scan-photo'),
+                  maxScale: 6,
+                  child: Center(
+                    child: PhotoImage(
+                      image: image,
+                      semanticLabel: l.labScanPhoto,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: TextButton.icon(
+              key: const ValueKey('lab-scan-photo-full'),
+              onPressed: () => Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute<void>(
+                  fullscreenDialog: true,
+                  builder: (_) => Scaffold(
+                    backgroundColor: Colors.black,
+                    appBar: AppBar(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                    ),
+                    body: InteractiveViewer(
+                      maxScale: 8,
+                      child: Center(
+                        child: PhotoImage(
+                          image: image,
+                          semanticLabel: l.labScanPhoto,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              icon: const Icon(Icons.fullscreen),
+              label: Text(l.labPhotoFullScreen),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -349,7 +349,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get labScanFailed => 'Couldn\'t read the photo';
 
   @override
+  String get labScanNothingNew =>
+      'Nothing new on this photo: its results are already here.';
+
+  @override
   String get labCheckThis => 'Check this against the paper';
+
+  @override
+  String get labConfirmRow => 'Matches the paper';
+
+  @override
+  String get labConfirmFirstCheck => 'Check the marked boxes first';
+
+  @override
+  String get labConfirmNeeded =>
+      'Before saving, confirm each row read from the photo, and check every marked box, against the paper.';
+
+  @override
+  String get labCheckedIt => 'I checked it';
+
+  @override
+  String get labPickRange =>
+      'Several ranges are printed: pick the one that applies';
+
+  @override
+  String get labScanPhoto => 'The photo of the report';
+
+  @override
+  String get labPhotoFullScreen => 'Full screen';
 
   @override
   String get labAttachPdf => 'Add a PDF';

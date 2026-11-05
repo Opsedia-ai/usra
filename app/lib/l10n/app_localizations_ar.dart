@@ -348,7 +348,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get labScanFailed => 'مقدرناش نقرا الصورة';
 
   @override
+  String get labScanNothingNew =>
+      'مفيش جديد في الصورة دي: نتايجها موجودة هنا خلاص.';
+
+  @override
   String get labCheckThis => 'راجع دي على الورقة';
+
+  @override
+  String get labConfirmRow => 'مطابق للورقة';
+
+  @override
+  String get labConfirmFirstCheck => 'راجع الخانات المعلّمة الأول';
+
+  @override
+  String get labConfirmNeeded =>
+      'قبل ما تحفظ، أكّد كل سطر اتقرا من الصورة، وراجع كل خانة معلّمة، على الورقة.';
+
+  @override
+  String get labCheckedIt => 'راجعتها';
+
+  @override
+  String get labPickRange => 'فيه أكتر من معدل مكتوب: اختار اللي ينطبق';
+
+  @override
+  String get labScanPhoto => 'صورة الورقة';
+
+  @override
+  String get labPhotoFullScreen => 'ملء الشاشة';
 
   @override
   String get labAttachPdf => 'ضيف ملف PDF';

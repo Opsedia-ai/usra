@@ -259,3 +259,18 @@ String labUnitKey(String? unit) => (unit ?? '')
     .replaceAll(RegExp('[µμ]'), 'u')
     .replaceAll('mcg', 'ug')
     .replaceAll(RegExp(r'\s+'), '');
+
+final Set<String> _knownIds = {for (final t in knownLabTests) t.id};
+
+/// A series key safe to put in a page address: a known test's id, or a
+/// short hash of the name, so no typed test name ends up in a route.
+String labRouteId(String seriesKey) {
+  if (_knownIds.contains(seriesKey)) return seriesKey;
+  // FNV-1a, 32 bits.
+  var hash = 0x811c9dc5;
+  for (final unit in seriesKey.codeUnits) {
+    hash ^= unit;
+    hash = (hash * 0x01000193) & 0xffffffff;
+  }
+  return 'x${hash.toRadixString(16).padLeft(8, '0')}';
+}

@@ -25,60 +25,135 @@ abstract final class LabFields {
 /// normal, and never a diagnosis.
 enum LabFlag { low, normal, high, unknown }
 
+/// A number as labs print and people type it, read strictly (no NaN,
+/// Infinity or hex). Arabic digits and separators are accepted. A comma is
+/// a thousands separator only in "1,250" / "250,000" form (first group 1-3
+/// digits without a leading zero, every other group exactly 3 digits);
+/// otherwise a single comma is a decimal comma. [rewritten] says a comma
+/// was read either way, so the result is worth a second look.
+({double? value, bool rewritten}) parseLabNumber(String raw) {
+  var s = toWesternDigits(raw.trim()).replaceAll('\u066C', ',');
+  s = s.replaceAll(RegExp(r'\s+'), '');
+  var rewritten = false;
+  if (s.contains(',')) {
+    rewritten = true;
+    final thousands = RegExp(r'^[+-]?[1-9]\d{0,2}(,\d{3})+(\.\d+)?$');
+    if (thousands.hasMatch(s)) {
+      s = s.replaceAll(',', '');
+    } else if (RegExp(r'^[+-]?\d+,\d+$').hasMatch(s)) {
+      s = s.replaceAll(',', '.');
+    } else {
+      return (value: null, rewritten: true);
+    }
+  }
+  if (!RegExp(r'^[+-]?(\d+(\.\d*)?|\.\d+)$').hasMatch(s)) {
+    return (value: null, rewritten: rewritten);
+  }
+  final v = double.tryParse(s);
+  return (value: v != null && v.isFinite ? v : null, rewritten: rewritten);
+}
+
 /// The reference range the lab printed next to a result: numbers ([low],
 /// [high] or both) or, when it isn't numeric ("Negative"), [text].
+///
+/// Each bound is inclusive unless printed otherwise: "< 200" excludes 200
+/// (so 200 is above it), "up to 150" and "≤ 150" include 150. [printed] keeps
+/// the range as the lab wrote it, for display.
 class LabRange {
-  const LabRange({this.low, this.high, this.text});
+  const LabRange({
+    this.low,
+    this.high,
+    this.text,
+    this.lowInclusive = true,
+    this.highInclusive = true,
+    this.printed,
+  });
 
   static const none = LabRange();
 
   final double? low;
   final double? high;
   final String? text;
+  final bool lowInclusive;
+  final bool highInclusive;
+  final String? printed;
 
   bool get isNumeric => low != null || high != null;
   bool get isEmpty => !isNumeric && (text == null || text!.trim().isEmpty);
 
-  static final _number = r'(-?\d+(?:\.\d+)?)';
-  static final _between = RegExp('^$_number\\s*(?:-|to|:)\\s*$_number\$');
+  static const _n = r'([+-]?[\d,]*\d(?:\.\d+)?)';
+  static final _between = RegExp('^$_n\\s*(?:-|to|:)\\s*$_n\$');
   static final _below = RegExp(
-    '^(?:<=?|≤|up\\s*to|less\\s*than|below|till|lower\\s*than)\\s*$_number\$',
+    '^(<=|≤|=<|<|up\\s*to|less\\s*than|below|till|lower\\s*than)\\s*$_n\$',
   );
   static final _above = RegExp(
-    '^(?:>=?|≥|more\\s*than|above|greater\\s*than|over|higher\\s*than)'
-    '\\s*$_number\$',
+    '^(>=|≥|=>|>|more\\s*than|above|greater\\s*than|over|higher\\s*than)'
+    '\\s*$_n\$',
   );
 
+  static bool _inclusive(String op) =>
+      op == '<=' ||
+      op == '≤' ||
+      op == '=<' ||
+      op == '>=' ||
+      op == '≥' ||
+      op == '=>' ||
+      op.startsWith('up') ||
+      op.startsWith('till');
+
   /// Reads a range as people type it or labs print it: "4 - 11", "4.0–11.0",
-  /// "(70-100)", "< 200", "up to 40", "> 60". Anything else is kept as text.
+  /// "(70-100)", "< 200", "up to 40", "≥ 60", "150,000 - 450,000",
+  /// "-2 - +2". Anything else is kept as text.
   static LabRange parse(String raw) {
-    final s = toWesternDigits(raw)
-        .trim()
+    final shown = raw.trim();
+    final s = toWesternDigits(shown)
+        .replaceAll('\u066C', ',')
         .replaceAll(RegExp('[–—−]'), '-')
         .replaceAll(RegExp(r'^[(\[]|[)\]]$'), '')
         .trim()
         .toLowerCase();
     if (s.isEmpty) return none;
+    double? n(String t) => parseLabNumber(t).value;
+    final printed = shown;
     if (_between.firstMatch(s) case final m?) {
-      final a = double.parse(m[1]!);
-      final b = double.parse(m[2]!);
-      return LabRange(low: a < b ? a : b, high: a < b ? b : a);
+      final a = n(m[1]!);
+      final b = n(m[2]!);
+      if (a != null && b != null) {
+        return LabRange(
+          low: a < b ? a : b,
+          high: a < b ? b : a,
+          printed: printed,
+        );
+      }
     }
     if (_below.firstMatch(s) case final m?) {
-      return LabRange(high: double.parse(m[1]!));
+      if (n(m[2]!) case final v?) {
+        return LabRange(
+          high: v,
+          highInclusive: _inclusive(m[1]!),
+          printed: printed,
+        );
+      }
     }
     if (_above.firstMatch(s) case final m?) {
-      return LabRange(low: double.parse(m[1]!));
+      if (n(m[2]!) case final v?) {
+        return LabRange(
+          low: v,
+          lowInclusive: _inclusive(m[1]!),
+          printed: printed,
+        );
+      }
     }
-    return LabRange(text: raw.trim());
+    return LabRange(text: shown);
   }
 
-  /// "4 - 11", "< 200", "> 60", or the text as printed.
+  /// As printed when known, else "4 - 11", "< 200", "≤ 150", "> 60".
   String format([String Function(double)? number]) {
+    if (printed != null && printed!.isNotEmpty) return printed!;
     final n = number ?? formatLabNumber;
     if (low != null && high != null) return '${n(low!)} - ${n(high!)}';
-    if (high != null) return '< ${n(high!)}';
-    if (low != null) return '> ${n(low!)}';
+    if (high != null) return '${highInclusive ? '≤' : '<'} ${n(high!)}';
+    if (low != null) return '${lowInclusive ? '≥' : '>'} ${n(low!)}';
     return text ?? '';
   }
 
@@ -87,10 +162,14 @@ class LabRange {
       other is LabRange &&
       other.low == low &&
       other.high == high &&
-      other.text == text;
+      other.text == text &&
+      other.lowInclusive == lowInclusive &&
+      other.highInclusive == highInclusive &&
+      other.printed == printed;
 
   @override
-  int get hashCode => Object.hash(low, high, text);
+  int get hashCode =>
+      Object.hash(low, high, text, lowInclusive, highInclusive, printed);
 
   @override
   String toString() => 'LabRange(${format()})';
@@ -125,7 +204,8 @@ class LabTest {
   final LabRange range;
 
   /// The result against the printed range: [LabFlag.unknown] when either is
-  /// missing or not a number. Bounds count as inside the range.
+  /// missing or not a number. Bounds count as inside unless printed with
+  /// "<" or ">".
   LabFlag get flag => labFlagOf(value, range);
 
   /// The result as shown: the number, or the text.
@@ -136,13 +216,8 @@ class LabTest {
   static ({double? value, String? text}) readValue(String raw) {
     final t = raw.trim();
     if (t.isEmpty) return (value: null, text: null);
-    // "250,000" is thousands; "12,5" a decimal comma.
-    final western = toWesternDigits(t);
-    final plain = RegExp(r'^\d{1,3}(,\d{3})+(\.\d+)?$').hasMatch(western)
-        ? western.replaceAll(',', '')
-        : western.replaceAll(',', '.');
-    final n = parseLocalizedNumber(plain);
-    if (n != null) return (value: n.toDouble(), text: null);
+    final n = parseLabNumber(t).value;
+    if (n != null) return (value: n, text: null);
     return (value: null, text: t);
   }
 
@@ -154,13 +229,16 @@ class LabTest {
     'low': ?range.low,
     'high': ?range.high,
     'rangeText': ?range.text,
+    if (!range.lowInclusive) 'lowOpen': true,
+    if (!range.highInclusive) 'highOpen': true,
+    'rangePrinted': ?range.printed,
   };
 
   static LabTest? fromJson(Object? json) {
     if (json is! Map) return null;
     final name = json['name'];
     if (name is! String || name.trim().isEmpty) return null;
-    double? number(Object? v) => v is num ? v.toDouble() : null;
+    double? number(Object? v) => v is num && v.isFinite ? v.toDouble() : null;
     String? text(Object? v) =>
         v is String && v.trim().isNotEmpty ? v.trim() : null;
     return LabTest(
@@ -172,6 +250,9 @@ class LabTest {
         low: number(json['low']),
         high: number(json['high']),
         text: text(json['rangeText']),
+        lowInclusive: json['lowOpen'] != true,
+        highInclusive: json['highOpen'] != true,
+        printed: text(json['rangePrinted']),
       ),
     );
   }
@@ -197,8 +278,16 @@ class LabTest {
 /// [value] against the lab's printed [range].
 LabFlag labFlagOf(double? value, LabRange range) {
   if (value == null || !range.isNumeric) return LabFlag.unknown;
-  if (range.low != null && value < range.low!) return LabFlag.low;
-  if (range.high != null && value > range.high!) return LabFlag.high;
+  if (range.low case final low?) {
+    if (value < low || (!range.lowInclusive && value == low)) {
+      return LabFlag.low;
+    }
+  }
+  if (range.high case final high?) {
+    if (value > high || (!range.highInclusive && value == high)) {
+      return LabFlag.high;
+    }
+  }
   return LabFlag.normal;
 }
 
@@ -228,7 +317,7 @@ class LabReport {
     final name = text(data[LabFields.test]);
     if (name == null) return LabReport(lab: lab, orderedBy: orderedBy);
     final value = data[LabFields.value];
-    final read = value is num
+    final read = value is num && value.isFinite
         ? (value: value.toDouble(), text: null)
         : LabTest.readValue(value is String ? value : '');
     return LabReport(
@@ -311,6 +400,9 @@ class LabSeries {
   final List<LabPoint> points;
 
   LabPoint get latest => points.last;
+
+  /// [testKey] as it may appear in a page address (see [labRouteId]).
+  String get routeId => labRouteId(testKey);
 }
 
 /// Every test with a number result in a person's lab [events], one series
@@ -324,7 +416,9 @@ List<LabSeries> labSeriesOf(Iterable<MedicalEvent> events) {
   for (final e in sorted) {
     for (final t in LabReport.of(e).tests) {
       if (t.value == null) continue;
-      final key = '${labSeriesKey(t.name)}|${labUnitKey(t.unit)}';
+      // A test with no unit is its own series, never merged with one
+      // that has a unit.
+      final key = '${labSeriesKey(t.name)}\u0000${labUnitKey(t.unit)}';
       (groups[key] ??= []).add((
         LabPoint(
           eventId: e.id,
@@ -340,7 +434,7 @@ List<LabSeries> labSeriesOf(Iterable<MedicalEvent> events) {
   final series = [
     for (final MapEntry(key: key, value: points) in groups.entries)
       LabSeries(
-        testKey: key.substring(0, key.lastIndexOf('|')),
+        testKey: key.substring(0, key.indexOf('\u0000')),
         name: points.last.$1.name,
         unit: points.last.$2,
         points: [for (final (p, _) in points) p],

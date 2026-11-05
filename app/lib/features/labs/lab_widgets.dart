@@ -78,7 +78,7 @@ String labValueText(LabTest t) =>
 
 /// Where a test's results over time are shown.
 String labTrendPath(String profileId, String testName) =>
-    '/family/$profileId/labs/test/${Uri.encodeComponent(labSeriesKey(testName))}';
+    '/family/$profileId/labs/test/${labRouteId(labSeriesKey(testName))}';
 
 /// A lab record on its page: lab, doctor, and each result with the range
 /// printed by the lab and the flag from it. Results with a number open

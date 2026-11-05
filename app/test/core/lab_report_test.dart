@@ -20,19 +20,48 @@ MedicalEvent _event(String id, DateTime at, Map<String, Object?> data) =>
 void main() {
   group('printed range', () {
     test('reads the ways labs print it', () {
-      expect(LabRange.parse('4.0 - 11.0'), const LabRange(low: 4, high: 11));
-      expect(LabRange.parse('(70–100)'), const LabRange(low: 70, high: 100));
-      expect(LabRange.parse('١٢ - ١٦'), const LabRange(low: 12, high: 16));
-      expect(LabRange.parse('< 200'), const LabRange(high: 200));
-      expect(LabRange.parse('Up to 40'), const LabRange(high: 40));
-      expect(LabRange.parse('>60'), const LabRange(low: 60));
-      expect(LabRange.parse('Negative'), const LabRange(text: 'Negative'));
+      (double?, double?, bool, bool, String?) read(String raw) {
+        final r = LabRange.parse(raw);
+        return (r.low, r.high, r.lowInclusive, r.highInclusive, r.text);
+      }
+
+      expect(read('4.0 - 11.0'), (4, 11, true, true, null));
+      expect(read('(70–100)'), (70, 100, true, true, null));
+      expect(read('١٢ - ١٦'), (12, 16, true, true, null));
+      expect(read('< 200'), (null, 200, true, false, null));
+      expect(read('<=200'), (null, 200, true, true, null));
+      expect(read('≤ 200'), (null, 200, true, true, null));
+      expect(read('Up to 40'), (null, 40, true, true, null));
+      expect(read('>60'), (60, null, false, true, null));
+      expect(read('≥ 60'), (60, null, true, true, null));
+      expect(read('Negative'), (null, null, true, true, 'Negative'));
       expect(LabRange.parse('  '), LabRange.none);
-      expect(LabRange.parse('-2 - 2'), const LabRange(low: -2, high: 2));
-      expect(labFlagOf(-5, LabRange.parse('-2 - +2')), LabFlag.unknown);
-      expect(labFlagOf(-5, LabRange.parse('-2 - 2')), LabFlag.low);
+      // Signed bounds and thousands.
+      expect(read('-2 - 2'), (-2, 2, true, true, null));
+      expect(read('-2 - +2'), (-2, 2, true, true, null));
+      expect(read('150,000 - 450,000'), (150000, 450000, true, true, null));
+      expect(read('١٥٠٬٠٠٠ - ٤٥٠٬٠٠٠'), (150000, 450000, true, true, null));
+      // Shown as printed; built ones say which bounds are included.
+      expect(LabRange.parse('Up to 150').format(), 'Up to 150');
       expect(const LabRange(low: 4, high: 11.5).format(), '4 - 11.5');
-      expect(const LabRange(high: 200).format(), '< 200');
+      expect(const LabRange(high: 200, highInclusive: false).format(), '< 200');
+      expect(const LabRange(high: 200).format(), '≤ 200');
+    });
+
+    test('numbers are read strictly', () {
+      expect(parseLabNumber('NaN').value, isNull);
+      expect(parseLabNumber('Infinity').value, isNull);
+      expect(parseLabNumber('0x1F').value, isNull);
+      expect(parseLabNumber('1e5').value, isNull);
+      expect(parseLabNumber('12.5'), (value: 12.5, rewritten: false));
+      expect(parseLabNumber('250,000'), (value: 250000.0, rewritten: true));
+      expect(parseLabNumber('12,5'), (value: 12.5, rewritten: true));
+      // A leading zero or a short group means a decimal comma.
+      expect(parseLabNumber('0,250').value, 0.25);
+      expect(parseLabNumber('1,25').value, 1.25);
+      expect(parseLabNumber('1,2,3').value, isNull);
+      expect(parseLabNumber('١٢٫٥').value, 12.5);
+      expect(parseLabNumber('١٬٢٥٠').value, 1250);
     });
 
     test('the flag comes from the printed range only', () {
@@ -43,6 +72,14 @@ void main() {
       expect(labFlagOf(16, range), LabFlag.high);
       expect(labFlagOf(250, const LabRange(high: 200)), LabFlag.high);
       expect(labFlagOf(38, const LabRange(low: 40)), LabFlag.low);
+      // "< 200" leaves 200 out; "up to 150" keeps 150 in.
+      expect(labFlagOf(200, LabRange.parse('<200')), LabFlag.high);
+      expect(labFlagOf(199, LabRange.parse('<200')), LabFlag.normal);
+      expect(labFlagOf(150, LabRange.parse('Up to 150')), LabFlag.normal);
+      expect(labFlagOf(150, LabRange.parse('≤ 150')), LabFlag.normal);
+      expect(labFlagOf(40, LabRange.parse('> 40')), LabFlag.low);
+      expect(labFlagOf(40, LabRange.parse('≥ 40')), LabFlag.normal);
+      expect(labFlagOf(-5, LabRange.parse('-2 - 2')), LabFlag.low);
       // No range, a text range or no number: nothing to say.
       expect(labFlagOf(16, LabRange.none), LabFlag.unknown);
       expect(labFlagOf(16, const LabRange(text: 'Negative')), LabFlag.unknown);
@@ -66,17 +103,25 @@ void main() {
           valueText: 'Nil',
           range: LabRange(text: 'Nil'),
         ),
+        LabTest(
+          name: 'LDL',
+          value: 130,
+          unit: 'mg/dL',
+          range: LabRange(high: 130, highInclusive: false, printed: '<130'),
+        ),
       ],
     );
     final data =
         jsonDecode(jsonEncode(report.toData())) as Map<String, Object?>;
     // Features that look for a test by name find it.
-    expect(data['test'], 'HbA1c, Urine glucose');
+    expect(data['test'], 'HbA1c, Urine glucose, LDL');
     final back = LabReport.fromData(data);
     expect(back.lab, 'Alfa');
     expect(back.orderedBy, 'د. هاني');
     expect(back.tests, report.tests);
     expect(back.tests.first.flag, LabFlag.high);
+    expect(back.tests.last.flag, LabFlag.high);
+    expect(back.tests.last.range.format(), '<130');
   });
 
   test('a lab record from before reports reads as one test', () {

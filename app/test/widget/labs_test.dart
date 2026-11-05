@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -68,7 +69,7 @@ void main() {
   );
 
   Future<void> start(WidgetTester tester, String path) async {
-    tester.view.physicalSize = const Size(1170, 4000);
+    tester.view.physicalSize = const Size(1170, 9000);
     tester.view.devicePixelRatio = 1.5;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(app());
@@ -116,6 +117,7 @@ void main() {
       'HbA1c  7.4  %  4.0 - 5.6',
       'Hemoglobin  1O.5  g/dL  12.0 - 15.5',
       'Fasting Blood Sugar  95  mg/dL  70 - 100',
+      'Vitamin D  18.5  ng/mL  Deficiency < 20  Sufficiency 30 - 100',
     ]);
     await start(tester, '/family/$mom/add/lab');
     expect(find.byKey(const ValueKey('lab-info-note')), findsOneWidget);
@@ -123,23 +125,56 @@ void main() {
     await tapKey(tester, 'lab-scan-camera');
     expect(ocr.read, [picked.first.path]);
     expect(find.byKey(const ValueKey('lab-scan-result')), findsOneWidget);
-    expect(find.textContaining('لقينا 3 نتيجة'), findsOneWidget);
-    // Filled in, not saved.
+    expect(find.textContaining('لقينا 4 نتيجة'), findsOneWidget);
+    // Filled in, not saved, with the photo beside the rows to check.
     expect(field(tester, 'lab-name'), 'ALFA LABORATORIES');
     expect(field(tester, 'lab-doctor'), 'Dr. Hany Saleh');
     expect(field(tester, 'lab-test-name-0'), 'HbA1c');
     expect(field(tester, 'lab-test-value-1'), '10.5');
+    expect(find.byKey(const ValueKey('lab-scan-photo')), findsOneWidget);
     expect(
       await tester.runAsync(() => db.eventsOfTypes({'lab'})),
       hasLength(1),
     );
 
-    // The misread value is marked, with words, until it's edited.
+    // Nothing is saved until every row read from the photo is confirmed
+    // and every marked box checked.
+    expect(find.byKey(const ValueKey('lab-confirm-needed')), findsOneWidget);
+    await tapKey(tester, 'record-save');
+    expect(
+      await tester.runAsync(() => db.eventsOfTypes({'lab'})),
+      hasLength(1),
+    );
+    // No flag on a row until it's confirmed.
+    expect(find.byKey(const ValueKey('lab-test-flag-0')), findsNothing);
+
+    // The date came from the photo: marked until checked.
+    expect(find.byKey(const ValueKey('lab-unsure-date')), findsOneWidget);
+    await tapKey(tester, 'lab-unsure-date');
+    expect(find.byKey(const ValueKey('lab-unsure-date')), findsNothing);
+
+    // The misread value is marked, with words; its row can't be confirmed
+    // until it's edited or ticked as checked.
     expect(find.byKey(const ValueKey('lab-unsure-value-1')), findsOneWidget);
     expect(find.byKey(const ValueKey('lab-unsure-value-0')), findsNothing);
-    expect(find.text('راجع دي على الورقة'), findsOneWidget);
+    expect(find.text('راجع دي على الورقة'), findsWidgets);
+    final confirm1 = tester.widget<CheckboxListTile>(
+      find.byKey(const ValueKey('lab-confirm-1')),
+    );
+    expect(confirm1.onChanged, isNull);
     await type(tester, 'lab-test-value-1', '10.8');
     expect(find.byKey(const ValueKey('lab-unsure-value-1')), findsNothing);
+
+    // Several ranges printed for vitamin D: none is taken until one is
+    // picked.
+    expect(field(tester, 'lab-test-range-3'), '');
+    await tapKey(tester, 'lab-range-choice-3-1');
+    expect(field(tester, 'lab-test-range-3'), '30 - 100');
+
+    for (final i in [0, 1, 2, 3]) {
+      await tapKey(tester, 'lab-confirm-$i');
+    }
+    expect(find.byKey(const ValueKey('lab-confirm-needed')), findsNothing);
 
     // Flags come from the printed range, in words.
     expect(
@@ -157,11 +192,16 @@ void main() {
       findsOneWidget,
     );
 
+    // The same page photographed again adds nothing new.
+    await tapKey(tester, 'lab-scan-camera');
+    expect(find.byKey(const ValueKey('lab-test-name-4')), findsNothing);
+    await tapKey(tester, 'record-photo-remove-1');
+
     // One more typed by hand, and a PDF.
     await tapKey(tester, 'lab-add-test');
-    await type(tester, 'lab-test-name-3', 'TSH');
-    await type(tester, 'lab-test-value-3', '2.1');
-    await type(tester, 'lab-test-range-3', '0.27 - 4.2');
+    await type(tester, 'lab-test-name-4', 'TSH');
+    await type(tester, 'lab-test-value-4', '2.1');
+    await type(tester, 'lab-test-range-4', '0.27 - 4.2');
     await tapKey(tester, 'lab-attach-pdf');
     await tapKey(tester, 'record-save');
 
@@ -173,10 +213,12 @@ void main() {
       'HbA1c',
       'Hemoglobin',
       'Fasting Blood Sugar',
+      'Vitamin D',
       'TSH',
     ]);
     expect(report.tests[1].value, 10.8);
     expect(report.tests[1].flag, LabFlag.low);
+    expect(report.tests[3].range.format(), '30 - 100');
     // The scanned photo and the PDF are kept, encrypted.
     final files = (await tester.runAsync(
       () => db.watchAttachments(saved.id).first,
@@ -188,15 +230,19 @@ void main() {
         isTrue,
       );
     }
-    expect(photos.readSync(files[1].path), [1]);
-    // No plain copies left behind.
-    expect(picked.first.existsSync(), isFalse);
+    // The PDF is the third file picked (after two photos of the page).
+    expect(photos.readSync(files[1].path), [2]);
+    // No plain photo copies left behind; the PDF picker's go via cleanup.
+    expect(
+      picked.where((f) => f.path.endsWith('.jpg') && f.existsSync()),
+      isEmpty,
+    );
     expect(cleanups, 1);
 
     // The record page: each result with its range and flag.
     await tapKey(tester, 'event-${saved.id}');
-    expect(find.byKey(const ValueKey('lab-result-3')), findsOneWidget);
-    expect(find.text('أقل من معدل المعمل'), findsOneWidget);
+    expect(find.byKey(const ValueKey('lab-result-4')), findsOneWidget);
+    expect(find.text('أقل من معدل المعمل'), findsNWidgets(2));
     expect(find.byKey(const ValueKey('record-pdf-0')), findsOneWidget);
     expect(find.byKey(const ValueKey('record-thumb-0')), findsOneWidget);
 
@@ -275,12 +321,12 @@ void main() {
     expect(find.text('أعلى من معدل المعمل'), findsOneWidget);
   });
 
-  testWidgets('nothing is saved without a test and its result', (tester) async {
+  testWidgets('nothing is saved without a test name', (tester) async {
     final mom = (await tester.runAsync(() => db.addProfile('فاطمة')))!;
     await start(tester, '/family/$mom/add/lab');
     await tapKey(tester, 'record-save');
     expect(find.byKey(const ValueKey('lab-need-test')), findsOneWidget);
-    await type(tester, 'lab-test-name-0', 'CBC');
+    await type(tester, 'lab-test-value-0', '13');
     await tapKey(tester, 'record-save');
     expect(find.text('مطلوب'), findsOneWidget);
     expect(await tester.runAsync(() => db.eventsOfTypes({'lab'})), isEmpty);
@@ -290,6 +336,51 @@ void main() {
     await tapKey(tester, 'lab-pdf-remove-0');
     expect(cleanups, 0);
     GoRouter.of(tester.element(find.byType(Scaffold).first)).go('/family/$mom');
+    await tester.pumpAndSettle();
+    expect(cleanups, 1);
+  });
+
+  testWidgets('a test with a name and no result can be saved', (tester) async {
+    final mom = (await tester.runAsync(() => db.addProfile('فاطمة')))!;
+    await start(tester, '/family/$mom/add/lab');
+    await type(tester, 'lab-test-name-0', 'CBC');
+    await tapKey(tester, 'record-save');
+    final saved = (await tester.runAsync(() => db.eventsOfTypes({'lab'})))!;
+    final test = LabReport.of(saved.single).tests.single;
+    expect((test.name, test.value, test.valueText), ('CBC', null, null));
+  });
+
+  testWidgets('a PDF picked as the form closes leaves no plain copy', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 9000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    final mom = (await tester.runAsync(() => db.addProfile('فاطمة')))!;
+    final picking = Completer<String?>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          attachmentStoreProvider.overrideWithValue(photos),
+          ocrServiceProvider.overrideWithValue(ocr),
+          labPdfPickerProvider.overrideWithValue(() => picking.future),
+          pickedFilesCleanupProvider.overrideWithValue(() async => cleanups++),
+        ],
+        child: const UsraApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
+    router.go('/family/$mom/add/lab');
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('lab-attach-pdf')));
+    await tester.tap(find.byKey(const ValueKey('lab-attach-pdf')));
+    await tester.pump();
+    router.go('/family/$mom');
+    await tester.pumpAndSettle();
+    expect(cleanups, 0);
+    picking.complete(pick('pdf'));
     await tester.pumpAndSettle();
     expect(cleanups, 1);
   });
