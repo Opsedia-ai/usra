@@ -1461,6 +1461,61 @@
   "vaccineSetupNoneYet": "No doses are due yet.",
   "vaccineSetupSkip": "Later",
   "vaccineSetupSaved": "Vaccinations saved",
+  "vaccineScanTitle": "Read the vaccination card",
+  "vaccineScanHelp": "Take a photo of the card. The phone reads the dates and English vaccine names itself; nothing is sent anywhere, and the photo isn't kept. Check every dose against the card.",
+  "vaccineScanReading": "Reading the card…",
+  "vaccineScanFound": "{count, plural, =1{Found 1 dose on the card.} other{Found {count} doses on the card.}} Check each one below and tick “Matches the card”.",
+  "@vaccineScanFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vaccineScanNothing": "Couldn't find dated doses in this photo. Tick them by hand below.",
+  "vaccineScanAlready": "{count, plural, =1{1 dose on the card was already recorded, so it wasn't changed.} other{{count} doses on the card were already recorded, so they weren't changed.}}",
+  "@vaccineScanAlready": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vaccineScanFailed": "Couldn't read the photo",
+  "vaccineFromCard": "On the card: {row}",
+  "@vaccineFromCard": {
+    "placeholders": {
+      "row": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineDoseGuessed": "The card doesn't say which dose this is: check the number.",
+  "vaccineDateCheck": "Check the date: the card had more than one for this dose.",
+  "vaccineConfirmCard": "Matches the card",
+  "vaccineConfirmNeeded": "Before saving, confirm each dose read from the card (or untick it), and say which dose each unnamed row is, or skip it.",
+  "vaccineUnknownTitle": "Rows the phone couldn't name",
+  "vaccineUnknownRow": "“{text}”, given {date}",
+  "@vaccineUnknownRow": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineUnknownDateOnly": "A dose given {date}",
+  "@vaccineUnknownDateOnly": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineUnknownPick": "Which dose is this?",
+  "vaccineUnknownSkip": "Skip",
   "vaccineChangeDate": "Change date",
   "vaccineDoseGiven": "Given",
   "vaccineDoseDate": "Date given",
@@ -1648,6 +1703,35 @@
     }
   },
   "prescriptionTimesHint": "Check the times match what the doctor wrote, e.g. every 8 hours.",
+  "rxScanTitle": "Read the prescription from a photo",
+  "rxScanHelp": "The phone reads printed medicine names in English itself; nothing is sent anywhere. It doesn't read handwriting: if the doctor wrote by hand, type the medicines from the photo. The photo is kept, encrypted, with the prescription.",
+  "rxScanReading": "Reading the prescription…",
+  "rxScanFound": "{count, plural, =1{Found 1 medicine.} other{Found {count} medicines.}} Check each one against the paper; highlighted boxes are ones the phone wasn't sure of.",
+  "@rxScanFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rxScanUnclear": "This looks handwritten or unclear, so nothing was filled in. The photo is kept with the prescription: type the medicines from it.",
+  "rxScanNothing": "Couldn't find medicines in this photo. Type them in; the photo is kept with the prescription.",
+  "rxScanFailed": "Couldn't read the photo",
+  "rxScanPhoto": "The photo of the prescription",
+  "rxFromPhoto": "Read from the photo: check it against the paper",
+  "rxConfirmMedicine": "Matches the paper",
+  "rxConfirmFirstCheck": "Check the highlighted boxes first",
+  "rxConfirmNeeded": "Before saving, check every medicine read from the photo against the paper and tick “Matches the paper”, and check the date and doctor.",
+  "rxDoctorOnPaper": "On the paper: {name}",
+  "@rxDoctorOnPaper": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rxDoctorAdd": "Add to my doctors",
+  "rxTimesFromPaper": "How often was read from the paper; the reminder times are only spread over the day. Change them if the doctor said otherwise.",
   "growthNoPrematurity": "Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart.",
   "reportAppLine": "Made with Usra (أسرة), a family health app",
   "reportGenerated": "Generated on {date}",

@@ -26,14 +26,23 @@ class FakeOcrService implements OcrService {
   Future<void> close() async {}
 }
 
-/// Lines laid out top to bottom as an [OcrResult].
-OcrResult ocrOf(List<String> lines, {List<double>? heights}) {
+/// Lines laid out top to bottom as an [OcrResult]; [confidences] gives
+/// each line's recogniser confidence (as Android reports it).
+OcrResult ocrOf(
+  List<String> lines, {
+  List<double>? heights,
+  List<double?>? confidences,
+}) {
   var top = 10.0;
   final blocks = <OcrBlock>[];
   for (var i = 0; i < lines.length; i++) {
     final h = heights?[i] ?? 20;
     final box = Rect.fromLTWH(10, top, 300, h);
-    blocks.add(OcrBlock(lines[i], box, [OcrLine(lines[i], box)]));
+    blocks.add(
+      OcrBlock(lines[i], box, [
+        OcrLine(lines[i], box, confidence: confidences?[i]),
+      ]),
+    );
     top += h + 8;
   }
   return OcrResult(blocks);

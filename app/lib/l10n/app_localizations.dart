@@ -4508,6 +4508,108 @@ abstract class AppLocalizations {
   /// **'Vaccinations saved'**
   String get vaccineSetupSaved;
 
+  /// No description provided for @vaccineScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the vaccination card'**
+  String get vaccineScanTitle;
+
+  /// No description provided for @vaccineScanHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo of the card. The phone reads the dates and English vaccine names itself; nothing is sent anywhere, and the photo isn\'t kept. Check every dose against the card.'**
+  String get vaccineScanHelp;
+
+  /// No description provided for @vaccineScanReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the card…'**
+  String get vaccineScanReading;
+
+  /// No description provided for @vaccineScanFound.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Found 1 dose on the card.} other{Found {count} doses on the card.}} Check each one below and tick “Matches the card”.'**
+  String vaccineScanFound(int count);
+
+  /// No description provided for @vaccineScanNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t find dated doses in this photo. Tick them by hand below.'**
+  String get vaccineScanNothing;
+
+  /// No description provided for @vaccineScanAlready.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dose on the card was already recorded, so it wasn\'t changed.} other{{count} doses on the card were already recorded, so they weren\'t changed.}}'**
+  String vaccineScanAlready(int count);
+
+  /// No description provided for @vaccineScanFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the photo'**
+  String get vaccineScanFailed;
+
+  /// No description provided for @vaccineFromCard.
+  ///
+  /// In en, this message translates to:
+  /// **'On the card: {row}'**
+  String vaccineFromCard(String row);
+
+  /// No description provided for @vaccineDoseGuessed.
+  ///
+  /// In en, this message translates to:
+  /// **'The card doesn\'t say which dose this is: check the number.'**
+  String get vaccineDoseGuessed;
+
+  /// No description provided for @vaccineDateCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the date: the card had more than one for this dose.'**
+  String get vaccineDateCheck;
+
+  /// No description provided for @vaccineConfirmCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches the card'**
+  String get vaccineConfirmCard;
+
+  /// No description provided for @vaccineConfirmNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Before saving, confirm each dose read from the card (or untick it), and say which dose each unnamed row is, or skip it.'**
+  String get vaccineConfirmNeeded;
+
+  /// No description provided for @vaccineUnknownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows the phone couldn\'t name'**
+  String get vaccineUnknownTitle;
+
+  /// No description provided for @vaccineUnknownRow.
+  ///
+  /// In en, this message translates to:
+  /// **'“{text}”, given {date}'**
+  String vaccineUnknownRow(String text, String date);
+
+  /// No description provided for @vaccineUnknownDateOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'A dose given {date}'**
+  String vaccineUnknownDateOnly(String date);
+
+  /// No description provided for @vaccineUnknownPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Which dose is this?'**
+  String get vaccineUnknownPick;
+
+  /// No description provided for @vaccineUnknownSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get vaccineUnknownSkip;
+
   /// No description provided for @vaccineChangeDate.
   ///
   /// In en, this message translates to:
@@ -4939,6 +5041,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check the times match what the doctor wrote, e.g. every 8 hours.'**
   String get prescriptionTimesHint;
+
+  /// No description provided for @rxScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the prescription from a photo'**
+  String get rxScanTitle;
+
+  /// No description provided for @rxScanHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone reads printed medicine names in English itself; nothing is sent anywhere. It doesn\'t read handwriting: if the doctor wrote by hand, type the medicines from the photo. The photo is kept, encrypted, with the prescription.'**
+  String get rxScanHelp;
+
+  /// No description provided for @rxScanReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the prescription…'**
+  String get rxScanReading;
+
+  /// No description provided for @rxScanFound.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Found 1 medicine.} other{Found {count} medicines.}} Check each one against the paper; highlighted boxes are ones the phone wasn\'t sure of.'**
+  String rxScanFound(int count);
+
+  /// No description provided for @rxScanUnclear.
+  ///
+  /// In en, this message translates to:
+  /// **'This looks handwritten or unclear, so nothing was filled in. The photo is kept with the prescription: type the medicines from it.'**
+  String get rxScanUnclear;
+
+  /// No description provided for @rxScanNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t find medicines in this photo. Type them in; the photo is kept with the prescription.'**
+  String get rxScanNothing;
+
+  /// No description provided for @rxScanFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the photo'**
+  String get rxScanFailed;
+
+  /// No description provided for @rxScanPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo of the prescription'**
+  String get rxScanPhoto;
+
+  /// No description provided for @rxFromPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Read from the photo: check it against the paper'**
+  String get rxFromPhoto;
+
+  /// No description provided for @rxConfirmMedicine.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches the paper'**
+  String get rxConfirmMedicine;
+
+  /// No description provided for @rxConfirmFirstCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the highlighted boxes first'**
+  String get rxConfirmFirstCheck;
+
+  /// No description provided for @rxConfirmNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Before saving, check every medicine read from the photo against the paper and tick “Matches the paper”, and check the date and doctor.'**
+  String get rxConfirmNeeded;
+
+  /// No description provided for @rxDoctorOnPaper.
+  ///
+  /// In en, this message translates to:
+  /// **'On the paper: {name}'**
+  String rxDoctorOnPaper(String name);
+
+  /// No description provided for @rxDoctorAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to my doctors'**
+  String get rxDoctorAdd;
+
+  /// No description provided for @rxTimesFromPaper.
+  ///
+  /// In en, this message translates to:
+  /// **'How often was read from the paper; the reminder times are only spread over the day. Change them if the doctor said otherwise.'**
+  String get rxTimesFromPaper;
 
   /// No description provided for @growthNoPrematurity.
   ///

@@ -96,5 +96,7 @@ Positioning (store texts and marketing):
 - Like Jojo, say "no account needed" in the first screenshot.
 
 Suggested order: C1 + C2 + C3 together (one vaccine release; built in Nov 2026, schedule research in `egypt-vaccine-schedule.md`), then C5 + C9 (built in Nov 2026),
-then C6 + C7 (C7 and the lab-report part of C6 built in Nov 2026: `app/lib/features/labs/`;
-prescription and vaccination-card OCR still to do), then C4 + C10, then C8.
+then C6 + C7 (built in Nov 2026: lab reports in `app/lib/features/labs/`, prescriptions in
+`app/lib/features/medicines/prescription_parser.dart`, vaccination cards in
+`app/lib/features/children/vaccine_card_parser.dart`; the on-device reader is Latin script only,
+so Arabic text isn't read yet), then C4 + C10, then C8.
