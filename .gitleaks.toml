@@ -1,0 +1,7 @@
+# gitleaks: the default rules, plus one narrow allowlist.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Published cryptographic test vectors (RFC 8032, Wycheproof, speccheck): public test keys, not secrets"
+paths = ['''^supabase/tests/functions/vectors/[a-z0-9_]+\.json$''']
