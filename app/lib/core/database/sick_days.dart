@@ -1,5 +1,9 @@
 part of 'app_database.dart';
 
+/// Minimum hours between doses the app accepts as typed: half an hour to
+/// three days.
+bool isValidMinHours(double h) => h.isFinite && h >= 0.5 && h <= 72;
+
 /// Where a temperature was taken.
 abstract final class TemperatureSite {
   static const armpit = 'armpit';
@@ -271,7 +275,9 @@ extension SickDayDatabase on AppDatabase {
   }
 
   /// Records a medicine given, or updates [id]. [amount] is saved word for
-  /// word. Returns its id.
+  /// word. A new entry for a saved medicine keeps that medicine's minimum
+  /// hours between doses as they are now (`intervalHours`); nothing else
+  /// sets it. Returns its id.
   Future<String> saveGivenMedicine({
     String? id,
     required String episodeId,
@@ -289,6 +295,29 @@ extension SickDayDatabase on AppDatabase {
     }
     final now = DateTime.now().toUtc();
     final key = id ?? AppDatabase._uuid.v4();
+    double? interval;
+    if (medicineId != null) {
+      final m = await (select(
+        medicines,
+      )..where((m) => m.id.equals(medicineId))).getSingleOrNull();
+      interval = m?.minHoursBetweenDoses;
+    }
+    if (id != null) {
+      final existing = await (select(
+        givenMedicines,
+      )..where((g) => g.id.equals(id))).getSingleOrNull();
+      // An edit keeps the hours the entry was saved with.
+      interval = existing?.medicineId == medicineId
+          ? existing?.intervalHours
+          : interval;
+    }
+    if (remindNext && interval == null) {
+      throw ArgumentError.value(
+        remindNext,
+        'remindNext',
+        'the medicine has no minimum hours between doses',
+      );
+    }
     final row = GivenMedicinesCompanion(
       id: Value(key),
       episodeId: Value(episodeId),
@@ -298,6 +327,7 @@ extension SickDayDatabase on AppDatabase {
       amount: Value(AppDatabase._clean(amount)),
       givenAt: Value(givenAt.toUtc()),
       remindNext: Value(remindNext),
+      intervalHours: Value(interval),
       updatedAt: Value(now),
     );
     await transaction(() async {

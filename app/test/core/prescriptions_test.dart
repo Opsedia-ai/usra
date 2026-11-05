@@ -509,11 +509,12 @@ void main() {
       verifier = SchemaVerifier(GeneratedHelper());
     });
 
-    test('the upgraded schema matches a fresh v7 one', () async {
+    test('the upgraded schema matches a fresh current one', () async {
       final schema = await verifier.schemaAt(6);
       final upgraded = AppDatabase(schema.newConnection());
       addTearDown(upgraded.close);
-      await verifier.migrateAndValidate(upgraded, 7);
+      // Through v7 and every later migration.
+      await verifier.migrateAndValidate(upgraded, upgraded.schemaVersion);
     });
 
     test('a v6 database keeps its medicines and gains prescriptions', () async {

@@ -7,9 +7,21 @@ import '../../core/database/app_database.dart';
 /// 38.0 °C (100.4 °F) or higher is a fever (NHS, AAP).
 const feverC = 38.0;
 
-/// Readings outside this range are almost certainly typos.
+/// Readings outside this range are refused as typos.
 const lowestPlausibleC = 30.0;
-const highestPlausibleC = 45.0;
+const highestPlausibleC = 43.0;
+
+/// Readings outside this range are saved only after "Is this right?".
+const lowestUsualC = 34.0;
+const highestUsualC = 42.0;
+
+/// Under 3 months: an armpit reading at or above this is worth a call to
+/// the doctor (armpit readings run lower). Needs medical review.
+const armpitBabyC = 37.5;
+
+/// Under 3 months: a temperature below this is a warning sign too. Needs
+/// medical review.
+const lowBabyC = 36.0;
 
 double toCelsius(double value, String unit) =>
     unit == TemperatureUnit.fahrenheit ? (value - 32) * 5 / 9 : value;
@@ -23,8 +35,18 @@ bool isFever(TemperatureReading r) => readingC(r) >= feverC - 1e-9;
 
 bool isPlausible(double value, String unit) {
   final c = toCelsius(value, unit);
-  return c >= lowestPlausibleC && c <= highestPlausibleC;
+  return c >= lowestPlausibleC - 1e-9 && c <= highestPlausibleC + 1e-9;
 }
+
+/// Plausible but so unusual that the form asks before saving.
+bool needsConfirm(double value, String unit) {
+  final c = toCelsius(value, unit);
+  return c < lowestUsualC - 1e-9 || c > highestUsualC + 1e-9;
+}
+
+/// A reading as saved: one decimal, like a thermometer shows, so the value
+/// on screen and the "Fever" label always agree.
+double roundReading(double value) => (value * 10).round() / 10;
 
 /// The symptoms checklist, in the order shown.
 abstract final class Symptom {
@@ -75,12 +97,14 @@ enum WarningLevel {
 }
 
 /// Who a source is.
-enum WarningSource { nhs, aap, who }
+enum WarningSource { nhs, aap, who, stlouis, womans }
 
 const warningSourceUrls = {
   WarningSource.nhs: 'https://www.nhs.uk/conditions/fever-in-children/',
   WarningSource.aap: 'https://www.healthychildren.org/English/health-issues/conditions/fever/Pages/When-to-Call-the-Pediatrician.aspx',
   WarningSource.who: 'https://www.who.int/publications/i/item/9789241506823',
+  WarningSource.stlouis: 'https://www.stlouischildrens.org/health-resources/symptom-checker/fever-how-take-temperature',
+  WarningSource.womans: 'https://www.womans.org/services/pregnancy-childbirth/new-parent/newborn/temp-fever',
 };
 
 /// Age groups the warning signs differ by.
@@ -107,7 +131,7 @@ AgeGroup ageGroupOf(DateTime? birthDate, DateTime on) {
 class WarningSign {
   const WarningSign(this.key, this.level, this.sources, {this.symptom});
 
-  /// The text key (see `fever_texts.dart`).
+  /// The text key (`warnSign` in the ARB files).
   final String key;
   final WarningLevel level;
   final List<WarningSource> sources;
@@ -141,30 +165,50 @@ const _emergencySigns = [
   ], symptom: Symptom.stiffNeck),
   WarningSign('skinColour', WarningLevel.emergency, [WarningSource.nhs]),
   WarningSign('confused', WarningLevel.emergency, [WarningSource.nhs]),
+  // NHS lists "not interested in feeding" under 999; WHO IMCI: unable to
+  // drink or breastfeed, and vomits everything, are general danger signs.
+  WarningSign('notDrinking', WarningLevel.emergency, [
+    WarningSource.nhs,
+    WarningSource.who,
+  ], symptom: Symptom.poorFeeding),
+  WarningSign('vomitsEverything', WarningLevel.emergency, [
+    WarningSource.aap,
+    WarningSource.who,
+  ]),
 ];
 
-/// Signs that depend on age come first, then those for everyone.
+/// Signs that depend on age come first, then those for everyone. Without
+/// a date of birth, the signs of every age.
 List<WarningSign> warningSignsFor(AgeGroup age) {
+  final unknown = age == AgeGroup.unknown;
+  final under3Months = age == AgeGroup.under3Months || unknown;
+  final under2 =
+      under3Months || age == AgeGroup.months3to6 || age == AgeGroup.under2;
   final child = age != AgeGroup.adult;
   return [
     ..._emergencySigns,
-    if (age == AgeGroup.under3Months || age == AgeGroup.unknown)
-      const WarningSign('under3Months', WarningLevel.doctorNow, [
+    if (under3Months) ...const [
+      WarningSign('under3Months', WarningLevel.doctorNow, [
         WarningSource.nhs,
         WarningSource.aap,
       ]),
-    if (age == AgeGroup.months3to6 || age == AgeGroup.unknown)
+      WarningSign('armpitUnder3Months', WarningLevel.doctorNow, [
+        WarningSource.aap,
+        WarningSource.stlouis,
+      ]),
+      WarningSign('lowUnder3Months', WarningLevel.doctorNow, [
+        WarningSource.womans,
+      ]),
+    ],
+    if (age == AgeGroup.months3to6 || unknown)
       const WarningSign('months3to6', WarningLevel.doctorNow, [
         WarningSource.nhs,
       ]),
-    if (age == AgeGroup.under3Months ||
-        age == AgeGroup.months3to6 ||
-        age == AgeGroup.under2 ||
-        age == AgeGroup.unknown)
+    if (under2)
       const WarningSign('longUnder2', WarningLevel.doctorNow, [
         WarningSource.aap,
       ]),
-    if (age == AgeGroup.child || age == AgeGroup.unknown)
+    if (age == AgeGroup.child || unknown)
       const WarningSign('longChild', WarningLevel.doctorNow, [
         WarningSource.aap,
       ]),
@@ -176,7 +220,7 @@ List<WarningSign> warningSignsFor(AgeGroup age) {
       const WarningSign('veryHigh', WarningLevel.doctorNow, [
         WarningSource.aap,
       ]),
-    if (age == AgeGroup.adult)
+    if (age == AgeGroup.adult || unknown)
       const WarningSign('notImproving', WarningLevel.doctorNow, [
         WarningSource.nhs,
       ]),
@@ -184,14 +228,6 @@ List<WarningSign> warningSignsFor(AgeGroup age) {
       WarningSource.nhs,
       WarningSource.who,
     ], symptom: Symptom.dehydration),
-    const WarningSign('notDrinking', WarningLevel.doctorNow, [
-      WarningSource.nhs,
-      WarningSource.who,
-    ], symptom: Symptom.poorFeeding),
-    const WarningSign('vomitsEverything', WarningLevel.doctorNow, [
-      WarningSource.aap,
-      WarningSource.who,
-    ]),
   ];
 }
 
@@ -229,8 +265,12 @@ Set<String> matchedWarnings({
   for (final r in readings) {
     final age = ageGroupOf(birthDate, r.takenAt);
     final c = readingC(r);
-    if (age == AgeGroup.under3Months && c >= feverC - 1e-9) {
-      out.add('under3Months');
+    if (age == AgeGroup.under3Months) {
+      if (c >= feverC - 1e-9) out.add('under3Months');
+      if (r.site == TemperatureSite.armpit && c >= armpitBabyC - 1e-9) {
+        out.add('armpitUnder3Months');
+      }
+      if (c < lowBabyC - 1e-9) out.add('lowUnder3Months');
     }
     if (age == AgeGroup.months3to6 && c >= 39 - 1e-9) out.add('months3to6');
   }

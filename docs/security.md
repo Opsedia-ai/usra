@@ -106,13 +106,18 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   stay editable, and the form says to check them against it. The only
   arithmetic is calendar days (a course's last day, "day 3 of 7").
   Sick days (C8): the amount given is the family's own words, never
-  filled in; "next dose allowed after" (and its optional reminder) is
-  shown only when the saved medicine's own instructions state one
-  minimum interval ("every 6 hours"), never for a range, two intervals or
-  a typed medicine. Its reminder has no Taken button and, in discreet
-  mode, reads "A reminder from Usra" with nothing named; its payload
-  holds only the sick day and person ids. Fever warning signs are
-  informational, cited and say to contact a doctor or call 123
+  filled in. "N hours after this dose: <time>" (and its optional
+  reminder) comes only from "Minimum hours between doses", a field the
+  family types on the medicine from the label or the doctor; each entry
+  keeps the hours it was saved with. The app may offer a figure read from
+  the instructions, with the words it came from, only when there is
+  exactly one (never a range, an alternative or a daily limit), and only
+  fills the field when the family taps Use. The text is factual and says
+  to check other medicines with the same ingredient. Its reminder has no
+  Taken button and, in discreet mode, reads "A reminder from Usra" with
+  nothing named; its payload holds only the sick day and person ids.
+  Fever warning signs are informational, cited and say to contact a
+  doctor or call 123
   (`docs/research/fever-warning-signs.md`, needs medical review).
 - **Widget**: first name and medicine name only, no strength or condition;
   in discreet mode "Dose due" with no name and no Taken button (a tap

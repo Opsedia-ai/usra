@@ -779,6 +779,15 @@ class Medicines extends Table with TableInfo {
     requiredDuringInsert: false,
     $customConstraints: 'NULL',
   );
+  late final GeneratedColumn<double> minHoursBetweenDoses =
+      GeneratedColumn<double>(
+        'min_hours_between_doses',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        $customConstraints: 'NULL',
+      );
   late final GeneratedColumn<String> doctorId = GeneratedColumn<String>(
     'doctor_id',
     aliasedName,
@@ -872,6 +881,7 @@ class Medicines extends Table with TableInfo {
     strength,
     form,
     instructions,
+    minHoursBetweenDoses,
     doctorId,
     prescriptionId,
     position,
@@ -1380,6 +1390,14 @@ class GivenMedicines extends Table with TableInfo {
     $customConstraints: 'NOT NULL DEFAULT 0 CHECK (remind_next IN (0, 1))',
     defaultValue: const CustomExpression('0'),
   );
+  late final GeneratedColumn<double> intervalHours = GeneratedColumn<double>(
+    'interval_hours',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
   late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
     aliasedName,
@@ -1406,6 +1424,7 @@ class GivenMedicines extends Table with TableInfo {
     amount,
     givenAt,
     remindNext,
+    intervalHours,
     updatedAt,
     deletedAt,
   ];

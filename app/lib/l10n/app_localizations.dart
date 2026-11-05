@@ -5201,19 +5201,13 @@ abstract class AppLocalizations {
   /// No description provided for @givenRemind.
   ///
   /// In en, this message translates to:
-  /// **'Remind me when the next dose is allowed'**
+  /// **'Remind me at that time'**
   String get givenRemind;
-
-  /// No description provided for @givenRemindFrom.
-  ///
-  /// In en, this message translates to:
-  /// **'From this medicine\'s saved instructions: “{phrase}”. The app doesn\'t choose times.'**
-  String givenRemindFrom(String phrase);
 
   /// No description provided for @givenNoInterval.
   ///
   /// In en, this message translates to:
-  /// **'No reminder: this medicine\'s saved instructions don\'t state one minimum time between doses. If you\'re not sure when the next dose is, ask your doctor or pharmacist.'**
+  /// **'No time shown: this medicine has no minimum hours between doses saved. You can add them on the medicine\'s page, as written on the label or by your doctor.'**
   String get givenNoInterval;
 
   /// No description provided for @givenDelete.
@@ -5227,18 +5221,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick a medicine or type its name'**
   String get givenRequired;
-
-  /// No description provided for @nextDoseAllowedAfter.
-  ///
-  /// In en, this message translates to:
-  /// **'Next dose allowed after {time}'**
-  String nextDoseAllowedAfter(String time);
-
-  /// No description provided for @nextDoseFrom.
-  ///
-  /// In en, this message translates to:
-  /// **'From the saved instructions: “{phrase}”.'**
-  String nextDoseFrom(String phrase);
 
   /// No description provided for @nextDoseDiscreetTitle.
   ///
@@ -5261,8 +5243,8 @@ abstract class AppLocalizations {
   /// No description provided for @nextDoseBody.
   ///
   /// In en, this message translates to:
-  /// **'The time in your saved instructions (“{phrase}”) has passed. Check them before the next dose.'**
-  String nextDoseBody(String phrase);
+  /// **'{hours} hours have passed since the dose you logged. Check other medicines with the same ingredient.'**
+  String nextDoseBody(String hours);
 
   /// No description provided for @symptomName.
   ///
@@ -5297,7 +5279,7 @@ abstract class AppLocalizations {
   /// No description provided for @warnSign.
   ///
   /// In en, this message translates to:
-  /// **'{sign, select, breathing{Hard to breathe, breathing very fast or breathless} seizure{A fit (seizure)} rashGlass{A rash that doesn\'t fade when you press a glass on it} drowsy{Very drowsy or hard to wake, or not responding as usual} stiffNeck{A stiff neck, or light hurts the eyes} skinColour{Blue, grey, very pale or blotchy skin, lips or tongue, or unusually cold hands and feet} confused{Confused, or very agitated and won\'t stop crying} under3Months{Under 3 months old with a temperature of 38 °C (100.4 °F) or higher} months3to6{3 to 6 months old with a temperature of 39 °C (102.2 °F) or higher} longUnder2{Under 2 years old with a fever for more than 24 hours} longChild{2 years or older with a fever for more than 3 days} fiveDays{A fever that has lasted 5 days or more} veryHigh{A temperature above 40 °C (104 °F) more than once} notImproving{A high temperature that isn\'t getting better, or is getting worse} dehydration{Signs of dehydration: fewer wet nappies or peeing less, no tears, sunken eyes, dry mouth} notDrinking{Not drinking, not feeding or breastfeeding, or not acting like themselves} vomitsEverything{Vomits everything, or keeps vomiting} other{}}'**
+  /// **'{sign, select, breathing{Hard to breathe, breathing very fast or breathless} seizure{A fit (seizure)} rashGlass{A rash that doesn\'t fade when you press a glass on it} drowsy{Very drowsy or hard to wake, or not responding as usual} stiffNeck{A stiff neck, or light hurts the eyes} skinColour{Blue, grey, very pale or blotchy skin, lips or tongue, or unusually cold hands and feet} confused{Confused, or very agitated and won\'t stop crying} under3Months{Under 3 months old with a temperature of 38 °C (100.4 °F) or higher} months3to6{3 to 6 months old with a temperature of 39 °C (102.2 °F) or higher} longUnder2{Under 2 years old with a fever for more than 24 hours} longChild{2 years or older with a fever for more than 3 days} fiveDays{A fever that has lasted 5 days or more} veryHigh{A temperature above 40 °C (104 °F) more than once} notImproving{A high temperature that isn\'t getting better, or is getting worse} dehydration{Signs of dehydration: fewer wet nappies or peeing less, no tears, sunken eyes, dry mouth} notDrinking{Not drinking, not feeding or breastfeeding, or not acting like themselves} vomitsEverything{Vomits everything, or keeps vomiting} armpitUnder3Months{Under 3 months old with an armpit reading of 37.5 °C (99.5 °F) or higher} lowUnder3Months{Under 3 months old with a temperature below 36 °C (96.8 °F)} other{}}'**
   String warnSign(String sign);
 
   /// No description provided for @warnFooter.
@@ -5315,7 +5297,7 @@ abstract class AppLocalizations {
   /// No description provided for @warnSourceName.
   ///
   /// In en, this message translates to:
-  /// **'{source, select, nhs{NHS (UK): fever in children} aap{American Academy of Pediatrics: when to call the pediatrician} who{WHO: IMCI general danger signs} other{}}'**
+  /// **'{source, select, nhs{NHS (UK): fever in children} aap{American Academy of Pediatrics: when to call the pediatrician} who{WHO: IMCI general danger signs} stlouis{St. Louis Children\'s Hospital: how to take a temperature} womans{Woman\'s Hospital: newborn temperature} other{}}'**
   String warnSourceName(String source);
 
   /// No description provided for @warnCallDoctor.
@@ -5323,6 +5305,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My doctors'**
   String get warnCallDoctor;
+
+  /// No description provided for @givenHoursAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours after this dose: {time}'**
+  String givenHoursAfter(String hours, String time);
+
+  /// No description provided for @givenCheckIngredient.
+  ///
+  /// In en, this message translates to:
+  /// **'Check other medicines with the same ingredient before giving another dose.'**
+  String get givenCheckIngredient;
+
+  /// No description provided for @medicineMinHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum hours between doses'**
+  String get medicineMinHours;
+
+  /// No description provided for @medicineMinHoursHint.
+  ///
+  /// In en, this message translates to:
+  /// **'As written on the label or by your doctor. Leave empty if it doesn\'t say.'**
+  String get medicineMinHoursHint;
+
+  /// No description provided for @medicineMinHoursInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter hours between 0.5 and 72'**
+  String get medicineMinHoursInvalid;
+
+  /// No description provided for @medicineMinHoursSuggest.
+  ///
+  /// In en, this message translates to:
+  /// **'The instructions say “{phrase}”. Use {hours} hours?'**
+  String medicineMinHoursSuggest(String phrase, String hours);
+
+  /// No description provided for @medicineMinHoursUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Use'**
+  String get medicineMinHoursUse;
+
+  /// No description provided for @medicineMinHoursValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours'**
+  String medicineMinHoursValue(String hours);
+
+  /// No description provided for @warnArmpitNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Armpit readings run lower. If your baby feels hot or seems unwell, call the doctor even below 38 °C.'**
+  String get warnArmpitNote;
+
+  /// No description provided for @warnNoBirthDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a date of birth to see the signs for this age.'**
+  String get warnNoBirthDate;
+
+  /// No description provided for @readingConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Is this right?'**
+  String get readingConfirmTitle;
+
+  /// No description provided for @readingConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} is a very unusual body temperature. Check the thermometer and the unit.'**
+  String readingConfirmBody(String value);
+
+  /// No description provided for @readingConfirmYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Save anyway'**
+  String get readingConfirmYes;
+
+  /// No description provided for @readingConfirmNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Change it'**
+  String get readingConfirmNo;
 }
 
 class _AppLocalizationsDelegate

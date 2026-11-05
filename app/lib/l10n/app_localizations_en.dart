@@ -3182,32 +3182,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get givenRemind => 'Remind me when the next dose is allowed';
-
-  @override
-  String givenRemindFrom(String phrase) {
-    return 'From this medicine\'s saved instructions: “$phrase”. The app doesn\'t choose times.';
-  }
+  String get givenRemind => 'Remind me at that time';
 
   @override
   String get givenNoInterval =>
-      'No reminder: this medicine\'s saved instructions don\'t state one minimum time between doses. If you\'re not sure when the next dose is, ask your doctor or pharmacist.';
+      'No time shown: this medicine has no minimum hours between doses saved. You can add them on the medicine\'s page, as written on the label or by your doctor.';
 
   @override
   String get givenDelete => 'Delete this entry';
 
   @override
   String get givenRequired => 'Pick a medicine or type its name';
-
-  @override
-  String nextDoseAllowedAfter(String time) {
-    return 'Next dose allowed after $time';
-  }
-
-  @override
-  String nextDoseFrom(String phrase) {
-    return 'From the saved instructions: “$phrase”.';
-  }
 
   @override
   String get nextDoseDiscreetTitle => 'A reminder from Usra';
@@ -3221,8 +3206,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String nextDoseBody(String phrase) {
-    return 'The time in your saved instructions (“$phrase”) has passed. Check them before the next dose.';
+  String nextDoseBody(String hours) {
+    return '$hours hours have passed since the dose you logged. Check other medicines with the same ingredient.';
   }
 
   @override
@@ -3284,6 +3269,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'dehydration': 'Signs of dehydration: fewer wet nappies or peeing less, no tears, sunken eyes, dry mouth',
       'notDrinking': 'Not drinking, not feeding or breastfeeding, or not acting like themselves',
       'vomitsEverything': 'Vomits everything, or keeps vomiting',
+      'armpitUnder3Months': 'Under 3 months old with an armpit reading of 37.5 °C (99.5 °F) or higher',
+      'lowUnder3Months':
+          'Under 3 months old with a temperature below 36 °C (96.8 °F)',
       'other': '',
     });
     return '$_temp0';
@@ -3302,6 +3290,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'nhs': 'NHS (UK): fever in children',
       'aap': 'American Academy of Pediatrics: when to call the pediatrician',
       'who': 'WHO: IMCI general danger signs',
+      'stlouis': 'St. Louis Children\'s Hospital: how to take a temperature',
+      'womans': 'Woman\'s Hospital: newborn temperature',
       'other': '',
     });
     return '$_temp0';
@@ -3309,4 +3299,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get warnCallDoctor => 'My doctors';
+
+  @override
+  String givenHoursAfter(String hours, String time) {
+    return '$hours hours after this dose: $time';
+  }
+
+  @override
+  String get givenCheckIngredient =>
+      'Check other medicines with the same ingredient before giving another dose.';
+
+  @override
+  String get medicineMinHours => 'Minimum hours between doses';
+
+  @override
+  String get medicineMinHoursHint =>
+      'As written on the label or by your doctor. Leave empty if it doesn\'t say.';
+
+  @override
+  String get medicineMinHoursInvalid => 'Enter hours between 0.5 and 72';
+
+  @override
+  String medicineMinHoursSuggest(String phrase, String hours) {
+    return 'The instructions say “$phrase”. Use $hours hours?';
+  }
+
+  @override
+  String get medicineMinHoursUse => 'Use';
+
+  @override
+  String medicineMinHoursValue(String hours) {
+    return '$hours hours';
+  }
+
+  @override
+  String get warnArmpitNote =>
+      'Armpit readings run lower. If your baby feels hot or seems unwell, call the doctor even below 38 °C.';
+
+  @override
+  String get warnNoBirthDate =>
+      'Add a date of birth to see the signs for this age.';
+
+  @override
+  String get readingConfirmTitle => 'Is this right?';
+
+  @override
+  String readingConfirmBody(String value) {
+    return '$value is a very unusual body temperature. Check the thermometer and the unit.';
+  }
+
+  @override
+  String get readingConfirmYes => 'Save anyway';
+
+  @override
+  String get readingConfirmNo => 'Change it';
 }

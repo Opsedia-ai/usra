@@ -3733,6 +3733,17 @@ class $MedicinesTable extends Medicines
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _minHoursBetweenDosesMeta =
+      const VerificationMeta('minHoursBetweenDoses');
+  @override
+  late final GeneratedColumn<double> minHoursBetweenDoses =
+      GeneratedColumn<double>(
+        'min_hours_between_doses',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _doctorIdMeta = const VerificationMeta(
     'doctorId',
   );
@@ -3859,6 +3870,7 @@ class $MedicinesTable extends Medicines
     strength,
     form,
     instructions,
+    minHoursBetweenDoses,
     doctorId,
     prescriptionId,
     position,
@@ -3921,6 +3933,15 @@ class $MedicinesTable extends Medicines
         instructions.isAcceptableOrUnknown(
           data['instructions']!,
           _instructionsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('min_hours_between_doses')) {
+      context.handle(
+        _minHoursBetweenDosesMeta,
+        minHoursBetweenDoses.isAcceptableOrUnknown(
+          data['min_hours_between_doses']!,
+          _minHoursBetweenDosesMeta,
         ),
       );
     }
@@ -4027,6 +4048,10 @@ class $MedicinesTable extends Medicines
         DriftSqlType.string,
         data['${effectivePrefix}instructions'],
       ),
+      minHoursBetweenDoses: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}min_hours_between_doses'],
+      ),
       doctorId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}doctor_id'],
@@ -4089,6 +4114,11 @@ class Medicine extends DataClass implements Insertable<Medicine> {
 
   /// What the doctor wrote, word for word.
   final String? instructions;
+
+  /// The shortest time between doses, in hours, as the family typed it
+  /// from the label or the doctor (schema v8). Never filled in by the app;
+  /// sick days show "N hours after this dose" only when it's set.
+  final double? minHoursBetweenDoses;
   final String? doctorId;
 
   /// The prescription it was written on, if any (schema v7).
@@ -4120,6 +4150,7 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     this.strength,
     this.form,
     this.instructions,
+    this.minHoursBetweenDoses,
     this.doctorId,
     this.prescriptionId,
     this.position,
@@ -4145,6 +4176,9 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     }
     if (!nullToAbsent || instructions != null) {
       map['instructions'] = Variable<String>(instructions);
+    }
+    if (!nullToAbsent || minHoursBetweenDoses != null) {
+      map['min_hours_between_doses'] = Variable<double>(minHoursBetweenDoses);
     }
     if (!nullToAbsent || doctorId != null) {
       map['doctor_id'] = Variable<String>(doctorId);
@@ -4181,6 +4215,9 @@ class Medicine extends DataClass implements Insertable<Medicine> {
       instructions: instructions == null && nullToAbsent
           ? const Value.absent()
           : Value(instructions),
+      minHoursBetweenDoses: minHoursBetweenDoses == null && nullToAbsent
+          ? const Value.absent()
+          : Value(minHoursBetweenDoses),
       doctorId: doctorId == null && nullToAbsent
           ? const Value.absent()
           : Value(doctorId),
@@ -4216,6 +4253,9 @@ class Medicine extends DataClass implements Insertable<Medicine> {
       strength: serializer.fromJson<String?>(json['strength']),
       form: serializer.fromJson<String?>(json['form']),
       instructions: serializer.fromJson<String?>(json['instructions']),
+      minHoursBetweenDoses: serializer.fromJson<double?>(
+        json['minHoursBetweenDoses'],
+      ),
       doctorId: serializer.fromJson<String?>(json['doctorId']),
       prescriptionId: serializer.fromJson<String?>(json['prescriptionId']),
       position: serializer.fromJson<int?>(json['position']),
@@ -4240,6 +4280,7 @@ class Medicine extends DataClass implements Insertable<Medicine> {
       'strength': serializer.toJson<String?>(strength),
       'form': serializer.toJson<String?>(form),
       'instructions': serializer.toJson<String?>(instructions),
+      'minHoursBetweenDoses': serializer.toJson<double?>(minHoursBetweenDoses),
       'doctorId': serializer.toJson<String?>(doctorId),
       'prescriptionId': serializer.toJson<String?>(prescriptionId),
       'position': serializer.toJson<int?>(position),
@@ -4262,6 +4303,7 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     Value<String?> strength = const Value.absent(),
     Value<String?> form = const Value.absent(),
     Value<String?> instructions = const Value.absent(),
+    Value<double?> minHoursBetweenDoses = const Value.absent(),
     Value<String?> doctorId = const Value.absent(),
     Value<String?> prescriptionId = const Value.absent(),
     Value<int?> position = const Value.absent(),
@@ -4279,6 +4321,9 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     strength: strength.present ? strength.value : this.strength,
     form: form.present ? form.value : this.form,
     instructions: instructions.present ? instructions.value : this.instructions,
+    minHoursBetweenDoses: minHoursBetweenDoses.present
+        ? minHoursBetweenDoses.value
+        : this.minHoursBetweenDoses,
     doctorId: doctorId.present ? doctorId.value : this.doctorId,
     prescriptionId: prescriptionId.present
         ? prescriptionId.value
@@ -4303,6 +4348,9 @@ class Medicine extends DataClass implements Insertable<Medicine> {
       instructions: data.instructions.present
           ? data.instructions.value
           : this.instructions,
+      minHoursBetweenDoses: data.minHoursBetweenDoses.present
+          ? data.minHoursBetweenDoses.value
+          : this.minHoursBetweenDoses,
       doctorId: data.doctorId.present ? data.doctorId.value : this.doctorId,
       prescriptionId: data.prescriptionId.present
           ? data.prescriptionId.value
@@ -4331,6 +4379,7 @@ class Medicine extends DataClass implements Insertable<Medicine> {
           ..write('strength: $strength, ')
           ..write('form: $form, ')
           ..write('instructions: $instructions, ')
+          ..write('minHoursBetweenDoses: $minHoursBetweenDoses, ')
           ..write('doctorId: $doctorId, ')
           ..write('prescriptionId: $prescriptionId, ')
           ..write('position: $position, ')
@@ -4353,6 +4402,7 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     strength,
     form,
     instructions,
+    minHoursBetweenDoses,
     doctorId,
     prescriptionId,
     position,
@@ -4374,6 +4424,7 @@ class Medicine extends DataClass implements Insertable<Medicine> {
           other.strength == this.strength &&
           other.form == this.form &&
           other.instructions == this.instructions &&
+          other.minHoursBetweenDoses == this.minHoursBetweenDoses &&
           other.doctorId == this.doctorId &&
           other.prescriptionId == this.prescriptionId &&
           other.position == this.position &&
@@ -4393,6 +4444,7 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
   final Value<String?> strength;
   final Value<String?> form;
   final Value<String?> instructions;
+  final Value<double?> minHoursBetweenDoses;
   final Value<String?> doctorId;
   final Value<String?> prescriptionId;
   final Value<int?> position;
@@ -4411,6 +4463,7 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     this.strength = const Value.absent(),
     this.form = const Value.absent(),
     this.instructions = const Value.absent(),
+    this.minHoursBetweenDoses = const Value.absent(),
     this.doctorId = const Value.absent(),
     this.prescriptionId = const Value.absent(),
     this.position = const Value.absent(),
@@ -4430,6 +4483,7 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     this.strength = const Value.absent(),
     this.form = const Value.absent(),
     this.instructions = const Value.absent(),
+    this.minHoursBetweenDoses = const Value.absent(),
     this.doctorId = const Value.absent(),
     this.prescriptionId = const Value.absent(),
     this.position = const Value.absent(),
@@ -4453,6 +4507,7 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     Expression<String>? strength,
     Expression<String>? form,
     Expression<String>? instructions,
+    Expression<double>? minHoursBetweenDoses,
     Expression<String>? doctorId,
     Expression<String>? prescriptionId,
     Expression<int>? position,
@@ -4472,6 +4527,8 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
       if (strength != null) 'strength': strength,
       if (form != null) 'form': form,
       if (instructions != null) 'instructions': instructions,
+      if (minHoursBetweenDoses != null)
+        'min_hours_between_doses': minHoursBetweenDoses,
       if (doctorId != null) 'doctor_id': doctorId,
       if (prescriptionId != null) 'prescription_id': prescriptionId,
       if (position != null) 'position': position,
@@ -4494,6 +4551,7 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     Value<String?>? strength,
     Value<String?>? form,
     Value<String?>? instructions,
+    Value<double?>? minHoursBetweenDoses,
     Value<String?>? doctorId,
     Value<String?>? prescriptionId,
     Value<int?>? position,
@@ -4513,6 +4571,7 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
       strength: strength ?? this.strength,
       form: form ?? this.form,
       instructions: instructions ?? this.instructions,
+      minHoursBetweenDoses: minHoursBetweenDoses ?? this.minHoursBetweenDoses,
       doctorId: doctorId ?? this.doctorId,
       prescriptionId: prescriptionId ?? this.prescriptionId,
       position: position ?? this.position,
@@ -4548,6 +4607,11 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     }
     if (instructions.present) {
       map['instructions'] = Variable<String>(instructions.value);
+    }
+    if (minHoursBetweenDoses.present) {
+      map['min_hours_between_doses'] = Variable<double>(
+        minHoursBetweenDoses.value,
+      );
     }
     if (doctorId.present) {
       map['doctor_id'] = Variable<String>(doctorId.value);
@@ -4596,6 +4660,7 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
           ..write('strength: $strength, ')
           ..write('form: $form, ')
           ..write('instructions: $instructions, ')
+          ..write('minHoursBetweenDoses: $minHoursBetweenDoses, ')
           ..write('doctorId: $doctorId, ')
           ..write('prescriptionId: $prescriptionId, ')
           ..write('position: $position, ')
@@ -6756,6 +6821,17 @@ class $GivenMedicinesTable extends GivenMedicines
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _intervalHoursMeta = const VerificationMeta(
+    'intervalHours',
+  );
+  @override
+  late final GeneratedColumn<double> intervalHours = GeneratedColumn<double>(
+    'interval_hours',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -6788,6 +6864,7 @@ class $GivenMedicinesTable extends GivenMedicines
     amount,
     givenAt,
     remindNext,
+    intervalHours,
     updatedAt,
     deletedAt,
   ];
@@ -6859,6 +6936,15 @@ class $GivenMedicinesTable extends GivenMedicines
         remindNext.isAcceptableOrUnknown(data['remind_next']!, _remindNextMeta),
       );
     }
+    if (data.containsKey('interval_hours')) {
+      context.handle(
+        _intervalHoursMeta,
+        intervalHours.isAcceptableOrUnknown(
+          data['interval_hours']!,
+          _intervalHoursMeta,
+        ),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -6914,6 +7000,10 @@ class $GivenMedicinesTable extends GivenMedicines
         DriftSqlType.bool,
         data['${effectivePrefix}remind_next'],
       )!,
+      intervalHours: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}interval_hours'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -6951,6 +7041,10 @@ class GivenMedicine extends DataClass implements Insertable<GivenMedicine> {
   /// Remind when the medicine's own saved instructions allow the next
   /// dose (only offered when they state a minimum interval).
   final bool remindNext;
+
+  /// The medicine's minimum hours between doses when this was saved, so
+  /// editing the medicine later doesn't move the time for this dose.
+  final double? intervalHours;
   final DateTime updatedAt;
   final DateTime? deletedAt;
   const GivenMedicine({
@@ -6962,6 +7056,7 @@ class GivenMedicine extends DataClass implements Insertable<GivenMedicine> {
     this.amount,
     required this.givenAt,
     required this.remindNext,
+    this.intervalHours,
     required this.updatedAt,
     this.deletedAt,
   });
@@ -6982,6 +7077,9 @@ class GivenMedicine extends DataClass implements Insertable<GivenMedicine> {
     }
     map['given_at'] = Variable<DateTime>(givenAt);
     map['remind_next'] = Variable<bool>(remindNext);
+    if (!nullToAbsent || intervalHours != null) {
+      map['interval_hours'] = Variable<double>(intervalHours);
+    }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
@@ -7005,6 +7103,9 @@ class GivenMedicine extends DataClass implements Insertable<GivenMedicine> {
           : Value(amount),
       givenAt: Value(givenAt),
       remindNext: Value(remindNext),
+      intervalHours: intervalHours == null && nullToAbsent
+          ? const Value.absent()
+          : Value(intervalHours),
       updatedAt: Value(updatedAt),
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
@@ -7026,6 +7127,7 @@ class GivenMedicine extends DataClass implements Insertable<GivenMedicine> {
       amount: serializer.fromJson<String?>(json['amount']),
       givenAt: serializer.fromJson<DateTime>(json['givenAt']),
       remindNext: serializer.fromJson<bool>(json['remindNext']),
+      intervalHours: serializer.fromJson<double?>(json['intervalHours']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
@@ -7042,6 +7144,7 @@ class GivenMedicine extends DataClass implements Insertable<GivenMedicine> {
       'amount': serializer.toJson<String?>(amount),
       'givenAt': serializer.toJson<DateTime>(givenAt),
       'remindNext': serializer.toJson<bool>(remindNext),
+      'intervalHours': serializer.toJson<double?>(intervalHours),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
@@ -7056,6 +7159,7 @@ class GivenMedicine extends DataClass implements Insertable<GivenMedicine> {
     Value<String?> amount = const Value.absent(),
     DateTime? givenAt,
     bool? remindNext,
+    Value<double?> intervalHours = const Value.absent(),
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
   }) => GivenMedicine(
@@ -7069,6 +7173,9 @@ class GivenMedicine extends DataClass implements Insertable<GivenMedicine> {
     amount: amount.present ? amount.value : this.amount,
     givenAt: givenAt ?? this.givenAt,
     remindNext: remindNext ?? this.remindNext,
+    intervalHours: intervalHours.present
+        ? intervalHours.value
+        : this.intervalHours,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
@@ -7088,6 +7195,9 @@ class GivenMedicine extends DataClass implements Insertable<GivenMedicine> {
       remindNext: data.remindNext.present
           ? data.remindNext.value
           : this.remindNext,
+      intervalHours: data.intervalHours.present
+          ? data.intervalHours.value
+          : this.intervalHours,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
@@ -7104,6 +7214,7 @@ class GivenMedicine extends DataClass implements Insertable<GivenMedicine> {
           ..write('amount: $amount, ')
           ..write('givenAt: $givenAt, ')
           ..write('remindNext: $remindNext, ')
+          ..write('intervalHours: $intervalHours, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
           ..write(')'))
@@ -7120,6 +7231,7 @@ class GivenMedicine extends DataClass implements Insertable<GivenMedicine> {
     amount,
     givenAt,
     remindNext,
+    intervalHours,
     updatedAt,
     deletedAt,
   );
@@ -7135,6 +7247,7 @@ class GivenMedicine extends DataClass implements Insertable<GivenMedicine> {
           other.amount == this.amount &&
           other.givenAt == this.givenAt &&
           other.remindNext == this.remindNext &&
+          other.intervalHours == this.intervalHours &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
 }
@@ -7148,6 +7261,7 @@ class GivenMedicinesCompanion extends UpdateCompanion<GivenMedicine> {
   final Value<String?> amount;
   final Value<DateTime> givenAt;
   final Value<bool> remindNext;
+  final Value<double?> intervalHours;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
   final Value<int> rowid;
@@ -7160,6 +7274,7 @@ class GivenMedicinesCompanion extends UpdateCompanion<GivenMedicine> {
     this.amount = const Value.absent(),
     this.givenAt = const Value.absent(),
     this.remindNext = const Value.absent(),
+    this.intervalHours = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -7173,6 +7288,7 @@ class GivenMedicinesCompanion extends UpdateCompanion<GivenMedicine> {
     this.amount = const Value.absent(),
     required DateTime givenAt,
     this.remindNext = const Value.absent(),
+    this.intervalHours = const Value.absent(),
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -7190,6 +7306,7 @@ class GivenMedicinesCompanion extends UpdateCompanion<GivenMedicine> {
     Expression<String>? amount,
     Expression<DateTime>? givenAt,
     Expression<bool>? remindNext,
+    Expression<double>? intervalHours,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
@@ -7203,6 +7320,7 @@ class GivenMedicinesCompanion extends UpdateCompanion<GivenMedicine> {
       if (amount != null) 'amount': amount,
       if (givenAt != null) 'given_at': givenAt,
       if (remindNext != null) 'remind_next': remindNext,
+      if (intervalHours != null) 'interval_hours': intervalHours,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
@@ -7218,6 +7336,7 @@ class GivenMedicinesCompanion extends UpdateCompanion<GivenMedicine> {
     Value<String?>? amount,
     Value<DateTime>? givenAt,
     Value<bool>? remindNext,
+    Value<double?>? intervalHours,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
     Value<int>? rowid,
@@ -7231,6 +7350,7 @@ class GivenMedicinesCompanion extends UpdateCompanion<GivenMedicine> {
       amount: amount ?? this.amount,
       givenAt: givenAt ?? this.givenAt,
       remindNext: remindNext ?? this.remindNext,
+      intervalHours: intervalHours ?? this.intervalHours,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
@@ -7264,6 +7384,9 @@ class GivenMedicinesCompanion extends UpdateCompanion<GivenMedicine> {
     if (remindNext.present) {
       map['remind_next'] = Variable<bool>(remindNext.value);
     }
+    if (intervalHours.present) {
+      map['interval_hours'] = Variable<double>(intervalHours.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -7287,6 +7410,7 @@ class GivenMedicinesCompanion extends UpdateCompanion<GivenMedicine> {
           ..write('amount: $amount, ')
           ..write('givenAt: $givenAt, ')
           ..write('remindNext: $remindNext, ')
+          ..write('intervalHours: $intervalHours, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
@@ -10699,6 +10823,7 @@ typedef $$MedicinesTableCreateCompanionBuilder = MedicinesCompanion Function({
   Value<String?> strength,
   Value<String?> form,
   Value<String?> instructions,
+  Value<double?> minHoursBetweenDoses,
   Value<String?> doctorId,
   Value<String?> prescriptionId,
   Value<int?> position,
@@ -10718,6 +10843,7 @@ typedef $$MedicinesTableUpdateCompanionBuilder = MedicinesCompanion Function({
   Value<String?> strength,
   Value<String?> form,
   Value<String?> instructions,
+  Value<double?> minHoursBetweenDoses,
   Value<String?> doctorId,
   Value<String?> prescriptionId,
   Value<int?> position,
@@ -10857,6 +10983,11 @@ class $$MedicinesTableFilterComposer
 
   ColumnFilters<String> get instructions => $composableBuilder(
     column: $table.instructions,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get minHoursBetweenDoses => $composableBuilder(
+    column: $table.minHoursBetweenDoses,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11061,6 +11192,11 @@ class $$MedicinesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get minHoursBetweenDoses => $composableBuilder(
+    column: $table.minHoursBetweenDoses,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get doctorId => $composableBuilder(
     column: $table.doctorId,
     builder: (column) => ColumnOrderings(column),
@@ -11176,6 +11312,11 @@ class $$MedicinesTableAnnotationComposer
 
   GeneratedColumn<String> get instructions => $composableBuilder(
     column: $table.instructions,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get minHoursBetweenDoses => $composableBuilder(
+    column: $table.minHoursBetweenDoses,
     builder: (column) => column,
   );
 
@@ -11372,6 +11513,7 @@ class $$MedicinesTableTableManager
                 Value<String?> strength = const Value.absent(),
                 Value<String?> form = const Value.absent(),
                 Value<String?> instructions = const Value.absent(),
+                Value<double?> minHoursBetweenDoses = const Value.absent(),
                 Value<String?> doctorId = const Value.absent(),
                 Value<String?> prescriptionId = const Value.absent(),
                 Value<int?> position = const Value.absent(),
@@ -11390,6 +11532,7 @@ class $$MedicinesTableTableManager
                 strength: strength,
                 form: form,
                 instructions: instructions,
+                minHoursBetweenDoses: minHoursBetweenDoses,
                 doctorId: doctorId,
                 prescriptionId: prescriptionId,
                 position: position,
@@ -11410,6 +11553,7 @@ class $$MedicinesTableTableManager
                 Value<String?> strength = const Value.absent(),
                 Value<String?> form = const Value.absent(),
                 Value<String?> instructions = const Value.absent(),
+                Value<double?> minHoursBetweenDoses = const Value.absent(),
                 Value<String?> doctorId = const Value.absent(),
                 Value<String?> prescriptionId = const Value.absent(),
                 Value<int?> position = const Value.absent(),
@@ -11428,6 +11572,7 @@ class $$MedicinesTableTableManager
                 strength: strength,
                 form: form,
                 instructions: instructions,
+                minHoursBetweenDoses: minHoursBetweenDoses,
                 doctorId: doctorId,
                 prescriptionId: prescriptionId,
                 position: position,
@@ -13300,6 +13445,7 @@ typedef $$GivenMedicinesTableCreateCompanionBuilder =
       Value<String?> amount,
       required DateTime givenAt,
       Value<bool> remindNext,
+      Value<double?> intervalHours,
       required DateTime updatedAt,
       Value<DateTime?> deletedAt,
       Value<int> rowid,
@@ -13314,6 +13460,7 @@ typedef $$GivenMedicinesTableUpdateCompanionBuilder =
       Value<String?> amount,
       Value<DateTime> givenAt,
       Value<bool> remindNext,
+      Value<double?> intervalHours,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
       Value<int> rowid,
@@ -13411,6 +13558,11 @@ class $$GivenMedicinesTableFilterComposer
 
   ColumnFilters<bool> get remindNext => $composableBuilder(
     column: $table.remindNext,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get intervalHours => $composableBuilder(
+    column: $table.intervalHours,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13528,6 +13680,11 @@ class $$GivenMedicinesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get intervalHours => $composableBuilder(
+    column: $table.intervalHours,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -13631,6 +13788,11 @@ class $$GivenMedicinesTableAnnotationComposer
 
   GeneratedColumn<bool> get remindNext => $composableBuilder(
     column: $table.remindNext,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get intervalHours => $composableBuilder(
+    column: $table.intervalHours,
     builder: (column) => column,
   );
 
@@ -13752,6 +13914,7 @@ class $$GivenMedicinesTableTableManager
                 Value<String?> amount = const Value.absent(),
                 Value<DateTime> givenAt = const Value.absent(),
                 Value<bool> remindNext = const Value.absent(),
+                Value<double?> intervalHours = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -13764,6 +13927,7 @@ class $$GivenMedicinesTableTableManager
                 amount: amount,
                 givenAt: givenAt,
                 remindNext: remindNext,
+                intervalHours: intervalHours,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
                 rowid: rowid,
@@ -13778,6 +13942,7 @@ class $$GivenMedicinesTableTableManager
                 Value<String?> amount = const Value.absent(),
                 required DateTime givenAt,
                 Value<bool> remindNext = const Value.absent(),
+                Value<double?> intervalHours = const Value.absent(),
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -13790,6 +13955,7 @@ class $$GivenMedicinesTableTableManager
                 amount: amount,
                 givenAt: givenAt,
                 remindNext: remindNext,
+                intervalHours: intervalHours,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
                 rowid: rowid,

@@ -266,7 +266,7 @@ void main() {
     )).file;
     await db.close();
 
-    await newPhone.service.stage(backup, recovery, currentSchema: 7);
+    await newPhone.service.stage(backup, recovery, currentSchema: 8);
     await newPhone.service.commit();
     final restored = newPhone.open();
     addTearDown(restored.close);

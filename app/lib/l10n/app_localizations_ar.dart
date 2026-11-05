@@ -3204,32 +3204,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get givenRemind => 'فكرني لما ييجي ميعاد الجرعة الجاية';
-
-  @override
-  String givenRemindFrom(String phrase) {
-    return 'من تعليمات الدوا ده اللي انت حافظها: «$phrase». التطبيق مش بيحدد مواعيد.';
-  }
+  String get givenRemind => 'فكرني في الوقت ده';
 
   @override
   String get givenNoInterval =>
-      'مفيش تذكير: تعليمات الدوا ده اللي انت حافظها مش فيها مدة واحدة بين الجرعات. لو مش متأكد إمتى الجرعة الجاية، اسأل الدكتور أو الصيدلي.';
+      'مفيش وقت ظاهر: الدوا ده مش متسجل له أقل عدد ساعات بين الجرعات. تقدر تضيفها من صفحة الدوا، زي ما مكتوب على العلبة أو من الدكتور.';
 
   @override
   String get givenDelete => 'امسح ده';
 
   @override
   String get givenRequired => 'اختار دوا أو اكتب اسمه';
-
-  @override
-  String nextDoseAllowedAfter(String time) {
-    return 'الجرعة الجاية بعد $time';
-  }
-
-  @override
-  String nextDoseFrom(String phrase) {
-    return 'من التعليمات المحفوظة: «$phrase».';
-  }
 
   @override
   String get nextDoseDiscreetTitle => 'تذكير من أسرة';
@@ -3243,8 +3228,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String nextDoseBody(String phrase) {
-    return 'الوقت اللي في تعليماتك المحفوظة («$phrase») عدّى. راجعها قبل الجرعة الجاية.';
+  String nextDoseBody(String hours) {
+    return 'عدّى $hours ساعة من الجرعة اللي سجلتها. راجع لو فيه دوا تاني بنفس المادة الفعالة.';
   }
 
   @override
@@ -3303,6 +3288,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'dehydration': 'علامات جفاف: حفاضات ناشفة أو بيعمل حمام أقل، مفيش دموع، عينين غايرة، بُق ناشف',
       'notDrinking': 'مش بيشرب أو مش بيرضع، أو مش زي عادته خالص',
       'vomitsEverything': 'بيرجّع أي حاجة ياخدها، أو مش بيبطل ترجيع',
+      'armpitUnder3Months':
+          'سنه أقل من ٣ شهور والحرارة تحت الباط ٣٧٫٥ °م (٩٩٫٥ °ف) أو أكتر',
+      'lowUnder3Months': 'سنه أقل من ٣ شهور وحرارته أقل من ٣٦ °م (٩٦٫٨ °ف)',
       'other': '',
     });
     return '$_temp0';
@@ -3321,6 +3309,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'nhs': 'NHS (بريطانيا): السخونية عند الأطفال',
       'aap': 'الأكاديمية الأمريكية لطب الأطفال: إمتى تكلم الدكتور',
       'who': 'منظمة الصحة العالمية: علامات الخطر العامة (IMCI)',
+      'stlouis': 'مستشفى أطفال سانت لويس: إزاي تقيس الحرارة',
+      'womans': 'مستشفى وومانز: حرارة المولود',
       'other': '',
     });
     return '$_temp0';
@@ -3328,4 +3318,58 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get warnCallDoctor => 'الدكاترة بتوعي';
+
+  @override
+  String givenHoursAfter(String hours, String time) {
+    return 'بعد $hours ساعة من الجرعة دي: $time';
+  }
+
+  @override
+  String get givenCheckIngredient =>
+      'قبل أي جرعة تانية، راجع لو فيه دوا تاني بنفس المادة الفعالة.';
+
+  @override
+  String get medicineMinHours => 'أقل عدد ساعات بين الجرعات';
+
+  @override
+  String get medicineMinHoursHint =>
+      'زي ما مكتوب على العلبة أو من الدكتور. سيبها فاضية لو مش مكتوب.';
+
+  @override
+  String get medicineMinHoursInvalid => 'اكتب عدد ساعات من ٠٫٥ لـ ٧٢';
+
+  @override
+  String medicineMinHoursSuggest(String phrase, String hours) {
+    return 'التعليمات بتقول «$phrase». تستخدم $hours ساعة؟';
+  }
+
+  @override
+  String get medicineMinHoursUse => 'استخدم';
+
+  @override
+  String medicineMinHoursValue(String hours) {
+    return '$hours ساعة';
+  }
+
+  @override
+  String get warnArmpitNote =>
+      'الحرارة تحت الباط بتطلع أقل. لو البيبي سخن أو شكله تعبان، كلم الدكتور حتى لو أقل من ٣٨ °م.';
+
+  @override
+  String get warnNoBirthDate =>
+      'ضيف تاريخ الميلاد علشان تشوف العلامات المناسبة للسن.';
+
+  @override
+  String get readingConfirmTitle => 'الرقم ده صح؟';
+
+  @override
+  String readingConfirmBody(String value) {
+    return '$value حرارة غريبة جدًا لجسم الإنسان. راجع الترمومتر والوحدة.';
+  }
+
+  @override
+  String get readingConfirmYes => 'احفظ برضه';
+
+  @override
+  String get readingConfirmNo => 'عدّل';
 }

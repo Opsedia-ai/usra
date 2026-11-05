@@ -28,7 +28,8 @@ class WarningSignsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    final signs = warningSignsFor(ageGroupOf(person.birthDate, now));
+    final age = ageGroupOf(person.birthDate, now);
+    final signs = warningSignsFor(age);
     final matched = matchedWarnings(
       episode: episode,
       readings: readings,
@@ -79,6 +80,19 @@ class WarningSignsCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (age == AgeGroup.unknown) ...[
+              const SizedBox(height: 8),
+              TextButton.icon(
+                key: const ValueKey('warning-no-birth-date'),
+                style: TextButton.styleFrom(
+                  alignment: AlignmentDirectional.centerStart,
+                  padding: EdgeInsets.zero,
+                ),
+                onPressed: () => context.go('/family/${person.id}/edit'),
+                icon: const Icon(Icons.cake_outlined),
+                label: Text(l.warnNoBirthDate),
+              ),
+            ],
             if (matched.isNotEmpty) ...[
               const SizedBox(height: 8),
               Container(
@@ -113,6 +127,14 @@ class WarningSignsCard extends StatelessWidget {
             ),
             for (final s in signs)
               if (s.level == WarningLevel.doctorNow) bullet(s),
+            if (age == AgeGroup.under3Months || age == AgeGroup.unknown) ...[
+              const SizedBox(height: 8),
+              Text(
+                l.warnArmpitNote,
+                key: const ValueKey('warning-armpit-note'),
+                style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
             const SizedBox(height: 12),
             FilledButton.icon(
               key: const ValueKey('sick-day-ambulance'),

@@ -122,6 +122,11 @@ class Medicines extends Table {
 
   /// What the doctor wrote, word for word.
   TextColumn get instructions => text().nullable()();
+
+  /// The shortest time between doses, in hours, as the family typed it
+  /// from the label or the doctor (schema v8). Never filled in by the app;
+  /// sick days show "N hours after this dose" only when it's set.
+  RealColumn get minHoursBetweenDoses => real().nullable()();
   TextColumn get doctorId => text().nullable()();
 
   /// The prescription it was written on, if any (schema v7).
@@ -298,6 +303,10 @@ class GivenMedicines extends Table {
   /// Remind when the medicine's own saved instructions allow the next
   /// dose (only offered when they state a minimum interval).
   BoolColumn get remindNext => boolean().withDefault(const Constant(false))();
+
+  /// The medicine's minimum hours between doses when this was saved, so
+  /// editing the medicine later doesn't move the time for this dose.
+  RealColumn get intervalHours => real().nullable()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 

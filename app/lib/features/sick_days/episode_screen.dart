@@ -11,6 +11,7 @@ import '../family/member_screen.dart' show profileProvider;
 import '../medicines/medicines_providers.dart';
 import 'episode_sheets.dart';
 import 'fever.dart';
+import '../medicines/min_hours.dart' show formatHours;
 import 'next_dose.dart';
 import 'sick_days_providers.dart';
 import 'temperature_chart.dart';
@@ -297,10 +298,8 @@ class _GivenTile extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final dateTime = DateFormat.MMMd(locale).add_jm();
-    final interval = showNext && medicine?.id == given.medicineId
-        ? minimumIntervalIn(medicine?.instructions)
-        : null;
-    final next = interval == null ? null : given.givenAt.add(interval.duration);
+    // From the hours saved with this entry, never re-read or guessed.
+    final next = showNext ? hoursAfter(given) : null;
     return ListTile(
       key: ValueKey('given-${given.id}'),
       contentPadding: EdgeInsets.zero,
@@ -314,13 +313,16 @@ class _GivenTile extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(dateTime.format(given.givenAt.toLocal())),
-          if (next != null && interval != null) ...[
+          if (next != null) ...[
             Text(
-              l.nextDoseAllowedAfter(dateTime.format(next.toLocal())),
+              l.givenHoursAfter(
+                formatHours(given.intervalHours!, locale),
+                dateTime.format(next.toLocal()),
+              ),
               key: ValueKey('given-next-${given.id}'),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            Text(l.nextDoseFrom(interval.phrase)),
+            Text(l.givenCheckIngredient),
           ],
         ],
       ),

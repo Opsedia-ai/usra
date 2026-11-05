@@ -160,16 +160,13 @@ class ReminderSync with WidgetsBindingObserver {
     final nextDoseById = {for (final r in nextDoseReminders) r.id: r};
     try {
       await scheduler.replaceAll(
-        [
-          // A few at most, and due within hours: first, so a week of
-          // other reminders never crowds them out.
-          for (final r in nextDoseReminders)
-            if (r.at.isAfter(now)) r,
-          ...prioritiseReminders(
-            planReminders(regimens, logs, now: now, texts: t),
-            vaccineReminders,
-          ),
-        ],
+        // Nearest first across doses and next-dose reminders (a few at
+        // most, due within hours), so neither pushes out the other's
+        // soonest ones on iOS's 64.
+        prioritiseReminders([
+          ...planReminders(regimens, logs, now: now, texts: t),
+          ...nextDoseReminders.where((r) => r.at.isAfter(now)).take(8),
+        ], vaccineReminders),
         doneSnoozes: doneSnoozeIds(logs),
         // Snoozes and notifications on screen follow the settings too.
         rebuild: (id, ref, at) {

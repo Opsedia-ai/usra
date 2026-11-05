@@ -4,11 +4,10 @@ import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/providers.dart';
-import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
 import '../medicines/medicines_providers.dart';
 import 'fever.dart';
-import 'next_dose.dart';
+import '../medicines/min_hours.dart';
 
 /// A date and time row that opens the pickers.
 class _WhenField extends StatelessWidget {
@@ -141,11 +140,14 @@ class _ReadingSheetState extends ConsumerState<_ReadingSheet> {
 
   Future<void> _save() async {
     final l = AppLocalizations.of(context);
-    final v = parseLocalizedNumber(_value.text)?.toDouble();
-    if (v == null || !isPlausible(v, _unit)) {
+    final typed = parseDecimal(_value.text);
+    if (typed == null || !isPlausible(typed, _unit)) {
       setState(() => _error = l.readingImplausible);
       return;
     }
+    final v = roundReading(typed);
+    if (needsConfirm(v, _unit) && !await _confirm(v)) return;
+    if (!mounted) return;
     setState(() => _saving = true);
     await ref
         .read(databaseProvider)
@@ -157,6 +159,38 @@ class _ReadingSheetState extends ConsumerState<_ReadingSheet> {
           site: _site,
         );
     if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<bool> _confirm(double v) async {
+    final l = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final unit = _unit == TemperatureUnit.fahrenheit
+        ? l.readingFahrenheit
+        : l.readingCelsius;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(l.readingConfirmTitle),
+        content: Text(
+          l.readingConfirmBody(
+            '${NumberFormat('0.0', locale).format(v)} $unit',
+          ),
+        ),
+        actions: [
+          TextButton(
+            key: const ValueKey('reading-confirm-no'),
+            onPressed: () => Navigator.pop(c, false),
+            child: Text(l.readingConfirmNo),
+          ),
+          FilledButton(
+            key: const ValueKey('reading-confirm-yes'),
+            onPressed: () => Navigator.pop(c, true),
+            child: Text(l.readingConfirmYes),
+          ),
+        ],
+      ),
+    );
+    return ok == true;
   }
 
   @override
@@ -317,7 +351,7 @@ class _GivenSheetState extends ConsumerState<_GivenSheet> {
       setState(() => _error = l.givenRequired);
       return;
     }
-    final interval = minimumIntervalIn(medicine?.instructions);
+    final hours = medicine?.minHoursBetweenDoses;
     setState(() => _saving = true);
     await ref
         .read(databaseProvider)
@@ -328,7 +362,7 @@ class _GivenSheetState extends ConsumerState<_GivenSheet> {
           name: name,
           amount: _amount.text,
           givenAt: _at,
-          remindNext: medicine != null && interval != null && _remind,
+          remindNext: medicine != null && hours != null && _remind,
         );
     if (mounted) Navigator.of(context).pop();
   }
@@ -348,7 +382,8 @@ class _GivenSheetState extends ConsumerState<_GivenSheet> {
         p.id: p,
     };
     final medicine = _picked(medicines);
-    final interval = minimumIntervalIn(medicine?.instructions);
+    // Only what the family typed on the medicine; never read or guessed.
+    final hours = medicine?.minHoursBetweenDoses;
     String label(Medicine m) {
       final rx = prescriptions[m.prescriptionId];
       final name = [m.name, ?m.strength].join(' ');
@@ -430,21 +465,32 @@ class _GivenSheetState extends ConsumerState<_GivenSheet> {
             ),
             if (medicine != null) ...[
               const SizedBox(height: 12),
-              if (interval == null)
+              if (hours == null)
                 Text(
                   l.givenNoInterval,
                   key: const ValueKey('given-no-interval'),
                   style: Theme.of(context).textTheme.bodyMedium,
                 )
-              else
+              else ...[
+                Text(
+                  l.givenHoursAfter(
+                    formatHours(hours, locale),
+                    DateFormat.MMMd(locale).add_jm().format(
+                      _at.add(Duration(minutes: (hours * 60).round())),
+                    ),
+                  ),
+                  key: const ValueKey('given-hours-after'),
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                Text(l.givenCheckIngredient),
                 SwitchListTile(
                   key: const ValueKey('given-remind'),
                   contentPadding: EdgeInsets.zero,
                   value: _remind,
                   onChanged: (v) => setState(() => _remind = v),
                   title: Text(l.givenRemind),
-                  subtitle: Text(l.givenRemindFrom(interval.phrase)),
                 ),
+              ],
             ],
             const SizedBox(height: 20),
             FilledButton(

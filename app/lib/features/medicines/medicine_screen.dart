@@ -11,6 +11,7 @@ import '../../l10n/app_localizations.dart';
 import '../doctors/doctors_providers.dart';
 import 'dose_schedule.dart';
 import 'medicine_text.dart';
+import 'min_hours.dart';
 import 'medicines_providers.dart';
 import 'prescription_screen.dart' show prescriptionTitle;
 
@@ -146,6 +147,8 @@ class _Details extends ConsumerWidget {
             : scheduleSummary(context, schedule),
       ),
       if (m.instructions != null) (l.medicineInstructions, m.instructions!),
+      if (m.minHoursBetweenDoses case final h?)
+        (l.medicineMinHours, l.medicineMinHoursValue(formatHours(h, locale))),
       if (doctor != null) (l.medicineDoctor, doctor.name),
       (
         l.medicineStart,

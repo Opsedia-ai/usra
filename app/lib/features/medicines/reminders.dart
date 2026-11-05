@@ -431,6 +431,12 @@ ReminderChanges diffReminders({
   for (final s in shown) {
     final ref = ReminderRef.fromPayload(s.payload);
     final r = ref == null ? null : rebuild?.call(s.id, ref, ref.at ?? now);
+    // A next-dose notification whose entry is gone (deleted, superseded by
+    // a later dose, sick day over) leaves the screen too.
+    if (r == null && ref != null && ref.isNextDose && rebuild != null) {
+      cancel.add(s.id);
+      continue;
+    }
     if (r != null && (r.title != s.title || r.body != s.body)) repost.add(r);
   }
   return ReminderChanges(cancel: cancel, schedule: schedule, repost: repost);
