@@ -8,7 +8,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   for (final journey in journeys) {
     testWidgets('journey: $journey', (tester) async {
-      await runJourney(tester, journey, size: null);
+      await runJourney(tester, journey, size: null, now: DateTime.now());
     });
   }
 }

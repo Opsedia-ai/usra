@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../modules.dart';
 import 'database/app_database.dart';
+import 'log.dart';
 import 'modules/module_registry.dart';
 import 'preferences.dart';
 
@@ -40,6 +41,6 @@ class LocaleController extends Notifier<Locale> {
     ref
         .read(keyValueStoreProvider)
         .setBool(PrefKeys.english, locale.languageCode == 'en')
-        .ignore();
+        .catchError((Object e) => Log.error('Language save failed', e));
   }
 }

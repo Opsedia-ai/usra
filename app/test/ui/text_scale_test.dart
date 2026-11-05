@@ -23,7 +23,7 @@ void main() {
             await scrollThrough(tester);
           });
           expect(
-            errors.map(describeLayoutError).toList(),
+            errors.map((e) => e.exceptionAsString().trim()).toList(),
             isEmpty,
             reason: 'layout errors on $screen at 2×',
           );
@@ -33,26 +33,12 @@ void main() {
   }
 }
 
-/// Scrolls the page to the bottom and back, so rows built lazily are laid
-/// out too.
+/// Scrolls the page to the bottom, so rows built lazily are laid out too.
 Future<void> scrollThrough(WidgetTester tester) async {
-  // Drags from the middle of the screen (not a found Scrollable: a page
-  // with tabs has viewports that aren't laid out).
-  final middle = tester.view.physicalSize / tester.view.devicePixelRatio;
   for (var i = 0; i < 8; i++) {
-    await tester.dragFrom(
-      Offset(middle.width / 2, middle.height * 0.6),
-      const Offset(0, -500),
-    );
+    final page = pageScrollable();
+    if (page.evaluate().isEmpty) return;
+    await tester.drag(page, const Offset(0, -500), warnIfMissed: false);
     await settle(tester);
   }
-}
-
-/// "A RenderFlex overflowed by 75 pixels on the right. (lib/...dart:120)":
-/// the message and where the widget that overflowed is in the code.
-String describeLayoutError(FlutterErrorDetails e) {
-  final where = RegExp(r'lib/[\w/]+\.dart:\d+')
-      .firstMatch(e.toString())
-      ?.group(0);
-  return '${e.exceptionAsString().trim()}${where == null ? '' : ' ($where)'}';
 }

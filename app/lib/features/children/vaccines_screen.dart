@@ -484,7 +484,6 @@ class DoseTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     String date(DateTime d) => _fmt(context, d);
-    final dose = status.dose;
     final label = switch (status.state) {
       DoseState.done => l.vaccineDone(date(status.givenOn!)),
       DoseState.overdue => l.vaccineOverdue(date(status.dueOn)),
@@ -497,8 +496,23 @@ class DoseTile extends StatelessWidget {
     final muted = Theme.of(context).textTheme.bodySmall
         ?.copyWith(color: UsraColors.textMuted);
     final chip = SeverityChip(severity: status.state.severity, label: label);
-    // With large text the chip doesn't fit beside the name: it goes under.
-    final stacked = MediaQuery.textScalerOf(context).scale(10) > 13;
+    final scale = MediaQuery.textScalerOf(context).scale(10) / 10;
+    // On a narrow row (a small phone, large text) the chip doesn't fit
+    // beside the name: it goes under it.
+    return LayoutBuilder(
+      builder: (context, box) =>
+          _tile(context, l, muted, chip, stacked: box.maxWidth / scale < 340),
+    );
+  }
+
+  Widget _tile(
+    BuildContext context,
+    AppLocalizations l,
+    TextStyle? muted,
+    Widget chip, {
+    required bool stacked,
+  }) {
+    final dose = status.dose;
     return ListTile(
       key: ValueKey('dose-${dose.kind.name}-${dose.dose}'),
       contentPadding: EdgeInsets.zero,

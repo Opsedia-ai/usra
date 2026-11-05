@@ -106,6 +106,13 @@ jobs:
           name: goldens-${{ github.sha }}
           path: app/test/ui/goldens/images/
           retention-days: 7
+      # Red on purpose: while the label is on, nothing is compared. Commit
+      # the images, remove the label, and the next run compares again.
+      - name: Remove the update-goldens label once the images are committed
+        if: contains(github.event.pull_request.labels.*.name, 'update-goldens')
+        run: |
+          echo "::error::Goldens were written, not compared. Commit the goldens-${{ github.sha }} artifact into app/test/ui/goldens/images/ and remove the update-goldens label."
+          exit 1
       # What changed, as images: master, test and a diff per failed screen.
       - name: Upload differences
         if: failure()

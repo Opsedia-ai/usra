@@ -75,7 +75,11 @@ Future<DemoFamily> pumpDemoScreen(
   Locale locale = const Locale('ar'),
   double textScale = 1.0,
   Size? size = phoneSize,
+  DateTime? now,
 }) async {
+  // On a device the screens read the real clock, so the family is made
+  // relative to it; tests pin both to [demoNow].
+  final today = now ?? demoNow;
   // On a real phone or simulator (null) the screen is what it is.
   if (size != null) {
     tester.view.physicalSize = size * 3;
@@ -92,9 +96,7 @@ Future<DemoFamily> pumpDemoScreen(
     ),
   );
   addTearDown(db.close);
-  final family = (await tester.runAsync(
-    () => seedDemoFamily(db, now: demoNow),
-  ))!;
+  final family = (await tester.runAsync(() => seedDemoFamily(db, now: today)))!;
 
   final dir = Directory.systemTemp.createTempSync('usra_ui');
   addTearDown(() => dir.deleteSync(recursive: true));
@@ -134,7 +136,9 @@ Future<DemoFamily> pumpDemoScreen(
         ),
         reminderSchedulerProvider.overrideWithValue(FakeReminderScheduler()),
         photoPickerProvider.overrideWithValue(pick),
-        clockProvider.overrideWithValue(() => demoNow),
+        clockProvider.overrideWithValue(
+          () => now == null ? demoNow : clock.now(),
+        ),
       ],
       child: const UsraApp(),
     ),
@@ -193,3 +197,17 @@ Future<void> settle(
 final tinyPng = base64Decode(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
 );
+
+/// The page's own vertical list: the tallest one (text fields and chips
+/// rows have small Scrollables of their own).
+Finder pageScrollable() {
+  final all = find.byWidgetPredicate(
+    (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+  );
+  final elements = all.evaluate();
+  if (elements.isEmpty) return all;
+  final page = elements.reduce(
+    (a, b) => a.size!.height >= b.size!.height ? a : b,
+  );
+  return find.byElementPredicate((e) => e == page);
+}

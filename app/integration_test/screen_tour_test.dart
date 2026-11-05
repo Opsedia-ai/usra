@@ -23,6 +23,7 @@ void main() {
         locale: Locale(language),
         textScale: scale,
         size: null,
+        now: DateTime.now(),
       );
       await binding.takeScreenshot('$language-x$scale-${screen.name}');
     });

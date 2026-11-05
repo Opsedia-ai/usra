@@ -40,7 +40,8 @@ When a change to a key screen is intended:
    ```bash
    gh run download <run-id> -n goldens-<sha> -D app/test/ui/goldens/images
    ```
-3. Commit, and remove the label (while it is on, the job never compares).
+3. Commit, and remove the label. While it is on the job never compares, so
+   it fails on purpose with a reminder.
 
 With Docker, the same works locally:
 

@@ -41,18 +41,10 @@ class JourneyDriver {
   /// way a person scrolls; scrolling isn't counted as a tap).
   Future<void> reveal(Finder finder) async {
     if (finder.evaluate().isEmpty) {
-      // The page's own list: the tallest vertical Scrollable (text fields
-      // have small ones of their own).
-      final pages = find.byWidgetPredicate(
-        (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
-      );
-      final page = pages.evaluate().reduce(
-        (a, b) => a.size!.height >= b.size!.height ? a : b,
-      );
       await tester.scrollUntilVisible(
         finder,
         300,
-        scrollable: find.byElementPredicate((e) => e == page),
+        scrollable: pageScrollable(),
       );
     }
     await tester.ensureVisible(finder);
@@ -129,11 +121,13 @@ Future<int> runJourney(
   WidgetTester tester,
   Journey journey, {
   Size? size = phoneSize,
+  DateTime? now,
 }) async {
   final family = await pumpDemoScreen(
     tester,
     UiScreen('home', (_) => '/home'),
     size: size,
+    now: now,
   );
   final driver = JourneyDriver(tester, family);
   await journey.run(driver);
