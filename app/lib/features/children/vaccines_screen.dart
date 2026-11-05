@@ -753,6 +753,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
       scan = const VaccineCardParser().parse(
         text,
         today: ref.read(todayProvider),
+        birthDate: profile.birthDate,
       );
     } catch (error) {
       Log.error('Vaccine card scan failed', error);
@@ -809,6 +810,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
         else if (_unknown.isEmpty)
           l.vaccineScanNothing,
         if (already > 0) l.vaccineScanAlready(already),
+        if (scan.futureRows > 0) l.vaccineScanFutureRows(scan.futureRows),
       ];
     });
   }

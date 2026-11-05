@@ -71,6 +71,7 @@ class _Item {
     int? days,
     this.scanned = false,
     Set<RxField> unsure = const {},
+    this.suggestedName,
   }) : unsure = {...unsure},
        timesFromPaper = scanned && times.isNotEmpty,
        name = TextEditingController(text: name),
@@ -113,6 +114,7 @@ class _Item {
     days: c.days,
     scanned: true,
     unsure: c.unsure,
+    suggestedName: c.suggestedName,
   );
 
   /// Read from a photo: Save waits until the person confirms it matches
@@ -126,6 +128,10 @@ class _Item {
 
   /// The reminder times came from how often the paper says.
   final bool timesFromPaper;
+
+  /// A listed name close to what was read, offered until used or the name
+  /// is edited; never filled in by itself.
+  String? suggestedName;
 
   bool get needsCheck => scanned && (!confirmed || unsure.isNotEmpty);
 
@@ -932,7 +938,10 @@ class _ItemCard extends StatelessWidget {
             TextField(
               key: ValueKey('$k-name'),
               controller: item.name,
-              onChanged: (_) => edited(RxField.name),
+              onChanged: (_) {
+                item.suggestedName = null;
+                edited(RxField.name);
+              },
               decoration: decoration(
                 context,
                 RxField.name,
@@ -942,6 +951,27 @@ class _ItemCard extends StatelessWidget {
                     : null,
               ),
             ),
+            if (item.suggestedName case final listed?)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  // Only when the person picks it: look-alike names can be
+                  // very different medicines.
+                  child: ActionChip(
+                    key: ValueKey('$k-did-you-mean'),
+                    avatar: const Icon(Icons.spellcheck),
+                    label: Text(l.rxDidYouMean(listed)),
+                    onPressed: () {
+                      item.name.text = listed;
+                      item.suggestedName = null;
+                      // Still to be checked against the paper.
+                      item.confirmed = false;
+                      onChanged();
+                    },
+                  ),
+                ),
+              ),
             const SizedBox(height: 12),
             TextField(
               key: ValueKey('$k-strength'),
@@ -968,7 +998,26 @@ class _ItemCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text(l.prescriptionTimesPerDay, style: text.titleSmall),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l.prescriptionTimesPerDay,
+                    style: text.titleSmall,
+                  ),
+                ),
+                if (item.scanned && item.unsure.contains(RxField.times))
+                  IconButton(
+                    key: ValueKey('$k-unsure-times'),
+                    tooltip: l.rxTimesChecked,
+                    onPressed: () => edited(RxField.times),
+                    icon: Icon(
+                      Icons.task_alt,
+                      color: Severity.headsUp.foreground,
+                    ),
+                  ),
+              ],
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,

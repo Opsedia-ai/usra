@@ -4544,6 +4544,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 dose on the card was already recorded, so it wasn\'t changed.} other{{count} doses on the card were already recorded, so they weren\'t changed.}}'**
   String vaccineScanAlready(int count);
 
+  /// No description provided for @vaccineScanFutureRows.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 row only had a date still to come (the next visit), so nothing was ticked for it.} other{{count} rows only had dates still to come (next visits), so nothing was ticked for them.}}'**
+  String vaccineScanFutureRows(int count);
+
   /// No description provided for @vaccineScanFailed.
   ///
   /// In en, this message translates to:
@@ -4565,7 +4571,7 @@ abstract class AppLocalizations {
   /// No description provided for @vaccineDateCheck.
   ///
   /// In en, this message translates to:
-  /// **'Check the date: the card had more than one for this dose.'**
+  /// **'Check the date against the card: the row had more than one, or it doesn\'t fit the schedule (before an earlier dose, or well before this dose\'s age).'**
   String get vaccineDateCheck;
 
   /// No description provided for @vaccineConfirmCard.
@@ -5101,6 +5107,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Matches the paper'**
   String get rxConfirmMedicine;
+
+  /// No description provided for @rxTimesChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'The times match the paper'**
+  String get rxTimesChecked;
+
+  /// No description provided for @rxDidYouMean.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you mean {name}?'**
+  String rxDidYouMean(String name);
 
   /// No description provided for @rxConfirmFirstCheck.
   ///

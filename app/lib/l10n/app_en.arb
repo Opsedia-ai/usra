@@ -1481,6 +1481,14 @@
       }
     }
   },
+  "vaccineScanFutureRows": "{count, plural, =1{1 row only had a date still to come (the next visit), so nothing was ticked for it.} other{{count} rows only had dates still to come (next visits), so nothing was ticked for them.}}",
+  "@vaccineScanFutureRows": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "vaccineScanFailed": "Couldn't read the photo",
   "vaccineFromCard": "On the card: {row}",
   "@vaccineFromCard": {
@@ -1491,7 +1499,7 @@
     }
   },
   "vaccineDoseGuessed": "The card doesn't say which dose this is: check the number.",
-  "vaccineDateCheck": "Check the date: the card had more than one for this dose.",
+  "vaccineDateCheck": "Check the date against the card: the row had more than one, or it doesn't fit the schedule (before an earlier dose, or well before this dose's age).",
   "vaccineConfirmCard": "Matches the card",
   "vaccineConfirmNeeded": "Before saving, confirm each dose read from the card (or untick it), and say which dose each unnamed row is, or skip it.",
   "vaccineUnknownTitle": "Rows the phone couldn't name",
@@ -1720,6 +1728,15 @@
   "rxScanPhoto": "The photo of the prescription",
   "rxFromPhoto": "Read from the photo: check it against the paper",
   "rxConfirmMedicine": "Matches the paper",
+  "rxTimesChecked": "The times match the paper",
+  "rxDidYouMean": "Did you mean {name}?",
+  "@rxDidYouMean": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "rxConfirmFirstCheck": "Check the highlighted boxes first",
   "rxConfirmNeeded": "Before saving, check every medicine read from the photo against the paper and tick “Matches the paper”, and check the date and doctor.",
   "rxDoctorOnPaper": "On the paper: {name}",

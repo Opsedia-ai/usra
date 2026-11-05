@@ -2768,6 +2768,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String vaccineScanFutureRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count rows only had dates still to come (next visits), so nothing was ticked for them.',
+      one: '1 row only had a date still to come (the next visit), so nothing was ticked for it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get vaccineScanFailed => 'Couldn\'t read the photo';
 
   @override
@@ -2781,7 +2793,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vaccineDateCheck =>
-      'Check the date: the card had more than one for this dose.';
+      'Check the date against the card: the row had more than one, or it doesn\'t fit the schedule (before an earlier dose, or well before this dose\'s age).';
 
   @override
   String get vaccineConfirmCard => 'Matches the card';
@@ -3149,6 +3161,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rxConfirmMedicine => 'Matches the paper';
+
+  @override
+  String get rxTimesChecked => 'The times match the paper';
+
+  @override
+  String rxDidYouMean(String name) {
+    return 'Did you mean $name?';
+  }
 
   @override
   String get rxConfirmFirstCheck => 'Check the highlighted boxes first';

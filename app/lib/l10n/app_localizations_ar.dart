@@ -2777,6 +2777,18 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String vaccineScanFutureRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count سطور كان فيها تواريخ لسه مجتش (مواعيد الزيارة الجاية)، فمعلّمناش عليها.',
+      one: 'سطر واحد كان فيه تاريخ لسه مجاش (ميعاد الزيارة الجاية)، فمعلّمناش عليه.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get vaccineScanFailed => 'مقدرناش نقرا الصورة';
 
   @override
@@ -2789,7 +2801,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get vaccineDateCheck =>
-      'راجع التاريخ: الكارت كان فيه أكتر من تاريخ للجرعة دي.';
+      'راجع التاريخ على الكارت: السطر كان فيه أكتر من تاريخ، أو التاريخ مش مظبوط مع الجدول (قبل جرعة أقدم، أو بدري قوي عن سن الجرعة دي).';
 
   @override
   String get vaccineConfirmCard => 'زي اللي في الكارت';
@@ -3172,6 +3184,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rxConfirmMedicine => 'زي اللي في الورقة';
+
+  @override
+  String get rxTimesChecked => 'المواعيد زي اللي في الورقة';
+
+  @override
+  String rxDidYouMean(String name) {
+    return 'تقصد $name؟';
+  }
 
   @override
   String get rxConfirmFirstCheck => 'راجع الخانات المعلّمة الأول';

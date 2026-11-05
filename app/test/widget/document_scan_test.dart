@@ -179,8 +179,15 @@ void main() {
 
       await tapKey(tester, 'rx-unsure-date');
       await tapKey(tester, 'rx-unsure-doctor');
+      // Each dose came from the line under its name: checked first.
+      final confirm0 = tester.widget<CheckboxListTile>(
+        find.byKey(const ValueKey('rx-item-0-confirm')),
+      );
+      expect(confirm0.onChanged, isNull);
+      await tapKey(tester, 'rx-item-0-unsure-dose');
       await tapKey(tester, 'rx-item-0-confirm');
       expect(enabled(tester, 'rx-save'), isFalse);
+      await tapKey(tester, 'rx-item-1-unsure-dose');
       await tapKey(tester, 'rx-item-1-confirm');
       await tester.enterText(find.byKey(const ValueKey('rx-item-1-days')), '5');
       await tester.pumpAndSettle();
@@ -262,6 +269,57 @@ void main() {
       expect(find.byKey(const ValueKey('rx-item-0-unsure-dose')), findsNothing);
       await tapKey(tester, 'rx-item-0-confirm');
       expect(find.byKey(const ValueKey('rx-confirm-needed')), findsNothing);
+    });
+
+    testWidgets('a near spelling stays as read; the listed name is offered', (
+      tester,
+    ) async {
+      tallScreen(tester);
+      final omar = (await tester.runAsync(() => db.addProfile('عمر')))!;
+      ocr.result = ocrOf(['Microvlax 10mg tab'], confidences: [0.9]);
+      await go(tester, '/family/$omar/prescriptions/new');
+      await tapKey(tester, 'rx-scan-camera');
+
+      expect(fieldText(tester, 'rx-item-0-name'), 'Microvlax');
+      expect(find.text('تقصد Microvlar؟'), findsOneWidget);
+      await tapKey(tester, 'rx-item-0-did-you-mean');
+      expect(fieldText(tester, 'rx-item-0-name'), 'Microvlar');
+      expect(
+        find.byKey(const ValueKey('rx-item-0-did-you-mean')),
+        findsNothing,
+      );
+      // Still the person's to check against the paper.
+      expect(
+        find.byKey(const ValueKey('rx-item-0-unsure-name')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('unsure times can be confirmed without changing them', (
+      tester,
+    ) async {
+      tallScreen(tester);
+      final omar = (await tester.runAsync(() => db.addProfile('عمر')))!;
+      ocr.result = ocrOf(['Tobradex eye drops', '1 drop OD']);
+      await go(tester, '/family/$omar/prescriptions/new');
+      await tapKey(tester, 'rx-scan-camera');
+
+      // "OD" could be once daily or the right eye: no times, marked.
+      expect(find.byKey(const ValueKey('rx-item-0-time-08:00')), findsNothing);
+      expect(
+        find.byKey(const ValueKey('rx-item-0-unsure-times')),
+        findsOneWidget,
+      );
+      await tapKey(tester, 'rx-item-0-unsure-dose');
+      await tapKey(tester, 'rx-item-0-unsure-times');
+      expect(
+        find.byKey(const ValueKey('rx-item-0-unsure-times')),
+        findsNothing,
+      );
+      final confirm = tester.widget<CheckboxListTile>(
+        find.byKey(const ValueKey('rx-item-0-confirm')),
+      );
+      expect(confirm.onChanged, isNotNull);
     });
 
     testWidgets('a failed read says so and keeps the photo', (tester) async {
@@ -382,10 +440,16 @@ void main() {
       final kid = (await tester.runAsync(
         () => db.addProfile('ليلى', birthDate: birth),
       ))!;
-      ocr.result = ocrOf(['Vaccination card', 'OPV  IPV  Penta']);
+      ocr.result = ocrOf([
+        'Vaccination card',
+        'OPV  IPV  Penta',
+        // Only a next visit: not ticked, but said.
+        'MMR  12 months  1/12/2026',
+      ]);
       await go(tester, '/family/$kid/vaccines/setup');
       await tapKey(tester, 'vaccine-scan-gallery');
       expect(find.textContaining('ملقيناش جرعات'), findsOneWidget);
+      expect(find.textContaining('لسه مجاش'), findsOneWidget);
       expect(find.byKey(const ValueKey('setup-confirm-opv-0')), findsNothing);
       expect(enabled(tester, 'vaccine-setup-save'), isTrue);
       expect(File(pickedPaths.single).existsSync(), isFalse);

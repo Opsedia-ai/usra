@@ -60,7 +60,9 @@ void main() {
       expect(aug.timesPerDay, isNull);
       expect(aug.days, 7);
       expect(aug.known, isTrue);
-      expect(aug.unsure, isEmpty);
+      // Its instructions came from the next line: which line goes with
+      // which medicine is for the person to check.
+      expect(aug.unsure, {RxField.dose});
 
       final cetal = scan.items[1];
       expect(cetal.strength, isNull);
@@ -129,7 +131,9 @@ void main() {
       expect(times('مرتين في اليوم'), 2);
       expect(times('3 مرات يوميا'), 3);
       expect(times('٣ مرات يوميا بعد الأكل'), 3);
-      expect(times('تلات مرات'), 3);
+      expect(times('تلات مرات يوميا'), 3);
+      // No word for "a day": could be a day, a week, a month.
+      expect(times('تلات مرات'), isNull);
       expect(times('مرتين في الأسبوع'), isNull);
       expect(times('قبل الأكل'), isNull, reason: 'when, not how often');
       expect(times('بعد الأكل'), isNull);
@@ -226,7 +230,10 @@ void main() {
         ['Augrnentin 1g tab', '1x2 for 5 days'],
         confidences: [0.9, 0.9],
       );
-      expect(scan.items.single.name, 'Augmentin');
+      // Kept as read; the listed name is only offered.
+      expect(scan.items.single.name, 'Augrnentin');
+      expect(scan.items.single.suggestedName, 'Augmentin');
+      expect(scan.items.single.known, isFalse);
       expect(scan.items.single.unsure, contains(RxField.name));
     });
 
@@ -328,5 +335,148 @@ void main() {
     expect(sameDoctorName('Dr Ahmed', 'Dr. Ahmed Samir'), isFalse);
     expect(sameDoctorName('Ahmed Samir', 'Ahmed Saad'), isFalse);
     expect(sameDoctorName('Mona', 'Dr. Mona'), isTrue);
+  });
+
+  group('review of PR #12: the exact inputs', () {
+    ({int? perDay, int? everyHours, bool unsure}) often(String s) =>
+        PrescriptionParser.frequencyIn(s);
+    ({int? days, bool unsure}) long(String s) =>
+        PrescriptionParser.durationIn(s);
+
+    test('P1: two listed names on one row are split, not mixed', () {
+      final scan = read(['1- Adol 500mg tab 1x3      Augmentin 1g tab 1x2']);
+      expect(scan.items.map((i) => i.name), ['Adol', 'Augmentin']);
+      expect(scan.items.map((i) => i.strength), ['500mg', '1g']);
+      expect(scan.items.map((i) => i.dose), ['1x3', '1x2']);
+      expect(scan.items.map((i) => i.timesPerDay), [3, 2]);
+      for (final i in scan.items) {
+        expect(i.unsure, contains(RxField.dose), reason: i.name);
+      }
+    });
+
+    test('P2: twice a month is not twice a day', () {
+      for (final s in [
+        '1 tab twice a month',
+        'twice monthly',
+        '1 قرص مرتين في الشهر',
+      ]) {
+        expect(often(s).perDay, isNull, reason: s);
+        expect(often(s).unsure, isTrue, reason: s);
+      }
+      // Arabic مرتين needs a word for "a day".
+      expect(often('مرتين').perDay, isNull);
+      expect(often('مرتين').unsure, isTrue);
+      expect(often('مرتين يوميا').perDay, 2);
+    });
+
+    test('P3: a dosing interval is not a course length', () {
+      final devarol = read(['Devarol 200000 IU amp', '1x1 weekly']);
+      expect(devarol.items.single.days, isNull);
+      expect(devarol.items.single.timesPerDay, isNull);
+      expect(devarol.items.single.unsure, contains(RxField.times));
+      expect(long('1x1 weekly').days, isNull);
+      expect(long('1 amp every 7 days').days, isNull);
+      expect(long('1 amp every 7 days').unsure, isTrue);
+      expect(long('كل ٧ أيام').days, isNull);
+    });
+
+    test('P4: every other day sets nothing', () {
+      for (final s in [
+        '1x1 every other day',
+        '1x1 alternate days',
+        '1 tab qod',
+        'قرص يوم بعد يوم',
+        'قرص يوم ويوم لا',
+      ]) {
+        expect(often(s).perDay, isNull, reason: s);
+        expect(often(s).unsure, isTrue, reason: s);
+      }
+    });
+
+    test('P5: OD on eye drops (right eye) is not once daily', () {
+      final scan = read(['Tobradex eye drops', '1 drop OD']);
+      expect(scan.items.single.timesPerDay, isNull);
+      expect(scan.items.single.unsure, contains(RxField.times));
+      expect(often('1 tab OD').perDay, isNull);
+      expect(often('1 tab OD').unsure, isTrue);
+    });
+
+    test('P6: a tapering course sets no days', () {
+      final f = often('1x3 for 5 days then 1x2 for 5 days');
+      expect(f.perDay, isNull);
+      expect(f.unsure, isTrue);
+      final d = long('1x3 for 5 days then 1x2 for 5 days');
+      expect(d.days, isNull);
+      expect(d.unsure, isTrue);
+      expect(
+        long('قرص 3 مرات يوميا لمدة 5 أيام ثم مرتين لمدة 5 أيام').days,
+        isNull,
+      );
+    });
+
+    test('P7: the next medicine never joins the last one\'s dose', () {
+      final scan = read([
+        '1- Augmentin 1g tab',
+        '1x2 for 7 days',
+        '2- Zisrocin tab 1x1',
+      ]);
+      expect(scan.items.map((i) => i.name), ['Augmentin', 'Zisrocin']);
+      expect(scan.items[0].dose, '1x2 for 7 days');
+      expect(scan.items[0].days, 7);
+      expect(scan.items[0].unsure, contains(RxField.dose));
+      expect(scan.items[1].dose, '1x1');
+      expect(scan.items[1].unsure, contains(RxField.name));
+
+      final noBullet = read([
+        'Augmentin 1g tab',
+        '1x2 for 7 days',
+        'Zisrocin tab 1x1 for 3 days',
+      ]);
+      expect(noBullet.items[0].dose, '1x2 for 7 days');
+      expect(noBullet.items[0].days, 7);
+      expect(noBullet.items.map((i) => i.name), ['Augmentin', 'Zisrocin']);
+      expect(noBullet.items[1].days, 3);
+    });
+
+    test('P8: a near spelling is kept as read, the listed name offered', () {
+      for (final (read_, listed) in [
+        ('Microvlax', 'Microvlar'),
+        ('Neurotin', 'Neurontin'),
+        ('Diprospn', 'Diprospan'),
+      ]) {
+        final scan = read(['$read_ 10mg tab', '1x1'], confidences: [0.9, 0.9]);
+        final item = scan.items.single;
+        expect(item.name, read_);
+        expect(item.known, isFalse);
+        expect(item.suggestedName, listed);
+        expect(item.unsure, contains(RxField.name));
+      }
+    });
+
+    test('P9: a misread strength is kept as read and marked', () {
+      final scan = read(['Augmentin l000mg', '1x2']);
+      expect(scan.items.single.strength, 'l000mg');
+      expect(scan.items.single.unsure, contains(RxField.strength));
+    });
+
+    test('only the listed forms are read; other wording is marked', () {
+      expect(often('1x3').perDay, 3);
+      expect(often('1x3 daily').perDay, 3);
+      expect(often('1x3 daily').unsure, isFalse);
+      expect(often('1 tab daily').perDay, isNull);
+      expect(often('1 tab daily').unsure, isTrue);
+      expect(often('every 6-8 hours').everyHours, isNull);
+      expect(often('every 6-8 hours').unsure, isTrue);
+      expect(often('1x3 when needed').perDay, isNull);
+      expect(often('1x3 when needed').unsure, isTrue);
+      // "عند اللزوم" alone: no schedule, nothing to mark.
+      expect(often('قرص عند اللزوم').unsure, isFalse);
+      expect(often('بعد الأكل').unsure, isFalse);
+      expect(long('for a month').days, isNull);
+      expect(long('for a month').unsure, isTrue);
+      expect(long('2 weeks').days, isNull);
+      expect(long('2 weeks').unsure, isTrue);
+      expect(long('after meals').unsure, isFalse);
+    });
   });
 }

@@ -154,6 +154,8 @@ void main() {
   test('a date in the future is the next visit, not a dose', () {
     final scan = read(['MMR  12 months  1/12/2026']);
     expect(scan.isEmpty, isTrue);
+    // Not dropped silently: counted, so the screen can say so.
+    expect(scan.futureRows, 1);
   });
 
   test('the same dose twice with different dates is flagged', () {
@@ -211,5 +213,124 @@ void main() {
     expect(cardDoseKeys(dose({VaccineKind.dtp}, 1), hexavalent), ['hexa-4']);
     expect(cardDoseKeys(dose({VaccineKind.penta}, 1), hexavalent), isEmpty);
     expect(cardDoseKeys(dose({VaccineKind.opv}, 0), government), ['opv-0']);
+  });
+
+  group('review of PR #12: the exact inputs', () {
+    final birth = DateTime(2025, 1, 10);
+    VaccineCardScan withBirth(List<String> lines) =>
+        parser.parse(ocrOf(lines), today: today, birthDate: birth);
+
+    test('V1: each vaccine on a row keeps its own dose word', () {
+      expect(
+        byKey(read(['12 months  OPV 5th dose + MMR 1st dose  10/01/2026'])),
+        {'opv-5': DateTime(2026, 1, 10), 'mmr-1': DateTime(2026, 1, 10)},
+      );
+      expect(
+        byKey(read(['سابين الجرعة الخامسة + MMR الجرعة الأولى  10/01/2026'])),
+        {'opv-5': DateTime(2026, 1, 10), 'mmr-1': DateTime(2026, 1, 10)},
+      );
+      expect(
+        byKey(read(['18 months  OPV 6th + MMR 2nd + DTP booster  15/07/2026'])),
+        {
+          'opv-6': DateTime(2026, 7, 15),
+          'mmr-2': DateTime(2026, 7, 15),
+          'dtp-1': DateTime(2026, 7, 15),
+        },
+      );
+      // Two dose words that can't be tied to their vaccines: the age.
+      final s = read(['12 months  OPV + MMR  5th  1st  10/01/2026']);
+      expect(byKey(s), {
+        'opv-5': DateTime(2026, 1, 10),
+        'mmr-1': DateTime(2026, 1, 10),
+      });
+      // ...and with no age either: numbered by date, marked as guessed.
+      final g = read(['OPV + MMR  5th  1st  10/01/2026']);
+      expect(g.doses.every((d) => d.doseGuessed), isTrue);
+    });
+
+    test('V2: Arabic table, cells right to left: the given date is kept', () {
+      // Columns right to left: age, vaccines, dose, date given, next visit.
+      OcrLine cell(String t, double x, double y) =>
+          OcrLine(t, Rect.fromLTWH(x, y, 180, 20));
+      final ocr = OcrResult([
+        OcrBlock('table', Rect.zero, [
+          cell('شهرين', 900, 10),
+          cell('سابين + سولك + الخماسي', 680, 10),
+          cell('الجرعة الأولى', 470, 10),
+          cell('3/5/2025', 260, 10),
+          cell('3/7/2025', 50, 10),
+          cell('٦ شهور', 900, 60),
+          cell('سابين + سولك + الخماسي', 680, 60),
+          cell('الجرعة الثالثة', 470, 60),
+          cell('2/9/2025', 260, 60),
+          cell('2/12/2026', 50, 60),
+        ]),
+      ]);
+      final scan = parser.parse(ocr, today: today);
+      expect(byKey(scan), {
+        'opv-1': DateTime(2025, 5, 3),
+        'ipv-1': DateTime(2025, 5, 3),
+        'penta-1': DateTime(2025, 5, 3),
+        'opv-3': DateTime(2025, 9, 2),
+        'ipv-3': DateTime(2025, 9, 2),
+        'penta-3': DateTime(2025, 9, 2),
+      });
+      // Two dates on each row: marked.
+      expect(scan.doses.every((d) => d.dateUnsure), isTrue);
+      expect(scan.futureRows, 0);
+    });
+
+    test('V3: an infant DTP dose is not the 18-month booster', () {
+      final infant = read(['2 months  DTP  10/03/2025']);
+      expect(infant.doses, isEmpty);
+      expect(infant.unknown.single.date, DateTime(2025, 3, 10));
+      final first = withBirth(['DTP 1st dose  10/03/2025']);
+      expect(first.doses, isEmpty);
+      expect(first.unknown, hasLength(1));
+      // Not knowing the age, it isn't assumed to be the booster either.
+      expect(read(['DTP 1st dose  10/03/2025']).doses, isEmpty);
+      // The booster itself, at 18 months.
+      expect(withBirth(['DTP booster  12/07/2026']).doses.single.key, 'dtp-1');
+      // The same for the fourth hexavalent.
+      expect(withBirth(['Hexyon 4th  10/03/2025']).doses, isEmpty);
+    });
+
+    test('V4: other DTaP combinations are listed, not counted', () {
+      final scan = read([
+        'Infanrix-IPV+Hib  2nd  10/05/2025',
+        'Pentaxim  10/03/2025',
+        'Infanrix hexa  3rd  10/07/2025',
+      ]);
+      expect(scan.doses.map((d) => d.key), ['hexa-3']);
+      expect(scan.unknown.map((u) => u.text), ['Infanrix-IPV', 'Pentaxim']);
+      expect(scan.unknown.map((u) => u.date), [
+        DateTime(2025, 5, 10),
+        DateTime(2025, 3, 10),
+      ]);
+    });
+
+    test('V5: dates out of order or before the age are marked', () {
+      final order = read(['Penta 1st 10/05/2025', 'Penta 2nd 10/03/2025']);
+      expect(order.doses.map((d) => d.key).toSet(), {'penta-1', 'penta-2'});
+      expect(order.doses.every((d) => d.dateUnsure), isTrue);
+
+      // MMR at 12 months, dated when the child was 2 months old.
+      final early = withBirth(['MMR 12 months  10/03/2025']);
+      expect(early.doses.single.key, 'mmr-1');
+      expect(early.doses.single.dateUnsure, isTrue);
+
+      // A 9-month measles dose, then the 12-month MMR.
+      final measles = withBirth([
+        'Measles 9 months  10/10/2025',
+        'MMR 12 months  10/01/2026',
+      ]);
+      final mmr2 = measles.doses.firstWhere((d) => d.key == 'mmr-2');
+      expect(mmr2.dateUnsure, isTrue);
+      expect(mmr2.doseGuessed, isTrue);
+
+      // Doses in order, at their ages: not marked.
+      final fine = withBirth(['Penta 1st 10/03/2025', 'Penta 2nd 10/05/2025']);
+      expect(fine.doses.any((d) => d.dateUnsure), isFalse);
+    });
   });
 }

@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import '../../core/ocr/medicine_name_extractor.dart';
 import '../../core/ocr/ocr_dates.dart';
 import '../../core/ocr/ocr_rows.dart';
@@ -26,9 +24,11 @@ class RxCandidate {
     this.everyHours,
     this.days,
     this.known = false,
+    this.suggestedName,
     this.unsure = const {},
   });
 
+  /// As read from the paper, never swapped for a listed name.
   final String name;
   final String? strength;
   final String dose;
@@ -38,13 +38,18 @@ class RxCandidate {
 
   /// The name is in the bundled list of medicines sold in Egypt.
   final bool known;
+
+  /// A listed name close to what was read ("Augrnentin" → "Augmentin"),
+  /// offered as "Did you mean …?"; never filled in by itself, since look-
+  /// alike names in the list can be very different medicines.
+  final String? suggestedName;
   final Set<RxField> unsure;
 
   @override
   String toString() =>
       'RxCandidate($name | ${strength ?? '-'} | $dose | '
       '${timesPerDay ?? '-'}/day | q${everyHours ?? '-'}h | '
-      '${days ?? '-'} days | $unsure)';
+      '${days ?? '-'} days | ${suggestedName ?? ''} | $unsure)';
 }
 
 /// What a prescription photo gave. Every part is a suggestion.
@@ -118,10 +123,14 @@ class PrescriptionParser {
     // Lines read unsurely (handwriting under a printed letterhead): if no
     // medicine was read, the page is unclear, not empty.
     var skippedUnsure = confidences.where((c) => c < unsureBelow).length >= 2;
-    for (var i = 0; i < rows.length; i++) {
-      final head = _medicineRow(rows[i]);
+    // Two listed names on one row (two columns read as one line): each
+    // starts its own row, and what goes with which is marked.
+    final split = <(OcrRow, bool)>[for (final r in rows) ..._splitAtNames(r)];
+    for (var i = 0; i < split.length; i++) {
+      final (row, wasSplit) = split[i];
+      final head = _medicineRow(row);
       if (head == null) {
-        if (_looksLikeMedicine(rows[i].text)) skippedUnsure = true;
+        if (_looksLikeMedicine(row.text)) skippedUnsure = true;
         continue;
       }
       if (head.$2) {
@@ -132,10 +141,14 @@ class PrescriptionParser {
       var c = head.$1!;
       // Instructions on the lines under it, until the next medicine.
       final dose = [if (c.dose.isNotEmpty) c.dose];
-      final unsure = {...c.unsure};
-      for (var j = i + 1; j < rows.length && j <= i + 2; j++) {
-        final next = rows[j];
-        if (_medicineRow(next) != null || _isLabel(next.text)) break;
+      final unsure = {...c.unsure, if (wasSplit) RxField.dose};
+      for (var j = i + 1; j < split.length && j <= i + 2; j++) {
+        final next = split[j].$1;
+        if (_startsNewItem(next.text) ||
+            _medicineRow(next) != null ||
+            _isLabel(next.text)) {
+          break;
+        }
         if (!_isInstruction(next.text)) break;
         if ((next.confidence ?? 1) < unsureBelow) {
           // Read badly: left for the person to type.
@@ -143,6 +156,8 @@ class PrescriptionParser {
           break;
         }
         dose.add(next.text.replaceAll(RegExp(r'\s{2,}'), ' ').trim());
+        // Which lines belong to which medicine is the phone's guess.
+        unsure.add(RxField.dose);
         i = j;
       }
       final text = dose.join(' ');
@@ -174,35 +189,43 @@ class PrescriptionParser {
       formBefore = true;
     }
     rest = rest.trimLeft();
+    final numbered = _numbered.hasMatch(raw);
 
     final known = names?.knownIn(rest) ?? const <String>[];
+    final exact = _namesAt(rest);
     String name;
     var nameEnd = 0;
     final unsure = <RxField>{};
     var isKnown = false;
-    if (known.isNotEmpty) {
-      name = known.first;
-      // Matched only as a near spelling ("Augrnentin"). Without the
-      // recogniser's confidence (iOS) that may be handwriting read as a
-      // name: never suggested then.
-      if (!rest.toLowerCase().contains(name.toLowerCase()) &&
-          confidence == null) {
-        return (null, true);
-      }
-      final at = rest.toLowerCase().indexOf(name.toLowerCase());
-      if (at >= 0 && at <= 3) {
-        nameEnd = at + name.length;
-      } else {
-        // Matched despite an OCR slip, or not at the start: the leading
-        // Latin words are taken as where the name was printed.
-        final lead = _leadingName.firstMatch(rest);
-        if (lead == null) return null;
-        nameEnd = lead.end;
-        unsure.add(RxField.name);
-      }
+    String? suggested;
+    if (exact.isNotEmpty) {
+      // The listed name printed first on the row.
+      final first = exact.first;
+      name = first.name;
+      nameEnd = first.end;
+      if (first.start > 3) unsure.add(RxField.name);
       isKnown = true;
       if ((confidence ?? 1) < unsureBelow) return (null, true);
       if ((confidence ?? 1) < unknownNameBelow) unsure.add(RxField.name);
+    } else if (known.isNotEmpty) {
+      // Only a near spelling of a listed name ("Augrnentin"). Without the
+      // recogniser's confidence (iOS) that may be handwriting: nothing is
+      // suggested. Otherwise the text stays as read, the listed name is
+      // only offered: look-alikes in the list are different medicines.
+      if (confidence == null || confidence < unknownNameBelow) {
+        return (null, true);
+      }
+      final lead = _leadingName.firstMatch(rest);
+      if (lead == null) return null;
+      final words = lead[0]!.trim().split(' ');
+      while (words.length > 1 &&
+          _formWords.contains(words.last.toLowerCase())) {
+        words.removeLast();
+      }
+      name = words.join(' ');
+      nameEnd = rest.indexOf(name) + name.length;
+      suggested = known.first;
+      unsure.add(RxField.name);
     } else {
       final lead = _leadingName.firstMatch(rest);
       if (lead == null) return null;
@@ -224,9 +247,10 @@ class PrescriptionParser {
       final strengthNext = _strengthAtStart.hasMatch(
         after.replaceFirst(_formAfter, '').trimLeft(),
       );
-      // Only lines laid out like a medicine: a form before it, or a
-      // strength right after it.
-      if (!formBefore && !strengthNext) return null;
+      final formNext = _formAfter.hasMatch(after);
+      // Only lines laid out like a medicine: numbered, a form before or
+      // after it, or a strength right after it.
+      if (!formBefore && !strengthNext && !formNext && !numbered) return null;
       if ((confidence ?? 1) < unknownNameBelow) return (null, true);
       unsure.add(RxField.name);
       if (name == name.toUpperCase()) {
@@ -240,13 +264,16 @@ class PrescriptionParser {
     String? strength;
     final s = _strengthAtStart.firstMatch(after.trimLeft());
     if (s != null) {
-      strength = MedicineNameExtractor.strengthIn(s[0]!);
-      if (strength != null) {
-        after = after.trimLeft().substring(s.end);
-        if (RegExp('[oOlI]').hasMatch(s[0]!.replaceAll(_unitWord, ''))) {
-          unsure.add(RxField.strength);
-        }
+      final token = s[0]!.trim();
+      if (RegExp('[oOlI]').hasMatch(token.replaceAll(_unitWord, ''))) {
+        // A letter where a digit should be ("l000mg"): kept as read, never
+        // cut down to something that looks right ("000mg").
+        strength = token;
+        unsure.add(RxField.strength);
+      } else {
+        strength = MedicineNameExtractor.strengthIn(token);
       }
+      if (strength != null) after = after.trimLeft().substring(s.end);
     }
     after = after.replaceFirst(_formAfter, '');
     final dose = after
@@ -260,10 +287,75 @@ class PrescriptionParser {
         strength: strength,
         dose: dose,
         known: isKnown,
+        suggestedName: suggested,
         unsure: unsure,
       ),
       false,
     );
+  }
+
+  /// Listed names printed on [text] as they are spelled, first first.
+  List<({int start, int end, String name})> _namesAt(String text) {
+    final found = <({int start, int end, String name})>[];
+    for (final n in names?.knownIn(text) ?? const <String>[]) {
+      final m = RegExp(
+        '(?<![A-Za-z])${RegExp.escape(n)}(?![A-Za-z])',
+        caseSensitive: false,
+      ).firstMatch(text);
+      if (m != null) found.add((start: m.start, end: m.end, name: n));
+    }
+    return found..sort((a, b) => a.start.compareTo(b.start));
+  }
+
+  /// [row] cut before each listed name after the first one; the pieces
+  /// are marked as split.
+  List<(OcrRow, bool)> _splitAtNames(OcrRow row) {
+    final at = _namesAt(row.text);
+    if (at.length < 2 || _isLabel(row.text)) return [(row, false)];
+    final cuts = <int>[];
+    var end = at.first.end;
+    for (final n in at.skip(1)) {
+      if (n.start < end) continue;
+      cuts.add(n.start);
+      end = n.end;
+    }
+    if (cuts.isEmpty) return [(row, false)];
+    final bounds = [0, ...cuts, row.text.length];
+    return [
+      for (var k = 0; k + 1 < bounds.length; k++)
+        (
+          OcrRow(
+            row.text.substring(bounds[k], bounds[k + 1]).trim(),
+            loose: row.loose,
+            confidence: row.confidence,
+          ),
+          true,
+        ),
+    ];
+  }
+
+  /// A numbered line ("2- Zisrocin", "3) Tab ..."): a new medicine.
+  static final _numbered = RegExp(
+    r'^\s*(?:\d{1,2}|[٠-٩]{1,2})\s*(?:[-)]|\.(?![\d٠-٩]))\s*(?=[A-Za-z؀-ۿ])',
+  );
+
+  /// A line that starts another medicine rather than going on with the
+  /// last one's instructions: numbered, or a Latin name (after a form
+  /// word) that isn't an instruction word.
+  static bool _startsNewItem(String text) {
+    if (_numbered.hasMatch(text)) return true;
+    var t = text.trimLeft().replaceFirst(RegExp(r'^[-•*·>]+\s*'), '');
+    while (true) {
+      final m = _formPrefix.firstMatch(t);
+      if (m == null) break;
+      t = t.substring(m.end);
+    }
+    final w = RegExp(r'^[A-Za-z][A-Za-z\-]{2,}').firstMatch(t.trimLeft());
+    if (w == null) return false;
+    return !RegExp(
+      '^(${_instructionList.join('|')})\$',
+      caseSensitive: false,
+    ).hasMatch(w[0]!);
   }
 
   /// A row with a Latin word and a strength, or a form word: maybe a
@@ -278,36 +370,30 @@ class PrescriptionParser {
     String dose,
     Set<RxField> unsure,
   ) {
-    final times = timesPerDayIn(dose);
-    final hours = everyHoursIn(dose);
-    var perDay = times;
-    int? every = hours;
-    if (perDay != null && every != null && perDay * every != 24) {
-      // "1x3 every 6 hours": the paper disagrees with itself.
-      perDay = null;
-      every = null;
-      unsure.add(RxField.times);
-    } else if (every != null) {
-      perDay = null;
-    }
-    if (perDay == null && every == null && _conflictingTimes(dose)) {
-      unsure.add(RxField.times);
-    }
-    final days = daysIn(dose);
+    final f = frequencyIn(dose);
+    final d = durationIn(dose);
+    if (f.unsure) unsure.add(RxField.times);
+    if (d.unsure) unsure.add(RxField.days);
     if (dose.isEmpty) unsure.add(RxField.dose);
     return RxCandidate(
       name: c.name,
       strength: c.strength,
       dose: dose,
-      timesPerDay: perDay,
-      everyHours: every,
-      days: days,
+      timesPerDay: f.perDay,
+      everyHours: f.everyHours,
+      days: d.days,
       known: c.known,
+      suggestedName: c.suggestedName,
       unsure: unsure,
     );
   }
 
-  // ---- Frequency and course length, only when printed plainly ----
+  // ---- How often and how long: only from a short list of plain forms ----
+  //
+  // A value is read only when the text says it in one of the forms below
+  // and in nothing else. Any other wording about how often or how long
+  // ("twice a month", "every other day", "1 drop OD", "weekly", "then")
+  // leaves the value empty and marks it for the person.
 
   static String _plain(String raw) =>
       toWesternDigits(raw)
@@ -319,118 +405,168 @@ class PrescriptionParser {
           .replaceAll('×', 'x')
           .replaceAll(RegExp(r'\s+'), ' ');
 
-  static final _weekly = RegExp(r'week|weekly|اسبوع|الاسبوع|اسبوعيا');
-  static final _asNeeded = RegExp(
-    r'\b(prn|sos|as needed|when needed|if needed)\b|عند اللزوم|عند الحاجه|وقت اللزوم',
+  static const _daily =
+      r'(?:daily|a day|per day|/ ?day|each day|every day|in a day|'
+      r'يوميا|يومي|في اليوم|فى اليوم|باليوم|(?<![ء-ي])كل يوم|في النهار)';
+
+  /// "1x3", "½x2" (one, or part of one, so many times a day). "2x3" could
+  /// be read either way round, so it isn't one of them.
+  static final _xTimes = RegExp(
+    r'(?<![\d.])(?:1|½|¼|1/2|1/4|0\.5)\s*x\s*([1-4])(?![\d.])'
+    r'(?!\s*(?:days?|d\b|يوم|ايام|weeks?|wks?|اسابيع|اسبوع|months?|شهر))'
+    '(?:\\s*$_daily)?',
   );
 
-  static List<int> _timesFound(String raw) {
-    final t = _plain(raw);
-    final found = <int>[];
-    // "1x3", "½x2": one (or part of one), so many times a day. "2x3" could
-    // be read either way round, so it isn't used.
-    for (final m in RegExp(
-      r'(?<![\d.])(1|½|¼|1/2|1/4|0\.5)\s*x\s*([1-4])(?![\d.])',
-    ).allMatches(t)) {
-      // Not "x 5 days" or "1 x 2 weeks".
-      final tail = t.substring(m.end);
-      if (RegExp(r'^\s*(days?|d\b|يوم|ايام|weeks?|اسابيع)').hasMatch(tail)) {
-        continue;
+  static final _perDayWords = <(RegExp, int?)>[
+    (RegExp('\\b(?:once|one time)\\s*$_daily'), 1),
+    (RegExp('\\b(?:twice|two times)\\s*$_daily'), 2),
+    (RegExp('\\b(?:thrice|three times)\\s*$_daily'), 3),
+    (RegExp('\\bfour times\\s*$_daily'), 4),
+    (RegExp('(?<![\\d.])([1-6])\\s*times?\\s*$_daily'), null),
+    (RegExp(r'\b(?:b\.?i\.?d|b\.i\.d\.)(?![a-z])\.?'), 2),
+    (RegExp(r'\b(?:t\.?i\.?d|t\.?d\.?s)(?![a-z])\.?'), 3),
+    (RegExp(r'\b(?:q\.?i\.?d|q\.?d\.?s)(?![a-z])\.?'), 4),
+    (RegExp('مره (?:واحده )?$_daily'), 1),
+    (RegExp('مرتين $_daily'), 2),
+    (RegExp('(?<![\\d])(?:3|ثلاث|تلات|ثلاثه|تلاته) مرات $_daily'), 3),
+    (RegExp('(?<![\\d])(?:4|اربع|اربعه) مرات $_daily'), 4),
+    (RegExp('(?<![\\d.])([1256]) مرات $_daily'), null),
+  ];
+
+  static final _hoursForms = [
+    RegExp(
+      r'(?:every|each|(?<![ء-ي])كل)\s*(\d{1,2})\s*(?:hours?|hrs?|h\b|ساعات|ساعه)',
+    ),
+    RegExp(r'\bq\s*(\d{1,2})\s*h(?:rs?|ours?)?\b'),
+  ];
+
+  static final _asNeeded = RegExp(
+    r'\b(?:prn|sos|as needed|when needed|if needed|when required)\b|'
+    r'عند اللزوم|عند الحاجه|وقت اللزوم',
+  );
+
+  /// Words about how often that none of the plain forms took: "twice"
+  /// alone, "OD" (once daily, or the right eye?), "weekly", "every other".
+  static final _oftenWords = RegExp(
+    r'\b(?:once|twice|thrice|times?|daily|od|o\.d|qd|q\.d|bd|b\.d|qod|q\.o\.d|'
+    r'hs|nocte|mane|weekly|monthly|yearly|every|each|alternate|other)\b|'
+    r'\d\s*x\s*\d|(?<![ء-ي])(?:مره|مرتين|مرات|يوميا|يومي|كل|اسبوعيا|شهريا|'
+    r'يوم بعد يوم|يوم ويوم)(?![ء-ي])',
+  );
+
+  static String _blank(String t, Match m) =>
+      t.replaceRange(m.start, m.end, ' ' * (m.end - m.start));
+
+  /// How often the paper says, when it says it once, plainly. Otherwise
+  /// nothing, marked [unsure] when there was wording about it.
+  static ({int? perDay, int? everyHours, bool unsure}) frequencyIn(
+    String dose,
+  ) {
+    var t = _plain(dose);
+    final perDay = <int>{};
+    final hours = <int>{};
+    void take(RegExp r, void Function(Match) found) {
+      for (final m in r.allMatches(t).toList().reversed) {
+        found(m);
+        t = _blank(t, m);
       }
-      found.add(int.parse(m[2]!));
-    }
-    final perDay = r'(a|per|/|in a|each)?\s*(day|daily)';
-    void add(String pattern, int n) {
-      for (final m in RegExp(pattern).allMatches(t)) {
-        final near = t.substring(m.end, math.min(t.length, m.end + 14));
-        if (_weekly.hasMatch(near)) continue;
-        found.add(n);
-      }
     }
 
-    add('\\bonce\\s*$perDay', 1);
-    add('\\b(twice|two times)\\s*$perDay?', 2);
-    add('\\b(thrice|three times)\\s*$perDay?', 3);
-    add('\\bfour times\\s*$perDay?', 4);
-    for (final m in RegExp(
-      r'(?<![\d.])([1-6])\s*times?\s*' + perDay,
-    ).allMatches(t)) {
-      found.add(int.parse(m[1]!));
+    take(_xTimes, (m) => perDay.add(int.parse(m[1]!)));
+    for (final (r, n) in _perDayWords) {
+      take(r, (m) => perDay.add(n ?? int.parse(m[1]!)));
     }
-    add(r'\b(o\.?d\.?|q\.?d\.?)(?![a-z])', 1);
-    add(r'\b(b\.?i\.?d\.?|b\.?d\.?)(?![a-z])', 2);
-    add(r'\b(t\.?i\.?d\.?|t\.?d\.?s\.?)(?![a-z])', 3);
-    add(r'\b(q\.?i\.?d\.?|q\.?d\.?s\.?)(?![a-z])', 4);
-    // Arabic: "مرة يوميا", "مرتين في اليوم", "٣ مرات يوميا", "تلات مرات".
-    const daily = r'(يوميا|يومي|في اليوم|فى اليوم|باليوم|كل يوم|في النهار)';
-    add(r'مره (واحده )?' + daily, 1);
-    add(r'مرتين', 2);
-    add(r'(?<![\d])([3]|ثلاث|تلات|ثلاثه|تلاته) مرات', 3);
-    add(r'(?<![\d])([4]|اربع|اربعه) مرات', 4);
-    for (final m in RegExp(r'(?<![\d.])([1256]) مرات').allMatches(t)) {
-      final near = t.substring(m.end, math.min(t.length, m.end + 14));
-      if (!_weekly.hasMatch(near)) found.add(int.parse(m[1]!));
+    for (final r in _hoursForms) {
+      take(r, (m) => hours.add(int.parse(m[1]!)));
     }
-    if (_asNeeded.hasMatch(t)) found.add(-1);
-    return found;
-  }
-
-  /// How many times a day the paper says, when it says it once and
-  /// plainly; null otherwise ("as needed", "once weekly", two answers).
-  static int? timesPerDayIn(String dose) {
-    final found = _timesFound(dose).toSet();
-    if (found.length != 1 || found.single < 1) return null;
-    return found.single;
-  }
-
-  static bool _conflictingTimes(String dose) =>
-      _timesFound(dose).toSet().length > 1;
-
-  /// "every 8 hours", "q8h", "كل ٨ ساعات": the interval, when it's one the
-  /// form offers (4, 6, 8 or 12 hours).
-  static int? everyHoursIn(String dose) {
-    final t = _plain(dose);
-    final found = <int>{
-      for (final m in RegExp(
-        r'(?:every|each|كل)\s*(\d{1,2})\s*(?:hours?|hrs?|h\b|ساعات|ساعه)',
-      ).allMatches(t))
-        int.parse(m[1]!),
-      for (final m in RegExp(
-        r'\bq\s*(\d{1,2})\s*h(?:rs?|ours?)?\b',
-      ).allMatches(t))
-        int.parse(m[1]!),
-    };
-    if (found.length != 1) return null;
+    var asNeeded = false;
+    take(_asNeeded, (_) => asNeeded = true);
+    final leftOver = _oftenWords.hasMatch(t);
+    const none = (perDay: null, everyHours: null, unsure: false);
+    if (perDay.isEmpty && hours.isEmpty) {
+      return leftOver ? (perDay: null, everyHours: null, unsure: true) : none;
+    }
     const offered = [4, 6, 8, 12];
-    return offered.contains(found.single) ? found.single : null;
+    final agree =
+        perDay.length <= 1 &&
+        hours.length <= 1 &&
+        (perDay.isEmpty || hours.isEmpty || perDay.single * hours.single == 24);
+    if (leftOver || asNeeded || !agree) {
+      return (perDay: null, everyHours: null, unsure: true);
+    }
+    if (hours.isNotEmpty) {
+      return offered.contains(hours.single)
+          ? (perDay: null, everyHours: hours.single, unsure: false)
+          : (perDay: null, everyHours: null, unsure: true);
+    }
+    return (perDay: perDay.single, everyHours: null, unsure: false);
   }
 
-  /// How many days the course lasts, when printed: "for 7 days", "x 5
-  /// days", "لمدة ٥ أيام", "لمدة أسبوع", "2 weeks". Null when not printed,
-  /// printed twice differently, or "for a month" (how long is that?).
-  static int? daysIn(String dose) {
-    final t = _plain(dose);
+  /// How many times a day, when printed plainly; null otherwise.
+  static int? timesPerDayIn(String dose) => frequencyIn(dose).perDay;
+
+  /// "every 8 hours", "q8h", "كل ٨ ساعات", when it's an interval the form
+  /// offers (4, 6, 8 or 12 hours) and nothing else on the text disagrees.
+  static int? everyHoursIn(String dose) => frequencyIn(dose).everyHours;
+
+  static const _for = r'(?:for|x|لمده|مده|لمدت|duration:?)\s*';
+
+  static final _dayForms = <(RegExp, int Function(Match))>[
+    (
+      RegExp('$_for(\\d{1,3})\\s*(?:days?|d\\b|يوم(?!ي)|ايام)'),
+      (m) => int.parse(m[1]!),
+    ),
+    (
+      RegExp('$_for(\\d)\\s*(?:weeks?|wks?|اسابيع|اسبوع(?!ي))'),
+      (m) => 7 * int.parse(m[1]!),
+    ),
+    (RegExp('$_forاسبوعين'), (_) => 14),
+    (
+      RegExp(
+        '(?:for|لمده|مده|لمدت)\\s*(?:a |one |1 )?(?:week|اسبوع)(?!ين|ي|s)',
+      ),
+      (_) => 7,
+    ),
+  ];
+
+  /// Wording that makes a course length unsafe to read: a dose that
+  /// changes ("then"), or a dose repeated on some days ("weekly", "every
+  /// 7 days", "every other day").
+  static final _notACourse = RegExp(
+    r'\b(?:then|after that|followed by|weekly|monthly|alternate|qod|'
+    r'every other)\b|(?:every|each|(?<![ء-ي])كل)\s*\d*\s*(?:days?|weeks?|months?|يوم|ايام|اسبوع|شهر)|'
+    r'ثم|بعدين|بعد كده|بعد ذلك|اسبوعيا|شهريا|يوم بعد يوم|يوم ويوم',
+  );
+
+  static final _lengthWords = RegExp(
+    r'\b(?:days?|weeks?|wks?|months?|years?)\b|ايام|يوم(?!ي)|اسبوع|اسابيع|شهر|سنه',
+  );
+
+  /// How many days the course lasts, when printed plainly ("for 7 days",
+  /// "x 5 days", "لمدة ٥ أيام", "لمدة أسبوع"). Otherwise nothing, marked
+  /// [unsure] when there was wording about it.
+  static ({int? days, bool unsure}) durationIn(String dose) {
+    var t = _plain(dose);
+    final unsafe = _notACourse.hasMatch(t);
     final found = <int>{};
-    for (final m in RegExp(
-      r'(?<![\d.])(\d{1,3})\s*(?:days?|d\b|يوم(?!ي)|ايام)',
-    ).allMatches(t)) {
-      found.add(int.parse(m[1]!));
+    for (final (r, value) in _dayForms) {
+      for (final m in r.allMatches(t).toList().reversed) {
+        found.add(value(m));
+        t = _blank(t, m);
+      }
     }
-    for (final m in RegExp(
-      r'(?<![\d.])(\d)\s*(?:weeks?|wks?|اسابيع|اسبوع)',
-    ).allMatches(t)) {
-      found.add(7 * int.parse(m[1]!));
-    }
-    final preamble = r'(?:for|x|لمده|مده|لمدت)\s*(?:a|one|1)?\s*';
-    if (RegExp(preamble + r'(?:week|اسبوع)(?!ين)').hasMatch(t) &&
-        !RegExp(r'\d\s*(?:weeks?|اسابيع|اسبوع)').hasMatch(t)) {
-      found.add(7);
-    }
-    if (RegExp(r'اسبوعين').hasMatch(t)) found.add(14);
-    if (found.length != 1) return null;
+    final leftOver = _lengthWords.hasMatch(t);
+    if (unsafe) return (days: null, unsure: found.isNotEmpty || leftOver);
+    if (found.isEmpty) return (days: null, unsure: leftOver);
+    if (found.length > 1 || leftOver) return (days: null, unsure: true);
     final n = found.single;
-    return n >= 1 && n <= maxScannedDays ? n : null;
+    return n >= 1 && n <= maxScannedDays
+        ? (days: n, unsure: false)
+        : (days: null, unsure: true);
   }
+
+  /// How many days the course lasts, when printed plainly; null otherwise.
+  static int? daysIn(String dose) => durationIn(dose).days;
 
   // ---- The header: doctor and date ----
 
@@ -532,11 +668,84 @@ class PrescriptionParser {
     return _label.hasMatch(t);
   }
 
+  static const _instructionList = [
+    'take',
+    'tab',
+    'tabs',
+    'tablet',
+    'tablets',
+    'cap',
+    'caps',
+    'capsule',
+    'drop',
+    'drops',
+    'spoon',
+    'ml',
+    'puff',
+    'puffs',
+    'time',
+    'times',
+    'daily',
+    'day',
+    'days',
+    'week',
+    'weeks',
+    'hour',
+    'hours',
+    'hrs',
+    'every',
+    'each',
+    'before',
+    'after',
+    'with',
+    'meal',
+    'meals',
+    'food',
+    'breakfast',
+    'lunch',
+    'dinner',
+    'bedtime',
+    'night',
+    'morning',
+    'evening',
+    'once',
+    'twice',
+    'thrice',
+    'od',
+    'bid',
+    'tid',
+    'qid',
+    'tds',
+    'prn',
+    'sos',
+    'for',
+    'apply',
+    'inhale',
+    'sachet',
+    'then',
+    'until',
+    'when',
+    'needed',
+    'as',
+    'one',
+    'two',
+    'half',
+    'dissolve',
+    'chew',
+    'spray',
+    'puff',
+    'into',
+    'on',
+    'in',
+    'at',
+    'if',
+    'do',
+    'not',
+    'stop',
+  ];
+
   static final _instructionWords = RegExp(
-    r'\b(take|tab|tabs|tablet|cap|caps|capsule|drop|drops|spoon|ml|puff|'
-    r'puffs|times?|daily|day|days|week|weeks|hours?|hrs?|every|before|after|'
-    r'with|meals?|food|breakfast|lunch|dinner|bedtime|night|morning|once|'
-    r'twice|thrice|od|bid|tid|qid|tds|prn|sos|for|apply|inhale|sachet)\b|'
+    '\\b(${_instructionList.join('|')})\\b|'
     r'\d\s*[x×]\s*\d|'
     r'[؀-ۿ]',
     caseSensitive: false,
