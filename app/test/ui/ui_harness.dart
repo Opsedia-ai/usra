@@ -75,6 +75,7 @@ Future<DemoFamily> pumpDemoScreen(
   Locale locale = const Locale('ar'),
   double textScale = 1.0,
   Size? size = phoneSize,
+  double pixelRatio = 3,
   DateTime? now,
 }) async {
   // On a device the screens read the real clock, so the family is made
@@ -82,8 +83,8 @@ Future<DemoFamily> pumpDemoScreen(
   final today = now ?? demoNow;
   // On a real phone or simulator (null) the screen is what it is.
   if (size != null) {
-    tester.view.physicalSize = size * 3;
-    tester.view.devicePixelRatio = 3;
+    tester.view.physicalSize = size * pixelRatio;
+    tester.view.devicePixelRatio = pixelRatio;
     addTearDown(tester.view.reset);
   }
   tester.platformDispatcher.textScaleFactorTestValue = textScale;

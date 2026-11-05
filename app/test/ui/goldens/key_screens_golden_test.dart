@@ -37,6 +37,8 @@ void main() {
             screen,
             locale: locale,
             textScale: scale,
+            // Small enough to keep in git, sharp enough to read.
+            pixelRatio: 1.5,
           );
           await expectLater(
             find.byType(MaterialApp),
