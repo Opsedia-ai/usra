@@ -8,8 +8,7 @@ import '../children/child_vaccines.dart';
 import '../children/egypt_vaccines.dart';
 import '../children/growth.dart';
 import '../family/family_screen.dart' show ageInYears;
-import '../medicines/dose_schedule.dart' show DoseTime;
-import '../medicines/medicine_text.dart' show medicineEnded;
+import '../medicines/medicine_text.dart' show medicineEnded, scheduleSummaryIn;
 import 'report.dart';
 
 /// What the family can put in the doctor summary (C10).
@@ -60,6 +59,21 @@ class SummaryInputs {
   /// Saved doctors by id, for visits linked to one.
   final Map<String, Doctor> doctors;
 
+  /// Only the person and their records (enough for the vaccination
+  /// record).
+  static Future<SummaryInputs?> loadRecords(
+    AppDatabase db,
+    String profileId,
+  ) async {
+    final (profile, events) = await (
+      db.watchProfile(profileId).first,
+      db.watchTimeline(profileId).first,
+    ).wait;
+    return profile == null
+        ? null
+        : SummaryInputs(profile: profile, events: events);
+  }
+
   static Future<SummaryInputs?> load(AppDatabase db, String profileId) async {
     final profile = await db.watchProfile(profileId).first;
     if (profile == null) return null;
@@ -72,7 +86,10 @@ class SummaryInputs {
       profile: profile,
       events: events,
       medicines: [
-        for (final m in medicines) (m, await db.watchDoseSchedule(m.id).first),
+        for (final (i, s) in (await [
+          for (final m in medicines) db.watchDoseSchedule(m.id).first,
+        ].wait).indexed)
+          (medicines[i], s),
       ],
       doctors: {for (final d in doctors) d.id: d},
     );
@@ -140,19 +157,9 @@ Report doctorSummary({
         if (schedule == null)
           l.reportAsNeeded
         else ...[
+          // Amount first: "1 tablet · Every day · 8:00 AM".
           ?schedule.amount,
-          switch ((schedule.everyNDays, schedule.weekdays)) {
-            (final n?, _) when n > 1 => l.scheduleEveryNDays(n),
-            (_, final mask?) => [
-              for (var i = 0; i < 7; i++)
-                if (mask & (1 << i) != 0)
-                  DateFormat.E(locale).format(DateTime(2024, 1, 1 + i)),
-            ].join(comma),
-            _ => l.scheduleEveryDay,
-          },
-          DoseTime.parseList(schedule.times)
-              .map((t) => DateFormat.jm(locale).format(t.on(DateTime(2000))))
-              .join(comma),
+          scheduleSummaryIn(l, schedule, withAmount: false),
         ],
         ?m.instructions,
         [
@@ -178,7 +185,7 @@ Report doctorSummary({
     final rows = <List<String>>[];
     for (final e in inputs.events) {
       if (rows.length == summaryVisits) break;
-      if (e.type != 'visit' || e.occurredAt.isAfter(now)) continue;
+      if (e.type != 'visit' || _after(e.occurredAt, today)) continue;
       final data = decodeRecordData(e.dataJson);
       final doctor =
           _text(data['doctorName']) ?? inputs.doctors[e.doctorId]?.name;
@@ -202,7 +209,7 @@ Report doctorSummary({
     var reports = 0;
     for (final e in inputs.events) {
       if (reports == summaryLabReports) break;
-      if (e.type != 'lab' || e.occurredAt.isAfter(now)) continue;
+      if (e.type != 'lab' || _after(e.occurredAt, today)) continue;
       final tests = labTestsOf(decodeRecordData(e.dataJson));
       if (tests.isEmpty) continue;
       reports++;
@@ -239,7 +246,7 @@ Report doctorSummary({
       (GrowthIndicator.head, l.fieldHeadCm),
     ]) {
       for (final e in inputs.events) {
-        if (e.type != 'growth' || e.occurredAt.isAfter(now)) continue;
+        if (e.type != 'growth' || _after(e.occurredAt, today)) continue;
         final value = decodeRecordData(e.dataJson)[GrowthFields.of(indicator)];
         if (value is! num || value <= 0) continue;
         final reading = birth == null || (sex != 'male' && sex != 'female')
@@ -286,19 +293,29 @@ Report doctorSummary({
         now: today,
         plan: plan,
       );
+      final underFive = isUnderFive(birth, today);
       final p = vaccineProgress(statuses);
+      // Counts, next and overdue doses only while the schedule applies
+      // (under 5): for an older child, "2 of 20 given" would read as
+      // missed vaccines when the family just didn't enter them.
       fields.add(
         ReportField(
+          l.reportRoute,
           plan.route == VaccineRoute.government
               ? l.reportRouteGovernment
               : l.reportRoutePrivate,
-          l.reportVaccineProgress(
-            p.requiredDone + p.optionalDone,
-            p.requiredTotal + p.optionalTotal,
-          ),
         ),
       );
-      if (isUnderFive(birth, today)) {
+      if (underFive) {
+        fields.add(
+          ReportField(
+            l.reportSectionVaccines,
+            l.reportVaccineProgress(
+              p.requiredDone + p.optionalDone,
+              p.requiredTotal + p.optionalTotal,
+            ),
+          ),
+        );
         final next = NextVaccineVisit.of(statuses);
         if (next.date case final d?) {
           fields.add(
@@ -367,6 +384,10 @@ Report doctorSummary({
     ],
   );
 }
+
+/// [at]'s calendar day is after [today]: a record dated in the future.
+bool _after(DateTime at, DateTime today) =>
+    DateTime(at.year, at.month, at.day).isAfter(today);
 
 /// Under 2: months ("18 months"); then years.
 String _age(AppLocalizations l, DateTime birth, DateTime today, int years) {

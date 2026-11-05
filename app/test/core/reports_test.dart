@@ -345,8 +345,50 @@ void main() {
       expect(growth.rows.first[3], isNotEmpty);
       expect(growth.note, isNotNull);
       final vaccines = r.sections.last;
-      expect(vaccines.fields.first.label, 'حكومي (مكتب الصحة)');
+      expect(vaccines.fields.first.label, 'طريقة التطعيم');
+      expect(vaccines.fields.first.value, 'حكومي (مكتب الصحة)');
+      expect(vaccines.fields[1].value, contains('اتاخدت'));
       expect(vaccines.rows.single.first, contains('الخماسي'));
+    });
+
+    test('older child: no schedule counts, only doses given', () {
+      final birth = DateTime(2017, 3, 1);
+      final r = doctorSummary(
+        l: _en,
+        inputs: SummaryInputs(
+          profile: _profile(name: 'Omar', birthDate: birth, sex: 'male'),
+          events: [
+            _event('vaccine', DateTime(2018, 3, 1), {
+              'vaccine': 'MMR',
+              'dose': 1,
+            }),
+          ],
+        ),
+        sections: {SummarySection.vaccines},
+        now: _now,
+      );
+      final vaccines = r.sections.single;
+      // Route only: "1 of 20 given" would read as missed vaccines.
+      expect(vaccines.fields.map((f) => f.label), ['Vaccination route']);
+      expect(r.allText.join(), isNot(contains('doses in the plan given')));
+      expect(r.allText.join(), isNot(contains('Overdue')));
+      expect(vaccines.rows.single.first, startsWith('MMR'));
+    });
+
+    test('a record dated later today counts; tomorrow does not', () {
+      final r = doctorSummary(
+        l: _en,
+        inputs: SummaryInputs(
+          profile: _profile(name: 'Ali'),
+          events: [
+            _event('visit', DateTime(2026, 11, 6), {'reason': 'Tomorrow'}),
+            _event('visit', DateTime(2026, 11, 5, 23), {'reason': 'Tonight'}),
+          ],
+        ),
+        sections: {SummarySection.visits},
+        now: _now,
+      );
+      expect(r.sections.single.rows.single.last, 'Tonight');
     });
 
     test('empty sections say so', () {

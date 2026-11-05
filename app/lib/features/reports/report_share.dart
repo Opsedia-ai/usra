@@ -12,10 +12,19 @@ import '../../core/security/share_warning.dart';
 import '../../l10n/app_localizations.dart';
 import 'report.dart';
 
-/// Loads the PDF fonts; overridden in tests that count loads.
-final reportFontsProvider = Provider<Future<ReportFonts> Function()>(
-  (ref) => ReportFonts.load,
-);
+/// Loads the PDF fonts once (about 840 KB to read and parse), then reuses
+/// them; a failed load is tried again next time. Overridden in tests.
+final reportFontsProvider = Provider<Future<ReportFonts> Function()>((ref) {
+  Future<ReportFonts>? loaded;
+  return () async {
+    try {
+      return await (loaded ??= ReportFonts.load());
+    } catch (_) {
+      loaded = null;
+      rethrow;
+    }
+  };
+});
 
 /// File names say what the file is, never whose: the name shows in the
 /// chat or folder it's sent to, and in the phone's cache until deleted.
@@ -26,11 +35,14 @@ const doctorSummaryFile = 'usra-doctor-summary.pdf';
 /// first that it leaves the app's protection ([confirmShareOutside]). The
 /// file is written to the share folder of [SharedPhotoCache] and deleted
 /// when the sheet returns (and, if the app is killed first, at the next
-/// start and by the wipe). True once the share sheet was opened.
+/// start and by the wipe). [build] returns null when there's nothing to
+/// make (the person was deleted, or has no birth date): [missing] is shown
+/// then. True once the share sheet was opened.
 Future<bool> shareReportPdf(
   WidgetRef ref, {
   required String fileName,
   required FutureOr<Report?> Function() build,
+  String? missing,
   Rect? origin,
 }) async {
   // Read now: the screen may be gone once the PDF is made.
@@ -49,7 +61,10 @@ Future<bool> shareReportPdf(
   final Uint8List bytes;
   try {
     final report = await build();
-    if (report == null) return false;
+    if (report == null) {
+      messenger?.showSnackBar(SnackBar(content: Text(missing ?? failed)));
+      return false;
+    }
     bytes = await renderReportPdf(report, await fonts());
   } catch (e) {
     Log.error('Report PDF failed', e);

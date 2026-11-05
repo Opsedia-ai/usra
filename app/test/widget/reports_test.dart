@@ -211,6 +211,20 @@ void main() {
     expect(logs, isEmpty);
   });
 
+  testWidgets('no birth date: says so, no warning, no file', (tester) async {
+    final id = (await tester.runAsync(() => db.addProfile('ليلى')))!;
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    GoRouter.of(tester.element(find.byType(Scaffold).first))
+        .go('/family/$id/vaccines');
+    await tester.pumpAndSettle();
+    await tapKey(tester, 'vaccines-share-pdf');
+    expect(find.byKey(const ValueKey('vaccination-pdf-dialog')), findsNothing);
+    expect(find.byKey(const ValueKey('share-warning')), findsNothing);
+    expect(find.text('ضيف تاريخ الميلاد في البروفايل الأول.'), findsOneWidget);
+    expect(shared, isEmpty);
+  });
+
   testWidgets('a failure is logged without health data and says so', (
     tester,
   ) async {

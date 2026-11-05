@@ -59,6 +59,17 @@ Future<void> shareVaccinationRecord(
   WidgetRef ref,
   String profileId,
 ) async {
+  // Matched against the schedule from the birth date: say so up front
+  // rather than after the share warning.
+  final profile = ref.read(profileProvider(profileId)).value;
+  if (profile != null && profile.birthDate == null) {
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context).reportNeedsBirthDate),
+      ),
+    );
+    return;
+  }
   var language = _appLanguage(ref);
   var notes = false;
   final go = await showDialog<bool>(
@@ -121,8 +132,9 @@ Future<void> shareVaccinationRecord(
   await shareReportPdf(
     ref,
     fileName: vaccinationRecordFile,
+    missing: AppLocalizations.of(context).reportNeedsBirthDate,
     build: () async {
-      final inputs = await SummaryInputs.load(db, profileId);
+      final inputs = await SummaryInputs.loadRecords(db, profileId);
       if (inputs == null) return null;
       return vaccinationRecord(
         l: lookupAppLocalizations(Locale(language)),
