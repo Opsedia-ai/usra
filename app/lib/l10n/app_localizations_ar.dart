@@ -173,7 +173,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileConditions => 'أمراض مزمنة';
 
   @override
-  String get profileNotFound => 'مش موجود';
+  String get profileNotFound => 'الشخص ده اتمسح';
 
   @override
   String get pickDate => 'اختار تاريخ';
@@ -689,7 +689,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shareFailed => 'مقدرناش نفتح المشاركة';
 
   @override
-  String get emergencyTitle => 'بطاقة الطوارئ';
+  String get emergencyTitle => 'كارت الطوارئ';
 
   @override
   String get emergencyUnknown => 'مش متسجلة';
@@ -709,7 +709,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get homeEmergencyTitle => 'بطاقات الطوارئ';
+  String get homeEmergencyTitle => 'كروت الطوارئ';
 
   @override
   String get homeEmergencyHint => 'افتحها بسرعة لو حد احتاج إسعاف';
@@ -1889,13 +1889,13 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp1 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days يوم',
-      few: '$days أيام',
-      two: 'يومين',
-      one: 'يوم',
-      zero: '0 يوم',
+      other: ' و$days يوم',
+      few: ' و$days أيام',
+      two: ' ويومين',
+      one: ' ويوم',
+      zero: '',
     );
-    return '$_temp0 و$_temp1';
+    return '$_temp0$_temp1';
   }
 
   @override

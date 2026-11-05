@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show listEquals;
@@ -67,7 +69,7 @@ class ChildScreen extends ConsumerWidget {
         (_, AsyncError(:final error)) => Center(child: Text('$error')),
         // `.value` keeps the last data while a stream reloads.
         (AsyncValue(value: final p?), AsyncValue(value: final events?)) =>
-          isUnderFive(p.birthDate, DateTime.now())
+          isUnderFive(p.birthDate, clock.now())
               ? _Body(profile: p, events: events)
               : Center(child: Text(l.growthUnderFiveOnly)),
         (AsyncData(value: null), _) => Center(child: Text(l.profileNotFound)),
@@ -88,7 +90,7 @@ class _Body extends StatelessWidget {
     final l = AppLocalizations.of(context);
     final birth = profile.birthDate!;
     final sex = profile.sex;
-    final now = DateTime.now();
+    final now = clock.now();
     final text = Theme.of(context).textTheme;
 
     return ListView(

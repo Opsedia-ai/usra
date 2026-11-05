@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -75,7 +76,7 @@ String initialOf(String name) {
 /// Whole years between [birthDate] and [now]; null if unknown or in the future.
 int? ageInYears(DateTime? birthDate, [DateTime? now]) {
   if (birthDate == null) return null;
-  final today = now ?? DateTime.now();
+  final today = now ?? clock.now();
   var years = today.year - birthDate.year;
   if (today.month < birthDate.month ||
       (today.month == birthDate.month && today.day < birthDate.day)) {

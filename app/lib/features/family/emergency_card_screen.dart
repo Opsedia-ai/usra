@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/util/bidi.dart';
 import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
 import '../../l10n/app_localizations.dart';
@@ -59,7 +60,7 @@ class EmergencyCardScreen extends ConsumerWidget {
               _Fact(
                 key: const ValueKey('emergency-blood'),
                 label: l.profileBloodType,
-                value: p.bloodType,
+                value: p.bloodType == null ? null : ltr(p.bloodType!),
                 emptyText: l.emergencyUnknown,
                 big: true,
               ),

@@ -401,7 +401,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileNotFound.
   ///
   /// In en, this message translates to:
-  /// **'Not found'**
+  /// **'This person was deleted'**
   String get profileNotFound;
 
   /// No description provided for @pickDate.
@@ -3221,7 +3221,7 @@ abstract class AppLocalizations {
   /// No description provided for @pregnancyWeek.
   ///
   /// In en, this message translates to:
-  /// **'{weeks, plural, =0{أقل من أسبوع} =1{أسبوع} =2{أسبوعين} few{{weeks} أسابيع} other{{weeks} أسبوع}} و{days, plural, =0{0 يوم} =1{يوم} =2{يومين} few{{days} أيام} other{{days} يوم}}'**
+  /// **'{weeks, plural, =0{Under a week} =1{1 week} other{{weeks} weeks}}{days, plural, =0{} =1{, 1 day} other{, {days} days}}'**
   String pregnancyWeek(int weeks, int days);
 
   /// No description provided for @pregnancyTrimester.

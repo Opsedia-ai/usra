@@ -233,7 +233,7 @@ void main() {
     expect(find.text('منى'), findsNothing);
     await tester.tap(find.byKey(ValueKey('lock-emergency-$id')));
     await tester.pumpAndSettle();
-    expect(find.text('بطاقة الطوارئ'), findsWidgets);
+    expect(find.text('كارت الطوارئ'), findsWidgets);
     expect(find.byKey(const ValueKey('emergency-blood')), findsOneWidget);
     // Nothing on it leads into the app.
     expect(find.byKey(const ValueKey('emergency-complete')), findsNothing);

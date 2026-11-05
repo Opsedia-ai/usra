@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../modules.dart';
 import 'database/app_database.dart';
 import 'modules/module_registry.dart';
+import 'preferences.dart';
 
 /// All feature modules. Override in tests to load a subset.
 final moduleRegistryProvider = Provider<ModuleRegistry>(
@@ -24,9 +25,21 @@ final localeProvider = NotifierProvider<LocaleController, Locale>(
   LocaleController.new,
 );
 
+/// Arabic unless English was chosen, kept across restarts.
 class LocaleController extends Notifier<Locale> {
   @override
-  Locale build() => const Locale('ar');
+  Locale build() =>
+      ref.watch(keyValueStoreProvider).getBool(PrefKeys.english) == true
+      ? const Locale('en')
+      : const Locale('ar');
 
-  void change(Locale locale) => state = locale;
+  void change(Locale locale) {
+    state = locale;
+    // Not awaited: the switch shows at once; a failed save only means
+    // Arabic again next time.
+    ref
+        .read(keyValueStoreProvider)
+        .setBool(PrefKeys.english, locale.languageCode == 'en')
+        .ignore();
+  }
 }

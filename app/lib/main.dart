@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart' show TableUpdateQuery;
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,6 +24,7 @@ import 'core/routing/app_router.dart';
 import 'core/security/app_lock.dart';
 import 'core/security/data_wipe.dart';
 import 'core/security/file_protection.dart';
+import 'demo/demo_family.dart';
 import 'features/account/account_providers.dart';
 import 'features/account/account_secure_storage.dart';
 import 'features/backup/backup_providers.dart';
@@ -186,6 +188,11 @@ Future<void> main() async {
   }
 
   openPreferences = preferences;
+  // Debug builds only: `flutter run --dart-define=USRA_DEMO=true` fills an
+  // empty database with a made-up family for screenshots (lib/demo/).
+  if (kDebugMode && const bool.fromEnvironment('USRA_DEMO')) {
+    await seedDemoIfEmpty(database, preferences);
+  }
   var dismissals = firstDismissals;
   // Read before the first frame, so the app never shows unlocked.
   final freshInstall = preferences.getBool(PrefKeys.installed) != true;
@@ -231,8 +238,10 @@ Future<void> main() async {
     }
   }
 
-  // The app starts in Arabic; iOS fixes action labels at start-up.
-  final startup = lookupAppLocalizations(const Locale('ar'));
+  // iOS fixes action labels at start-up: in the language last chosen.
+  final startup = lookupAppLocalizations(
+    Locale(preferences.getBool(PrefKeys.english) == true ? 'en' : 'ar'),
+  );
   LocalNotificationScheduler? notifications;
   try {
     notifications = await LocalNotificationScheduler.init(

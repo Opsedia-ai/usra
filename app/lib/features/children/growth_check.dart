@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -45,7 +47,7 @@ class _GrowthCheckCardState extends ConsumerState<GrowthCheckCard> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    final months = ageInMonths(widget.profile.birthDate!, DateTime.now());
+    final months = ageInMonths(widget.profile.birthDate!, clock.now());
     final filled = GrowthIndicator.values.any((i) => _value(i) != null);
     return Card(
       key: const ValueKey('growth-check'),
@@ -122,7 +124,7 @@ class _GrowthCheckCardState extends ConsumerState<GrowthCheckCard> {
           .addEvent(
             profileId: widget.profile.id,
             type: 'growth',
-            occurredAt: DateUtils.dateOnly(DateTime.now()),
+            occurredAt: DateUtils.dateOnly(clock.now()),
             dataJson: jsonEncode({
               for (final i in GrowthIndicator.values)
                 GrowthFields.of(i): ?_value(i),

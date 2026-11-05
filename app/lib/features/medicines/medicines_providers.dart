@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/database/app_database.dart';
@@ -40,7 +41,7 @@ void resyncOnTextChange(ProviderContainer container, void Function() resync) {
 }
 
 /// The current time. Overridden in tests.
-final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
+final clockProvider = Provider<DateTime Function()>((ref) => clock.now);
 
 final medicinesProvider = StreamProvider.family<List<Medicine>, String>(
   (ref, profileId) => ref.watch(databaseProvider).watchMedicines(profileId),

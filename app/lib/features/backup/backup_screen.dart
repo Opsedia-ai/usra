@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -74,7 +76,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               mounted &&
               await _askSaved());
       if (saved) {
-        await ref.read(lastBackupProvider.notifier).set(DateTime.now());
+        await ref.read(lastBackupProvider.notifier).set(clock.now());
         messenger.showSnackBar(
           SnackBar(
             content: Text(

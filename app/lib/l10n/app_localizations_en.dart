@@ -175,7 +175,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileConditions => 'Chronic conditions';
 
   @override
-  String get profileNotFound => 'Not found';
+  String get profileNotFound => 'This person was deleted';
 
   @override
   String get pickDate => 'Choose a date';
@@ -1868,22 +1868,18 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       weeks,
       locale: localeName,
-      other: '$weeks أسبوع',
-      few: '$weeks أسابيع',
-      two: 'أسبوعين',
-      one: 'أسبوع',
-      zero: 'أقل من أسبوع',
+      other: '$weeks weeks',
+      one: '1 week',
+      zero: 'Under a week',
     );
     String _temp1 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days يوم',
-      few: '$days أيام',
-      two: 'يومين',
-      one: 'يوم',
-      zero: '0 يوم',
+      other: ', $days days',
+      one: ', 1 day',
+      zero: '',
     );
-    return '$_temp0 و$_temp1';
+    return '$_temp0$_temp1';
   }
 
   @override

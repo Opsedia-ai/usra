@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -124,7 +126,7 @@ class _RecordFormState extends State<RecordForm> {
   static final _isoDate = DateFormat('yyyy-MM-dd');
 
   late DateTime _occurredAt =
-      widget.initialDate ?? DateUtils.dateOnly(DateTime.now());
+      widget.initialDate ?? DateUtils.dateOnly(clock.now());
   final _text = <String, TextEditingController>{};
   final _values = <String, Object?>{};
   final _cost = TextEditingController();
@@ -264,7 +266,7 @@ class _RecordFormState extends State<RecordForm> {
     context: context,
     initialDate: initial,
     firstDate: DateTime(1900),
-    lastDate: DateTime(DateTime.now().year + 5, 12, 31),
+    lastDate: DateTime(clock.now().year + 5, 12, 31),
   );
 
   Widget _field(FieldSpec f) {
@@ -312,7 +314,7 @@ class _RecordFormState extends State<RecordForm> {
           key: ValueKey('field-${f.key}'),
           onTap: () async {
             final picked = await _pickDate(
-              value == null ? DateTime.now() : DateTime.parse(value),
+              value == null ? clock.now() : DateTime.parse(value),
             );
             if (picked != null) {
               setState(() => _values[f.key] = _isoDate.format(picked));

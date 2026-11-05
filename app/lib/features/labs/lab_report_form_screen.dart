@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -134,7 +136,7 @@ class _TestRow {
 }
 
 class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
-  late DateTime _date = DateUtils.dateOnly(DateTime.now());
+  late DateTime _date = DateUtils.dateOnly(clock.now());
   bool _dateTouched = false;
   final _lab = TextEditingController();
   final _doctor = TextEditingController();
@@ -492,7 +494,7 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
                       context: context,
                       initialDate: _date,
                       firstDate: DateTime(1900),
-                      lastDate: DateTime(DateTime.now().year + 1, 12, 31),
+                      lastDate: DateTime(clock.now().year + 1, 12, 31),
                     );
                     if (picked != null) {
                       setState(() {

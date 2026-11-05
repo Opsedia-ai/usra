@@ -1,8 +1,10 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/util/bidi.dart';
 import '../../core/database/app_database.dart';
 import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
@@ -129,14 +131,14 @@ class MemberScreen extends ConsumerWidget {
                     icon: const Icon(Icons.picture_as_pdf_outlined),
                     label: Text(l.memberDoctorSummary),
                   ),
-                  if (isUnderFive(p.birthDate, DateTime.now()))
+                  if (isUnderFive(p.birthDate, clock.now()))
                     OutlinedButton.icon(
                       key: const ValueKey('member-growth'),
                       onPressed: () => context.go('/family/$profileId/growth'),
                       icon: const Icon(Icons.child_care_outlined),
                       label: Text(l.memberGrowth),
                     ),
-                  if (isUnderFive(p.birthDate, DateTime.now()))
+                  if (isUnderFive(p.birthDate, clock.now()))
                     OutlinedButton.icon(
                       key: const ValueKey('member-vaccines'),
                       onPressed: () =>
@@ -144,7 +146,7 @@ class MemberScreen extends ConsumerWidget {
                       icon: const Icon(Icons.vaccines_outlined),
                       label: Text(l.memberVaccines),
                     ),
-                  if (showsMilestones(p.birthDate, DateTime.now()))
+                  if (showsMilestones(p.birthDate, clock.now()))
                     OutlinedButton.icon(
                       key: const ValueKey('member-development'),
                       onPressed: () =>
@@ -152,7 +154,7 @@ class MemberScreen extends ConsumerWidget {
                       icon: const Icon(Icons.emoji_events_outlined),
                       label: Text(l.memberDevelopment),
                     ),
-                  if (isUnderOne(p.birthDate, DateTime.now()))
+                  if (isUnderOne(p.birthDate, clock.now()))
                     OutlinedButton.icon(
                       key: const ValueKey('member-baby-log'),
                       onPressed: () =>
@@ -160,7 +162,7 @@ class MemberScreen extends ConsumerWidget {
                       icon: const Icon(Icons.local_drink_outlined),
                       label: Text(l.memberBabyLog),
                     ),
-                  if (canBePregnant(p, DateTime.now()))
+                  if (canBePregnant(p, clock.now()))
                     OutlinedButton.icon(
                       key: const ValueKey('member-pregnancy'),
                       onPressed: () =>
@@ -225,7 +227,7 @@ class MemberScreen extends ConsumerWidget {
     RecordTypeRegistry types,
     Profile? profile,
   ) {
-    final today = DateTime.now();
+    final today = clock.now();
     final l = AppLocalizations.of(context);
     showModalBottomSheet<void>(
       context: context,
@@ -291,7 +293,7 @@ class _Header extends StatelessWidget {
               if (profile.bloodType != null)
                 SeverityChip(
                   severity: Severity.info,
-                  label: '${l.profileBloodType}: ${profile.bloodType}',
+                  label: '${l.profileBloodType}: ${ltr(profile.bloodType!)}',
                 ),
               if (profile.allergies != null)
                 SeverityChip(

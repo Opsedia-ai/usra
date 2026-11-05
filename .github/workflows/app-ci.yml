@@ -61,14 +61,59 @@ jobs:
         run: |
           dart run build_runner build --delete-conflicting-outputs
           flutter gen-l10n
-          dart format lib test
-          git diff --exit-code -- lib test
+          dart format lib test integration_test test_driver
+          git diff --exit-code -- lib test integration_test test_driver
       - run: flutter analyze
-      - run: flutter test
+      # Goldens run in their own job below, on a pinned Flutter.
+      - run: flutter test --exclude-tags golden
       # Runners are on UTC; date code must also hold where clocks change
       # (Egypt has summer time). Tests that need a clock change skip on UTC.
       - name: Date tests in Cairo time
         run: TZ=Africa/Cairo flutter test test/core/prescriptions_test.dart test/core/dose_schedule_test.dart
+
+  # Screenshot (golden) tests of the key screens: Arabic, English and large
+  # text (test/ui/README.md). Pinned runner image and Flutter version, as
+  # text renders a little differently on each. Label a PR `update-goldens`
+  # to have this job write new images and upload them as an artifact
+  # instead of comparing.
+  goldens:
+    if: >-
+      github.event.action != 'labeled' ||
+      github.event.label.name == 'update-goldens'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: "3.47.9"
+          cache: true
+      - run: flutter pub get
+      - name: Compare with the saved images
+        if: "!contains(github.event.pull_request.labels.*.name, 'update-goldens')"
+        run: flutter test --tags golden
+      - name: Write new images
+        if: contains(github.event.pull_request.labels.*.name, 'update-goldens')
+        run: flutter test --tags golden --update-goldens
+      - name: Upload new images
+        if: contains(github.event.pull_request.labels.*.name, 'update-goldens')
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: goldens-${{ github.sha }}
+          path: app/test/ui/goldens/images/
+          retention-days: 7
+      # What changed, as images: master, test and a diff per failed screen.
+      - name: Upload differences
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: golden-failures-${{ github.sha }}
+          path: app/test/ui/goldens/failures/
+          retention-days: 7
 
   # PRs only: main pushes build the release bundle below, which compiles
   # the same code. Label a PR `android-build` to force it.

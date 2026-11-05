@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
@@ -61,7 +63,7 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
   final _everyN = TextEditingController(text: '2');
   String? _form;
   String? _doctorId;
-  DateTime _startOn = DateTime.now();
+  DateTime _startOn = clock.now();
   DateTime? _endOn;
   bool _active = true;
   final _times = <DoseTime>[];
@@ -193,7 +195,7 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
   }
 
   Future<DateTime?> _pickDate(DateTime? current) {
-    final now = DateTime.now();
+    final now = clock.now();
     final initial = current ?? now;
     final first = DateTime(now.year - 30);
     final last = DateTime(now.year + 10, 12, 31);

@@ -1,8 +1,10 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/util/bidi.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../children/growth.dart' show isUnderFive;
@@ -113,7 +115,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
           savedId,
           isNew: id == null,
           birthDate: _birthDate,
-          today: DateTime.now(),
+          today: clock.now(),
         ),
       );
     }
@@ -148,7 +150,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                       context: context,
                       initialDate: _birthDate ?? DateTime(1990),
                       firstDate: DateTime(1900),
-                      lastDate: DateTime.now(),
+                      lastDate: clock.now(),
                     );
                     if (picked != null) setState(() => _birthDate = picked);
                   },
@@ -183,7 +185,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                   decoration: InputDecoration(labelText: l.profileBloodType),
                   items: [
                     for (final b in bloodTypes)
-                      DropdownMenuItem(value: b, child: Text(b)),
+                      DropdownMenuItem(value: b, child: Text(ltr(b))),
                   ],
                   onChanged: (v) => setState(() => _bloodType = v),
                 ),

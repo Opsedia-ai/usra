@@ -3,10 +3,12 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:usra/core/util/bidi.dart';
 import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/design/dr_usra.dart';
+import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 
 void main() {
@@ -51,6 +53,37 @@ void main() {
       Directionality.of(tester.element(find.text('Language'))),
       TextDirection.ltr,
     );
+  });
+
+  testWidgets('the language chosen is kept when the app opens again', (
+    tester,
+  ) async {
+    final store = MemoryKeyValueStore({PrefKeys.tutorialSeen: true});
+    Widget withStore() => ProviderScope(
+      key: UniqueKey(),
+      overrides: [
+        databaseProvider.overrideWithValue(db),
+        keyValueStoreProvider.overrideWithValue(store),
+      ],
+      child: const UsraApp(),
+    );
+    await tester.pumpWidget(withStore());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('المزيد').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('English'));
+    await tester.pumpAndSettle();
+    expect(store.getBool(PrefKeys.english), isTrue);
+
+    await tester.pumpWidget(withStore());
+    await tester.pumpAndSettle();
+    expect(find.text('More'), findsWidgets);
+
+    await tester.tap(find.text('More').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('العربية'));
+    await tester.pumpAndSettle();
+    expect(store.getBool(PrefKeys.english), isFalse);
   });
 
   testWidgets('add a person, then a doctor visit appears on their timeline', (
@@ -271,8 +304,8 @@ void main() {
     await tester.tap(find.byKey(ValueKey('home-emergency-$id')));
     await tester.pumpAndSettle();
 
-    expect(find.text('بطاقة الطوارئ'), findsOneWidget);
-    expect(find.text('B+'), findsOneWidget);
+    expect(find.text('كارت الطوارئ'), findsOneWidget);
+    expect(find.text(ltr('B+')), findsOneWidget);
     expect(find.text('بنسلين'), findsOneWidget);
     expect(find.text('مرارة · 2019'), findsOneWidget);
     // Conditions were never entered, so the card says so instead of hiding it.

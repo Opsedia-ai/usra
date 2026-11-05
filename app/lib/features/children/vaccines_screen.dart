@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -39,7 +40,7 @@ Future<DateTime?> pickGivenDate(
   required DateTime initial,
   required DateTime birthDate,
 }) {
-  final now = DateTime.now();
+  final now = clock.now();
   final start = givenDateOn(initial, now);
   return showDatePicker(
     context: context,
@@ -254,7 +255,9 @@ class HomeVaccines extends ConsumerWidget {
                       color: UsraColors.primary,
                     ),
                     const SizedBox(width: 8),
-                    Text(l.homeVaccinesTitle, style: text.titleMedium),
+                    Expanded(
+                      child: Text(l.homeVaccinesTitle, style: text.titleMedium),
+                    ),
                   ],
                 ),
               ),
@@ -493,6 +496,9 @@ class DoseTile extends StatelessWidget {
     };
     final muted = Theme.of(context).textTheme.bodySmall
         ?.copyWith(color: UsraColors.textMuted);
+    final chip = SeverityChip(severity: status.state.severity, label: label);
+    // With large text the chip doesn't fit beside the name: it goes under.
+    final stacked = MediaQuery.textScalerOf(context).scale(10) > 13;
     return ListTile(
       key: ValueKey('dose-${dose.kind.name}-${dose.dose}'),
       contentPadding: EdgeInsets.zero,
@@ -506,9 +512,13 @@ class DoseTile extends StatelessWidget {
             '${dose.required ? l.vaccineRequired : l.vaccineOptional}',
           ),
           if (note != null) Text(note!, style: muted),
+          if (stacked) ...[
+            const SizedBox(height: 4),
+            Align(alignment: AlignmentDirectional.centerStart, child: chip),
+          ],
         ],
       ),
-      trailing: SeverityChip(severity: status.state.severity, label: label),
+      trailing: stacked ? null : chip,
     );
   }
 }
@@ -541,7 +551,7 @@ class _DoseSheetState extends ConsumerState<_DoseSheet> {
   // A dose not yet given defaults to its due date, never a future one.
   late DateTime _date = givenDateOn(
     widget.status.givenOn ?? widget.status.dueOn,
-    DateTime.now(),
+    clock.now(),
   );
   late final _note = TextEditingController(
     text: widget.child.plan.notes[widget.status.dose.key] ?? '',
@@ -864,7 +874,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
   /// The given date for a ticked dose: its record's, the one chosen, or
   /// the due date (never in the future).
   DateTime _dateOf(DoseStatus s) =>
-      givenDateOn(s.givenOn ?? _dates[s.dose.key] ?? s.dueOn, DateTime.now());
+      givenDateOn(s.givenOn ?? _dates[s.dose.key] ?? s.dueOn, clock.now());
 
   Future<void> _save(
     Profile profile,

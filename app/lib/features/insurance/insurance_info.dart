@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -48,7 +49,7 @@ class ExpiryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final severity = expirySeverity(expiresOn, DateTime.now());
+    final severity = expirySeverity(expiresOn, clock.now());
     if (severity == null) return const SizedBox.shrink();
     final l = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();

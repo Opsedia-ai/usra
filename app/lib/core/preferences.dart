@@ -89,6 +89,9 @@ abstract final class PrefKeys {
 
   /// "Don't ask again" on the warning before sharing outside the app.
   static const shareWarningOff = 'share_warning_off';
+
+  /// The app is in English (chosen in More); missing or false: Arabic.
+  static const english = 'english';
   static const all = {
     simpleMode,
     tutorialSeen,
@@ -102,6 +105,7 @@ abstract final class PrefKeys {
     vaccineReminderMinutes,
     rootWarningShown,
     shareWarningOff,
+    english,
   };
 }
 

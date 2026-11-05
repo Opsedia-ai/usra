@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -113,7 +115,7 @@ class _InsuranceFormScreenState extends ConsumerState<InsuranceFormScreen> {
   }
 
   Future<void> _pickDate() async {
-    final now = DateTime.now();
+    final now = clock.now();
     final initial = _expiresOn ?? now;
     final first = DateTime(1990);
     final last = DateTime(now.year + 20, 12, 31);

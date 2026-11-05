@@ -1,0 +1,3 @@
+tags:
+  # Screenshot comparisons; made and checked on Linux (CI `goldens` job).
+  golden:

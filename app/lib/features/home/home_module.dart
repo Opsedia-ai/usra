@@ -126,10 +126,12 @@ class _EmergencyCards extends ConsumerWidget {
                     color: UsraColors.emergency,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    l.homeEmergencyTitle,
-                    style: text.titleMedium?.copyWith(
-                      color: Severity.urgent.foreground,
+                  Expanded(
+                    child: Text(
+                      l.homeEmergencyTitle,
+                      style: text.titleMedium?.copyWith(
+                        color: Severity.urgent.foreground,
+                      ),
                     ),
                   ),
                 ],

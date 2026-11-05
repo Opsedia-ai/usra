@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +14,7 @@ import 'dismissals.dart';
 /// Today, for follow-up due dates; refreshed at midnight so an app left
 /// open doesn't keep yesterday's severities. Overridden in tests.
 final todayProvider = Provider<DateTime>((ref) {
-  final now = DateTime.now();
+  final now = clock.now();
   final midnight = DateTime(now.year, now.month, now.day + 1);
   final timer = Timer(midnight.difference(now), ref.invalidateSelf);
   ref.onDispose(timer.cancel);
