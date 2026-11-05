@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'tables.dart';
 
 part 'app_database.g.dart';
+part 'sick_days.dart';
 
 @DriftDatabase(
   tables: [
@@ -18,6 +19,9 @@ part 'app_database.g.dart';
     Prescriptions,
     DoseSchedules,
     DoseLogs,
+    SickEpisodes,
+    TemperatureReadings,
+    GivenMedicines,
     OutboxEntries,
   ],
 )
@@ -27,7 +31,7 @@ class AppDatabase extends _$AppDatabase {
   static const _uuid = Uuid();
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -60,6 +64,11 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(medicines, medicines.position);
           await m.addColumn(medicines, medicines.stoppedWithPrescription);
         }
+      }
+      if (from < 8) {
+        await m.createTable(sickEpisodes);
+        await m.createTable(temperatureReadings);
+        await m.createTable(givenMedicines);
       }
     },
     beforeOpen: (details) async {
@@ -232,6 +241,8 @@ class AppDatabase extends _$AppDatabase {
       for (final prescriptionId in prescriptionIds) {
         await _softDeletePrescription(prescriptionId, now);
       }
+
+      await _softDeleteEpisodesOf(id, now);
     });
   }
 

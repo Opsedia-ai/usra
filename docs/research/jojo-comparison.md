@@ -96,4 +96,4 @@ Positioning (store texts and marketing):
 - Like Jojo, say "no account needed" in the first screenshot.
 
 Suggested order: C1 + C2 + C3 together (one vaccine release; built in Nov 2026, schedule research in `egypt-vaccine-schedule.md`), then C5 + C9 (built in Nov 2026),
-then C6 + C7, then C4 + C10, then C8.
+then C6 + C7, then C4 + C10, then C8 (built in Nov 2026; warning signs in `fever-warning-signs.md`, needs medical review).

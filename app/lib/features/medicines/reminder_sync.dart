@@ -23,6 +23,8 @@ class ReminderSync with WidgetsBindingObserver {
     this.widget,
     this.vaccines,
     this.vaccineChanges,
+    this.nextDoses,
+    this.nextDoseChanges,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
 
@@ -43,10 +45,19 @@ class ReminderSync with WidgetsBindingObserver {
 
   /// Fires when what [vaccines] reads changes, to re-plan.
   final Stream<void>? vaccineChanges;
+
+  /// "Next dose allowed" reminders from sick days (see
+  /// `sick_days/next_dose.dart`), including ones whose time has passed, so
+  /// those still on screen can be rewritten too; none when null.
+  final Future<List<PlannedReminder>> Function(DateTime now)? nextDoses;
+
+  /// Fires when what [nextDoses] reads changes, to re-plan.
+  final Stream<void>? nextDoseChanges;
   final DateTime Function() _clock;
 
   StreamSubscription<void>? _changes;
   StreamSubscription<void>? _vaccineChanges;
+  StreamSubscription<void>? _nextDoseChanges;
   Timer? _debounce;
   Timer? _periodic;
   Future<void>? _running;
@@ -66,6 +77,7 @@ class ReminderSync with WidgetsBindingObserver {
         .listen((_) => _soon());
     // Vaccine doses ticked and plans changed; not every record.
     _vaccineChanges = vaccineChanges?.listen((_) => _soon());
+    _nextDoseChanges = nextDoseChanges?.listen((_) => _soon());
     // Re-plan as the week moves on, and pick up actions from notifications
     // pressed while the app is open (Android handles those in the
     // background too).
@@ -80,6 +92,7 @@ class ReminderSync with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _changes?.cancel();
     _vaccineChanges?.cancel();
+    _nextDoseChanges?.cancel();
     _debounce?.cancel();
     _periodic?.cancel();
   }
@@ -138,15 +151,30 @@ class ReminderSync with WidgetsBindingObserver {
       // Dose reminders still go out.
       _report(e, s);
     }
+    var nextDoseReminders = const <PlannedReminder>[];
+    try {
+      nextDoseReminders = await nextDoses?.call(now) ?? const [];
+    } catch (e, s) {
+      _report(e, s);
+    }
+    final nextDoseById = {for (final r in nextDoseReminders) r.id: r};
     try {
       await scheduler.replaceAll(
-        prioritiseReminders(
-          planReminders(regimens, logs, now: now, texts: t),
-          vaccineReminders,
-        ),
+        [
+          // A few at most, and due within hours: first, so a week of
+          // other reminders never crowds them out.
+          for (final r in nextDoseReminders)
+            if (r.at.isAfter(now)) r,
+          ...prioritiseReminders(
+            planReminders(regimens, logs, now: now, texts: t),
+            vaccineReminders,
+          ),
+        ],
         doneSnoozes: doneSnoozeIds(logs),
         // Snoozes and notifications on screen follow the settings too.
         rebuild: (id, ref, at) {
+          // Next-dose ids are stable, so the id finds the current text.
+          if (ref.isNextDose) return nextDoseById[id];
           if (ref.isVaccine) {
             return vaccineReminderFor(vaccineReminders, id, ref);
           }
@@ -197,8 +225,8 @@ class ReminderSync with WidgetsBindingObserver {
 
   /// A Taken or Snooze action handled while the app is running.
   Future<void> handleAction(ReminderRef dose, String status) async {
-    // Vaccine visits have no buttons.
-    if (dose.isVaccine) return;
+    // Vaccine visits and next-dose reminders have no buttons.
+    if (dose.isVaccine || dose.isNextDose) return;
     final now = _clock();
     final saved = await _save(dose.medicineId, dose.scheduledAt, status, now);
     if (!saved || status != DoseOutcome.snoozed) return;

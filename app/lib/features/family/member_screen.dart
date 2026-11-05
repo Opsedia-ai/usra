@@ -110,6 +110,12 @@ class MemberScreen extends ConsumerWidget {
                     icon: const Icon(Icons.medication_outlined),
                     label: Text(l.memberMedicines),
                   ),
+                  OutlinedButton.icon(
+                    key: const ValueKey('member-sick-days'),
+                    onPressed: () => context.go('/family/$profileId/sick-days'),
+                    icon: const Icon(Icons.thermostat),
+                    label: Text(l.memberSickDays),
+                  ),
                   if (isUnderFive(p.birthDate, DateTime.now()))
                     OutlinedButton.icon(
                       key: const ValueKey('member-growth'),

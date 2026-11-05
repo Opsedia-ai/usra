@@ -233,6 +233,78 @@ class DoseLogs extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// A sick day (or several) for one person: when it started and ended, the
+/// symptoms ticked and the family's notes (schema v8).
+class SickEpisodes extends Table {
+  TextColumn get id => text()();
+  TextColumn get profileId => text().references(Profiles, #id)();
+  DateTimeColumn get startedAt => dateTime()();
+
+  /// Null while the person is still ill.
+  DateTimeColumn get endedAt => dateTime().nullable()();
+
+  /// The symptoms ticked, a JSON list of keys (see `sick_days/fever.dart`).
+  TextColumn get symptomsJson => text().withDefault(const Constant('[]'))();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// One temperature reading in a sick day, as read off the thermometer
+/// (schema v8).
+class TemperatureReadings extends Table {
+  TextColumn get id => text()();
+  TextColumn get episodeId => text().references(SickEpisodes, #id)();
+  DateTimeColumn get takenAt => dateTime()();
+
+  /// As read, in [unit].
+  RealColumn get value => real()();
+
+  /// `c` or `f`.
+  TextColumn get unit => text()();
+
+  /// armpit, ear, forehead, mouth or rectal; null if not said.
+  TextColumn get site => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// A medicine given during a sick day, as the family wrote it (schema v8).
+/// The app records what was given; it never suggests an amount or a time.
+class GivenMedicines extends Table {
+  TextColumn get id => text()();
+  TextColumn get episodeId => text().references(SickEpisodes, #id)();
+
+  /// The saved medicine, if one was picked.
+  TextColumn get medicineId => text().nullable().references(Medicines, #id)();
+
+  /// The prescription it came from, if one was picked.
+  TextColumn get prescriptionId =>
+      text().nullable().references(Prescriptions, #id)();
+
+  /// The medicine's name: copied from the saved medicine, or typed.
+  TextColumn get name => text()();
+
+  /// How much, word for word as the family wrote it.
+  TextColumn get amount => text().nullable()();
+  DateTimeColumn get givenAt => dateTime()();
+
+  /// Remind when the medicine's own saved instructions allow the next
+  /// dose (only offered when they state a minimum interval).
+  BoolColumn get remindNext => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Local changes waiting to be synced (used once sync is switched on).
 class OutboxEntries extends Table {
   IntColumn get id => integer().autoIncrement()();

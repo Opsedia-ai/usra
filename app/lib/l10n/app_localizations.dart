@@ -4663,6 +4663,384 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart.'**
   String get growthNoPrematurity;
+
+  /// No description provided for @memberSickDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Fever & sick days'**
+  String get memberSickDays;
+
+  /// No description provided for @sickDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fever and sick days'**
+  String get sickDaysTitle;
+
+  /// No description provided for @sickDaysEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No sick days yet. When someone gets ill, start one to log temperatures, symptoms and the medicines given.'**
+  String get sickDaysEmpty;
+
+  /// No description provided for @sickDayStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a sick day'**
+  String get sickDayStart;
+
+  /// No description provided for @sickDayOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Still ill'**
+  String get sickDayOngoing;
+
+  /// No description provided for @sickDayEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Over'**
+  String get sickDayEnded;
+
+  /// No description provided for @sickDaySince.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {date}'**
+  String sickDaySince(String date);
+
+  /// No description provided for @sickDayRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String sickDayRange(String start, String end);
+
+  /// No description provided for @sickDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sick day'**
+  String get sickDayTitle;
+
+  /// No description provided for @sickDayStartedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Started'**
+  String get sickDayStartedAt;
+
+  /// No description provided for @sickDayEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as over'**
+  String get sickDayEnd;
+
+  /// No description provided for @sickDayReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Still ill'**
+  String get sickDayReopen;
+
+  /// No description provided for @sickDayDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this sick day'**
+  String get sickDayDelete;
+
+  /// No description provided for @sickDayDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this sick day with its temperatures and medicines given?'**
+  String get sickDayDeleteConfirm;
+
+  /// No description provided for @sickDayTemperatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature'**
+  String get sickDayTemperatures;
+
+  /// No description provided for @sickDayAddReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a temperature'**
+  String get sickDayAddReading;
+
+  /// No description provided for @sickDayNoReadings.
+  ///
+  /// In en, this message translates to:
+  /// **'No temperatures yet.'**
+  String get sickDayNoReadings;
+
+  /// No description provided for @sickDayChartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature chart'**
+  String get sickDayChartTitle;
+
+  /// No description provided for @sickDayChartNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashed line: 38 °C (100.4 °F), where a fever starts.'**
+  String get sickDayChartNote;
+
+  /// No description provided for @sickDaySymptoms.
+  ///
+  /// In en, this message translates to:
+  /// **'Symptoms'**
+  String get sickDaySymptoms;
+
+  /// No description provided for @sickDayMedicines.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicines given'**
+  String get sickDayMedicines;
+
+  /// No description provided for @sickDayAddMedicine.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a medicine given'**
+  String get sickDayAddMedicine;
+
+  /// No description provided for @sickDayNoMedicines.
+  ///
+  /// In en, this message translates to:
+  /// **'No medicines logged.'**
+  String get sickDayNoMedicines;
+
+  /// No description provided for @sickDayNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get sickDayNotes;
+
+  /// No description provided for @sickDayNotesSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes saved'**
+  String get sickDayNotesSaved;
+
+  /// No description provided for @readingValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature'**
+  String get readingValue;
+
+  /// No description provided for @readingCelsius.
+  ///
+  /// In en, this message translates to:
+  /// **'°C'**
+  String get readingCelsius;
+
+  /// No description provided for @readingFahrenheit.
+  ///
+  /// In en, this message translates to:
+  /// **'°F'**
+  String get readingFahrenheit;
+
+  /// No description provided for @readingSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Where it was taken'**
+  String get readingSite;
+
+  /// No description provided for @readingSiteName.
+  ///
+  /// In en, this message translates to:
+  /// **'{site, select, armpit{Armpit} ear{Ear} forehead{Forehead} mouth{Mouth} rectal{Rectal} other{Not said}}'**
+  String readingSiteName(String site);
+
+  /// No description provided for @readingTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get readingTime;
+
+  /// No description provided for @readingDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get readingDate;
+
+  /// No description provided for @readingImplausible.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like a body temperature. Check the number and the unit.'**
+  String get readingImplausible;
+
+  /// No description provided for @readingFever.
+  ///
+  /// In en, this message translates to:
+  /// **'Fever'**
+  String get readingFever;
+
+  /// No description provided for @readingDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this temperature'**
+  String get readingDelete;
+
+  /// No description provided for @givenWhich.
+  ///
+  /// In en, this message translates to:
+  /// **'Which medicine'**
+  String get givenWhich;
+
+  /// No description provided for @givenOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Another medicine (type its name)'**
+  String get givenOther;
+
+  /// No description provided for @givenName.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine name'**
+  String get givenName;
+
+  /// No description provided for @givenAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount given'**
+  String get givenAmount;
+
+  /// No description provided for @givenAmountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'As you\'d write it, e.g. from the box or prescription'**
+  String get givenAmountHint;
+
+  /// No description provided for @givenTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time given'**
+  String get givenTime;
+
+  /// No description provided for @givenFromPrescription.
+  ///
+  /// In en, this message translates to:
+  /// **'From the prescription of {date}'**
+  String givenFromPrescription(String date);
+
+  /// No description provided for @givenRemind.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me when the next dose is allowed'**
+  String get givenRemind;
+
+  /// No description provided for @givenRemindFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From this medicine\'s saved instructions: “{phrase}”. The app doesn\'t choose times.'**
+  String givenRemindFrom(String phrase);
+
+  /// No description provided for @givenNoInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminder: this medicine\'s saved instructions don\'t state one minimum time between doses. If you\'re not sure when the next dose is, ask your doctor or pharmacist.'**
+  String get givenNoInterval;
+
+  /// No description provided for @givenDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this entry'**
+  String get givenDelete;
+
+  /// No description provided for @givenRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a medicine or type its name'**
+  String get givenRequired;
+
+  /// No description provided for @nextDoseAllowedAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Next dose allowed after {time}'**
+  String nextDoseAllowedAfter(String time);
+
+  /// No description provided for @nextDoseFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From the saved instructions: “{phrase}”.'**
+  String nextDoseFrom(String phrase);
+
+  /// No description provided for @nextDoseDiscreetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A reminder from Usra'**
+  String get nextDoseDiscreetTitle;
+
+  /// No description provided for @nextDoseDiscreetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Usra to see it.'**
+  String get nextDoseDiscreetBody;
+
+  /// No description provided for @nextDoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{person}: {medicine}'**
+  String nextDoseTitle(String person, String medicine);
+
+  /// No description provided for @nextDoseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The time in your saved instructions (“{phrase}”) has passed. Check them before the next dose.'**
+  String nextDoseBody(String phrase);
+
+  /// No description provided for @symptomName.
+  ///
+  /// In en, this message translates to:
+  /// **'{symptom, select, cough{Cough} runnyNose{Runny nose} soreThroat{Sore throat} earPain{Ear pain} headache{Headache} vomiting{Vomiting} diarrhea{Diarrhoea} rash{Rash} aches{Body aches} poorFeeding{Eating or drinking less} dehydration{Fewer wet nappies, peeing less or no tears} breathing{Hard to breathe} drowsy{Very drowsy or hard to wake} seizure{Fit (seizure)} rashNotFading{Rash that doesn\'t fade under a glass} stiffNeck{Stiff neck} other{Other}}'**
+  String symptomName(String symptom);
+
+  /// No description provided for @warnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning signs'**
+  String get warnTitle;
+
+  /// No description provided for @warnLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'From what you logged:'**
+  String get warnLogged;
+
+  /// No description provided for @warnEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Call an ambulance (123) now if:'**
+  String get warnEmergency;
+
+  /// No description provided for @warnDoctorNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact a doctor now if:'**
+  String get warnDoctorNow;
+
+  /// No description provided for @warnSign.
+  ///
+  /// In en, this message translates to:
+  /// **'{sign, select, breathing{Hard to breathe, breathing very fast or breathless} seizure{A fit (seizure)} rashGlass{A rash that doesn\'t fade when you press a glass on it} drowsy{Very drowsy or hard to wake, or not responding as usual} stiffNeck{A stiff neck, or light hurts the eyes} skinColour{Blue, grey, very pale or blotchy skin, lips or tongue, or unusually cold hands and feet} confused{Confused, or very agitated and won\'t stop crying} under3Months{Under 3 months old with a temperature of 38 °C (100.4 °F) or higher} months3to6{3 to 6 months old with a temperature of 39 °C (102.2 °F) or higher} longUnder2{Under 2 years old with a fever for more than 24 hours} longChild{2 years or older with a fever for more than 3 days} fiveDays{A fever that has lasted 5 days or more} veryHigh{A temperature above 40 °C (104 °F) more than once} notImproving{A high temperature that isn\'t getting better, or is getting worse} dehydration{Signs of dehydration: fewer wet nappies or peeing less, no tears, sunken eyes, dry mouth} notDrinking{Not drinking, not feeding or breastfeeding, or not acting like themselves} vomitsEverything{Vomits everything, or keeps vomiting} other{}}'**
+  String warnSign(String sign);
+
+  /// No description provided for @warnFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'For information only, not a diagnosis. If you\'re worried, contact a doctor or call 123, even if nothing here matches.'**
+  String get warnFooter;
+
+  /// No description provided for @warnSources.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources'**
+  String get warnSources;
+
+  /// No description provided for @warnSourceName.
+  ///
+  /// In en, this message translates to:
+  /// **'{source, select, nhs{NHS (UK): fever in children} aap{American Academy of Pediatrics: when to call the pediatrician} who{WHO: IMCI general danger signs} other{}}'**
+  String warnSourceName(String source);
+
+  /// No description provided for @warnCallDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'My doctors'**
+  String get warnCallDoctor;
 }
 
 class _AppLocalizationsDelegate

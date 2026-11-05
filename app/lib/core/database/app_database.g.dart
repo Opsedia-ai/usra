@@ -5616,6 +5616,1685 @@ class DoseLogsCompanion extends UpdateCompanion<DoseLog> {
   }
 }
 
+class $SickEpisodesTable extends SickEpisodes
+    with TableInfo<$SickEpisodesTable, SickEpisode> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SickEpisodesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _profileIdMeta = const VerificationMeta(
+    'profileId',
+  );
+  @override
+  late final GeneratedColumn<String> profileId = GeneratedColumn<String>(
+    'profile_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES profiles (id)',
+    ),
+  );
+  static const VerificationMeta _startedAtMeta = const VerificationMeta(
+    'startedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startedAt = GeneratedColumn<DateTime>(
+    'started_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _endedAtMeta = const VerificationMeta(
+    'endedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> endedAt = GeneratedColumn<DateTime>(
+    'ended_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _symptomsJsonMeta = const VerificationMeta(
+    'symptomsJson',
+  );
+  @override
+  late final GeneratedColumn<String> symptomsJson = GeneratedColumn<String>(
+    'symptoms_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    profileId,
+    startedAt,
+    endedAt,
+    symptomsJson,
+    notes,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sick_episodes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SickEpisode> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('profile_id')) {
+      context.handle(
+        _profileIdMeta,
+        profileId.isAcceptableOrUnknown(data['profile_id']!, _profileIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_profileIdMeta);
+    }
+    if (data.containsKey('started_at')) {
+      context.handle(
+        _startedAtMeta,
+        startedAt.isAcceptableOrUnknown(data['started_at']!, _startedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startedAtMeta);
+    }
+    if (data.containsKey('ended_at')) {
+      context.handle(
+        _endedAtMeta,
+        endedAt.isAcceptableOrUnknown(data['ended_at']!, _endedAtMeta),
+      );
+    }
+    if (data.containsKey('symptoms_json')) {
+      context.handle(
+        _symptomsJsonMeta,
+        symptomsJson.isAcceptableOrUnknown(
+          data['symptoms_json']!,
+          _symptomsJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SickEpisode map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SickEpisode(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      profileId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}profile_id'],
+      )!,
+      startedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}started_at'],
+      )!,
+      endedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}ended_at'],
+      ),
+      symptomsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}symptoms_json'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $SickEpisodesTable createAlias(String alias) {
+    return $SickEpisodesTable(attachedDatabase, alias);
+  }
+}
+
+class SickEpisode extends DataClass implements Insertable<SickEpisode> {
+  final String id;
+  final String profileId;
+  final DateTime startedAt;
+
+  /// Null while the person is still ill.
+  final DateTime? endedAt;
+
+  /// The symptoms ticked, a JSON list of keys (see `sick_days/fever.dart`).
+  final String symptomsJson;
+  final String? notes;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const SickEpisode({
+    required this.id,
+    required this.profileId,
+    required this.startedAt,
+    this.endedAt,
+    required this.symptomsJson,
+    this.notes,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['profile_id'] = Variable<String>(profileId);
+    map['started_at'] = Variable<DateTime>(startedAt);
+    if (!nullToAbsent || endedAt != null) {
+      map['ended_at'] = Variable<DateTime>(endedAt);
+    }
+    map['symptoms_json'] = Variable<String>(symptomsJson);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  SickEpisodesCompanion toCompanion(bool nullToAbsent) {
+    return SickEpisodesCompanion(
+      id: Value(id),
+      profileId: Value(profileId),
+      startedAt: Value(startedAt),
+      endedAt: endedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endedAt),
+      symptomsJson: Value(symptomsJson),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory SickEpisode.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SickEpisode(
+      id: serializer.fromJson<String>(json['id']),
+      profileId: serializer.fromJson<String>(json['profileId']),
+      startedAt: serializer.fromJson<DateTime>(json['startedAt']),
+      endedAt: serializer.fromJson<DateTime?>(json['endedAt']),
+      symptomsJson: serializer.fromJson<String>(json['symptomsJson']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'profileId': serializer.toJson<String>(profileId),
+      'startedAt': serializer.toJson<DateTime>(startedAt),
+      'endedAt': serializer.toJson<DateTime?>(endedAt),
+      'symptomsJson': serializer.toJson<String>(symptomsJson),
+      'notes': serializer.toJson<String?>(notes),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  SickEpisode copyWith({
+    String? id,
+    String? profileId,
+    DateTime? startedAt,
+    Value<DateTime?> endedAt = const Value.absent(),
+    String? symptomsJson,
+    Value<String?> notes = const Value.absent(),
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => SickEpisode(
+    id: id ?? this.id,
+    profileId: profileId ?? this.profileId,
+    startedAt: startedAt ?? this.startedAt,
+    endedAt: endedAt.present ? endedAt.value : this.endedAt,
+    symptomsJson: symptomsJson ?? this.symptomsJson,
+    notes: notes.present ? notes.value : this.notes,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  SickEpisode copyWithCompanion(SickEpisodesCompanion data) {
+    return SickEpisode(
+      id: data.id.present ? data.id.value : this.id,
+      profileId: data.profileId.present ? data.profileId.value : this.profileId,
+      startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
+      endedAt: data.endedAt.present ? data.endedAt.value : this.endedAt,
+      symptomsJson: data.symptomsJson.present
+          ? data.symptomsJson.value
+          : this.symptomsJson,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SickEpisode(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('endedAt: $endedAt, ')
+          ..write('symptomsJson: $symptomsJson, ')
+          ..write('notes: $notes, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    profileId,
+    startedAt,
+    endedAt,
+    symptomsJson,
+    notes,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SickEpisode &&
+          other.id == this.id &&
+          other.profileId == this.profileId &&
+          other.startedAt == this.startedAt &&
+          other.endedAt == this.endedAt &&
+          other.symptomsJson == this.symptomsJson &&
+          other.notes == this.notes &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class SickEpisodesCompanion extends UpdateCompanion<SickEpisode> {
+  final Value<String> id;
+  final Value<String> profileId;
+  final Value<DateTime> startedAt;
+  final Value<DateTime?> endedAt;
+  final Value<String> symptomsJson;
+  final Value<String?> notes;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const SickEpisodesCompanion({
+    this.id = const Value.absent(),
+    this.profileId = const Value.absent(),
+    this.startedAt = const Value.absent(),
+    this.endedAt = const Value.absent(),
+    this.symptomsJson = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SickEpisodesCompanion.insert({
+    required String id,
+    required String profileId,
+    required DateTime startedAt,
+    this.endedAt = const Value.absent(),
+    this.symptomsJson = const Value.absent(),
+    this.notes = const Value.absent(),
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       profileId = Value(profileId),
+       startedAt = Value(startedAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<SickEpisode> custom({
+    Expression<String>? id,
+    Expression<String>? profileId,
+    Expression<DateTime>? startedAt,
+    Expression<DateTime>? endedAt,
+    Expression<String>? symptomsJson,
+    Expression<String>? notes,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (profileId != null) 'profile_id': profileId,
+      if (startedAt != null) 'started_at': startedAt,
+      if (endedAt != null) 'ended_at': endedAt,
+      if (symptomsJson != null) 'symptoms_json': symptomsJson,
+      if (notes != null) 'notes': notes,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SickEpisodesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? profileId,
+    Value<DateTime>? startedAt,
+    Value<DateTime?>? endedAt,
+    Value<String>? symptomsJson,
+    Value<String?>? notes,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return SickEpisodesCompanion(
+      id: id ?? this.id,
+      profileId: profileId ?? this.profileId,
+      startedAt: startedAt ?? this.startedAt,
+      endedAt: endedAt ?? this.endedAt,
+      symptomsJson: symptomsJson ?? this.symptomsJson,
+      notes: notes ?? this.notes,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (profileId.present) {
+      map['profile_id'] = Variable<String>(profileId.value);
+    }
+    if (startedAt.present) {
+      map['started_at'] = Variable<DateTime>(startedAt.value);
+    }
+    if (endedAt.present) {
+      map['ended_at'] = Variable<DateTime>(endedAt.value);
+    }
+    if (symptomsJson.present) {
+      map['symptoms_json'] = Variable<String>(symptomsJson.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SickEpisodesCompanion(')
+          ..write('id: $id, ')
+          ..write('profileId: $profileId, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('endedAt: $endedAt, ')
+          ..write('symptomsJson: $symptomsJson, ')
+          ..write('notes: $notes, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TemperatureReadingsTable extends TemperatureReadings
+    with TableInfo<$TemperatureReadingsTable, TemperatureReading> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TemperatureReadingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _episodeIdMeta = const VerificationMeta(
+    'episodeId',
+  );
+  @override
+  late final GeneratedColumn<String> episodeId = GeneratedColumn<String>(
+    'episode_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES sick_episodes (id)',
+    ),
+  );
+  static const VerificationMeta _takenAtMeta = const VerificationMeta(
+    'takenAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> takenAt = GeneratedColumn<DateTime>(
+    'taken_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<double> value = GeneratedColumn<double>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+    'unit',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _siteMeta = const VerificationMeta('site');
+  @override
+  late final GeneratedColumn<String> site = GeneratedColumn<String>(
+    'site',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    episodeId,
+    takenAt,
+    value,
+    unit,
+    site,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'temperature_readings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TemperatureReading> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('episode_id')) {
+      context.handle(
+        _episodeIdMeta,
+        episodeId.isAcceptableOrUnknown(data['episode_id']!, _episodeIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_episodeIdMeta);
+    }
+    if (data.containsKey('taken_at')) {
+      context.handle(
+        _takenAtMeta,
+        takenAt.isAcceptableOrUnknown(data['taken_at']!, _takenAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_takenAtMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+        _unitMeta,
+        unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_unitMeta);
+    }
+    if (data.containsKey('site')) {
+      context.handle(
+        _siteMeta,
+        site.isAcceptableOrUnknown(data['site']!, _siteMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TemperatureReading map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TemperatureReading(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      episodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}episode_id'],
+      )!,
+      takenAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}taken_at'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}value'],
+      )!,
+      unit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unit'],
+      )!,
+      site: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}site'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $TemperatureReadingsTable createAlias(String alias) {
+    return $TemperatureReadingsTable(attachedDatabase, alias);
+  }
+}
+
+class TemperatureReading extends DataClass
+    implements Insertable<TemperatureReading> {
+  final String id;
+  final String episodeId;
+  final DateTime takenAt;
+
+  /// As read, in [unit].
+  final double value;
+
+  /// `c` or `f`.
+  final String unit;
+
+  /// armpit, ear, forehead, mouth or rectal; null if not said.
+  final String? site;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const TemperatureReading({
+    required this.id,
+    required this.episodeId,
+    required this.takenAt,
+    required this.value,
+    required this.unit,
+    this.site,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['episode_id'] = Variable<String>(episodeId);
+    map['taken_at'] = Variable<DateTime>(takenAt);
+    map['value'] = Variable<double>(value);
+    map['unit'] = Variable<String>(unit);
+    if (!nullToAbsent || site != null) {
+      map['site'] = Variable<String>(site);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  TemperatureReadingsCompanion toCompanion(bool nullToAbsent) {
+    return TemperatureReadingsCompanion(
+      id: Value(id),
+      episodeId: Value(episodeId),
+      takenAt: Value(takenAt),
+      value: Value(value),
+      unit: Value(unit),
+      site: site == null && nullToAbsent ? const Value.absent() : Value(site),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory TemperatureReading.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TemperatureReading(
+      id: serializer.fromJson<String>(json['id']),
+      episodeId: serializer.fromJson<String>(json['episodeId']),
+      takenAt: serializer.fromJson<DateTime>(json['takenAt']),
+      value: serializer.fromJson<double>(json['value']),
+      unit: serializer.fromJson<String>(json['unit']),
+      site: serializer.fromJson<String?>(json['site']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'episodeId': serializer.toJson<String>(episodeId),
+      'takenAt': serializer.toJson<DateTime>(takenAt),
+      'value': serializer.toJson<double>(value),
+      'unit': serializer.toJson<String>(unit),
+      'site': serializer.toJson<String?>(site),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  TemperatureReading copyWith({
+    String? id,
+    String? episodeId,
+    DateTime? takenAt,
+    double? value,
+    String? unit,
+    Value<String?> site = const Value.absent(),
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => TemperatureReading(
+    id: id ?? this.id,
+    episodeId: episodeId ?? this.episodeId,
+    takenAt: takenAt ?? this.takenAt,
+    value: value ?? this.value,
+    unit: unit ?? this.unit,
+    site: site.present ? site.value : this.site,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  TemperatureReading copyWithCompanion(TemperatureReadingsCompanion data) {
+    return TemperatureReading(
+      id: data.id.present ? data.id.value : this.id,
+      episodeId: data.episodeId.present ? data.episodeId.value : this.episodeId,
+      takenAt: data.takenAt.present ? data.takenAt.value : this.takenAt,
+      value: data.value.present ? data.value.value : this.value,
+      unit: data.unit.present ? data.unit.value : this.unit,
+      site: data.site.present ? data.site.value : this.site,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TemperatureReading(')
+          ..write('id: $id, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('takenAt: $takenAt, ')
+          ..write('value: $value, ')
+          ..write('unit: $unit, ')
+          ..write('site: $site, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    episodeId,
+    takenAt,
+    value,
+    unit,
+    site,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TemperatureReading &&
+          other.id == this.id &&
+          other.episodeId == this.episodeId &&
+          other.takenAt == this.takenAt &&
+          other.value == this.value &&
+          other.unit == this.unit &&
+          other.site == this.site &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class TemperatureReadingsCompanion extends UpdateCompanion<TemperatureReading> {
+  final Value<String> id;
+  final Value<String> episodeId;
+  final Value<DateTime> takenAt;
+  final Value<double> value;
+  final Value<String> unit;
+  final Value<String?> site;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const TemperatureReadingsCompanion({
+    this.id = const Value.absent(),
+    this.episodeId = const Value.absent(),
+    this.takenAt = const Value.absent(),
+    this.value = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.site = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TemperatureReadingsCompanion.insert({
+    required String id,
+    required String episodeId,
+    required DateTime takenAt,
+    required double value,
+    required String unit,
+    this.site = const Value.absent(),
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       episodeId = Value(episodeId),
+       takenAt = Value(takenAt),
+       value = Value(value),
+       unit = Value(unit),
+       updatedAt = Value(updatedAt);
+  static Insertable<TemperatureReading> custom({
+    Expression<String>? id,
+    Expression<String>? episodeId,
+    Expression<DateTime>? takenAt,
+    Expression<double>? value,
+    Expression<String>? unit,
+    Expression<String>? site,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (episodeId != null) 'episode_id': episodeId,
+      if (takenAt != null) 'taken_at': takenAt,
+      if (value != null) 'value': value,
+      if (unit != null) 'unit': unit,
+      if (site != null) 'site': site,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TemperatureReadingsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? episodeId,
+    Value<DateTime>? takenAt,
+    Value<double>? value,
+    Value<String>? unit,
+    Value<String?>? site,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return TemperatureReadingsCompanion(
+      id: id ?? this.id,
+      episodeId: episodeId ?? this.episodeId,
+      takenAt: takenAt ?? this.takenAt,
+      value: value ?? this.value,
+      unit: unit ?? this.unit,
+      site: site ?? this.site,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (episodeId.present) {
+      map['episode_id'] = Variable<String>(episodeId.value);
+    }
+    if (takenAt.present) {
+      map['taken_at'] = Variable<DateTime>(takenAt.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<double>(value.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (site.present) {
+      map['site'] = Variable<String>(site.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TemperatureReadingsCompanion(')
+          ..write('id: $id, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('takenAt: $takenAt, ')
+          ..write('value: $value, ')
+          ..write('unit: $unit, ')
+          ..write('site: $site, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $GivenMedicinesTable extends GivenMedicines
+    with TableInfo<$GivenMedicinesTable, GivenMedicine> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GivenMedicinesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _episodeIdMeta = const VerificationMeta(
+    'episodeId',
+  );
+  @override
+  late final GeneratedColumn<String> episodeId = GeneratedColumn<String>(
+    'episode_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES sick_episodes (id)',
+    ),
+  );
+  static const VerificationMeta _medicineIdMeta = const VerificationMeta(
+    'medicineId',
+  );
+  @override
+  late final GeneratedColumn<String> medicineId = GeneratedColumn<String>(
+    'medicine_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES medicines (id)',
+    ),
+  );
+  static const VerificationMeta _prescriptionIdMeta = const VerificationMeta(
+    'prescriptionId',
+  );
+  @override
+  late final GeneratedColumn<String> prescriptionId = GeneratedColumn<String>(
+    'prescription_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES prescriptions (id)',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<String> amount = GeneratedColumn<String>(
+    'amount',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _givenAtMeta = const VerificationMeta(
+    'givenAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> givenAt = GeneratedColumn<DateTime>(
+    'given_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _remindNextMeta = const VerificationMeta(
+    'remindNext',
+  );
+  @override
+  late final GeneratedColumn<bool> remindNext = GeneratedColumn<bool>(
+    'remind_next',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("remind_next" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    episodeId,
+    medicineId,
+    prescriptionId,
+    name,
+    amount,
+    givenAt,
+    remindNext,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'given_medicines';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GivenMedicine> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('episode_id')) {
+      context.handle(
+        _episodeIdMeta,
+        episodeId.isAcceptableOrUnknown(data['episode_id']!, _episodeIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_episodeIdMeta);
+    }
+    if (data.containsKey('medicine_id')) {
+      context.handle(
+        _medicineIdMeta,
+        medicineId.isAcceptableOrUnknown(data['medicine_id']!, _medicineIdMeta),
+      );
+    }
+    if (data.containsKey('prescription_id')) {
+      context.handle(
+        _prescriptionIdMeta,
+        prescriptionId.isAcceptableOrUnknown(
+          data['prescription_id']!,
+          _prescriptionIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    }
+    if (data.containsKey('given_at')) {
+      context.handle(
+        _givenAtMeta,
+        givenAt.isAcceptableOrUnknown(data['given_at']!, _givenAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_givenAtMeta);
+    }
+    if (data.containsKey('remind_next')) {
+      context.handle(
+        _remindNextMeta,
+        remindNext.isAcceptableOrUnknown(data['remind_next']!, _remindNextMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GivenMedicine map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GivenMedicine(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      episodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}episode_id'],
+      )!,
+      medicineId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}medicine_id'],
+      ),
+      prescriptionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}prescription_id'],
+      ),
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}amount'],
+      ),
+      givenAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}given_at'],
+      )!,
+      remindNext: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}remind_next'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $GivenMedicinesTable createAlias(String alias) {
+    return $GivenMedicinesTable(attachedDatabase, alias);
+  }
+}
+
+class GivenMedicine extends DataClass implements Insertable<GivenMedicine> {
+  final String id;
+  final String episodeId;
+
+  /// The saved medicine, if one was picked.
+  final String? medicineId;
+
+  /// The prescription it came from, if one was picked.
+  final String? prescriptionId;
+
+  /// The medicine's name: copied from the saved medicine, or typed.
+  final String name;
+
+  /// How much, word for word as the family wrote it.
+  final String? amount;
+  final DateTime givenAt;
+
+  /// Remind when the medicine's own saved instructions allow the next
+  /// dose (only offered when they state a minimum interval).
+  final bool remindNext;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const GivenMedicine({
+    required this.id,
+    required this.episodeId,
+    this.medicineId,
+    this.prescriptionId,
+    required this.name,
+    this.amount,
+    required this.givenAt,
+    required this.remindNext,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['episode_id'] = Variable<String>(episodeId);
+    if (!nullToAbsent || medicineId != null) {
+      map['medicine_id'] = Variable<String>(medicineId);
+    }
+    if (!nullToAbsent || prescriptionId != null) {
+      map['prescription_id'] = Variable<String>(prescriptionId);
+    }
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || amount != null) {
+      map['amount'] = Variable<String>(amount);
+    }
+    map['given_at'] = Variable<DateTime>(givenAt);
+    map['remind_next'] = Variable<bool>(remindNext);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  GivenMedicinesCompanion toCompanion(bool nullToAbsent) {
+    return GivenMedicinesCompanion(
+      id: Value(id),
+      episodeId: Value(episodeId),
+      medicineId: medicineId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(medicineId),
+      prescriptionId: prescriptionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(prescriptionId),
+      name: Value(name),
+      amount: amount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(amount),
+      givenAt: Value(givenAt),
+      remindNext: Value(remindNext),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory GivenMedicine.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GivenMedicine(
+      id: serializer.fromJson<String>(json['id']),
+      episodeId: serializer.fromJson<String>(json['episodeId']),
+      medicineId: serializer.fromJson<String?>(json['medicineId']),
+      prescriptionId: serializer.fromJson<String?>(json['prescriptionId']),
+      name: serializer.fromJson<String>(json['name']),
+      amount: serializer.fromJson<String?>(json['amount']),
+      givenAt: serializer.fromJson<DateTime>(json['givenAt']),
+      remindNext: serializer.fromJson<bool>(json['remindNext']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'episodeId': serializer.toJson<String>(episodeId),
+      'medicineId': serializer.toJson<String?>(medicineId),
+      'prescriptionId': serializer.toJson<String?>(prescriptionId),
+      'name': serializer.toJson<String>(name),
+      'amount': serializer.toJson<String?>(amount),
+      'givenAt': serializer.toJson<DateTime>(givenAt),
+      'remindNext': serializer.toJson<bool>(remindNext),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  GivenMedicine copyWith({
+    String? id,
+    String? episodeId,
+    Value<String?> medicineId = const Value.absent(),
+    Value<String?> prescriptionId = const Value.absent(),
+    String? name,
+    Value<String?> amount = const Value.absent(),
+    DateTime? givenAt,
+    bool? remindNext,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => GivenMedicine(
+    id: id ?? this.id,
+    episodeId: episodeId ?? this.episodeId,
+    medicineId: medicineId.present ? medicineId.value : this.medicineId,
+    prescriptionId: prescriptionId.present
+        ? prescriptionId.value
+        : this.prescriptionId,
+    name: name ?? this.name,
+    amount: amount.present ? amount.value : this.amount,
+    givenAt: givenAt ?? this.givenAt,
+    remindNext: remindNext ?? this.remindNext,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  GivenMedicine copyWithCompanion(GivenMedicinesCompanion data) {
+    return GivenMedicine(
+      id: data.id.present ? data.id.value : this.id,
+      episodeId: data.episodeId.present ? data.episodeId.value : this.episodeId,
+      medicineId: data.medicineId.present
+          ? data.medicineId.value
+          : this.medicineId,
+      prescriptionId: data.prescriptionId.present
+          ? data.prescriptionId.value
+          : this.prescriptionId,
+      name: data.name.present ? data.name.value : this.name,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      givenAt: data.givenAt.present ? data.givenAt.value : this.givenAt,
+      remindNext: data.remindNext.present
+          ? data.remindNext.value
+          : this.remindNext,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GivenMedicine(')
+          ..write('id: $id, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('medicineId: $medicineId, ')
+          ..write('prescriptionId: $prescriptionId, ')
+          ..write('name: $name, ')
+          ..write('amount: $amount, ')
+          ..write('givenAt: $givenAt, ')
+          ..write('remindNext: $remindNext, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    episodeId,
+    medicineId,
+    prescriptionId,
+    name,
+    amount,
+    givenAt,
+    remindNext,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GivenMedicine &&
+          other.id == this.id &&
+          other.episodeId == this.episodeId &&
+          other.medicineId == this.medicineId &&
+          other.prescriptionId == this.prescriptionId &&
+          other.name == this.name &&
+          other.amount == this.amount &&
+          other.givenAt == this.givenAt &&
+          other.remindNext == this.remindNext &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class GivenMedicinesCompanion extends UpdateCompanion<GivenMedicine> {
+  final Value<String> id;
+  final Value<String> episodeId;
+  final Value<String?> medicineId;
+  final Value<String?> prescriptionId;
+  final Value<String> name;
+  final Value<String?> amount;
+  final Value<DateTime> givenAt;
+  final Value<bool> remindNext;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const GivenMedicinesCompanion({
+    this.id = const Value.absent(),
+    this.episodeId = const Value.absent(),
+    this.medicineId = const Value.absent(),
+    this.prescriptionId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.givenAt = const Value.absent(),
+    this.remindNext = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GivenMedicinesCompanion.insert({
+    required String id,
+    required String episodeId,
+    this.medicineId = const Value.absent(),
+    this.prescriptionId = const Value.absent(),
+    required String name,
+    this.amount = const Value.absent(),
+    required DateTime givenAt,
+    this.remindNext = const Value.absent(),
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       episodeId = Value(episodeId),
+       name = Value(name),
+       givenAt = Value(givenAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<GivenMedicine> custom({
+    Expression<String>? id,
+    Expression<String>? episodeId,
+    Expression<String>? medicineId,
+    Expression<String>? prescriptionId,
+    Expression<String>? name,
+    Expression<String>? amount,
+    Expression<DateTime>? givenAt,
+    Expression<bool>? remindNext,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (episodeId != null) 'episode_id': episodeId,
+      if (medicineId != null) 'medicine_id': medicineId,
+      if (prescriptionId != null) 'prescription_id': prescriptionId,
+      if (name != null) 'name': name,
+      if (amount != null) 'amount': amount,
+      if (givenAt != null) 'given_at': givenAt,
+      if (remindNext != null) 'remind_next': remindNext,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GivenMedicinesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? episodeId,
+    Value<String?>? medicineId,
+    Value<String?>? prescriptionId,
+    Value<String>? name,
+    Value<String?>? amount,
+    Value<DateTime>? givenAt,
+    Value<bool>? remindNext,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return GivenMedicinesCompanion(
+      id: id ?? this.id,
+      episodeId: episodeId ?? this.episodeId,
+      medicineId: medicineId ?? this.medicineId,
+      prescriptionId: prescriptionId ?? this.prescriptionId,
+      name: name ?? this.name,
+      amount: amount ?? this.amount,
+      givenAt: givenAt ?? this.givenAt,
+      remindNext: remindNext ?? this.remindNext,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (episodeId.present) {
+      map['episode_id'] = Variable<String>(episodeId.value);
+    }
+    if (medicineId.present) {
+      map['medicine_id'] = Variable<String>(medicineId.value);
+    }
+    if (prescriptionId.present) {
+      map['prescription_id'] = Variable<String>(prescriptionId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<String>(amount.value);
+    }
+    if (givenAt.present) {
+      map['given_at'] = Variable<DateTime>(givenAt.value);
+    }
+    if (remindNext.present) {
+      map['remind_next'] = Variable<bool>(remindNext.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GivenMedicinesCompanion(')
+          ..write('id: $id, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('medicineId: $medicineId, ')
+          ..write('prescriptionId: $prescriptionId, ')
+          ..write('name: $name, ')
+          ..write('amount: $amount, ')
+          ..write('givenAt: $givenAt, ')
+          ..write('remindNext: $remindNext, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $OutboxEntriesTable extends OutboxEntries
     with TableInfo<$OutboxEntriesTable, OutboxEntry> {
   @override
@@ -5978,6 +7657,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MedicinesTable medicines = $MedicinesTable(this);
   late final $DoseSchedulesTable doseSchedules = $DoseSchedulesTable(this);
   late final $DoseLogsTable doseLogs = $DoseLogsTable(this);
+  late final $SickEpisodesTable sickEpisodes = $SickEpisodesTable(this);
+  late final $TemperatureReadingsTable temperatureReadings =
+      $TemperatureReadingsTable(this);
+  late final $GivenMedicinesTable givenMedicines = $GivenMedicinesTable(this);
   late final $OutboxEntriesTable outboxEntries = $OutboxEntriesTable(this);
   late final Index doseLogsDose = Index(
     'dose_logs_dose',
@@ -5997,6 +7680,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     medicines,
     doseSchedules,
     doseLogs,
+    sickEpisodes,
+    temperatureReadings,
+    givenMedicines,
     outboxEntries,
     doseLogsDose,
   ];
@@ -6100,6 +7786,24 @@ final class $$ProfilesTableReferences
     ).filter((f) => f.profileId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_medicinesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$SickEpisodesTable, List<SickEpisode>>
+  _sickEpisodesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.sickEpisodes,
+    aliasName: 'profiles__id__sick_episodes__profile_id',
+  );
+
+  $$SickEpisodesTableProcessedTableManager get sickEpisodesRefs {
+    final manager = $$SickEpisodesTableTableManager(
+      $_db,
+      $_db.sickEpisodes,
+    ).filter((f) => f.profileId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_sickEpisodesRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -6256,6 +7960,31 @@ class $$ProfilesTableFilterComposer
           }) => $$MedicinesTableFilterComposer(
             $db: $db,
             $table: $db.medicines,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> sickEpisodesRefs(
+    Expression<bool> Function($$SickEpisodesTableFilterComposer f) f,
+  ) {
+    final $$SickEpisodesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sickEpisodes,
+      getReferencedColumn: (t) => t.profileId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SickEpisodesTableFilterComposer(
+            $db: $db,
+            $table: $db.sickEpisodes,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6470,6 +8199,31 @@ class $$ProfilesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> sickEpisodesRefs<T extends Object>(
+    Expression<T> Function($$SickEpisodesTableAnnotationComposer a) f,
+  ) {
+    final $$SickEpisodesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sickEpisodes,
+      getReferencedColumn: (t) => t.profileId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SickEpisodesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sickEpisodes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ProfilesTableTableManager
@@ -6490,6 +8244,7 @@ class $$ProfilesTableTableManager
             bool insuranceCardsRefs,
             bool prescriptionsRefs,
             bool medicinesRefs,
+            bool sickEpisodesRefs,
           })
         > {
   $$ProfilesTableTableManager(_$AppDatabase db, $ProfilesTable table)
@@ -6569,6 +8324,7 @@ class $$ProfilesTableTableManager
                 insuranceCardsRefs = false,
                 prescriptionsRefs = false,
                 medicinesRefs = false,
+                sickEpisodesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -6577,6 +8333,7 @@ class $$ProfilesTableTableManager
                     if (insuranceCardsRefs) db.insuranceCards,
                     if (prescriptionsRefs) db.prescriptions,
                     if (medicinesRefs) db.medicines,
+                    if (sickEpisodesRefs) db.sickEpisodes,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -6661,6 +8418,26 @@ class $$ProfilesTableTableManager
                           referencedColumn: 'profile_id',
                           typedResults: items,
                         ),
+                      if (sickEpisodesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Profile,
+                          $ProfilesTable,
+                          SickEpisode,
+                          $SickEpisodesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ProfilesTableReferences
+                              ._sickEpisodesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ProfilesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).sickEpisodesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'profile_id',
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -6686,6 +8463,7 @@ typedef $$ProfilesTableProcessedTableManager =
         bool insuranceCardsRefs,
         bool prescriptionsRefs,
         bool medicinesRefs,
+        bool sickEpisodesRefs,
       })
     >;
 typedef $$MedicalEventsTableCreateCompanionBuilder =
@@ -8374,6 +10152,24 @@ final class $$PrescriptionsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$GivenMedicinesTable, List<GivenMedicine>>
+  _givenMedicinesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.givenMedicines,
+    aliasName: 'prescriptions__id__given_medicines__prescription_id',
+  );
+
+  $$GivenMedicinesTableProcessedTableManager get givenMedicinesRefs {
+    final manager = $$GivenMedicinesTableTableManager(
+      $_db,
+      $_db.givenMedicines,
+    ).filter((f) => f.prescriptionId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_givenMedicinesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$PrescriptionsTableFilterComposer
@@ -8469,6 +10265,31 @@ class $$PrescriptionsTableFilterComposer
           }) => $$MedicinesTableFilterComposer(
             $db: $db,
             $table: $db.medicines,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> givenMedicinesRefs(
+    Expression<bool> Function($$GivenMedicinesTableFilterComposer f) f,
+  ) {
+    final $$GivenMedicinesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.givenMedicines,
+      getReferencedColumn: (t) => t.prescriptionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GivenMedicinesTableFilterComposer(
+            $db: $db,
+            $table: $db.givenMedicines,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -8644,6 +10465,31 @@ class $$PrescriptionsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> givenMedicinesRefs<T extends Object>(
+    Expression<T> Function($$GivenMedicinesTableAnnotationComposer a) f,
+  ) {
+    final $$GivenMedicinesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.givenMedicines,
+      getReferencedColumn: (t) => t.prescriptionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GivenMedicinesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.givenMedicines,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$PrescriptionsTableTableManager
@@ -8659,7 +10505,11 @@ class $$PrescriptionsTableTableManager
           $$PrescriptionsTableUpdateCompanionBuilder,
           (Prescription, $$PrescriptionsTableReferences),
           Prescription,
-          PrefetchHooks Function({bool profileId, bool medicinesRefs})
+          PrefetchHooks Function({
+            bool profileId,
+            bool medicinesRefs,
+            bool givenMedicinesRefs,
+          })
         > {
   $$PrescriptionsTableTableManager(_$AppDatabase db, $PrescriptionsTable table)
     : super(
@@ -8732,66 +10582,94 @@ class $$PrescriptionsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({profileId = false, medicinesRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (medicinesRefs) db.medicines],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (profileId) {
-                      state = state.withJoin(
-                        currentTable: table,
-                        currentColumn: table.profileId,
-                        referencedTable: $$PrescriptionsTableReferences
-                            ._profileIdTable(db),
-                        referencedColumn: $$PrescriptionsTableReferences
-                            ._profileIdTable(db)
-                            .id,
-                      ) as T;
-                    }
+          prefetchHooksCallback:
+              ({
+                profileId = false,
+                medicinesRefs = false,
+                givenMedicinesRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (medicinesRefs) db.medicines,
+                    if (givenMedicinesRefs) db.givenMedicines,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (profileId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.profileId,
+                            referencedTable: $$PrescriptionsTableReferences
+                                ._profileIdTable(db),
+                            referencedColumn: $$PrescriptionsTableReferences
+                                ._profileIdTable(db)
+                                .id,
+                          ) as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (medicinesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Prescription,
+                          $PrescriptionsTable,
+                          Medicine,
+                          $MedicinesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$PrescriptionsTableReferences
+                              ._medicinesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$PrescriptionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).medicinesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'prescription_id',
+                          typedResults: items,
+                        ),
+                      if (givenMedicinesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Prescription,
+                          $PrescriptionsTable,
+                          GivenMedicine,
+                          $GivenMedicinesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$PrescriptionsTableReferences
+                              ._givenMedicinesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$PrescriptionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).givenMedicinesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'prescription_id',
+                          typedResults: items,
+                        ),
+                    ];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (medicinesRefs)
-                    await $_getPrefetchedDataByColumns<
-                      Prescription,
-                      $PrescriptionsTable,
-                      Medicine,
-                      $MedicinesTable
-                    >(
-                      currentTable: table,
-                      referencedTable: $$PrescriptionsTableReferences
-                          ._medicinesRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$PrescriptionsTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).medicinesRefs,
-                      currentColumn: 'id',
-                      referencedColumn: 'prescription_id',
-                      typedResults: items,
-                    ),
-                ];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -8808,7 +10686,11 @@ typedef $$PrescriptionsTableProcessedTableManager =
       $$PrescriptionsTableUpdateCompanionBuilder,
       (Prescription, $$PrescriptionsTableReferences),
       Prescription,
-      PrefetchHooks Function({bool profileId, bool medicinesRefs})
+      PrefetchHooks Function({
+        bool profileId,
+        bool medicinesRefs,
+        bool givenMedicinesRefs,
+      })
     >;
 typedef $$MedicinesTableCreateCompanionBuilder = MedicinesCompanion Function({
   required String id,
@@ -8920,6 +10802,24 @@ final class $$MedicinesTableReferences
     ).filter((f) => f.medicineId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_doseLogsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$GivenMedicinesTable, List<GivenMedicine>>
+  _givenMedicinesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.givenMedicines,
+    aliasName: 'medicines__id__given_medicines__medicine_id',
+  );
+
+  $$GivenMedicinesTableProcessedTableManager get givenMedicinesRefs {
+    final manager = $$GivenMedicinesTableTableManager(
+      $_db,
+      $_db.givenMedicines,
+    ).filter((f) => f.medicineId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_givenMedicinesRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -9092,6 +10992,31 @@ class $$MedicinesTableFilterComposer
           }) => $$DoseLogsTableFilterComposer(
             $db: $db,
             $table: $db.doseLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> givenMedicinesRefs(
+    Expression<bool> Function($$GivenMedicinesTableFilterComposer f) f,
+  ) {
+    final $$GivenMedicinesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.givenMedicines,
+      getReferencedColumn: (t) => t.medicineId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GivenMedicinesTableFilterComposer(
+            $db: $db,
+            $table: $db.givenMedicines,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -9380,6 +11305,31 @@ class $$MedicinesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> givenMedicinesRefs<T extends Object>(
+    Expression<T> Function($$GivenMedicinesTableAnnotationComposer a) f,
+  ) {
+    final $$GivenMedicinesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.givenMedicines,
+      getReferencedColumn: (t) => t.medicineId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GivenMedicinesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.givenMedicines,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$MedicinesTableTableManager
@@ -9400,6 +11350,7 @@ class $$MedicinesTableTableManager
             bool prescriptionId,
             bool doseSchedulesRefs,
             bool doseLogsRefs,
+            bool givenMedicinesRefs,
           })
         > {
   $$MedicinesTableTableManager(_$AppDatabase db, $MedicinesTable table)
@@ -9503,12 +11454,14 @@ class $$MedicinesTableTableManager
                 prescriptionId = false,
                 doseSchedulesRefs = false,
                 doseLogsRefs = false,
+                givenMedicinesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (doseSchedulesRefs) db.doseSchedules,
                     if (doseLogsRefs) db.doseLogs,
+                    if (givenMedicinesRefs) db.givenMedicines,
                   ],
                   addJoins:
                       <
@@ -9593,6 +11546,26 @@ class $$MedicinesTableTableManager
                           referencedColumn: 'medicine_id',
                           typedResults: items,
                         ),
+                      if (givenMedicinesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Medicine,
+                          $MedicinesTable,
+                          GivenMedicine,
+                          $GivenMedicinesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MedicinesTableReferences
+                              ._givenMedicinesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MedicinesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).givenMedicinesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'medicine_id',
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -9618,6 +11591,7 @@ typedef $$MedicinesTableProcessedTableManager =
         bool prescriptionId,
         bool doseSchedulesRefs,
         bool doseLogsRefs,
+        bool givenMedicinesRefs,
       })
     >;
 typedef $$DoseSchedulesTableCreateCompanionBuilder =
@@ -10351,6 +12325,1571 @@ typedef $$DoseLogsTableProcessedTableManager =
       DoseLog,
       PrefetchHooks Function({bool medicineId})
     >;
+typedef $$SickEpisodesTableCreateCompanionBuilder =
+    SickEpisodesCompanion Function({
+      required String id,
+      required String profileId,
+      required DateTime startedAt,
+      Value<DateTime?> endedAt,
+      Value<String> symptomsJson,
+      Value<String?> notes,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$SickEpisodesTableUpdateCompanionBuilder =
+    SickEpisodesCompanion Function({
+      Value<String> id,
+      Value<String> profileId,
+      Value<DateTime> startedAt,
+      Value<DateTime?> endedAt,
+      Value<String> symptomsJson,
+      Value<String?> notes,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+final class $$SickEpisodesTableReferences
+    extends BaseReferences<_$AppDatabase, $SickEpisodesTable, SickEpisode> {
+  $$SickEpisodesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProfilesTable _profileIdTable(_$AppDatabase db) =>
+      db.profiles.createAlias('sick_episodes__profile_id__profiles__id');
+
+  $$ProfilesTableProcessedTableManager get profileId {
+    final $_column = $_itemColumn<String>('profile_id')!;
+
+    final manager = $$ProfilesTableTableManager(
+      $_db,
+      $_db.profiles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_profileIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $TemperatureReadingsTable,
+    List<TemperatureReading>
+  >
+  _temperatureReadingsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.temperatureReadings,
+        aliasName: 'sick_episodes__id__temperature_readings__episode_id',
+      );
+
+  $$TemperatureReadingsTableProcessedTableManager get temperatureReadingsRefs {
+    final manager = $$TemperatureReadingsTableTableManager(
+      $_db,
+      $_db.temperatureReadings,
+    ).filter((f) => f.episodeId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _temperatureReadingsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$GivenMedicinesTable, List<GivenMedicine>>
+  _givenMedicinesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.givenMedicines,
+    aliasName: 'sick_episodes__id__given_medicines__episode_id',
+  );
+
+  $$GivenMedicinesTableProcessedTableManager get givenMedicinesRefs {
+    final manager = $$GivenMedicinesTableTableManager(
+      $_db,
+      $_db.givenMedicines,
+    ).filter((f) => f.episodeId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_givenMedicinesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$SickEpisodesTableFilterComposer
+    extends Composer<_$AppDatabase, $SickEpisodesTable> {
+  $$SickEpisodesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get endedAt => $composableBuilder(
+    column: $table.endedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get symptomsJson => $composableBuilder(
+    column: $table.symptomsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ProfilesTableFilterComposer get profileId {
+    final $$ProfilesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.profiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProfilesTableFilterComposer(
+            $db: $db,
+            $table: $db.profiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> temperatureReadingsRefs(
+    Expression<bool> Function($$TemperatureReadingsTableFilterComposer f) f,
+  ) {
+    final $$TemperatureReadingsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.temperatureReadings,
+      getReferencedColumn: (t) => t.episodeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TemperatureReadingsTableFilterComposer(
+            $db: $db,
+            $table: $db.temperatureReadings,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> givenMedicinesRefs(
+    Expression<bool> Function($$GivenMedicinesTableFilterComposer f) f,
+  ) {
+    final $$GivenMedicinesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.givenMedicines,
+      getReferencedColumn: (t) => t.episodeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GivenMedicinesTableFilterComposer(
+            $db: $db,
+            $table: $db.givenMedicines,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SickEpisodesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SickEpisodesTable> {
+  $$SickEpisodesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get endedAt => $composableBuilder(
+    column: $table.endedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get symptomsJson => $composableBuilder(
+    column: $table.symptomsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ProfilesTableOrderingComposer get profileId {
+    final $$ProfilesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.profiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProfilesTableOrderingComposer(
+            $db: $db,
+            $table: $db.profiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SickEpisodesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SickEpisodesTable> {
+  $$SickEpisodesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startedAt =>
+      $composableBuilder(column: $table.startedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endedAt =>
+      $composableBuilder(column: $table.endedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get symptomsJson => $composableBuilder(
+    column: $table.symptomsJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$ProfilesTableAnnotationComposer get profileId {
+    final $$ProfilesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.profileId,
+      referencedTable: $db.profiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProfilesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.profiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> temperatureReadingsRefs<T extends Object>(
+    Expression<T> Function($$TemperatureReadingsTableAnnotationComposer a) f,
+  ) {
+    final $$TemperatureReadingsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.temperatureReadings,
+          getReferencedColumn: (t) => t.episodeId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$TemperatureReadingsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.temperatureReadings,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> givenMedicinesRefs<T extends Object>(
+    Expression<T> Function($$GivenMedicinesTableAnnotationComposer a) f,
+  ) {
+    final $$GivenMedicinesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.givenMedicines,
+      getReferencedColumn: (t) => t.episodeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GivenMedicinesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.givenMedicines,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SickEpisodesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SickEpisodesTable,
+          SickEpisode,
+          $$SickEpisodesTableFilterComposer,
+          $$SickEpisodesTableOrderingComposer,
+          $$SickEpisodesTableAnnotationComposer,
+          $$SickEpisodesTableCreateCompanionBuilder,
+          $$SickEpisodesTableUpdateCompanionBuilder,
+          (SickEpisode, $$SickEpisodesTableReferences),
+          SickEpisode,
+          PrefetchHooks Function({
+            bool profileId,
+            bool temperatureReadingsRefs,
+            bool givenMedicinesRefs,
+          })
+        > {
+  $$SickEpisodesTableTableManager(_$AppDatabase db, $SickEpisodesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SickEpisodesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SickEpisodesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SickEpisodesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> profileId = const Value.absent(),
+                Value<DateTime> startedAt = const Value.absent(),
+                Value<DateTime?> endedAt = const Value.absent(),
+                Value<String> symptomsJson = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SickEpisodesCompanion(
+                id: id,
+                profileId: profileId,
+                startedAt: startedAt,
+                endedAt: endedAt,
+                symptomsJson: symptomsJson,
+                notes: notes,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String profileId,
+                required DateTime startedAt,
+                Value<DateTime?> endedAt = const Value.absent(),
+                Value<String> symptomsJson = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SickEpisodesCompanion.insert(
+                id: id,
+                profileId: profileId,
+                startedAt: startedAt,
+                endedAt: endedAt,
+                symptomsJson: symptomsJson,
+                notes: notes,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SickEpisodesTable, SickEpisode>(table),
+                  $$SickEpisodesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                profileId = false,
+                temperatureReadingsRefs = false,
+                givenMedicinesRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (temperatureReadingsRefs) db.temperatureReadings,
+                    if (givenMedicinesRefs) db.givenMedicines,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (profileId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.profileId,
+                            referencedTable: $$SickEpisodesTableReferences
+                                ._profileIdTable(db),
+                            referencedColumn: $$SickEpisodesTableReferences
+                                ._profileIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (temperatureReadingsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          SickEpisode,
+                          $SickEpisodesTable,
+                          TemperatureReading,
+                          $TemperatureReadingsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$SickEpisodesTableReferences
+                              ._temperatureReadingsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$SickEpisodesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).temperatureReadingsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'episode_id',
+                          typedResults: items,
+                        ),
+                      if (givenMedicinesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          SickEpisode,
+                          $SickEpisodesTable,
+                          GivenMedicine,
+                          $GivenMedicinesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$SickEpisodesTableReferences
+                              ._givenMedicinesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$SickEpisodesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).givenMedicinesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'episode_id',
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$SickEpisodesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SickEpisodesTable,
+      SickEpisode,
+      $$SickEpisodesTableFilterComposer,
+      $$SickEpisodesTableOrderingComposer,
+      $$SickEpisodesTableAnnotationComposer,
+      $$SickEpisodesTableCreateCompanionBuilder,
+      $$SickEpisodesTableUpdateCompanionBuilder,
+      (SickEpisode, $$SickEpisodesTableReferences),
+      SickEpisode,
+      PrefetchHooks Function({
+        bool profileId,
+        bool temperatureReadingsRefs,
+        bool givenMedicinesRefs,
+      })
+    >;
+typedef $$TemperatureReadingsTableCreateCompanionBuilder =
+    TemperatureReadingsCompanion Function({
+      required String id,
+      required String episodeId,
+      required DateTime takenAt,
+      required double value,
+      required String unit,
+      Value<String?> site,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$TemperatureReadingsTableUpdateCompanionBuilder =
+    TemperatureReadingsCompanion Function({
+      Value<String> id,
+      Value<String> episodeId,
+      Value<DateTime> takenAt,
+      Value<double> value,
+      Value<String> unit,
+      Value<String?> site,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+final class $$TemperatureReadingsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $TemperatureReadingsTable,
+          TemperatureReading
+        > {
+  $$TemperatureReadingsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $SickEpisodesTable _episodeIdTable(_$AppDatabase db) => db.sickEpisodes
+      .createAlias('temperature_readings__episode_id__sick_episodes__id');
+
+  $$SickEpisodesTableProcessedTableManager get episodeId {
+    final $_column = $_itemColumn<String>('episode_id')!;
+
+    final manager = $$SickEpisodesTableTableManager(
+      $_db,
+      $_db.sickEpisodes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_episodeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$TemperatureReadingsTableFilterComposer
+    extends Composer<_$AppDatabase, $TemperatureReadingsTable> {
+  $$TemperatureReadingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get takenAt => $composableBuilder(
+    column: $table.takenAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get site => $composableBuilder(
+    column: $table.site,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$SickEpisodesTableFilterComposer get episodeId {
+    final $$SickEpisodesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.episodeId,
+      referencedTable: $db.sickEpisodes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SickEpisodesTableFilterComposer(
+            $db: $db,
+            $table: $db.sickEpisodes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TemperatureReadingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TemperatureReadingsTable> {
+  $$TemperatureReadingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get takenAt => $composableBuilder(
+    column: $table.takenAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get site => $composableBuilder(
+    column: $table.site,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$SickEpisodesTableOrderingComposer get episodeId {
+    final $$SickEpisodesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.episodeId,
+      referencedTable: $db.sickEpisodes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SickEpisodesTableOrderingComposer(
+            $db: $db,
+            $table: $db.sickEpisodes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TemperatureReadingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TemperatureReadingsTable> {
+  $$TemperatureReadingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get takenAt =>
+      $composableBuilder(column: $table.takenAt, builder: (column) => column);
+
+  GeneratedColumn<double> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<String> get site =>
+      $composableBuilder(column: $table.site, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$SickEpisodesTableAnnotationComposer get episodeId {
+    final $$SickEpisodesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.episodeId,
+      referencedTable: $db.sickEpisodes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SickEpisodesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sickEpisodes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TemperatureReadingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TemperatureReadingsTable,
+          TemperatureReading,
+          $$TemperatureReadingsTableFilterComposer,
+          $$TemperatureReadingsTableOrderingComposer,
+          $$TemperatureReadingsTableAnnotationComposer,
+          $$TemperatureReadingsTableCreateCompanionBuilder,
+          $$TemperatureReadingsTableUpdateCompanionBuilder,
+          (TemperatureReading, $$TemperatureReadingsTableReferences),
+          TemperatureReading,
+          PrefetchHooks Function({bool episodeId})
+        > {
+  $$TemperatureReadingsTableTableManager(
+    _$AppDatabase db,
+    $TemperatureReadingsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TemperatureReadingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TemperatureReadingsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$TemperatureReadingsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> episodeId = const Value.absent(),
+                Value<DateTime> takenAt = const Value.absent(),
+                Value<double> value = const Value.absent(),
+                Value<String> unit = const Value.absent(),
+                Value<String?> site = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TemperatureReadingsCompanion(
+                id: id,
+                episodeId: episodeId,
+                takenAt: takenAt,
+                value: value,
+                unit: unit,
+                site: site,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String episodeId,
+                required DateTime takenAt,
+                required double value,
+                required String unit,
+                Value<String?> site = const Value.absent(),
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TemperatureReadingsCompanion.insert(
+                id: id,
+                episodeId: episodeId,
+                takenAt: takenAt,
+                value: value,
+                unit: unit,
+                site: site,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$TemperatureReadingsTable, TemperatureReading>(
+                    table,
+                  ),
+                  $$TemperatureReadingsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({episodeId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (episodeId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.episodeId,
+                        referencedTable: $$TemperatureReadingsTableReferences
+                            ._episodeIdTable(db),
+                        referencedColumn: $$TemperatureReadingsTableReferences
+                            ._episodeIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$TemperatureReadingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TemperatureReadingsTable,
+      TemperatureReading,
+      $$TemperatureReadingsTableFilterComposer,
+      $$TemperatureReadingsTableOrderingComposer,
+      $$TemperatureReadingsTableAnnotationComposer,
+      $$TemperatureReadingsTableCreateCompanionBuilder,
+      $$TemperatureReadingsTableUpdateCompanionBuilder,
+      (TemperatureReading, $$TemperatureReadingsTableReferences),
+      TemperatureReading,
+      PrefetchHooks Function({bool episodeId})
+    >;
+typedef $$GivenMedicinesTableCreateCompanionBuilder =
+    GivenMedicinesCompanion Function({
+      required String id,
+      required String episodeId,
+      Value<String?> medicineId,
+      Value<String?> prescriptionId,
+      required String name,
+      Value<String?> amount,
+      required DateTime givenAt,
+      Value<bool> remindNext,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$GivenMedicinesTableUpdateCompanionBuilder =
+    GivenMedicinesCompanion Function({
+      Value<String> id,
+      Value<String> episodeId,
+      Value<String?> medicineId,
+      Value<String?> prescriptionId,
+      Value<String> name,
+      Value<String?> amount,
+      Value<DateTime> givenAt,
+      Value<bool> remindNext,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+final class $$GivenMedicinesTableReferences
+    extends BaseReferences<_$AppDatabase, $GivenMedicinesTable, GivenMedicine> {
+  $$GivenMedicinesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $SickEpisodesTable _episodeIdTable(_$AppDatabase db) => db.sickEpisodes
+      .createAlias('given_medicines__episode_id__sick_episodes__id');
+
+  $$SickEpisodesTableProcessedTableManager get episodeId {
+    final $_column = $_itemColumn<String>('episode_id')!;
+
+    final manager = $$SickEpisodesTableTableManager(
+      $_db,
+      $_db.sickEpisodes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_episodeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $MedicinesTable _medicineIdTable(_$AppDatabase db) =>
+      db.medicines.createAlias('given_medicines__medicine_id__medicines__id');
+
+  $$MedicinesTableProcessedTableManager? get medicineId {
+    final $_column = $_itemColumn<String>('medicine_id');
+    if ($_column == null) return null;
+    final manager = $$MedicinesTableTableManager(
+      $_db,
+      $_db.medicines,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_medicineIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $PrescriptionsTable _prescriptionIdTable(_$AppDatabase db) => db
+      .prescriptions
+      .createAlias('given_medicines__prescription_id__prescriptions__id');
+
+  $$PrescriptionsTableProcessedTableManager? get prescriptionId {
+    final $_column = $_itemColumn<String>('prescription_id');
+    if ($_column == null) return null;
+    final manager = $$PrescriptionsTableTableManager(
+      $_db,
+      $_db.prescriptions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_prescriptionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$GivenMedicinesTableFilterComposer
+    extends Composer<_$AppDatabase, $GivenMedicinesTable> {
+  $$GivenMedicinesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get givenAt => $composableBuilder(
+    column: $table.givenAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get remindNext => $composableBuilder(
+    column: $table.remindNext,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$SickEpisodesTableFilterComposer get episodeId {
+    final $$SickEpisodesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.episodeId,
+      referencedTable: $db.sickEpisodes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SickEpisodesTableFilterComposer(
+            $db: $db,
+            $table: $db.sickEpisodes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MedicinesTableFilterComposer get medicineId {
+    final $$MedicinesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.medicineId,
+      referencedTable: $db.medicines,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MedicinesTableFilterComposer(
+            $db: $db,
+            $table: $db.medicines,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PrescriptionsTableFilterComposer get prescriptionId {
+    final $$PrescriptionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.prescriptionId,
+      referencedTable: $db.prescriptions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PrescriptionsTableFilterComposer(
+            $db: $db,
+            $table: $db.prescriptions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$GivenMedicinesTableOrderingComposer
+    extends Composer<_$AppDatabase, $GivenMedicinesTable> {
+  $$GivenMedicinesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get givenAt => $composableBuilder(
+    column: $table.givenAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get remindNext => $composableBuilder(
+    column: $table.remindNext,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$SickEpisodesTableOrderingComposer get episodeId {
+    final $$SickEpisodesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.episodeId,
+      referencedTable: $db.sickEpisodes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SickEpisodesTableOrderingComposer(
+            $db: $db,
+            $table: $db.sickEpisodes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MedicinesTableOrderingComposer get medicineId {
+    final $$MedicinesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.medicineId,
+      referencedTable: $db.medicines,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MedicinesTableOrderingComposer(
+            $db: $db,
+            $table: $db.medicines,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PrescriptionsTableOrderingComposer get prescriptionId {
+    final $$PrescriptionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.prescriptionId,
+      referencedTable: $db.prescriptions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PrescriptionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.prescriptions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$GivenMedicinesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GivenMedicinesTable> {
+  $$GivenMedicinesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get givenAt =>
+      $composableBuilder(column: $table.givenAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get remindNext => $composableBuilder(
+    column: $table.remindNext,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$SickEpisodesTableAnnotationComposer get episodeId {
+    final $$SickEpisodesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.episodeId,
+      referencedTable: $db.sickEpisodes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SickEpisodesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sickEpisodes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MedicinesTableAnnotationComposer get medicineId {
+    final $$MedicinesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.medicineId,
+      referencedTable: $db.medicines,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MedicinesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.medicines,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PrescriptionsTableAnnotationComposer get prescriptionId {
+    final $$PrescriptionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.prescriptionId,
+      referencedTable: $db.prescriptions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PrescriptionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.prescriptions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$GivenMedicinesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GivenMedicinesTable,
+          GivenMedicine,
+          $$GivenMedicinesTableFilterComposer,
+          $$GivenMedicinesTableOrderingComposer,
+          $$GivenMedicinesTableAnnotationComposer,
+          $$GivenMedicinesTableCreateCompanionBuilder,
+          $$GivenMedicinesTableUpdateCompanionBuilder,
+          (GivenMedicine, $$GivenMedicinesTableReferences),
+          GivenMedicine,
+          PrefetchHooks Function({
+            bool episodeId,
+            bool medicineId,
+            bool prescriptionId,
+          })
+        > {
+  $$GivenMedicinesTableTableManager(
+    _$AppDatabase db,
+    $GivenMedicinesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GivenMedicinesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GivenMedicinesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GivenMedicinesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> episodeId = const Value.absent(),
+                Value<String?> medicineId = const Value.absent(),
+                Value<String?> prescriptionId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> amount = const Value.absent(),
+                Value<DateTime> givenAt = const Value.absent(),
+                Value<bool> remindNext = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GivenMedicinesCompanion(
+                id: id,
+                episodeId: episodeId,
+                medicineId: medicineId,
+                prescriptionId: prescriptionId,
+                name: name,
+                amount: amount,
+                givenAt: givenAt,
+                remindNext: remindNext,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String episodeId,
+                Value<String?> medicineId = const Value.absent(),
+                Value<String?> prescriptionId = const Value.absent(),
+                required String name,
+                Value<String?> amount = const Value.absent(),
+                required DateTime givenAt,
+                Value<bool> remindNext = const Value.absent(),
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GivenMedicinesCompanion.insert(
+                id: id,
+                episodeId: episodeId,
+                medicineId: medicineId,
+                prescriptionId: prescriptionId,
+                name: name,
+                amount: amount,
+                givenAt: givenAt,
+                remindNext: remindNext,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$GivenMedicinesTable, GivenMedicine>(table),
+                  $$GivenMedicinesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                episodeId = false,
+                medicineId = false,
+                prescriptionId = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (episodeId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.episodeId,
+                            referencedTable: $$GivenMedicinesTableReferences
+                                ._episodeIdTable(db),
+                            referencedColumn: $$GivenMedicinesTableReferences
+                                ._episodeIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (medicineId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.medicineId,
+                            referencedTable: $$GivenMedicinesTableReferences
+                                ._medicineIdTable(db),
+                            referencedColumn: $$GivenMedicinesTableReferences
+                                ._medicineIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (prescriptionId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.prescriptionId,
+                            referencedTable: $$GivenMedicinesTableReferences
+                                ._prescriptionIdTable(db),
+                            referencedColumn: $$GivenMedicinesTableReferences
+                                ._prescriptionIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$GivenMedicinesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GivenMedicinesTable,
+      GivenMedicine,
+      $$GivenMedicinesTableFilterComposer,
+      $$GivenMedicinesTableOrderingComposer,
+      $$GivenMedicinesTableAnnotationComposer,
+      $$GivenMedicinesTableCreateCompanionBuilder,
+      $$GivenMedicinesTableUpdateCompanionBuilder,
+      (GivenMedicine, $$GivenMedicinesTableReferences),
+      GivenMedicine,
+      PrefetchHooks Function({
+        bool episodeId,
+        bool medicineId,
+        bool prescriptionId,
+      })
+    >;
 typedef $$OutboxEntriesTableCreateCompanionBuilder =
     OutboxEntriesCompanion Function({
       Value<int> id,
@@ -10576,6 +14115,12 @@ class $AppDatabaseManager {
       $$DoseSchedulesTableTableManager(_db, _db.doseSchedules);
   $$DoseLogsTableTableManager get doseLogs =>
       $$DoseLogsTableTableManager(_db, _db.doseLogs);
+  $$SickEpisodesTableTableManager get sickEpisodes =>
+      $$SickEpisodesTableTableManager(_db, _db.sickEpisodes);
+  $$TemperatureReadingsTableTableManager get temperatureReadings =>
+      $$TemperatureReadingsTableTableManager(_db, _db.temperatureReadings);
+  $$GivenMedicinesTableTableManager get givenMedicines =>
+      $$GivenMedicinesTableTableManager(_db, _db.givenMedicines);
   $$OutboxEntriesTableTableManager get outboxEntries =>
       $$OutboxEntriesTableTableManager(_db, _db.outboxEntries);
 }
