@@ -45,9 +45,9 @@ supabase/
 | `entitlements` | Usra Plus status and expiry | own | service role (webhook) |
 | `credits_ledger` | append-only AI credit movements | own | service role, through functions only |
 | `purchase_events` | processed RevenueCat event ids (idempotency) | nobody | service role |
-| `families` | creator (null once deleted), current key version, rotation pending | members | create: approved device; delete: `delete_family()` (owner, approved device) |
-| `family_members` | membership and roles (owner, guardian, cared_for, viewer); one owner | members | only through the family log (`append_family_log`) and `accept_family_invite()` |
-| `family_invites` | role, sha256 of the one-time code, expiry | owner | `create_family_invite()`, `revoke_family_invite()` (owner, approved device) |
+| `families` | creator (null once deleted), current key version, rotation pending | members on an approved device | create: approved device; delete: `delete_family()` (owner, approved device) |
+| `family_members` | membership and roles (owner, guardian, cared_for, viewer); one owner | members on an approved device | only through the family log (`append_family_log`) |
+| `family_invites` | role, sha256 of the one-time code, expiry, accepted / used / revoked | owner on an approved device | `create_family_invite()`, `revoke_family_invite()` (owner, approved device) |
 | `family_log` | signed, hash-chained membership log (`hash = sha256(entry)`) | members on an approved device | service role (`append_family_log`, compare-and-set on the head) |
 | `e2ee_records` | `family_id`, random v4 `sync_id`, `revision`, `key_version`, padded `ciphertext` (required), `deleted_at` | members on an approved device | `push_e2ee_records()` only (owner, guardian) |
 | `ai_runs` | model, token counts, status per AI run | own | service role |
@@ -84,14 +84,16 @@ Functions that check signatures (`bind-device`, `approve-device`,
 - **Approved-device sessions.** A JWT counts for sync only when its
   `session_id` is bound to an approved device of the user
   (`private.device_ok()`). A session that only proved an SMS code reads no
-  ciphertext or log and can't create or delete families, create, accept or
-  revoke invites, or push records.
+  ciphertext, log, families or members and can't create or delete families,
+  create, accept or revoke invites, or push records.
 - **Devices.** Keys can't change after insert, for any role (a new key is a
   new device). Every device starts `pending`. `approve_device(device,
   approver)` (service role) approves it from another approved device of the
   same account; `approver = null` is allowed once per account
-  (`accounts.sync_enrolled_at`). `revoke_device` is final and drops the
-  device's sessions and push tokens.
+  (`accounts.sync_enrolled_at`). `revoke_device` is final, drops the
+  device's sessions and push tokens, and (for an approved device) flags a
+  key rotation in every family of its user. The trust columns can't be
+  changed by the API roles directly, the service role included.
 - **Push tokens** are readable and writable only for this session's device:
   the bound device, or before binding the device rows this session
   registered.
@@ -102,7 +104,15 @@ Functions that check signatures (`bind-device`, `approve-device`,
   (`revoke_device`) and `families` (`current_key_version`,
   `rotation_pending`). Entry fields used by the mirror: `v`, `family`, `seq`,
   `prev` (base64url), `type`, `by` (device id), and `user`, `role`, `reason`,
-  `device`, `key_version` by type. `add_member` needs that person's accepted invite.
+  `device`, `key_version`, `invite` by type.
+- **Joining.** `accept_family_invite` only marks the invite accepted. The
+  person becomes a member when the owner's phone appends `add_member` naming
+  that invite, for that person and that role; each invite is used once.
+  Revoked invites are kept (they count towards the 20-a-day limit).
+- **Removing.** `remove_member` with reason `account_deleted` is accepted
+  only once the account is gone (its membership row went with it, and the
+  delete already flagged the rotation); `reset` is refused until
+  `account_resets` exists (B3). Any membership delete flags a rotation.
 - **Records.** `push_e2ee_records(family, log_seq, records)` takes up to 100
   records (2 MiB) as `{ sync_id, key_version, ciphertext (base64), deleted,
   expected_revision }`. The batch is refused unless `log_seq` is the log

@@ -109,7 +109,9 @@ begin
   end if;
   if (new.status, new.approved_at, new.approved_by_device, new.revoked_at)
      is distinct from (old.status, old.approved_at, old.approved_by_device, old.revoked_at) then
-    if coalesce(current_setting('usra.device_trust', true), '') <> 'on' then
+    -- Only inside approve_device / revoke_device, which run as their owner.
+    -- The API roles, the service role included, can't change these directly.
+    if current_user in ('anon', 'authenticated', 'service_role') then
       raise exception 'device_trust_only_through_functions' using errcode = '42501';
     end if;
     if old.status = 'revoked' then
@@ -283,16 +285,15 @@ begin
     end if;
   end if;
 
-  perform set_config('usra.device_trust', 'on', true);
   update public.devices
      set status = 'approved', approved_at = now(), approved_by_device = p_approved_by
    where id = p_device;
-  perform set_config('usra.device_trust', '', true);
 end;
 $$;
 
 -- Service role (and append_family_log): revoked is final. Unbinds its
--- sessions and drops its push tokens.
+-- sessions, drops its push tokens and flags a key rotation in its user's
+-- families. (Hard delete of other devices from an approved device: B10.)
 create or replace function public.revoke_device(p_device uuid)
 returns void
 language plpgsql
@@ -301,15 +302,21 @@ set search_path = ''
 as $$
 declare
   v_status text;
+  v_user uuid;
 begin
-  select status into v_status from public.devices where id = p_device for update;
+  select status, user_id into v_status, v_user from public.devices where id = p_device for update;
   if not found then
     raise exception 'unknown_device' using errcode = 'P0002';
   end if;
   if v_status <> 'revoked' then
-    perform set_config('usra.device_trust', 'on', true);
     update public.devices set status = 'revoked', revoked_at = now() where id = p_device;
-    perform set_config('usra.device_trust', '', true);
+  end if;
+  -- An approved device may hold family keys: every family of its user must
+  -- rotate before anyone writes again.
+  if v_status = 'approved' then
+    update public.families f set rotation_pending = true
+    where exists (select 1 from public.family_members m
+                  where m.family_id = f.id and m.user_id = v_user);
   end if;
   delete from public.device_sessions where device_id = p_device;
   delete from public.push_tokens where device_id = p_device;
@@ -369,7 +376,8 @@ create policy families_insert_self on public.families
 revoke insert, delete on public.families from authenticated;
 grant insert (created_by) on public.families to authenticated;
 
--- A family with no members left (its only member's account was deleted) is
+-- Any membership that goes (removal through the log, or the member's account
+-- deleted) makes a key rotation pending. A family with no members left is
 -- removed with its ciphertext. The owner can't leave or be removed, so a
 -- family with other members always keeps an owner.
 create or replace function private.family_drop_if_empty()
@@ -379,6 +387,7 @@ security definer
 set search_path = ''
 as $$
 begin
+  update public.families set rotation_pending = true where id = old.family_id;
   delete from public.families f
   where f.id = old.family_id
     and not exists (select 1 from public.family_members m where m.family_id = old.family_id);
@@ -427,10 +436,10 @@ begin
   if not private.device_ok() then
     raise exception 'approved_device_required' using errcode = '42501';
   end if;
-  perform 1 from public.families where id = p_family for update;
-  if not found or private.family_role(p_family) is distinct from 'owner' then
+  if private.family_role(p_family) is distinct from 'owner' then
     raise exception 'forbidden' using errcode = '42501';
   end if;
+  perform 1 from public.families where id = p_family for update;
   -- (B8 adds deleting the family's Storage objects.)
   delete from public.families where id = p_family;
 end;
@@ -515,6 +524,7 @@ declare
   v_role        text;
   v_target_role text;
   v_device      uuid;
+  v_invite      uuid;
 begin
   if p_entry is null or octet_length(p_entry) > 16384
      or p_sig is null or octet_length(p_sig) <> 64 then
@@ -545,7 +555,8 @@ begin
                               'head_hash', private.b64url(v_head_hash));
   end if;
 
-  select * into v_signer from public.devices where id = (v_entry ->> 'by')::uuid;
+  -- Locked so a concurrent revoke_device can't land between check and append.
+  select * into v_signer from public.devices where id = (v_entry ->> 'by')::uuid for share;
   if not found or v_signer.status <> 'approved' then
     raise exception 'signer_not_approved' using errcode = '42501';
   end if;
@@ -576,15 +587,23 @@ begin
       raise exception 'bad_role' using errcode = '22023';
     end if;
     if v_type = 'add_member' then
-      -- Nobody joins without accepting an invite to this family.
-      perform 1 from public.family_invites i
-      where i.family_id = p_family and i.accepted_by = v_user and i.accepted_at is not null;
+      -- Nobody joins without accepting an invite to this family: the entry
+      -- names the invite, which that person accepted, for that role, and
+      -- which is neither revoked nor used.
+      v_invite := (v_entry ->> 'invite')::uuid;
+      update public.family_invites i set used_at = now()
+      where i.id = v_invite and i.family_id = p_family and i.accepted_by = v_user
+        and i.accepted_at is not null and i.role = v_role
+        and i.revoked_at is null and i.used_at is null;
       if not found then
         raise exception 'no_accepted_invite' using errcode = '42501';
       end if;
       insert into public.family_members (family_id, user_id, role)
       values (p_family, v_user, v_role)
-      on conflict (family_id, user_id) do update set role = excluded.role;
+      on conflict (family_id, user_id) do nothing;
+      if not found then
+        raise exception 'already_member' using errcode = '23505';
+      end if;
     else
       update public.family_members set role = v_role
       where family_id = p_family and user_id = v_user;
@@ -612,30 +631,38 @@ begin
 
   when 'remove_member' then
     v_user := (v_entry ->> 'user')::uuid;
+    if v_user is null then
+      raise exception 'bad_target' using errcode = '22023';
+    end if;
     select m.role into v_target_role from public.family_members m
     where m.family_id = p_family and m.user_id = v_user;
-    if v_target_role is null then
-      raise exception 'not_a_member' using errcode = 'P0002';
-    end if;
-    if v_target_role = 'owner' then
-      raise exception 'owner_cannot_be_removed' using errcode = '42501';
-    end if;
     case v_entry ->> 'reason'
-    when 'removed' then
-      if v_signer_role <> 'owner' then
+    when 'account_deleted' then
+      -- Any member may record it (a person confirmed it on their phone), but
+      -- only for an account that is really gone. Its membership row went with
+      -- the account (and flagged the rotation), so there may be nothing left.
+      if exists (select 1 from public.accounts a where a.id = v_user) then
+        raise exception 'account_exists' using errcode = '42501';
+      end if;
+    when 'reset' then
+      -- Needs account_resets (B3) to check that a reset really happened.
+      raise exception 'reset_not_supported' using errcode = '0A000';
+    when 'removed', 'left' then
+      if v_target_role is null then
+        raise exception 'not_a_member' using errcode = 'P0002';
+      end if;
+      if v_target_role = 'owner' then
+        raise exception 'owner_cannot_be_removed' using errcode = '42501';
+      end if;
+      if (v_entry ->> 'reason' = 'removed' and v_signer_role <> 'owner')
+         or (v_entry ->> 'reason' = 'left' and v_user <> v_signer.user_id) then
         raise exception 'forbidden' using errcode = '42501';
       end if;
-    when 'left' then
-      if v_user <> v_signer.user_id then
-        raise exception 'forbidden' using errcode = '42501';
-      end if;
-    when 'account_deleted', 'reset' then
-      null;  -- any member, after a person confirmed it on their phone
     else
       raise exception 'bad_reason' using errcode = '22023';
     end case;
+    -- (The membership delete trigger flags the rotation.)
     delete from public.family_members where family_id = p_family and user_id = v_user;
-    update public.families set rotation_pending = true where id = p_family;
 
   when 'add_device', 'revoke_device' then
     v_user := (v_entry ->> 'user')::uuid;
@@ -686,6 +713,12 @@ drop policy family_members_update_owner on public.family_members;
 drop policy family_members_delete on public.family_members;
 revoke insert, update, delete on public.family_members from authenticated;
 
+alter table public.family_invites
+  add column revoked_at timestamptz,
+  add column used_at timestamptz;   -- set by the add_member entry that used it
+comment on column public.family_invites.revoked_at is
+  'Revoked invites are kept, so they still count towards the daily limit.';
+
 drop policy family_invites_select_owner on public.family_invites;
 drop policy family_invites_insert_owner on public.family_invites;
 create policy family_invites_select_owner on public.family_invites
@@ -715,10 +748,10 @@ begin
   if not private.device_ok() then
     raise exception 'approved_device_required' using errcode = '42501';
   end if;
-  perform 1 from public.families where id = p_family for update;
-  if not found or private.family_role(p_family) is distinct from 'owner' then
+  if private.family_role(p_family) is distinct from 'owner' then
     raise exception 'forbidden' using errcode = '42501';
   end if;
+  perform 1 from public.families where id = p_family for update;  -- serialises the limit
   if p_expires_at is not null
      and (p_expires_at <= now() or p_expires_at > now() + interval '7 days') then
     raise exception 'bad_expiry' using errcode = '22023';
@@ -751,16 +784,19 @@ begin
   if not private.device_ok() then
     raise exception 'approved_device_required' using errcode = '42501';
   end if;
-  select family_id into v_family from public.family_invites where id = p_invite for update;
+  select family_id into v_family from public.family_invites where id = p_invite;
   if not found or private.family_role(v_family) is distinct from 'owner' then
     raise exception 'forbidden' using errcode = '42501';
   end if;
-  delete from public.family_invites where id = p_invite;
+  update public.family_invites set revoked_at = now()
+  where id = p_invite and revoked_at is null;
 end;
 $$;
 
--- Accepting now needs an approved device too (B10). B9 replaces the code with
--- a lookup hash and keeps the member pending until the owner's add_member.
+-- Accepting needs an approved device (B10) and only marks the invite
+-- accepted: the person becomes a member when the owner's phone appends a
+-- signed add_member entry naming this invite. (B9 replaces the code with a
+-- lookup hash and adds the invitee's key upload.)
 create or replace function public.accept_family_invite(p_code text)
 returns uuid
 language plpgsql
@@ -780,15 +816,11 @@ begin
 
   select * into v_invite from public.family_invites
   where code_hash = encode(sha256(convert_to(coalesce(p_code, ''), 'UTF8')), 'hex')
-    and accepted_at is null and expires_at > now()
+    and accepted_at is null and revoked_at is null and expires_at > now()
   for update;
   if not found then
     raise exception 'invalid_invite' using errcode = 'P0002';
   end if;
-
-  insert into public.family_members (family_id, user_id, role)
-  values (v_invite.family_id, v_user, v_invite.role)
-  on conflict (family_id, user_id) do nothing;
 
   update public.family_invites
      set accepted_by = v_user, accepted_at = now()
@@ -887,11 +919,11 @@ begin
   if not private.device_ok() then
     raise exception 'approved_device_required' using errcode = '42501';
   end if;
-  -- Shares the family row with other pushes; waits for a log append.
-  select * into v_family from public.families where id = p_family for share;
-  if not found or coalesce(private.family_role(p_family), '') not in ('owner', 'guardian') then
+  if coalesce(private.family_role(p_family), '') not in ('owner', 'guardian') then
     raise exception 'forbidden' using errcode = '42501';
   end if;
+  -- Shares the family row with other pushes; waits for a log append.
+  select * into v_family from public.families where id = p_family for share;
   if jsonb_typeof(p_records) is distinct from 'array'
      or jsonb_array_length(p_records) not between 1 and 100 then
     raise exception 'bad_batch' using errcode = '22023';
@@ -994,7 +1026,19 @@ as $$
 $$;
 
 -- ---------------------------------------------------------------------------
--- 7. Function privileges
+-- 7. Families and members are read only from an approved device too
+-- ---------------------------------------------------------------------------
+drop policy families_select_member on public.families;
+create policy families_select_member on public.families
+  for select to authenticated
+  using ((select private.device_ok()) and private.family_role(id) is not null);
+drop policy family_members_select on public.family_members;
+create policy family_members_select on public.family_members
+  for select to authenticated
+  using ((select private.device_ok()) and private.family_role(family_id) is not null);
+
+-- ---------------------------------------------------------------------------
+-- 8. Function privileges
 -- ---------------------------------------------------------------------------
 revoke execute on all functions in schema private from public, anon, authenticated;
 -- Used by RLS policies and column defaults evaluated as the caller.
@@ -1002,6 +1046,11 @@ grant execute on function private.family_role(uuid) to authenticated;
 grant execute on function private.jwt_session_id() to authenticated;
 grant execute on function private.device_ok() to authenticated;
 grant execute on function private.is_session_device(uuid) to authenticated;
+-- The service role inserts devices too (column default) and may call these.
+grant execute on function private.jwt_session_id() to service_role;
+grant execute on function private.device_ok() to service_role;
+grant execute on function private.is_session_device(uuid) to service_role;
+grant execute on function private.family_role(uuid) to service_role;
 
 -- Service role only: each trusts a signature its Edge Function checked.
 revoke execute on function public.bind_device_session(uuid, uuid, uuid) from public, anon, authenticated;
