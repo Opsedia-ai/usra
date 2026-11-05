@@ -128,14 +128,18 @@ against `device_sessions` itself.
   binds its existing device row again instead of registering a new one.
   `enroll: true` lets the account's very first phone approve itself (once
   ever, `accounts.sync_enrolled_at`; after a completed reset, only the phone
-  that started it). Recovery devices never get a session.
+  that started it, within 72 hours). Recovery devices never get a session.
 - **Revoking.** Approved and recovery devices are never deleted while the
   account exists (a trigger answers `revoke_instead`). Sign-out with sync calls
   `revoke_own_device(device)`. Revoking ends the device's Auth sessions, drops
   its push tokens, wraps and beacons, and flags a rotation in every family
   whose log lists it; each family's list changes only when its log gets the
   `revoke_device` entry, and a rotation is refused (`revoked_device_listed`)
-  until then.
+  until then. A person whose last phone in a family was revoked gets back in
+  with the recovery key: the recovered phone appends `revoke_device` for the
+  old phone and `add_device` for itself, both signed by the recovery device
+  (a current device of theirs in that family), then rotates. Revoked rows are
+  purged by housekeeping after 90 days unless a family log lists them.
 - **Approving** (`approve-device`, ways 1 and 2). The approving phone signs
   `"usra/v1/approve-device" || 0x00 || user_id || device_id || dkx || dsig ||
   nonce` over the keys the server holds for the new phone. With a comparison
@@ -157,7 +161,10 @@ against `device_sessions` itself.
   approved 7+ days before the reset began. After 7 days `sync_housekeeping()`
   revokes every device of the account except the phone that started it
   (recovery device included), forgets the recovery settings, marks the
-  memberships `reset`, flags rotations and lets the account enrol again.
+  memberships `reset`, flags rotations and lets the account enrol again. If
+  that phone signs out (is revoked) or doesn't enrol within 72 hours, the
+  account may start a new reset, again with the full 7-day wait, so it is
+  never locked out and the delay is never shortened.
 - **Family log** (`append-family-log`). The function strict-parses the entry
   (valid UTF-8, no duplicate keys, depth ≤ 8, integers only, ≤ 16 KiB, exactly
   the fields of its type) and checks
@@ -200,6 +207,9 @@ against `device_sessions` itself.
   SHA-256) and one wrap for every current device of every active member (the
   entry's `recipients` is SHA-256 of their sorted 16-byte ids); epoch, history
   and wraps are stored in the same transaction and older wraps are dropped.
+  While a member whose account was deleted is still in the log, a rotation
+  answers `member_removal_pending` (append `remove_member` with
+  `account_deleted` first).
 - **Head beacons** (`publish-head`). The phone signs
   `"usra/v1/head" || 0x00 || beacon` where the beacon is
   `{ v, family, device, seq, h, at }` for itself and a `(seq, hash)` on the

@@ -1379,6 +1379,19 @@ the E2EE design"** (section 18).
     device revoked in a family can't be added back.
   - Recovery tries are counted per phone (5 a day), not per account, so an
     SMS-only session can't use up the real phone's tries.
+  - After a completed reset the starting phone has 72 hours to enrol. If it
+    is revoked or doesn't, the account may start a new reset (full 7-day
+    wait), so a lost or signed-out phone never locks the account out.
+  - A person whose only phone in a family was revoked (sign-out, theft) gets
+    back in through way 3: the recovered phone appends `revoke_device` for
+    the old phone and `add_device` for itself, both signed by the recovery
+    device, which is a current device of that person in the log (section 7,
+    "including their recovery device"), and then rotates. This also keeps an
+    owner's family from freezing after the owner signs out of their only
+    phone. No change to the log rules was needed.
+  - Revoked device rows are purged after 90 days unless a family log lists
+    them; a rotation asks for a deleted member's `remove_member` entry first
+    (`member_removal_pending`) instead of failing on the recipient set.
 - Still to build: B7's tombstone purge, B8, B10–B13.
 
 ### SQL sketches

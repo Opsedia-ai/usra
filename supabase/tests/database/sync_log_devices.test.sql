@@ -6,7 +6,7 @@
 -- to an approved device), a revoked or removed device, and replays.
 -- Run with: supabase test db
 begin;
-select plan(211);
+select plan(238);
 
 -- People: A owns family F; B joins as guardian and later resets their account;
 -- C is an outsider; D never enrolled.
@@ -400,14 +400,17 @@ reset role;
 select is(public.take_device_challenge(pg_temp.u('a'), pg_temp.s('a4'), 'recover', pg_temp.d('a4'),
     pg_temp.v('n-recover')) -> 'signer' ->> 'id', pg_temp.id('rec')::text,
   'recovery is checked against the recovery device''s key');
-select throws_ok($$ select public.recover_device_signed(pg_temp.u('a'), pg_temp.s('a7'), pg_temp.d('a4')) $$,
+select throws_ok($$ select public.recover_device_signed(pg_temp.u('a'), pg_temp.s('a7'), pg_temp.d('a4'),
+    pg_temp.id('rec')) $$,
   '42501', 'forbidden', 'only from the new phone''s own session');
 select throws_ok($$ select public.recover_device_signed(pg_temp.u('a'), pg_temp.s('a4'), pg_temp.d('a4'),
     pg_temp.d('a1')) $$,
   '42501', 'approver_changed', 'and only if the key that signed is still the recovery device''s');
 select throws_ok($$ select public.bind_device_session(pg_temp.u('a'), pg_temp.s('a9'), pg_temp.id('rec')) $$,
   'P0002', 'unknown_device', 'the recovery device never gets a session');
-select is(public.recover_device_signed(pg_temp.u('a'), pg_temp.s('a4'), pg_temp.d('a4')) ->> 'approved_by',
+select throws_ok($$ select public.recover_device_signed(pg_temp.u('a'), pg_temp.s('a4'), pg_temp.d('a4'), null) $$,
+  '42501', 'approver_changed', 'the signer is required');
+select is(public.recover_device_signed(pg_temp.u('a'), pg_temp.s('a4'), pg_temp.d('a4'), pg_temp.id('rec')) ->> 'approved_by',
   pg_temp.id('rec')::text, 'the recovery device approves the new phone');
 select public.bind_device_signed(pg_temp.u('a'), pg_temp.s('a4'), pg_temp.d('a4'), false);
 insert into public.device_challenges (nonce, purpose, user_id, session_id, device_id)
@@ -830,6 +833,8 @@ select throws_ok($$ select pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'remove
     jsonb_build_object('user', pg_temp.u('c'), 'reason', 'account_deleted')) $$,
   '42501', 'bad_target', 'and for an account that still exists, with the same answer');
 delete from auth.users where id = pg_temp.u('c');
+select throws_ok($$ select pg_temp.rotate(pg_temp.u('a'), pg_temp.s('a7'), pg_temp.d('a1'), 3) $$,
+  '55000', 'member_removal_pending', 'a rotation first asks for the deleted member''s removal entry');
 select is(pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'remove_member', pg_temp.d('a1'),
     jsonb_build_object('user', pg_temp.u('c'), 'reason', 'account_deleted')) ->> 'ok', 'true',
   'a member the log added, whose account is gone, is recorded as removed');
@@ -934,6 +939,137 @@ select is((select count(*)::int from public.devices where id = pg_temp.d('a6')),
   'a pending phone nobody approved within a week is removed');
 select is((select count(*)::int from public.device_challenges where nonce = pg_temp.bytes('99', 32)), 0,
   'and old nonces are purged');
+
+-- =====================================================================================
+-- After a reset: no lockout if its phone signs out or never enrols (review B)
+-- =====================================================================================
+insert into auth.users (id, phone) values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', '201000000025');
+insert into public.devices (id, user_id, platform, public_key, signing_public_key, created_session_id, created_at) values
+  (pg_temp.d('e1'), pg_temp.u('e'), 'ios', pg_temp.key(51), pg_temp.key(52), pg_temp.s('e1'), now()),
+  (pg_temp.d('e2'), pg_temp.u('e'), 'ios', pg_temp.key(53), pg_temp.key(54), pg_temp.s('e2'), now());
+select public.bind_device_signed(pg_temp.u('e'), pg_temp.s('e1'), pg_temp.d('e1'), true);
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('e'), pg_temp.s('e2'));
+select public.start_account_reset(pg_temp.d('e2'));
+reset role;
+update public.account_resets set completes_at = now() - interval '1 minute' where user_id = pg_temp.u('e');
+select is(public.complete_account_resets(), 1, '(E''s reset, started by phone e2, completes)');
+-- A phone registered after the reset (the person, or a SIM-swapper).
+insert into public.devices (id, user_id, platform, public_key, signing_public_key, created_session_id) values
+  (pg_temp.d('e3'), pg_temp.u('e'), 'ios', pg_temp.key(55), pg_temp.key(56), pg_temp.s('e3'));
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('e'), pg_temp.s('e2'));
+select lives_ok($$ select public.revoke_own_device(pg_temp.d('e2')) $$, 'the phone that started it signs out before enrolling');
+reset role;
+select throws_ok($$ select public.bind_device_signed(pg_temp.u('e'), pg_temp.s('e3'), pg_temp.d('e3'), true) $$,
+  '42501', 'reset_device_only', 'another phone still cannot enrol first');
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('e'), pg_temp.s('e3'));
+insert into vals (k, id) select 'reset-e3', public.start_account_reset(pg_temp.d('e3'));
+select ok(pg_temp.id('reset-e3') is not null, 'but the account can start a new reset, so it is never locked out');
+reset role;
+select is(public.complete_account_resets(), 0, 'the new reset still waits the full 7 days (no shortcut)');
+update public.account_resets set completes_at = now() - interval '1 minute' where id = pg_temp.id('reset-e3');
+select is(public.complete_account_resets(), 1, '(it completes after 7 days)');
+select is(public.bind_device_signed(pg_temp.u('e'), pg_temp.s('e3'), pg_temp.d('e3'), true) ->> 'status', 'approved',
+  'then its phone enrols');
+
+-- The next reset's phone never enrols.
+insert into public.devices (id, user_id, platform, public_key, signing_public_key, created_session_id, created_at) values
+  (pg_temp.d('e4'), pg_temp.u('e'), 'ios', pg_temp.key(57), pg_temp.key(58), pg_temp.s('e4'), now() - interval '8 days');
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('e'), pg_temp.s('e4'));
+select public.start_account_reset(pg_temp.d('e4'));
+reset role;
+update public.account_resets set completes_at = now() - interval '1 minute'
+where user_id = pg_temp.u('e') and completed_at is null and cancelled_at is null;
+select is(public.complete_account_resets(), 1, '(a reset started by phone e4 completes)');
+insert into public.devices (id, user_id, platform, public_key, signing_public_key, created_session_id) values
+  (pg_temp.d('e5'), pg_temp.u('e'), 'ios', pg_temp.key(59), pg_temp.key(60), pg_temp.s('e5'));
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('e'), pg_temp.s('e5'));
+select throws_ok($$ select public.start_account_reset(pg_temp.d('e5')) $$,
+  '22023', 'not_enrolled', 'while its phone may still enrol (72 hours), no new reset starts');
+reset role;
+update public.account_resets set completed_at = now() - interval '73 hours'
+where user_id = pg_temp.u('e') and started_device = pg_temp.d('e4');
+select throws_ok($$ select public.bind_device_signed(pg_temp.u('e'), pg_temp.s('e4'), pg_temp.d('e4'), true) $$,
+  '42501', 'reset_device_only', 'after 72 hours not even that phone enrols');
+select throws_ok($$ select public.bind_device_signed(pg_temp.u('e'), pg_temp.s('e5'), pg_temp.d('e5'), true) $$,
+  '42501', 'reset_device_only', 'nor any other phone');
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('e'), pg_temp.s('e5'));
+select ok(public.start_account_reset(pg_temp.d('e5')) is not null, 'but a new reset starts');
+reset role;
+select public.sync_housekeeping();
+select is((select count(*)::int from public.devices where id = pg_temp.d('e4')), 0,
+  'and housekeeping purges the unclaimed phone''s row');
+
+-- =====================================================================================
+-- An owner with one phone signs out, then recovers (review A)
+-- =====================================================================================
+select public.bind_device_signed(pg_temp.u('d'), pg_temp.s('d1'), pg_temp.d('d1'), true);
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('d'), pg_temp.s('d1'));
+insert into vals (k, id) select 'rec-d', public.set_account_recovery(pg_temp.bytes('5e', 16),
+  '{"m":19456,"t":2,"p":1}', pg_temp.key(61), pg_temp.key(62));
+reset role;
+select set_config('test.family', 'f0000000-0000-4000-8000-0000000000dd', true);
+select is(pg_temp.next(pg_temp.u('d'), pg_temp.s('d1'), 'genesis', pg_temp.d('d1'), jsonb_build_object(
+    'user', pg_temp.u('d'), 'key_version', 1, 'kc', pg_temp.b64url(pg_temp.bytes('21', 32)),
+    'devices', jsonb_build_array(pg_temp.dev(pg_temp.d('d1')), pg_temp.dev(pg_temp.id('rec-d'))))) ->> 'ok', 'true',
+  'D owns a family with one phone and the recovery device');
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('d'), pg_temp.s('d1'));
+select public.revoke_own_device(pg_temp.d('d1'));
+reset role;
+select ok((select rotation_pending from public.families where id = pg_temp.f()),
+  'signing out of the only phone flags a rotation');
+insert into public.devices (id, user_id, platform, public_key, signing_public_key, created_session_id) values
+  (pg_temp.d('d2'), pg_temp.u('d'), 'ios', pg_temp.key(63), pg_temp.key(64), pg_temp.s('d2'));
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('d'), pg_temp.s('d2'));
+insert into vals (k, b) select 'n-d2', decode(public.issue_device_challenge('recover', pg_temp.d('d2')), 'base64');
+reset role;
+select is(public.take_device_challenge(pg_temp.u('d'), pg_temp.s('d2'), 'recover', pg_temp.d('d2'), pg_temp.v('n-d2'))
+    -> 'signer' ->> 'id', pg_temp.id('rec-d')::text, '(the new phone proves the recovery key)');
+select is(public.recover_device_signed(pg_temp.u('d'), pg_temp.s('d2'), pg_temp.d('d2'), pg_temp.id('rec-d'))
+    ->> 'status', 'approved', 'the recovery device approves the new phone');
+select public.bind_device_signed(pg_temp.u('d'), pg_temp.s('d2'), pg_temp.d('d2'), false);
+select throws_ok($$ select pg_temp.rotate(pg_temp.u('d'), pg_temp.s('d2'), pg_temp.id('rec-d'), 2) $$,
+  '55000', 'revoked_device_listed', 'the family still lists the revoked phone');
+select is(pg_temp.next(pg_temp.u('d'), pg_temp.s('d2'), 'revoke_device', pg_temp.id('rec-d'),
+    jsonb_build_object('user', pg_temp.u('d'), 'device', pg_temp.d('d1'))) ->> 'ok', 'true',
+  'the recovered phone appends revoke_device for the lost phone, signed by the recovery device');
+select is(pg_temp.next(pg_temp.u('d'), pg_temp.s('d2'), 'add_device', pg_temp.id('rec-d'),
+    jsonb_build_object('user', pg_temp.u('d'), 'device', pg_temp.dev(pg_temp.d('d2')))) ->> 'ok', 'true',
+  'and add_device for itself');
+select is(pg_temp.rotate(pg_temp.u('d'), pg_temp.s('d2'), pg_temp.d('d2'), 2) ->> 'ok', 'true',
+  'then it rotates the key: the family is not frozen');
+select set_config('test.family', '', true);
+
+-- =====================================================================================
+-- Revoked rows are purged after 90 days unless a family log lists them (review C)
+-- =====================================================================================
+insert into public.devices (id, user_id, platform, public_key, signing_public_key) values
+  (pg_temp.d('ac'), pg_temp.u('a'), 'ios', pg_temp.key(65), pg_temp.key(66)),
+  (pg_temp.d('ad'), pg_temp.u('a'), 'ios', pg_temp.key(67), pg_temp.key(68));
+update public.devices set status = 'revoked', revoked_at = now() - interval '91 days'
+where id in (pg_temp.d('ac'), pg_temp.d('ad'));
+insert into public.family_devices (family_id, device_id, user_id, added_seq, revoked_seq)
+values (pg_temp.f(), pg_temp.d('ad'), pg_temp.u('a'), 1, 2);
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a7'));
+select throws_ok($$ delete from public.devices where id = pg_temp.d('ac') $$,
+  '42501', 'revoke_instead', 'apps never delete revoked rows, however old');
+reset role;
+select public.sync_housekeeping();
+select is((select count(*)::int from public.devices where id = pg_temp.d('ac')), 0,
+  'housekeeping purges a revoked row after 90 days');
+select is((select count(*)::int from public.devices where id = pg_temp.d('ad')), 1,
+  'but keeps one a family log lists');
+select is((select count(*)::int from public.devices where id = pg_temp.d('ab')), 1,
+  'and recently revoked ones');
 
 select * from finish();
 rollback;

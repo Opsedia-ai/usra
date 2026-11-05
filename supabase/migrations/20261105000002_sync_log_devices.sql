@@ -336,6 +336,8 @@ as $$
 declare
   v_device public.devices%rowtype;
   v_enrolled timestamptz;
+  v_started uuid;
+  v_completed timestamptz;
 begin
   select * into v_device from public.devices where id = p_device for update;
   if not found then
@@ -355,13 +357,16 @@ begin
     if v_enrolled is not null then
       raise exception 'account_already_enrolled' using errcode = '42501';
     end if;
-    -- After a completed reset, the phone that started it is the one that
-    -- enrols first (a SIM-swapper's later phone can't take its place).
-    if exists (select 1 from public.account_resets r
-               where r.user_id = v_device.user_id and r.completed_at is not null
-                 and r.started_device is not null and r.started_device <> p_device
-                 and r.completed_at = (select max(completed_at) from public.account_resets
-                                       where user_id = v_device.user_id)) then
+    -- After a completed reset, only the phone that started it enrols first
+    -- (a SIM-swapper's later phone can't take its place), and only within 72
+    -- hours. If that phone is revoked, lost or too late, the account starts
+    -- a new reset, with the full 7-day wait (start_account_reset).
+    select r.started_device, r.completed_at into v_started, v_completed
+    from public.account_resets r
+    where r.user_id = v_device.user_id and r.completed_at is not null
+    order by r.completed_at desc, r.started_at desc limit 1;
+    if v_completed is not null
+       and (v_started is distinct from p_device or v_completed < now() - interval '72 hours') then
       raise exception 'reset_device_only' using errcode = '42501';
     end if;
     update public.accounts set sync_enrolled_at = now() where id = v_device.user_id;
@@ -382,15 +387,20 @@ $$;
 
 -- Approved, revoked and recovery devices are never deleted (B10): they are
 -- revoked, which flags key rotations and keeps the trail. Pending phones may be
--- deleted, and every device goes when its account is deleted.
+-- deleted, and every device goes when its account is deleted. Housekeeping
+-- purges revoked rows after 90 days unless a family log lists them.
+-- Not security definer, so current_user is the caller: only the database's own
+-- jobs (sync_housekeeping) may purge long-revoked rows.
 create or replace function private.devices_no_delete()
 returns trigger
 language plpgsql
-security definer
 set search_path = ''
 as $$
 begin
-  if old.status <> 'pending' and exists (select 1 from public.accounts a where a.id = old.user_id) then
+  if old.status <> 'pending'
+     and exists (select 1 from public.accounts a where a.id = old.user_id)
+     and not (old.status = 'revoked' and old.revoked_at < now() - interval '90 days'
+              and current_user not in ('anon', 'authenticated', 'service_role')) then
     raise exception 'revoke_instead' using errcode = '42501';
   end if;
   return old;
@@ -881,7 +891,7 @@ $$;
 -- over the same approve-device message): approves p_device with the recovery
 -- device. Only from the session that registered or is bound to p_device.
 create or replace function public.recover_device_signed(
-  p_user uuid, p_session uuid, p_device uuid, p_signer uuid default null
+  p_user uuid, p_session uuid, p_device uuid, p_signer uuid
 )
 returns jsonb
 language plpgsql
@@ -901,7 +911,7 @@ begin
     raise exception 'no_recovery' using errcode = 'P0002';
   end if;
   -- The key the Edge Function checked must still be the recovery device's.
-  if p_signer is not null and p_signer <> v_recovery then
+  if p_signer is distinct from v_recovery then
     raise exception 'approver_changed' using errcode = '42501';
   end if;
   perform public.approve_device(p_device, v_recovery);
@@ -1321,6 +1331,9 @@ as $$
 declare
   v_user uuid := auth.uid();
   v_id uuid;
+  v_enrolled timestamptz;
+  v_started uuid;
+  v_completed timestamptz;
 begin
   if v_user is null then
     raise exception 'not_authenticated' using errcode = '42501';
@@ -1333,9 +1346,21 @@ begin
   if not found then
     raise exception 'device_not_pending' using errcode = '42501';
   end if;
-  perform 1 from public.accounts where id = v_user and sync_enrolled_at is not null for update;
-  if not found then
-    raise exception 'not_enrolled' using errcode = '22023';
+  select sync_enrolled_at into v_enrolled from public.accounts where id = v_user for update;
+  if v_enrolled is null then
+    -- Not enrolled: there is nothing to reset, unless the last reset can no
+    -- longer be claimed (its phone was revoked or purged, or 72 hours passed
+    -- without it enrolling). Then a new reset starts, with the full wait, so
+    -- this never shortens the delay.
+    select r.started_device, r.completed_at into v_started, v_completed
+    from public.account_resets r
+    where r.user_id = v_user and r.completed_at is not null
+    order by r.completed_at desc, r.started_at desc limit 1;
+    if v_completed is null
+       or (v_completed >= now() - interval '72 hours'
+           and exists (select 1 from public.devices d where d.id = v_started and d.status = 'pending')) then
+      raise exception 'not_enrolled' using errcode = '22023';
+    end if;
   end if;
   select id into v_id from public.account_resets
   where user_id = v_user and cancelled_at is null and completed_at is null;
@@ -1410,7 +1435,7 @@ begin
     where exists (select 1 from public.family_members m
                   where m.family_id = f.id and m.user_id = v_reset.user_id);
     update public.accounts set sync_enrolled_at = null where id = v_reset.user_id;
-    update public.account_resets set completed_at = now() where id = v_reset.id;
+    update public.account_resets set completed_at = clock_timestamp() where id = v_reset.id;
     v_count := v_count + 1;
   end loop;
   return v_count;
@@ -1466,6 +1491,31 @@ begin
   end loop;
   return v_results;
 end;
+$$;
+
+-- True if the log still has a member (its last genesis / add_member is later
+-- than its last remove_member) with no membership row: an account deleted
+-- before anyone appended remove_member (account_deleted).
+create or replace function private.log_members_missing(p_family uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from (
+      select e ->> 'user' as member,
+             max(l.seq) filter (where e ->> 'type' in ('genesis', 'add_member')) as added,
+             max(l.seq) filter (where e ->> 'type' = 'remove_member') as removed
+      from public.family_log l
+      cross join lateral (select convert_from(l.entry, 'UTF8')::jsonb as e) x
+      where l.family_id = p_family and e ->> 'type' in ('genesis', 'add_member', 'remove_member')
+      group by e ->> 'user') t
+    where t.added > coalesce(t.removed, 0)
+      and not exists (select 1 from public.family_members m
+                      where m.family_id = p_family and m.user_id::text = t.member));
 $$;
 
 drop function public.append_family_log(uuid, integer, bytea, bytea, bytea);
@@ -1821,6 +1871,12 @@ begin
     end if;
     select array_agg(x order by x) into v_recipients
     from (select (w ->> 'recipient')::uuid x from jsonb_array_elements(p_wraps) w) s;
+    -- A member whose account was deleted is still in the log until someone
+    -- appends remove_member (account_deleted); the server already dropped
+    -- their devices, so ask for that entry instead of a recipients mismatch.
+    if private.log_members_missing(p_family) then
+      raise exception 'member_removal_pending' using errcode = '55000';
+    end if;
     -- A device revoked account-wide but still listed here needs its
     -- revoke_device entry first, so the server's list stays the log's.
     if exists (select 1 from public.family_devices fd join public.devices d on d.id = fd.device_id
@@ -2131,11 +2187,20 @@ begin
   delete from public.pairing_sessions where expires_at < now() - interval '1 day';
   delete from public.pairing_bundles where created_at < now() - interval '1 day';
   delete from public.invite_accept_attempts where created_at < now() - interval '1 day';
-  -- Pending phones nobody approved within a week (left by older sessions).
+  -- Pending phones nobody approved within a week (left by older sessions),
+  -- except the phone of an open reset or of one completed less than 72 hours
+  -- ago (it may still enrol).
   delete from public.devices d
   where d.status = 'pending' and d.created_at < now() - interval '7 days'
     and not exists (select 1 from public.account_resets r
-                    where r.started_device = d.id and r.cancelled_at is null);
+                    where r.started_device = d.id and r.cancelled_at is null
+                      and (r.completed_at is null or r.completed_at >= now() - interval '72 hours'));
+  -- Revoked rows after 90 days, unless a family log lists them (its marker
+  -- keeps them) or they are an account's recovery device.
+  delete from public.devices d
+  where d.status = 'revoked' and d.revoked_at < now() - interval '90 days'
+    and not exists (select 1 from public.family_devices fd where fd.device_id = d.id)
+    and not exists (select 1 from public.account_recovery r where r.recovery_device_id = d.id);
 end;
 $$;
 
