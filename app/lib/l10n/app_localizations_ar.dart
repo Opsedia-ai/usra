@@ -3056,4 +3056,210 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get growthNoPrematurity =>
       'السن محسوب من يوم الولادة من غير تصحيح للأطفال المبتسرين. لو طفلك اتولد بدري، اسأل دكتور الأطفال إزاي تقرا المنحنى ده.';
+
+  @override
+  String get reportAppLine => 'اتعمل بتطبيق أسرة (Usra) لملف العيلة الصحي';
+
+  @override
+  String reportGenerated(String date) {
+    return 'اتعمل يوم $date';
+  }
+
+  @override
+  String reportPage(int page, int total) {
+    return 'صفحة $page من $total';
+  }
+
+  @override
+  String get reportVaccinationTitle => 'سجل التطعيمات';
+
+  @override
+  String get reportVaccinationDisclaimer =>
+      'سجل للمعلومات بس، عملته العيلة بتطبيق أسرة من اللي سجلته بنفسها. مش شهادة تطعيم رسمية: راجعوا كارت التطعيم بتاع الطفل.';
+
+  @override
+  String get reportName => 'الاسم';
+
+  @override
+  String get reportRoute => 'طريقة التطعيم';
+
+  @override
+  String get reportRouteGovernment => 'حكومي (مكتب الصحة)';
+
+  @override
+  String get reportRoutePrivate => 'خاص (السداسي)';
+
+  @override
+  String get reportDosesGiven => 'الجرعات اللي اتاخدت';
+
+  @override
+  String get reportNoDosesGiven => 'مفيش جرعات متسجلة لسه';
+
+  @override
+  String get reportUpcoming => 'الجرعات الجاية';
+
+  @override
+  String get reportNoUpcoming => 'مفيش جرعات فاضلة في الجدول';
+
+  @override
+  String get reportUpcomingOverFive => 'جدول أسرة بيتابع الأطفال لحد ٥ سنين.';
+
+  @override
+  String get reportColVaccine => 'التطعيم';
+
+  @override
+  String get reportColDate => 'التاريخ';
+
+  @override
+  String get reportColNotes => 'ملاحظات';
+
+  @override
+  String get reportColDue => 'الميعاد';
+
+  @override
+  String get reportOverdue => 'متأخرة';
+
+  @override
+  String get reportSummaryTitle => 'ملخص صحي للدكتور';
+
+  @override
+  String get reportSummaryDisclaimer =>
+      'ملخص عملته العيلة بتطبيق أسرة من سجلاتها. للمعلومات بس: راجعوه على الروشتات والتقارير الأصلية.';
+
+  @override
+  String get reportAge => 'السن';
+
+  @override
+  String get reportSectionBasics => 'السن وفصيلة الدم';
+
+  @override
+  String get reportSectionMedicines => 'الأدوية الحالية';
+
+  @override
+  String get reportSectionVisits => 'آخر زيارات للدكتور';
+
+  @override
+  String get reportSectionLabs => 'آخر نتايج تحاليل';
+
+  @override
+  String get reportSectionGrowth => 'النمو';
+
+  @override
+  String get reportSectionVaccines => 'التطعيمات';
+
+  @override
+  String get reportColMedicine => 'الدوا';
+
+  @override
+  String get reportColHowTaken => 'زي ما الدكتور كتب';
+
+  @override
+  String get reportColDoctor => 'الدكتور';
+
+  @override
+  String get reportColDetails => 'السبب / التشخيص';
+
+  @override
+  String get reportColTest => 'التحليل';
+
+  @override
+  String get reportColResult => 'النتيجة';
+
+  @override
+  String get reportColRange => 'المعدل الطبيعي للمعمل';
+
+  @override
+  String get reportColMeasure => 'القياس';
+
+  @override
+  String get reportColValue => 'القيمة';
+
+  @override
+  String get reportColPercentile => 'المئين (منظمة الصحة العالمية)';
+
+  @override
+  String get reportAsNeeded => 'عند اللزوم';
+
+  @override
+  String reportSince(String date) {
+    return 'من $date';
+  }
+
+  @override
+  String reportUntil(String date) {
+    return 'لحد $date';
+  }
+
+  @override
+  String reportVaccineProgress(int done, int total) {
+    return '$done من $total جرعة في الخطة اتاخدت';
+  }
+
+  @override
+  String get reportVaccineNext => 'ميعاد التطعيم الجاي';
+
+  @override
+  String get reportVaccineOverdue => 'متأخر';
+
+  @override
+  String get reportGrowthNote =>
+      'المئين من معايير منظمة الصحة العالمية لنمو الأطفال (أقل من ٥ سنين). للمعلومات، مش تشخيص.';
+
+  @override
+  String get reportNothing => 'مفيش حاجة متسجلة';
+
+  @override
+  String get memberDoctorSummary => 'ملخص للدكتور';
+
+  @override
+  String get reportSummaryIntro =>
+      'ملخص PDF قصير توريه أو تبعته للدكتور. اختار إيه اللي يتكتب فيه.';
+
+  @override
+  String get reportChooseSections => 'إيه اللي يتكتب';
+
+  @override
+  String get reportLanguage => 'لغة الملف';
+
+  @override
+  String get reportSharePdf => 'ابعت PDF';
+
+  @override
+  String get reportIncludeNotes => 'اكتب ملاحظاتي على كل جرعة';
+
+  @override
+  String get reportVaccinationShare => 'ابعت سجل التطعيمات';
+
+  @override
+  String get reportVaccinationIntro =>
+      'ملف PDF بالجرعات اللي اتاخدت والجاية، للمدرسة أو الحضانة أو الدكتور.';
+
+  @override
+  String get reportPickOne => 'اختار حاجة واحدة على الأقل';
+
+  @override
+  String get reportOnPhone =>
+      'بيتعمل على الموبايل ده. الملف بيتمسح من الموبايل بعد ما يتبعت.';
+
+  @override
+  String get reportFailed => 'معرفناش نعمل الملف';
+
+  @override
+  String get reportNeedsBirthDate => 'ضيف تاريخ الميلاد في البروفايل الأول.';
+
+  @override
+  String get reportFlagHigh => 'عالي';
+
+  @override
+  String get reportFlagLow => 'واطي';
+
+  @override
+  String get reportTooLate => 'فات ميعاده: اسأل الدكتور';
+
+  @override
+  String get reportTooLateLabel => 'فات ميعاده (اسأل الدكتور)';
+
+  @override
+  String get reportSimpleIntro =>
+      'ملف PDF فيه البيانات الصحية والأدوية والزيارات والتحاليل، توريه أو تبعته للدكتور.';
 }

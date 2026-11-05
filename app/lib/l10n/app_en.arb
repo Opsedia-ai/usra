@@ -1648,5 +1648,109 @@
     }
   },
   "prescriptionTimesHint": "Check the times match what the doctor wrote, e.g. every 8 hours.",
-  "growthNoPrematurity": "Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart."
+  "growthNoPrematurity": "Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart.",
+  "reportAppLine": "Made with Usra (أسرة), a family health app",
+  "reportGenerated": "Generated on {date}",
+  "@reportGenerated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "reportPage": "Page {page} of {total}",
+  "@reportPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "reportVaccinationTitle": "Vaccination record",
+  "reportVaccinationDisclaimer": "An informational record made by the family in the Usra app from their own entries. Not an official vaccination certificate: check with the child's vaccination card.",
+  "reportName": "Name",
+  "reportRoute": "Vaccination route",
+  "reportRouteGovernment": "Government (health office)",
+  "reportRoutePrivate": "Private (hexavalent)",
+  "reportDosesGiven": "Doses given",
+  "reportNoDosesGiven": "No doses recorded yet",
+  "reportUpcoming": "Upcoming doses",
+  "reportNoUpcoming": "No doses left on the schedule",
+  "reportUpcomingOverFive": "The schedule in Usra follows children until age 5.",
+  "reportColVaccine": "Vaccine",
+  "reportColDate": "Date",
+  "reportColNotes": "Notes",
+  "reportColDue": "Due",
+  "reportOverdue": "Overdue",
+  "reportSummaryTitle": "Health summary for the doctor",
+  "reportSummaryDisclaimer": "A summary made by the family in the Usra app from their own records. Informational only: check against the original prescriptions and reports.",
+  "reportAge": "Age",
+  "reportSectionBasics": "Age and blood type",
+  "reportSectionMedicines": "Current medicines",
+  "reportSectionVisits": "Recent doctor visits",
+  "reportSectionLabs": "Recent lab results",
+  "reportSectionGrowth": "Growth",
+  "reportSectionVaccines": "Vaccines",
+  "reportColMedicine": "Medicine",
+  "reportColHowTaken": "As written by the doctor",
+  "reportColDoctor": "Doctor",
+  "reportColDetails": "Reason / diagnosis",
+  "reportColTest": "Test",
+  "reportColResult": "Result",
+  "reportColRange": "Lab's range",
+  "reportColMeasure": "Measurement",
+  "reportColValue": "Value",
+  "reportColPercentile": "WHO percentile",
+  "reportAsNeeded": "When needed",
+  "reportSince": "Since {date}",
+  "@reportSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "reportUntil": "until {date}",
+  "@reportUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "reportVaccineProgress": "{done} of {total} doses in the plan given",
+  "@reportVaccineProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "reportVaccineNext": "Next vaccine visit",
+  "reportVaccineOverdue": "Overdue",
+  "reportGrowthNote": "Percentiles from the WHO Child Growth Standards (under 5). Informational, not a diagnosis.",
+  "reportNothing": "Nothing recorded",
+  "memberDoctorSummary": "Summary for the doctor",
+  "reportSummaryIntro": "A short PDF summary to show or send to a doctor. Choose what goes in.",
+  "reportChooseSections": "What to include",
+  "reportLanguage": "Language of the PDF",
+  "reportSharePdf": "Share PDF",
+  "reportIncludeNotes": "Include my notes on each dose",
+  "reportVaccinationShare": "Share vaccination record",
+  "reportVaccinationIntro": "A PDF of the doses given and the ones coming up, for a school, nursery or doctor.",
+  "reportPickOne": "Choose at least one section",
+  "reportOnPhone": "Made on this phone. The file is deleted from the phone once it's shared.",
+  "reportFailed": "Couldn't make the PDF",
+  "reportNeedsBirthDate": "Add a date of birth to the profile first.",
+  "reportFlagHigh": "High",
+  "reportFlagLow": "Low",
+  "reportTooLate": "Too late for this vaccine: ask the doctor",
+  "reportTooLateLabel": "Too late (ask the doctor)",
+  "reportSimpleIntro": "A PDF with this person's health details, medicines, visits and tests, to show or send to a doctor."
 }
