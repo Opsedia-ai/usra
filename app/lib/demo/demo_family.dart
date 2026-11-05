@@ -54,7 +54,8 @@ Future<DemoFamily> seedDemoFamily(
   );
 
   // Grandmother: Simple Mode, two daily medicines, a lab.
-  final fatma = await db.addProfile(
+  final fatma = await _addInOrder(
+    db,
     'تيتة فاطمة',
     birthDate: DateTime(1952, 3, 14),
     sex: 'female',
@@ -127,7 +128,8 @@ Future<DemoFamily> seedDemoFamily(
   );
 
   // Mother: about 22 weeks pregnant, a check-up, a blood count.
-  final mona = await db.addProfile(
+  final mona = await _addInOrder(
+    db,
     'منى',
     birthDate: DateTime(1993, 7, 2),
     sex: 'female',
@@ -193,7 +195,8 @@ Future<DemoFamily> seedDemoFamily(
   );
 
   // Father: an insurance card and a visit.
-  final ahmed = await db.addProfile(
+  final ahmed = await _addInOrder(
+    db,
     'أحمد',
     birthDate: DateTime(1989, 11, 20),
     sex: 'male',
@@ -209,7 +212,8 @@ Future<DemoFamily> seedDemoFamily(
 
   // Toddler: 2 years 3 months, a fever today, vaccines up to 12 months.
   final youssefBirth = monthsAgo(27);
-  final youssef = await db.addProfile(
+  final youssef = await _addInOrder(
+    db,
     'يوسف',
     birthDate: youssefBirth,
     sex: 'male',
@@ -308,7 +312,8 @@ Future<DemoFamily> seedDemoFamily(
 
   // Infant: three months, birth and two-month vaccines, a baby log.
   final laylaBirth = monthsAgo(3);
-  final layla = await db.addProfile(
+  final layla = await _addInOrder(
+    db,
     'ليلى',
     birthDate: laylaBirth,
     sex: 'female',
@@ -395,4 +400,30 @@ Future<void> seedDemoIfEmpty(AppDatabase db, KeyValueStore prefs) async {
   await seedDemoFamily(db, now: DateTime.now());
   await prefs.setBool(PrefKeys.tutorialSeen, true);
   await prefs.setBool(PrefKeys.appLockOffered, true);
+}
+
+/// People are listed by id, a UUID v7 that keeps only the millisecond it
+/// was made in; two people added in the same one come out in either order.
+/// A real family is added by hand, a demo one in a burst: wait a moment
+/// so screenshots always list them the same way.
+Future<String> _addInOrder(
+  AppDatabase db,
+  String name, {
+  DateTime? birthDate,
+  String? sex,
+  String? bloodType,
+  String? allergies,
+  String? conditions,
+  bool? simpleMode,
+}) async {
+  await Future<void>.delayed(const Duration(milliseconds: 2));
+  return db.addProfile(
+    name,
+    birthDate: birthDate,
+    sex: sex,
+    bloodType: bloodType,
+    allergies: allergies,
+    conditions: conditions,
+    simpleMode: simpleMode,
+  );
 }
