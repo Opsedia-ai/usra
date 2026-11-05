@@ -116,7 +116,14 @@ void main() {
     expect(picked.existsSync(), isFalse);
     expect(find.text('998877'), findsOneWidget);
 
+    // First a warning that it leaves the app's protection (S7).
     await tapKey(tester, 'insurance-share');
+    expect(find.byKey(const ValueKey('share-warning')), findsOneWidget);
+    await tapKey(tester, 'share-warning-cancel');
+    expect(shared, isEmpty);
+    expect(shareCache.dir.existsSync(), isFalse);
+    await tapKey(tester, 'insurance-share');
+    await tapKey(tester, 'share-warning-go');
     final sent = shared.single;
     expect(sent.text, contains('كارت التأمين بتاع فاطمة'));
     expect(sent.text, contains('رقم العضوية: 998877'));

@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/backup/recovery_key.dart';
 import '../../core/design/tokens.dart';
 import '../../core/screen_privacy.dart';
+import '../../core/security/sensitive_clipboard.dart';
 import '../../l10n/app_localizations.dart';
 import 'backup_providers.dart';
 
@@ -104,6 +105,8 @@ class _RecoveryKeyScreenState extends ConsumerState<RecoveryKeyScreen> {
       ),
       const SizedBox(height: 16),
       RecoveryKeyGroups(groups: key.groups),
+      const SizedBox(height: 8),
+      _CopyKey(recoveryKey: key),
       const SizedBox(height: 16),
       _Warning(text: l.recoveryKeyLoseWarning),
     ],
@@ -118,6 +121,8 @@ class _RecoveryKeyScreenState extends ConsumerState<RecoveryKeyScreen> {
           Text(l.recoveryKeyIntro, style: text.bodyLarge),
           const SizedBox(height: 16),
           RecoveryKeyGroups(groups: _fresh.groups),
+          const SizedBox(height: 8),
+          _CopyKey(recoveryKey: _fresh),
           const SizedBox(height: 16),
           _Warning(text: l.recoveryKeyLoseWarning),
           const SizedBox(height: 24),
@@ -187,6 +192,39 @@ TextStyle? _digitStyle(TextTheme text) => text.headlineSmall?.copyWith(
   letterSpacing: 2,
 );
 
+/// Copies the key for a password manager. Only through here (the digits
+/// aren't selectable): marked sensitive and cleared after a minute (S7).
+class _CopyKey extends ConsumerWidget {
+  const _CopyKey({required this.recoveryKey});
+
+  final RecoveryKey recoveryKey;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    return Align(
+      child: TextButton.icon(
+        key: const ValueKey('recovery-key-copy'),
+        onPressed: () async {
+          final messenger = ScaffoldMessenger.of(context);
+          final copied = await ref
+              .read(sensitiveClipboardProvider)
+              .copy(recoveryKey.groups.join(' '));
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                copied ? l.recoveryKeyCopied : l.recoveryKeyCopyFailed,
+              ),
+            ),
+          );
+        },
+        icon: const Icon(Icons.copy_outlined),
+        label: Text(l.recoveryKeyCopy),
+      ),
+    );
+  }
+}
+
 /// The key's six groups, numbered, always left to right like on paper.
 class RecoveryKeyGroups extends StatelessWidget {
   const RecoveryKeyGroups({super.key, required this.groups});
@@ -211,7 +249,9 @@ class RecoveryKeyGroups extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('${i + 1}', style: text.labelMedium),
-                    SelectableText(
+                    // Not selectable: the system's copy would skip the
+                    // sensitive marking and the clearing.
+                    Text(
                       groups[i],
                       key: ValueKey('recovery-group-${i + 1}'),
                       style: _digitStyle(text),

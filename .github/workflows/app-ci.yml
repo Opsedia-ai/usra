@@ -65,6 +65,10 @@ jobs:
           git diff --exit-code -- lib test
       - run: flutter analyze
       - run: flutter test
+      # Runners are on UTC; date code must also hold where clocks change
+      # (Egypt has summer time). Tests that need a clock change skip on UTC.
+      - name: Date tests in Cairo time
+        run: TZ=Africa/Cairo flutter test test/core/prescriptions_test.dart test/core/dose_schedule_test.dart
 
   # PRs only: main pushes build the release bundle below, which compiles
   # the same code. Label a PR `android-build` to force it.

@@ -1,4 +1,5 @@
 import Flutter
+import MachO
 import UIKit
 import UserNotifications
 import flutter_local_notifications
@@ -29,6 +30,75 @@ import flutter_local_notifications
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "UsraPrivacy") {
       registerPrivacyChannels(messenger: registrar.messenger())
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "UsraSecurity") {
+      registerSecurityChannels(messenger: registrar.messenger())
+    }
+  }
+
+  /// The recovery key on the pasteboard, and the jailbreak warning (see
+  /// lib/core/security/).
+  private func registerSecurityChannels(messenger: FlutterBinaryMessenger) {
+    // Local only (never handed to the family's Mac or iPad through
+    // Universal Clipboard), and iOS itself removes it after a minute if
+    // it's still there.
+    FlutterMethodChannel(name: "usra/clipboard", binaryMessenger: messenger)
+      .setMethodCallHandler { call, result in
+        guard call.method == "copySensitive", let text = call.arguments as? String else {
+          result(FlutterMethodNotImplemented)
+          return
+        }
+        UIPasteboard.general.setItems(
+          [["public.utf8-plain-text": text]],
+          options: [
+            .localOnly: true,
+            .expirationDate: Date().addingTimeInterval(60),
+          ])
+        result(nil)
+      }
+    FlutterMethodChannel(name: "usra/integrity", binaryMessenger: messenger)
+      .setMethodCallHandler { call, result in
+        guard call.method == "signs" else {
+          result(FlutterMethodNotImplemented)
+          return
+        }
+        result(AppDelegate.jailbreakSigns())
+      }
+  }
+
+  /// Signs of a jailbroken phone, checked here only and never sent
+  /// anywhere. Heuristics, not proof: Usra only warns.
+  static func jailbreakSigns() -> [String] {
+    #if targetEnvironment(simulator)
+      return []
+    #else
+      var signs: [String] = []
+      let paths = [
+        "/Applications/Cydia.app", "/Applications/Sileo.app", "/Applications/Zebra.app",
+        "/Library/MobileSubstrate/MobileSubstrate.dylib", "/usr/sbin/sshd", "/usr/bin/ssh",
+        "/bin/bash", "/etc/apt", "/private/var/lib/apt/", "/var/jb", "/private/var/jb",
+        "/var/binpack", "/usr/lib/libjailbreak.dylib",
+      ]
+      if paths.contains(where: { FileManager.default.fileExists(atPath: $0) }) {
+        signs.append("files")
+      }
+      // Apps can't write outside their own folder unless the sandbox is broken.
+      let probe = "/private/usra-check-\(UUID().uuidString)"
+      if (try? "x".write(toFile: probe, atomically: false, encoding: .utf8)) != nil {
+        try? FileManager.default.removeItem(atPath: probe)
+        signs.append("sandbox")
+      }
+      // Tweak loaders injected into the app.
+      let injected = ["MobileSubstrate", "substrate", "TweakInject", "libhooker", "ellekit", "SubstrateLoader"]
+      for i in 0..<_dyld_image_count() {
+        guard let name = _dyld_get_image_name(i) else { continue }
+        let image = String(cString: name)
+        if injected.contains(where: { image.localizedCaseInsensitiveContains($0) }) {
+          signs.append("injected")
+          break
+        }
+      }
+      return signs
+    #endif
   }
 
   /// The app lock measures time away with this: CLOCK_MONOTONIC on iOS keeps
@@ -91,6 +161,10 @@ import flutter_local_notifications
   private func registerFilesChannel(messenger: FlutterBinaryMessenger) {
     let channel = FlutterMethodChannel(name: "usra/files", binaryMessenger: messenger)
     channel.setMethodCallHandler { call, result in
+      if call.method == "protect" {
+        AppDelegate.protect(call.arguments, result: result)
+        return
+      }
       guard call.method == "excludeFromBackup", let path = call.arguments as? String else {
         result(FlutterMethodNotImplemented)
         return
@@ -103,6 +177,49 @@ import flutter_local_notifications
         result(nil)
       } catch {
         result(FlutterError(code: "exclude_failed", message: error.localizedDescription, details: nil))
+      }
+    }
+  }
+
+  /// iOS Data Protection for a folder (lib/core/security/file_protection.dart):
+  /// `complete` for photos, `untilFirstUnlock` for the database folder.
+  /// New files in the folder inherit it; with `contents`, files already in
+  /// it are set too. Off the main thread: a folder can hold many photos.
+  private static func protect(_ arguments: Any?, result: @escaping FlutterResult) {
+    guard let args = arguments as? [String: Any], let path = args["path"] as? String,
+      let level = args["level"] as? String
+    else {
+      result(FlutterError(code: "bad_args", message: nil, details: nil))
+      return
+    }
+    let type: FileProtectionType =
+      level == "complete" ? .complete : .completeUntilFirstUserAuthentication
+    let contents = args["contents"] as? Bool ?? true
+    let skipFolders = args["skipFolders"] as? Bool ?? false
+    DispatchQueue.global(qos: .utility).async {
+      let manager = FileManager.default
+      var failed = false
+      do {
+        try manager.setAttributes([.protectionKey: type], ofItemAtPath: path)
+      } catch {
+        failed = true
+      }
+      if contents, let items = manager.enumerator(atPath: path) {
+        for case let item as String in items {
+          if skipFolders, items.fileAttributes?[.type] as? FileAttributeType == .typeDirectory {
+            items.skipDescendants()
+            continue
+          }
+          let full = (path as NSString).appendingPathComponent(item)
+          do {
+            try manager.setAttributes([.protectionKey: type], ofItemAtPath: full)
+          } catch {
+            failed = true
+          }
+        }
+      }
+      DispatchQueue.main.async {
+        result(failed ? FlutterError(code: "protect_failed", message: nil, details: nil) : nil)
       }
     }
   }

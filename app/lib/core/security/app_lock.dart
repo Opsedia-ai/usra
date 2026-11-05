@@ -248,6 +248,11 @@ bool isTrivialPin(String pin) {
 /// Wrong PINs allowed before the app makes the person wait.
 const freeAttempts = 5;
 
+/// With "Erase after too many wrong PINs" on, this many wrong PINs in a
+/// row delete all the app's data (S10). With the waits after
+/// [freeAttempts], getting there takes at least a quarter of an hour.
+const wipeAfterFailures = 10;
+
 /// The wait after [failures] wrong PINs in a row: none for the first
 /// [freeAttempts], then 30 s, doubling each time, at most an hour.
 Duration lockoutAfter(int failures) {
@@ -358,6 +363,17 @@ class AppLock extends ChangeNotifier {
   /// The saved lock can't be read right now.
   bool get unreadable => _unreadable;
   bool get biometricsEnabled => _config?.biometrics ?? false;
+
+  /// "Erase after too many wrong PINs": off unless turned on.
+  bool get wipeOnFailures => _config?.wipeOnFailures ?? false;
+
+  /// Wrong PINs left before everything is erased, when that's on.
+  int? get triesBeforeWipe =>
+      wipeOnFailures ? max(0, wipeAfterFailures - failures) : null;
+
+  /// Deletes all data when [wipeAfterFailures] wrong PINs are reached with
+  /// [wipeOnFailures] on. Set in `main.dart`.
+  Future<void> Function()? onTooManyFailures;
   LockTimeout get timeout => _config?.timeout ?? LockTimeout.oneMinute;
 
   /// People whose emergency card first responders may open from the lock
@@ -424,6 +440,7 @@ class AppLock extends ChangeNotifier {
       biometrics: biometrics,
       timeout: _config?.timeout ?? LockTimeout.oneMinute,
       emergency: _config?.emergency ?? const [],
+      wipeOnFailures: _config?.wipeOnFailures ?? false,
     );
     _locked = false;
     await _save();
@@ -449,6 +466,26 @@ class AppLock extends ChangeNotifier {
     _unreadable = false;
     _locked = false;
     _away = null;
+    notifyListeners();
+  }
+
+  Future<void> setWipeOnFailures(bool on) =>
+      _update((c) => c.copyWith(wipeOnFailures: on));
+
+  /// After "Delete all my data": the lock is gone with everything else
+  /// (its Keystore item too); nothing held from before runs.
+  Future<void> forgetAfterWipe() async {
+    try {
+      await _store.delete();
+    } catch (_) {
+      // Already deleted with the other keys, or retried by the wipe.
+    }
+    _config = null;
+    _unreadable = false;
+    _locked = false;
+    _away = null;
+    _pending = null;
+    _waitStartedTicks = null;
     notifyListeners();
   }
 
@@ -494,6 +531,9 @@ class AppLock extends ChangeNotifier {
     await _trySave();
     if (!await _hasher.verify(pin, c.pin)) {
       notifyListeners();
+      if (c.wipeOnFailures && failures >= wipeAfterFailures) {
+        await onTooManyFailures?.call();
+      }
       return PinCheck.wrong;
     }
     await _passed();
@@ -631,6 +671,7 @@ class _LockConfig {
     this.failures = 0,
     this.blockedAt,
     this.blockedUntil,
+    this.wipeOnFailures = false,
   });
 
   factory _LockConfig.fromJson(String raw) {
@@ -653,6 +694,7 @@ class _LockConfig {
       failures: j['failures'] as int? ?? 0,
       blockedAt: time('blockedAt'),
       blockedUntil: time('blockedUntil'),
+      wipeOnFailures: j['wipeOnFailures'] == true,
     );
   }
 
@@ -665,6 +707,7 @@ class _LockConfig {
   final int failures;
   final DateTime? blockedAt;
   final DateTime? blockedUntil;
+  final bool wipeOnFailures;
 
   static const _keep = Object();
 
@@ -676,6 +719,7 @@ class _LockConfig {
     int? failures,
     Object? blockedAt = _keep,
     Object? blockedUntil = _keep,
+    bool? wipeOnFailures,
   }) => _LockConfig(
     pin: pin ?? this.pin,
     biometrics: biometrics ?? this.biometrics,
@@ -688,6 +732,7 @@ class _LockConfig {
     blockedUntil: identical(blockedUntil, _keep)
         ? this.blockedUntil
         : blockedUntil as DateTime?,
+    wipeOnFailures: wipeOnFailures ?? this.wipeOnFailures,
   );
 
   String toJson() => jsonEncode({
@@ -698,6 +743,7 @@ class _LockConfig {
     'failures': failures,
     'blockedAt': blockedAt?.millisecondsSinceEpoch,
     'blockedUntil': blockedUntil?.millisecondsSinceEpoch,
+    'wipeOnFailures': wipeOnFailures,
   });
 }
 

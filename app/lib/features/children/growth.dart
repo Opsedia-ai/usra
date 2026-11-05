@@ -7,7 +7,7 @@ import 'who_growth_data.dart';
 const whoMaxMonths = 60;
 
 /// What a growth chart measures.
-enum GrowthIndicator { weight, height }
+enum GrowthIndicator { weight, height, head }
 
 /// The growth record's data keys.
 abstract final class GrowthFields {
@@ -18,6 +18,7 @@ abstract final class GrowthFields {
   static String of(GrowthIndicator i) => switch (i) {
     GrowthIndicator.weight => weightKg,
     GrowthIndicator.height => heightCm,
+    GrowthIndicator.head => headCm,
   };
 }
 
@@ -62,6 +63,8 @@ Lms? whoLms(
   final int offset;
   if (indicator == GrowthIndicator.weight) {
     (table, offset) = (whoWeightForAge(male: male), 0);
+  } else if (indicator == GrowthIndicator.head) {
+    (table, offset) = (whoHeadForAge(male: male), 0);
   } else if (months < 24) {
     (table, offset) = (whoLengthForAge(male: male), 0);
   } else {

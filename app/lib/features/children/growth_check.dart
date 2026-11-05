@@ -66,9 +66,11 @@ class _GrowthCheckCardState extends ConsumerState<GrowthCheckCard> {
                   decimal: true,
                 ),
                 decoration: InputDecoration(
-                  labelText: i == GrowthIndicator.weight
-                      ? l.fieldWeightKg
-                      : l.fieldHeightCm,
+                  labelText: switch (i) {
+                    GrowthIndicator.weight => l.fieldWeightKg,
+                    GrowthIndicator.height => l.fieldHeightCm,
+                    GrowthIndicator.head => l.fieldHeadCm,
+                  },
                 ),
                 onChanged: (_) => setState(() {}),
               ),

@@ -54,6 +54,13 @@ class SharedPreferencesStore implements KeyValueStore {
 
   @override
   Future<void> setInt(String key, int value) => _prefs.setInt(key, value);
+
+  /// Every saved setting, for "Delete all my data": this store's keys and
+  /// anything else in shared preferences (account flags, plugins').
+  Future<void> clearAll() async {
+    await _prefs.clear();
+    await SharedPreferencesAsync().clear();
+  }
 }
 
 abstract final class PrefKeys {
@@ -76,6 +83,12 @@ abstract final class PrefKeys {
   /// minutes after midnight (default 10:00).
   static const vaccineReminders = 'vaccine_reminders';
   static const vaccineReminderMinutes = 'vaccine_reminder_minutes';
+
+  /// The rooted / jailbroken phone warning was shown (once per install).
+  static const rootWarningShown = 'root_warning_shown';
+
+  /// "Don't ask again" on the warning before sharing outside the app.
+  static const shareWarningOff = 'share_warning_off';
   static const all = {
     simpleMode,
     tutorialSeen,
@@ -87,6 +100,8 @@ abstract final class PrefKeys {
     blockScreenshots,
     vaccineReminders,
     vaccineReminderMinutes,
+    rootWarningShown,
+    shareWarningOff,
   };
 }
 

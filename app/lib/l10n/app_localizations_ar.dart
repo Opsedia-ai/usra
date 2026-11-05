@@ -117,6 +117,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'التذكير بيتظبط على الموبايل ده. أسامي الأشخاص وأسامي الأدوية ممكن تظهر على شاشة القفل (الاسم زي ما كتبته) وفي الويدجت (الاسم الأول).';
 
   @override
+  String get aboutPrivacyDelete =>
+      'تقدر تمسح كل حاجة أسرة شايلاها على الموبايل ده في أي وقت: المزيد › امسح كل بياناتي.';
+
+  @override
   String get aboutPrivacyGoogle =>
       'قارئ الكلام من جوجل، وممكن يبعت لجوجل بيانات تقنية برقم تثبيت عشوائي مش مربوط بيك. عمره ما بيبعت صورك ولا الكلام ولا سجلاتك.';
 
@@ -1557,6 +1561,129 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recoveryKeyShowAgain => 'اعرض المفتاح تاني';
 
   @override
+  String get recoveryKeyCopy => 'انسخ المفتاح';
+
+  @override
+  String get recoveryKeyCopied =>
+      'اتنسخ. هيتمسح من الحافظة بعد دقيقة: الصقه في مدير كلمات السر دلوقتي.';
+
+  @override
+  String get shareWarningTitle => 'تبعته برّه أسرة؟';
+
+  @override
+  String get shareWarningBody =>
+      'أول ما يتبعت، قفل أسرة وتشفيرها مش هيحموه: التطبيق التاني، وأي حد يشوف المحادثة أو الفولدر ده، يقدر يفتحه. اتأكد إنك اخترت الشخص الصح.';
+
+  @override
+  String get shareWarningDontAsk => 'متسألنيش تاني';
+
+  @override
+  String get shareWarningCancel => 'إلغاء';
+
+  @override
+  String get shareWarningGo => 'ابعت';
+
+  @override
+  String get rootWarningTitle => 'حماية الموبايل ده مقفولة';
+
+  @override
+  String get rootWarningBody =>
+      'الموبايل ده شكله معمول له روت أو جيلبريك. تطبيقات تانية عليه ممكن تقرا ملفات أسرة وتشوف الشاشة، فسجلات عيلتك أقل أمان هنا.\n\nأسرة هتشتغل عادي. لو تقدر، استخدم موبايل مش متعدّل، وخلّي قفل التطبيق شغال.';
+
+  @override
+  String get rootWarningOk => 'فهمت';
+
+  @override
+  String get settingsDeleteAll => 'امسح كل بياناتي';
+
+  @override
+  String get settingsDeleteAllHint =>
+      'امسح كل حاجة أسرة شايلاها على الموبايل ده';
+
+  @override
+  String get wipeTitle => 'امسح كل بياناتي';
+
+  @override
+  String get wipeIntro =>
+      'ده بيمسح كل حاجة أسرة شايلاها على الموبايل ده ويبدأها من جديد:';
+
+  @override
+  String get wipeList =>
+      '• كل الأشخاص والسجلات والأدوية والدكاترة وكروت التأمين\n• كل الصور\n• المفاتيح اللي قافلة عليهم، ومفتاح الاسترجاع المحفوظ على الموبايل ده، وقفل التطبيق\n• التذكيرات وويدجت الشاشة الرئيسية والإعدادات\n• هتخرج من حسابك (الحساب نفسه هيفضل؛ امسحه من الحساب الأول لو عايز)';
+
+  @override
+  String get wipeKeeps =>
+      'ملفات النسخ الاحتياطية اللي حفظتها في مكان تاني (درايف، واتساب، الملفات) مش هتتلمس. لسه بتتفتح بمفتاح الاسترجاع، فتقدر ترجّع السجلات.';
+
+  @override
+  String get wipeNoUndo =>
+      'ده مينفعش يترجع. من غير نسخة احتياطية ومفتاحها، السجلات هتروح خالص.';
+
+  @override
+  String get wipeBackupFirst => 'اعمل نسخة احتياطية الأول';
+
+  @override
+  String get wipeConfirmWord => 'امسح';
+
+  @override
+  String wipeTypeLabel(String word) {
+    return 'اكتب $word للتأكيد';
+  }
+
+  @override
+  String get wipeButton => 'امسح كل حاجة';
+
+  @override
+  String get wipeWorking => 'بيتمسح…';
+
+  @override
+  String get wipeReopenFailed =>
+      'أسرة مقدرتش تفتح تاني بعد المسح. اقفلها وافتحها تاني.';
+
+  @override
+  String get recoveryKeyCopyFailed =>
+      'مقدرناش ننسخ المفتاح. اكتبه من على الشاشة بدل كده.';
+
+  @override
+  String get wipeDoneNotice =>
+      'كل حاجة أسرة كانت شايلاها على الموبايل ده اتمسحت.';
+
+  @override
+  String get wipeIncompleteNotice =>
+      'شوية من بيانات أسرة مااتمسحوش. أسرة هتحاول تاني أول ما تفتح المرة الجاية.';
+
+  @override
+  String get lockSettingsWipe => 'امسح بعد ١٠ أرقام سرية غلط';
+
+  @override
+  String get lockSettingsWipeHint =>
+      'بيمسح كل البيانات على الموبايل ده بعد ١٠ أرقام سرية غلط ورا بعض';
+
+  @override
+  String get lockWipeConfirmTitle => 'تمسح بعد ١٠ أرقام سرية غلط؟';
+
+  @override
+  String get lockWipeConfirmBody =>
+      'بعد ١٠ أرقام سرية غلط ورا بعض، أسرة هتمسح كل حاجة شايلاها على الموبايل ده، ومفيش رجوع. طفل بيلعب بالموبايل ممكن يعملها.\n\nشغّلها بس لو عندك نسخة احتياطية جديدة ومفتاح استرجاعها.';
+
+  @override
+  String get lockWipeConfirmYes => 'شغّل';
+
+  @override
+  String get lockWipeCancel => 'إلغاء';
+
+  @override
+  String lockTriesBeforeWipe(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أرقام سرية غلط كمان تمسح كل حاجة',
+      one: 'رقم سري غلط كمان واحد يمسح كل حاجة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String recoveryKeyMismatch(String groups) {
     return 'المجموعة $groups مش مطابقة. راجع الورقة.';
   }
@@ -2140,7 +2267,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String growthCheckIntro(String age) {
-    return 'اكتب الوزن أو الطول النهارده وشوف مكانه على منحنيات منظمة الصحة العالمية في سن $age.';
+    return 'اكتب الوزن أو الطول أو محيط الراس النهارده وشوف مكانه على منحنيات منظمة الصحة العالمية في سن $age.';
   }
 
   @override
@@ -2718,4 +2845,193 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get vaccineRemoveRecordConfirm => 'امسح';
+
+  @override
+  String get growthHeadForAge => 'محيط الراس حسب السن';
+
+  @override
+  String get prescriptionsSection => 'الروشتات';
+
+  @override
+  String get prescriptionAdd => 'ضيف روشتة';
+
+  @override
+  String get prescriptionNew => 'روشتة جديدة';
+
+  @override
+  String get prescriptionEdit => 'عدّل الروشتة';
+
+  @override
+  String get prescriptionDate => 'التاريخ (أول يوم علاج)';
+
+  @override
+  String get prescriptionDiagnosis => 'التشخيص أو السبب';
+
+  @override
+  String get prescriptionNotes => 'ملاحظات';
+
+  @override
+  String get prescriptionPhotos => 'صورة الروشتة';
+
+  @override
+  String get prescriptionMedicines => 'الأدوية';
+
+  @override
+  String get prescriptionAddMedicine => 'ضيف دوا كمان';
+
+  @override
+  String prescriptionMedicineN(int n) {
+    return 'دوا $n';
+  }
+
+  @override
+  String get prescriptionRemoveMedicine => 'شيل الدوا ده';
+
+  @override
+  String get prescriptionDose => 'الجرعة زي ما الدكتور كتبها';
+
+  @override
+  String get prescriptionDoseHint => 'مثلاً ٥ مل بعد الأكل';
+
+  @override
+  String get prescriptionTimesPerDay =>
+      'كام مرة في اليوم (تقدر تغيّر المواعيد)';
+
+  @override
+  String prescriptionTimesN(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مرة',
+      few: '$count مرات',
+      two: 'مرتين',
+      one: 'مرة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prescriptionDuration => 'لمدة قد إيه';
+
+  @override
+  String get prescriptionOngoing => 'مستمر';
+
+  @override
+  String get prescriptionForDays => 'عدد أيام محدد';
+
+  @override
+  String get prescriptionDays => 'عدد الأيام';
+
+  @override
+  String get prescriptionDaysInvalid => 'اكتب عدد أيام، ١ أو أكتر';
+
+  @override
+  String get prescriptionNoDoseAdvice =>
+      'اكتب كل دوا زي ما هو مكتوب في الروشتة بالظبط. أسرة عمرها ما بتقترح ولا بتحسب جرعة.';
+
+  @override
+  String get prescriptionNeedsTimes =>
+      'ضيف ميعاد واحد على الأقل، وإلا مفيش تنبيهات هترن';
+
+  @override
+  String get prescriptionStop => 'وقّف الروشتة كلها';
+
+  @override
+  String get prescriptionResume => 'رجّع الروشتة تاني';
+
+  @override
+  String get prescriptionDeleteConfirm =>
+      'تمسح الروشتة دي وأدويتها وسجلها؟ صورها هتتمسح من الموبايل ده.';
+
+  @override
+  String get prescriptionNotFound => 'الروشتة دي اتمسحت';
+
+  @override
+  String prescriptionTitle(String date) {
+    return 'روشتة $date';
+  }
+
+  @override
+  String prescriptionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دوا',
+      few: '$count أدوية',
+      two: 'دوايين',
+      one: 'دوا واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String prescriptionDaysCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم',
+      few: '$count أيام',
+      two: 'يومين',
+      one: 'يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prescriptionLink => 'الروشتة';
+
+  @override
+  String courseDayOf(int day, int total) {
+    return 'اليوم $day من $total';
+  }
+
+  @override
+  String get prescriptionMoveTitle => 'تنقل مواعيد العلاج كمان؟';
+
+  @override
+  String get prescriptionMoveBody =>
+      'العلاج اللي لسه مخلصش ممكن يبدأ من التاريخ الجديد. اللي خلص خلاص هيفضل بتواريخه ومش هترجعله تنبيهات.';
+
+  @override
+  String get prescriptionMoveYes => 'انقلها';
+
+  @override
+  String get prescriptionMoveKeep => 'سيب تواريخها';
+
+  @override
+  String prescriptionRemoveConfirm(String name) {
+    return 'تشيل $name من الروشتة دي؟ هيتوقف وتنبيهاته هتخلص. سجل جرعاته هيفضل في صفحته.';
+  }
+
+  @override
+  String get prescriptionEveryHours => 'كل كام ساعة';
+
+  @override
+  String get prescriptionInterval => 'زي ما الدكتور كتب';
+
+  @override
+  String prescriptionEveryNHours(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'كل $n ساعة',
+      few: 'كل $n ساعات',
+      two: 'كل ساعتين',
+      one: 'كل ساعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String prescriptionFirstDose(String time) {
+    return 'أول مرة الساعة $time';
+  }
+
+  @override
+  String get prescriptionTimesHint =>
+      'اتأكد إن المواعيد زي ما الدكتور كتب، مثلاً كل ٨ ساعات.';
+
+  @override
+  String get growthNoPrematurity =>
+      'السن محسوب من يوم الولادة من غير تصحيح للأطفال المبتسرين. لو طفلك اتولد بدري، اسأل دكتور الأطفال إزاي تقرا المنحنى ده.';
 }

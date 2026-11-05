@@ -296,6 +296,12 @@ abstract class AppLocalizations {
   /// **'Reminders are set on this phone. People\'s names and medicine names can show on the lock screen (the name as you typed it) and on the home-screen widget (first names).'**
   String get aboutPrivacyReminders;
 
+  /// No description provided for @aboutPrivacyDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'You can erase everything Usra keeps on this phone at any time: More › Delete all my data.'**
+  String get aboutPrivacyDelete;
+
   /// No description provided for @aboutPrivacyGoogle.
   ///
   /// In en, this message translates to:
@@ -2756,6 +2762,204 @@ abstract class AppLocalizations {
   /// **'Show the key again'**
   String get recoveryKeyShowAgain;
 
+  /// No description provided for @recoveryKeyCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy the key'**
+  String get recoveryKeyCopy;
+
+  /// No description provided for @recoveryKeyCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied. It\'s cleared from the clipboard in a minute: paste it into your password manager now.'**
+  String get recoveryKeyCopied;
+
+  /// No description provided for @shareWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share outside Usra?'**
+  String get shareWarningTitle;
+
+  /// No description provided for @shareWarningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Once it\'s sent, Usra\'s lock and encryption no longer protect it: the other app, and anyone who sees that chat or folder, can open it. Check you\'ve picked the right person.'**
+  String get shareWarningBody;
+
+  /// No description provided for @shareWarningDontAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t ask again'**
+  String get shareWarningDontAsk;
+
+  /// No description provided for @shareWarningCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get shareWarningCancel;
+
+  /// No description provided for @shareWarningGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get shareWarningGo;
+
+  /// No description provided for @rootWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone\'s protections are switched off'**
+  String get rootWarningTitle;
+
+  /// No description provided for @rootWarningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone looks rooted or jailbroken. Other apps on it may be able to read Usra\'s files and see the screen, so your family\'s records are less safe here.\n\nUsra keeps working as normal. If you can, use a phone that isn\'t modified, and keep the app lock on.'**
+  String get rootWarningBody;
+
+  /// No description provided for @rootWarningOk.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand'**
+  String get rootWarningOk;
+
+  /// No description provided for @settingsDeleteAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all my data'**
+  String get settingsDeleteAll;
+
+  /// No description provided for @settingsDeleteAllHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase everything Usra keeps on this phone'**
+  String get settingsDeleteAllHint;
+
+  /// No description provided for @wipeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all my data'**
+  String get wipeTitle;
+
+  /// No description provided for @wipeIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'This erases everything Usra keeps on this phone and starts it again as new:'**
+  String get wipeIntro;
+
+  /// No description provided for @wipeList.
+  ///
+  /// In en, this message translates to:
+  /// **'• Every person, record, medicine, doctor and insurance card\n• All photos\n• The keys that lock them, the recovery key saved on this phone and the app lock\n• Reminders, the home-screen widget and settings\n• You\'re signed out of your account (the account itself stays; delete it from Account first if you want)'**
+  String get wipeList;
+
+  /// No description provided for @wipeKeeps.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup files you saved somewhere else (Drive, WhatsApp, Files) aren\'t touched. They still open with your recovery key, so you can bring the records back.'**
+  String get wipeKeeps;
+
+  /// No description provided for @wipeNoUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'This can\'t be undone. Without a backup and its recovery key, the records are gone for good.'**
+  String get wipeNoUndo;
+
+  /// No description provided for @wipeBackupFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a backup first'**
+  String get wipeBackupFirst;
+
+  /// No description provided for @wipeConfirmWord.
+  ///
+  /// In en, this message translates to:
+  /// **'DELETE'**
+  String get wipeConfirmWord;
+
+  /// No description provided for @wipeTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type {word} to confirm'**
+  String wipeTypeLabel(String word);
+
+  /// No description provided for @wipeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete everything'**
+  String get wipeButton;
+
+  /// No description provided for @wipeWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting…'**
+  String get wipeWorking;
+
+  /// No description provided for @wipeReopenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra couldn\'t open again after deleting. Close it and open it again.'**
+  String get wipeReopenFailed;
+
+  /// No description provided for @recoveryKeyCopyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t copy the key. Write it down from the screen instead.'**
+  String get recoveryKeyCopyFailed;
+
+  /// No description provided for @wipeDoneNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything Usra kept on this phone was deleted.'**
+  String get wipeDoneNotice;
+
+  /// No description provided for @wipeIncompleteNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Some of Usra\'s data couldn\'t be deleted. Usra will try again the next time it starts.'**
+  String get wipeIncompleteNotice;
+
+  /// No description provided for @lockSettingsWipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase after 10 wrong PINs'**
+  String get lockSettingsWipe;
+
+  /// No description provided for @lockSettingsWipeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletes all data on this phone after 10 wrong PINs in a row'**
+  String get lockSettingsWipeHint;
+
+  /// No description provided for @lockWipeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase after 10 wrong PINs?'**
+  String get lockWipeConfirmTitle;
+
+  /// No description provided for @lockWipeConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'After 10 wrong PINs in a row, Usra deletes everything it keeps on this phone, with no way to undo it. A child playing with the phone could set it off.\n\nTurn this on only if you have a recent backup and its recovery key.'**
+  String get lockWipeConfirmBody;
+
+  /// No description provided for @lockWipeConfirmYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get lockWipeConfirmYes;
+
+  /// No description provided for @lockWipeCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get lockWipeCancel;
+
+  /// No description provided for @lockTriesBeforeWipe.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 more wrong PIN erases everything} other{{count} more wrong PINs erase everything}}'**
+  String lockTriesBeforeWipe(int count);
+
   /// No description provided for @recoveryKeyMismatch.
   ///
   /// In en, this message translates to:
@@ -3509,7 +3713,7 @@ abstract class AppLocalizations {
   /// No description provided for @growthCheckIntro.
   ///
   /// In en, this message translates to:
-  /// **'Type today\'s weight or height and see where it falls on the WHO curves at {age}.'**
+  /// **'Type today\'s weight, height or head circumference and see where it falls on the WHO curves at {age}.'**
   String growthCheckIntro(String age);
 
   /// No description provided for @growthCheckSave.
@@ -4465,6 +4669,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove'**
   String get vaccineRemoveRecordConfirm;
+
+  /// No description provided for @growthHeadForAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Head circumference for age'**
+  String get growthHeadForAge;
+
+  /// No description provided for @prescriptionsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Prescriptions'**
+  String get prescriptionsSection;
+
+  /// No description provided for @prescriptionAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add prescription'**
+  String get prescriptionAdd;
+
+  /// No description provided for @prescriptionNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New prescription'**
+  String get prescriptionNew;
+
+  /// No description provided for @prescriptionEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit prescription'**
+  String get prescriptionEdit;
+
+  /// No description provided for @prescriptionDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date (first day of treatment)'**
+  String get prescriptionDate;
+
+  /// No description provided for @prescriptionDiagnosis.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnosis or reason'**
+  String get prescriptionDiagnosis;
+
+  /// No description provided for @prescriptionNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get prescriptionNotes;
+
+  /// No description provided for @prescriptionPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo of the prescription'**
+  String get prescriptionPhotos;
+
+  /// No description provided for @prescriptionMedicines.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicines'**
+  String get prescriptionMedicines;
+
+  /// No description provided for @prescriptionAddMedicine.
+  ///
+  /// In en, this message translates to:
+  /// **'Add another medicine'**
+  String get prescriptionAddMedicine;
+
+  /// No description provided for @prescriptionMedicineN.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine {n}'**
+  String prescriptionMedicineN(int n);
+
+  /// No description provided for @prescriptionRemoveMedicine.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this medicine'**
+  String get prescriptionRemoveMedicine;
+
+  /// No description provided for @prescriptionDose.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose, as the doctor wrote it'**
+  String get prescriptionDose;
+
+  /// No description provided for @prescriptionDoseHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 5 ml after meals'**
+  String get prescriptionDoseHint;
+
+  /// No description provided for @prescriptionTimesPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Times a day (you can change the times)'**
+  String get prescriptionTimesPerDay;
+
+  /// No description provided for @prescriptionTimesN.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Once} =2{Twice} other{{count} times}}'**
+  String prescriptionTimesN(int count);
+
+  /// No description provided for @prescriptionDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'For how long'**
+  String get prescriptionDuration;
+
+  /// No description provided for @prescriptionOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongoing'**
+  String get prescriptionOngoing;
+
+  /// No description provided for @prescriptionForDays.
+  ///
+  /// In en, this message translates to:
+  /// **'A set number of days'**
+  String get prescriptionForDays;
+
+  /// No description provided for @prescriptionDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of days'**
+  String get prescriptionDays;
+
+  /// No description provided for @prescriptionDaysInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number of days, 1 or more'**
+  String get prescriptionDaysInvalid;
+
+  /// No description provided for @prescriptionNoDoseAdvice.
+  ///
+  /// In en, this message translates to:
+  /// **'Write each medicine exactly as it is on the prescription. Usra never suggests or calculates a dose.'**
+  String get prescriptionNoDoseAdvice;
+
+  /// No description provided for @prescriptionNeedsTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one time, or no reminders will ring'**
+  String get prescriptionNeedsTimes;
+
+  /// No description provided for @prescriptionStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop the whole prescription'**
+  String get prescriptionStop;
+
+  /// No description provided for @prescriptionResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume the prescription'**
+  String get prescriptionResume;
+
+  /// No description provided for @prescriptionDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this prescription, its medicines and their history? Its photos will be removed from this phone.'**
+  String get prescriptionDeleteConfirm;
+
+  /// No description provided for @prescriptionNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This prescription was deleted'**
+  String get prescriptionNotFound;
+
+  /// No description provided for @prescriptionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Prescription of {date}'**
+  String prescriptionTitle(String date);
+
+  /// No description provided for @prescriptionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 medicine} other{{count} medicines}}'**
+  String prescriptionCount(int count);
+
+  /// No description provided for @prescriptionDaysCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String prescriptionDaysCount(int count);
+
+  /// No description provided for @prescriptionLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Prescription'**
+  String get prescriptionLink;
+
+  /// No description provided for @courseDayOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day} of {total}'**
+  String courseDayOf(int day, int total);
+
+  /// No description provided for @prescriptionMoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move the courses too?'**
+  String get prescriptionMoveTitle;
+
+  /// No description provided for @prescriptionMoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Courses that haven\'t ended can start on the new date. Courses already over keep their dates and get no reminders back.'**
+  String get prescriptionMoveBody;
+
+  /// No description provided for @prescriptionMoveYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Move them'**
+  String get prescriptionMoveYes;
+
+  /// No description provided for @prescriptionMoveKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep their dates'**
+  String get prescriptionMoveKeep;
+
+  /// No description provided for @prescriptionRemoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Take {name} off this prescription? It will be stopped, so its reminders end. Its dose history stays on its own page.'**
+  String prescriptionRemoveConfirm(String name);
+
+  /// No description provided for @prescriptionEveryHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Every few hours'**
+  String get prescriptionEveryHours;
+
+  /// No description provided for @prescriptionInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'As the doctor wrote'**
+  String get prescriptionInterval;
+
+  /// No description provided for @prescriptionEveryNHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{Every hour} other{Every {n} hours}}'**
+  String prescriptionEveryNHours(int n);
+
+  /// No description provided for @prescriptionFirstDose.
+  ///
+  /// In en, this message translates to:
+  /// **'First one at {time}'**
+  String prescriptionFirstDose(String time);
+
+  /// No description provided for @prescriptionTimesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the times match what the doctor wrote, e.g. every 8 hours.'**
+  String get prescriptionTimesHint;
+
+  /// No description provided for @growthNoPrematurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart.'**
+  String get growthNoPrematurity;
 }
 
 class _AppLocalizationsDelegate

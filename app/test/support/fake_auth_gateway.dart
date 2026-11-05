@@ -110,8 +110,25 @@ class FakeAuthGateway implements AuthGateway {
     devices.remove(deviceId);
   }
 
+  /// While set, signOut waits for it (a slow network).
+  Completer<void>? holdSignOut;
+  var localForgets = 0;
+  var refreshResumed = 0;
+
   @override
-  Future<void> signOut() async => signedIn = null;
+  Future<void> signOut() async {
+    await holdSignOut?.future;
+    signedIn = null;
+  }
+
+  @override
+  Future<void> forgetLocalSession() async {
+    localForgets++;
+    signedIn = null;
+  }
+
+  @override
+  Future<void> resumeSessionRefresh() async => refreshResumed++;
 
   @override
   Future<void> deleteAccount() async {

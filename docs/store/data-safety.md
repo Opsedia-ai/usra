@@ -78,7 +78,7 @@ nothing, drop those rows in both forms.
 | --- | --- |
 | Does your app collect or share any of the required user data types? | **Yes** (only because of ML Kit diagnostics; otherwise No) |
 | Is all of the user data collected by your app encrypted in transit? | **Yes** (ML Kit sends over HTTPS) |
-| Do you provide a way for users to request that their data be deleted? | **No** account or server copy exists. Explain in the policy: deleting the app deletes all data; ML Kit data is held by Google, keyed by a random install ID we cannot look up |
+| Do you provide a way for users to request that their data be deleted? | **No** account or server copy exists. Explain in the policy: More › Delete all my data (or deleting the app) deletes all data on the phone; ML Kit data is held by Google, keyed by a random install ID we cannot look up |
 
 Data types (everything else: not collected, not shared):
 

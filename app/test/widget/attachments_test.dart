@@ -131,6 +131,9 @@ void main() {
     expect(find.byKey(const ValueKey('record-thumb-1')), findsOneWidget);
 
     await tapKey(tester, 'record-share');
+    // Warned once; "don't ask again" skips it from then on (S7).
+    await tapKey(tester, 'share-warning-dont-ask');
+    await tapKey(tester, 'share-warning-go');
     expect(shared.single.text, contains('د. هاني'));
     expect(shared.single.files, hasLength(2));
 

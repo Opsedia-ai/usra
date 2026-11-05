@@ -175,6 +175,38 @@ class SupabaseAuthGateway implements AuthGateway {
     }
   }
 
+  /// Only touches a client that's already running: one that never started
+  /// has no session in memory, and starting it now would use the network.
+  Future<sb.SupabaseClient?> _running() async {
+    final running = _clientOverride?.call() ?? _started;
+    return running == null ? null : await running;
+  }
+
+  @override
+  Future<void> forgetLocalSession() async {
+    try {
+      final client = await _running();
+      if (client != null) {
+        // No refresh may land after this and save the session again.
+        client.auth.stopAutoRefresh();
+        await client.auth.signOut(scope: sb.SignOutScope.local);
+      }
+    } catch (_) {
+      // The stored copy goes below either way.
+    } finally {
+      await _wipe();
+    }
+  }
+
+  @override
+  Future<void> resumeSessionRefresh() async {
+    try {
+      (await _running())?.auth.startAutoRefresh();
+    } catch (_) {
+      // Started again when the app next comes to the front.
+    }
+  }
+
   static Future<void> _wipeLocalSession() async {
     await const SecureSessionStorage().removePersistedSession();
     await const SecureAuthItemStorage().clear();

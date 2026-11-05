@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
+import '../../core/security/data_wipe.dart';
 import '../../l10n/app_localizations.dart';
 import 'backup_providers.dart';
 import 'backup_screen.dart';
@@ -20,6 +21,7 @@ class BackupNotices extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final outcome = ref.watch(restoreOutcomeProvider);
+    final wipe = ref.watch(wipeOutcomeProvider);
     final last = ref.watch(lastBackupProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -33,6 +35,17 @@ class BackupNotices extends ConsumerWidget {
             body: outcome == RestoreOutcome.restored
                 ? l.restoreDoneNotice
                 : l.restoreFailedNotice,
+            simple: simple,
+          ),
+        if (wipe != null)
+          _Notice(
+            key: const ValueKey('wipe-outcome'),
+            severity: wipe == WipeOutcome.done
+                ? Severity.good
+                : Severity.actSoon,
+            body: wipe == WipeOutcome.done
+                ? l.wipeDoneNotice
+                : l.wipeIncompleteNotice,
             simple: simple,
           ),
         if (ref.watch(databaseRecoveredProvider))
