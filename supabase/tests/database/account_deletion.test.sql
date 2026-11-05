@@ -2,7 +2,7 @@
 -- everything that user owns, and nothing of anyone else's. A family the user
 -- created but handed over stays (B0.7). Run with: supabase test db
 begin;
-select plan(20);
+select plan(21);
 
 insert into auth.users (id, phone) values
   ('33333333-3333-3333-3333-333333333333', '201000000003'),
@@ -51,6 +51,10 @@ select ok(not has_function_privilege('authenticated', 'public.account_deletion_b
   'apps cannot call the blocker check');
 select ok(not has_function_privilege('anon', 'public.account_deletion_blockers(uuid)', 'execute'),
   'anonymous callers cannot call the blocker check');
+
+select throws_ok($$ delete from auth.users where id = '44444444-4444-4444-4444-444444444444' $$,
+  '42501', 'family_has_members',
+  'even outside delete-account, an owner with other members cannot be deleted');
 
 select lives_ok($$ delete from auth.users where id = '33333333-3333-3333-3333-333333333333' $$,
   'deleting the auth user succeeds even though the credits ledger is append-only');

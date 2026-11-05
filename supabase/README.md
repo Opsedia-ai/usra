@@ -102,7 +102,7 @@ Functions that check signatures (`bind-device`, `approve-device`,
   (`revoke_device`) and `families` (`current_key_version`,
   `rotation_pending`). Entry fields used by the mirror: `v`, `family`, `seq`,
   `prev` (base64url), `type`, `by` (device id), and `user`, `role`, `reason`,
-  `device`, `key_version` by type.
+  `device`, `key_version` by type. `add_member` needs that person's accepted invite.
 - **Records.** `push_e2ee_records(family, log_seq, records)` takes up to 100
   records (2 MiB) as `{ sync_id, key_version, ciphertext (base64), deleted,
   expected_revision }`. The batch is refused unless `log_seq` is the log
@@ -175,6 +175,8 @@ and device key pair. Records on the phone are untouched.
   (`account_deletion_blockers()`, keyed on the owner role). The owner hands
   over first (a signed `transfer_owner` log entry). B10 will also require an
   approved-device session here.
+  The database enforces the same rule for any delete of the owner's account
+  (a trigger refuses to drop an owner's membership while others remain).
 
 ### revenuecat-webhook
 

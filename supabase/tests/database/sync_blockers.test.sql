@@ -3,7 +3,7 @@
 -- "SMS-only" session: signed in, but not bound to an approved device.
 -- Run with: supabase test db
 begin;
-select plan(88);
+select plan(91);
 
 -- People: A owns family F, B is a guardian, C is invited later.
 -- Sessions: sA1 / sB1 / sC1 are bound to approved devices A1 / B1 / C1.
@@ -136,6 +136,10 @@ select throws_ok($$ update public.devices set public_key = pg_temp.key(9)
 select throws_ok($$ update public.devices set signing_public_key = pg_temp.key(9)
   where created_session_id = '5a000000-0000-4000-8000-0000000000a2' $$,
   '42501', null, 'B0.1: nor the key of the device it registered');
+insert into public.devices (platform, public_key, signing_public_key) values ('ios', pg_temp.key(10), pg_temp.key(11));
+delete from public.devices where public_key = pg_temp.key(10);
+select is((select count(*)::int from public.devices where public_key = pg_temp.key(10)), 0,
+  'an SMS-only session deletes a device it registered (sign-out)');
 update public.devices set last_seen_at = now() - interval '1 year'
   where id = 'da000000-0000-4000-8000-0000000000a1';
 select ok((select last_seen_at > now() - interval '1 day' from public.devices
@@ -176,6 +180,7 @@ select throws_ok($$ select public.create_family_invite('f0000000-0000-4000-8000-
 select throws_ok($$ select pg_temp.push(1, pg_temp.rec('e0000000-0000-4000-8000-000000000001', 1, 0)) $$,
   '42501', 'approved_device_required', 'B0.6: the owner''s SMS-only session cannot push records');
 select is((select count(*)::int from public.family_log), 0, 'an SMS-only session reads no family log');
+select is((select count(*)::int from public.family_invites), 0, 'an SMS-only owner session reads no invites');
 
 -- The owner on an approved device (sA1) ----------------------------------------------
 select pg_temp.as_user('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '5a000000-0000-4000-8000-0000000000a1');
@@ -265,6 +270,9 @@ select is((select role from public.family_members
            where family_id = 'f0000000-0000-4000-8000-00000000000f'
              and user_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'), 'guardian',
   'the change is mirrored into family_members');
+select throws_ok($$ select pg_temp.append(3, 'add_member', 'da000000-0000-4000-8000-0000000000a1',
+    '{"user":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"viewer"}') $$,
+  '42501', 'no_accepted_invite', 'add_member needs that person''s accepted invite');
 select ok((select hash = sha256(entry) from public.family_log
            where family_id = 'f0000000-0000-4000-8000-00000000000f' and seq = 2),
   'the chain hash is sha256 of the entry bytes');

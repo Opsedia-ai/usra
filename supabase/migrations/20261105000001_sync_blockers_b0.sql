@@ -207,7 +207,7 @@ create policy devices_update_own on public.devices
 create policy devices_delete_own on public.devices
   for delete to authenticated
   using (user_id = (select auth.uid())
-         and (private.is_session_device(id) or private.device_ok()));
+         and (private.is_session_device(id) or (select private.device_ok())));
 
 revoke insert, update on public.devices from authenticated;
 grant insert (user_id, platform, app_version, public_key, signing_public_key)
@@ -364,7 +364,7 @@ drop policy families_delete_owner on public.families;
 
 create policy families_insert_self on public.families
   for insert to authenticated
-  with check (created_by = (select auth.uid()) and private.device_ok());
+  with check (created_by = (select auth.uid()) and (select private.device_ok()));
 
 revoke insert, delete on public.families from authenticated;
 grant insert (created_by) on public.families to authenticated;
@@ -385,6 +385,30 @@ begin
   return null;
 end;
 $$;
+
+-- The owner's row can't go while other members remain (an account delete
+-- from the dashboard included): hand over first. Deleting the family itself
+-- (its row is already gone when the cascade runs) is allowed.
+create or replace function private.family_keep_owner()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if old.role = 'owner'
+     and exists (select 1 from public.families f where f.id = old.family_id)
+     and exists (select 1 from public.family_members m
+                 where m.family_id = old.family_id and m.user_id <> old.user_id) then
+    raise exception 'family_has_members' using errcode = '42501';
+  end if;
+  return old;
+end;
+$$;
+
+create trigger family_members_keep_owner
+  before delete on public.family_members
+  for each row execute function private.family_keep_owner();
 
 create trigger family_members_drop_empty
   after delete on public.family_members
@@ -458,7 +482,7 @@ alter table public.family_log enable row level security;
 
 create policy family_log_select_member on public.family_log
   for select to authenticated
-  using (private.device_ok() and private.family_role(family_id) is not null);
+  using ((select private.device_ok()) and private.family_role(family_id) is not null);
 
 grant select on public.family_log to authenticated;
 
@@ -552,6 +576,12 @@ begin
       raise exception 'bad_role' using errcode = '22023';
     end if;
     if v_type = 'add_member' then
+      -- Nobody joins without accepting an invite to this family.
+      perform 1 from public.family_invites i
+      where i.family_id = p_family and i.accepted_by = v_user and i.accepted_at is not null;
+      if not found then
+        raise exception 'no_accepted_invite' using errcode = '42501';
+      end if;
       insert into public.family_members (family_id, user_id, role)
       values (p_family, v_user, v_role)
       on conflict (family_id, user_id) do update set role = excluded.role;
@@ -656,7 +686,11 @@ drop policy family_members_update_owner on public.family_members;
 drop policy family_members_delete on public.family_members;
 revoke insert, update, delete on public.family_members from authenticated;
 
+drop policy family_invites_select_owner on public.family_invites;
 drop policy family_invites_insert_owner on public.family_invites;
+create policy family_invites_select_owner on public.family_invites
+  for select to authenticated
+  using ((select private.device_ok()) and private.family_role(family_id) = 'owner');
 drop policy family_invites_delete_owner on public.family_invites;
 revoke insert, delete on public.family_invites from authenticated;
 
@@ -812,7 +846,7 @@ $$;
 
 create policy e2ee_select_member on public.e2ee_records
   for select to authenticated
-  using (private.device_ok() and private.family_role(family_id) is not null);
+  using ((select private.device_ok()) and private.family_role(family_id) is not null);
 
 -- Writes a batch of records for one family. Refuses the whole batch unless
 -- the writer's log head is the server's head (so it has seen every removal
