@@ -3056,4 +3056,526 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get growthNoPrematurity =>
       'السن محسوب من يوم الولادة من غير تصحيح للأطفال المبتسرين. لو طفلك اتولد بدري، اسأل دكتور الأطفال إزاي تقرا المنحنى ده.';
+
+  @override
+  String get reportAppLine => 'اتعمل بتطبيق أسرة (Usra) لملف العيلة الصحي';
+
+  @override
+  String reportGenerated(String date) {
+    return 'اتعمل يوم $date';
+  }
+
+  @override
+  String reportPage(int page, int total) {
+    return 'صفحة $page من $total';
+  }
+
+  @override
+  String get reportVaccinationTitle => 'سجل التطعيمات';
+
+  @override
+  String get reportVaccinationDisclaimer =>
+      'سجل للمعلومات بس، عملته العيلة بتطبيق أسرة من اللي سجلته بنفسها. مش شهادة تطعيم رسمية: راجعوا كارت التطعيم بتاع الطفل.';
+
+  @override
+  String get reportName => 'الاسم';
+
+  @override
+  String get reportRoute => 'طريقة التطعيم';
+
+  @override
+  String get reportRouteGovernment => 'حكومي (مكتب الصحة)';
+
+  @override
+  String get reportRoutePrivate => 'خاص (السداسي)';
+
+  @override
+  String get reportDosesGiven => 'الجرعات اللي اتاخدت';
+
+  @override
+  String get reportNoDosesGiven => 'مفيش جرعات متسجلة لسه';
+
+  @override
+  String get reportUpcoming => 'الجرعات الجاية';
+
+  @override
+  String get reportNoUpcoming => 'مفيش جرعات فاضلة في الجدول';
+
+  @override
+  String get reportUpcomingOverFive => 'جدول أسرة بيتابع الأطفال لحد ٥ سنين.';
+
+  @override
+  String get reportColVaccine => 'التطعيم';
+
+  @override
+  String get reportColDate => 'التاريخ';
+
+  @override
+  String get reportColNotes => 'ملاحظات';
+
+  @override
+  String get reportColDue => 'الميعاد';
+
+  @override
+  String get reportOverdue => 'متأخرة';
+
+  @override
+  String get reportSummaryTitle => 'ملخص صحي للدكتور';
+
+  @override
+  String get reportSummaryDisclaimer =>
+      'ملخص عملته العيلة بتطبيق أسرة من سجلاتها. للمعلومات بس: راجعوه على الروشتات والتقارير الأصلية.';
+
+  @override
+  String get reportAge => 'السن';
+
+  @override
+  String get reportSectionBasics => 'السن وفصيلة الدم';
+
+  @override
+  String get reportSectionMedicines => 'الأدوية الحالية';
+
+  @override
+  String get reportSectionVisits => 'آخر زيارات للدكتور';
+
+  @override
+  String get reportSectionLabs => 'آخر نتايج تحاليل';
+
+  @override
+  String get reportSectionGrowth => 'النمو';
+
+  @override
+  String get reportSectionVaccines => 'التطعيمات';
+
+  @override
+  String get reportColMedicine => 'الدوا';
+
+  @override
+  String get reportColHowTaken => 'زي ما الدكتور كتب';
+
+  @override
+  String get reportColDoctor => 'الدكتور';
+
+  @override
+  String get reportColDetails => 'السبب / التشخيص';
+
+  @override
+  String get reportColTest => 'التحليل';
+
+  @override
+  String get reportColResult => 'النتيجة';
+
+  @override
+  String get reportColRange => 'المعدل الطبيعي للمعمل';
+
+  @override
+  String get reportColMeasure => 'القياس';
+
+  @override
+  String get reportColValue => 'القيمة';
+
+  @override
+  String get reportColPercentile => 'المئين (منظمة الصحة العالمية)';
+
+  @override
+  String get reportAsNeeded => 'عند اللزوم';
+
+  @override
+  String reportSince(String date) {
+    return 'من $date';
+  }
+
+  @override
+  String reportUntil(String date) {
+    return 'لحد $date';
+  }
+
+  @override
+  String reportVaccineProgress(int done, int total) {
+    return '$done من $total جرعة في الخطة اتاخدت';
+  }
+
+  @override
+  String get reportVaccineNext => 'ميعاد التطعيم الجاي';
+
+  @override
+  String get reportVaccineOverdue => 'متأخر';
+
+  @override
+  String get reportGrowthNote =>
+      'المئين من معايير منظمة الصحة العالمية لنمو الأطفال (أقل من ٥ سنين). للمعلومات، مش تشخيص.';
+
+  @override
+  String get reportNothing => 'مفيش حاجة متسجلة';
+
+  @override
+  String get memberDoctorSummary => 'ملخص للدكتور';
+
+  @override
+  String get reportSummaryIntro =>
+      'ملخص PDF قصير توريه أو تبعته للدكتور. اختار إيه اللي يتكتب فيه.';
+
+  @override
+  String get reportChooseSections => 'إيه اللي يتكتب';
+
+  @override
+  String get reportLanguage => 'لغة الملف';
+
+  @override
+  String get reportSharePdf => 'ابعت PDF';
+
+  @override
+  String get reportIncludeNotes => 'اكتب ملاحظاتي على كل جرعة';
+
+  @override
+  String get reportVaccinationShare => 'ابعت سجل التطعيمات';
+
+  @override
+  String get reportVaccinationIntro =>
+      'ملف PDF بالجرعات اللي اتاخدت والجاية، للمدرسة أو الحضانة أو الدكتور.';
+
+  @override
+  String get reportPickOne => 'اختار حاجة واحدة على الأقل';
+
+  @override
+  String get reportOnPhone =>
+      'بيتعمل على الموبايل ده. الملف بيتمسح من الموبايل بعد ما يتبعت.';
+
+  @override
+  String get reportFailed => 'معرفناش نعمل الملف';
+
+  @override
+  String get reportNeedsBirthDate => 'ضيف تاريخ الميلاد في البروفايل الأول.';
+
+  @override
+  String get reportFlagHigh => 'عالي';
+
+  @override
+  String get reportFlagLow => 'واطي';
+
+  @override
+  String get reportTooLate => 'فات ميعاده: اسأل الدكتور';
+
+  @override
+  String get reportTooLateLabel => 'فات ميعاده (اسأل الدكتور)';
+
+  @override
+  String get reportSimpleIntro =>
+      'ملف PDF فيه البيانات الصحية والأدوية والزيارات والتحاليل، توريه أو تبعته للدكتور.';
+
+  @override
+  String get memberSickDays => 'الحرارة والتعب';
+
+  @override
+  String get sickDaysTitle => 'الحرارة والتعب';
+
+  @override
+  String get sickDaysEmpty =>
+      'مفيش أيام تعب متسجلة. لما حد يتعب، ابدأ يوم تعب وسجل الحرارة والأعراض والأدوية اللي اتاخدت.';
+
+  @override
+  String get sickDayStart => 'ابدأ يوم تعب';
+
+  @override
+  String get sickDayOngoing => 'لسه تعبان';
+
+  @override
+  String get sickDayEnded => 'خلص';
+
+  @override
+  String sickDaySince(String date) {
+    return 'من $date';
+  }
+
+  @override
+  String sickDayRange(String start, String end) {
+    return 'من $start لـ $end';
+  }
+
+  @override
+  String get sickDayTitle => 'يوم تعب';
+
+  @override
+  String get sickDayStartedAt => 'بدأ';
+
+  @override
+  String get sickDayEnd => 'خلص التعب';
+
+  @override
+  String get sickDayReopen => 'لسه تعبان';
+
+  @override
+  String get sickDayDelete => 'امسح يوم التعب ده';
+
+  @override
+  String get sickDayDeleteConfirm =>
+      'تمسح يوم التعب ده بالحرارة والأدوية اللي اتسجلت فيه؟';
+
+  @override
+  String get sickDayTemperatures => 'الحرارة';
+
+  @override
+  String get sickDayAddReading => 'سجل الحرارة';
+
+  @override
+  String get sickDayNoReadings => 'لسه مفيش حرارة متسجلة.';
+
+  @override
+  String get sickDayChartTitle => 'رسم الحرارة';
+
+  @override
+  String get sickDayChartNote =>
+      'الخط المتقطع: ٣٨ °م (١٠٠٫٤ °ف)، من عندها تبقى سخونية.';
+
+  @override
+  String get sickDaySymptoms => 'الأعراض';
+
+  @override
+  String get sickDayMedicines => 'الأدوية اللي اتاخدت';
+
+  @override
+  String get sickDayAddMedicine => 'سجل دوا اتاخد';
+
+  @override
+  String get sickDayNoMedicines => 'مفيش أدوية متسجلة.';
+
+  @override
+  String get sickDayNotes => 'ملاحظات';
+
+  @override
+  String get sickDayNotesSaved => 'الملاحظات اتحفظت';
+
+  @override
+  String get readingValue => 'الحرارة';
+
+  @override
+  String get readingCelsius => '°م';
+
+  @override
+  String get readingFahrenheit => '°ف';
+
+  @override
+  String get readingSite => 'اتقاست فين';
+
+  @override
+  String readingSiteName(String site) {
+    String _temp0 = intl.Intl.selectLogic(site, {
+      'armpit': 'تحت الباط',
+      'ear': 'الودن',
+      'forehead': 'الجبهة',
+      'mouth': 'البُق',
+      'rectal': 'شرجي',
+      'other': 'مش محدد',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get readingTime => 'الوقت';
+
+  @override
+  String get readingDate => 'التاريخ';
+
+  @override
+  String get readingImplausible =>
+      'الرقم ده مش شكل حرارة جسم. راجع الرقم والوحدة.';
+
+  @override
+  String get readingFever => 'سخونية';
+
+  @override
+  String get readingDelete => 'امسح الحرارة دي';
+
+  @override
+  String get givenWhich => 'أنهي دوا';
+
+  @override
+  String get givenOther => 'دوا تاني (اكتب اسمه)';
+
+  @override
+  String get givenName => 'اسم الدوا';
+
+  @override
+  String get givenAmount => 'الكمية اللي اتاخدت';
+
+  @override
+  String get givenAmountHint => 'زي ما هتكتبها، من العلبة أو الروشتة مثلًا';
+
+  @override
+  String get givenTime => 'اتاخد إمتى';
+
+  @override
+  String givenFromPrescription(String date) {
+    return 'من روشتة $date';
+  }
+
+  @override
+  String get givenRemind => 'فكرني في الوقت ده';
+
+  @override
+  String get givenNoInterval =>
+      'مفيش وقت ظاهر: الدوا ده مش متسجل له أقل عدد ساعات بين الجرعات. تقدر تضيفها من صفحة الدوا، زي ما مكتوب على العلبة أو من الدكتور.';
+
+  @override
+  String get givenDelete => 'امسح ده';
+
+  @override
+  String get givenRequired => 'اختار دوا أو اكتب اسمه';
+
+  @override
+  String get nextDoseDiscreetTitle => 'تذكير من أسرة';
+
+  @override
+  String get nextDoseDiscreetBody => 'افتح أسرة وشوف التفاصيل.';
+
+  @override
+  String nextDoseTitle(String person, String medicine) {
+    return '$person: $medicine';
+  }
+
+  @override
+  String nextDoseBody(String hours) {
+    return 'عدّى $hours ساعة من الجرعة اللي سجلتها. راجع لو فيه دوا تاني بنفس المادة الفعالة.';
+  }
+
+  @override
+  String symptomName(String symptom) {
+    String _temp0 = intl.Intl.selectLogic(symptom, {
+      'cough': 'كحة',
+      'runnyNose': 'رشح',
+      'soreThroat': 'التهاب في الزور',
+      'earPain': 'وجع في الودن',
+      'headache': 'صداع',
+      'vomiting': 'ترجيع',
+      'diarrhea': 'إسهال',
+      'rash': 'طفح',
+      'aches': 'تكسير في الجسم',
+      'poorFeeding': 'بياكل أو بيشرب أقل',
+      'dehydration': 'حفاضات ناشفة أو بيعمل حمام أقل أو مفيش دموع',
+      'breathing': 'صعوبة في النفس',
+      'drowsy': 'نعسان جدًا أو صعب يصحى',
+      'seizure': 'تشنج',
+      'rashNotFading': 'طفح مش بيختفي تحت الكوباية',
+      'stiffNeck': 'تيبس في الرقبة',
+      'other': 'تاني',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get warnTitle => 'علامات الخطر';
+
+  @override
+  String get warnLogged => 'من اللي سجلته:';
+
+  @override
+  String get warnEmergency => 'اتصل بالإسعاف (١٢٣) فورًا لو:';
+
+  @override
+  String get warnDoctorNow => 'كلم دكتور دلوقتي لو:';
+
+  @override
+  String warnSign(String sign) {
+    String _temp0 = intl.Intl.selectLogic(sign, {
+      'breathing': 'صعوبة في النفس، أو بيتنفس بسرعة جدًا، أو نفسه مقطوع',
+      'seizure': 'تشنج',
+      'rashGlass': 'طفح مش بيختفي لما تضغط عليه بكوباية',
+      'drowsy': 'نعسان جدًا أو صعب يصحى، أو مش بيرد زي عادته',
+      'stiffNeck': 'تيبس في الرقبة، أو النور بيضايق عينه',
+      'skinColour': 'جلد أو شفايف أو لسان لونهم أزرق أو رمادي أو باهت جدًا أو مبقع، أو إيدين ورجلين ساقعين بشكل غريب',
+      'confused': 'مش مركز أو متلخبط، أو متضايق جدًا ومش بيبطل عياط',
+      'under3Months': 'سنه أقل من ٣ شهور وحرارته ٣٨ °م (١٠٠٫٤ °ف) أو أكتر',
+      'months3to6': 'سنه من ٣ لـ ٦ شهور وحرارته ٣٩ °م (١٠٢٫٢ °ف) أو أكتر',
+      'longUnder2': 'سنه أقل من سنتين والسخونية بقالها أكتر من ٢٤ ساعة',
+      'longChild': 'سنه سنتين أو أكتر والسخونية بقالها أكتر من ٣ أيام',
+      'fiveDays': 'السخونية بقالها ٥ أيام أو أكتر',
+      'veryHigh': 'الحرارة عدت ٤٠ °م (١٠٤ °ف) أكتر من مرة',
+      'notImproving': 'حرارة عالية مش بتتحسن أو بتزيد',
+      'dehydration': 'علامات جفاف: حفاضات ناشفة أو بيعمل حمام أقل، مفيش دموع، عينين غايرة، بُق ناشف',
+      'notDrinking': 'مش بيشرب أو مش بيرضع، أو مش زي عادته خالص',
+      'vomitsEverything': 'بيرجّع أي حاجة ياخدها، أو مش بيبطل ترجيع',
+      'armpitUnder3Months':
+          'سنه أقل من ٣ شهور والحرارة تحت الباط ٣٧٫٥ °م (٩٩٫٥ °ف) أو أكتر',
+      'lowUnder3Months': 'سنه أقل من ٣ شهور وحرارته أقل من ٣٦ °م (٩٦٫٨ °ف)',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get warnFooter =>
+      'للمعلومة بس، مش تشخيص. لو قلقان، كلم دكتور أو اتصل بـ ١٢٣، حتى لو مفيش حاجة من دول.';
+
+  @override
+  String get warnSources => 'المصادر';
+
+  @override
+  String warnSourceName(String source) {
+    String _temp0 = intl.Intl.selectLogic(source, {
+      'nhs': 'NHS (بريطانيا): السخونية عند الأطفال',
+      'aap': 'الأكاديمية الأمريكية لطب الأطفال: إمتى تكلم الدكتور',
+      'who': 'منظمة الصحة العالمية: علامات الخطر العامة (IMCI)',
+      'stlouis': 'مستشفى أطفال سانت لويس: إزاي تقيس الحرارة',
+      'womans': 'مستشفى وومانز: حرارة المولود',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get warnCallDoctor => 'الدكاترة بتوعي';
+
+  @override
+  String givenHoursAfter(String hours, String time) {
+    return 'بعد $hours ساعة من الجرعة دي: $time';
+  }
+
+  @override
+  String get givenCheckIngredient =>
+      'قبل أي جرعة تانية، راجع لو فيه دوا تاني بنفس المادة الفعالة.';
+
+  @override
+  String get medicineMinHours => 'أقل عدد ساعات بين الجرعات';
+
+  @override
+  String get medicineMinHoursHint =>
+      'زي ما مكتوب على العلبة أو من الدكتور. سيبها فاضية لو مش مكتوب.';
+
+  @override
+  String get medicineMinHoursInvalid => 'اكتب عدد ساعات من ٠٫٥ لـ ٧٢';
+
+  @override
+  String medicineMinHoursSuggest(String phrase, String hours) {
+    return 'التعليمات بتقول «$phrase». تستخدم $hours ساعة؟';
+  }
+
+  @override
+  String get medicineMinHoursUse => 'استخدم';
+
+  @override
+  String medicineMinHoursValue(String hours) {
+    return '$hours ساعة';
+  }
+
+  @override
+  String get warnArmpitNote =>
+      'الحرارة تحت الباط بتطلع أقل. لو البيبي سخن أو شكله تعبان، كلم الدكتور حتى لو أقل من ٣٨ °م.';
+
+  @override
+  String get warnNoBirthDate =>
+      'ضيف تاريخ الميلاد علشان تشوف العلامات المناسبة للسن.';
+
+  @override
+  String get readingConfirmTitle => 'الرقم ده صح؟';
+
+  @override
+  String readingConfirmBody(String value) {
+    return '$value حرارة غريبة جدًا لجسم الإنسان. راجع الترمومتر والوحدة.';
+  }
+
+  @override
+  String get readingConfirmYes => 'احفظ برضه';
+
+  @override
+  String get readingConfirmNo => 'عدّل';
 }

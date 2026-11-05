@@ -16,6 +16,7 @@ this file whenever a permission, SDK or network call is added; the M6 cloud feat
 | Home-screen widget with today's doses (first names and medicine names) | `features/medicines/dose_widget.dart`, `home_widget` | No (shown on the home screen) |
 | Reminder notifications (the person's name as entered and the medicine name, visible on the lock screen) | `features/medicines/local_notification_scheduler.dart` | No |
 | Encrypted backup file, shared by the user to a place they choose | `core/backup/`, `share_plus`, `file_picker` | Only where the user sends it, encrypted; we never receive it |
+| Vaccination record and doctor summary PDFs, made on the phone and shared by the user (not encrypted: readable by whoever receives them; a warning says so first) | `features/reports/`, `pdf`, `share_plus` | Only where the user sends it; we never receive it. The file is deleted from the phone after sharing |
 | Call / WhatsApp a doctor, open links | `features/doctors/`, `url_launcher` | Opens the other app; nothing sent by Usra |
 | App version shown in About | `package_info_plus` | No |
 | Accounts, analytics, crash reporting, ads, payments | none in v1 | – |

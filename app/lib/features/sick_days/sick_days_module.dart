@@ -1,0 +1,30 @@
+import 'package:go_router/go_router.dart';
+
+import '../../core/modules/feature_module.dart';
+import 'episode_list_screen.dart';
+import 'episode_screen.dart';
+
+/// Fever and sick days (C8): temperatures, symptoms, medicines given as
+/// the family wrote them, and sourced warning signs. No dose advice.
+class SickDaysModule extends FeatureModule {
+  const SickDaysModule();
+
+  @override
+  String get id => 'sick_days';
+
+  @override
+  List<RouteBase> get routes => [
+    // Opened from a person's page, so it lives under the family tab.
+    GoRoute(
+      path: '/family/:id/sick-days',
+      builder: (_, s) => EpisodeListScreen(profileId: s.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/family/:id/sick-days/:episodeId',
+      builder: (_, s) => EpisodeScreen(
+        profileId: s.pathParameters['id']!,
+        episodeId: s.pathParameters['episodeId']!,
+      ),
+    ),
+  ];
+}

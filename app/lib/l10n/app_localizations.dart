@@ -4945,6 +4945,828 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart.'**
   String get growthNoPrematurity;
+
+  /// No description provided for @reportAppLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Made with Usra (أسرة), a family health app'**
+  String get reportAppLine;
+
+  /// No description provided for @reportGenerated.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated on {date}'**
+  String reportGenerated(String date);
+
+  /// No description provided for @reportPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} of {total}'**
+  String reportPage(int page, int total);
+
+  /// No description provided for @reportVaccinationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccination record'**
+  String get reportVaccinationTitle;
+
+  /// No description provided for @reportVaccinationDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'An informational record made by the family in the Usra app from their own entries. Not an official vaccination certificate: check with the child\'s vaccination card.'**
+  String get reportVaccinationDisclaimer;
+
+  /// No description provided for @reportName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get reportName;
+
+  /// No description provided for @reportRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccination route'**
+  String get reportRoute;
+
+  /// No description provided for @reportRouteGovernment.
+  ///
+  /// In en, this message translates to:
+  /// **'Government (health office)'**
+  String get reportRouteGovernment;
+
+  /// No description provided for @reportRoutePrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private (hexavalent)'**
+  String get reportRoutePrivate;
+
+  /// No description provided for @reportDosesGiven.
+  ///
+  /// In en, this message translates to:
+  /// **'Doses given'**
+  String get reportDosesGiven;
+
+  /// No description provided for @reportNoDosesGiven.
+  ///
+  /// In en, this message translates to:
+  /// **'No doses recorded yet'**
+  String get reportNoDosesGiven;
+
+  /// No description provided for @reportUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming doses'**
+  String get reportUpcoming;
+
+  /// No description provided for @reportNoUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'No doses left on the schedule'**
+  String get reportNoUpcoming;
+
+  /// No description provided for @reportUpcomingOverFive.
+  ///
+  /// In en, this message translates to:
+  /// **'The schedule in Usra follows children until age 5.'**
+  String get reportUpcomingOverFive;
+
+  /// No description provided for @reportColVaccine.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine'**
+  String get reportColVaccine;
+
+  /// No description provided for @reportColDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get reportColDate;
+
+  /// No description provided for @reportColNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get reportColNotes;
+
+  /// No description provided for @reportColDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get reportColDue;
+
+  /// No description provided for @reportOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get reportOverdue;
+
+  /// No description provided for @reportSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health summary for the doctor'**
+  String get reportSummaryTitle;
+
+  /// No description provided for @reportSummaryDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'A summary made by the family in the Usra app from their own records. Informational only: check against the original prescriptions and reports.'**
+  String get reportSummaryDisclaimer;
+
+  /// No description provided for @reportAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get reportAge;
+
+  /// No description provided for @reportSectionBasics.
+  ///
+  /// In en, this message translates to:
+  /// **'Age and blood type'**
+  String get reportSectionBasics;
+
+  /// No description provided for @reportSectionMedicines.
+  ///
+  /// In en, this message translates to:
+  /// **'Current medicines'**
+  String get reportSectionMedicines;
+
+  /// No description provided for @reportSectionVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent doctor visits'**
+  String get reportSectionVisits;
+
+  /// No description provided for @reportSectionLabs.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent lab results'**
+  String get reportSectionLabs;
+
+  /// No description provided for @reportSectionGrowth.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth'**
+  String get reportSectionGrowth;
+
+  /// No description provided for @reportSectionVaccines.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccines'**
+  String get reportSectionVaccines;
+
+  /// No description provided for @reportColMedicine.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine'**
+  String get reportColMedicine;
+
+  /// No description provided for @reportColHowTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'As written by the doctor'**
+  String get reportColHowTaken;
+
+  /// No description provided for @reportColDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor'**
+  String get reportColDoctor;
+
+  /// No description provided for @reportColDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason / diagnosis'**
+  String get reportColDetails;
+
+  /// No description provided for @reportColTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test'**
+  String get reportColTest;
+
+  /// No description provided for @reportColResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get reportColResult;
+
+  /// No description provided for @reportColRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab\'s range'**
+  String get reportColRange;
+
+  /// No description provided for @reportColMeasure.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement'**
+  String get reportColMeasure;
+
+  /// No description provided for @reportColValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get reportColValue;
+
+  /// No description provided for @reportColPercentile.
+  ///
+  /// In en, this message translates to:
+  /// **'WHO percentile'**
+  String get reportColPercentile;
+
+  /// No description provided for @reportAsNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'When needed'**
+  String get reportAsNeeded;
+
+  /// No description provided for @reportSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {date}'**
+  String reportSince(String date);
+
+  /// No description provided for @reportUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'until {date}'**
+  String reportUntil(String date);
+
+  /// No description provided for @reportVaccineProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} doses in the plan given'**
+  String reportVaccineProgress(int done, int total);
+
+  /// No description provided for @reportVaccineNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next vaccine visit'**
+  String get reportVaccineNext;
+
+  /// No description provided for @reportVaccineOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get reportVaccineOverdue;
+
+  /// No description provided for @reportGrowthNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Percentiles from the WHO Child Growth Standards (under 5). Informational, not a diagnosis.'**
+  String get reportGrowthNote;
+
+  /// No description provided for @reportNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing recorded'**
+  String get reportNothing;
+
+  /// No description provided for @memberDoctorSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary for the doctor'**
+  String get memberDoctorSummary;
+
+  /// No description provided for @reportSummaryIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'A short PDF summary to show or send to a doctor. Choose what goes in.'**
+  String get reportSummaryIntro;
+
+  /// No description provided for @reportChooseSections.
+  ///
+  /// In en, this message translates to:
+  /// **'What to include'**
+  String get reportChooseSections;
+
+  /// No description provided for @reportLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language of the PDF'**
+  String get reportLanguage;
+
+  /// No description provided for @reportSharePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Share PDF'**
+  String get reportSharePdf;
+
+  /// No description provided for @reportIncludeNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Include my notes on each dose'**
+  String get reportIncludeNotes;
+
+  /// No description provided for @reportVaccinationShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share vaccination record'**
+  String get reportVaccinationShare;
+
+  /// No description provided for @reportVaccinationIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'A PDF of the doses given and the ones coming up, for a school, nursery or doctor.'**
+  String get reportVaccinationIntro;
+
+  /// No description provided for @reportPickOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose at least one section'**
+  String get reportPickOne;
+
+  /// No description provided for @reportOnPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Made on this phone. The file is deleted from the phone once it\'s shared.'**
+  String get reportOnPhone;
+
+  /// No description provided for @reportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t make the PDF'**
+  String get reportFailed;
+
+  /// No description provided for @reportNeedsBirthDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a date of birth to the profile first.'**
+  String get reportNeedsBirthDate;
+
+  /// No description provided for @reportFlagHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get reportFlagHigh;
+
+  /// No description provided for @reportFlagLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get reportFlagLow;
+
+  /// No description provided for @reportTooLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Too late for this vaccine: ask the doctor'**
+  String get reportTooLate;
+
+  /// No description provided for @reportTooLateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Too late (ask the doctor)'**
+  String get reportTooLateLabel;
+
+  /// No description provided for @reportSimpleIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'A PDF with this person\'s health details, medicines, visits and tests, to show or send to a doctor.'**
+  String get reportSimpleIntro;
+
+  /// No description provided for @memberSickDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Fever & sick days'**
+  String get memberSickDays;
+
+  /// No description provided for @sickDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fever and sick days'**
+  String get sickDaysTitle;
+
+  /// No description provided for @sickDaysEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No sick days yet. When someone gets ill, start one to log temperatures, symptoms and the medicines given.'**
+  String get sickDaysEmpty;
+
+  /// No description provided for @sickDayStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a sick day'**
+  String get sickDayStart;
+
+  /// No description provided for @sickDayOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Still ill'**
+  String get sickDayOngoing;
+
+  /// No description provided for @sickDayEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Over'**
+  String get sickDayEnded;
+
+  /// No description provided for @sickDaySince.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {date}'**
+  String sickDaySince(String date);
+
+  /// No description provided for @sickDayRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String sickDayRange(String start, String end);
+
+  /// No description provided for @sickDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sick day'**
+  String get sickDayTitle;
+
+  /// No description provided for @sickDayStartedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Started'**
+  String get sickDayStartedAt;
+
+  /// No description provided for @sickDayEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as over'**
+  String get sickDayEnd;
+
+  /// No description provided for @sickDayReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Still ill'**
+  String get sickDayReopen;
+
+  /// No description provided for @sickDayDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this sick day'**
+  String get sickDayDelete;
+
+  /// No description provided for @sickDayDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this sick day with its temperatures and medicines given?'**
+  String get sickDayDeleteConfirm;
+
+  /// No description provided for @sickDayTemperatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature'**
+  String get sickDayTemperatures;
+
+  /// No description provided for @sickDayAddReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a temperature'**
+  String get sickDayAddReading;
+
+  /// No description provided for @sickDayNoReadings.
+  ///
+  /// In en, this message translates to:
+  /// **'No temperatures yet.'**
+  String get sickDayNoReadings;
+
+  /// No description provided for @sickDayChartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature chart'**
+  String get sickDayChartTitle;
+
+  /// No description provided for @sickDayChartNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashed line: 38 °C (100.4 °F), where a fever starts.'**
+  String get sickDayChartNote;
+
+  /// No description provided for @sickDaySymptoms.
+  ///
+  /// In en, this message translates to:
+  /// **'Symptoms'**
+  String get sickDaySymptoms;
+
+  /// No description provided for @sickDayMedicines.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicines given'**
+  String get sickDayMedicines;
+
+  /// No description provided for @sickDayAddMedicine.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a medicine given'**
+  String get sickDayAddMedicine;
+
+  /// No description provided for @sickDayNoMedicines.
+  ///
+  /// In en, this message translates to:
+  /// **'No medicines logged.'**
+  String get sickDayNoMedicines;
+
+  /// No description provided for @sickDayNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get sickDayNotes;
+
+  /// No description provided for @sickDayNotesSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes saved'**
+  String get sickDayNotesSaved;
+
+  /// No description provided for @readingValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature'**
+  String get readingValue;
+
+  /// No description provided for @readingCelsius.
+  ///
+  /// In en, this message translates to:
+  /// **'°C'**
+  String get readingCelsius;
+
+  /// No description provided for @readingFahrenheit.
+  ///
+  /// In en, this message translates to:
+  /// **'°F'**
+  String get readingFahrenheit;
+
+  /// No description provided for @readingSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Where it was taken'**
+  String get readingSite;
+
+  /// No description provided for @readingSiteName.
+  ///
+  /// In en, this message translates to:
+  /// **'{site, select, armpit{Armpit} ear{Ear} forehead{Forehead} mouth{Mouth} rectal{Rectal} other{Not said}}'**
+  String readingSiteName(String site);
+
+  /// No description provided for @readingTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get readingTime;
+
+  /// No description provided for @readingDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get readingDate;
+
+  /// No description provided for @readingImplausible.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like a body temperature. Check the number and the unit.'**
+  String get readingImplausible;
+
+  /// No description provided for @readingFever.
+  ///
+  /// In en, this message translates to:
+  /// **'Fever'**
+  String get readingFever;
+
+  /// No description provided for @readingDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this temperature'**
+  String get readingDelete;
+
+  /// No description provided for @givenWhich.
+  ///
+  /// In en, this message translates to:
+  /// **'Which medicine'**
+  String get givenWhich;
+
+  /// No description provided for @givenOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Another medicine (type its name)'**
+  String get givenOther;
+
+  /// No description provided for @givenName.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine name'**
+  String get givenName;
+
+  /// No description provided for @givenAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount given'**
+  String get givenAmount;
+
+  /// No description provided for @givenAmountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'As you\'d write it, e.g. from the box or prescription'**
+  String get givenAmountHint;
+
+  /// No description provided for @givenTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time given'**
+  String get givenTime;
+
+  /// No description provided for @givenFromPrescription.
+  ///
+  /// In en, this message translates to:
+  /// **'From the prescription of {date}'**
+  String givenFromPrescription(String date);
+
+  /// No description provided for @givenRemind.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me at that time'**
+  String get givenRemind;
+
+  /// No description provided for @givenNoInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'No time shown: this medicine has no minimum hours between doses saved. You can add them on the medicine\'s page, as written on the label or by your doctor.'**
+  String get givenNoInterval;
+
+  /// No description provided for @givenDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this entry'**
+  String get givenDelete;
+
+  /// No description provided for @givenRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a medicine or type its name'**
+  String get givenRequired;
+
+  /// No description provided for @nextDoseDiscreetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A reminder from Usra'**
+  String get nextDoseDiscreetTitle;
+
+  /// No description provided for @nextDoseDiscreetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Usra to see it.'**
+  String get nextDoseDiscreetBody;
+
+  /// No description provided for @nextDoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{person}: {medicine}'**
+  String nextDoseTitle(String person, String medicine);
+
+  /// No description provided for @nextDoseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours have passed since the dose you logged. Check other medicines with the same ingredient.'**
+  String nextDoseBody(String hours);
+
+  /// No description provided for @symptomName.
+  ///
+  /// In en, this message translates to:
+  /// **'{symptom, select, cough{Cough} runnyNose{Runny nose} soreThroat{Sore throat} earPain{Ear pain} headache{Headache} vomiting{Vomiting} diarrhea{Diarrhoea} rash{Rash} aches{Body aches} poorFeeding{Eating or drinking less} dehydration{Fewer wet nappies, peeing less or no tears} breathing{Hard to breathe} drowsy{Very drowsy or hard to wake} seizure{Fit (seizure)} rashNotFading{Rash that doesn\'t fade under a glass} stiffNeck{Stiff neck} other{Other}}'**
+  String symptomName(String symptom);
+
+  /// No description provided for @warnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning signs'**
+  String get warnTitle;
+
+  /// No description provided for @warnLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'From what you logged:'**
+  String get warnLogged;
+
+  /// No description provided for @warnEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Call an ambulance (123) now if:'**
+  String get warnEmergency;
+
+  /// No description provided for @warnDoctorNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact a doctor now if:'**
+  String get warnDoctorNow;
+
+  /// No description provided for @warnSign.
+  ///
+  /// In en, this message translates to:
+  /// **'{sign, select, breathing{Hard to breathe, breathing very fast or breathless} seizure{A fit (seizure)} rashGlass{A rash that doesn\'t fade when you press a glass on it} drowsy{Very drowsy or hard to wake, or not responding as usual} stiffNeck{A stiff neck, or light hurts the eyes} skinColour{Blue, grey, very pale or blotchy skin, lips or tongue, or unusually cold hands and feet} confused{Confused, or very agitated and won\'t stop crying} under3Months{Under 3 months old with a temperature of 38 °C (100.4 °F) or higher} months3to6{3 to 6 months old with a temperature of 39 °C (102.2 °F) or higher} longUnder2{Under 2 years old with a fever for more than 24 hours} longChild{2 years or older with a fever for more than 3 days} fiveDays{A fever that has lasted 5 days or more} veryHigh{A temperature above 40 °C (104 °F) more than once} notImproving{A high temperature that isn\'t getting better, or is getting worse} dehydration{Signs of dehydration: fewer wet nappies or peeing less, no tears, sunken eyes, dry mouth} notDrinking{Not drinking, not feeding or breastfeeding, or not acting like themselves} vomitsEverything{Vomits everything, or keeps vomiting} armpitUnder3Months{Under 3 months old with an armpit reading of 37.5 °C (99.5 °F) or higher} lowUnder3Months{Under 3 months old with a temperature below 36 °C (96.8 °F)} other{}}'**
+  String warnSign(String sign);
+
+  /// No description provided for @warnFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'For information only, not a diagnosis. If you\'re worried, contact a doctor or call 123, even if nothing here matches.'**
+  String get warnFooter;
+
+  /// No description provided for @warnSources.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources'**
+  String get warnSources;
+
+  /// No description provided for @warnSourceName.
+  ///
+  /// In en, this message translates to:
+  /// **'{source, select, nhs{NHS (UK): fever in children} aap{American Academy of Pediatrics: when to call the pediatrician} who{WHO: IMCI general danger signs} stlouis{St. Louis Children\'s Hospital: how to take a temperature} womans{Woman\'s Hospital: newborn temperature} other{}}'**
+  String warnSourceName(String source);
+
+  /// No description provided for @warnCallDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'My doctors'**
+  String get warnCallDoctor;
+
+  /// No description provided for @givenHoursAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours after this dose: {time}'**
+  String givenHoursAfter(String hours, String time);
+
+  /// No description provided for @givenCheckIngredient.
+  ///
+  /// In en, this message translates to:
+  /// **'Check other medicines with the same ingredient before giving another dose.'**
+  String get givenCheckIngredient;
+
+  /// No description provided for @medicineMinHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum hours between doses'**
+  String get medicineMinHours;
+
+  /// No description provided for @medicineMinHoursHint.
+  ///
+  /// In en, this message translates to:
+  /// **'As written on the label or by your doctor. Leave empty if it doesn\'t say.'**
+  String get medicineMinHoursHint;
+
+  /// No description provided for @medicineMinHoursInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter hours between 0.5 and 72'**
+  String get medicineMinHoursInvalid;
+
+  /// No description provided for @medicineMinHoursSuggest.
+  ///
+  /// In en, this message translates to:
+  /// **'The instructions say “{phrase}”. Use {hours} hours?'**
+  String medicineMinHoursSuggest(String phrase, String hours);
+
+  /// No description provided for @medicineMinHoursUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Use'**
+  String get medicineMinHoursUse;
+
+  /// No description provided for @medicineMinHoursValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours'**
+  String medicineMinHoursValue(String hours);
+
+  /// No description provided for @warnArmpitNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Armpit readings run lower. If your baby feels hot or seems unwell, call the doctor even below 38 °C.'**
+  String get warnArmpitNote;
+
+  /// No description provided for @warnNoBirthDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a date of birth to see the signs for this age.'**
+  String get warnNoBirthDate;
+
+  /// No description provided for @readingConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Is this right?'**
+  String get readingConfirmTitle;
+
+  /// No description provided for @readingConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} is a very unusual body temperature. Check the thermometer and the unit.'**
+  String readingConfirmBody(String value);
+
+  /// No description provided for @readingConfirmYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Save anyway'**
+  String get readingConfirmYes;
+
+  /// No description provided for @readingConfirmNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Change it'**
+  String get readingConfirmNo;
 }
 
 class _AppLocalizationsDelegate

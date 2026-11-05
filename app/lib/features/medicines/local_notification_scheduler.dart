@@ -320,8 +320,9 @@ NotificationDetails _details(PlannedReminder r, {bool silent = false}) =>
         ],
       ),
       iOS: DarwinNotificationDetails(
-        // A vaccine visit has no buttons: no category.
-        categoryIdentifier: r.isVaccine
+        // Vaccine visits and next-dose reminders have no buttons: no
+        // category.
+        categoryIdentifier: !r.hasButtons
             ? null
             : r.discreet
             ? _discreetCategory

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,6 +17,7 @@ import '../doctors/doctors_providers.dart';
 import '../scan/scan_medicine_screen.dart';
 import 'dose_schedule.dart';
 import 'medicine_text.dart';
+import 'min_hours.dart';
 import 'medicines_providers.dart';
 
 /// A photo in the form: already saved ([picked] false), or just picked and
@@ -51,6 +53,10 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
   final _name = TextEditingController();
   final _strength = TextEditingController();
   final _instructions = TextEditingController();
+
+  /// Typed from the label or the doctor; the app only ever suggests a
+  /// figure read from the instructions for the family to accept.
+  final _minHours = TextEditingController();
   final _amount = TextEditingController();
   final _everyN = TextEditingController(text: '2');
   String? _form;
@@ -69,6 +75,9 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
   @override
   void initState() {
     super.initState();
+    // The suggestion follows the instructions as they're typed.
+    _instructions.addListener(_rebuild);
+    _minHours.addListener(_rebuild);
     if (widget.medicineId == null) {
       _loaded = true;
     } else {
@@ -86,6 +95,9 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
         _name.text = m.name;
         _strength.text = m.strength ?? '';
         _instructions.text = m.instructions ?? '';
+        if (m.minHoursBetweenDoses case final h?) {
+          _minHours.text = formatHours(h, 'en');
+        }
         _form = m.form;
         _doctorId = m.doctorId;
         _startOn = storedDay(m.startOn);
@@ -113,7 +125,14 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
 
   @override
   void dispose() {
-    for (final c in [_name, _strength, _instructions, _amount, _everyN]) {
+    for (final c in [
+      _name,
+      _strength,
+      _instructions,
+      _minHours,
+      _amount,
+      _everyN,
+    ]) {
       c.dispose();
     }
     // Picked but never saved: don't leave copies in the cache.
@@ -122,6 +141,13 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
     }
     super.dispose();
   }
+
+  void _rebuild() {
+    if (mounted) setState(() {});
+  }
+
+  bool get _minHoursInvalid =>
+      _minHours.text.trim().isNotEmpty && parseMinHours(_minHours.text) == null;
 
   int? get _everyNValue {
     final n = parseLocalizedNumber(_everyN.text);
@@ -198,6 +224,7 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
     final invalid =
         _name.text.trim().isEmpty ||
         _endBeforeStart ||
+        _minHoursInvalid ||
         (_times.isNotEmpty && _repeat == _Repeat.weekdays && _weekdays == 0) ||
         (_times.isNotEmpty &&
             _repeat == _Repeat.everyN &&
@@ -226,6 +253,7 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
         strength: _strength.text,
         form: _form,
         instructions: _instructions.text,
+        minHoursBetweenDoses: Value(parseMinHours(_minHours.text)),
         doctorId: _doctorId,
         startOn: _startOn,
         endOn: _endOn,
@@ -389,6 +417,13 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
                   l.medicineInstructions,
                   hint: l.medicineInstructionsHint,
                   maxLines: 4,
+                ),
+                _MinHoursField(
+                  controller: _minHours,
+                  instructions: _instructions.text,
+                  error: _showErrors && _minHoursInvalid
+                      ? l.medicineMinHoursInvalid
+                      : null,
                 ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
@@ -610,6 +645,68 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
                 ),
               ],
             ),
+    );
+  }
+}
+
+/// "Minimum hours between doses": typed by the family. A figure read from
+/// the instructions is only offered, with the words it came from, and
+/// fills the field only when the family taps Use.
+class _MinHoursField extends StatelessWidget {
+  const _MinHoursField({
+    required this.controller,
+    required this.instructions,
+    this.error,
+  });
+
+  final TextEditingController controller;
+  final String instructions;
+  final String? error;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final suggestion = controller.text.trim().isEmpty
+        ? suggestMinHours(instructions)
+        : null;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            key: const ValueKey('medicine-min-hours'),
+            controller: controller,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: l.medicineMinHours,
+              helperText: l.medicineMinHoursHint,
+              helperMaxLines: 3,
+              errorText: error,
+            ),
+          ),
+          if (suggestion != null)
+            Card(
+              key: const ValueKey('medicine-min-hours-suggestion'),
+              margin: const EdgeInsets.only(top: 8),
+              child: ListTile(
+                title: Text(
+                  l.medicineMinHoursSuggest(
+                    suggestion.phrase,
+                    formatHours(suggestion.hours, locale),
+                  ),
+                ),
+                trailing: TextButton(
+                  key: const ValueKey('medicine-min-hours-use'),
+                  onPressed: () =>
+                      controller.text = formatHours(suggestion.hours, 'en'),
+                  child: Text(l.medicineMinHoursUse),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

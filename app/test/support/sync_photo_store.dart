@@ -70,6 +70,14 @@ class SyncSharedPhotoCache extends SharedPhotoCache {
   }
 
   @override
+  Future<XFile> writeOut(String name, Uint8List bytes, String mimeType) async {
+    dir.createSync(recursive: true);
+    final file = File(p.join(dir.path, p.basename(name)))
+      ..writeAsBytesSync(bytes);
+    return XFile(file.path, mimeType: mimeType);
+  }
+
+  @override
   Future<void> clearCopies() async {
     if (dir.existsSync()) dir.deleteSync(recursive: true);
   }

@@ -105,6 +105,20 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   interval is the one the person reads off the prescription, the times
   stay editable, and the form says to check them against it. The only
   arithmetic is calendar days (a course's last day, "day 3 of 7").
+  Sick days (C8): the amount given is the family's own words, never
+  filled in. "N hours after this dose: <time>" (and its optional
+  reminder) comes only from "Minimum hours between doses", a field the
+  family types on the medicine from the label or the doctor; each entry
+  keeps the hours it was saved with. The app may offer a figure read from
+  the instructions, with the words it came from, only when there is
+  exactly one (never a range, an alternative or a daily limit), and only
+  fills the field when the family taps Use. The text is factual and says
+  to check other medicines with the same ingredient. Its reminder has no
+  Taken button and, in discreet mode, reads "A reminder from Usra" with
+  nothing named; its payload holds only the sick day and person ids.
+  Fever warning signs are informational, cited and say to contact a
+  doctor or call 123
+  (`docs/research/fever-warning-signs.md`, needs medical review).
 - **Widget**: first name and medicine name only, no strength or condition;
   in discreet mode "Dose due" with no name and no Taken button (a tap
   opens the app).
@@ -145,6 +159,17 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   protection, with "Don't ask again" (all shares go through
   `shareStoredPhotos`). `lib/core/security/sensitive_clipboard.dart`,
   `share_warning.dart`.
+- **PDF reports (C4, C10)**: the vaccination record and the doctor
+  summary are made on the phone with the `pdf` package (no network, no
+  print service), from the records already in the database, with only the
+  sections the user picks. Sharing goes through the same warning as photos.
+  The file is written to the share folder in the cache (`usra-share/`),
+  deleted when the sheet returns, and otherwise by the start-up sweep and
+  the wipe, like decrypted photo copies. File names say what it is, never
+  whose (`usra-doctor-summary.pdf`); the PDF's properties carry no name or
+  subject. Errors log a fixed event and the error type only. A shared PDF
+  is not encrypted: whoever receives it can read it, which the warning
+  says. `lib/features/reports/`.
 - **Rooted / jailbroken phone (S8)**: checked on the phone, nothing sent:
   Android `su` binaries (fixed paths and `PATH`), Magisk paths, test-keys
   builds; iOS Cydia/Sileo/Zebra, `/var/jb` and other jailbreak files, a

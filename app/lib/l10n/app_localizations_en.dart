@@ -3033,4 +3033,532 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get growthNoPrematurity =>
       'Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart.';
+
+  @override
+  String get reportAppLine => 'Made with Usra (أسرة), a family health app';
+
+  @override
+  String reportGenerated(String date) {
+    return 'Generated on $date';
+  }
+
+  @override
+  String reportPage(int page, int total) {
+    return 'Page $page of $total';
+  }
+
+  @override
+  String get reportVaccinationTitle => 'Vaccination record';
+
+  @override
+  String get reportVaccinationDisclaimer =>
+      'An informational record made by the family in the Usra app from their own entries. Not an official vaccination certificate: check with the child\'s vaccination card.';
+
+  @override
+  String get reportName => 'Name';
+
+  @override
+  String get reportRoute => 'Vaccination route';
+
+  @override
+  String get reportRouteGovernment => 'Government (health office)';
+
+  @override
+  String get reportRoutePrivate => 'Private (hexavalent)';
+
+  @override
+  String get reportDosesGiven => 'Doses given';
+
+  @override
+  String get reportNoDosesGiven => 'No doses recorded yet';
+
+  @override
+  String get reportUpcoming => 'Upcoming doses';
+
+  @override
+  String get reportNoUpcoming => 'No doses left on the schedule';
+
+  @override
+  String get reportUpcomingOverFive =>
+      'The schedule in Usra follows children until age 5.';
+
+  @override
+  String get reportColVaccine => 'Vaccine';
+
+  @override
+  String get reportColDate => 'Date';
+
+  @override
+  String get reportColNotes => 'Notes';
+
+  @override
+  String get reportColDue => 'Due';
+
+  @override
+  String get reportOverdue => 'Overdue';
+
+  @override
+  String get reportSummaryTitle => 'Health summary for the doctor';
+
+  @override
+  String get reportSummaryDisclaimer =>
+      'A summary made by the family in the Usra app from their own records. Informational only: check against the original prescriptions and reports.';
+
+  @override
+  String get reportAge => 'Age';
+
+  @override
+  String get reportSectionBasics => 'Age and blood type';
+
+  @override
+  String get reportSectionMedicines => 'Current medicines';
+
+  @override
+  String get reportSectionVisits => 'Recent doctor visits';
+
+  @override
+  String get reportSectionLabs => 'Recent lab results';
+
+  @override
+  String get reportSectionGrowth => 'Growth';
+
+  @override
+  String get reportSectionVaccines => 'Vaccines';
+
+  @override
+  String get reportColMedicine => 'Medicine';
+
+  @override
+  String get reportColHowTaken => 'As written by the doctor';
+
+  @override
+  String get reportColDoctor => 'Doctor';
+
+  @override
+  String get reportColDetails => 'Reason / diagnosis';
+
+  @override
+  String get reportColTest => 'Test';
+
+  @override
+  String get reportColResult => 'Result';
+
+  @override
+  String get reportColRange => 'Lab\'s range';
+
+  @override
+  String get reportColMeasure => 'Measurement';
+
+  @override
+  String get reportColValue => 'Value';
+
+  @override
+  String get reportColPercentile => 'WHO percentile';
+
+  @override
+  String get reportAsNeeded => 'When needed';
+
+  @override
+  String reportSince(String date) {
+    return 'Since $date';
+  }
+
+  @override
+  String reportUntil(String date) {
+    return 'until $date';
+  }
+
+  @override
+  String reportVaccineProgress(int done, int total) {
+    return '$done of $total doses in the plan given';
+  }
+
+  @override
+  String get reportVaccineNext => 'Next vaccine visit';
+
+  @override
+  String get reportVaccineOverdue => 'Overdue';
+
+  @override
+  String get reportGrowthNote =>
+      'Percentiles from the WHO Child Growth Standards (under 5). Informational, not a diagnosis.';
+
+  @override
+  String get reportNothing => 'Nothing recorded';
+
+  @override
+  String get memberDoctorSummary => 'Summary for the doctor';
+
+  @override
+  String get reportSummaryIntro =>
+      'A short PDF summary to show or send to a doctor. Choose what goes in.';
+
+  @override
+  String get reportChooseSections => 'What to include';
+
+  @override
+  String get reportLanguage => 'Language of the PDF';
+
+  @override
+  String get reportSharePdf => 'Share PDF';
+
+  @override
+  String get reportIncludeNotes => 'Include my notes on each dose';
+
+  @override
+  String get reportVaccinationShare => 'Share vaccination record';
+
+  @override
+  String get reportVaccinationIntro =>
+      'A PDF of the doses given and the ones coming up, for a school, nursery or doctor.';
+
+  @override
+  String get reportPickOne => 'Choose at least one section';
+
+  @override
+  String get reportOnPhone =>
+      'Made on this phone. The file is deleted from the phone once it\'s shared.';
+
+  @override
+  String get reportFailed => 'Couldn\'t make the PDF';
+
+  @override
+  String get reportNeedsBirthDate =>
+      'Add a date of birth to the profile first.';
+
+  @override
+  String get reportFlagHigh => 'High';
+
+  @override
+  String get reportFlagLow => 'Low';
+
+  @override
+  String get reportTooLate => 'Too late for this vaccine: ask the doctor';
+
+  @override
+  String get reportTooLateLabel => 'Too late (ask the doctor)';
+
+  @override
+  String get reportSimpleIntro =>
+      'A PDF with this person\'s health details, medicines, visits and tests, to show or send to a doctor.';
+
+  @override
+  String get memberSickDays => 'Fever & sick days';
+
+  @override
+  String get sickDaysTitle => 'Fever and sick days';
+
+  @override
+  String get sickDaysEmpty =>
+      'No sick days yet. When someone gets ill, start one to log temperatures, symptoms and the medicines given.';
+
+  @override
+  String get sickDayStart => 'Start a sick day';
+
+  @override
+  String get sickDayOngoing => 'Still ill';
+
+  @override
+  String get sickDayEnded => 'Over';
+
+  @override
+  String sickDaySince(String date) {
+    return 'Since $date';
+  }
+
+  @override
+  String sickDayRange(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String get sickDayTitle => 'Sick day';
+
+  @override
+  String get sickDayStartedAt => 'Started';
+
+  @override
+  String get sickDayEnd => 'Mark as over';
+
+  @override
+  String get sickDayReopen => 'Still ill';
+
+  @override
+  String get sickDayDelete => 'Delete this sick day';
+
+  @override
+  String get sickDayDeleteConfirm =>
+      'Delete this sick day with its temperatures and medicines given?';
+
+  @override
+  String get sickDayTemperatures => 'Temperature';
+
+  @override
+  String get sickDayAddReading => 'Add a temperature';
+
+  @override
+  String get sickDayNoReadings => 'No temperatures yet.';
+
+  @override
+  String get sickDayChartTitle => 'Temperature chart';
+
+  @override
+  String get sickDayChartNote =>
+      'Dashed line: 38 °C (100.4 °F), where a fever starts.';
+
+  @override
+  String get sickDaySymptoms => 'Symptoms';
+
+  @override
+  String get sickDayMedicines => 'Medicines given';
+
+  @override
+  String get sickDayAddMedicine => 'Add a medicine given';
+
+  @override
+  String get sickDayNoMedicines => 'No medicines logged.';
+
+  @override
+  String get sickDayNotes => 'Notes';
+
+  @override
+  String get sickDayNotesSaved => 'Notes saved';
+
+  @override
+  String get readingValue => 'Temperature';
+
+  @override
+  String get readingCelsius => '°C';
+
+  @override
+  String get readingFahrenheit => '°F';
+
+  @override
+  String get readingSite => 'Where it was taken';
+
+  @override
+  String readingSiteName(String site) {
+    String _temp0 = intl.Intl.selectLogic(site, {
+      'armpit': 'Armpit',
+      'ear': 'Ear',
+      'forehead': 'Forehead',
+      'mouth': 'Mouth',
+      'rectal': 'Rectal',
+      'other': 'Not said',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get readingTime => 'Time';
+
+  @override
+  String get readingDate => 'Date';
+
+  @override
+  String get readingImplausible =>
+      'That doesn\'t look like a body temperature. Check the number and the unit.';
+
+  @override
+  String get readingFever => 'Fever';
+
+  @override
+  String get readingDelete => 'Delete this temperature';
+
+  @override
+  String get givenWhich => 'Which medicine';
+
+  @override
+  String get givenOther => 'Another medicine (type its name)';
+
+  @override
+  String get givenName => 'Medicine name';
+
+  @override
+  String get givenAmount => 'Amount given';
+
+  @override
+  String get givenAmountHint =>
+      'As you\'d write it, e.g. from the box or prescription';
+
+  @override
+  String get givenTime => 'Time given';
+
+  @override
+  String givenFromPrescription(String date) {
+    return 'From the prescription of $date';
+  }
+
+  @override
+  String get givenRemind => 'Remind me at that time';
+
+  @override
+  String get givenNoInterval =>
+      'No time shown: this medicine has no minimum hours between doses saved. You can add them on the medicine\'s page, as written on the label or by your doctor.';
+
+  @override
+  String get givenDelete => 'Delete this entry';
+
+  @override
+  String get givenRequired => 'Pick a medicine or type its name';
+
+  @override
+  String get nextDoseDiscreetTitle => 'A reminder from Usra';
+
+  @override
+  String get nextDoseDiscreetBody => 'Open Usra to see it.';
+
+  @override
+  String nextDoseTitle(String person, String medicine) {
+    return '$person: $medicine';
+  }
+
+  @override
+  String nextDoseBody(String hours) {
+    return '$hours hours have passed since the dose you logged. Check other medicines with the same ingredient.';
+  }
+
+  @override
+  String symptomName(String symptom) {
+    String _temp0 = intl.Intl.selectLogic(symptom, {
+      'cough': 'Cough',
+      'runnyNose': 'Runny nose',
+      'soreThroat': 'Sore throat',
+      'earPain': 'Ear pain',
+      'headache': 'Headache',
+      'vomiting': 'Vomiting',
+      'diarrhea': 'Diarrhoea',
+      'rash': 'Rash',
+      'aches': 'Body aches',
+      'poorFeeding': 'Eating or drinking less',
+      'dehydration': 'Fewer wet nappies, peeing less or no tears',
+      'breathing': 'Hard to breathe',
+      'drowsy': 'Very drowsy or hard to wake',
+      'seizure': 'Fit (seizure)',
+      'rashNotFading': 'Rash that doesn\'t fade under a glass',
+      'stiffNeck': 'Stiff neck',
+      'other': 'Other',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get warnTitle => 'Warning signs';
+
+  @override
+  String get warnLogged => 'From what you logged:';
+
+  @override
+  String get warnEmergency => 'Call an ambulance (123) now if:';
+
+  @override
+  String get warnDoctorNow => 'Contact a doctor now if:';
+
+  @override
+  String warnSign(String sign) {
+    String _temp0 = intl.Intl.selectLogic(sign, {
+      'breathing': 'Hard to breathe, breathing very fast or breathless',
+      'seizure': 'A fit (seizure)',
+      'rashGlass': 'A rash that doesn\'t fade when you press a glass on it',
+      'drowsy': 'Very drowsy or hard to wake, or not responding as usual',
+      'stiffNeck': 'A stiff neck, or light hurts the eyes',
+      'skinColour': 'Blue, grey, very pale or blotchy skin, lips or tongue, or unusually cold hands and feet',
+      'confused': 'Confused, or very agitated and won\'t stop crying',
+      'under3Months':
+          'Under 3 months old with a temperature of 38 °C (100.4 °F) or higher',
+      'months3to6':
+          '3 to 6 months old with a temperature of 39 °C (102.2 °F) or higher',
+      'longUnder2': 'Under 2 years old with a fever for more than 24 hours',
+      'longChild': '2 years or older with a fever for more than 3 days',
+      'fiveDays': 'A fever that has lasted 5 days or more',
+      'veryHigh': 'A temperature above 40 °C (104 °F) more than once',
+      'notImproving':
+          'A high temperature that isn\'t getting better, or is getting worse',
+      'dehydration': 'Signs of dehydration: fewer wet nappies or peeing less, no tears, sunken eyes, dry mouth',
+      'notDrinking': 'Not drinking, not feeding or breastfeeding, or not acting like themselves',
+      'vomitsEverything': 'Vomits everything, or keeps vomiting',
+      'armpitUnder3Months': 'Under 3 months old with an armpit reading of 37.5 °C (99.5 °F) or higher',
+      'lowUnder3Months':
+          'Under 3 months old with a temperature below 36 °C (96.8 °F)',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get warnFooter =>
+      'For information only, not a diagnosis. If you\'re worried, contact a doctor or call 123, even if nothing here matches.';
+
+  @override
+  String get warnSources => 'Sources';
+
+  @override
+  String warnSourceName(String source) {
+    String _temp0 = intl.Intl.selectLogic(source, {
+      'nhs': 'NHS (UK): fever in children',
+      'aap': 'American Academy of Pediatrics: when to call the pediatrician',
+      'who': 'WHO: IMCI general danger signs',
+      'stlouis': 'St. Louis Children\'s Hospital: how to take a temperature',
+      'womans': 'Woman\'s Hospital: newborn temperature',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get warnCallDoctor => 'My doctors';
+
+  @override
+  String givenHoursAfter(String hours, String time) {
+    return '$hours hours after this dose: $time';
+  }
+
+  @override
+  String get givenCheckIngredient =>
+      'Check other medicines with the same ingredient before giving another dose.';
+
+  @override
+  String get medicineMinHours => 'Minimum hours between doses';
+
+  @override
+  String get medicineMinHoursHint =>
+      'As written on the label or by your doctor. Leave empty if it doesn\'t say.';
+
+  @override
+  String get medicineMinHoursInvalid => 'Enter hours between 0.5 and 72';
+
+  @override
+  String medicineMinHoursSuggest(String phrase, String hours) {
+    return 'The instructions say “$phrase”. Use $hours hours?';
+  }
+
+  @override
+  String get medicineMinHoursUse => 'Use';
+
+  @override
+  String medicineMinHoursValue(String hours) {
+    return '$hours hours';
+  }
+
+  @override
+  String get warnArmpitNote =>
+      'Armpit readings run lower. If your baby feels hot or seems unwell, call the doctor even below 38 °C.';
+
+  @override
+  String get warnNoBirthDate =>
+      'Add a date of birth to see the signs for this age.';
+
+  @override
+  String get readingConfirmTitle => 'Is this right?';
+
+  @override
+  String readingConfirmBody(String value) {
+    return '$value is a very unusual body temperature. Check the thermometer and the unit.';
+  }
+
+  @override
+  String get readingConfirmYes => 'Save anyway';
+
+  @override
+  String get readingConfirmNo => 'Change it';
 }
