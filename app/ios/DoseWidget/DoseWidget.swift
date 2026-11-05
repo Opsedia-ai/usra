@@ -16,6 +16,11 @@ private let dataKey = "dose_widget_snapshot"
 private let openURL = URL(string: "usra://widget/medicines?homeWidget")!
 private let shown = 3
 
+/// Gallery and fallback text in the phone's language (ar.lproj / en.lproj).
+/// Once the app has published a snapshot, its own title and texts win.
+private func text(_ key: String) -> String { NSLocalizedString(key, comment: "") }
+private let phoneIsArabic = Bundle.main.preferredLocalizations.first == "ar"
+
 struct WidgetDose: Decodable {
   let at: Int64
   let until: Int64
@@ -65,8 +70,8 @@ struct DoseEntry: TimelineEntry {
 struct DoseProvider: TimelineProvider {
   func placeholder(in context: Context) -> DoseEntry {
     DoseEntry(
-      date: Date(), title: "أدوية النهارده", rtl: true,
-      lines: ["٨:٠٠ م · عمر · باراسيتامول"], message: "")
+      date: Date(), title: text("widget.title"), rtl: phoneIsArabic,
+      lines: [text("widget.sample")], message: "")
   }
 
   func getSnapshot(in context: Context, completion: @escaping (DoseEntry) -> Void) {
@@ -94,8 +99,9 @@ struct DoseProvider: TimelineProvider {
   private func entry(at date: Date, _ snapshot: WidgetSnapshot?) -> DoseEntry {
     guard let s = snapshot, date < s.validUntilDate else {
       return DoseEntry(
-        date: date, title: snapshot?.title ?? "أدوية النهارده", rtl: snapshot?.rtl ?? true,
-        lines: [], message: snapshot?.stale ?? "افتح أسرة عشان نحدّث الأدوية")
+        date: date, title: snapshot?.title ?? text("widget.title"),
+        rtl: snapshot?.rtl ?? phoneIsArabic,
+        lines: [], message: snapshot?.stale ?? text("widget.stale"))
     }
     let calendar = Calendar.current
     let due = s.doses.filter {
@@ -149,8 +155,8 @@ struct DoseWidget: Widget {
         DoseWidgetView(entry: entry)
       }
     }
-    .configurationDisplayName("أدوية النهارده")
-    .description("مواعيد الأدوية الجاية للعيلة")
+    .configurationDisplayName(text("widget.title"))
+    .description(text("widget.description"))
     .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
   }
 }

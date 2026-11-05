@@ -1,0 +1,6 @@
+/* Same text as Android (values/dose_widget_strings.xml) and the app's ARB files. */
+"widget.title" = "أدوية النهارده";
+"widget.description" = "مواعيد الأدوية الجاية للعيلة";
+"widget.stale" = "افتح أسرة عشان نحدّث الأدوية";
+/* Sample line in the widget gallery only. */
+"widget.sample" = "٨:٠٠ م · عمر · باراسيتامول";
