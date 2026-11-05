@@ -44,7 +44,7 @@ supabase/
 | Table | Holds | Who can read | Who can write |
 | --- | --- | --- | --- |
 | `accounts` | 1:1 with `auth.users`: country, locale | own row | own `country`, `locale` |
-| `devices` | `kind` phone / recovery, platform, app version, X25519 + Ed25519 public keys (immutable), `status` pending / approved / revoked, the session that registered it | own | insert phones (keys, platform, version); update `app_version`, `last_seen_at` of this session's own device; delete own device, others only from an approved device. Status only through the device functions below |
+| `devices` | `kind` phone / recovery, platform, app version, X25519 + Ed25519 public keys (immutable), `status` pending / approved / revoked, the session that registered it, when a session was first bound | own | insert phones (keys, platform, version); update `app_version`, `last_seen_at` of this session's own device; delete only pending phones (approved, revoked and recovery devices are revoked, never deleted, except with the account); `revoke_own_device()` for sign-out. Status only through the device functions below |
 | `device_sessions` | Auth session id → phone (one live session per phone) | nobody | service role (`bind-device`) |
 | `device_challenges` | single-use server nonces (purpose, user, session, device, 5 minutes) | nobody | `issue_device_challenge()`; used up by the sync functions |
 | `account_recovery` | recovery salt, Argon2id settings (bounded), recovery device | own (SMS-only sessions too) | `set_account_recovery()` (approved device) |
@@ -57,7 +57,7 @@ supabase/
 | `purchase_events` | processed RevenueCat event ids (idempotency) | nobody | service role |
 | `families` | creator (null once deleted), current key version, rotation pending | members on an approved device | create: a genesis log entry; delete: `delete_family()` (owner, approved device) |
 | `family_members` | membership, roles (owner, guardian, cared_for, viewer; one owner), `status` active / reset | members on an approved device | only through the family log |
-| `family_devices` | the log's current devices (phones and recovery devices) of each member | members on an approved device | only through the family log |
+| `family_devices` | exact mirror of the devices each family's log lists, with a `revoked_seq` marker once its `revoke_device` entry lands | members on an approved device | only through the family log |
 | `family_invites` | role, invite lookup hash, expiry, accepted / used / revoked, the invitee's device records and MAC | owner on an approved device | `create_family_invite()`, `revoke_family_invite()`, `accept_family_invite()` |
 | `family_log` | signed, hash-chained membership log (`hash = sha256(entry)`) | members on an approved device | `append-family-log` (compare-and-set on the head) |
 | `family_epochs` | per key version: commitment `KC_v`, history blob, log seq | current devices of the family | only through `rotate_key` / genesis |
@@ -111,13 +111,31 @@ against `device_sessions` itself.
   purpose and the device, valid 5 minutes; 20 per session per hour.
   `bind`: any session, for its own phone. `approve`: from an approved phone,
   for a pending phone of the account. `recover`: from the session that
-  registered (or is bound to) the pending phone; 5 per account per day.
+  registered (or is bound to) the pending phone; 5 per phone per day (per
+  phone, so an SMS-only session can't use up the real phone's tries; a guess
+  at a ~100-bit recovery key gains nothing anyway).
+- **A session's own device.** A bound session acts only for the phone it is
+  bound to. A session not bound acts only for a pending phone it registered
+  that was never bound. A session that lost its binding (its phone revoked, or
+  re-bound to a newer session) acts for nothing, and the server ends it
+  (`auth.sessions` and its refresh tokens), so a stolen phone's leftover
+  session can't delete or touch anything. A new phone therefore binds its
+  session while still pending, before it is approved and reads its pairing
+  bundle.
 - **Binding and re-registration** (`bind-device`). The phone signs
   `"usra/v1/bind-session" || 0x00 || session_id (16) || nonce (32)`. Binding a
   session unbinds the phone's older sessions, so after a lost session the app
   binds its existing device row again instead of registering a new one.
   `enroll: true` lets the account's very first phone approve itself (once
-  ever, `accounts.sync_enrolled_at`). Recovery devices never get a session.
+  ever, `accounts.sync_enrolled_at`; after a completed reset, only the phone
+  that started it). Recovery devices never get a session.
+- **Revoking.** Approved and recovery devices are never deleted while the
+  account exists (a trigger answers `revoke_instead`). Sign-out with sync calls
+  `revoke_own_device(device)`. Revoking ends the device's Auth sessions, drops
+  its push tokens, wraps and beacons, and flags a rotation in every family
+  whose log lists it; each family's list changes only when its log gets the
+  `revoke_device` entry, and a rotation is refused (`revoked_device_listed`)
+  until then.
 - **Approving** (`approve-device`, ways 1 and 2). The approving phone signs
   `"usra/v1/approve-device" || 0x00 || user_id || device_id || dkx || dsig ||
   nonce` over the keys the server holds for the new phone. With a comparison
@@ -128,9 +146,9 @@ against `device_sessions` itself.
   with `pairing_id`. The optional `bundle` waits in `pairing_bundles` for the
   new phone's session. Revoked is final; device ids are never reused.
 - **Recovery** (`recover-device`, way 3). `set_account_recovery(salt, kdf,
-  kx, sig)` from an approved phone creates the recovery device (a `devices` row
-  of kind `recovery`, approved by that phone) and revokes the previous one,
-  which flags a key rotation. A pending phone reads the salt and KDF settings,
+  kx, sig)` from an approved phone (3 a day) creates the recovery device (a
+  `devices` row of kind `recovery`, approved by that phone, registered by no
+  session) and revokes the previous one, which flags a key rotation. A pending phone reads the salt and KDF settings,
   derives the keys and signs the same approve-device message with the
   recovery device's key. In the log it then appends `add_device` for itself,
   signed by the recovery device, and reads the recovery device's wrap.
@@ -145,6 +163,9 @@ against `device_sessions` itself.
   the fields of its type) and checks
   `Ed25519("usra/v1/log-entry" || 0x00 || entry)` with the key of its `by`
   device, which must be the caller's phone or the caller's recovery device.
+  Before locking the family or answering with its head, the signer's account
+  must be an active member (`signer_not_member`, the same answer as for a
+  family that doesn't exist).
   `append_family_log` repeats the strict parse and appends only on top of the
   current head (`head_mismatch` with the server's head otherwise). The signer
   must be a current device of the family, of an active member. A genesis
@@ -152,7 +173,8 @@ against `device_sessions` itself.
   included) and `KC_1`. Entry fields, by type: `genesis` (`user`, `devices`,
   `key_version`, `kc`), `add_member` (`user`, `role`, `devices`, `invite`,
   `mac`, and `profile` for `cared_for`), `change_role` (`user`, `role`,
-  `profile`?), `transfer_owner` (`user`), `remove_member` (`user`, `reason`),
+  `profile`?), `transfer_owner` (`user`), `remove_member` (`user`, `reason`;
+  `account_deleted` only for an account that is gone and that this log added),
   `add_device` (`user`, `device` record), `revoke_device` (`user`, `device`
   id), `rotate_key` (`key_version`, `kc`, `history`, `recipients`). A device
   record is `{ id, user, kind, kx, sig }` and must match an approved `devices`
@@ -168,9 +190,9 @@ against `device_sessions` itself.
 - **Removing.** `remove_member`: `removed` by the owner, `left` by the member,
   `account_deleted` once the account is gone, `reset` by any member once the
   reset completed; never the owner. `revoke_device` of one's own device is
-  final everywhere; the owner's revocation of another member's device removes
-  it from that family. Either drops its wraps and beacons and flags a
-  rotation.
+  final everywhere; the owner's revocation of another member's device is final
+  in that family (a revoked marker stays, so it can't be added back). Either
+  drops its wraps and beacons there and flags a rotation.
 - **Keys.** `put_family_key_wraps(family, key_version, wraps)` stores wraps of
   the current epoch for devices of the family (existing wraps are kept; a
   phone may delete its own wrap, for example one it can't open).
@@ -221,9 +243,12 @@ The sync functions take binary values as standard base64 (signed JSON inside
 uses base64url) and verify Ed25519 strictly (`_shared/ed25519.ts`: S < L,
 canonical A and R, small-order A and R rejected, cofactorless), with RFC 8032,
 Wycheproof and "Taming the many EdDSAs" vectors in
-`tests/functions/ed25519_test.ts`. A wrong signature is `403 bad_signature`;
-a used, expired or foreign nonce `403 bad_challenge`; database refusals come
-back as their own names (`403 approved_device_required`, `409 already_member`,
+`tests/functions/ed25519_test.ts`. The handlers are tested with a fake
+store (`tests/functions/sync_test.ts`); an end-to-end test through PostgREST
+needs the full local stack (`supabase start` and `functions serve`), which CI
+doesn't run yet. A wrong signature is `403 bad_signature`;
+an unknown signing device answers the same; a used, expired or foreign
+nonce `403 bad_challenge`; database refusals come back as their own names (`403 approved_device_required`, `409 already_member`,
 `429 too_many_recovery_tries`, ...).
 
 ### ai-doctor
@@ -372,7 +397,7 @@ and adds its `devices` row with an X25519 public key. The key pair is per
 account and its private half stays in the phone's secure storage (iOS
 this-device-only, Android backups off), ready for wrapping the family key in
 v2 sync. The session and Auth's PKCE items are in secure storage too. Sign-out
-deletes the device row (best effort) and wipes the session and that
+revokes the device row through `revoke_own_device` (best effort; revoked is final, so signing in again registers a new device) and wipes the session and that
 account's key pair; delete-account does the same after the server delete.
 Both wait for any device setup still running after sign-in. iOS keeps Keychain
 items after the app is deleted, so on the first run of an install the app

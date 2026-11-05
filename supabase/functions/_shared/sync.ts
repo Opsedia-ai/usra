@@ -177,7 +177,7 @@ export interface SyncStore {
     bundle: Uint8Array | null,
     signerId: string,
   ): Promise<Record<string, unknown>>;
-  recoverDevice(session: Session, deviceId: string): Promise<Record<string, unknown>>;
+  recoverDevice(session: Session, deviceId: string, signerId: string): Promise<Record<string, unknown>>;
   /** Ed25519 key of any device, or null if there is no such device. */
   deviceSigningKey(deviceId: string): Promise<Uint8Array | null>;
   appendFamilyLog(args: AppendArgs): Promise<Record<string, unknown>>;
@@ -199,9 +199,11 @@ const STATUS_BY_SQLSTATE: Record<string, number> = {
   "P0002": 404, // unknown_device, unknown_family, pairing_unavailable, ...
   "22023": 400, // bad_entry, entry_mismatch, ...
   "22P02": 400, // a malformed uuid or number inside JSON
+  "22003": 400, // a number out of range
   "23502": 400,
   "23514": 400, // a check constraint (sizes, key lengths)
   "23505": 409, // already_member, already_in_family, a concurrent append
+  "55000": 409, // revoked_device_listed: append its revoke_device entry first
   "54000": 429, // rate limits
 };
 

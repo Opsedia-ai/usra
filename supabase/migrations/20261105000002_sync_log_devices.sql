@@ -167,6 +167,9 @@ alter table public.devices
   add constraint devices_platform_kind check ((kind = 'phone') = (platform is not null));
 comment on column public.devices.kind is
   'phone: an app install. recovery: the key pair derived from the recovery key; never has a session.';
+alter table public.devices add column first_bound_at timestamptz;
+comment on column public.devices.first_bound_at is
+  'When a session was first bound to this phone. Before that, the session that registered it may act for it.';
 
 -- B0's guard, plus: kind is part of the identity.
 create or replace function private.devices_guard()
@@ -223,7 +226,11 @@ as $$
     and d.user_id = p_user and d.status <> 'revoked' and d.kind = 'phone';
 $$;
 
--- Like private.is_session_device(), for a given user and session.
+-- Is p_device "this session's own device"? A bound session: only the phone it
+-- is bound to. A session not bound (yet): only a pending phone it registered
+-- that was never bound to any session. A session that lost its binding (its
+-- phone was revoked, or re-bound to a newer session) gets nothing back, not
+-- even rows it once created.
 create or replace function private.session_may_act_for(p_user uuid, p_session uuid, p_device uuid)
 returns boolean
 language sql
@@ -232,12 +239,41 @@ security definer
 set search_path = ''
 as $$
   select case
+    when p_user is null or p_session is null then false
     when exists (select 1 from public.device_sessions s where s.session_id = p_session)
       then coalesce(p_device = private.bound_device(p_user, p_session), false)
     else exists (select 1 from public.devices d
                  where d.id = p_device and d.user_id = p_user
-                   and d.created_session_id = p_session and d.status <> 'revoked')
+                   and d.created_session_id = p_session
+                   and d.status = 'pending' and d.kind = 'phone' and d.first_bound_at is null)
   end;
+$$;
+
+-- B0's helper, now the same rule as above for the JWT's user and session.
+create or replace function private.is_session_device(p_device uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$ select private.session_may_act_for(auth.uid(), private.jwt_session_id(), p_device); $$;
+
+-- Ends Auth sessions on the server (their refresh tokens go with them), so a
+-- session that lost its phone can't be refreshed. An access token already
+-- issued lives until it expires, with no device rights.
+create or replace function private.end_auth_sessions(p_sessions uuid[])
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if coalesce(cardinality(p_sessions), 0) = 0 then
+    return;
+  end if;
+  delete from auth.refresh_tokens where session_id = any (p_sessions);
+  delete from auth.sessions where id = any (p_sessions);
+end;
 $$;
 
 -- An approved phone bound to this session, or null.
@@ -263,6 +299,7 @@ set search_path = ''
 as $$
 declare
   v_bound uuid;
+  v_old uuid[];
 begin
   perform 1 from public.devices
   where id = p_device and user_id = p_user and status <> 'revoked' and kind = 'phone'
@@ -279,7 +316,12 @@ begin
   if v_bound is distinct from p_device then
     raise exception 'session_already_bound' using errcode = '42501';
   end if;
-  delete from public.device_sessions where device_id = p_device and session_id <> p_session;
+  with gone as (
+    delete from public.device_sessions where device_id = p_device and session_id <> p_session
+    returning session_id)
+  select array_agg(session_id) into v_old from gone;
+  perform private.end_auth_sessions(v_old);
+  update public.devices set first_bound_at = coalesce(first_bound_at, now()) where id = p_device;
 end;
 $$;
 
@@ -313,6 +355,15 @@ begin
     if v_enrolled is not null then
       raise exception 'account_already_enrolled' using errcode = '42501';
     end if;
+    -- After a completed reset, the phone that started it is the one that
+    -- enrols first (a SIM-swapper's later phone can't take its place).
+    if exists (select 1 from public.account_resets r
+               where r.user_id = v_device.user_id and r.completed_at is not null
+                 and r.started_device is not null and r.started_device <> p_device
+                 and r.completed_at = (select max(completed_at) from public.account_resets
+                                       where user_id = v_device.user_id)) then
+      raise exception 'reset_device_only' using errcode = '42501';
+    end if;
     update public.accounts set sync_enrolled_at = now() where id = v_device.user_id;
   else
     perform 1 from public.devices a
@@ -328,6 +379,26 @@ begin
    where id = p_device;
 end;
 $$;
+
+-- Approved, revoked and recovery devices are never deleted (B10): they are
+-- revoked, which flags key rotations and keeps the trail. Pending phones may be
+-- deleted, and every device goes when its account is deleted.
+create or replace function private.devices_no_delete()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if old.status <> 'pending' and exists (select 1 from public.accounts a where a.id = old.user_id) then
+    raise exception 'revoke_instead' using errcode = '42501';
+  end if;
+  return old;
+end;
+$$;
+
+create trigger devices_no_delete before delete on public.devices
+  for each row execute function private.devices_no_delete();
 
 -- ---------------------------------------------------------------------------
 -- 2. Single-use server nonces for device signatures (B2, B3)
@@ -403,14 +474,19 @@ begin
     raise exception 'approved_device_required' using errcode = '42501';
   end if;
   perform 1 from public.accounts where id = v_user for update;
+  if (select count(*) from public.devices
+      where user_id = v_user and kind = 'recovery' and created_at > now() - interval '1 day') >= 3 then
+    raise exception 'too_many_recovery_changes' using errcode = '54000';
+  end if;
 
   select recovery_device_id into v_old from public.account_recovery where user_id = v_user;
 
   if p_kx is null or p_sig is null then
     raise exception 'device_keys_missing' using errcode = '22023';
   end if;
-  insert into public.devices (user_id, kind, platform, public_key, signing_public_key)
-  values (v_user, 'recovery', null, p_kx, p_sig)
+  -- No created_session_id: no session ever acts for the recovery device.
+  insert into public.devices (user_id, kind, platform, public_key, signing_public_key, created_session_id)
+  values (v_user, 'recovery', null, p_kx, p_sig, null)
   returning id into v_new;
   update public.devices
      set status = 'approved', approved_at = now(), approved_by_device = private.session_device()
@@ -510,6 +586,9 @@ begin
   if not private.device_ok() then
     raise exception 'approved_device_required' using errcode = '42501';
   end if;
+  if p_nonce is null or octet_length(p_nonce) <> 32 then
+    raise exception 'bad_nonce' using errcode = '22023';
+  end if;
   update public.pairing_sessions
      set responder_device = private.session_device(), responder_nonce = p_nonce, status = 'responded'
    where id = p_pairing and user_id = v_user and status = 'committed' and expires_at > now()
@@ -605,7 +684,7 @@ grant select, delete on public.pairing_bundles to authenticated;
 --            revoked; also re-registers after a lost session);
 --   approve: from an approved phone, to approve p_device (pending, same user);
 --   recover: from the session that registered or is bound to p_device
---            (pending), to approve it with the recovery device; 5 per account
+--            (pending), to approve it with the recovery device; 5 per phone
 --            per day.
 -- Returns the nonce in base64. At most 20 nonces per session per hour.
 create or replace function public.issue_device_challenge(p_purpose text, p_device uuid)
@@ -656,8 +735,9 @@ begin
     if not found then
       raise exception 'no_recovery' using errcode = 'P0002';
     end if;
+    -- Per phone, so an SMS-only session can't use up another phone's tries.
     if (select count(*) from public.device_challenges
-        where user_id = v_user and purpose = 'recover'
+        where device_id = p_device and purpose = 'recover'
           and created_at > now() - interval '1 day') >= 5 then
       raise exception 'too_many_recovery_tries' using errcode = '54000';
     end if;
@@ -800,7 +880,9 @@ $$;
 -- Service role (recover-device, after checking the recovery device's signature
 -- over the same approve-device message): approves p_device with the recovery
 -- device. Only from the session that registered or is bound to p_device.
-create or replace function public.recover_device_signed(p_user uuid, p_session uuid, p_device uuid)
+create or replace function public.recover_device_signed(
+  p_user uuid, p_session uuid, p_device uuid, p_signer uuid default null
+)
 returns jsonb
 language plpgsql
 security definer
@@ -817,6 +899,10 @@ begin
   where r.user_id = p_user and d.status = 'approved';
   if v_recovery is null then
     raise exception 'no_recovery' using errcode = 'P0002';
+  end if;
+  -- The key the Edge Function checked must still be the recovery device's.
+  if p_signer is not null and p_signer <> v_recovery then
+    raise exception 'approver_changed' using errcode = '42501';
   end if;
   perform public.approve_device(p_device, v_recovery);
   update public.pairing_sessions set status = 'cancelled'
@@ -846,16 +932,20 @@ as $$
   where family_id = p_family and user_id = auth.uid() and status = 'active';
 $$;
 
--- The family log's current devices (phones and recovery devices) of each
--- member, mirrored by append_family_log. Wraps and head beacons hang off it,
--- so removing a device from a family (or its member) drops them too.
+-- An exact mirror of the devices the family log lists (phones and recovery
+-- devices), changed only by log entries: added by genesis / add_member /
+-- add_device, marked revoked (revoked_seq) by revoke_device, dropped when their
+-- member is removed. A revoked marker stays, so that device can never be added
+-- to this family again. An account-wide revocation only marks the device
+-- revoked in `devices`; the family's next rotation then needs a revoke_device
+-- entry first. Wraps and head beacons hang off the rows.
 create table public.family_devices (
-  family_id  uuid not null references public.families (id) on delete cascade,
-  device_id  uuid not null references public.devices (id) on delete cascade,
-  user_id    uuid not null,
-  added_seq  integer not null check (added_seq > 0),
-  primary key (family_id, device_id),
-  foreign key (family_id, user_id) references public.family_members (family_id, user_id) on delete cascade
+  family_id    uuid not null references public.families (id) on delete cascade,
+  device_id    uuid not null references public.devices (id) on delete cascade,
+  user_id      uuid not null,
+  added_seq    integer not null check (added_seq > 0),
+  revoked_seq  integer check (revoked_seq is null or revoked_seq > added_seq),
+  primary key (family_id, device_id)
 );
 
 create index family_devices_device_idx on public.family_devices (device_id);
@@ -883,6 +973,7 @@ as $$
     where fd.family_id = p_family
       and fd.device_id = private.session_device()
       and fd.user_id = auth.uid()
+      and fd.revoked_seq is null
       and m.status = 'active');
 $$;
 
@@ -964,27 +1055,58 @@ set search_path = ''
 as $$
 declare
   v_status text;
-  v_user uuid;
+  v_created uuid;
+  v_sessions uuid[];
 begin
-  select status, user_id into v_status, v_user from public.devices where id = p_device for update;
+  select status, created_session_id into v_status, v_created
+  from public.devices where id = p_device for update;
   if not found then
     raise exception 'unknown_device' using errcode = 'P0002';
   end if;
   if v_status <> 'revoked' then
     update public.devices set status = 'revoked', revoked_at = now() where id = p_device;
   end if;
-  if v_status = 'approved' then
-    update public.families f set rotation_pending = true
-    where exists (select 1 from public.family_members m
-                  where m.family_id = f.id and m.user_id = v_user);
+  -- Every family whose log lists it must rotate (after a revoke_device entry,
+  -- which only the log can add: the per-family list isn't touched here).
+  update public.families f set rotation_pending = true
+  where exists (select 1 from public.family_devices fd
+                where fd.family_id = f.id and fd.device_id = p_device and fd.revoked_seq is null);
+  delete from public.family_key_wraps where recipient_device_id = p_device;
+  delete from public.family_heads where device_id = p_device;
+  -- End its Auth sessions: the bound ones, and the one that registered it
+  -- unless that session is bound to another phone.
+  with gone as (
+    delete from public.device_sessions where device_id = p_device returning session_id)
+  select array_agg(session_id) into v_sessions from gone;
+  if v_created is not null
+     and not exists (select 1 from public.device_sessions where session_id = v_created) then
+    v_sessions := coalesce(v_sessions, '{}') || v_created;
   end if;
-  delete from public.family_devices where device_id = p_device;
-  delete from public.device_sessions where device_id = p_device;
+  perform private.end_auth_sessions(v_sessions);
   delete from public.push_tokens where device_id = p_device;
   delete from public.pairing_bundles where device_id = p_device;
   update public.pairing_sessions set status = 'cancelled'
   where (new_device = p_device or responder_device = p_device)
     and status in ('committed', 'responded', 'revealed');
+end;
+$$;
+
+-- Sign-out with sync (B10): a session revokes its own phone instead of
+-- deleting the row. Revoked is final; the app wipes its keys and session.
+create or replace function public.revoke_own_device(p_device uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'not_authenticated' using errcode = '42501';
+  end if;
+  if not private.is_session_device(p_device) then
+    raise exception 'forbidden' using errcode = '42501';
+  end if;
+  perform public.revoke_device(p_device);
 end;
 $$;
 
@@ -1113,7 +1235,7 @@ begin
   end if;
   if exists (select 1 from public.family_members
              where family_id = v_invite.family_id and user_id = v_user) then
-    return jsonb_build_object('ok', false, 'error', 'already_member');
+    return jsonb_build_object('ok', false, 'error', 'invalid_invite');
   end if;
   if p_mac is null or octet_length(p_mac) <> 32 then
     raise exception 'bad_mac' using errcode = '22023';
@@ -1284,7 +1406,6 @@ begin
     end loop;
     delete from public.account_recovery where user_id = v_reset.user_id;
     update public.family_members set status = 'reset' where user_id = v_reset.user_id;
-    delete from public.family_devices where user_id = v_reset.user_id;
     update public.families f set rotation_pending = true
     where exists (select 1 from public.family_members m
                   where m.family_id = f.id and m.user_id = v_reset.user_id);
@@ -1325,8 +1446,9 @@ begin
        or not private.is_uuid(v_recipient) then
       raise exception 'bad_wraps' using errcode = '22023';
     end if;
-    perform 1 from public.family_devices
-    where family_id = p_family and device_id = v_recipient::uuid;
+    perform 1 from public.family_devices fd join public.devices d on d.id = fd.device_id
+    where fd.family_id = p_family and fd.device_id = v_recipient::uuid
+      and fd.revoked_seq is null and d.status = 'approved';
     if not found then
       raise exception 'recipient_not_in_family' using errcode = '42501';
     end if;
@@ -1448,12 +1570,22 @@ begin
     raise exception 'signer_not_approved' using errcode = '42501';
   end if;
 
+  -- Before locking the family or saying anything about its head: the signer's
+  -- account must be an active member (or, for a new family, it is a genesis).
+  -- A family the signer isn't in looks the same as one that doesn't exist.
+  if exists (select 1 from public.families where id = p_family)
+       <> exists (select 1 from public.family_members m
+                  where m.family_id = p_family and m.user_id = v_signer.user_id and m.status = 'active')
+     or (v_type <> 'genesis' and not exists (select 1 from public.families where id = p_family)) then
+    raise exception 'signer_not_member' using errcode = '42501';
+  end if;
+
   -- Serialises appends and record pushes for this family. A genesis creates
   -- the family (the trigger makes its signer's account the owner).
   select * into v_family from public.families where id = p_family for update;
   if not found then
     if v_type <> 'genesis' then
-      raise exception 'unknown_family' using errcode = 'P0002';
+      raise exception 'signer_not_member' using errcode = '42501';
     end if;
     if private.jstr(v_entry, 'user') is distinct from v_signer.user_id::text then
       raise exception 'forbidden' using errcode = '42501';
@@ -1479,7 +1611,7 @@ begin
   end if;
   if v_type <> 'genesis' then
     perform 1 from public.family_devices
-    where family_id = p_family and device_id = v_signer.id;
+    where family_id = p_family and device_id = v_signer.id and revoked_seq is null;
     if not found then
       raise exception 'signer_not_in_family' using errcode = '42501';
     end if;
@@ -1538,6 +1670,10 @@ begin
                            from jsonb_array_elements(v_invite.invitee_devices) e) then
         raise exception 'invite_devices_mismatch' using errcode = '42501';
       end if;
+      if exists (select 1 from public.family_devices
+                 where family_id = p_family and device_id = any (v_devices) and revoked_seq is not null) then
+        raise exception 'device_revoked_in_family' using errcode = '42501';
+      end if;
       update public.family_invites set used_at = now() where id = v_invite.id;
       insert into public.family_members (family_id, user_id, role)
       values (p_family, v_user, v_role)
@@ -1581,8 +1717,19 @@ begin
       -- Any member may record it (a person confirmed it on their phone), but
       -- only for an account that is really gone. Its membership row went with
       -- the account (and flagged the rotation), so there may be nothing left.
-      if exists (select 1 from public.accounts a where a.id = v_user) then
-        raise exception 'account_exists' using errcode = '42501';
+      -- Its last add_member (or genesis) in this log must be later than its
+      -- last removal. One answer for every refusal, so it isn't an oracle for
+      -- which accounts exist.
+      if exists (select 1 from public.accounts a where a.id = v_user)
+         or coalesce((select max(l.seq) from public.family_log l
+                      where l.family_id = p_family
+                        and convert_from(l.entry, 'UTF8')::jsonb ->> 'user' = v_user::text
+                        and convert_from(l.entry, 'UTF8')::jsonb ->> 'type' in ('genesis', 'add_member')), 0)
+            <= coalesce((select max(l.seq) from public.family_log l
+                         where l.family_id = p_family
+                           and convert_from(l.entry, 'UTF8')::jsonb ->> 'user' = v_user::text
+                           and convert_from(l.entry, 'UTF8')::jsonb ->> 'type' = 'remove_member'), 0) then
+        raise exception 'bad_target' using errcode = '42501';
       end if;
     when 'reset' then
       -- Any member, once a person confirmed it, for an account whose reset
@@ -1606,8 +1753,10 @@ begin
     if v_target.role = 'owner' then
       raise exception 'owner_cannot_be_removed' using errcode = '42501';
     end if;
-    -- The membership delete trigger flags the rotation; its family_devices,
-    -- wraps and beacons cascade.
+    -- Its current devices leave the family (wraps and beacons cascade); revoked
+    -- markers stay. The membership delete trigger flags the rotation.
+    delete from public.family_devices
+    where family_id = p_family and user_id = v_user and revoked_seq is null;
     delete from public.family_members where family_id = p_family and user_id = v_user;
 
   when 'add_device' then
@@ -1615,6 +1764,11 @@ begin
       raise exception 'forbidden' using errcode = '42501';
     end if;
     v_device := private.log_device(v_entry -> 'device', v_user);
+    -- Revoked is final: a device revoked in this family never comes back.
+    if exists (select 1 from public.family_devices
+               where family_id = p_family and device_id = v_device and revoked_seq is not null) then
+      raise exception 'device_revoked_in_family' using errcode = '42501';
+    end if;
     insert into public.family_devices (family_id, device_id, user_id, added_seq)
     values (p_family, v_device, v_user, p_seq)
     on conflict (family_id, device_id) do nothing;
@@ -1630,16 +1784,21 @@ begin
       raise exception 'bad_entry' using errcode = '22023';
     end if;
     v_device := private.jstr(v_entry, 'device')::uuid;
-    perform 1 from public.devices where id = v_device and user_id = v_user;
+    -- Marked revoked in this family (it can't be added back); its wraps and
+    -- beacon here go.
+    update public.family_devices set revoked_seq = p_seq
+    where family_id = p_family and device_id = v_device and user_id = v_user and revoked_seq is null;
     if not found then
-      raise exception 'unknown_device' using errcode = 'P0002';
+      raise exception 'device_not_in_family' using errcode = 'P0002';
     end if;
-    -- A person's own revocation is final everywhere; the owner's revocation of
-    -- someone else's device removes it from this family only.
+    delete from public.family_key_wraps where family_id = p_family and recipient_device_id = v_device;
+    delete from public.family_heads where family_id = p_family and device_id = v_device;
+    -- A person's own revocation is final everywhere (it flags the rotation in
+    -- every family that lists the device); the owner's revocation of someone
+    -- else's device is final in this family.
     if v_user = v_signer.user_id then
       perform public.revoke_device(v_device);
     end if;
-    delete from public.family_devices where family_id = p_family and device_id = v_device;
     update public.families set rotation_pending = true where id = p_family;
 
   when 'rotate_key' then
@@ -1662,10 +1821,16 @@ begin
     end if;
     select array_agg(x order by x) into v_recipients
     from (select (w ->> 'recipient')::uuid x from jsonb_array_elements(p_wraps) w) s;
+    -- A device revoked account-wide but still listed here needs its
+    -- revoke_device entry first, so the server's list stays the log's.
+    if exists (select 1 from public.family_devices fd join public.devices d on d.id = fd.device_id
+               where fd.family_id = p_family and fd.revoked_seq is null and d.status = 'revoked') then
+      raise exception 'revoked_device_listed' using errcode = '55000';
+    end if;
     select array_agg(fd.device_id order by fd.device_id) into v_current
     from public.family_devices fd
     join public.family_members m on m.family_id = fd.family_id and m.user_id = fd.user_id
-    where fd.family_id = p_family and m.status = 'active';
+    where fd.family_id = p_family and fd.revoked_seq is null and m.status = 'active';
     if v_recipients is distinct from v_current
        or private.unb64url(private.jstr(v_entry, 'recipients')) is distinct from
           (select sha256(string_agg(private.uuid_bytes(x), ''::bytea order by x)) from unnest(v_current) x) then
@@ -1807,7 +1972,8 @@ begin
   end if;
   perform 1 from public.family_devices fd
   join public.family_members m on m.family_id = fd.family_id and m.user_id = fd.user_id
-  where fd.family_id = p_family and fd.device_id = v_device and m.status = 'active';
+  where fd.family_id = p_family and fd.device_id = v_device and fd.revoked_seq is null
+    and m.status = 'active';
   if not found then
     raise exception 'forbidden' using errcode = '42501';
   end if;
@@ -1818,7 +1984,7 @@ begin
      or private.jstr(v_beacon, 'family') is distinct from p_family::text
      or private.jstr(v_beacon, 'device') is distinct from v_device::text
      or coalesce(private.jstr(v_beacon, 'at'), '') !~ '^[0-9a-f]{16}$'
-     or v_seq is null or v_seq < 1 then
+     or v_seq is null or v_seq < 1 or v_seq > 2147483647 then
     raise exception 'bad_beacon' using errcode = '22023';
   end if;
   select hash into v_hash from public.family_log where family_id = p_family and seq = v_seq;
@@ -2001,7 +2167,7 @@ begin
     'public.take_device_challenge(uuid, uuid, text, uuid, bytea)',
     'public.bind_device_signed(uuid, uuid, uuid, boolean)',
     'public.approve_device_signed(uuid, uuid, uuid, uuid, bytea, uuid)',
-    'public.recover_device_signed(uuid, uuid, uuid)',
+    'public.recover_device_signed(uuid, uuid, uuid, uuid)',
     'public.device_signing_key(uuid)',
     'public.session_device_key(uuid, uuid)',
     'public.publish_family_head(uuid, uuid, uuid, bytea, bytea)',
@@ -2024,7 +2190,8 @@ begin
     'public.pending_family_invites(uuid)',
     'public.start_account_reset(uuid)',
     'public.cancel_account_reset(uuid)',
-    'public.put_family_key_wraps(uuid, integer, jsonb)'
+    'public.put_family_key_wraps(uuid, integer, jsonb)',
+    'public.revoke_own_device(uuid)'
   ] loop
     execute format('revoke execute on function %s from public, anon', f);
     execute format('grant execute on function %s to authenticated', f);

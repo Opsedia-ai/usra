@@ -158,9 +158,9 @@ class SupabaseAuthGateway implements AuthGateway {
       '\\x${bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}';
 
   @override
-  Future<void> deleteDevice(String deviceId) => _guard(() async {
+  Future<void> revokeDevice(String deviceId) => _guard(() async {
     final client = await _client();
-    await client.from('devices').delete().eq('id', deviceId);
+    await client.rpc('revoke_own_device', params: {'p_device': deviceId});
   });
 
   @override

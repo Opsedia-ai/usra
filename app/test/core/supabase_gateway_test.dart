@@ -127,6 +127,17 @@ void main() {
     },
   );
 
+  test('sign-out revokes the device through the RPC, never a delete', () async {
+    // PostgREST answers a void function with 204 and no body.
+    final g = gateway((r) => http.Response('', 204, request: r));
+    await g.revokeDevice('d0000000-0000-4000-8000-0000000000a1');
+    expect(requests.single.method, 'POST');
+    expect(requests.single.url.path, '/rest/v1/rpc/revoke_own_device');
+    expect(jsonDecode(requests.single.body), {
+      'p_device': 'd0000000-0000-4000-8000-0000000000a1',
+    });
+  });
+
   test(
     'sign-out wipes the phone even when the server is unreachable',
     () async {

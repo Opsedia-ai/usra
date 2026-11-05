@@ -67,7 +67,7 @@ create function pg_temp.rotate(p_seq int, p_by uuid, p_kv int) returns jsonb lan
   with cur as (
     select fd.device_id from public.family_devices fd
     join public.family_members m using (family_id, user_id)
-    where fd.family_id = 'f0000000-0000-4000-8000-00000000000f' and m.status = 'active')
+    where fd.family_id = 'f0000000-0000-4000-8000-00000000000f' and fd.revoked_seq is null and m.status = 'active')
   select public.append_family_log('f0000000-0000-4000-8000-00000000000f', p_seq, pg_temp.head(),
     pg_temp.entry(p_seq, pg_temp.head(), 'rotate_key', p_by, jsonb_build_object(
       'key_version', p_kv, 'kc', pg_temp.b64url(decode(repeat('22', 32), 'hex')),
@@ -350,7 +350,7 @@ select throws_ok($$ select pg_temp.append(3, 'add_member', 'da000000-0000-4000-8
 -- remove_member reasons
 select throws_ok($$ select pg_temp.append(3, 'remove_member', 'dc000000-0000-4000-8000-0000000000c1',
     '{"user":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","reason":"account_deleted"}') $$,
-  '42501', 'account_exists', 'a viewer cannot remove a living guardian as "account deleted"');
+  '42501', 'bad_target', 'a viewer cannot remove a living guardian as "account deleted"');
 select throws_ok($$ select pg_temp.append(3, 'remove_member', 'dc000000-0000-4000-8000-0000000000c1',
     '{"user":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","reason":"reset"}') $$,
   '42501', 'not_reset', 'a "reset" removal needs an account whose reset completed');
@@ -442,17 +442,19 @@ select ok(not (select rotation_pending from public.families where id = 'f0000000
 delete from auth.users where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
 select ok((select rotation_pending from public.families where id = 'f0000000-0000-4000-8000-00000000000f'),
   'deleting a member''s account makes a key rotation pending');
-select is(pg_temp.append(6, 'remove_member', 'db000000-0000-4000-8000-0000000000b1',
-    '{"user":"dddddddd-dddd-4ddd-8ddd-dddddddddddd","reason":"account_deleted"}') ->> 'ok', 'true',
-  'any member records the removal of a deleted account, whose row is already gone');
-select is(pg_temp.rotate(7, 'da000000-0000-4000-8000-0000000000a1', 3) ->> 'ok',
+-- D joined by a fixture, not through the log, so the log can't record their
+-- removal (sync_log_devices.test.sql covers the case of a member the log added).
+select throws_ok($$ select pg_temp.append(6, 'remove_member', 'db000000-0000-4000-8000-0000000000b1',
+    '{"user":"dddddddd-dddd-4ddd-8ddd-dddddddddddd","reason":"account_deleted"}') $$,
+  '42501', 'bad_target', '"account deleted" only for someone this log added');
+select is(pg_temp.rotate(6, 'da000000-0000-4000-8000-0000000000a1', 3) ->> 'ok',
   'true', 'and the key rotates');
 
 -- Ownership
-select throws_ok($$ select pg_temp.append(8, 'remove_member', 'da000000-0000-4000-8000-0000000000a1',
+select throws_ok($$ select pg_temp.append(7, 'remove_member', 'da000000-0000-4000-8000-0000000000a1',
     '{"user":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","reason":"left"}') $$,
   '42501', 'owner_cannot_be_removed', 'the owner cannot leave without handing over');
-select is(pg_temp.append(8, 'transfer_owner', 'da000000-0000-4000-8000-0000000000a1',
+select is(pg_temp.append(7, 'transfer_owner', 'da000000-0000-4000-8000-0000000000a1',
     '{"user":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"}') ->> 'ok', 'true',
   'the owner hands the family over through the log');
 select is((select string_agg(role, ',' order by role) from public.family_members
@@ -493,8 +495,8 @@ select ok(not (select rotation_pending from public.families where id = 'f0000000
   '(no rotation pending before the revoke)');
 select public.revoke_device((select id from public.devices
                              where created_session_id = '5a000000-0000-4000-8000-0000000000a2'));
-select ok((select rotation_pending from public.families where id = 'f0000000-0000-4000-8000-00000000000f'),
-  'revoking an approved device makes a rotation pending in every family of its user');
+select ok(not (select rotation_pending from public.families where id = 'f0000000-0000-4000-8000-00000000000f'),
+  'revoking a device that no family log lists flags no rotation (sync_log_devices covers listed devices)');
 select throws_ok($$ select public.approve_device(
     (select id from public.devices where created_session_id = '5a000000-0000-4000-8000-0000000000a2'),
     'da000000-0000-4000-8000-0000000000a1') $$,

@@ -6,7 +6,7 @@
 -- to an approved device), a revoked or removed device, and replays.
 -- Run with: supabase test db
 begin;
-select plan(175);
+select plan(211);
 
 -- People: A owns family F; B joins as guardian and later resets their account;
 -- C is an outsider; D never enrolled.
@@ -27,8 +27,9 @@ $$;
 create function pg_temp.s(p text) returns uuid language sql immutable as $$
   select ('50000000-0000-4000-8000-0000000000' || lower(p))::uuid;
 $$;
-create function pg_temp.f() returns uuid language sql immutable as $$
-  select 'f0000000-0000-4000-8000-00000000000f'::uuid;
+-- The family the helpers act on: F, unless test.family names another.
+create function pg_temp.f() returns uuid language sql stable as $$
+  select coalesce(nullif(current_setting('test.family', true), ''), 'f0000000-0000-4000-8000-00000000000f')::uuid;
 $$;
 create function pg_temp.key(p_byte int) returns bytea language sql immutable as $$
   select decode(repeat(lpad(to_hex(p_byte), 2, '0'), 32), 'hex');
@@ -92,7 +93,7 @@ $$;
 create function pg_temp.current_devices() returns uuid[] language sql as $$
   select array_agg(fd.device_id order by fd.device_id) from public.family_devices fd
   join public.family_members m using (family_id, user_id)
-  where fd.family_id = pg_temp.f() and m.status = 'active';
+  where fd.family_id = pg_temp.f() and fd.revoked_seq is null and m.status = 'active';
 $$;
 create function pg_temp.recipients(p_devices uuid[]) returns bytea language sql as $$
   select sha256(string_agg(decode(replace(x::text, '-', ''), 'hex'), ''::bytea order by x)) from unnest(p_devices) x;
@@ -133,7 +134,13 @@ insert into public.devices (id, user_id, platform, public_key, signing_public_ke
   (pg_temp.d('b2'), pg_temp.u('b'), 'android', pg_temp.key(15), pg_temp.key(16), pg_temp.s('b2')),
   (pg_temp.d('b9'), pg_temp.u('b'), 'android', pg_temp.key(21), pg_temp.key(22), pg_temp.s('b9')),
   (pg_temp.d('c1'), pg_temp.u('c'), 'ios', pg_temp.key(13), pg_temp.key(14), pg_temp.s('c1')),
-  (pg_temp.d('d1'), pg_temp.u('d'), 'ios', pg_temp.key(23), pg_temp.key(24), pg_temp.s('d1'));
+  (pg_temp.d('d1'), pg_temp.u('d'), 'ios', pg_temp.key(23), pg_temp.key(24), pg_temp.s('d1')),
+  (pg_temp.d('ab'), pg_temp.u('a'), 'ios', pg_temp.key(29), pg_temp.key(30), pg_temp.s('ab'));
+-- Their Auth sessions, as Supabase Auth keeps them (with refresh tokens).
+insert into auth.sessions (id, user_id) values
+  (pg_temp.s('a1'), pg_temp.u('a')), (pg_temp.s('a3'), pg_temp.u('a'));
+insert into auth.refresh_tokens (token, user_id, session_id) values
+  ('rt-a1', pg_temp.u('a')::text, pg_temp.s('a1')), ('rt-a3', pg_temp.u('a')::text, pg_temp.s('a3'));
 
 -- =====================================================================================
 -- Privileges
@@ -141,7 +148,7 @@ insert into public.devices (id, user_id, platform, public_key, signing_public_ke
 select ok(not has_function_privilege('authenticated', 'public.take_device_challenge(uuid, uuid, text, uuid, bytea)', 'execute')
       and not has_function_privilege('authenticated', 'public.bind_device_signed(uuid, uuid, uuid, boolean)', 'execute')
       and not has_function_privilege('authenticated', 'public.approve_device_signed(uuid, uuid, uuid, uuid, bytea, uuid)', 'execute')
-      and not has_function_privilege('authenticated', 'public.recover_device_signed(uuid, uuid, uuid)', 'execute')
+      and not has_function_privilege('authenticated', 'public.recover_device_signed(uuid, uuid, uuid, uuid)', 'execute')
       and not has_function_privilege('authenticated', 'public.append_family_log_as(uuid, uuid, uuid, integer, bytea, bytea, bytea, bytea, jsonb)', 'execute')
       and not has_function_privilege('authenticated', 'public.publish_family_head(uuid, uuid, uuid, bytea, bytea)', 'execute')
       and not has_function_privilege('authenticated', 'public.device_signing_key(uuid)', 'execute')
@@ -154,7 +161,8 @@ select ok(not has_function_privilege('anon', 'public.issue_device_challenge(text
       and not has_function_privilege('anon', 'public.start_account_reset(uuid)', 'execute')
       and not has_function_privilege('anon', 'public.accept_family_invite(text, jsonb, bytea)', 'execute')
       and not has_function_privilege('anon', 'public.put_family_key_wraps(uuid, integer, jsonb)', 'execute')
-      and not has_function_privilege('anon', 'public.set_account_recovery(bytea, jsonb, bytea, bytea)', 'execute'),
+      and not has_function_privilege('anon', 'public.set_account_recovery(bytea, jsonb, bytea, bytea)', 'execute')
+      and not has_function_privilege('anon', 'public.revoke_own_device(uuid)', 'execute'),
   'anonymous callers cannot call any device or family function');
 select ok(not has_table_privilege('authenticated', 'public.device_challenges', 'SELECT')
       and not has_table_privilege('authenticated', 'public.device_challenges', 'INSERT')
@@ -225,6 +233,9 @@ select lives_ok($$ select public.bind_device_signed(pg_temp.u('a'), pg_temp.s('a
   're-registration: a new session binds to the existing phone that proves its key');
 select is((select array_agg(session_id) from public.device_sessions where device_id = pg_temp.d('a1')),
   array[pg_temp.s('a7')], 'and the lost session is unbound');
+select is((select count(*)::int from auth.sessions where id = pg_temp.s('a1'))
+          + (select count(*)::int from auth.refresh_tokens where session_id = pg_temp.s('a1')), 0,
+  'and ended on the server, its refresh tokens included');
 set local role authenticated;
 select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a1'));
 select ok(not private.device_ok(), 'the lost session no longer counts');
@@ -273,6 +284,8 @@ select throws_ok($$ select public.approve_device_signed(pg_temp.u('a'), pg_temp.
   '42501', 'approved_device_required', 'an SMS-only session cannot approve, not even its own new phone');
 select throws_ok($$ select public.approve_device_signed(pg_temp.u('c'), pg_temp.s('c1'), pg_temp.d('a2')) $$,
   'P0002', 'unknown_device', 'another account''s session cannot approve it');
+-- The new phone binds its session while still pending (it proves its key).
+select public.bind_device_signed(pg_temp.u('a'), pg_temp.s('a2'), pg_temp.d('a2'), false);
 select is(public.approve_device_signed(pg_temp.u('a'), pg_temp.s('a7'), pg_temp.d('a2'), null, '\x0102'::bytea)
     ->> 'approved_by', pg_temp.d('a1')::text,
   'an approved phone approves the new phone');
@@ -287,7 +300,11 @@ select is((select bundle from public.pairing_bundles), '\x0102'::bytea,
 delete from public.pairing_bundles;
 reset role;
 select is((select count(*)::int from public.pairing_bundles), 0, 'and deletes it once read');
-select public.bind_device_signed(pg_temp.u('a'), pg_temp.s('a2'), pg_temp.d('a2'), false);
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a7'));
+select throws_ok($$ delete from public.devices where id = pg_temp.d('a2') $$,
+  '42501', 'revoke_instead', 'an approved phone is never deleted, even from another approved phone: it is revoked');
+reset role;
 
 -- =====================================================================================
 -- Way 2: comparison code, commit then reveal (B4)
@@ -306,6 +323,8 @@ select lives_ok($$ select public.pairing_respond(pg_temp.id('p1'), pg_temp.bytes
   'an approved phone responds with its own nonce');
 select throws_ok($$ select public.pairing_respond(pg_temp.id('p1'), pg_temp.bytes('23', 32)) $$,
   'P0002', 'pairing_unavailable', 'a session takes one response');
+select throws_ok($$ select public.pairing_respond(pg_temp.id('p1'), null) $$,
+  '22023', 'bad_nonce', 'a response needs a 32-byte nonce');
 select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a3'));
 select is(public.pairing_reveal(pg_temp.id('p1'), pg_temp.bytes('33', 32)) ->> 'error', 'commitment_mismatch',
   'a reveal that does not open the commitment fails');
@@ -361,6 +380,10 @@ insert into vals (k, id) select 'rec', public.set_account_recovery(pg_temp.bytes
   '{"m":19456,"t":2,"p":1}', pg_temp.key(9), pg_temp.key(10));
 select is((select kind || '/' || status || '/' || approved_by_device from public.devices where id = pg_temp.id('rec')),
   'recovery/approved/' || pg_temp.d('a1'), 'an approved phone sets up the recovery device');
+select ok((select created_session_id is null from public.devices where id = pg_temp.id('rec')),
+  'no session is recorded as having registered it');
+select throws_ok($$ delete from public.devices where id = pg_temp.id('rec') $$,
+  '42501', 'revoke_instead', 'the recovery device is never deleted, only replaced');
 select throws_ok($$ select public.set_account_recovery(pg_temp.bytes('5a', 16), '{"m":1048576,"t":2,"p":1}',
     pg_temp.key(25), pg_temp.key(26)) $$,
   '23514', null, 'KDF settings beyond what a phone can run are refused');
@@ -379,6 +402,9 @@ select is(public.take_device_challenge(pg_temp.u('a'), pg_temp.s('a4'), 'recover
   'recovery is checked against the recovery device''s key');
 select throws_ok($$ select public.recover_device_signed(pg_temp.u('a'), pg_temp.s('a7'), pg_temp.d('a4')) $$,
   '42501', 'forbidden', 'only from the new phone''s own session');
+select throws_ok($$ select public.recover_device_signed(pg_temp.u('a'), pg_temp.s('a4'), pg_temp.d('a4'),
+    pg_temp.d('a1')) $$,
+  '42501', 'approver_changed', 'and only if the key that signed is still the recovery device''s');
 select throws_ok($$ select public.bind_device_session(pg_temp.u('a'), pg_temp.s('a9'), pg_temp.id('rec')) $$,
   'P0002', 'unknown_device', 'the recovery device never gets a session');
 select is(public.recover_device_signed(pg_temp.u('a'), pg_temp.s('a4'), pg_temp.d('a4')) ->> 'approved_by',
@@ -386,11 +412,11 @@ select is(public.recover_device_signed(pg_temp.u('a'), pg_temp.s('a4'), pg_temp.
 select public.bind_device_signed(pg_temp.u('a'), pg_temp.s('a4'), pg_temp.d('a4'), false);
 insert into public.device_challenges (nonce, purpose, user_id, session_id, device_id)
 select extensions.gen_random_bytes(32), 'recover', pg_temp.u('a'), pg_temp.s('a8'), pg_temp.d('a5')
-from generate_series(1, 4);
+from generate_series(1, 5);
 set local role authenticated;
 select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a5'));
 select throws_ok($$ select public.issue_device_challenge('recover', pg_temp.d('a5')) $$,
-  '54000', 'too_many_recovery_tries', 'at most 5 recovery tries per account per day');
+  '54000', 'too_many_recovery_tries', 'at most 5 recovery tries per phone per day');
 reset role;
 
 -- =====================================================================================
@@ -482,7 +508,7 @@ select throws_ok($$ select public.accept_family_invite(pg_temp.lookup(pg_temp.by
     jsonb_build_array(pg_temp.dev(pg_temp.d('b2'))), pg_temp.bytes('ab', 32)) $$,
   '22023', 'session_device_missing', 'including the phone that accepts');
 select is(public.accept_family_invite(pg_temp.lookup(pg_temp.bytes('77', 32)),
-    jsonb_build_array(pg_temp.dev(pg_temp.d('b1'))), pg_temp.bytes('ab', 32)) ->> 'invite_id', pg_temp.id('inv')::text,
+    jsonb_build_array(pg_temp.dev(pg_temp.d('b1')), pg_temp.dev(pg_temp.d('b2'))), pg_temp.bytes('ab', 32)) ->> 'invite_id', pg_temp.id('inv')::text,
   'the invitee accepts with the lookup hash, their device records and the MAC');
 select is(public.accept_family_invite(pg_temp.lookup(pg_temp.bytes('77', 32)),
     jsonb_build_array(pg_temp.dev(pg_temp.d('b1'))), pg_temp.bytes('ab', 32)) ->> 'error', 'invalid_invite',
@@ -514,25 +540,33 @@ reset role;
 -- add_member must match what the invitee posted
 select throws_ok($$ select pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'add_member', pg_temp.d('a1'),
     jsonb_build_object('user', pg_temp.u('b'), 'role', 'guardian', 'invite', pg_temp.id('inv'),
-      'mac', pg_temp.b64url(pg_temp.bytes('ac', 32)), 'devices', jsonb_build_array(pg_temp.dev(pg_temp.d('b1'))))) $$,
+      'mac', pg_temp.b64url(pg_temp.bytes('ac', 32)), 'devices', jsonb_build_array(pg_temp.dev(pg_temp.d('b1')), pg_temp.dev(pg_temp.d('b2'))))) $$,
   '42501', 'invite_mac_mismatch', 'add_member carries the MAC the invitee posted');
 select throws_ok($$ select pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'add_member', pg_temp.d('a1'),
     jsonb_build_object('user', pg_temp.u('b'), 'role', 'guardian', 'invite', pg_temp.id('inv'),
       'mac', pg_temp.b64url(pg_temp.bytes('ab', 32)),
-      'devices', jsonb_build_array(pg_temp.dev(pg_temp.d('b1')), pg_temp.dev(pg_temp.d('b2'))))) $$,
+      'devices', jsonb_build_array(pg_temp.dev(pg_temp.d('b1'))))) $$,
   '42501', 'invite_devices_mismatch', 'and exactly the devices they posted');
 select throws_ok($$ select pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'add_member', pg_temp.d('a1'),
     jsonb_build_object('user', pg_temp.u('b'), 'role', 'cared_for', 'invite', pg_temp.id('inv'),
-      'mac', pg_temp.b64url(pg_temp.bytes('ab', 32)), 'devices', jsonb_build_array(pg_temp.dev(pg_temp.d('b1'))))) $$,
+      'mac', pg_temp.b64url(pg_temp.bytes('ab', 32)), 'devices', jsonb_build_array(pg_temp.dev(pg_temp.d('b1')), pg_temp.dev(pg_temp.d('b2'))))) $$,
   '22023', 'bad_entry_fields', 'a cared-for member needs the profile they are linked to');
 select is(pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'add_member', pg_temp.d('a1'),
     jsonb_build_object('user', pg_temp.u('b'), 'role', 'guardian', 'invite', pg_temp.id('inv'),
-      'mac', pg_temp.b64url(pg_temp.bytes('ab', 32)), 'devices', jsonb_build_array(pg_temp.dev(pg_temp.d('b1')))))
+      'mac', pg_temp.b64url(pg_temp.bytes('ab', 32)), 'devices', jsonb_build_array(pg_temp.dev(pg_temp.d('b1')), pg_temp.dev(pg_temp.d('b2')))))
     ->> 'ok', 'true',
   'the owner''s add_member admits the invitee');
-select is((select array_agg(device_id) from public.family_devices
-           where family_id = pg_temp.f() and user_id = pg_temp.u('b')), array[pg_temp.d('b1')],
+select is((select array_agg(device_id order by device_id) from public.family_devices
+           where family_id = pg_temp.f() and user_id = pg_temp.u('b')), array[pg_temp.d('b1'), pg_temp.d('b2')],
   'with their devices as devices of the family');
+insert into public.family_invites (family_id, role, code_hash, created_by)
+values (pg_temp.f(), 'viewer', pg_temp.lookup(pg_temp.bytes('7b', 32)), pg_temp.u('a'));
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('b'), pg_temp.s('b1'));
+select is(public.accept_family_invite(pg_temp.lookup(pg_temp.bytes('7b', 32)), jsonb_build_array(pg_temp.dev(pg_temp.d('b1')), pg_temp.dev(pg_temp.d('b2'))), pg_temp.bytes('ab', 32))
+    ->> 'error', 'invalid_invite', 'a member accepting another invite learns nothing more than "invalid invite"');
+reset role;
+select public.bind_device_signed(pg_temp.u('b'), pg_temp.s('b2'), pg_temp.d('b2'), false);
 
 -- =====================================================================================
 -- Key wraps (B6)
@@ -620,6 +654,25 @@ select is((select count(*)::int from public.e2ee_records), 1, 'the recovered pho
 reset role;
 
 -- =====================================================================================
+-- A stolen phone is revoked: its leftover session keeps no rights at all
+-- =====================================================================================
+select public.revoke_device(pg_temp.d('a3'));
+select is((select count(*)::int from auth.sessions where id = pg_temp.s('a3'))
+          + (select count(*)::int from auth.refresh_tokens where session_id = pg_temp.s('a3')), 0,
+  'revoking a phone ends its Auth sessions and refresh tokens');
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a3'));
+select ok(not private.is_session_device(pg_temp.d('a3')),
+  'the leftover session no longer acts for the phone, although it registered it');
+select lives_ok($$ delete from public.devices $$, 'a delete from the leftover session runs');
+select throws_ok($$ insert into public.push_tokens (device_id, token) values (pg_temp.d('a3'), 'fcm-thief') $$,
+  '42501', null, 'it cannot write the phone''s push token');
+reset role;
+select is((select count(*)::int from public.devices where user_id = pg_temp.u('a') and id in
+           (pg_temp.d('a1'), pg_temp.d('a3'), pg_temp.d('a4'), pg_temp.id('rec'))), 4,
+  'and deleted nothing: not the recovery device, nor any phone');
+
+-- =====================================================================================
 -- Rotation: history blob, every wrap, recipient hash, in one transaction (B6)
 -- =====================================================================================
 select throws_ok($$ select pg_temp.rotate(pg_temp.u('a'), pg_temp.s('a7'), pg_temp.d('a1'), 2,
@@ -658,6 +711,11 @@ select is(pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'revoke_device', pg_temp
   'the owner removes another member''s device from the family');
 select is((select status from public.devices where id = pg_temp.d('b1')), 'approved',
   'it stays approved for its own account');
+select throws_ok($$ select pg_temp.next(pg_temp.u('b'), pg_temp.s('b2'), 'add_device', pg_temp.d('b2'),
+    jsonb_build_object('user', pg_temp.u('b'), 'device', pg_temp.dev(pg_temp.d('b1')))) $$,
+  '42501', 'device_revoked_in_family', 'but it can never be added back to this family');
+select ok((select revoked_seq is not null from public.family_devices
+           where family_id = pg_temp.f() and device_id = pg_temp.d('b1')), 'which keeps a revoked marker for it');
 select ok((select rotation_pending from public.families where id = pg_temp.f()), 'and a rotation is pending');
 set local role authenticated;
 select pg_temp.as_user(pg_temp.u('b'), pg_temp.s('b1'));
@@ -709,6 +767,76 @@ select is((select count(*)::int from public.family_heads), 1, 'the family''s dev
 select pg_temp.as_user(pg_temp.u('b'), pg_temp.s('b1'));
 select is((select count(*)::int from public.family_heads), 0, 'a removed device does not');
 reset role;
+select throws_ok($$ select public.publish_family_head(pg_temp.u('a'), pg_temp.s('a7'), pg_temp.f(),
+    convert_to(jsonb_build_object('v', 1, 'family', pg_temp.f(), 'device', pg_temp.d('a1'), 'seq', 3000000000::bigint,
+      'h', pg_temp.b64url(pg_temp.head()), 'at', '019300f8a1b20003')::text, 'UTF8'), pg_temp.bytes('00', 64)) $$,
+  '22023', 'bad_beacon', 'a seq beyond the log''s range is a bad beacon, not a server error');
+
+-- =====================================================================================
+-- A second family G: each family's device list changes only through its own log
+-- =====================================================================================
+select set_config('test.family', 'f0000000-0000-4000-8000-0000000000aa', true);
+select is(pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'genesis', pg_temp.d('a1'),
+    pg_temp.genesis(jsonb_build_array(pg_temp.dev(pg_temp.d('a1')), pg_temp.dev(pg_temp.d('a4')),
+                                      pg_temp.dev(pg_temp.id('rec'))))) ->> 'ok', 'true',
+  'A creates a second family with the recovered phone in it');
+select throws_ok($$ select public.append_family_log_as(pg_temp.u('c'), pg_temp.s('c1'), pg_temp.f(), 9, pg_temp.bytes('00', 32),
+    pg_temp.entry(9, pg_temp.bytes('00', 32), 'transfer_owner', pg_temp.d('c1'), jsonb_build_object('user', pg_temp.u('c'))),
+    pg_temp.bytes('00', 64)) $$,
+  '42501', 'signer_not_member', 'a non-member learns nothing of the family''s head and takes no lock');
+select throws_ok($$ select public.append_family_log_as(pg_temp.u('c'), pg_temp.s('c1'), 'f0000000-0000-4000-8000-0000000000bb',
+    2, pg_temp.bytes('00', 32), convert_to(jsonb_build_object('v', 1, 'family', 'f0000000-0000-4000-8000-0000000000bb',
+      'seq', 2, 'prev', pg_temp.b64url(pg_temp.bytes('00', 32)), 'type', 'transfer_owner', 'by', pg_temp.d('c1'),
+      'at', '019300f8a1b20003', 'user', pg_temp.u('c'))::text, 'UTF8'), pg_temp.bytes('00', 64)) $$,
+  '42501', 'signer_not_member', 'and the same answer as for a family that doesn''t exist');
+
+-- A revokes the recovered phone A4 through F's log.
+select set_config('test.family', '', true);
+select is(pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'revoke_device', pg_temp.d('a1'),
+    jsonb_build_object('user', pg_temp.u('a'), 'device', pg_temp.d('a4'))) ->> 'ok', 'true',
+  'a person revokes their phone in one family''s log');
+select set_config('test.family', 'f0000000-0000-4000-8000-0000000000aa', true);
+select ok((select rotation_pending from public.families where id = pg_temp.f()),
+  'the account-wide revocation flags a rotation in the other family that lists it');
+select is((select count(*)::int from public.family_devices
+           where family_id = pg_temp.f() and device_id = pg_temp.d('a4') and revoked_seq is null), 1,
+  'but leaves that family''s list alone: only its own log changes it');
+select throws_ok($$ select pg_temp.rotate(pg_temp.u('a'), pg_temp.s('a7'), pg_temp.d('a1'), 2) $$,
+  '55000', 'revoked_device_listed', 'its rotation waits for the revoke_device entry');
+select is(pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'revoke_device', pg_temp.d('a1'),
+    jsonb_build_object('user', pg_temp.u('a'), 'device', pg_temp.d('a4'))) ->> 'ok', 'true',
+  'any of the person''s phones (or the owner) appends it');
+select is(pg_temp.rotate(pg_temp.u('a'), pg_temp.s('a7'), pg_temp.d('a1'), 2) ->> 'ok', 'true', 'then the key rotates');
+
+-- remove_member "account_deleted" only for someone this log added
+reset role;
+delete from public.invite_accept_attempts where user_id = pg_temp.u('c');
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a7'));
+insert into vals (k, id) select 'inv-g', public.create_family_invite(pg_temp.f(), 'viewer',
+  pg_temp.lookup(pg_temp.bytes('7c', 32)));
+select pg_temp.as_user(pg_temp.u('c'), pg_temp.s('c1'));
+select public.accept_family_invite(pg_temp.lookup(pg_temp.bytes('7c', 32)),
+  jsonb_build_array(pg_temp.dev(pg_temp.d('c1'))), pg_temp.bytes('ab', 32));
+reset role;
+select is(pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'add_member', pg_temp.d('a1'),
+    jsonb_build_object('user', pg_temp.u('c'), 'role', 'viewer', 'invite', pg_temp.id('inv-g'),
+      'mac', pg_temp.b64url(pg_temp.bytes('ab', 32)), 'devices', jsonb_build_array(pg_temp.dev(pg_temp.d('c1')))))
+    ->> 'ok', 'true', '(C joins G)');
+select throws_ok($$ select pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'remove_member', pg_temp.d('a1'),
+    jsonb_build_object('user', 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'reason', 'account_deleted')) $$,
+  '42501', 'bad_target', '"account deleted" is refused for someone the log never added');
+select throws_ok($$ select pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'remove_member', pg_temp.d('a1'),
+    jsonb_build_object('user', pg_temp.u('c'), 'reason', 'account_deleted')) $$,
+  '42501', 'bad_target', 'and for an account that still exists, with the same answer');
+delete from auth.users where id = pg_temp.u('c');
+select is(pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'remove_member', pg_temp.d('a1'),
+    jsonb_build_object('user', pg_temp.u('c'), 'reason', 'account_deleted')) ->> 'ok', 'true',
+  'a member the log added, whose account is gone, is recorded as removed');
+select throws_ok($$ select pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'remove_member', pg_temp.d('a1'),
+    jsonb_build_object('user', pg_temp.u('c'), 'reason', 'account_deleted')) $$,
+  '42501', 'bad_target', 'once');
+select set_config('test.family', '', true);
 
 -- =====================================================================================
 -- Account reset: 7 days, cancellable from an older phone (B3)
@@ -745,8 +873,12 @@ select is((select string_agg(distinct status, ',') from public.devices
 select is((select status from public.devices where id = pg_temp.d('b9')), 'pending', 'the phone that started it stays');
 select is((select status from public.family_members where family_id = pg_temp.f() and user_id = pg_temp.u('b')), 'reset',
   'memberships are marked reset');
+insert into public.devices (id, user_id, platform, public_key, signing_public_key, created_session_id) values
+  (pg_temp.d('b8'), pg_temp.u('b'), 'ios', pg_temp.key(31), pg_temp.key(32), pg_temp.s('b8'));
+select throws_ok($$ select public.bind_device_signed(pg_temp.u('b'), pg_temp.s('b8'), pg_temp.d('b8'), true) $$,
+  '42501', 'reset_device_only', 'another phone registered after the reset cannot enrol first');
 select is(public.bind_device_signed(pg_temp.u('b'), pg_temp.s('b9'), pg_temp.d('b9'), true) ->> 'status', 'approved',
-  'the new phone enrols as the account''s first device again');
+  'the phone that started the reset enrols as the account''s first device again');
 set local role authenticated;
 select pg_temp.as_user(pg_temp.u('b'), pg_temp.s('b9'));
 select is((select count(*)::int from public.families) + (select count(*)::int from public.family_log), 0,
@@ -775,6 +907,23 @@ select is((select status from public.devices where id = pg_temp.id('rec')), 'rev
 select ok((select rotation_pending from public.families where id = pg_temp.f()), 'and makes a rotation pending');
 select is((select recovery_device_id from public.account_recovery where user_id = pg_temp.u('a')), pg_temp.id('rec2'),
   'the new recovery device is the one recovery is checked against');
+set local role authenticated;
+select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a7'));
+select lives_ok($$ select public.set_account_recovery(pg_temp.bytes('5c', 16), '{"m":19456,"t":2,"p":1}',
+    pg_temp.key(33), pg_temp.key(34)) $$, '(a third recovery key today)');
+select throws_ok($$ select public.set_account_recovery(pg_temp.bytes('5d', 16), '{"m":19456,"t":2,"p":1}',
+    pg_temp.key(35), pg_temp.key(36)) $$,
+  '54000', 'too_many_recovery_changes', 'at most 3 recovery keys per account per day');
+
+-- Sign-out with sync revokes the phone instead of deleting it (B10).
+select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('ab'));
+select throws_ok($$ select public.revoke_own_device(pg_temp.d('a1')) $$,
+  '42501', 'forbidden', 'a session revokes only its own phone');
+select lives_ok($$ select public.revoke_own_device(pg_temp.d('ab')) $$, 'sign-out revokes the session''s own phone');
+reset role;
+select is((select status from public.devices where id = pg_temp.d('ab')), 'revoked', 'which stays as a revoked row');
+select throws_ok($$ delete from public.devices where id = pg_temp.d('ab') $$,
+  '42501', 'revoke_instead', 'and is never deleted while the account exists');
 
 insert into public.devices (id, user_id, platform, public_key, signing_public_key, created_at) values
   (pg_temp.d('a6'), pg_temp.u('a'), 'ios', pg_temp.key(27), pg_temp.key(28), now() - interval '8 days');

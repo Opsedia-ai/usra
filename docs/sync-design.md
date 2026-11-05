@@ -489,7 +489,7 @@ session that only proved an SMS code therefore reads and writes nothing in
 creates the person's family (genesis), adding its recovery device at the same
 time. `accounts.sync_enrolled_at` is set then. From that moment on, **a new
 device can never self-approve**, even if every device row is later deleted
-(today sign-out deletes the device row; without this rule, signing out of the
+(sign-out used to delete the device row and now revokes it; without this rule, signing out of the
 last phone would let an SMS code alone start over).
 
 Enabling sync requires a recovery key the person has written down: the app
@@ -1364,9 +1364,21 @@ the E2EE design"** (section 18).
     concatenated 16-byte ids of every current device, sorted bytewise).
   - The server also checks the comparison-code commitment on reveal
     (honest-server only; E checks it too).
-  - Account reset: the phone that started the reset is the one that stays;
-    cancelling needs an approved phone whose approval is 7+ days older than
-    the reset.
+  - Account reset: the phone that started the reset is the one that stays and
+    the only one that may enrol first afterwards; cancelling needs an approved
+    phone whose approval is 7+ days older than the reset.
+  - A session acts only for its bound phone, or (unbound) for a never-bound
+    pending phone it registered. Revoking a phone or re-binding it ends the
+    old Auth sessions on the server. Approved and recovery devices are revoked,
+    never deleted (B10's "revoke instead of delete", brought forward), and the
+    app's sign-out revokes.
+  - `family_devices` is an exact mirror of each family's log. An account-wide
+    revocation only marks the device revoked; the family's rotation is
+    refused until its log has the `revoke_device` entry, so the server's
+    recipient set and the phones' never disagree. Revoked markers stay, so a
+    device revoked in a family can't be added back.
+  - Recovery tries are counted per phone (5 a day), not per account, so an
+    SMS-only session can't use up the real phone's tries.
 - Still to build: B7's tombstone purge, B8, B10–B13.
 
 ### SQL sketches

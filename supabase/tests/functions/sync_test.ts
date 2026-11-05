@@ -88,8 +88,8 @@ class FakeStore implements SyncStore {
     this.calls.push({ fn: "approve", args: [deviceId, pairingId, bundle?.length ?? null, signerId] });
     return Promise.resolve({ device_id: deviceId, status: "approved" });
   }
-  recoverDevice(_s: Session, deviceId: string) {
-    this.calls.push({ fn: "recover", args: [deviceId] });
+  recoverDevice(_s: Session, deviceId: string, signerId: string) {
+    this.calls.push({ fn: "recover", args: [deviceId, signerId] });
     return Promise.resolve({ device_id: deviceId, status: "approved" });
   }
   deviceSigningKey(deviceId: string) {
@@ -189,6 +189,9 @@ Deno.test("sync: database errors map to their own names only", () => {
   const forbidden = dbErrorToHttp({ code: "42501", message: "approved_device_required" }, "fn");
   assertEquals([forbidden.status, forbidden.code], [403, "approved_device_required"]);
   assertEquals(dbErrorToHttp({ code: "54000", message: "too_many_recovery_tries" }, "fn").status, 429);
+  const overflow = dbErrorToHttp({ code: "22003", message: "integer out of range" }, "fn");
+  assertEquals([overflow.status, overflow.code], [400, "rejected"]);
+  assertEquals(dbErrorToHttp({ code: "55000", message: "revoked_device_listed" }, "fn").status, 409);
   const leaky = dbErrorToHttp({ code: "22023", message: "invalid input: secret stuff" }, "fn");
   assertEquals([leaky.status, leaky.code], [400, "rejected"]);
   const unknown = dbErrorToHttp({ code: "XX000", message: "boom" }, "fn");
@@ -308,7 +311,7 @@ Deno.test("recover-device: only the recovery device's key approves", async () =>
   });
   assertEquals(res.status, 200);
   assertEquals(store.taken.map((t) => t.purpose), ["recover", "recover"]);
-  assertEquals(store.calls, [{ fn: "recover", args: [NEW_PHONE] }]);
+  assertEquals(store.calls, [{ fn: "recover", args: [NEW_PHONE, RECOVERY] }]);
 });
 
 // --- append-family-log -------------------------------------------------------------------------
@@ -380,7 +383,7 @@ Deno.test("append-family-log: strict JSON and exact fields before any signature 
     [JSON.stringify(genesis({ seq: 2 })), 400, "entry_mismatch"],
     [JSON.stringify(genesis({ family: "f0000000-0000-4000-8000-0000000000ff" })), 400, "entry_mismatch"],
     [JSON.stringify(genesis({ by: "unknown" })), 400, "entry_mismatch"],
-    [JSON.stringify(genesis({ by: NEW_PHONE })), 403, "unknown_signer"],
+    [JSON.stringify(genesis({ by: NEW_PHONE })), 403, "bad_signature"],
     [JSON.stringify(genesis({ key_version: 1.5 })), 400, "bad_entry"],
   ];
   for (const [entry, status, code] of cases) {

@@ -72,11 +72,12 @@ export class SupabaseSyncStore implements SyncStore {
     }) as Record<string, unknown>;
   }
 
-  async recoverDevice(session: Session, deviceId: string) {
+  async recoverDevice(session: Session, deviceId: string, signerId: string) {
     return await this.call("recover_device_signed", {
       p_user: session.userId,
       p_session: session.sessionId,
       p_device: deviceId,
+      p_signer: signerId,
     }) as Record<string, unknown>;
   }
 

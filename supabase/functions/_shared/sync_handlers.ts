@@ -95,7 +95,7 @@ export function createRecoverDeviceHandler(deps: SyncDeps): Handler {
     const keys = await deps.store.takeChallenge(session, "recover", deviceId, nonce);
     const message = approveDeviceMessage(session.userId, deviceId, keys.device.kx, keys.device.sig, nonce);
     if (!await verifyStrict(keys.signer.sig, message, signature)) throw badSignature();
-    return json(await deps.store.recoverDevice(session, deviceId));
+    return json(await deps.store.recoverDevice(session, deviceId, keys.signer.id));
   };
 }
 
@@ -171,9 +171,9 @@ export function createAppendFamilyLogHandler(deps: SyncDeps): Handler {
       throw new HttpError(400, "bad_rotation", "rotate_key needs history and wraps, other entries neither");
     }
 
+    // An unknown signer and a wrong signature answer alike (no device oracle).
     const key = await deps.store.deviceSigningKey(entry.by);
-    if (key === null) throw new HttpError(403, "unknown_signer", "The signing device is unknown");
-    if (!await verifyStrict(key, logEntryMessage(entryBytes), signature)) throw badSignature();
+    if (key === null || !await verifyStrict(key, logEntryMessage(entryBytes), signature)) throw badSignature();
 
     const result = await deps.store.appendFamilyLog({
       session,
