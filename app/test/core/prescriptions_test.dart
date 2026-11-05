@@ -190,6 +190,59 @@ void main() {
       expect(decodeMedicinePhotos(p.photosJson), isEmpty);
     });
 
+    test('editing keeps what each medicine\'s own page changed', () async {
+      final rx = await afterVisit();
+      final [amox, para, drops] = await medicinesOf(rx);
+      // Changed on the medicine's own page: form, days of the week, amount.
+      await db.saveMedicine(
+        id: amox.id,
+        profileId: omar,
+        name: amox.name,
+        form: 'syrup',
+        instructions: amox.instructions,
+        startOn: amox.startOn,
+        endOn: amox.endOn,
+        schedule: const DoseScheduleInput(
+          times: ['08:00'],
+          weekdays: 1 << 0 | 1 << 3,
+          amount: '5 مل',
+        ),
+      );
+      await db.setMedicineActive(para.id, false);
+
+      await db.savePrescription(
+        id: rx,
+        profileId: omar,
+        doctorId: doctor,
+        prescribedOn: DateTime(2026, 11, 1),
+        diagnosis: 'التهاب لوز صديدي',
+        items: [
+          PrescriptionItemInput(
+            medicineId: amox.id,
+            name: amox.name,
+            dose: amox.instructions,
+            times: const ['08:00', '20:00'],
+            days: 7,
+          ),
+          PrescriptionItemInput(
+            medicineId: para.id,
+            name: para.name,
+            times: const ['09:00'],
+            days: 3,
+          ),
+          PrescriptionItemInput(medicineId: drops.id, name: drops.name),
+        ],
+      );
+      final edited = (await db.watchMedicine(amox.id).first)!;
+      expect(edited.form, 'syrup');
+      final s = (await db.watchDoseSchedule(amox.id).first)!;
+      expect(s.times, '08:00,20:00');
+      expect(s.weekdays, 1 << 0 | 1 << 3);
+      expect(s.amount, '5 مل');
+      // Stopped on its own: still stopped.
+      expect((await db.watchMedicine(para.id).first)!.active, isFalse);
+    });
+
     test('a medicine from elsewhere can\'t be pulled in', () async {
       final rx = await afterVisit();
       final loose = await db.saveMedicine(

@@ -1028,7 +1028,10 @@ class AppDatabase extends _$AppDatabase {
           prescriptionId: Value(prescriptionId),
           name: Value(item.name.trim()),
           strength: Value(_clean(item.strength)),
-          form: Value(_clean(item.form)),
+          // Set on the medicine's own page; kept unless given here.
+          form: existing != null && item.form == null
+              ? const Value.absent()
+              : Value(_clean(item.form)),
           instructions: Value(_clean(item.dose)),
           doctorId: Value(doctorId),
           startOn: Value(start),
@@ -1037,7 +1040,9 @@ class AppDatabase extends _$AppDatabase {
                 ? null
                 : start.add(Duration(days: item.days! - 1)),
           ),
-          active: Value(active),
+          // A medicine stopped on its own stays stopped; stopping the whole
+          // prescription is setPrescriptionActive.
+          active: existing == null ? Value(active) : const Value.absent(),
           updatedAt: Value(now),
         );
         if (existing == null) {
@@ -1049,9 +1054,24 @@ class AppDatabase extends _$AppDatabase {
           )..where((m) => m.id.equals(existing))).write(medicine);
         }
         await _queue('medicine', medicineId, 'upsert');
+        // Keep what the medicine's own page added to its schedule (days of
+        // the week, every N days, amount); the prescription sets the times.
+        final schedule = existing == null
+            ? null
+            : await (select(doseSchedules)..where(
+                    (s) => s.medicineId.equals(existing) & s.deletedAt.isNull(),
+                  ))
+                  .getSingleOrNull();
         await _replaceSchedule(
           medicineId,
-          item.times.isEmpty ? null : DoseScheduleInput(times: item.times),
+          item.times.isEmpty
+              ? null
+              : DoseScheduleInput(
+                  times: item.times,
+                  weekdays: schedule?.weekdays,
+                  everyNDays: schedule?.everyNDays,
+                  amount: schedule?.amount,
+                ),
           now,
         );
       }
