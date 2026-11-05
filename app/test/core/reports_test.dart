@@ -1,15 +1,21 @@
 import 'dart:convert';
 
+import 'package:drift/drift.dart' show DatabaseConnection;
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:pdf/pdf.dart' show TtfParser;
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/features/children/egypt_vaccines.dart';
 import 'package:usra/features/children/growth.dart' show addMonths;
+import 'package:usra/features/labs/lab_report.dart';
 import 'package:usra/features/reports/doctor_summary.dart';
 import 'package:usra/features/reports/report.dart';
 import 'package:usra/features/reports/vaccination_record.dart';
 import 'package:usra/l10n/app_localizations.dart';
+
+import '../support/pdf_text.dart';
 
 final _ar = lookupAppLocalizations(const Locale('ar'));
 final _en = lookupAppLocalizations(const Locale('en'));
@@ -156,6 +162,27 @@ void main() {
       expect(r.disclaimer, contains('مش شهادة تطعيم رسمية'));
     });
 
+    test('rotavirus past its age: "too late, ask the doctor"', () {
+      final r = vaccinationRecord(
+        l: _en,
+        profile: _profile(birthDate: birth),
+        events: [
+          _event(VaccinePlanFields.type, birth, {
+            'route': 'government',
+            'optional': ['rota'],
+          }),
+        ],
+        now: _now,
+      )!;
+      final upcoming = r.sections.firstWhere((s) => s.id == 'upcoming');
+      final rota = upcoming.rows.where((row) => row.first.startsWith('Rota'));
+      expect(rota, isNotEmpty);
+      expect(
+        rota.map((row) => row.last),
+        everyElement('Too late for this vaccine: ask the doctor'),
+      );
+    });
+
     test('none without a birth date', () {
       expect(
         vaccinationRecord(
@@ -283,8 +310,9 @@ void main() {
       expect(visits.rows.single.last, 'Check-up · Stable');
       final labs = r.sections.firstWhere((s) => s.id == 'labs');
       expect(labs.rows.map((row) => row[1]), ['HbA1c', 'Urine', 'Glucose']);
-      expect(labs.rows.first[2], '7.2 %');
-      expect(labs.rows.first[3], '4 – 5.6');
+      // The lab's flag, from the printed range only.
+      expect(labs.rows.first[2], '7.2 % · High');
+      expect(labs.rows.first[3], '4 - 5.6');
       expect(labs.rows[1][2], 'Clear');
       expect(labs.rows[2][2], '140 mg/dL');
       expect(r.disclaimer, contains('Informational only'));
@@ -324,6 +352,8 @@ void main() {
             'vaccine': 'الخماسي',
             'dose': 1,
           }),
+          // Off the schedule: a travel vaccine.
+          _event('vaccine', addMonths(birth, 4), {'vaccine': 'الحمى الصفراء'}),
         ],
       );
       expect(
@@ -348,7 +378,11 @@ void main() {
       expect(vaccines.fields.first.label, 'طريقة التطعيم');
       expect(vaccines.fields.first.value, 'حكومي (مكتب الصحة)');
       expect(vaccines.fields[1].value, contains('اتاخدت'));
-      expect(vaccines.rows.single.first, contains('الخماسي'));
+      // Latest first, the travel vaccine included.
+      expect(vaccines.rows.map((row) => row.first), [
+        'الحمى الصفراء',
+        contains('الخماسي'),
+      ]);
     });
 
     test('older child: no schedule counts, only doses given', () {
@@ -422,20 +456,228 @@ void main() {
     });
   });
 
-  test('lab tests in both record shapes', () {
-    expect(labTestsOf({'test': 'CBC'}), [
-      (name: 'CBC', value: null, unit: null, range: null),
-    ]);
-    expect(
-      labTestsOf({
-        'tests': [
-          {'name': 'TSH', 'value': 2.1, 'unit': 'mIU/L', 'high': 4.5},
-          {'value': 3},
-          'junk',
+  group('lab ranges in the PDF', () {
+    test('one-sided, open and printed ranges in characters the font has', () {
+      expect(labRangeText(const LabRange(high: 4.5)), '<= 4.5');
+      expect(
+        labRangeText(const LabRange(high: 200, highInclusive: false)),
+        '< 200',
+      );
+      expect(labRangeText(const LabRange(low: 60)), '>= 60');
+      expect(
+        labRangeText(const LabRange(low: 60, lowInclusive: false)),
+        '> 60',
+      );
+      expect(labRangeText(LabRange.parse('≤ 150')), '<= 150');
+      expect(labRangeText(LabRange.parse('Negative')), 'Negative');
+      expect(labRangeText(LabRange.none), '');
+    });
+
+    test('a report: value, unit, flag and range, old records too', () {
+      final r = doctorSummary(
+        l: _ar,
+        inputs: SummaryInputs(
+          profile: _profile(name: 'Ali'),
+          events: [
+            _event('lab', DateTime(2026, 10, 1), {
+              'tests': [
+                {
+                  'name': 'LDL',
+                  'value': 210,
+                  'unit': 'mg/dL',
+                  'high': 200,
+                  'highOpen': true,
+                },
+                {'name': 'Vit D', 'value': 12, 'unit': 'ng/mL', 'low': 30},
+                {'name': 'CRP', 'valueText': '<0.5', 'rangePrinted': '< 5'},
+              ],
+            }),
+            _event('lab', DateTime(2026, 1, 1), {'test': 'CBC'}),
+          ],
+        ),
+        sections: {SummarySection.labs},
+        now: _now,
+      );
+      final rows = r.sections.single.rows;
+      expect(rows[0].sublist(1), ['LDL', '210 mg/dL · عالي', '< 200']);
+      expect(rows[1].sublist(1), ['Vit D', '12 ng/mL · واطي', '>= 30']);
+      expect(rows[2].sublist(1), ['CRP', '<0.5', '< 5']);
+      expect(rows[3].sublist(1), ['CBC', '', '']);
+    });
+  });
+
+  group('mixed Arabic and Latin', () {
+    test('Latin runs in an Arabic line are wrapped in LRM marks', () {
+      String marks(String s) => s.replaceAll(lrm, '|');
+      expect(marks(isolateLtrRuns('بنادول 500 mg')), 'بنادول |500 mg|');
+      expect(
+        marks(isolateLtrRuns('قرص 2.5 ml كل 8 ساعات')),
+        'قرص |2.5 ml| كل |8| ساعات',
+      );
+      expect(marks(isolateLtrRuns('حرارة 38.5°C')), 'حرارة |38.5°C|');
+      expect(
+        marks(isolateLtrRuns('الدرن (BCG)، جرعة 1')),
+        'الدرن |(BCG)|، جرعة |1|',
+      );
+      expect(
+        marks(isolateLtrRuns('المعدل (70 - 100) mg/dL')),
+        'المعدل |(70 - 100) mg/dL|',
+      );
+      expect(marks(isolateLtrRuns('بدون أرقام')), 'بدون أرقام');
+    });
+
+    test('direction per line', () {
+      expect(bidiLine('Panadol 500 mg', rtlReport: true).$2.name, 'ltr');
+      expect(
+        bidiLine('ليلى', rtlReport: false).$1,
+        '$lrm$lre'
+        'ليلى'
+        '$pdfPop',
+      );
+      expect(bidiLine('5 أبريل', rtlReport: true).$1, startsWith(rlm));
+    });
+
+    test('drawn in reading order (read back from the PDF)', () async {
+      final fonts = await ReportFonts.load();
+      Future<String> ar(String s) => visualLine(s, fonts, rtlReport: true);
+      Future<String> en(String s) => visualLine(s, fonts, rtlReport: false);
+      // Left to right as drawn: Latin runs keep their order, Arabic (ع)
+      // reads from the right.
+      expect(await ar('بنادول 500 mg'), '500 mg ع');
+      expect(await ar('قرص 2.5 ml كل 8 ساعات'), 'ع 8 ع 2.5 ml ع');
+      expect(await ar('حرارة 38.5°C'), '38.5°C ع');
+      expect(await ar('5 أبريل 2026 · متأخرة'), 'ع · 2026 ع 5');
+      expect(
+        await en('1 tablet · قرص بعد الفطار · Since Oct 1, 2026'),
+        '1 tablet · ع ع ع · Since Oct 1, 2026',
+      );
+      expect(await en('Panadol 500 mg'), 'Panadol 500 mg');
+    });
+
+    test('every character of both reports is in the font', () async {
+      final fonts = await ReportFonts.load();
+      final regular = TtfParser(fonts.regular).charToGlyphIndexMap;
+      final bold = TtfParser(fonts.bold).charToGlyphIndexMap;
+      final birth = addMonths(DateTime(2026, 11, 5), -10);
+      final child = SummaryInputs(
+        profile: _profile(
+          birthDate: birth,
+          bloodType: 'AB-',
+          allergies: 'بنسلين',
+        ),
+        events: [
+          _event('growth', DateTime(2026, 11, 1), {'weightKg': 8.5}),
+          _event('vaccine', addMonths(birth, 2), {
+            'vaccine': 'الخماسي',
+            'dose': 1,
+          }),
+          _event('lab', DateTime(2026, 10, 1), {
+            'tests': [
+              {'name': 'Hb', 'value': 9.1, 'unit': 'g/dL', 'low': 11},
+              {'name': 'TSH', 'value': 2, 'rangePrinted': '≤ 4.5'},
+            ],
+          }),
+          _event('visit', DateTime(2026, 10, 2), {'reason': 'سخونية'}),
         ],
-      }),
-      [(name: 'TSH', value: '2.1', unit: 'mIU/L', range: '≤ 4.5')],
+        medicines: [
+          (
+            _medicine('Augmentin', strength: '457 mg/5 ml'),
+            DoseSchedule(
+              id: 's',
+              medicineId: 'mAugmentin',
+              times: '08:00,20:00',
+              weekdays: 0x15,
+              amount: '5 مل',
+              updatedAt: _now,
+            ),
+          ),
+        ],
+      );
+      for (final l in [_ar, _en]) {
+        final reports = [
+          doctorSummary(
+            l: l,
+            inputs: child,
+            sections: SummarySection.values.toSet(),
+            now: _now,
+          ),
+          vaccinationRecord(
+            l: l,
+            profile: child.profile,
+            events: child.events,
+            now: _now,
+            includeNotes: true,
+          )!,
+        ];
+        for (final r in reports) {
+          final text = [...r.allText, r.pageLabel(1, 2)];
+          for (final s in text) {
+            final (line, _) = bidiLine(s, rtlReport: r.rtl);
+            final missing = {
+              for (final c in line.runes)
+                if (!regular.containsKey(c) || !bold.containsKey(c))
+                  'U+${c.toRadixString(16)} in "$s"',
+            };
+            expect(missing, isEmpty);
+          }
+        }
+      }
+    });
+
+    test('characters the font lacks are replaced or left out', () {
+      final glyphs = {for (final c in 'ab <=>'.runes) c: 1};
+      expect(pdfSafe('a ≤ b', glyphs), 'a <= b');
+      expect(pdfSafe('a😀b', glyphs), 'ab');
+    });
+  });
+
+  test('a summary never reads another person\'s records', () async {
+    final db = AppDatabase(
+      DatabaseConnection(
+        NativeDatabase.memory(),
+        closeStreamsSynchronously: true,
+      ),
     );
-    expect(labTestsOf(const {}), isEmpty);
+    addTearDown(db.close);
+    final hoda = await db.addProfile('Hoda', allergies: 'Penicillin');
+    final sami = await db.addProfile('Sami', allergies: 'Sulfa');
+    for (final (id, tag) in [(hoda, 'H'), (sami, 'S')]) {
+      await db.addEvent(
+        profileId: id,
+        type: 'visit',
+        occurredAt: DateTime(2026, 10, 1),
+        dataJson: '{"reason": "visit-$tag"}',
+      );
+      await db.addEvent(
+        profileId: id,
+        type: 'lab',
+        occurredAt: DateTime(2026, 10, 2),
+        dataJson: '{"test": "lab-$tag"}',
+      );
+      await db.saveMedicine(
+        profileId: id,
+        name: 'med-$tag',
+        startOn: DateTime(2026, 9, 1),
+        schedule: const DoseScheduleInput(times: ['08:00']),
+      );
+    }
+    final inputs = (await SummaryInputs.load(db, hoda))!;
+    expect(inputs.events.map((e) => e.profileId).toSet(), {hoda});
+    expect(inputs.medicines.map((m) => m.$1.profileId).toSet(), {hoda});
+    final text = doctorSummary(
+      l: _en,
+      inputs: inputs,
+      sections: SummarySection.values.toSet(),
+      now: _now,
+    ).allText.join('\n');
+    expect(
+      text,
+      allOf(contains('visit-H'), contains('lab-H'), contains('med-H')),
+    );
+    for (final other in ['Sami', 'Sulfa', 'visit-S', 'lab-S', 'med-S']) {
+      expect(text, isNot(contains(other)));
+    }
+    final records = (await SummaryInputs.loadRecords(db, sami))!;
+    expect(records.events.map((e) => e.profileId).toSet(), {sami});
   });
 }

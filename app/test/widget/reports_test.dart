@@ -11,6 +11,7 @@ import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/files/photo_store.dart';
 import 'package:usra/core/log.dart';
+import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/features/children/growth.dart' show addMonths;
 import 'package:usra/features/medicines/medicines_providers.dart';
@@ -51,9 +52,19 @@ void main() {
     dir.deleteSync(recursive: true);
   });
 
-  Widget app({Future<ReportFonts> Function()? loadFonts}) => ProviderScope(
+  Widget app({
+    Future<ReportFonts> Function()? loadFonts,
+    bool simple = false,
+  }) => ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
+      if (simple)
+        keyValueStoreProvider.overrideWithValue(
+          MemoryKeyValueStore({
+            PrefKeys.simpleMode: true,
+            PrefKeys.elderTutorialSeen: true,
+          }),
+        ),
       reminderSchedulerProvider.overrideWithValue(
         FakeReminderScheduler(
           granted: const ReminderAccess(notifications: true),
@@ -156,6 +167,8 @@ void main() {
     expect(shared, hasLength(1));
     final file = shared.single.files!.single;
     expect(file.mimeType, 'application/pdf');
+    // Anchored to the button on an iPad.
+    expect(shared.single.sharePositionOrigin, isNotNull);
     // Says what it is, never whose.
     expect(file.name, doctorSummaryFile);
     expect(String.fromCharCodes(sharedBytes.single.take(4)), '%PDF');
@@ -223,6 +236,50 @@ void main() {
     expect(find.byKey(const ValueKey('share-warning')), findsNothing);
     expect(find.text('ضيف تاريخ الميلاد في البروفايل الأول.'), findsOneWidget);
     expect(shared, isEmpty);
+  });
+
+  testWidgets('Simple Mode: no choices, everything in, one button', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 4000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    final today = DateUtils.dateOnly(DateTime.now());
+    final kid = (await tester.runAsync(
+      () => db.addProfile(
+        'ليلى',
+        birthDate: addMonths(today, -7),
+        sex: 'female',
+        allergies: 'بنسلين',
+      ),
+    ))!;
+    await tester.pumpWidget(app(simple: true));
+    await tester.pumpAndSettle();
+    GoRouter.of(tester.element(find.byType(Scaffold).first))
+        .go('/family/$kid/doctor-summary');
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('summary-section-allergies')),
+      findsNothing,
+    );
+    expect(find.byKey(const ValueKey('report-language')), findsNothing);
+    await shareThroughWarning(tester, 'summary-share');
+    expect(shared.single.files!.single.name, doctorSummaryFile);
+
+    // The vaccination record skips its options too.
+    shared.clear();
+    await tapKey(tester, 'summary-vaccination-record');
+    expect(find.byKey(const ValueKey('vaccination-pdf-dialog')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('share-warning-go')));
+    for (var i = 0; i < 20 && shared.isEmpty; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    expect(shared.single.files!.single.name, vaccinationRecordFile);
+    expect(shareCache.dir.existsSync(), isFalse);
   });
 
   testWidgets('a failure is logged without health data and says so', (

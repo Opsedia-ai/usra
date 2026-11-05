@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design/tokens.dart';
+import '../../core/preferences.dart' show simpleModeProvider;
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider;
@@ -47,18 +48,30 @@ class ReportLanguagePicker extends StatelessWidget {
   }
 }
 
+/// Where the share sheet points from on an iPad: the widget [context]
+/// belongs to (the button tapped).
+Rect? shareOriginOf(BuildContext context) {
+  final box = context.findRenderObject();
+  return box is RenderBox && box.hasSize
+      ? box.localToGlobal(Offset.zero) & box.size
+      : null;
+}
+
 String _appLanguage(WidgetRef ref) {
   final code = ref.read(localeProvider).languageCode;
   return reportLanguages.contains(code) ? code : 'ar';
 }
 
 /// Asks for the language (and whether to add the family's notes), then
-/// makes and shares [profileId]'s vaccination record (C4).
+/// makes and shares [profileId]'s vaccination record (C4). In Simple Mode
+/// it asks nothing: the app's language, no notes, straight to the share
+/// warning.
 Future<void> shareVaccinationRecord(
   BuildContext context,
   WidgetRef ref,
   String profileId,
 ) async {
+  final origin = shareOriginOf(context);
   // Matched against the schedule from the birth date: say so up front
   // rather than after the share warning.
   final profile = ref.read(profileProvider(profileId)).value;
@@ -72,66 +85,70 @@ Future<void> shareVaccinationRecord(
   }
   var language = _appLanguage(ref);
   var notes = false;
-  final go = await showDialog<bool>(
-    context: context,
-    builder: (context) {
-      final l = AppLocalizations.of(context);
-      return StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          key: const ValueKey('vaccination-pdf-dialog'),
-          icon: const Icon(Icons.picture_as_pdf_outlined),
-          title: Text(l.reportVaccinationShare),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l.reportVaccinationIntro),
-                const SizedBox(height: 16),
-                Text(l.reportLanguage),
-                const SizedBox(height: 8),
-                ReportLanguagePicker(
-                  value: language,
-                  onChanged: (v) => setState(() => language = v),
+  final go =
+      ref.read(simpleModeProvider) ||
+      await showDialog<bool>(
+            context: context,
+            builder: (context) {
+              final l = AppLocalizations.of(context);
+              return StatefulBuilder(
+                builder: (context, setState) => AlertDialog(
+                  key: const ValueKey('vaccination-pdf-dialog'),
+                  icon: const Icon(Icons.picture_as_pdf_outlined),
+                  title: Text(l.reportVaccinationShare),
+                  content: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l.reportVaccinationIntro),
+                        const SizedBox(height: 16),
+                        Text(l.reportLanguage),
+                        const SizedBox(height: 8),
+                        ReportLanguagePicker(
+                          value: language,
+                          onChanged: (v) => setState(() => language = v),
+                        ),
+                        const SizedBox(height: 8),
+                        SwitchListTile(
+                          key: const ValueKey('vaccination-pdf-notes'),
+                          contentPadding: EdgeInsets.zero,
+                          value: notes,
+                          onChanged: (v) => setState(() => notes = v),
+                          title: Text(l.reportIncludeNotes),
+                        ),
+                        Text(
+                          l.reportOnPhone,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: UsraColors.textMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: Text(l.familyCancel),
+                    ),
+                    FilledButton.icon(
+                      key: const ValueKey('vaccination-pdf-share'),
+                      onPressed: () => Navigator.of(context).pop(true),
+                      icon: const Icon(Icons.share_outlined),
+                      label: Text(l.reportSharePdf),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                SwitchListTile(
-                  key: const ValueKey('vaccination-pdf-notes'),
-                  contentPadding: EdgeInsets.zero,
-                  value: notes,
-                  onChanged: (v) => setState(() => notes = v),
-                  title: Text(l.reportIncludeNotes),
-                ),
-                Text(
-                  l.reportOnPhone,
-                  style: Theme.of(context).textTheme.bodySmall
-                      ?.copyWith(color: UsraColors.textMuted),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(l.familyCancel),
-            ),
-            FilledButton.icon(
-              key: const ValueKey('vaccination-pdf-share'),
-              onPressed: () => Navigator.of(context).pop(true),
-              icon: const Icon(Icons.share_outlined),
-              label: Text(l.reportSharePdf),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-  if (go != true || !context.mounted) return;
+              );
+            },
+          ) ==
+          true;
+  if (!go || !context.mounted) return;
   final db = ref.read(databaseProvider);
   final now = ref.read(todayProvider);
   await shareReportPdf(
     ref,
     fileName: vaccinationRecordFile,
+    origin: origin,
     missing: AppLocalizations.of(context).reportNeedsBirthDate,
     build: () async {
       final inputs = await SummaryInputs.loadRecords(db, profileId);
@@ -147,7 +164,7 @@ Future<void> shareVaccinationRecord(
   );
 }
 
-/// Picks what goes in the one-page summary for the doctor (C10) and its
+/// Picks what goes in the summary for the doctor (C10) and its
 /// language, then makes and shares it.
 class DoctorSummaryScreen extends ConsumerStatefulWidget {
   const DoctorSummaryScreen({super.key, required this.profileId});
@@ -177,16 +194,19 @@ class _DoctorSummaryScreenState extends ConsumerState<DoctorSummaryScreen> {
     SummarySection.vaccines => l.reportSectionVaccines,
   };
 
-  Future<void> _share(List<SummarySection> offered) async {
+  Future<void> _share(List<SummarySection> offered, Rect? origin) async {
     setState(() => _busy = true);
     final db = ref.read(databaseProvider);
     final now = ref.read(todayProvider);
-    final chosen = {...offered}..removeAll(_off);
-    final language = _language;
+    final chosen = {...offered};
+    final language = ref.read(simpleModeProvider)
+        ? _appLanguage(ref)
+        : _language;
     try {
       await shareReportPdf(
         ref,
         fileName: doctorSummaryFile,
+        origin: origin,
         build: () async {
           final inputs = await SummaryInputs.load(db, widget.profileId);
           if (inputs == null) return null;
@@ -222,7 +242,9 @@ class _DoctorSummaryScreenState extends ConsumerState<DoctorSummaryScreen> {
         AsyncValue(value: final p?) => Builder(
           builder: (context) {
             final offered = summarySectionsFor(p, today);
-            final none = offered.every(_off.contains);
+            // Simple Mode: everything in, in the app's language, one button.
+            final simple = ref.watch(simpleModeProvider);
+            final none = !simple && offered.every(_off.contains);
             return ListView(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
               children: [
@@ -231,55 +253,71 @@ class _DoctorSummaryScreenState extends ConsumerState<DoctorSummaryScreen> {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 4),
-                Text(l.reportSummaryIntro),
+                Text(simple ? l.reportSimpleIntro : l.reportSummaryIntro),
                 const SizedBox(height: 16),
-                Text(
-                  l.reportChooseSections,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                for (final s in offered)
-                  CheckboxListTile(
-                    key: ValueKey('summary-section-${s.name}'),
-                    contentPadding: EdgeInsets.zero,
-                    controlAffinity: ListTileControlAffinity.leading,
-                    value: !_off.contains(s),
-                    onChanged: (v) => setState(
-                      () => v == true ? _off.remove(s) : _off.add(s),
-                    ),
-                    title: Text(_label(l, s)),
+                if (!simple) ...[
+                  Text(
+                    l.reportChooseSections,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-                const SizedBox(height: 12),
-                Text(
-                  l.reportLanguage,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                ReportLanguagePicker(
-                  value: _language,
-                  onChanged: (v) => setState(() => _language = v),
-                ),
+                  for (final s in offered)
+                    CheckboxListTile(
+                      key: ValueKey('summary-section-${s.name}'),
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      value: !_off.contains(s),
+                      onChanged: (v) => setState(
+                        () => v == true ? _off.remove(s) : _off.add(s),
+                      ),
+                      title: Text(_label(l, s)),
+                    ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l.reportLanguage,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  ReportLanguagePicker(
+                    value: _language,
+                    onChanged: (v) => setState(() => _language = v),
+                  ),
+                ],
                 const SizedBox(height: 20),
                 if (none) ...[
                   Text(l.reportPickOne, style: muted),
                   const SizedBox(height: 8),
                 ],
-                FilledButton.icon(
-                  key: const ValueKey('summary-share'),
-                  onPressed: none || _busy ? null : () => _share(offered),
-                  // Disabled while busy, but no spinner: the share warning
-                  // comes up first, and a spinner behind it reads as stuck.
-                  icon: const Icon(Icons.picture_as_pdf_outlined),
-                  label: Text(l.reportSharePdf),
+                Builder(
+                  builder: (button) => FilledButton.icon(
+                    key: const ValueKey('summary-share'),
+                    onPressed: none || _busy
+                        ? null
+                        : () => _share(
+                            simple
+                                ? offered
+                                : [
+                                    for (final s in offered)
+                                      if (!_off.contains(s)) s,
+                                  ],
+                            shareOriginOf(button),
+                          ),
+                    // Disabled while busy, but no spinner: the share warning
+                    // comes up first, and a spinner behind it reads as stuck.
+                    icon: const Icon(Icons.picture_as_pdf_outlined),
+                    label: Text(l.reportSharePdf),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(l.reportOnPhone, style: muted),
                 if (offered.contains(SummarySection.vaccines)) ...[
                   const SizedBox(height: 24),
-                  OutlinedButton.icon(
-                    key: const ValueKey('summary-vaccination-record'),
-                    onPressed: () => shareVaccinationRecord(context, ref, id),
-                    icon: const Icon(Icons.vaccines_outlined),
-                    label: Text(l.reportVaccinationShare),
+                  Builder(
+                    builder: (button) => OutlinedButton.icon(
+                      key: const ValueKey('summary-vaccination-record'),
+                      onPressed: () => shareVaccinationRecord(button, ref, id),
+                      icon: const Icon(Icons.vaccines_outlined),
+                      label: Text(l.reportVaccinationShare),
+                    ),
                   ),
                 ],
               ],

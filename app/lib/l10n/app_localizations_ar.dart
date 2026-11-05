@@ -3213,7 +3213,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportSummaryIntro =>
-      'ملف PDF صفحة واحدة توريه أو تبعته للدكتور. اختار إيه اللي يتكتب فيه.';
+      'ملخص PDF قصير توريه أو تبعته للدكتور. اختار إيه اللي يتكتب فيه.';
 
   @override
   String get reportChooseSections => 'إيه اللي يتكتب';
@@ -3246,4 +3246,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportNeedsBirthDate => 'ضيف تاريخ الميلاد في البروفايل الأول.';
+
+  @override
+  String get reportFlagHigh => 'عالي';
+
+  @override
+  String get reportFlagLow => 'واطي';
+
+  @override
+  String get reportTooLate => 'فات ميعاده: اسأل الدكتور';
+
+  @override
+  String get reportTooLateLabel => 'فات ميعاده (اسأل الدكتور)';
+
+  @override
+  String get reportSimpleIntro =>
+      'ملف PDF فيه البيانات الصحية والأدوية والزيارات والتحاليل، توريه أو تبعته للدكتور.';
 }

@@ -351,11 +351,14 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
         title: Text(l.vaccinesTitle),
         leading: BackButton(onPressed: () => context.go('/family/$id')),
         actions: [
-          IconButton(
-            key: const ValueKey('vaccines-share-pdf'),
-            tooltip: l.reportVaccinationShare,
-            icon: const Icon(Icons.picture_as_pdf_outlined),
-            onPressed: () => shareVaccinationRecord(context, ref, id),
+          // Its own context, so an iPad's share sheet points at the button.
+          Builder(
+            builder: (button) => IconButton(
+              key: const ValueKey('vaccines-share-pdf'),
+              tooltip: l.reportVaccinationShare,
+              icon: const Icon(Icons.picture_as_pdf_outlined),
+              onPressed: () => shareVaccinationRecord(button, ref, id),
+            ),
           ),
         ],
       ),

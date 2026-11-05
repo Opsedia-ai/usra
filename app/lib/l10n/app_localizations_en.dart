@@ -3191,7 +3191,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportSummaryIntro =>
-      'A one-page PDF to show or send to a doctor. Choose what goes in.';
+      'A short PDF summary to show or send to a doctor. Choose what goes in.';
 
   @override
   String get reportChooseSections => 'What to include';
@@ -3225,4 +3225,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reportNeedsBirthDate =>
       'Add a date of birth to the profile first.';
+
+  @override
+  String get reportFlagHigh => 'High';
+
+  @override
+  String get reportFlagLow => 'Low';
+
+  @override
+  String get reportTooLate => 'Too late for this vaccine: ask the doctor';
+
+  @override
+  String get reportTooLateLabel => 'Too late (ask the doctor)';
+
+  @override
+  String get reportSimpleIntro =>
+      'A PDF with this person\'s health details, medicines, visits and tests, to show or send to a doctor.';
 }

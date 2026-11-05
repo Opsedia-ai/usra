@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
@@ -108,15 +110,16 @@ class ReportSection {
   }
 }
 
-/// The embedded fonts. Amiri (SIL Open Font License 1.1, licence next to
-/// the files in `assets/fonts/amiri/`) has Arabic, with the presentation
-/// forms the PDF library shapes Arabic into, and Latin, so one font draws
-/// both languages and mixed lines.
+/// The embedded fonts' files. Amiri (SIL Open Font License 1.1, licence
+/// next to the files in `assets/fonts/amiri/`) has Arabic, with the
+/// presentation forms the PDF library shapes Arabic into, and Latin, so one
+/// font draws both languages and mixed lines. Kept as bytes so the PDF can
+/// be drawn in another isolate.
 class ReportFonts {
   const ReportFonts(this.regular, this.bold);
 
-  final pw.Font regular;
-  final pw.Font bold;
+  final ByteData regular;
+  final ByteData bold;
 
   static const regularAsset = 'assets/fonts/amiri/Amiri-Regular.ttf';
   static const boldAsset = 'assets/fonts/amiri/Amiri-Bold.ttf';
@@ -127,7 +130,7 @@ class ReportFonts {
       rootBundle.load(regularAsset),
       rootBundle.load(boldAsset),
     ).wait;
-    return ReportFonts(pw.Font.ttf(regular), pw.Font.ttf(bold));
+    return ReportFonts(regular, bold);
   }
 }
 
@@ -147,22 +150,141 @@ const _rule = PdfColor.fromInt(0xFFD5DADF);
 const _band = PdfColor.fromInt(0xFFF1F4F6);
 const _accent = PdfColor.fromInt(0xFF0F766E);
 
-/// Whether [s] has Arabic letters (base or presentation forms).
-bool hasArabic(String s) => s.runes.any(
-  (c) =>
-      (c >= 0x0600 && c <= 0x06FF) ||
-      (c >= 0x0750 && c <= 0x077F) ||
-      (c >= 0xFB50 && c <= 0xFDFF) ||
-      (c >= 0xFE70 && c <= 0xFEFF),
-);
+/// An Arabic-script letter (strongly right to left): not Arabic digits or
+/// punctuation.
+bool _isArabicLetter(int c) =>
+    (c >= 0x0620 && c <= 0x064A) ||
+    (c >= 0x066E && c <= 0x06D3) ||
+    (c >= 0x06FA && c <= 0x06FF) ||
+    (c >= 0x0750 && c <= 0x077F) ||
+    (c >= 0xFB50 && c <= 0xFDFF) ||
+    (c >= 0xFE70 && c <= 0xFEFC);
 
-/// Draws [report] as an A4 PDF. [compress] is off only in tests, to read
-/// the text map back.
+/// Whether [s] has Arabic letters (base or presentation forms).
+bool hasArabic(String s) => s.runes.any(_isArabicLetter);
+
+/// Left-to-right mark, embedding and pop. (Not the isolates U+2066-2069:
+/// the font has no glyphs for them.)
+const lrm = '\u200E';
+const rlm = '\u200F';
+const lre = '\u202A';
+const pdfPop = '\u202C';
+
+bool _isLtrStart(int c) =>
+    (c >= 0x30 && c <= 0x39) ||
+    (c >= 0x41 && c <= 0x5A) ||
+    (c >= 0x61 && c <= 0x7A) ||
+    (c >= 0xC0 && c <= 0x24F) ||
+    (c >= 0x0660 && c <= 0x0669);
+
+/// What may end a left-to-right run: a letter or digit, or a closing
+/// bracket, percent, degree or plus ("38.5°C", "(70 - 100)", "O+").
+bool _isLtrEnd(int c) =>
+    _isLtrStart(c) || ')]%°+'.contains(String.fromCharCode(c));
+
+/// Arabic punctuation and line breaks end a run too.
+bool _endsRun(int c) =>
+    _isArabicLetter(c) || c == 0x060C || c == 0x061B || c == 0x061F || c == 10;
+
+/// For a right-to-left line: wraps each run of Latin letters and digits
+/// (with the spaces, dots, units and brackets inside it) in LRM marks, so
+/// "بنادول 500 mg", "2.5 ml", "38.5°C" and "(BCG)" keep their order instead
+/// of being turned around by the bidi algorithm.
+String isolateLtrRuns(String s) {
+  final r = s.runes.toList();
+  final out = StringBuffer();
+  var i = 0;
+  while (i < r.length) {
+    if (!_isLtrStart(r[i])) {
+      out.writeCharCode(r[i]);
+      i++;
+      continue;
+    }
+    var end = i;
+    for (var j = i; j < r.length && !_endsRun(r[j]); j++) {
+      if (_isLtrEnd(r[j])) end = j;
+    }
+    // An opening bracket right before the run belongs to it.
+    var start = i;
+    var text = out.toString();
+    if (text.endsWith('(') || text.endsWith('[')) {
+      text = text.substring(0, text.length - 1);
+      start = i - 1;
+      out
+        ..clear()
+        ..write(text);
+    }
+    out
+      ..write(lrm)
+      ..write(String.fromCharCodes(r, start, end + 1))
+      ..write(lrm);
+    i = end + 1;
+  }
+  return out.toString();
+}
+
+/// [s] ready for the PDF library, with the direction to draw it in. The
+/// library shapes Arabic only in right-to-left text, so:
+/// - no Arabic: as it is, left to right;
+/// - Arabic report: right to left (from a leading RLM), Latin runs kept in
+///   order
+///   ([isolateLtrRuns]);
+/// - English report with Arabic in a line (a name, the doctor's words):
+///   right to left so the Arabic is shaped, inside a left-to-right
+///   embedding so the line still reads left to right.
+(String, pw.TextDirection) bidiLine(String s, {required bool rtlReport}) {
+  if (!hasArabic(s)) return (s, pw.TextDirection.ltr);
+  // A leading mark sets the paragraph's direction: the bidi algorithm takes
+  // it from the first strong character, which would otherwise be the
+  // LRM of a line starting with a number ("5 أبريل 2026").
+  if (rtlReport) return ('$rlm${isolateLtrRuns(s)}', pw.TextDirection.rtl);
+  return ('$lrm$lre$s$pdfPop', pw.TextDirection.rtl);
+}
+
+/// Characters the font lacks, written with ones it has.
+const _substitutes = {
+  '≤': '<=',
+  '≥': '>=',
+  '≠': '!=',
+  '−': '-',
+  '×': 'x',
+  '\u2009': ' ',
+  '\u202F': ' ',
+  '\u00A0': ' ',
+};
+
+/// [s] with every character the font can draw: known stand-ins for a few
+/// ([_substitutes]), and anything else (an emoji in a name) left out rather
+/// than drawn as an empty box.
+String pdfSafe(String s, Map<int, int> glyphs) {
+  final out = StringBuffer();
+  for (final c in s.runes) {
+    final ch = String.fromCharCode(c);
+    if (_substitutes[ch] case final sub?) {
+      out.write(sub);
+    } else if (glyphs.containsKey(c)) {
+      out.writeCharCode(c);
+    }
+  }
+  return out.toString();
+}
+
+/// Draws [report] as an A4 PDF in a background isolate, so a long report
+/// never stalls the screen. [compress] is off only in tests, to read the
+/// text back.
 Future<Uint8List> renderReportPdf(
   Report report,
   ReportFonts fonts, {
   bool compress = true,
+}) => Isolate.run(() => drawReportPdf(report, fonts, compress: compress));
+
+/// [renderReportPdf] on the calling isolate.
+Future<Uint8List> drawReportPdf(
+  Report report,
+  ReportFonts fonts, {
+  bool compress = true,
 }) {
+  final glyphs = TtfParser(fonts.regular).charToGlyphIndexMap;
   final dir = report.rtl ? pw.TextDirection.rtl : pw.TextDirection.ltr;
   final align = report.rtl ? pw.TextAlign.right : pw.TextAlign.left;
   final doc = pw.Document(
@@ -172,7 +294,10 @@ Future<Uint8List> renderReportPdf(
     // about the person.
     creator: 'Usra',
     producer: 'Usra',
-    theme: pw.ThemeData.withFont(base: fonts.regular, bold: fonts.bold),
+    theme: pw.ThemeData.withFont(
+      base: pw.Font.ttf(fonts.regular),
+      bold: pw.Font.ttf(fonts.bold),
+    ),
   );
 
   pw.Widget text(
@@ -180,20 +305,22 @@ Future<Uint8List> renderReportPdf(
     double size = 10,
     bool bold = false,
     PdfColor color = _ink,
-  }) => pw.Text(
-    s,
-    // The PDF library shapes Arabic only in right-to-left text, so a line
-    // with Arabic in it (a name or the doctor's words in an English
-    // report) is drawn right to left; Latin-only lines left to right, so
-    // "Panadol 500 mg" keeps its order in the Arabic report.
-    textDirection: hasArabic(s) ? pw.TextDirection.rtl : pw.TextDirection.ltr,
-    textAlign: align,
-    style: pw.TextStyle(
-      fontSize: size,
-      color: color,
-      fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-    ),
-  );
+  }) {
+    final (line, direction) = bidiLine(
+      pdfSafe(s, glyphs),
+      rtlReport: report.rtl,
+    );
+    return pw.Text(
+      line,
+      textDirection: direction,
+      textAlign: align,
+      style: pw.TextStyle(
+        fontSize: size,
+        color: color,
+        fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+      ),
+    );
+  }
 
   pw.Widget fieldTable(List<ReportField> fields) {
     List<pw.Widget> row(ReportField f) {

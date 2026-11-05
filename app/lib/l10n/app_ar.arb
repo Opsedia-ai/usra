@@ -931,7 +931,7 @@
   "reportGrowthNote": "المئين من معايير منظمة الصحة العالمية لنمو الأطفال (أقل من ٥ سنين). للمعلومات، مش تشخيص.",
   "reportNothing": "مفيش حاجة متسجلة",
   "memberDoctorSummary": "ملخص للدكتور",
-  "reportSummaryIntro": "ملف PDF صفحة واحدة توريه أو تبعته للدكتور. اختار إيه اللي يتكتب فيه.",
+  "reportSummaryIntro": "ملخص PDF قصير توريه أو تبعته للدكتور. اختار إيه اللي يتكتب فيه.",
   "reportChooseSections": "إيه اللي يتكتب",
   "reportLanguage": "لغة الملف",
   "reportSharePdf": "ابعت PDF",
@@ -941,5 +941,10 @@
   "reportPickOne": "اختار حاجة واحدة على الأقل",
   "reportOnPhone": "بيتعمل على الموبايل ده. الملف بيتمسح من الموبايل بعد ما يتبعت.",
   "reportFailed": "معرفناش نعمل الملف",
-  "reportNeedsBirthDate": "ضيف تاريخ الميلاد في البروفايل الأول."
+  "reportNeedsBirthDate": "ضيف تاريخ الميلاد في البروفايل الأول.",
+  "reportFlagHigh": "عالي",
+  "reportFlagLow": "واطي",
+  "reportTooLate": "فات ميعاده: اسأل الدكتور",
+  "reportTooLateLabel": "فات ميعاده (اسأل الدكتور)",
+  "reportSimpleIntro": "ملف PDF فيه البيانات الصحية والأدوية والزيارات والتحاليل، توريه أو تبعته للدكتور."
 }

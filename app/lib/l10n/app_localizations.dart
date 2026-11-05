@@ -5231,7 +5231,7 @@ abstract class AppLocalizations {
   /// No description provided for @reportSummaryIntro.
   ///
   /// In en, this message translates to:
-  /// **'A one-page PDF to show or send to a doctor. Choose what goes in.'**
+  /// **'A short PDF summary to show or send to a doctor. Choose what goes in.'**
   String get reportSummaryIntro;
 
   /// No description provided for @reportChooseSections.
@@ -5293,6 +5293,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add a date of birth to the profile first.'**
   String get reportNeedsBirthDate;
+
+  /// No description provided for @reportFlagHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get reportFlagHigh;
+
+  /// No description provided for @reportFlagLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get reportFlagLow;
+
+  /// No description provided for @reportTooLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Too late for this vaccine: ask the doctor'**
+  String get reportTooLate;
+
+  /// No description provided for @reportTooLateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Too late (ask the doctor)'**
+  String get reportTooLateLabel;
+
+  /// No description provided for @reportSimpleIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'A PDF with this person\'s health details, medicines, visits and tests, to show or send to a doctor.'**
+  String get reportSimpleIntro;
 }
 
 class _AppLocalizationsDelegate

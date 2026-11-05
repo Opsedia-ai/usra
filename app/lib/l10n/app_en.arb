@@ -1737,7 +1737,7 @@
   "reportGrowthNote": "Percentiles from the WHO Child Growth Standards (under 5). Informational, not a diagnosis.",
   "reportNothing": "Nothing recorded",
   "memberDoctorSummary": "Summary for the doctor",
-  "reportSummaryIntro": "A one-page PDF to show or send to a doctor. Choose what goes in.",
+  "reportSummaryIntro": "A short PDF summary to show or send to a doctor. Choose what goes in.",
   "reportChooseSections": "What to include",
   "reportLanguage": "Language of the PDF",
   "reportSharePdf": "Share PDF",
@@ -1747,5 +1747,10 @@
   "reportPickOne": "Choose at least one section",
   "reportOnPhone": "Made on this phone. The file is deleted from the phone once it's shared.",
   "reportFailed": "Couldn't make the PDF",
-  "reportNeedsBirthDate": "Add a date of birth to the profile first."
+  "reportNeedsBirthDate": "Add a date of birth to the profile first.",
+  "reportFlagHigh": "High",
+  "reportFlagLow": "Low",
+  "reportTooLate": "Too late for this vaccine: ask the doctor",
+  "reportTooLateLabel": "Too late (ask the doctor)",
+  "reportSimpleIntro": "A PDF with this person's health details, medicines, visits and tests, to show or send to a doctor."
 }

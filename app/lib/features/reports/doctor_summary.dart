@@ -8,8 +8,10 @@ import '../children/child_vaccines.dart';
 import '../children/egypt_vaccines.dart';
 import '../children/growth.dart';
 import '../family/family_screen.dart' show ageInYears;
+import '../labs/lab_report.dart';
 import '../medicines/medicine_text.dart' show medicineEnded, scheduleSummaryIn;
 import 'report.dart';
+import 'vaccination_record.dart' show givenDoses;
 
 /// What the family can put in the doctor summary (C10).
 enum SummarySection {
@@ -96,9 +98,11 @@ class SummaryInputs {
   }
 }
 
-/// How many visits and lab reports the one page holds.
+/// How many visits, lab reports and vaccine doses the summary lists (the
+/// latest ones), to keep it short.
 const summaryVisits = 5;
 const summaryLabReports = 3;
+const summaryVaccines = 6;
 
 /// The doctor summary for [inputs] in [l]'s language, with only the
 /// [sections] the family picked (in their usual order). Doses are copied
@@ -210,15 +214,23 @@ Report doctorSummary({
     for (final e in inputs.events) {
       if (reports == summaryLabReports) break;
       if (e.type != 'lab' || _after(e.occurredAt, today)) continue;
-      final tests = labTestsOf(decodeRecordData(e.dataJson));
+      final tests = LabReport.of(e).tests;
       if (tests.isEmpty) continue;
       reports++;
       for (final t in tests) {
+        final flag = switch (t.flag) {
+          LabFlag.high => l.reportFlagHigh,
+          LabFlag.low => l.reportFlagLow,
+          _ => null,
+        };
         rows.add([
           date(e.occurredAt),
           t.name,
-          [?t.value, ?t.unit].join(' '),
-          t.range ?? '',
+          [
+            [t.shownValue, ?t.unit].where((s) => s.isNotEmpty).join(' '),
+            ?flag,
+          ].join(' · '),
+          labRangeText(t.range),
         ]);
       }
     }
@@ -306,6 +318,10 @@ Report doctorSummary({
               : l.reportRoutePrivate,
         ),
       );
+      final tooLate = [
+        for (final s in statuses)
+          if (s.followed && s.state == DoseState.tooLate) doseName(l, s.dose),
+      ];
       if (underFive) {
         fields.add(
           ReportField(
@@ -333,13 +349,19 @@ Report doctorSummary({
             ),
           );
         }
+        if (tooLate.isNotEmpty) {
+          fields.add(ReportField(l.reportTooLateLabel, tooLate.join(comma)));
+        }
       }
-      final given = [
-        for (final s in statuses)
-          if (s.done && s.givenOn != null) s,
-      ]..sort((a, b) => b.givenOn!.compareTo(a.givenOn!));
-      for (final s in given.take(6)) {
-        rows.add([doseName(l, s.dose), date(s.givenOn!)]);
+      // Latest first, travel vaccines and other off-schedule records too.
+      final given = givenDoses(
+        l,
+        statuses,
+        vaccineRecords(inputs.events),
+        plan,
+      ).reversed;
+      for (final g in given.take(summaryVaccines)) {
+        rows.add([g.name, date(g.date)]);
       }
     }
     return ReportSection(
@@ -399,43 +421,9 @@ String _age(AppLocalizations l, DateTime birth, DateTime today, int years) {
 String? _text(Object? v) =>
     v is String && v.trim().isNotEmpty ? v.trim() : (v is num ? '$v' : null);
 
-/// One test on a lab record.
-typedef LabLine = ({String name, String? value, String? unit, String? range});
-
-/// The tests on a lab record's data, in either shape: one `{test, value,
-/// unit}` (a single typed result), or `tests: [{name, value | valueText,
-/// unit, low, high, rangeText}]` (a lab report with several).
-List<LabLine> labTestsOf(Map<String, Object?> data) {
-  String? range(Map<Object?, Object?> t) {
-    if (_text(t['rangeText']) case final r?) return r;
-    final (low, high) = (_text(t['low']), _text(t['high']));
-    if (low != null && high != null) return '$low – $high';
-    if (low != null) return '≥ $low';
-    if (high != null) return '≤ $high';
-    return null;
-  }
-
-  if (data['tests'] case final List<Object?> tests) {
-    return [
-      for (final t in tests)
-        if (t is Map<Object?, Object?>)
-          if (_text(t['name']) case final name?)
-            (
-              name: name,
-              value: _text(t['value']) ?? _text(t['valueText']),
-              unit: _text(t['unit']),
-              range: range(t),
-            ),
-    ];
-  }
-  final name = _text(data['test']);
-  if (name == null) return const [];
-  return [
-    (
-      name: name,
-      value: _text(data['value']),
-      unit: _text(data['unit']),
-      range: null,
-    ),
-  ];
+/// The lab's range as printed, else written with characters the PDF font
+/// has ("<=" rather than "≤"); empty when there's none.
+String labRangeText(LabRange range) {
+  if (range.isEmpty && (range.printed ?? '').trim().isEmpty) return '';
+  return range.format().replaceAll('≤', '<=').replaceAll('≥', '>=');
 }

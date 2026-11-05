@@ -39,41 +39,23 @@ Report? vaccinationRecord({
     plan: plan,
   );
 
-  final matched = {for (final s in statuses) ...s.recordIds};
-  final given = <(DateTime, List<String>)>[
-    for (final s in statuses)
-      if (s.done && s.givenOn != null)
-        (
-          s.givenOn!,
-          [
-            doseName(l, s.dose),
-            date(s.givenOn!),
-            if (includeNotes) plan.notes[s.dose.key] ?? '',
-          ],
-        ),
-    for (final r in records)
-      if (r.id != null && !matched.contains(r.id))
-        (
-          r.date,
-          [
-            r.dose == null ? r.name : l.vaccineDoseName(r.name, r.dose!),
-            date(r.date),
-            if (includeNotes) '',
-          ],
-        ),
-  ]..sort((a, b) => a.$1.compareTo(b.$1));
+  final given = givenDoses(l, statuses, records, plan);
 
   final underFive = isUnderFive(birth, today);
   final upcoming = [
     if (underFive)
       for (final s in [
-        ...statuses.where((s) => s.open),
+        ...statuses.where((s) => s.open || _tooLate(s)),
       ]..sort((a, b) => a.dueOn.compareTo(b.dueOn)))
         [
           doseName(l, s.dose),
-          s.state == DoseState.overdue
-              ? '${date(s.dueOn)} · ${l.reportOverdue}'
-              : date(s.dueOn),
+          switch (s.state) {
+            DoseState.overdue => '${date(s.dueOn)} · ${l.reportOverdue}',
+            // Past the age it may be given (rotavirus): not "upcoming",
+            // and not something to just catch up on.
+            DoseState.tooLate => l.reportTooLate,
+            _ => date(s.dueOn),
+          },
         ],
   ];
 
@@ -103,7 +85,10 @@ Report? vaccinationRecord({
           l.reportColDate,
           if (includeNotes) l.reportColNotes,
         ],
-        rows: [for (final g in given) g.$2],
+        rows: [
+          for (final g in given)
+            [g.name, date(g.date), if (includeNotes) g.note ?? ''],
+        ],
         empty: l.reportNoDosesGiven,
       ),
       ReportSection(
@@ -115,4 +100,39 @@ Report? vaccinationRecord({
       ),
     ],
   );
+}
+
+/// A followed dose past the age it may be given, never given.
+bool _tooLate(DoseStatus s) => s.followed && s.state == DoseState.tooLate;
+
+/// One dose given: on the schedule, or a record that isn't (a travel
+/// vaccine, an extra dose), named as the family wrote it.
+typedef GivenDose = ({DateTime date, String name, String? note});
+
+/// Every dose given, oldest first: the schedule's (named in [l]'s
+/// language, with the family's note from [plan]) and the records that
+/// match no scheduled dose.
+List<GivenDose> givenDoses(
+  AppLocalizations l,
+  List<DoseStatus> statuses,
+  List<VaccineRecord> records,
+  VaccinePlan plan,
+) {
+  final matched = {for (final s in statuses) ...s.recordIds};
+  return <GivenDose>[
+    for (final s in statuses)
+      if (s.done && s.givenOn != null)
+        (
+          date: s.givenOn!,
+          name: doseName(l, s.dose),
+          note: plan.notes[s.dose.key],
+        ),
+    for (final r in records)
+      if (r.id != null && !matched.contains(r.id))
+        (
+          date: r.date,
+          name: r.dose == null ? r.name : l.vaccineDoseName(r.name, r.dose!),
+          note: null,
+        ),
+  ]..sort((a, b) => a.date.compareTo(b.date));
 }
