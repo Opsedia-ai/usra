@@ -109,7 +109,7 @@ iCloud on the Mac.
 | | Values with the lab's printed range, High/Low | ✅ | ✅ |
 | | Unsure values highlighted, confirm before saving | ✅ | ✅ (every row must be confirmed) |
 | | Trend chart per test | — | ✅ |
-| **Sick days** | Fever log, medicine given, reminder | ◐ (privacy policy only) | ✅ |
+| **Sick days** | Fever log, medicine given, reminder | ✅ (v1.3) | ✅ |
 | | Lock-screen live status with child's name | ◐ | — (by choice: privacy) |
 | | Age-based warning signs with sources | — | ✅ |
 | **Growth** | WHO weight, height, head circumference | — | ✅ |
@@ -156,6 +156,52 @@ Proposals that follow from this:
 | C12 | **Read lab PDFs**: extract text from text-based PDFs on the device (fall back to rendering a page to an image for the existing reader) | S |
 | C13 | **Calm Home for parents**: a child-focused Home (next vaccine, today's doses, last fever) that hides adult features until used; follow the UX audit's findings | M |
 | C14 | **Store page**: lead with "no account, stays on your phone", then reminders that ring, growth and milestones, the whole family, Android | S |
+
+## Hands-on: Jojo 1.3 (5 Nov 2026)
+
+From screenshots of the installed app (version 1.3, build 17, newer than the
+1.2 store listing above). Changes the comparison in four places:
+
+- **Fever is released.** The "+" button offers Vaccine, Medicine, Lab report
+  and **Fever**; Records has a Fevers tab. Mark Jojo's fever log as ✅.
+- **A paid plan exists.** Settings shows "Founding member: Premium is free for
+  you, for life". Early users get Premium free; later users will likely pay.
+  The welcome screen says "Free for every child in your family".
+- **Vaccine schedule differs from ours** (needs a doctor's or current MoHP
+  check before we change anything):
+  - Jojo lists **hexavalent as required** at 2, 4 and 6 months with polio, and
+    no separate pentavalent or IPV. Our research
+    (`egypt-vaccine-schedule.md`) found hexavalent is **not** in the free
+    public schedule as of 4 Nov 2026 and models it as a private route.
+  - Jojo offers **meningitis (optional) at 9 months**; we start MenACWY at
+    12 months. Some MenACWY vaccines are licensed from 9 months.
+  - Matches: birth BCG + hepatitis B + polio; PCV and rotavirus optional at
+    2 and 4 months, PCV at 6; polio at 9 months; MMR + polio at 12 months.
+- **"Where" on each vaccine:** government health unit or private, plus vaccine
+  search and an optional card photo.
+
+**How it feels** (useful for the UX audit and C13):
+
+| Moment | Jojo |
+| --- | --- |
+| Welcome | One card with a countdown ("58 days until her 6-month vaccines") and "Your child's health, calmly kept." |
+| Onboarding | 5 steps: your name; one child (name, date of birth, illustrated girl/boy avatar, colour); "What has she already had?" grouped by age with **Tick all** per group, optional vaccines labelled, dates optional |
+| Home | Greeting by name; one vaccine card (due today, next visit date, required chips solid, optional dashed, "Mark what she's already had"); empty state with three big rows: Vaccine, Medicine, Lab report |
+| Navigation | Floating 4-tab bar (Home, Records, Vaccines, Settings) + a large "+" that adds anything from any tab; child switcher pill on every tab |
+| Adding | Bottom sheets with the person picker in the header; "Type it in" first, photo second |
+| Records | One screen, tabs Medicines / Labs / Vaccines / Fevers, search |
+| Vaccines | "0/10 required doses done" with one line of explanation and a link; All / Required / Optional; timeline by age with dates; English and Arabic names on the same chip |
+| Look | Warm off-white, one accent colour, very large titles, few elements per screen |
+
+**What to take from it:** the one-tap "+" for every record type, "Tick all"
+per age group, bilingual vaccine names on one chip, the "Where" field, and a
+first screen that shows the next thing to do. **What not to copy:** analytics
+by default (Jojo asks; we don't collect any), and health data in iCloud.
+
+New proposals: **C15** global "+" add button and Records tabs per type (S);
+**C16** "Where given" on vaccines (S); **C17** resolve the hexavalent and
+meningitis questions with a doctor and update the schedule source (S, founder
++ app).
 
 ## Proposals
 
