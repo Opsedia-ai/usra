@@ -63,7 +63,15 @@ class JourneyDriver {
       }
       await tester.pump(_step);
     }
-    expect(finder, findsWidgets);
+    expect(
+      finder,
+      findsWidgets,
+      reason:
+          'On screen: '
+          '${find.byType(Text).evaluate().map((e) => (e.widget as Text).data).whereType<String>().take(30).join(' | ')}'
+          '; fields: '
+          '${find.byType(EditableText).evaluate().map((e) => (e.widget as EditableText).controller.text).join(' | ')}',
+    );
   }
 
   static const _step = Duration(milliseconds: 200);
@@ -78,6 +86,23 @@ class JourneyDriver {
     final field = find.byKey(ValueKey(key));
     await reveal(field);
     await tester.enterText(field, text);
+    await settle(tester);
+    expect(
+      tester
+          .widget<EditableText>(
+            find.descendant(of: field, matching: find.byType(EditableText)),
+          )
+          .controller
+          .text,
+      text,
+      reason: 'typing into $key',
+    );
+    // Close the keyboard, as a person does before looking for Save; on a
+    // phone it slides away over a few frames Flutter doesn't drive.
+    FocusManager.instance.primaryFocus?.unfocus();
+    if (tester.binding is LiveTestWidgetsFlutterBinding) {
+      await Future<void>.delayed(const Duration(milliseconds: 800));
+    }
     await settle(tester);
   }
 }
