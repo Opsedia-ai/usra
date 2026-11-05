@@ -2,3 +2,5 @@
 "NSFaceIDUsageDescription" = "أسرة بتستخدم Face ID عشان تفتح السجلات الصحية لعيلتك. بيانات وشك بتفضل عند iOS ومبتوصلش لأسرة.";
 "NSCameraUsageDescription" = "أسرة بتستخدم الكاميرا عشان تصوّر كروت التأمين والتقارير وعلب الدوا. الصور وأي كلام بيتقري منها بيفضلوا على الموبايل ده.";
 "NSPhotoLibraryUsageDescription" = "أسرة بتخليك تختار صورة كارت تأمين أو تقرير أو علبة دوا. الصور وأي كلام بيتقري منها بيفضلوا على الموبايل ده.";
+/* The name under the icon, as on Android (values/strings.xml app_name). */
+"CFBundleDisplayName" = "أسرة";

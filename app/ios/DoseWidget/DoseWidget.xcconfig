@@ -1,0 +1,4 @@
+// The widget's version and build number (FLUTTER_BUILD_NAME/NUMBER) must
+// match the app's; Flutter writes them here. Not the Flutter/*.xcconfig
+// files: those pull in the app's Pods, which the widget doesn't link.
+#include? "../Flutter/Generated.xcconfig"

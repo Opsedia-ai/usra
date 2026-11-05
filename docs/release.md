@@ -1,6 +1,6 @@
 # Releasing Usra on Google Play
 
-Android only for now. The iOS icon and launch screen are generated, but the iOS app has not been built or signed yet.
+Android only for now. The iOS app (with the dose widget extension) builds unsigned in CI (`build-ios`) and runs on the simulator, but has not been signed or run on a phone yet.
 
 ## What is set up
 
@@ -118,4 +118,4 @@ The generators also rewrite `ios/Runner/Assets.xcassets/AppIcon.appiconset/Conte
 
 ### Saving CI minutes
 
-The debug Android build (`build-android`) runs on a PR only when it changes `app/android/`, `app/ios/`, `app/pubspec.yaml`/`pubspec.lock`, `tools/ci/` or the workflow itself; Dart-only and docs PRs run just the tests. Add the `android-build` label to force it. Main pushes skip the debug build because the release bundle job compiles the same code. A new push to a PR cancels that PR's older run.
+The debug Android build (`build-android`) runs on a PR only when it changes `app/android/`, `app/ios/`, `app/pubspec.yaml`/`pubspec.lock`, `tools/ci/` or the workflow itself; Dart-only and docs PRs run just the tests. Add the `android-build` label to force it. Main pushes skip the debug build because the release bundle job compiles the same code. The unsigned iOS build (`build-ios`, macOS runner) runs on PRs that change `app/ios/`, `app/pubspec.yaml`/`pubspec.lock` or the workflow, on PRs labelled `ios-build`, and on main pushes; it caches CocoaPods by `Podfile.lock` and fails if `pod install` changes committed files. A new push to a PR cancels that PR's older run.
