@@ -84,8 +84,8 @@ class FakeStore implements SyncStore {
     this.calls.push({ fn: "bind", args: [deviceId, enroll] });
     return Promise.resolve({ device_id: deviceId, status: "approved" });
   }
-  approveDevice(_s: Session, deviceId: string, pairingId: string | null, bundle: Uint8Array | null) {
-    this.calls.push({ fn: "approve", args: [deviceId, pairingId, bundle?.length ?? null] });
+  approveDevice(_s: Session, deviceId: string, pairingId: string | null, bundle: Uint8Array | null, signerId: string) {
+    this.calls.push({ fn: "approve", args: [deviceId, pairingId, bundle?.length ?? null, signerId] });
     return Promise.resolve({ device_id: deviceId, status: "approved" });
   }
   recoverDevice(_s: Session, deviceId: string) {
@@ -267,7 +267,7 @@ Deno.test("approve-device: the approving phone signs the new phone's keys and th
     bundle: b64(new Uint8Array(500)),
   });
   assertEquals(res.status, 200);
-  assertEquals(store.calls, [{ fn: "approve", args: [NEW_PHONE, "9a000000-0000-4000-8000-000000000001", 500] }]);
+  assertEquals(store.calls, [{ fn: "approve", args: [NEW_PHONE, "9a000000-0000-4000-8000-000000000001", 500, PHONE] }]);
 });
 
 Deno.test("approve-device: the new phone cannot approve itself, nor a swapped key", async () => {
@@ -432,6 +432,14 @@ Deno.test("append-family-log: rotate_key ships history and wraps, other entries 
     await post(
       handler,
       await appendBody(keys.phone, JSON.stringify(genesis()), { history: b64(new Uint8Array(72)), wraps }),
+    ),
+    400,
+    "bad_rotation",
+  );
+  await expectError(
+    await post(
+      handler,
+      await appendBody(keys.phone, JSON.stringify(genesis()), { wraps }),
     ),
     400,
     "bad_rotation",

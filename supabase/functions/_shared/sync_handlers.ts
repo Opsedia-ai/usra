@@ -75,7 +75,7 @@ export function createApproveDeviceHandler(deps: SyncDeps): Handler {
     const keys = await deps.store.takeChallenge(session, "approve", deviceId, nonce);
     const message = approveDeviceMessage(session.userId, deviceId, keys.device.kx, keys.device.sig, nonce);
     if (!await verifyStrict(keys.signer.sig, message, signature)) throw badSignature();
-    return json(await deps.store.approveDevice(session, deviceId, pairingId, bundle));
+    return json(await deps.store.approveDevice(session, deviceId, pairingId, bundle, keys.signer.id));
   };
 }
 
@@ -167,7 +167,7 @@ export function createAppendFamilyLogHandler(deps: SyncDeps): Handler {
     if (entry.family !== familyId || entry.seq !== seq || !isUuid(entry.by)) {
       throw new HttpError(400, "entry_mismatch", "The entry does not match the request");
     }
-    if ((type === "rotate_key") !== (history !== null && wraps !== null)) {
+    if (type === "rotate_key" ? history === null || wraps === null : history !== null || wraps !== null) {
       throw new HttpError(400, "bad_rotation", "rotate_key needs history and wraps, other entries neither");
     }
 

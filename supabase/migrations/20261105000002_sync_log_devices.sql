@@ -754,7 +754,7 @@ $$;
 -- session (way 2) it must be revealed, by this approver, for this device.
 create or replace function public.approve_device_signed(
   p_user uuid, p_session uuid, p_device uuid,
-  p_pairing uuid default null, p_bundle bytea default null
+  p_pairing uuid default null, p_bundle bytea default null, p_signer uuid default null
 )
 returns jsonb
 language plpgsql
@@ -766,6 +766,11 @@ declare
 begin
   if v_approver is null then
     raise exception 'approved_device_required' using errcode = '42501';
+  end if;
+  -- The phone whose signature the Edge Function checked must still be the
+  -- session's phone (it could have been re-bound in between).
+  if p_signer is not null and p_signer <> v_approver then
+    raise exception 'approver_changed' using errcode = '42501';
   end if;
   perform 1 from public.devices where id = p_device and user_id = p_user;
   if not found then
@@ -1995,7 +2000,7 @@ begin
     'public.append_family_log_as(uuid, uuid, uuid, integer, bytea, bytea, bytea, bytea, jsonb)',
     'public.take_device_challenge(uuid, uuid, text, uuid, bytea)',
     'public.bind_device_signed(uuid, uuid, uuid, boolean)',
-    'public.approve_device_signed(uuid, uuid, uuid, uuid, bytea)',
+    'public.approve_device_signed(uuid, uuid, uuid, uuid, bytea, uuid)',
     'public.recover_device_signed(uuid, uuid, uuid)',
     'public.device_signing_key(uuid)',
     'public.session_device_key(uuid, uuid)',

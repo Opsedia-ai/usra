@@ -55,13 +55,20 @@ export class SupabaseSyncStore implements SyncStore {
     }) as Record<string, unknown>;
   }
 
-  async approveDevice(session: Session, deviceId: string, pairingId: string | null, bundle: Uint8Array | null) {
+  async approveDevice(
+    session: Session,
+    deviceId: string,
+    pairingId: string | null,
+    bundle: Uint8Array | null,
+    signerId: string,
+  ) {
     return await this.call("approve_device_signed", {
       p_user: session.userId,
       p_session: session.sessionId,
       p_device: deviceId,
       p_pairing: pairingId,
       p_bundle: byteaParam(bundle),
+      p_signer: signerId,
     }) as Record<string, unknown>;
   }
 

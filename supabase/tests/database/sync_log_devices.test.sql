@@ -6,7 +6,7 @@
 -- to an approved device), a revoked or removed device, and replays.
 -- Run with: supabase test db
 begin;
-select plan(174);
+select plan(175);
 
 -- People: A owns family F; B joins as guardian and later resets their account;
 -- C is an outsider; D never enrolled.
@@ -140,7 +140,7 @@ insert into public.devices (id, user_id, platform, public_key, signing_public_ke
 -- =====================================================================================
 select ok(not has_function_privilege('authenticated', 'public.take_device_challenge(uuid, uuid, text, uuid, bytea)', 'execute')
       and not has_function_privilege('authenticated', 'public.bind_device_signed(uuid, uuid, uuid, boolean)', 'execute')
-      and not has_function_privilege('authenticated', 'public.approve_device_signed(uuid, uuid, uuid, uuid, bytea)', 'execute')
+      and not has_function_privilege('authenticated', 'public.approve_device_signed(uuid, uuid, uuid, uuid, bytea, uuid)', 'execute')
       and not has_function_privilege('authenticated', 'public.recover_device_signed(uuid, uuid, uuid)', 'execute')
       and not has_function_privilege('authenticated', 'public.append_family_log_as(uuid, uuid, uuid, integer, bytea, bytea, bytea, bytea, jsonb)', 'execute')
       and not has_function_privilege('authenticated', 'public.publish_family_head(uuid, uuid, uuid, bytea, bytea)', 'execute')
@@ -266,6 +266,9 @@ reset role;
 select is(public.take_device_challenge(pg_temp.u('a'), pg_temp.s('a7'), 'approve', pg_temp.d('a2'),
     pg_temp.v('n-approve')) -> 'signer' ->> 'id', pg_temp.d('a1')::text,
   'the approval is checked against the approving phone''s key, over the new phone''s keys');
+select throws_ok($$ select public.approve_device_signed(pg_temp.u('a'), pg_temp.s('a7'), pg_temp.d('a2'), null, null,
+    pg_temp.d('a3')) $$,
+  '42501', 'approver_changed', 'the approval is refused if the signing phone is no longer the session''s phone');
 select throws_ok($$ select public.approve_device_signed(pg_temp.u('a'), pg_temp.s('a2'), pg_temp.d('a2')) $$,
   '42501', 'approved_device_required', 'an SMS-only session cannot approve, not even its own new phone');
 select throws_ok($$ select public.approve_device_signed(pg_temp.u('c'), pg_temp.s('c1'), pg_temp.d('a2')) $$,

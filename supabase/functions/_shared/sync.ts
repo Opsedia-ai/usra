@@ -175,6 +175,7 @@ export interface SyncStore {
     deviceId: string,
     pairingId: string | null,
     bundle: Uint8Array | null,
+    signerId: string,
   ): Promise<Record<string, unknown>>;
   recoverDevice(session: Session, deviceId: string): Promise<Record<string, unknown>>;
   /** Ed25519 key of any device, or null if there is no such device. */
