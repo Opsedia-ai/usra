@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'tables.dart';
 
 part 'app_database.g.dart';
+part 'sick_days.dart';
 
 @DriftDatabase(
   tables: [
@@ -18,6 +19,9 @@ part 'app_database.g.dart';
     Prescriptions,
     DoseSchedules,
     DoseLogs,
+    SickEpisodes,
+    TemperatureReadings,
+    GivenMedicines,
     OutboxEntries,
   ],
 )
@@ -27,7 +31,7 @@ class AppDatabase extends _$AppDatabase {
   static const _uuid = Uuid();
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -61,11 +65,41 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(medicines, medicines.stoppedWithPrescription);
         }
       }
+      if (from < 8) {
+        // Safe to run twice: an older build opening this database leaves
+        // the tables and sets the version back (drift calls onUpgrade with
+        // from > to, which does nothing here), and the next update runs
+        // this again.
+        await m.createTable(sickEpisodes);
+        await m.createTable(temperatureReadings);
+        await m.createTable(givenMedicines);
+        if (from >= 6) {
+          await _addColumnIfMissing(
+            m,
+            medicines,
+            medicines.minHoursBetweenDoses,
+          );
+        }
+      }
     },
+    // A database from a newer build (from > to): opened as it is; the
+    // newer tables and columns are kept for when the app is updated again.
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
     },
   );
+
+  Future<void> _addColumnIfMissing(
+    Migrator m,
+    TableInfo table,
+    GeneratedColumn column,
+  ) async {
+    final existing = await customSelect(
+      'SELECT name FROM pragma_table_info(?)',
+      variables: [Variable.withString(table.actualTableName)],
+    ).map((r) => r.read<String>('name')).get();
+    if (!existing.contains(column.name)) await m.addColumn(table, column);
+  }
 
   Stream<Profile?> watchProfile(String id) {
     return (select(profiles)
@@ -232,6 +266,8 @@ class AppDatabase extends _$AppDatabase {
       for (final prescriptionId in prescriptionIds) {
         await _softDeletePrescription(prescriptionId, now);
       }
+
+      await _softDeleteEpisodesOf(id, now);
     });
   }
 
@@ -798,8 +834,15 @@ class AppDatabase extends _$AppDatabase {
     List<String> photos = const [],
     bool active = true,
     DoseScheduleInput? schedule,
+    Value<double?> minHoursBetweenDoses = const Value.absent(),
   }) async {
     final cleanName = name.trim();
+    final hours = minHoursBetweenDoses.present
+        ? minHoursBetweenDoses.value
+        : null;
+    if (hours != null && !isValidMinHours(hours)) {
+      throw ArgumentError.value(hours, 'minHoursBetweenDoses');
+    }
     if (cleanName.isEmpty) {
       throw ArgumentError.value(name, 'name', 'must not be empty');
     }
@@ -817,6 +860,7 @@ class AppDatabase extends _$AppDatabase {
       strength: Value(_clean(strength)),
       form: Value(_clean(form)),
       instructions: Value(_clean(instructions)),
+      minHoursBetweenDoses: minHoursBetweenDoses,
       doctorId: Value(doctorId),
       startOn: Value(start),
       endOn: Value(end),

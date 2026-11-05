@@ -99,4 +99,4 @@ Suggested order: C1 + C2 + C3 together (one vaccine release; built in Nov 2026, 
 then C6 + C7 (built in Nov 2026: lab reports in `app/lib/features/labs/`, prescriptions in
 `app/lib/features/medicines/prescription_parser.dart`, vaccination cards in
 `app/lib/features/children/vaccine_card_parser.dart`; the on-device reader is Latin script only,
-so Arabic text isn't read yet), then C4 + C10, then C8.
+so Arabic text isn't read yet), then C4 + C10, then C8 (built in Nov 2026; warning signs in `fever-warning-signs.md`, needs medical review).

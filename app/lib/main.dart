@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' show TableUpdateQuery;
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,6 +27,7 @@ import 'features/account/account_providers.dart';
 import 'features/account/account_secure_storage.dart';
 import 'features/backup/backup_providers.dart';
 import 'features/settings/wipe_restart.dart';
+import 'features/sick_days/next_dose.dart';
 import 'features/children/vaccine_reminders.dart';
 import 'features/follow_ups/dismissals.dart';
 import 'features/medicines/dose_widget.dart';
@@ -210,11 +212,18 @@ Future<void> main() async {
     final status = r.status;
     if (status == null) {
       // Opening the app from a reminder waits for the lock.
-      final child = r.dose.profileId;
+      final dose = r.dose;
+      final child = dose.profileId;
       lock.runWhenUnlocked(
         () => container()
             .read(routerProvider)
-            .go(child == null ? '/medicines' : '/family/$child/vaccines'),
+            .go(
+              dose.isNextDose && child != null
+                  ? '/family/$child/sick-days/${dose.episodeId}'
+                  : child == null
+                  ? '/medicines'
+                  : '/family/$child/vaccines',
+            ),
       );
     } else {
       // Taken / Snooze only saves the dose and shows nothing: no unlock.
@@ -288,6 +297,20 @@ Future<void> main() async {
           minutes: c.read(vaccineReminderMinutesProvider),
         ),
         texts: VaccineReminderTexts(texts.l, discreet: texts.discreet),
+      );
+    },
+    nextDoseChanges: database.tableUpdates(
+      TableUpdateQuery.onAllTables([
+        database.sickEpisodes,
+        database.givenMedicines,
+      ]),
+    ),
+    nextDoses: (now) {
+      final texts = reminderTextsOf(container());
+      return loadNextDoseReminders(
+        database,
+        now: now,
+        texts: NextDoseTexts(texts.l, discreet: texts.discreet),
       );
     },
   );

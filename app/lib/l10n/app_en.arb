@@ -1836,5 +1836,182 @@
   "reportFlagLow": "Low",
   "reportTooLate": "Too late for this vaccine: ask the doctor",
   "reportTooLateLabel": "Too late (ask the doctor)",
-  "reportSimpleIntro": "A PDF with this person's health details, medicines, visits and tests, to show or send to a doctor."
+  "reportSimpleIntro": "A PDF with this person's health details, medicines, visits and tests, to show or send to a doctor.",
+  "memberSickDays": "Fever & sick days",
+  "sickDaysTitle": "Fever and sick days",
+  "sickDaysEmpty": "No sick days yet. When someone gets ill, start one to log temperatures, symptoms and the medicines given.",
+  "sickDayStart": "Start a sick day",
+  "sickDayOngoing": "Still ill",
+  "sickDayEnded": "Over",
+  "sickDaySince": "Since {date}",
+  "@sickDaySince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayRange": "{start} to {end}",
+  "@sickDayRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayTitle": "Sick day",
+  "sickDayStartedAt": "Started",
+  "sickDayEnd": "Mark as over",
+  "sickDayReopen": "Still ill",
+  "sickDayDelete": "Delete this sick day",
+  "sickDayDeleteConfirm": "Delete this sick day with its temperatures and medicines given?",
+  "sickDayTemperatures": "Temperature",
+  "sickDayAddReading": "Add a temperature",
+  "sickDayNoReadings": "No temperatures yet.",
+  "sickDayChartTitle": "Temperature chart",
+  "sickDayChartNote": "Dashed line: 38 °C (100.4 °F), where a fever starts.",
+  "sickDaySymptoms": "Symptoms",
+  "sickDayMedicines": "Medicines given",
+  "sickDayAddMedicine": "Add a medicine given",
+  "sickDayNoMedicines": "No medicines logged.",
+  "sickDayNotes": "Notes",
+  "sickDayNotesSaved": "Notes saved",
+  "readingValue": "Temperature",
+  "readingCelsius": "°C",
+  "readingFahrenheit": "°F",
+  "readingSite": "Where it was taken",
+  "readingSiteName": "{site, select, armpit{Armpit} ear{Ear} forehead{Forehead} mouth{Mouth} rectal{Rectal} other{Not said}}",
+  "@readingSiteName": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      }
+    }
+  },
+  "readingTime": "Time",
+  "readingDate": "Date",
+  "readingImplausible": "That doesn't look like a body temperature. Check the number and the unit.",
+  "readingFever": "Fever",
+  "readingDelete": "Delete this temperature",
+  "givenWhich": "Which medicine",
+  "givenOther": "Another medicine (type its name)",
+  "givenName": "Medicine name",
+  "givenAmount": "Amount given",
+  "givenAmountHint": "As you'd write it, e.g. from the box or prescription",
+  "givenTime": "Time given",
+  "givenFromPrescription": "From the prescription of {date}",
+  "@givenFromPrescription": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "givenRemind": "Remind me at that time",
+  "givenNoInterval": "No time shown: this medicine has no minimum hours between doses saved. You can add them on the medicine's page, as written on the label or by your doctor.",
+  "givenDelete": "Delete this entry",
+  "givenRequired": "Pick a medicine or type its name",
+  "nextDoseDiscreetTitle": "A reminder from Usra",
+  "nextDoseDiscreetBody": "Open Usra to see it.",
+  "nextDoseTitle": "{person}: {medicine}",
+  "@nextDoseTitle": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "medicine": {
+        "type": "String"
+      }
+    }
+  },
+  "nextDoseBody": "{hours} hours have passed since the dose you logged. Check other medicines with the same ingredient.",
+  "@nextDoseBody": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "symptomName": "{symptom, select, cough{Cough} runnyNose{Runny nose} soreThroat{Sore throat} earPain{Ear pain} headache{Headache} vomiting{Vomiting} diarrhea{Diarrhoea} rash{Rash} aches{Body aches} poorFeeding{Eating or drinking less} dehydration{Fewer wet nappies, peeing less or no tears} breathing{Hard to breathe} drowsy{Very drowsy or hard to wake} seizure{Fit (seizure)} rashNotFading{Rash that doesn't fade under a glass} stiffNeck{Stiff neck} other{Other}}",
+  "@symptomName": {
+    "placeholders": {
+      "symptom": {
+        "type": "String"
+      }
+    }
+  },
+  "warnTitle": "Warning signs",
+  "warnLogged": "From what you logged:",
+  "warnEmergency": "Call an ambulance (123) now if:",
+  "warnDoctorNow": "Contact a doctor now if:",
+  "warnSign": "{sign, select, breathing{Hard to breathe, breathing very fast or breathless} seizure{A fit (seizure)} rashGlass{A rash that doesn't fade when you press a glass on it} drowsy{Very drowsy or hard to wake, or not responding as usual} stiffNeck{A stiff neck, or light hurts the eyes} skinColour{Blue, grey, very pale or blotchy skin, lips or tongue, or unusually cold hands and feet} confused{Confused, or very agitated and won't stop crying} under3Months{Under 3 months old with a temperature of 38 °C (100.4 °F) or higher} months3to6{3 to 6 months old with a temperature of 39 °C (102.2 °F) or higher} longUnder2{Under 2 years old with a fever for more than 24 hours} longChild{2 years or older with a fever for more than 3 days} fiveDays{A fever that has lasted 5 days or more} veryHigh{A temperature above 40 °C (104 °F) more than once} notImproving{A high temperature that isn't getting better, or is getting worse} dehydration{Signs of dehydration: fewer wet nappies or peeing less, no tears, sunken eyes, dry mouth} notDrinking{Not drinking, not feeding or breastfeeding, or not acting like themselves} vomitsEverything{Vomits everything, or keeps vomiting} armpitUnder3Months{Under 3 months old with an armpit reading of 37.5 °C (99.5 °F) or higher} lowUnder3Months{Under 3 months old with a temperature below 36 °C (96.8 °F)} other{}}",
+  "@warnSign": {
+    "placeholders": {
+      "sign": {
+        "type": "String"
+      }
+    }
+  },
+  "warnFooter": "For information only, not a diagnosis. If you're worried, contact a doctor or call 123, even if nothing here matches.",
+  "warnSources": "Sources",
+  "warnSourceName": "{source, select, nhs{NHS (UK): fever in children} aap{American Academy of Pediatrics: when to call the pediatrician} who{WHO: IMCI general danger signs} stlouis{St. Louis Children's Hospital: how to take a temperature} womans{Woman's Hospital: newborn temperature} other{}}",
+  "@warnSourceName": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "warnCallDoctor": "My doctors",
+  "givenHoursAfter": "{hours} hours after this dose: {time}",
+  "@givenHoursAfter": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "givenCheckIngredient": "Check other medicines with the same ingredient before giving another dose.",
+  "medicineMinHours": "Minimum hours between doses",
+  "medicineMinHoursHint": "As written on the label or by your doctor. Leave empty if it doesn't say.",
+  "medicineMinHoursInvalid": "Enter hours between 0.5 and 72",
+  "medicineMinHoursSuggest": "The instructions say “{phrase}”. Use {hours} hours?",
+  "@medicineMinHoursSuggest": {
+    "placeholders": {
+      "phrase": {
+        "type": "String"
+      },
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "medicineMinHoursUse": "Use",
+  "medicineMinHoursValue": "{hours} hours",
+  "@medicineMinHoursValue": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "warnArmpitNote": "Armpit readings run lower. If your baby feels hot or seems unwell, call the doctor even below 38 °C.",
+  "warnNoBirthDate": "Add a date of birth to see the signs for this age.",
+  "readingConfirmTitle": "Is this right?",
+  "readingConfirmBody": "{value} is a very unusual body temperature. Check the thermometer and the unit.",
+  "@readingConfirmBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readingConfirmYes": "Save anyway",
+  "readingConfirmNo": "Change it"
 }

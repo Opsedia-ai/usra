@@ -26,15 +26,23 @@ class ReminderRef {
     required this.locale,
     this.at,
     this.profileId,
+    this.episodeId,
   });
 
-  /// Empty for a vaccine visit.
+  /// Empty for a vaccine visit or a next-dose reminder.
   final String medicineId;
 
-  /// The child, for a vaccine visit reminder; null for a dose.
+  /// The child, for a vaccine visit reminder; the person, for a next-dose
+  /// reminder; null for a dose.
   final String? profileId;
 
-  bool get isVaccine => profileId != null;
+  /// The sick day, for a next-dose reminder (see
+  /// `sick_days/next_dose.dart`).
+  final String? episodeId;
+
+  bool get isVaccine => profileId != null && episodeId == null;
+
+  bool get isNextDose => episodeId != null;
 
   /// The dose's planned time, the key its log is saved under.
   final DateTime scheduledAt;
@@ -47,7 +55,13 @@ class ReminderRef {
   final String locale;
 
   String toPayload() => jsonEncode({
-    if (profileId != null) 'v': profileId else 'm': medicineId,
+    if (episodeId != null) ...{
+      'f': episodeId,
+      'p': profileId,
+    } else if (profileId != null)
+      'v': profileId
+    else
+      'm': medicineId,
     's': scheduledAt.toUtc().millisecondsSinceEpoch,
     if (at != null) 'a': at!.toUtc().millisecondsSinceEpoch,
     'l': locale,
@@ -62,6 +76,17 @@ class ReminderRef {
       if (j is! Map) return null;
       DateTime utc(Object? ms) =>
           DateTime.fromMillisecondsSinceEpoch(ms! as int, isUtc: true);
+      final episode = j['f'] as String?;
+      if (episode != null) {
+        return ReminderRef(
+          medicineId: '',
+          episodeId: episode,
+          profileId: j['p'] as String?,
+          scheduledAt: utc(j['s']),
+          at: j['a'] == null ? null : utc(j['a']),
+          locale: j['l'] as String? ?? 'ar',
+        );
+      }
       final child = j['v'] as String?;
       return ReminderRef(
         medicineId: child == null ? j['m'] as String : '',
@@ -89,7 +114,7 @@ class PlannedReminder {
     required this.snoozeLabel,
     this.locale = 'ar',
     this.profileId,
-  });
+  }) : episodeId = null;
 
   /// A vaccine visit for this child, with no buttons (see
   /// `vaccine_reminders.dart`); [medicineId] is empty then.
@@ -103,6 +128,23 @@ class PlannedReminder {
     this.locale = 'ar',
   }) : medicineId = '',
        scheduledAt = dueOn,
+       episodeId = null,
+       takenLabel = null,
+       snoozeLabel = null;
+
+  /// "The next dose is allowed" for a medicine given in a sick day, with
+  /// no buttons in either mode (see `sick_days/next_dose.dart`).
+  /// [medicineId] is empty; [scheduledAt] is when it rings.
+  PlannedReminder.nextDose({
+    required this.id,
+    required this.at,
+    required String this.episodeId,
+    required String this.profileId,
+    required this.title,
+    required this.body,
+    this.locale = 'ar',
+  }) : medicineId = '',
+       scheduledAt = at,
        takenLabel = null,
        snoozeLabel = null;
 
@@ -126,12 +168,20 @@ class PlannedReminder {
   final String? snoozeLabel;
   final String locale;
 
-  /// The child, for a vaccine visit.
+  /// The child, for a vaccine visit; the person, for a next-dose reminder.
   final String? profileId;
 
-  bool get isVaccine => profileId != null;
+  /// The sick day, for a next-dose reminder.
+  final String? episodeId;
+
+  bool get isVaccine => profileId != null && episodeId == null;
+
+  bool get isNextDose => episodeId != null;
 
   bool get discreet => takenLabel == null;
+
+  /// Taken or Snooze; vaccine and next-dose reminders have none.
+  bool get hasButtons => takenLabel != null || snoozeLabel != null;
 
   ReminderRef get ref => ReminderRef(
     medicineId: medicineId,
@@ -139,6 +189,7 @@ class PlannedReminder {
     at: at,
     locale: locale,
     profileId: profileId,
+    episodeId: episodeId,
   );
 
   String toPayload() => ref.toPayload();
@@ -380,6 +431,12 @@ ReminderChanges diffReminders({
   for (final s in shown) {
     final ref = ReminderRef.fromPayload(s.payload);
     final r = ref == null ? null : rebuild?.call(s.id, ref, ref.at ?? now);
+    // A next-dose notification whose entry is gone (deleted, superseded by
+    // a later dose, sick day over) leaves the screen too.
+    if (r == null && ref != null && ref.isNextDose && rebuild != null) {
+      cancel.add(s.id);
+      continue;
+    }
     if (r != null && (r.title != s.title || r.body != s.body)) repost.add(r);
   }
   return ReminderChanges(cancel: cancel, schedule: schedule, repost: repost);

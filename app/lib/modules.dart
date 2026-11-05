@@ -13,6 +13,7 @@ import 'features/pregnancy/pregnancy_module.dart';
 import 'features/reports/reports_module.dart';
 import 'features/scan/scan_module.dart';
 import 'features/settings/settings_module.dart';
+import 'features/sick_days/sick_days_module.dart';
 import 'features/spending/spending_module.dart';
 import 'features/tutorial/tutorial_module.dart';
 
@@ -26,6 +27,7 @@ const List<FeatureModule> appModules = [
   ChildrenModule(),
   PregnancyModule(),
   MedicinesModule(),
+  SickDaysModule(),
   DoctorsModule(),
   ReportsModule(),
   SpendingModule(),
