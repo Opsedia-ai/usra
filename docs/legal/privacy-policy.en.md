@@ -89,7 +89,12 @@ whether registration or a licence is needed, e.g. Egypt PDPC.]
 ## 6. Keeping and deleting
 
 Your records stay on the phone until you delete them in the app or uninstall Usra,
-which deletes the database and the photos. On iPhone, the phone may keep the unused
+which deletes the database and the photos. **More › Delete all my data** erases
+everything Usra keeps on the phone at once: records, photos, the keys that lock them
+(the database key too, so nothing is left in the iPhone Keychain), the recovery key
+saved on the phone, the app lock, reminders, the widget and settings, and signs you out
+of your account if you have one. If you turn it on, the app lock can do the same after
+10 wrong PINs in a row. On iPhone, the phone may keep the unused
 database key in its Keychain after Usra is removed; it cannot open anything, because
 the database it belonged to is gone. Backup files you made stay where
 you saved them until you delete them there.
@@ -115,6 +120,9 @@ by the phone's own storage encryption and app sandbox; encrypting them separatel
 planned. Backup files, photos included, are encrypted with XChaCha20-Poly1305 using a
 key derived from your recovery key (Argon2id). Neither key is ever sent to us. Protect
 your phone with a screen lock: anyone who can unlock your phone can open Usra.
+Usra checks, on the phone only, for signs that it is rooted or jailbroken and warns
+you once if so; nothing about it is sent anywhere. A recovery key you copy is cleared
+from the clipboard after a minute.
 
 ## 10. Later optional cloud features (not in the current version)
 

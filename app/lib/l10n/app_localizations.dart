@@ -296,6 +296,12 @@ abstract class AppLocalizations {
   /// **'Reminders are set on this phone. People\'s names and medicine names can show on the lock screen (the name as you typed it) and on the home-screen widget (first names).'**
   String get aboutPrivacyReminders;
 
+  /// No description provided for @aboutPrivacyDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'You can erase everything Usra keeps on this phone at any time: More › Delete all my data.'**
+  String get aboutPrivacyDelete;
+
   /// No description provided for @aboutPrivacyGoogle.
   ///
   /// In en, this message translates to:
@@ -2485,6 +2491,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show the key again'**
   String get recoveryKeyShowAgain;
+
+  /// No description provided for @recoveryKeyCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy the key'**
+  String get recoveryKeyCopy;
+
+  /// No description provided for @recoveryKeyCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied. It\'s cleared from the clipboard in a minute: paste it into your password manager now.'**
+  String get recoveryKeyCopied;
+
+  /// No description provided for @shareWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share outside Usra?'**
+  String get shareWarningTitle;
+
+  /// No description provided for @shareWarningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Once it\'s sent, Usra\'s lock and encryption no longer protect it: the other app, and anyone who sees that chat or folder, can open it. Check you\'ve picked the right person.'**
+  String get shareWarningBody;
+
+  /// No description provided for @shareWarningDontAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t ask again'**
+  String get shareWarningDontAsk;
+
+  /// No description provided for @shareWarningCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get shareWarningCancel;
+
+  /// No description provided for @shareWarningGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get shareWarningGo;
+
+  /// No description provided for @rootWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone\'s protections are switched off'**
+  String get rootWarningTitle;
+
+  /// No description provided for @rootWarningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone looks rooted or jailbroken. Other apps on it may be able to read Usra\'s files and see the screen, so your family\'s records are less safe here.\n\nUsra keeps working as normal. If you can, use a phone that isn\'t modified, and keep the app lock on.'**
+  String get rootWarningBody;
+
+  /// No description provided for @rootWarningOk.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand'**
+  String get rootWarningOk;
+
+  /// No description provided for @settingsDeleteAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all my data'**
+  String get settingsDeleteAll;
+
+  /// No description provided for @settingsDeleteAllHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase everything Usra keeps on this phone'**
+  String get settingsDeleteAllHint;
+
+  /// No description provided for @wipeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all my data'**
+  String get wipeTitle;
+
+  /// No description provided for @wipeIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'This erases everything Usra keeps on this phone and starts it again as new:'**
+  String get wipeIntro;
+
+  /// No description provided for @wipeList.
+  ///
+  /// In en, this message translates to:
+  /// **'• Every person, record, medicine, doctor and insurance card\n• All photos\n• The keys that lock them, the recovery key saved on this phone and the app lock\n• Reminders, the home-screen widget and settings\n• You\'re signed out of your account (the account itself stays; delete it from Account first if you want)'**
+  String get wipeList;
+
+  /// No description provided for @wipeKeeps.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup files you saved somewhere else (Drive, WhatsApp, Files) aren\'t touched. They still open with your recovery key, so you can bring the records back.'**
+  String get wipeKeeps;
+
+  /// No description provided for @wipeNoUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'This can\'t be undone. Without a backup and its recovery key, the records are gone for good.'**
+  String get wipeNoUndo;
+
+  /// No description provided for @wipeBackupFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a backup first'**
+  String get wipeBackupFirst;
+
+  /// No description provided for @wipeConfirmWord.
+  ///
+  /// In en, this message translates to:
+  /// **'DELETE'**
+  String get wipeConfirmWord;
+
+  /// No description provided for @wipeTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type {word} to confirm'**
+  String wipeTypeLabel(String word);
+
+  /// No description provided for @wipeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete everything'**
+  String get wipeButton;
+
+  /// No description provided for @wipeWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting…'**
+  String get wipeWorking;
+
+  /// No description provided for @wipeReopenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra couldn\'t open again after deleting. Close it and open it again.'**
+  String get wipeReopenFailed;
+
+  /// No description provided for @recoveryKeyCopyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t copy the key. Write it down from the screen instead.'**
+  String get recoveryKeyCopyFailed;
+
+  /// No description provided for @wipeDoneNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything Usra kept on this phone was deleted.'**
+  String get wipeDoneNotice;
+
+  /// No description provided for @wipeIncompleteNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Some of Usra\'s data couldn\'t be deleted. Usra will try again the next time it starts.'**
+  String get wipeIncompleteNotice;
+
+  /// No description provided for @lockSettingsWipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase after 10 wrong PINs'**
+  String get lockSettingsWipe;
+
+  /// No description provided for @lockSettingsWipeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletes all data on this phone after 10 wrong PINs in a row'**
+  String get lockSettingsWipeHint;
+
+  /// No description provided for @lockWipeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase after 10 wrong PINs?'**
+  String get lockWipeConfirmTitle;
+
+  /// No description provided for @lockWipeConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'After 10 wrong PINs in a row, Usra deletes everything it keeps on this phone, with no way to undo it. A child playing with the phone could set it off.\n\nTurn this on only if you have a recent backup and its recovery key.'**
+  String get lockWipeConfirmBody;
+
+  /// No description provided for @lockWipeConfirmYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get lockWipeConfirmYes;
+
+  /// No description provided for @lockWipeCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get lockWipeCancel;
+
+  /// No description provided for @lockTriesBeforeWipe.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 more wrong PIN erases everything} other{{count} more wrong PINs erase everything}}'**
+  String lockTriesBeforeWipe(int count);
 
   /// No description provided for @recoveryKeyMismatch.
   ///

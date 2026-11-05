@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -16,6 +17,7 @@ import 'package:usra/core/files/photo_crypto.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/core/routing/app_router.dart';
 import 'package:usra/core/screen_privacy.dart';
+import 'package:usra/core/security/sensitive_clipboard.dart';
 import 'package:usra/features/backup/backup_providers.dart';
 import 'package:usra/features/backup/backup_screen.dart';
 
@@ -49,6 +51,12 @@ class _FakeBackupService extends BackupService {
       skippedPhotos: skippedPhotos,
     );
   }
+
+  final discarded = <CreatedBackup>[];
+
+  @override
+  Future<void> discardCreated(CreatedBackup backup) async =>
+      discarded.add(backup);
 
   final opened = <(String, RecoveryKey)>[];
 
@@ -124,9 +132,8 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  String groupShown(WidgetTester tester, int n) => tester
-      .widget<SelectableText>(find.byKey(ValueKey('recovery-group-$n')))
-      .data!;
+  String groupShown(WidgetTester tester, int n) =>
+      tester.widget<Text>(find.byKey(ValueKey('recovery-group-$n'))).data!;
 
   testWidgets(
     'first backup makes a recovery key, checks two groups, then shares',
@@ -191,6 +198,8 @@ void main() {
 
       expect(await keys.read(), key);
       expect(service.made, [key]);
+      // Not kept on the phone once shared (S11).
+      expect(service.discarded, hasLength(1));
       expect(shared.single.files!.single.path, endsWith('.usra'));
       expect(prefs.getInt(PrefKeys.lastBackupAt), isNotNull);
       expect(find.textContaining('آخر نسخة احتياطية:'), findsOneWidget);
@@ -402,6 +411,39 @@ void main() {
       // Restore, where the key is typed, too.
       await go(tester, '$backupPath/restore');
       expect(secure.last, isTrue);
+    });
+
+    testWidgets('the recovery key is copied only marked sensitive (S7)', (
+      tester,
+    ) async {
+      final copied = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SensitiveClipboard.channel,
+        (call) async {
+          copied.add(call);
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SensitiveClipboard.channel,
+          null,
+        ),
+      );
+      final key = RecoveryKey.generate();
+      await keys.write(key);
+      await start(tester);
+      await go(tester, '$backupPath/key');
+      // The digits can't be selected and copied the ordinary way.
+      expect(find.byType(SelectableText), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('recovery-key-copy')));
+      await tester.pumpAndSettle();
+      expect(copied.single.method, 'copySensitive');
+      expect(copied.single.arguments, key.groups.join(' '));
+      expect(
+        find.textContaining('هيتمسح من الحافظة بعد دقيقة'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('Block screenshots and Discreet notifications in Settings', (

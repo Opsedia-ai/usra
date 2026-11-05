@@ -14,6 +14,7 @@ import '../account/account_screen.dart';
 import '../backup/backup_screen.dart';
 import '../children/vaccines_screen.dart' show askForReminderAccess;
 import 'about_privacy_screen.dart';
+import 'delete_data_screen.dart';
 
 class SettingsModule extends FeatureModule {
   const SettingsModule();
@@ -35,6 +36,7 @@ class SettingsModule extends FeatureModule {
   List<RouteBase> get routes => [
     GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
     GoRoute(path: aboutPath, builder: (_, _) => const AboutPrivacyScreen()),
+    GoRoute(path: deleteDataPath, builder: (_, _) => const DeleteDataScreen()),
   ];
 }
 
@@ -146,6 +148,22 @@ class SettingsScreen extends ConsumerWidget {
                   onTap: () => context.push(aboutPath),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: ListTile(
+              key: const ValueKey('settings-delete-all'),
+              leading: const Icon(
+                Icons.delete_forever_outlined,
+                color: UsraColors.emergency,
+              ),
+              title: Text(
+                l.settingsDeleteAll,
+                style: const TextStyle(color: UsraColors.emergency),
+              ),
+              subtitle: Text(l.settingsDeleteAllHint),
+              onTap: () => context.go(deleteDataPath),
             ),
           ),
           const SizedBox(height: 24),

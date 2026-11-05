@@ -47,14 +47,14 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       if (key == null) return;
     }
     setState(() => _working = true);
+    final service = ref.read(backupServiceProvider);
+    CreatedBackup? created;
     try {
-      final created = await ref
-          .read(backupServiceProvider)
-          .create(
-            ref.read(databaseProvider),
-            key,
-            appVersion: ref.read(appVersionProvider),
-          );
+      created = await service.create(
+        ref.read(databaseProvider),
+        key,
+        appVersion: ref.read(appVersionProvider),
+      );
       final file = created.file;
       final status = await ref.read(backupShareProvider)(
         ShareParams(
@@ -89,6 +89,14 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(l.backupFailed)));
     } finally {
+      // Not kept on the phone once the share sheet is done (S11).
+      if (created != null) {
+        try {
+          await service.discardCreated(created);
+        } catch (_) {
+          // Cleared at the next start or backup.
+        }
+      }
       if (mounted) setState(() => _working = false);
     }
   }

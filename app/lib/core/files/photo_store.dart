@@ -13,7 +13,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 
+import '../preferences.dart';
 import '../security/app_lock.dart';
+import '../security/file_protection.dart';
+import '../security/share_warning.dart';
 import '../../l10n/app_localizations.dart';
 import 'photo_crypto.dart';
 import 'photo_worker.dart';
@@ -127,10 +130,16 @@ class PhotoStore {
   /// backup or there is no photo key.
   Future<String> import(String sourcePath) async {
     final cipher = keys.require;
+    final created = !await _dir.exists();
     await _dir.create(recursive: true);
     // Cheap and idempotent, so done every time rather than trusting an
     // earlier call.
     await excludeFromBackup(_dir);
+    // iOS: photos are unreadable while the phone is locked (S9); files
+    // saved in the folder take this from it. Set again at each start.
+    if (created) {
+      await protectFiles(_dir, FileProtection.complete, contents: false);
+    }
     final ext = p.extension(sourcePath).toLowerCase();
     final relative = p.join(
       folder,
@@ -418,7 +427,8 @@ class SharedPhotoCache {
 }
 
 /// Shares stored photos with [text] through the share sheet, decrypting
-/// them to [SharedPhotoCache] for as long as the share takes.
+/// them to [SharedPhotoCache] for as long as the share takes. Warns first
+/// that they leave the app's protection ([confirmShareOutside]).
 Future<void> shareStoredPhotos(
   WidgetRef ref,
   PhotoStore store,
@@ -427,10 +437,14 @@ Future<void> shareStoredPhotos(
   Rect? origin,
 }) async {
   // Read now: the screen may be gone once the photos are decrypted.
-  final (cache, share) = (
+  final (cache, share, prefs) = (
     ref.read(sharedPhotoCacheProvider),
     ref.read(shareProvider),
+    ref.read(keyValueStoreProvider),
   );
+  if (!ref.context.mounted || !await confirmShareOutside(ref.context, prefs)) {
+    return;
+  }
   await cache.clear();
   try {
     final files = await cache.copyOut(store, paths);
@@ -453,6 +467,21 @@ String photoMimeOf(String path) => switch (p.extension(path).toLowerCase()) {
   '.heic' => 'image/heic',
   _ => 'image/jpeg',
 };
+
+/// Deletes what pickers and the camera left in [dir] (iOS `tmp/`, where
+/// image_picker writes photos unencrypted): copies of photos whose form was
+/// never closed, because the app was killed. Run at start-up, before any
+/// form can be open; a form deletes its own copies when it closes.
+Future<void> clearPickerLeftovers(Directory dir) async {
+  if (!await dir.exists()) return;
+  await for (final entity in dir.list(followLinks: false)) {
+    try {
+      await entity.delete(recursive: true);
+    } on FileSystemException {
+      // In use by the system; tried again next start.
+    }
+  }
+}
 
 /// Deletes a picked photo's temporary file, if it's still there.
 void discardPicked(String path) {

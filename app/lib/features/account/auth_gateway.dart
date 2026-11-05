@@ -75,6 +75,14 @@ abstract class AuthGateway {
   /// Ends the session and wipes it from the phone, even offline.
   Future<void> signOut();
 
+  /// Drops this phone's copy of the session at once: no network, nothing
+  /// that can time out, and no token refresh can write it back. For
+  /// "Delete all my data", whatever the server sign-out did.
+  Future<void> forgetLocalSession();
+
+  /// Lets a later sign-in refresh its session again.
+  Future<void> resumeSessionRefresh();
+
   /// Deletes the account and everything the server holds for it, and
   /// wipes the session from the phone. Succeeds if it was already deleted.
   Future<void> deleteAccount();
