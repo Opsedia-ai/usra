@@ -2626,7 +2626,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get prescriptionDays => 'Number of days';
 
   @override
-  String get prescriptionDaysInvalid => 'Enter a number of days from 1 to 365';
+  String get prescriptionDaysInvalid => 'Enter a number of days, 1 or more';
 
   @override
   String get prescriptionNoDoseAdvice =>
@@ -2683,4 +2683,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String courseDayOf(int day, int total) {
     return 'Day $day of $total';
   }
+
+  @override
+  String get prescriptionMoveTitle => 'Move the courses too?';
+
+  @override
+  String get prescriptionMoveBody =>
+      'Courses that haven\'t ended can start on the new date. Courses already over keep their dates and get no reminders back.';
+
+  @override
+  String get prescriptionMoveYes => 'Move them';
+
+  @override
+  String get prescriptionMoveKeep => 'Keep their dates';
+
+  @override
+  String prescriptionRemoveConfirm(String name) {
+    return 'Take $name off this prescription? It will be stopped, so its reminders end. Its dose history stays on its own page.';
+  }
+
+  @override
+  String get prescriptionEveryHours => 'Every few hours';
+
+  @override
+  String get prescriptionInterval => 'As the doctor wrote';
+
+  @override
+  String prescriptionEveryNHours(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Every $n hours',
+      one: 'Every hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String prescriptionFirstDose(String time) {
+    return 'First one at $time';
+  }
+
+  @override
+  String get prescriptionTimesHint =>
+      'Check the times match what the doctor wrote, e.g. every 8 hours.';
+
+  @override
+  String get growthNoPrematurity =>
+      'Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart.';
 }

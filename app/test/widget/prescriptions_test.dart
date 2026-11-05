@@ -12,6 +12,7 @@ import 'package:usra/core/files/photo_store.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/features/medicines/medicines_providers.dart';
+import 'package:usra/features/medicines/dose_schedule.dart';
 import 'package:usra/features/medicines/reminders.dart';
 
 import '../support/fake_reminder_scheduler.dart';
@@ -116,7 +117,7 @@ void main() {
     // A medicine needs a name and a number of days.
     await tapKey(tester, 'rx-save');
     expect(find.text('مطلوب'), findsOneWidget);
-    expect(find.text('اكتب عدد أيام من ١ لـ ٣٦٥'), findsOneWidget);
+    expect(find.text('اكتب عدد أيام، ١ أو أكتر'), findsOneWidget);
 
     await tapKey(tester, 'rx-doctor');
     await tester.tap(find.text('د. هالة').last);
@@ -135,6 +136,15 @@ void main() {
     );
     await tapKey(tester, 'rx-item-0-per-day-3');
     expect(find.byKey(const ValueKey('rx-item-0-time-14:00')), findsOneWidget);
+    // The doctor wrote "every 8 hours": lay that out from 08:00 instead.
+    expect(find.textContaining('اتأكد إن المواعيد'), findsWidgets);
+    await tapKey(tester, 'rx-item-0-every-hours');
+    expect(find.text('كل 8 ساعات'), findsOneWidget);
+    await tapKey(tester, 'rx-hours-ok');
+    for (final t in ['00:00', '08:00', '16:00']) {
+      expect(find.byKey(ValueKey('rx-item-0-time-$t')), findsOneWidget);
+    }
+    expect(find.byKey(const ValueKey('rx-item-0-time-14:00')), findsNothing);
     // Arabic digits are fine.
     await tester.enterText(find.byKey(const ValueKey('rx-item-0-days')), '٧');
 
@@ -189,7 +199,7 @@ void main() {
     // Today's doses say how far the course has gone.
     await tester.tap(find.text('الأدوية').last);
     await tester.pumpAndSettle();
-    final at = DateTime(2026, 11, 3, 14).millisecondsSinceEpoch;
+    final at = DateTime(2026, 11, 3, 16).millisecondsSinceEpoch;
     expect(
       find.byKey(ValueKey('dose-course-${meds.first.id}-$at')),
       findsOneWidget,
@@ -240,6 +250,9 @@ void main() {
     // Two more days, and the vitamin taken off.
     await tester.enterText(find.byKey(const ValueKey('rx-item-0-days')), '7');
     await tapKey(tester, 'rx-item-1-remove');
+    // A saved medicine: ask, and say its history stays.
+    expect(find.textContaining('سجل جرعاته هيفضل'), findsOneWidget);
+    await tapKey(tester, 'rx-remove-confirm');
     expect(find.byKey(const ValueKey('rx-item-1-name')), findsNothing);
     await tapKey(tester, 'rx-save');
     final meds = (await tester.runAsync(
@@ -269,11 +282,74 @@ void main() {
       await tester.runAsync(() => db.watchPrescriptions(ids.omar).first),
       isEmpty,
     );
-    expect(
-      await tester.runAsync(() => db.watchMedicines(ids.omar).first),
-      isEmpty,
-    );
+    // The medicine taken off earlier is still there, stopped, with its page.
+    final left = (await tester.runAsync(
+      () => db.watchMedicines(ids.omar).first,
+    ))!;
+    expect(left.single.name, 'فيتامين سي');
+    expect(left.single.active, isFalse);
     expect(photos.fileOf(ids.photo).existsSync(), isFalse);
+  });
+
+  testWidgets('a new date moves running courses, never ended ones', (
+    tester,
+  ) async {
+    tallScreen(tester);
+    final ids = (await tester.runAsync(() async {
+      final omar = await db.addProfile('عمر');
+      final rx = await db.savePrescription(
+        profileId: omar,
+        prescribedOn: DateTime(2026, 11, 1),
+        items: const [
+          // Ended on 1 November.
+          PrescriptionItemInput(name: 'حقنة', times: ['10:00'], days: 1),
+          PrescriptionItemInput(name: 'شراب', times: ['20:00'], days: 7),
+        ],
+      );
+      return (omar: omar, rx: rx);
+    }))!;
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    GoRouter.of(tester.element(find.byType(Scaffold).first))
+        .go('/family/${ids.omar}/prescriptions/${ids.rx}/edit');
+    await waitForForm(tester);
+
+    await tapKey(tester, 'rx-date');
+    final picker = find.byType(Dialog);
+    final two = find.descendant(
+      of: picker,
+      matching: find.text(find.text('٢').evaluate().isNotEmpty ? '٢' : '2'),
+    );
+    await tester.tap(two.last);
+    await tester.pumpAndSettle();
+    final ok = MaterialLocalizations.of(tester.element(picker)).okButtonLabel;
+    await tester.tap(find.descendant(of: picker, matching: find.text(ok)));
+    await tester.pumpAndSettle();
+    // Asked first.
+    expect(find.text('تنقل مواعيد العلاج كمان؟'), findsOneWidget);
+    await tapKey(tester, 'rx-move-courses');
+    await tapKey(tester, 'rx-save');
+
+    final p = (await tester.runAsync(
+      () => db.watchPrescription(ids.rx).first,
+    ))!;
+    expect(p.prescribedOn.toUtc(), DateTime.utc(2026, 11, 2));
+    final [ended, running] = (await tester.runAsync(
+      () => db.watchPrescriptionMedicines(ids.rx).first,
+    ))!;
+    expect(ended.startOn.toUtc(), DateTime.utc(2026, 11, 1));
+    expect(ended.endOn!.toUtc(), DateTime.utc(2026, 11, 1));
+    expect(running.startOn.toUtc(), DateTime.utc(2026, 11, 2));
+    expect(running.endOn!.toUtc(), DateTime.utc(2026, 11, 8));
+    // Today (3 November) only the running course has a dose.
+    final regimens = (await tester.runAsync(() => db.watchRegimens().first))!;
+    final today = plannedDoses(
+      regimens,
+      const [],
+      from: DateTime(2026, 11, 3),
+      to: DateTime(2026, 11, 10),
+    );
+    expect(today.map((d) => d.regimen.medicine.name).toSet(), {'شراب'});
   });
 
   testWidgets('in Simple Mode, today\'s doses show the course day', (

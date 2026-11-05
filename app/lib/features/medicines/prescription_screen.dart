@@ -216,26 +216,29 @@ class _Details extends ConsumerWidget {
           ),
         ],
         const SizedBox(height: 20),
-        OutlinedButton.icon(
-          key: const ValueKey('rx-toggle-active'),
-          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 56)),
-          onPressed: () async {
-            try {
-              await ref
-                  .read(databaseProvider)
-                  .setPrescriptionActive(p.id, !p.active);
-            } catch (_) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text(l.saveFailed)));
+        // Resume only brings back what Stop stopped; medicines stopped on
+        // their own are restarted from their own page.
+        if (p.active || medicines.any((m) => m.stoppedWithPrescription))
+          OutlinedButton.icon(
+            key: const ValueKey('rx-toggle-active'),
+            style: OutlinedButton.styleFrom(minimumSize: const Size(0, 56)),
+            onPressed: () async {
+              try {
+                await ref
+                    .read(databaseProvider)
+                    .setPrescriptionActive(p.id, !p.active);
+              } catch (_) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(l.saveFailed)));
+                }
               }
-            }
-          },
-          icon: Icon(
-            p.active ? Icons.pause_circle_outline : Icons.play_circle_outline,
+            },
+            icon: Icon(
+              p.active ? Icons.pause_circle_outline : Icons.play_circle_outline,
+            ),
+            label: Text(p.active ? l.prescriptionStop : l.prescriptionResume),
           ),
-          label: Text(p.active ? l.prescriptionStop : l.prescriptionResume),
-        ),
       ],
     );
   }

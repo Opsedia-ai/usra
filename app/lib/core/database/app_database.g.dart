@@ -3322,7 +3322,8 @@ class Prescription extends DataClass implements Insertable<Prescription> {
   /// private folder, in the medicines photo store (see `PhotoStore`).
   final String photosJson;
 
-  /// False once stopped; its medicines are stopped with it.
+  /// False when none of its medicines is taken any more (kept in step with
+  /// them by the database).
   final bool active;
   final DateTime updatedAt;
   final DateTime? deletedAt;
@@ -3757,6 +3758,32 @@ class $MedicinesTable extends Medicines
       'REFERENCES prescriptions (id)',
     ),
   );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _stoppedWithPrescriptionMeta =
+      const VerificationMeta('stoppedWithPrescription');
+  @override
+  late final GeneratedColumn<bool> stoppedWithPrescription =
+      GeneratedColumn<bool>(
+        'stopped_with_prescription',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("stopped_with_prescription" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
   static const VerificationMeta _startOnMeta = const VerificationMeta(
     'startOn',
   );
@@ -3834,6 +3861,8 @@ class $MedicinesTable extends Medicines
     instructions,
     doctorId,
     prescriptionId,
+    position,
+    stoppedWithPrescription,
     startOn,
     endOn,
     photosJson,
@@ -3907,6 +3936,21 @@ class $MedicinesTable extends Medicines
         prescriptionId.isAcceptableOrUnknown(
           data['prescription_id']!,
           _prescriptionIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    }
+    if (data.containsKey('stopped_with_prescription')) {
+      context.handle(
+        _stoppedWithPrescriptionMeta,
+        stoppedWithPrescription.isAcceptableOrUnknown(
+          data['stopped_with_prescription']!,
+          _stoppedWithPrescriptionMeta,
         ),
       );
     }
@@ -3991,6 +4035,14 @@ class $MedicinesTable extends Medicines
         DriftSqlType.string,
         data['${effectivePrefix}prescription_id'],
       ),
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      ),
+      stoppedWithPrescription: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}stopped_with_prescription'],
+      )!,
       startOn: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}start_on'],
@@ -4042,6 +4094,13 @@ class Medicine extends DataClass implements Insertable<Medicine> {
   /// The prescription it was written on, if any (schema v7).
   final String? prescriptionId;
 
+  /// Its place on the prescription, as entered (schema v7).
+  final int? position;
+
+  /// Stopped by stopping the whole prescription, not on its own (schema
+  /// v7); resuming the prescription restarts only these.
+  final bool stoppedWithPrescription;
+
   /// First and last day (inclusive), stored as UTC midnight.
   final DateTime startOn;
   final DateTime? endOn;
@@ -4063,6 +4122,8 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     this.instructions,
     this.doctorId,
     this.prescriptionId,
+    this.position,
+    required this.stoppedWithPrescription,
     required this.startOn,
     this.endOn,
     required this.photosJson,
@@ -4091,6 +4152,10 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     if (!nullToAbsent || prescriptionId != null) {
       map['prescription_id'] = Variable<String>(prescriptionId);
     }
+    if (!nullToAbsent || position != null) {
+      map['position'] = Variable<int>(position);
+    }
+    map['stopped_with_prescription'] = Variable<bool>(stoppedWithPrescription);
     map['start_on'] = Variable<DateTime>(startOn);
     if (!nullToAbsent || endOn != null) {
       map['end_on'] = Variable<DateTime>(endOn);
@@ -4122,6 +4187,10 @@ class Medicine extends DataClass implements Insertable<Medicine> {
       prescriptionId: prescriptionId == null && nullToAbsent
           ? const Value.absent()
           : Value(prescriptionId),
+      position: position == null && nullToAbsent
+          ? const Value.absent()
+          : Value(position),
+      stoppedWithPrescription: Value(stoppedWithPrescription),
       startOn: Value(startOn),
       endOn: endOn == null && nullToAbsent
           ? const Value.absent()
@@ -4149,6 +4218,10 @@ class Medicine extends DataClass implements Insertable<Medicine> {
       instructions: serializer.fromJson<String?>(json['instructions']),
       doctorId: serializer.fromJson<String?>(json['doctorId']),
       prescriptionId: serializer.fromJson<String?>(json['prescriptionId']),
+      position: serializer.fromJson<int?>(json['position']),
+      stoppedWithPrescription: serializer.fromJson<bool>(
+        json['stoppedWithPrescription'],
+      ),
       startOn: serializer.fromJson<DateTime>(json['startOn']),
       endOn: serializer.fromJson<DateTime?>(json['endOn']),
       photosJson: serializer.fromJson<String>(json['photosJson']),
@@ -4169,6 +4242,10 @@ class Medicine extends DataClass implements Insertable<Medicine> {
       'instructions': serializer.toJson<String?>(instructions),
       'doctorId': serializer.toJson<String?>(doctorId),
       'prescriptionId': serializer.toJson<String?>(prescriptionId),
+      'position': serializer.toJson<int?>(position),
+      'stoppedWithPrescription': serializer.toJson<bool>(
+        stoppedWithPrescription,
+      ),
       'startOn': serializer.toJson<DateTime>(startOn),
       'endOn': serializer.toJson<DateTime?>(endOn),
       'photosJson': serializer.toJson<String>(photosJson),
@@ -4187,6 +4264,8 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     Value<String?> instructions = const Value.absent(),
     Value<String?> doctorId = const Value.absent(),
     Value<String?> prescriptionId = const Value.absent(),
+    Value<int?> position = const Value.absent(),
+    bool? stoppedWithPrescription,
     DateTime? startOn,
     Value<DateTime?> endOn = const Value.absent(),
     String? photosJson,
@@ -4204,6 +4283,9 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     prescriptionId: prescriptionId.present
         ? prescriptionId.value
         : this.prescriptionId,
+    position: position.present ? position.value : this.position,
+    stoppedWithPrescription:
+        stoppedWithPrescription ?? this.stoppedWithPrescription,
     startOn: startOn ?? this.startOn,
     endOn: endOn.present ? endOn.value : this.endOn,
     photosJson: photosJson ?? this.photosJson,
@@ -4225,6 +4307,10 @@ class Medicine extends DataClass implements Insertable<Medicine> {
       prescriptionId: data.prescriptionId.present
           ? data.prescriptionId.value
           : this.prescriptionId,
+      position: data.position.present ? data.position.value : this.position,
+      stoppedWithPrescription: data.stoppedWithPrescription.present
+          ? data.stoppedWithPrescription.value
+          : this.stoppedWithPrescription,
       startOn: data.startOn.present ? data.startOn.value : this.startOn,
       endOn: data.endOn.present ? data.endOn.value : this.endOn,
       photosJson: data.photosJson.present
@@ -4247,6 +4333,8 @@ class Medicine extends DataClass implements Insertable<Medicine> {
           ..write('instructions: $instructions, ')
           ..write('doctorId: $doctorId, ')
           ..write('prescriptionId: $prescriptionId, ')
+          ..write('position: $position, ')
+          ..write('stoppedWithPrescription: $stoppedWithPrescription, ')
           ..write('startOn: $startOn, ')
           ..write('endOn: $endOn, ')
           ..write('photosJson: $photosJson, ')
@@ -4267,6 +4355,8 @@ class Medicine extends DataClass implements Insertable<Medicine> {
     instructions,
     doctorId,
     prescriptionId,
+    position,
+    stoppedWithPrescription,
     startOn,
     endOn,
     photosJson,
@@ -4286,6 +4376,8 @@ class Medicine extends DataClass implements Insertable<Medicine> {
           other.instructions == this.instructions &&
           other.doctorId == this.doctorId &&
           other.prescriptionId == this.prescriptionId &&
+          other.position == this.position &&
+          other.stoppedWithPrescription == this.stoppedWithPrescription &&
           other.startOn == this.startOn &&
           other.endOn == this.endOn &&
           other.photosJson == this.photosJson &&
@@ -4303,6 +4395,8 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
   final Value<String?> instructions;
   final Value<String?> doctorId;
   final Value<String?> prescriptionId;
+  final Value<int?> position;
+  final Value<bool> stoppedWithPrescription;
   final Value<DateTime> startOn;
   final Value<DateTime?> endOn;
   final Value<String> photosJson;
@@ -4319,6 +4413,8 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     this.instructions = const Value.absent(),
     this.doctorId = const Value.absent(),
     this.prescriptionId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.stoppedWithPrescription = const Value.absent(),
     this.startOn = const Value.absent(),
     this.endOn = const Value.absent(),
     this.photosJson = const Value.absent(),
@@ -4336,6 +4432,8 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     this.instructions = const Value.absent(),
     this.doctorId = const Value.absent(),
     this.prescriptionId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.stoppedWithPrescription = const Value.absent(),
     required DateTime startOn,
     this.endOn = const Value.absent(),
     this.photosJson = const Value.absent(),
@@ -4357,6 +4455,8 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     Expression<String>? instructions,
     Expression<String>? doctorId,
     Expression<String>? prescriptionId,
+    Expression<int>? position,
+    Expression<bool>? stoppedWithPrescription,
     Expression<DateTime>? startOn,
     Expression<DateTime>? endOn,
     Expression<String>? photosJson,
@@ -4374,6 +4474,9 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
       if (instructions != null) 'instructions': instructions,
       if (doctorId != null) 'doctor_id': doctorId,
       if (prescriptionId != null) 'prescription_id': prescriptionId,
+      if (position != null) 'position': position,
+      if (stoppedWithPrescription != null)
+        'stopped_with_prescription': stoppedWithPrescription,
       if (startOn != null) 'start_on': startOn,
       if (endOn != null) 'end_on': endOn,
       if (photosJson != null) 'photos_json': photosJson,
@@ -4393,6 +4496,8 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     Value<String?>? instructions,
     Value<String?>? doctorId,
     Value<String?>? prescriptionId,
+    Value<int?>? position,
+    Value<bool>? stoppedWithPrescription,
     Value<DateTime>? startOn,
     Value<DateTime?>? endOn,
     Value<String>? photosJson,
@@ -4410,6 +4515,9 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
       instructions: instructions ?? this.instructions,
       doctorId: doctorId ?? this.doctorId,
       prescriptionId: prescriptionId ?? this.prescriptionId,
+      position: position ?? this.position,
+      stoppedWithPrescription:
+          stoppedWithPrescription ?? this.stoppedWithPrescription,
       startOn: startOn ?? this.startOn,
       endOn: endOn ?? this.endOn,
       photosJson: photosJson ?? this.photosJson,
@@ -4447,6 +4555,14 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
     if (prescriptionId.present) {
       map['prescription_id'] = Variable<String>(prescriptionId.value);
     }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (stoppedWithPrescription.present) {
+      map['stopped_with_prescription'] = Variable<bool>(
+        stoppedWithPrescription.value,
+      );
+    }
     if (startOn.present) {
       map['start_on'] = Variable<DateTime>(startOn.value);
     }
@@ -4482,6 +4598,8 @@ class MedicinesCompanion extends UpdateCompanion<Medicine> {
           ..write('instructions: $instructions, ')
           ..write('doctorId: $doctorId, ')
           ..write('prescriptionId: $prescriptionId, ')
+          ..write('position: $position, ')
+          ..write('stoppedWithPrescription: $stoppedWithPrescription, ')
           ..write('startOn: $startOn, ')
           ..write('endOn: $endOn, ')
           ..write('photosJson: $photosJson, ')
@@ -8701,6 +8819,8 @@ typedef $$MedicinesTableCreateCompanionBuilder = MedicinesCompanion Function({
   Value<String?> instructions,
   Value<String?> doctorId,
   Value<String?> prescriptionId,
+  Value<int?> position,
+  Value<bool> stoppedWithPrescription,
   required DateTime startOn,
   Value<DateTime?> endOn,
   Value<String> photosJson,
@@ -8718,6 +8838,8 @@ typedef $$MedicinesTableUpdateCompanionBuilder = MedicinesCompanion Function({
   Value<String?> instructions,
   Value<String?> doctorId,
   Value<String?> prescriptionId,
+  Value<int?> position,
+  Value<bool> stoppedWithPrescription,
   Value<DateTime> startOn,
   Value<DateTime?> endOn,
   Value<String> photosJson,
@@ -8840,6 +8962,16 @@ class $$MedicinesTableFilterComposer
 
   ColumnFilters<String> get doctorId => $composableBuilder(
     column: $table.doctorId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get stoppedWithPrescription => $composableBuilder(
+    column: $table.stoppedWithPrescription,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9009,6 +9141,16 @@ class $$MedicinesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get stoppedWithPrescription => $composableBuilder(
+    column: $table.stoppedWithPrescription,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get startOn => $composableBuilder(
     column: $table.startOn,
     builder: (column) => ColumnOrderings(column),
@@ -9114,6 +9256,14 @@ class $$MedicinesTableAnnotationComposer
 
   GeneratedColumn<String> get doctorId =>
       $composableBuilder(column: $table.doctorId, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<bool> get stoppedWithPrescription => $composableBuilder(
+    column: $table.stoppedWithPrescription,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get startOn =>
       $composableBuilder(column: $table.startOn, builder: (column) => column);
@@ -9273,6 +9423,8 @@ class $$MedicinesTableTableManager
                 Value<String?> instructions = const Value.absent(),
                 Value<String?> doctorId = const Value.absent(),
                 Value<String?> prescriptionId = const Value.absent(),
+                Value<int?> position = const Value.absent(),
+                Value<bool> stoppedWithPrescription = const Value.absent(),
                 Value<DateTime> startOn = const Value.absent(),
                 Value<DateTime?> endOn = const Value.absent(),
                 Value<String> photosJson = const Value.absent(),
@@ -9289,6 +9441,8 @@ class $$MedicinesTableTableManager
                 instructions: instructions,
                 doctorId: doctorId,
                 prescriptionId: prescriptionId,
+                position: position,
+                stoppedWithPrescription: stoppedWithPrescription,
                 startOn: startOn,
                 endOn: endOn,
                 photosJson: photosJson,
@@ -9307,6 +9461,8 @@ class $$MedicinesTableTableManager
                 Value<String?> instructions = const Value.absent(),
                 Value<String?> doctorId = const Value.absent(),
                 Value<String?> prescriptionId = const Value.absent(),
+                Value<int?> position = const Value.absent(),
+                Value<bool> stoppedWithPrescription = const Value.absent(),
                 required DateTime startOn,
                 Value<DateTime?> endOn = const Value.absent(),
                 Value<String> photosJson = const Value.absent(),
@@ -9323,6 +9479,8 @@ class $$MedicinesTableTableManager
                 instructions: instructions,
                 doctorId: doctorId,
                 prescriptionId: prescriptionId,
+                position: position,
+                stoppedWithPrescription: stoppedWithPrescription,
                 startOn: startOn,
                 endOn: endOn,
                 photosJson: photosJson,

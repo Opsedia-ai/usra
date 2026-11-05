@@ -54,8 +54,12 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 7) {
         await m.createTable(prescriptions);
-        // A table created above (from < 6) already has the column.
-        if (from >= 6) await m.addColumn(medicines, medicines.prescriptionId);
+        // A table created above (from < 6) already has the columns.
+        if (from >= 6) {
+          await m.addColumn(medicines, medicines.prescriptionId);
+          await m.addColumn(medicines, medicines.position);
+          await m.addColumn(medicines, medicines.stoppedWithPrescription);
+        }
       }
     },
     beforeOpen: (details) async {
@@ -852,24 +856,45 @@ class AppDatabase extends _$AppDatabase {
   /// Stops or restarts reminders for a medicine, keeping its history.
   Future<void> setMedicineActive(String id, bool active) async {
     await transaction(() async {
+      final now = DateTime.now().toUtc();
       final changed =
           await (update(
             medicines,
           )..where((m) => m.id.equals(id) & m.deletedAt.isNull())).write(
             MedicinesCompanion(
               active: Value(active),
-              updatedAt: Value(DateTime.now().toUtc()),
+              // Decided on its own now, not with its prescription.
+              stoppedWithPrescription: const Value(false),
+              updatedAt: Value(now),
             ),
           );
       if (changed == 0) throw StateError('Medicine $id not found');
       await _queue('medicine', id, 'upsert');
+      await _refreshPrescriptionOf(id, now);
     });
+  }
+
+  /// Keeps the status of [medicineId]'s prescription, if any, in step.
+  Future<void> _refreshPrescriptionOf(String medicineId, DateTime now) async {
+    final row =
+        await (selectOnly(medicines)
+              ..addColumns([medicines.prescriptionId])
+              ..where(medicines.id.equals(medicineId)))
+            .getSingleOrNull();
+    final prescriptionId = row?.read(medicines.prescriptionId);
+    if (prescriptionId != null) {
+      await _refreshPrescription(prescriptionId, now);
+    }
   }
 
   /// Marks a medicine, its schedule and dose log deleted. Prune the photo
   /// files with `PhotoStore.prune(liveMedicinePhotos())` afterwards.
   Future<void> softDeleteMedicine(String id) async {
-    await transaction(() => _softDeleteMedicine(id, DateTime.now().toUtc()));
+    final now = DateTime.now().toUtc();
+    await transaction(() async {
+      await _softDeleteMedicine(id, now);
+      await _refreshPrescriptionOf(id, now);
+    });
   }
 
   Future<void> _softDeleteMedicine(String id, DateTime now) async {
@@ -941,21 +966,26 @@ class AppDatabase extends _$AppDatabase {
         .watchSingleOrNull();
   }
 
-  /// The live medicines written on a prescription, in the order added.
+  /// The live medicines written on a prescription, in the order entered.
   Stream<List<Medicine>> watchPrescriptionMedicines(String prescriptionId) {
     final query = select(medicines)
       ..where(
         (m) => m.prescriptionId.equals(prescriptionId) & m.deletedAt.isNull(),
       )
-      ..orderBy([(m) => OrderingTerm.asc(m.id)]);
+      ..orderBy([
+        (m) => OrderingTerm(expression: m.position, nulls: NullsOrder.last),
+        (m) => OrderingTerm.asc(m.id),
+      ]);
     return query.watch();
   }
 
   /// Saves a prescription and all its medicines, schedules included, in one
   /// transaction: creates it, or updates [id] when given. Items with a
-  /// `medicineId` update that medicine; the prescription's other medicines
-  /// no longer in [items] are deleted. Every medicine takes the
-  /// prescription's doctor and active state. Returns the prescription's id.
+  /// `medicineId` update that medicine and keep what its own page changed
+  /// (form, days of the week, amount, stopped on its own); new items start
+  /// taken. The prescription's medicines no longer in [items] are stopped
+  /// and taken off it, keeping their dose history. Returns the
+  /// prescription's id.
   ///
   /// Doses are stored as the text the doctor wrote; nothing is computed.
   Future<String> savePrescription({
@@ -966,7 +996,6 @@ class AppDatabase extends _$AppDatabase {
     String? diagnosis,
     String? notes,
     List<String> photos = const [],
-    bool active = true,
     required List<PrescriptionItemInput> items,
   }) async {
     if (items.isEmpty) {
@@ -976,8 +1005,8 @@ class AppDatabase extends _$AppDatabase {
       if (item.name.trim().isEmpty) {
         throw ArgumentError.value(item.name, 'name', 'must not be empty');
       }
-      if (item.days != null && item.days! < 1) {
-        throw ArgumentError.value(item.days, 'days', 'must be at least 1');
+      if (item.days != null && (item.days! < 1 || item.days! > maxCourseDays)) {
+        throw ArgumentError.value(item.days, 'days', 'is out of range');
       }
     }
     final prescriptionId = id ?? _uuid.v7();
@@ -990,7 +1019,6 @@ class AppDatabase extends _$AppDatabase {
       diagnosis: Value(_clean(diagnosis)),
       notes: Value(_clean(notes)),
       photosJson: Value(jsonEncode(photos)),
-      active: Value(active),
       updatedAt: Value(now),
     );
     await transaction(() async {
@@ -1004,18 +1032,9 @@ class AppDatabase extends _$AppDatabase {
       }
       await _queue('prescription', prescriptionId, 'upsert');
 
-      final current =
-          await (selectOnly(medicines)
-                ..addColumns([medicines.id])
-                ..where(
-                  medicines.prescriptionId.equals(prescriptionId) &
-                      medicines.deletedAt.isNull(),
-                ))
-              .map((r) => r.read(medicines.id)!)
-              .get()
-              .then((ids) => ids.toSet());
+      final current = (await _prescriptionMedicineIds(prescriptionId)).toSet();
       final kept = <String>{};
-      for (final item in items) {
+      for (final (position, item) in items.indexed) {
         final existing = item.medicineId;
         if (existing != null && !current.contains(existing)) {
           throw StateError('Medicine $existing is not on this prescription');
@@ -1026,6 +1045,7 @@ class AppDatabase extends _$AppDatabase {
           id: Value(medicineId),
           profileId: Value(profileId),
           prescriptionId: Value(prescriptionId),
+          position: Value(position),
           name: Value(item.name.trim()),
           strength: Value(_clean(item.strength)),
           // Set on the medicine's own page; kept unless given here.
@@ -1040,9 +1060,9 @@ class AppDatabase extends _$AppDatabase {
                 ? null
                 : start.add(Duration(days: item.days! - 1)),
           ),
-          // A medicine stopped on its own stays stopped; stopping the whole
-          // prescription is setPrescriptionActive.
-          active: existing == null ? Value(active) : const Value.absent(),
+          // A medicine stopped, on its own or with the prescription, stays
+          // as it is; see setPrescriptionActive.
+          active: existing == null ? const Value(true) : const Value.absent(),
           updatedAt: Value(now),
         );
         if (existing == null) {
@@ -1075,44 +1095,99 @@ class AppDatabase extends _$AppDatabase {
           now,
         );
       }
+      // Taken off the prescription: stopped, but its history is kept on its
+      // own page.
       for (final removed in current.difference(kept)) {
-        await _softDeleteMedicine(removed, now);
+        await (update(medicines)..where((m) => m.id.equals(removed))).write(
+          MedicinesCompanion(
+            prescriptionId: const Value(null),
+            position: const Value(null),
+            active: const Value(false),
+            stoppedWithPrescription: const Value(false),
+            updatedAt: Value(now),
+          ),
+        );
+        await _queue('medicine', removed, 'upsert');
       }
+      await _refreshPrescription(prescriptionId, now);
     });
     return prescriptionId;
   }
 
-  /// Stops or restarts a prescription and every medicine on it.
+  /// Stops every medicine still taken on a prescription, remembering which;
+  /// resuming restarts only those. A medicine stopped on its own stays
+  /// stopped either way.
   Future<void> setPrescriptionActive(String id, bool active) async {
     final now = DateTime.now().toUtc();
     await transaction(() async {
-      final changed =
-          await (update(
-            prescriptions,
-          )..where((p) => p.id.equals(id) & p.deletedAt.isNull())).write(
-            PrescriptionsCompanion(
-              active: Value(active),
-              updatedAt: Value(now),
-            ),
-          );
-      if (changed == 0) throw StateError('Prescription $id not found');
-      await _queue('prescription', id, 'upsert');
+      final exists =
+          await (select(prescriptions)
+                ..where((p) => p.id.equals(id) & p.deletedAt.isNull()))
+              .getSingleOrNull();
+      if (exists == null) throw StateError('Prescription $id not found');
+      final onIt =
+          medicines.prescriptionId.equals(id) & medicines.deletedAt.isNull();
+      final affected = active
+          ? onIt & medicines.stoppedWithPrescription.equals(true)
+          : onIt & medicines.active.equals(true);
       final ids =
           await (selectOnly(medicines)
                 ..addColumns([medicines.id])
-                ..where(
-                  medicines.prescriptionId.equals(id) &
-                      medicines.deletedAt.isNull(),
-                ))
+                ..where(affected))
               .map((r) => r.read(medicines.id)!)
               .get();
       for (final medicineId in ids) {
         await (update(medicines)..where((m) => m.id.equals(medicineId))).write(
-          MedicinesCompanion(active: Value(active), updatedAt: Value(now)),
+          MedicinesCompanion(
+            active: Value(active),
+            stoppedWithPrescription: Value(!active),
+            updatedAt: Value(now),
+          ),
         );
         await _queue('medicine', medicineId, 'upsert');
       }
+      await _refreshPrescription(id, now);
     });
+  }
+
+  Future<List<String>> _prescriptionMedicineIds(String prescriptionId) =>
+      (selectOnly(medicines)
+            ..addColumns([medicines.id])
+            ..where(
+              medicines.prescriptionId.equals(prescriptionId) &
+                  medicines.deletedAt.isNull(),
+            ))
+          .map((r) => r.read(medicines.id)!)
+          .get();
+
+  /// A prescription is taken while any of its medicines is. Call in a
+  /// transaction after changing its medicines.
+  Future<void> _refreshPrescription(String id, DateTime now) async {
+    final taken =
+        await (selectOnly(medicines)
+              ..addColumns([medicines.id])
+              ..where(
+                medicines.prescriptionId.equals(id) &
+                    medicines.deletedAt.isNull() &
+                    medicines.active.equals(true),
+              )
+              ..limit(1))
+            .getSingleOrNull() !=
+        null;
+    final changed =
+        await (update(prescriptions)..where(
+              (p) =>
+                  p.id.equals(id) &
+                  p.deletedAt.isNull() &
+                  p.active.equals(!taken),
+            ))
+            .write(
+              PrescriptionsCompanion(
+                active: Value(taken),
+                updatedAt: Value(now),
+              ),
+            );
+    if (changed > 0) await _queue('prescription', id, 'upsert');
   }
 
   /// Marks a prescription and its medicines (with their schedules and dose
@@ -1456,6 +1531,10 @@ class DoseScheduleInput {
   final int? everyNDays;
   final String? amount;
 }
+
+/// The longest course a prescription takes, in days (about 100 years): any
+/// end date the medicine's own page can pick fits.
+const maxCourseDays = 36500;
 
 /// One medicine on a prescription, as entered in the prescription form.
 class PrescriptionItemInput {

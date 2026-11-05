@@ -128,6 +128,14 @@ class Medicines extends Table {
   TextColumn get prescriptionId =>
       text().nullable().references(Prescriptions, #id)();
 
+  /// Its place on the prescription, as entered (schema v7).
+  IntColumn get position => integer().nullable()();
+
+  /// Stopped by stopping the whole prescription, not on its own (schema
+  /// v7); resuming the prescription restarts only these.
+  BoolColumn get stoppedWithPrescription =>
+      boolean().withDefault(const Constant(false))();
+
   /// First and last day (inclusive), stored as UTC midnight.
   DateTimeColumn get startOn => dateTime()();
   DateTimeColumn get endOn => dateTime().nullable()();
@@ -165,7 +173,8 @@ class Prescriptions extends Table {
   /// private folder, in the medicines photo store (see `PhotoStore`).
   TextColumn get photosJson => text().withDefault(const Constant('[]'))();
 
-  /// False once stopped; its medicines are stopped with it.
+  /// False when none of its medicines is taken any more (kept in step with
+  /// them by the database).
   BoolColumn get active => boolean().withDefault(const Constant(true))();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();

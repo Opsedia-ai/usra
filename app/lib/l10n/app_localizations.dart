@@ -4325,7 +4325,7 @@ abstract class AppLocalizations {
   /// No description provided for @prescriptionDaysInvalid.
   ///
   /// In en, this message translates to:
-  /// **'Enter a number of days from 1 to 365'**
+  /// **'Enter a number of days, 1 or more'**
   String get prescriptionDaysInvalid;
 
   /// No description provided for @prescriptionNoDoseAdvice.
@@ -4393,6 +4393,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Day {day} of {total}'**
   String courseDayOf(int day, int total);
+
+  /// No description provided for @prescriptionMoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move the courses too?'**
+  String get prescriptionMoveTitle;
+
+  /// No description provided for @prescriptionMoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Courses that haven\'t ended can start on the new date. Courses already over keep their dates and get no reminders back.'**
+  String get prescriptionMoveBody;
+
+  /// No description provided for @prescriptionMoveYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Move them'**
+  String get prescriptionMoveYes;
+
+  /// No description provided for @prescriptionMoveKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep their dates'**
+  String get prescriptionMoveKeep;
+
+  /// No description provided for @prescriptionRemoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Take {name} off this prescription? It will be stopped, so its reminders end. Its dose history stays on its own page.'**
+  String prescriptionRemoveConfirm(String name);
+
+  /// No description provided for @prescriptionEveryHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Every few hours'**
+  String get prescriptionEveryHours;
+
+  /// No description provided for @prescriptionInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'As the doctor wrote'**
+  String get prescriptionInterval;
+
+  /// No description provided for @prescriptionEveryNHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{Every hour} other{Every {n} hours}}'**
+  String prescriptionEveryNHours(int n);
+
+  /// No description provided for @prescriptionFirstDose.
+  ///
+  /// In en, this message translates to:
+  /// **'First one at {time}'**
+  String prescriptionFirstDose(String time);
+
+  /// No description provided for @prescriptionTimesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the times match what the doctor wrote, e.g. every 8 hours.'**
+  String get prescriptionTimesHint;
+
+  /// No description provided for @growthNoPrematurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart.'**
+  String get growthNoPrematurity;
 }
 
 class _AppLocalizationsDelegate

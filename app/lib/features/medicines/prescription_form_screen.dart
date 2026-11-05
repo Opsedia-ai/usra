@@ -17,17 +17,32 @@ import 'dose_schedule.dart';
 import 'medicine_text.dart';
 import 'medicines_providers.dart';
 
-/// Longest course the form takes, in days; longer ones are "ongoing".
-const maxCourseDays = 365;
-
 /// Times filled in by the "times a day" shortcut; the person can change
-/// them. Spread over waking hours; this is about reminders, not doses.
+/// them. Spread over waking hours; this is about reminders, not doses. For
+/// "every 8 hours" and the like there's [everyHours].
 const presetTimes = <int, List<DoseTime>>{
   1: [DoseTime(8, 0)],
   2: [DoseTime(8, 0), DoseTime(20, 0)],
   3: [DoseTime(8, 0), DoseTime(14, 0), DoseTime(20, 0)],
   4: [DoseTime(8, 0), DoseTime(12, 0), DoseTime(16, 0), DoseTime(20, 0)],
 };
+
+/// Intervals offered for "every N hours".
+const everyHoursChoices = [4, 6, 8, 12];
+
+/// Reminder times for "every [hours] hours" starting at [first], within one
+/// day: 08:00 every 8 hours is 08:00, 16:00 and 00:00. The interval is the
+/// doctor's; this only lays it out on the clock.
+List<DoseTime> everyHours(DoseTime first, int hours) {
+  if (hours < 1 || hours > 24) throw ArgumentError.value(hours, 'hours');
+  return [
+    for (var m = 0; m < 24 * 60; m += hours * 60)
+      DoseTime(
+        (first.minutesOfDay + m) ~/ 60 % 24,
+        (first.minutesOfDay + m) % 60,
+      ),
+  ]..sort();
+}
 
 /// A photo in the form: already saved, or just picked and only copied into
 /// the app when the prescription is saved.
@@ -47,6 +62,7 @@ class _Item {
     String dose = '',
     List<DoseTime> times = const [],
     this.startOn,
+    this.ended = false,
     int? days,
   }) : name = TextEditingController(text: name),
        strength = TextEditingController(text: strength),
@@ -66,6 +82,10 @@ class _Item {
   /// that changes.
   DateTime? startOn;
   bool ongoing;
+
+  /// Its course was already over when the form opened; moving the
+  /// prescription's date never brings it back.
+  final bool ended;
 
   /// A unique key for this row's widgets.
   final Key key = UniqueKey();
@@ -112,7 +132,6 @@ class _PrescriptionFormScreenState
   final _notes = TextEditingController();
   late DateTime _date = DateUtils.dateOnly(ref.read(clockProvider)());
   String? _doctorId;
-  bool _active = true;
   final _items = <_Item>[];
   final _photos = <_Photo>[];
   bool _loaded = false;
@@ -144,7 +163,6 @@ class _PrescriptionFormScreenState
         _doctorId = p.doctorId;
         _diagnosis.text = p.diagnosis ?? '';
         _notes.text = p.notes ?? '';
-        _active = p.active;
         _photos.addAll([
           for (final path in decodeMedicinePhotos(p.photosJson))
             _Photo(path, picked: false),
@@ -162,6 +180,7 @@ class _PrescriptionFormScreenState
                 ? const []
                 : DoseTime.parseList(schedules[i]!.times),
             startOn: start,
+            ended: medicineEnded(m, ref.read(clockProvider)()),
             days: courseDays(m),
           ),
         );
@@ -215,14 +234,93 @@ class _PrescriptionFormScreenState
       firstDate: _date.isBefore(first) ? _date : first,
       lastDate: _date.isAfter(last) ? _date : last,
     );
-    if (picked == null || picked == _date) return;
+    if (picked == null || picked == _date || !mounted) return;
+    // Courses already saved and not over yet can move with the date; the
+    // person decides. Ended ones keep their dates, so no reminders return.
+    final movable = [
+      for (final item in _items)
+        if (item.startOn != null && !item.ended) item,
+    ];
+    var move = false;
+    if (movable.isNotEmpty) {
+      final l = AppLocalizations.of(context);
+      final answer = await showDialog<bool>(
+        context: context,
+        builder: (dialog) => AlertDialog(
+          title: Text(l.prescriptionMoveTitle),
+          content: Text(l.prescriptionMoveBody),
+          actions: [
+            TextButton(
+              key: const ValueKey('rx-move-keep'),
+              onPressed: () => Navigator.pop(dialog, false),
+              child: Text(l.prescriptionMoveKeep),
+            ),
+            FilledButton(
+              key: const ValueKey('rx-move-courses'),
+              onPressed: () => Navigator.pop(dialog, true),
+              child: Text(l.prescriptionMoveYes),
+            ),
+          ],
+        ),
+      );
+      if (answer == null) return;
+      move = answer;
+    }
     setState(() {
       _date = picked;
-      // Every course starts on the prescription's date again.
-      for (final item in _items) {
-        item.startOn = null;
+      if (move) {
+        for (final item in movable) {
+          item.startOn = null;
+        }
       }
     });
+  }
+
+  /// Takes an item off the form; a saved medicine is stopped and unlinked
+  /// on save, keeping its history, so ask first.
+  Future<void> _remove(_Item item) async {
+    if (item.medicineId != null) {
+      final l = AppLocalizations.of(context);
+      final yes = await showDialog<bool>(
+        context: context,
+        builder: (dialog) => AlertDialog(
+          content: Text(
+            l.prescriptionRemoveConfirm(
+              item.name.text.trim().isEmpty ? '' : item.name.text.trim(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialog, false),
+              child: Text(l.familyCancel),
+            ),
+            FilledButton(
+              key: const ValueKey('rx-remove-confirm'),
+              onPressed: () => Navigator.pop(dialog, true),
+              child: Text(l.prescriptionRemoveMedicine),
+            ),
+          ],
+        ),
+      );
+      if (yes != true || !mounted) return;
+    }
+    setState(() {
+      _items.remove(item);
+      item.dispose();
+    });
+  }
+
+  Future<void> _everyHours(_Item item) async {
+    final picked = await showDialog<List<DoseTime>>(
+      context: context,
+      builder: (_) => const _EveryHoursDialog(),
+    );
+    if (picked == null || !mounted) return;
+    setState(
+      () => item.times
+        ..clear()
+        ..addAll(picked),
+    );
   }
 
   Future<void> _addTime(_Item item) async {
@@ -265,7 +363,6 @@ class _PrescriptionFormScreenState
         diagnosis: _diagnosis.text,
         notes: _notes.text,
         photos: [for (final p in _photos) p.path],
-        active: _active,
         items: [
           for (final item in _items)
             PrescriptionItemInput(
@@ -398,10 +495,8 @@ class _PrescriptionFormScreenState
                     removable: _items.length > 1,
                     onChanged: () => setState(() {}),
                     onAddTime: () => _addTime(item),
-                    onRemove: () => setState(() {
-                      _items.removeAt(i);
-                      item.dispose();
-                    }),
+                    onEveryHours: () => _everyHours(item),
+                    onRemove: () => _remove(item),
                   ),
                 OutlinedButton.icon(
                   key: const ValueKey('rx-add-medicine'),
@@ -519,6 +614,7 @@ class _ItemCard extends StatelessWidget {
     required this.removable,
     required this.onChanged,
     required this.onAddTime,
+    required this.onEveryHours,
     required this.onRemove,
   });
 
@@ -528,6 +624,7 @@ class _ItemCard extends StatelessWidget {
   final bool removable;
   final VoidCallback onChanged;
   final VoidCallback onAddTime;
+  final VoidCallback onEveryHours;
   final VoidCallback onRemove;
 
   @override
@@ -607,8 +704,16 @@ class _ItemCard extends StatelessWidget {
                       onChanged();
                     },
                   ),
+                ActionChip(
+                  key: ValueKey('$k-every-hours'),
+                  avatar: const Icon(Icons.schedule),
+                  label: Text(l.prescriptionEveryHours),
+                  onPressed: onEveryHours,
+                ),
               ],
             ),
+            const SizedBox(height: 6),
+            Text(l.prescriptionTimesHint, style: text.bodySmall),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -681,4 +786,84 @@ class _ItemCard extends StatelessWidget {
 
   static bool _sameTimes(List<DoseTime> a, List<DoseTime> b) =>
       a.length == b.length && a.every(b.contains);
+}
+
+/// Asks for "every N hours" and the first time; returns the times.
+class _EveryHoursDialog extends StatefulWidget {
+  const _EveryHoursDialog();
+
+  @override
+  State<_EveryHoursDialog> createState() => _EveryHoursDialogState();
+}
+
+class _EveryHoursDialogState extends State<_EveryHoursDialog> {
+  int _hours = 8;
+  DoseTime _first = const DoseTime(8, 0);
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l.prescriptionEveryHours),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DropdownButtonFormField<int>(
+            key: const ValueKey('rx-hours'),
+            initialValue: _hours,
+            decoration: InputDecoration(labelText: l.prescriptionInterval),
+            items: [
+              for (final h in everyHoursChoices)
+                DropdownMenuItem(
+                  value: h,
+                  child: Text(l.prescriptionEveryNHours(h)),
+                ),
+            ],
+            onChanged: (v) => setState(() => _hours = v ?? _hours),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            key: const ValueKey('rx-first-time'),
+            style: OutlinedButton.styleFrom(minimumSize: const Size(0, 56)),
+            onPressed: () async {
+              final t = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay(
+                  hour: _first.hour,
+                  minute: _first.minute,
+                ),
+              );
+              if (t != null) {
+                setState(() => _first = DoseTime(t.hour, t.minute));
+              }
+            },
+            icon: const Icon(Icons.alarm),
+            label: Text(
+              l.prescriptionFirstDose(formatDoseClock(context, _first)),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            everyHours(
+              _first,
+              _hours,
+            ).map((t) => formatDoseClock(context, t)).join(' · '),
+            key: const ValueKey('rx-hours-preview'),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l.familyCancel),
+        ),
+        FilledButton(
+          key: const ValueKey('rx-hours-ok'),
+          onPressed: () => Navigator.pop(context, everyHours(_first, _hours)),
+          child: Text(MaterialLocalizations.of(context).okButtonLabel),
+        ),
+      ],
+    );
+  }
 }

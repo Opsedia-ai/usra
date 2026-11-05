@@ -98,6 +98,13 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   show it by default), so with discreet off names can show there on
   Android; iOS hides previews when locked by default and shows generic
   text instead.
+- **Doses (medical safety, Apple 1.4.2)**: the app records what the
+  doctor wrote and never suggests or computes a dose. Dose text is saved
+  word for word. Reminder-time shortcuts on a prescription ("3 times a
+  day", "every 8 hours from 08:00") only lay times out on the clock; the
+  interval is the one the person reads off the prescription, the times
+  stay editable, and the form says to check them against it. The only
+  arithmetic is calendar days (a course's last day, "day 3 of 7").
 - **Widget**: first name and medicine name only, no strength or condition;
   in discreet mode "Dose due" with no name and no Taken button (a tap
   opens the app).

@@ -2645,7 +2645,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get prescriptionDays => 'عدد الأيام';
 
   @override
-  String get prescriptionDaysInvalid => 'اكتب عدد أيام من ١ لـ ٣٦٥';
+  String get prescriptionDaysInvalid => 'اكتب عدد أيام، ١ أو أكتر';
 
   @override
   String get prescriptionNoDoseAdvice =>
@@ -2706,4 +2706,54 @@ class AppLocalizationsAr extends AppLocalizations {
   String courseDayOf(int day, int total) {
     return 'اليوم $day من $total';
   }
+
+  @override
+  String get prescriptionMoveTitle => 'تنقل مواعيد العلاج كمان؟';
+
+  @override
+  String get prescriptionMoveBody =>
+      'العلاج اللي لسه مخلصش ممكن يبدأ من التاريخ الجديد. اللي خلص خلاص هيفضل بتواريخه ومش هترجعله تنبيهات.';
+
+  @override
+  String get prescriptionMoveYes => 'انقلها';
+
+  @override
+  String get prescriptionMoveKeep => 'سيب تواريخها';
+
+  @override
+  String prescriptionRemoveConfirm(String name) {
+    return 'تشيل $name من الروشتة دي؟ هيتوقف وتنبيهاته هتخلص. سجل جرعاته هيفضل في صفحته.';
+  }
+
+  @override
+  String get prescriptionEveryHours => 'كل كام ساعة';
+
+  @override
+  String get prescriptionInterval => 'زي ما الدكتور كتب';
+
+  @override
+  String prescriptionEveryNHours(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'كل $n ساعة',
+      few: 'كل $n ساعات',
+      two: 'كل ساعتين',
+      one: 'كل ساعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String prescriptionFirstDose(String time) {
+    return 'أول مرة الساعة $time';
+  }
+
+  @override
+  String get prescriptionTimesHint =>
+      'اتأكد إن المواعيد زي ما الدكتور كتب، مثلاً كل ٨ ساعات.';
+
+  @override
+  String get growthNoPrematurity =>
+      'السن محسوب من يوم الولادة من غير تصحيح للأطفال المبتسرين. لو طفلك اتولد بدري، اسأل دكتور الأطفال إزاي تقرا المنحنى ده.';
 }

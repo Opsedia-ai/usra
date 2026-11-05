@@ -1,15 +1,17 @@
-import 'dart:io';
-
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' show Value, driftRuntimeOptions;
 import 'package:drift/native.dart';
+import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqlite3/sqlite3.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/features/medicines/dose_schedule.dart';
 import 'package:usra/features/medicines/medicine_text.dart';
+import 'package:usra/features/medicines/prescription_form_screen.dart'
+    show everyHours;
 import 'package:usra/features/medicines/reminders.dart';
 import 'package:usra/l10n/app_localizations.dart';
+
+import '../generated_migrations/schema.dart';
 
 void main() {
   late AppDatabase db;
@@ -178,8 +180,10 @@ void main() {
       expect((await db.watchDoseSchedule(amox.id).first)!.times, '08:00,20:00');
       // Its history stays.
       expect(await db.watchMedicineDoseLogs(amox.id).first, hasLength(1));
-      // Removed from the prescription: deleted, reminders and all.
-      expect(await db.watchMedicine(para.id).first, isNull);
+      // Taken off: stopped and unlinked, but not deleted, history kept.
+      final removed = (await db.watchMedicine(para.id).first)!;
+      expect(removed.prescriptionId, isNull);
+      expect(removed.active, isFalse);
       expect(
         (await db.watchRegimens().first).map((r) => r.medicine.id),
         isNot(contains(para.id)),
@@ -243,6 +247,49 @@ void main() {
       expect((await db.watchMedicine(para.id).first)!.active, isFalse);
     });
 
+    test('medicines keep the order they were entered in', () async {
+      // Saved in the same millisecond: UUID v7 order is random there.
+      final names = [for (var i = 0; i < 12; i++) 'دوا $i'];
+      final rx = await db.savePrescription(
+        profileId: omar,
+        prescribedOn: DateTime(2026, 11, 1),
+        items: [for (final n in names) PrescriptionItemInput(name: n)],
+      );
+      final saved = await medicinesOf(rx);
+      expect(saved.map((m) => m.name), names);
+      expect(saved.map((m) => m.position), List.generate(12, (i) => i));
+      // Reordered in an edit: the new order sticks.
+      await db.savePrescription(
+        id: rx,
+        profileId: omar,
+        prescribedOn: DateTime(2026, 11, 1),
+        items: [
+          for (final m in saved.reversed)
+            PrescriptionItemInput(medicineId: m.id, name: m.name),
+        ],
+      );
+      expect((await medicinesOf(rx)).map((m) => m.name), names.reversed);
+    });
+
+    test('any course length a medicine can hold is accepted', () async {
+      final rx = await db.savePrescription(
+        profileId: omar,
+        prescribedOn: DateTime(2026, 11, 1),
+        items: const [PrescriptionItemInput(name: 'كونكور', days: 400)],
+      );
+      expect(courseDays((await medicinesOf(rx)).single), 400);
+      expect(
+        db.savePrescription(
+          profileId: omar,
+          prescribedOn: DateTime(2026, 11, 1),
+          items: const [
+            PrescriptionItemInput(name: 'x', days: maxCourseDays + 1),
+          ],
+        ),
+        throwsArgumentError,
+      );
+    });
+
     test('a medicine from elsewhere can\'t be pulled in', () async {
       final rx = await afterVisit();
       final loose = await db.saveMedicine(
@@ -292,6 +339,49 @@ void main() {
 
     await db.setPrescriptionActive(rx, true);
     expect(await db.watchRegimens().first, hasLength(2));
+    expect((await db.watchPrescription(rx).first)!.active, isTrue);
+  });
+
+  test('resume leaves a medicine stopped on its own stopped', () async {
+    final rx = await afterVisit();
+    final [amox, para, _] = await medicinesOf(rx);
+    // A rash from the antibiotic: stopped on its own page.
+    await db.setMedicineActive(amox.id, false);
+
+    await db.setPrescriptionActive(rx, false);
+    await db.setPrescriptionActive(rx, true);
+    expect((await db.watchMedicine(amox.id).first)!.active, isFalse);
+    expect((await db.watchMedicine(para.id).first)!.active, isTrue);
+    expect((await db.watchRegimens().first).map((r) => r.medicine.id), [
+      para.id,
+    ]);
+
+    // Stopped with the prescription, then restarted on its own: resuming
+    // the prescription later doesn't touch it twice.
+    await db.setPrescriptionActive(rx, false);
+    await db.setMedicineActive(para.id, true);
+    expect(
+      (await db.watchMedicine(para.id).first)!.stoppedWithPrescription,
+      isFalse,
+    );
+    await db.setPrescriptionActive(rx, true);
+    expect((await db.watchMedicine(amox.id).first)!.active, isFalse);
+  });
+
+  test('the prescription\'s status follows its medicines', () async {
+    final rx = await afterVisit();
+    Future<bool> active() async =>
+        (await db.watchPrescription(rx).first)!.active;
+    for (final m in await medicinesOf(rx)) {
+      await db.setMedicineActive(m.id, false);
+    }
+    expect(await active(), isFalse);
+    // One restarted while the prescription shows stopped.
+    await db.setMedicineActive((await medicinesOf(rx)).first.id, true);
+    expect(await active(), isTrue);
+    // The only one taken is deleted.
+    await db.softDeleteMedicine((await medicinesOf(rx)).first.id);
+    expect(await active(), isFalse);
   });
 
   test(
@@ -330,6 +420,24 @@ void main() {
     expect(await db.liveMedicinePhotos(), isEmpty);
   });
 
+  test('every N hours is laid out on the clock from the first time', () {
+    List<String> keys(int h, int m, int every) => [
+      for (final t in everyHours(DoseTime(h, m), every)) t.key,
+    ];
+    expect(keys(8, 0, 8), ['00:00', '08:00', '16:00']);
+    expect(keys(9, 30, 12), ['09:30', '21:30']);
+    expect(keys(6, 0, 6), ['00:00', '06:00', '12:00', '18:00']);
+    expect(keys(22, 0, 4), [
+      '02:00',
+      '06:00',
+      '10:00',
+      '14:00',
+      '18:00',
+      '22:00',
+    ]);
+    expect(() => everyHours(const DoseTime(8, 0), 0), throwsArgumentError);
+  });
+
   group('course progress', () {
     Medicine course(DateTime start, DateTime? end) => Medicine(
       id: 'm',
@@ -340,6 +448,7 @@ void main() {
       photosJson: '[]',
       active: true,
       updatedAt: DateTime.utc(2026),
+      stoppedWithPrescription: false,
     );
 
     test('day 3 of 7', () {
@@ -355,13 +464,32 @@ void main() {
       expect(courseProgress(m, DateTime(2026, 11, 8)), isNull);
     });
 
-    test('across a clock change, and none for ongoing medicines', () {
-      // Egypt's summer time ends on the last Friday of October.
-      final m = course(DateTime(2026, 10, 28), DateTime(2026, 11, 2));
-      expect(courseProgress(m, DateTime(2026, 11, 2, 0, 30)), (
-        day: 6,
-        total: 6,
-      ));
+    // Meaningful only where the clocks change in late October 2026; CI
+    // runs this file again with TZ=Africa/Cairo (see app-ci.yml).
+    final noClockChange =
+        DateTime(2026, 10, 28).timeZoneOffset ==
+        DateTime(2026, 11, 2).timeZoneOffset;
+    test(
+      'across a clock change',
+      skip: noClockChange
+          ? 'no clock change here; run with TZ=Africa/Cairo'
+          : false,
+      () {
+        // Egypt's summer time ended on 29-30 October 2026.
+        final m = course(DateTime(2026, 10, 28), DateTime(2026, 11, 2));
+        expect(courseDays(m), 6);
+        for (var day = 1; day <= 6; day++) {
+          for (final hour in [0, 12, 23]) {
+            expect(courseProgress(m, DateTime(2026, 10, 27 + day, hour, 30)), (
+              day: day,
+              total: 6,
+            ), reason: 'day $day $hour:30');
+          }
+        }
+      },
+    );
+
+    test('none for ongoing medicines', () {
       expect(courseDays(course(DateTime(2026, 11, 1), null)), isNull);
       expect(
         courseProgress(
@@ -373,82 +501,66 @@ void main() {
     });
   });
 
-  test('a v6 database gains prescriptions and keeps its medicines', () async {
-    final dir = await Directory.systemTemp.createTemp('usra_v6');
-    addTearDown(() => dir.delete(recursive: true));
-    final file = File('${dir.path}/v6.db');
+  group('migration from v6 (drift_schemas snapshot)', () {
+    late SchemaVerifier verifier;
+    setUpAll(() {
+      // Each test opens its own database on its own connection.
+      driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+      verifier = SchemaVerifier(GeneratedHelper());
+    });
 
-    // The full current schema, then taken back to what version 6 had.
-    final current = AppDatabase(NativeDatabase(file));
-    final p = await current.addProfile('Mona');
-    final old = await current.saveMedicine(
-      profileId: p,
-      name: 'Metformin',
-      startOn: DateTime(2026),
-      schedule: const DoseScheduleInput(times: ['08:00']),
-    );
-    await current.close();
-    // SQLite can't drop a column with a foreign key: rebuild the table
-    // without it, the way version 6 created it.
-    final raw = sqlite3.open(file.path);
-    final create =
-        raw
-                .select(
-                  "SELECT sql FROM sqlite_master WHERE name = 'medicines'",
-                )
-                .single['sql']
-            as String;
-    final v6 = create
-        .replaceFirst(RegExp(r',\s*"prescription_id"[^,]*'), '')
-        .replaceFirst('"medicines"', '"medicines_v6"');
-    expect(v6, isNot(contains('prescription')));
-    final columns = [
-      for (final c in raw.select('PRAGMA table_info(medicines)'))
-        if (c['name'] != 'prescription_id') '"${c['name']}"',
-    ].join(', ');
-    raw.execute('''
-      PRAGMA foreign_keys = OFF;
-      PRAGMA legacy_alter_table = ON;
-      $v6;
-      INSERT INTO medicines_v6 ($columns) SELECT $columns FROM medicines;
-      DROP TABLE medicines;
-      ALTER TABLE medicines_v6 RENAME TO medicines;
-      DROP TABLE prescriptions;
-    ''');
-    raw.userVersion = 6;
-    raw.close();
+    test('the upgraded schema matches a fresh v7 one', () async {
+      final schema = await verifier.schemaAt(6);
+      final upgraded = AppDatabase(schema.newConnection());
+      addTearDown(upgraded.close);
+      await verifier.migrateAndValidate(upgraded, 7);
+    });
 
-    final upgraded = AppDatabase(NativeDatabase(file));
-    addTearDown(upgraded.close);
-    final kept = (await upgraded.watchMedicine(old).first)!;
-    expect(kept.name, 'Metformin');
-    expect(kept.prescriptionId, isNull);
-    expect((await upgraded.watchRegimens().first).single.medicine.id, old);
+    test('a v6 database keeps its medicines and gains prescriptions', () async {
+      final schema = await verifier.schemaAt(6);
+      schema.rawDatabase.execute('''
+        INSERT INTO profiles (id, display_name, updated_at)
+          VALUES ('p1', 'Mona', 0);
+        INSERT INTO medicines (id, profile_id, name, start_on, updated_at)
+          VALUES ('m1', 'p1', 'Metformin', 1767225600, 0);
+        INSERT INTO dose_schedules (id, medicine_id, times, updated_at)
+          VALUES ('s1', 'm1', '08:00', 0);
+      ''');
+      final upgraded = AppDatabase(schema.newConnection());
+      addTearDown(upgraded.close);
 
-    final rx = await upgraded.savePrescription(
-      profileId: p,
-      prescribedOn: DateTime(2026, 11, 1),
-      items: const [PrescriptionItemInput(name: 'Amoxicillin', days: 5)],
-    );
-    expect(
-      (await upgraded.watchPrescriptionMedicines(rx).first).single.name,
-      'Amoxicillin',
-    );
-    // The foreign key came with the upgrade.
-    await expectLater(
-      upgraded
-          .into(upgraded.medicines)
-          .insert(
-            MedicinesCompanion.insert(
-              id: 'bad',
-              profileId: p,
-              name: 'x',
-              startOn: DateTime.utc(2026),
-              updatedAt: DateTime.utc(2026),
-              prescriptionId: const Value('missing'),
+      final kept = (await upgraded.watchMedicine('m1').first)!;
+      expect(kept.name, 'Metformin');
+      expect(kept.prescriptionId, isNull);
+      expect(kept.position, isNull);
+      expect(kept.stoppedWithPrescription, isFalse);
+      expect((await upgraded.watchRegimens().first).single.medicine.id, 'm1');
+
+      final rx = await upgraded.savePrescription(
+        profileId: 'p1',
+        prescribedOn: DateTime(2026, 11, 1),
+        items: const [PrescriptionItemInput(name: 'Amoxicillin', days: 5)],
+      );
+      expect(
+        (await upgraded.watchPrescriptionMedicines(rx).first).single.name,
+        'Amoxicillin',
+      );
+      // The foreign key came with the upgrade.
+      await expectLater(
+        upgraded
+            .into(upgraded.medicines)
+            .insert(
+              MedicinesCompanion.insert(
+                id: 'bad',
+                profileId: 'p1',
+                name: 'x',
+                startOn: DateTime.utc(2026),
+                updatedAt: DateTime.utc(2026),
+                prescriptionId: const Value('missing'),
+              ),
             ),
-          ),
-      throwsA(isA<SqliteException>()),
-    );
+        throwsA(isA<SqliteException>()),
+      );
+    });
   });
 }
