@@ -36,12 +36,15 @@ class MainActivity : FlutterFragmentActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private val uncoverFallback = Runnable { removeCover() }
 
-    /// A secret (the recovery key) copied by the app: when it's due to be
-    /// cleared (elapsedRealtime) and the clip's timestamp, to tell whether
-    /// it's still ours. See lib/core/security/sensitive_clipboard.dart.
-    private var clipboardClearAt: Long? = null
-    private var copiedStamp: Long? = null
+    /// A secret (the recovery key) copied by the app and not cleared yet:
+    /// when it was copied (uptime and wall clock) and the clip's timestamp,
+    /// to tell whether it's still ours. Kept in private preferences (no
+    /// secret in it), so a clear survives Android killing the app while the
+    /// person is in their password manager. See
+    /// lib/core/security/sensitive_clipboard.dart.
     private val clipboardClear = Runnable { clearCopiedIfOurs() }
+
+    private fun pendingClip() = getSharedPreferences(CLIPBOARD_PREFS, MODE_PRIVATE)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +53,11 @@ class MainActivity : FlutterFragmentActivity() {
         // it's hidden, by which time the cover from onPause is drawn.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             setRecentsScreenshotEnabled(false)
+        }
+        // A copy from before the app was killed: cleared once it's due and
+        // the app has focus.
+        if (pendingClip().contains(KEY_COPIED_UPTIME)) {
+            handler.post(clipboardClear)
         }
     }
 
@@ -112,12 +120,16 @@ class MainActivity : FlutterFragmentActivity() {
         }
         val manager = clipboard()
         manager.setPrimaryClip(clip)
-        copiedStamp = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val stamp = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             manager.primaryClipDescription?.timestamp
         } else {
             null
         }
-        clipboardClearAt = SystemClock.elapsedRealtime() + CLIPBOARD_LIFETIME_MS
+        pendingClip().edit()
+            .putLong(KEY_COPIED_UPTIME, SystemClock.elapsedRealtime())
+            .putLong(KEY_COPIED_WALL, System.currentTimeMillis())
+            .putLong(KEY_STAMP, stamp ?: -1L)
+            .commit()
         handler.removeCallbacks(clipboardClear)
         handler.postDelayed(clipboardClear, CLIPBOARD_LIFETIME_MS)
     }
@@ -125,18 +137,31 @@ class MainActivity : FlutterFragmentActivity() {
     /// Clears the clipboard once the secret's time is up, unless something
     /// else was copied since. Waits for focus when it can't look.
     private fun clearCopiedIfOurs() {
-        val due = clipboardClearAt ?: return
-        val left = due - SystemClock.elapsedRealtime()
+        val pending = pendingClip()
+        if (!pending.contains(KEY_COPIED_UPTIME)) return
+        val copiedUptime = pending.getLong(KEY_COPIED_UPTIME, 0L)
+        val uptime = SystemClock.elapsedRealtime()
+        // Uptime going back means the phone restarted: due. Otherwise due
+        // when either clock says so (clearing early is the safe side).
+        val left = if (uptime < copiedUptime) {
+            0L
+        } else {
+            minOf(
+                copiedUptime + CLIPBOARD_LIFETIME_MS - uptime,
+                pending.getLong(KEY_COPIED_WALL, 0L) + CLIPBOARD_LIFETIME_MS -
+                    System.currentTimeMillis(),
+            ).coerceAtMost(CLIPBOARD_LIFETIME_MS)
+        }
         if (left > 0) {
             handler.removeCallbacks(clipboardClear)
             handler.postDelayed(clipboardClear, left)
             return
         }
         if (!hasWindowFocus()) return
-        clipboardClearAt = null
+        val stamp = pending.getLong(KEY_STAMP, -1L).takeIf { it >= 0 }
+        pending.edit().clear().commit()
         val manager = clipboard()
         val description = manager.primaryClipDescription ?: return
-        val stamp = copiedStamp
         val sameClip = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && stamp != null) {
             description.timestamp == stamp
         } else {
@@ -269,5 +294,9 @@ class MainActivity : FlutterFragmentActivity() {
         const val UNCOVER_FALLBACK_MS = 3000L
         const val CLIPBOARD_LIFETIME_MS = 60_000L
         const val SENSITIVE_CLIP_LABEL = "Usra recovery key"
+        const val CLIPBOARD_PREFS = "usra_clipboard"
+        const val KEY_COPIED_UPTIME = "copied_uptime"
+        const val KEY_COPIED_WALL = "copied_wall"
+        const val KEY_STAMP = "clip_stamp"
     }
 }

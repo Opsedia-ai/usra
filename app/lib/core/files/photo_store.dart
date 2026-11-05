@@ -468,6 +468,21 @@ String photoMimeOf(String path) => switch (p.extension(path).toLowerCase()) {
   _ => 'image/jpeg',
 };
 
+/// Deletes what pickers and the camera left in [dir] (iOS `tmp/`, where
+/// image_picker writes photos unencrypted): copies of photos whose form was
+/// never closed, because the app was killed. Run at start-up, before any
+/// form can be open; a form deletes its own copies when it closes.
+Future<void> clearPickerLeftovers(Directory dir) async {
+  if (!await dir.exists()) return;
+  await for (final entity in dir.list(followLinks: false)) {
+    try {
+      await entity.delete(recursive: true);
+    } on FileSystemException {
+      // In use by the system; tried again next start.
+    }
+  }
+}
+
 /// Deletes a picked photo's temporary file, if it's still there.
 void discardPicked(String path) {
   try {

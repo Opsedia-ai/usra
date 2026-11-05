@@ -207,10 +207,16 @@ class _CopyKey extends ConsumerWidget {
         key: const ValueKey('recovery-key-copy'),
         onPressed: () async {
           final messenger = ScaffoldMessenger.of(context);
-          await ref
+          final copied = await ref
               .read(sensitiveClipboardProvider)
               .copy(recoveryKey.groups.join(' '));
-          messenger.showSnackBar(SnackBar(content: Text(l.recoveryKeyCopied)));
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                copied ? l.recoveryKeyCopied : l.recoveryKeyCopyFailed,
+              ),
+            ),
+          );
         },
         icon: const Icon(Icons.copy_outlined),
         label: Text(l.recoveryKeyCopy),

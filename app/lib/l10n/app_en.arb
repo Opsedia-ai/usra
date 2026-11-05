@@ -804,6 +804,8 @@
   },
   "wipeButton": "Delete everything",
   "wipeWorking": "Deleting…",
+  "wipeReopenFailed": "Usra couldn't open again after deleting. Close it and open it again.",
+  "recoveryKeyCopyFailed": "Couldn't copy the key. Write it down from the screen instead.",
   "wipeDoneNotice": "Everything Usra kept on this phone was deleted.",
   "wipeIncompleteNotice": "Some of Usra's data couldn't be deleted. Usra will try again the next time it starts.",
   "lockSettingsWipe": "Erase after 10 wrong PINs",

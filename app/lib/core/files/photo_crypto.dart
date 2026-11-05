@@ -155,6 +155,13 @@ class PhotoKeys {
   PhotoCipher get require =>
       _cipher ?? (throw PhotoKeyUnavailableException(_problem!));
 
+  /// No key on this run (after "Delete all my data", when a new one
+  /// couldn't be saved): nothing is sealed with a key that's gone.
+  void markUnavailable(PhotoKeyProblem problem) {
+    _cipher = null;
+    _problem = problem;
+  }
+
   void replace(PhotoCipher cipher) {
     _cipher = cipher;
     _problem = null;

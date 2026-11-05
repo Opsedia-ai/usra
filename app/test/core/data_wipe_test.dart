@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:usra/core/files/photo_crypto.dart';
 import 'package:usra/core/security/app_lock.dart';
 import 'package:usra/core/security/data_wipe.dart';
 import 'package:usra/core/security/sensitive_clipboard.dart';
@@ -69,6 +70,22 @@ void main() {
     expect(calls, containsAll(['prefs', 'notifications', 'widget']));
   });
 
+  test('also empties the other scratch folders (iOS tmp/)', () async {
+    final tmp = Directory(p.join(dir.path, 'tmp'))..createSync();
+    final pickedPhoto = File(p.join(tmp.path, 'image_picker_1.jpg'))
+      ..writeAsBytesSync([9]);
+    final wiper = DataWiper(
+      root: root,
+      temporary: temp,
+      extraTemporary: [tmp],
+      secureStorage: const [FlutterSecureStorage()],
+      clearPreferences: () async {},
+    );
+    expect(await wiper.wipe(), isTrue);
+    expect(pickedPhoto.existsSync(), isFalse);
+    expect(tmp.listSync(), isEmpty);
+  });
+
   test('every key the app writes is on the list', () {
     // Each Keystore / Keychain name in lib/ must be deleted by a wipe.
     final names = <String>{};
@@ -131,6 +148,14 @@ void main() {
     expect(await wiper().resumeIfInterrupted(), isTrue);
     expect(await wiper().interrupted, isFalse);
     expect(await wiper().resumeIfInterrupted(), isFalse);
+  });
+
+  test('after a wipe with no new photo key, nothing is sealed with the old '
+      'one', () {
+    final keys = PhotoKeys.ready(PhotoCipher(PhotoCipher.generateKey()));
+    keys.markUnavailable(PhotoKeyProblem.unreadable);
+    expect(keys.cipher, isNull);
+    expect(() => keys.require, throwsA(isA<PhotoKeyUnavailableException>()));
   });
 
   group('erase after too many wrong PINs', () {
@@ -248,6 +273,17 @@ void main() {
     tearDown(() {
       messenger.setMockMethodCallHandler(SystemChannels.platform, null);
       messenger.setMockMethodCallHandler(channel, null);
+    });
+
+    test('if the phone\'s copy fails, nothing goes on the clipboard '
+        'unmarked', () async {
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        throw PlatformException(code: 'denied');
+      });
+      final copied = await SensitiveClipboard(methodChannel: channel)
+          .copy('482915 730264');
+      expect(copied, isFalse);
+      expect(clip, isNull);
     });
 
     test(

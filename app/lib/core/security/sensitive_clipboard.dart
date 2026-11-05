@@ -35,18 +35,22 @@ class SensitiveClipboard {
   final Duration lifetime;
   Timer? _fallbackClear;
 
-  Future<void> copy(String text) async {
+  /// True when copied. When the phone's own copy fails, nothing is copied
+  /// at all rather than the secret going on the clipboard unmarked.
+  Future<bool> copy(String text) async {
     _fallbackClear?.cancel();
     try {
       await methodChannel.invokeMethod<void>('copySensitive', text);
-      return;
+      return true;
     } on MissingPluginException {
       // Tests, desktop: Flutter's clipboard below.
     } on PlatformException catch (e) {
       Log.error('Sensitive copy failed', e);
+      return false;
     }
     await Clipboard.setData(ClipboardData(text: text));
     _fallbackClear = Timer(lifetime, () => _clearIfStill(text));
+    return true;
   }
 
   Future<void> _clearIfStill(String text) async {

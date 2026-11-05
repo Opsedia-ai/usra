@@ -1478,6 +1478,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wipeWorking => 'Deleting…';
 
   @override
+  String get wipeReopenFailed =>
+      'Usra couldn\'t open again after deleting. Close it and open it again.';
+
+  @override
+  String get recoveryKeyCopyFailed =>
+      'Couldn\'t copy the key. Write it down from the screen instead.';
+
+  @override
   String get wipeDoneNotice =>
       'Everything Usra kept on this phone was deleted.';
 

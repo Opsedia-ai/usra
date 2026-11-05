@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,6 +25,7 @@ import 'core/security/file_protection.dart';
 import 'features/account/account_providers.dart';
 import 'features/account/account_secure_storage.dart';
 import 'features/backup/backup_providers.dart';
+import 'features/settings/wipe_restart.dart';
 import 'features/children/vaccine_reminders.dart';
 import 'features/follow_ups/dismissals.dart';
 import 'features/medicines/dose_widget.dart';
@@ -50,6 +53,8 @@ Future<void> main() async {
   final wiper = DataWiper(
     root: root,
     temporary: temporary,
+    // iOS pickers and the camera write to `tmp/`; Android's go to the cache.
+    extraTemporary: [if (Platform.isIOS) Directory.systemTemp],
     secureStorage: const [
       // Every set of options a key is written with (iOS looks Keychain
       // items up by them).
@@ -167,6 +172,9 @@ Future<void> main() async {
   try {
     // Decrypted copies a share left behind.
     await SharedPhotoCache(temporary).clear();
+    // iOS: plain photos pickers and the camera left in `tmp/` when the app
+    // was killed with a form open (each form deletes its own on close).
+    if (Platform.isIOS) await clearPickerLeftovers(Directory.systemTemp);
   } catch (e, s) {
     FlutterError.reportError(
       FlutterErrorDetails(exception: e, stack: s, library: 'photos'),
@@ -235,7 +243,6 @@ Future<void> main() async {
   late final Future<void> Function(StagedRestore, RecoveryKey)
   restoreAndRestart;
   late final Future<void> Function() wipeAndRestart;
-  late final Future<void> Function(bool complete) reopenAfterWipe;
   ProviderContainer build({RestoreOutcome? restore, WipeOutcome? wipe}) =>
       ProviderContainer(
         overrides: [
@@ -349,26 +356,19 @@ Future<void> main() async {
 
   // Signs out, deletes everything (S10) and starts again as on first run:
   // new keys, empty database, settings back to their defaults.
-  var wiping = false;
-  wipeAndRestart = () async {
-    final old = app.value;
-    if (wiping || old == null) return;
-    wiping = true;
+  final wipeFailed = ValueNotifier(false);
+  wipeAndRestart = WipeRestart(
+    current: () => app.value,
+    setCurrent: (c) => app.value = c,
+    gatewayOf: (c) => c.read(authGatewayProvider),
     // While the session is still there, so the account's device row goes
-    // too. Best effort: offline, the session is deleted with the keys.
-    try {
-      if (old.read(authGatewayProvider) != null) {
-        await old.read(accountProvider.future).timeout(_signOutTimeout);
-        await old
-            .read(accountProvider.notifier)
-            .signOut()
-            .timeout(_signOutTimeout);
-      }
-    } catch (e) {
-      Log.error('Wipe sign-out failed', e);
-    }
-    app.value = null;
-    try {
+    // too.
+    signOut: (c) async {
+      if (c.read(authGatewayProvider) == null) return;
+      await c.read(accountProvider.future);
+      await c.read(accountProvider.notifier).signOut();
+    },
+    close: (old) async {
       await WidgetsBinding.instance.endOfFrame;
       old.dispose();
       reminders.dispose();
@@ -376,48 +376,44 @@ Future<void> main() async {
       // Nothing may still be writing in the folders being deleted.
       await photoMigration;
       await protection;
-    } catch (e, s) {
-      FlutterError.reportError(
-        FlutterErrorDetails(exception: e, stack: s, library: 'wipe'),
+    },
+    wipe: () async {
+      try {
+        return await wiper.wipe();
+      } finally {
+        waiting.clear();
+        await lock.forgetAfterWipe();
+      }
+    },
+    reopen: (result) async {
+      key = await DatabaseKeyStore().readOrCreate();
+      final fresh = await photoKeyStore.load(
+        sealedPhotosExist: () async => false,
       );
-    }
-    final complete = await wiper.wipe();
-    waiting.clear();
-    await lock.forgetAfterWipe();
-    try {
-      await reopenAfterWipe(complete);
-    } catch (e, s) {
-      // Nothing to show without a database: the next start opens it (or
-      // finishes the wipe) instead.
-      FlutterError.reportError(
-        FlutterErrorDetails(exception: e, stack: s, library: 'wipe'),
-      );
-    } finally {
-      wiping = false;
-    }
-  };
-  reopenAfterWipe = (complete) async {
-    key = await DatabaseKeyStore().readOrCreate();
-    final fresh = await photoKeyStore.load(
-      sealedPhotosExist: () async => false,
-    );
-    if (fresh.cipher case final cipher?) photoKeys.replace(cipher);
-    backup = newBackup();
-    outcome = prepareDatabaseFile(file, key);
-    database = AppDatabase(openEncryptedDatabase(file, key));
-    dismissals = await FileDismissalStore.open();
-    try {
-      await preferences.setBool(PrefKeys.installed, true);
-    } catch (e) {
-      Log.error('Wipe settings failed', e);
-    }
-    protection = protectAppFiles(root, photoFolders);
-    app.value = build(
-      wipe: complete ? WipeOutcome.done : WipeOutcome.incomplete,
-    );
-    reminders = newReminders();
-    await reminders.start();
-  };
+      switch (fresh.cipher) {
+        case final cipher?:
+          photoKeys.replace(cipher);
+        case null:
+          // Never keep sealing with the key that was just deleted.
+          photoKeys.markUnavailable(fresh.problem!);
+      }
+      backup = newBackup();
+      outcome = prepareDatabaseFile(file, key);
+      database = AppDatabase(openEncryptedDatabase(file, key));
+      dismissals = await FileDismissalStore.open();
+      try {
+        await preferences.setBool(PrefKeys.installed, true);
+      } catch (e) {
+        Log.error('Wipe settings failed', e);
+      }
+      protection = protectAppFiles(root, photoFolders);
+      app.value = build(wipe: result);
+      reminders = newReminders();
+      await reminders.start();
+    },
+    onReopenFailed: () => wipeFailed.value = true,
+    signOutTimeout: _signOutTimeout,
+  ).call;
   lock.onTooManyFailures = wipeAndRestart;
 
   app.value = build();
@@ -426,9 +422,18 @@ Future<void> main() async {
     ValueListenableBuilder<ProviderContainer?>(
       valueListenable: app,
       builder: (_, container, _) => container == null
-          ? const MaterialApp(
-              debugShowCheckedModeBanner: false,
-              home: Scaffold(body: Center(child: CircularProgressIndicator())),
+          ? ValueListenableBuilder<bool>(
+              valueListenable: wipeFailed,
+              builder: (_, failed, _) => MaterialApp(
+                debugShowCheckedModeBanner: false,
+                home: Scaffold(
+                  body: Center(
+                    child: failed
+                        ? const WipeReopenFailed()
+                        : const CircularProgressIndicator(),
+                  ),
+                ),
+              ),
             )
           : UncontrolledProviderScope(
               key: ObjectKey(container),

@@ -2624,6 +2624,18 @@ abstract class AppLocalizations {
   /// **'Deleting…'**
   String get wipeWorking;
 
+  /// No description provided for @wipeReopenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra couldn\'t open again after deleting. Close it and open it again.'**
+  String get wipeReopenFailed;
+
+  /// No description provided for @recoveryKeyCopyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t copy the key. Write it down from the screen instead.'**
+  String get recoveryKeyCopyFailed;
+
   /// No description provided for @wipeDoneNotice.
   ///
   /// In en, this message translates to:

@@ -63,6 +63,17 @@ void main() {
       );
     });
 
+    test('picker copies left by a killed app are cleared at the next '
+        'start', () async {
+      final tmp = Directory(p.join(dir.path, 'tmp'))..createSync();
+      final left = File(p.join(tmp.path, 'image_picker_A1.jpg'))
+        ..writeAsBytesSync(photo);
+      Directory(p.join(tmp.path, 'sub')).createSync();
+      await clearPickerLeftovers(tmp);
+      expect(left.existsSync(), isFalse);
+      expect(tmp.listSync(), isEmpty);
+    });
+
     test('reads back exactly, in memory', () async {
       final path = await store.import(picked(photo).path);
       expect(await store.read(path), photo);

@@ -1486,6 +1486,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wipeWorking => 'بيتمسح…';
 
   @override
+  String get wipeReopenFailed =>
+      'أسرة مقدرتش تفتح تاني بعد المسح. اقفلها وافتحها تاني.';
+
+  @override
+  String get recoveryKeyCopyFailed =>
+      'مقدرناش ننسخ المفتاح. اكتبه من على الشاشة بدل كده.';
+
+  @override
   String get wipeDoneNotice =>
       'كل حاجة أسرة كانت شايلاها على الموبايل ده اتمسحت.';
 

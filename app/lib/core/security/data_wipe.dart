@@ -37,6 +37,7 @@ class DataWiper {
   DataWiper({
     required this.root,
     required this.temporary,
+    this.extraTemporary = const [],
     required this.secureStorage,
     required this.clearPreferences,
     this.cancelNotifications,
@@ -49,6 +50,11 @@ class DataWiper {
   /// The app's cache folder: backups made for sharing, decrypted share
   /// copies (ours and share_plus's).
   final Directory temporary;
+
+  /// Other scratch folders emptied too: the system temporary folder, where
+  /// iOS pickers and the camera leave unencrypted copies (`tmp/`, not the
+  /// cache folder above).
+  final List<Directory> extraTemporary;
 
   /// One per set of options the app uses (iOS Keychain items are looked up
   /// by their accessibility too).
@@ -117,7 +123,12 @@ class DataWiper {
       critical: true,
     );
     await step(
-      () => _emptyFolder(temporary),
+      () async {
+        await _emptyFolder(temporary);
+        for (final dir in extraTemporary) {
+          if (!p.equals(dir.path, temporary.path)) await _emptyFolder(dir);
+        }
+      },
       (e) => Log.error('Wipe cache failed', e),
       critical: true,
     );

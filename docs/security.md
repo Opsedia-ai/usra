@@ -129,7 +129,10 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   "copied" preview and keyboard clipboard history) and clears it after
   60 s if it's still ours (by label and timestamp; checked when the app
   next has focus, since Android 10+ hides the clipboard from background
-  apps, and Android 13+ clears it after an hour anyway). iOS puts it on the
+  apps; the pending clear is kept in private preferences, so it still
+  happens after Android kills the app; Android 13+ also clears it after an
+  hour). If the marked copy fails, nothing is copied and the screen says
+  so (never a plain copy). iOS puts it on the
   pasteboard local-only (no Universal Clipboard) with a 60 s expiry. Sharing
   an insurance card, record or photo warns once that it leaves the app's
   protection, with "Don't ask again" (all shares go through
@@ -156,17 +159,30 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   start the app in the background for that action, and a database that
   can't be opened at start-up would be treated as damaged and moved aside.
   Android keeps app data in credential-encrypted storage (like the iOS
-  class above). `lib/core/security/file_protection.dart`. Not yet checked
-  on a device.
+  class above). Cost of `Complete` on photos: a backup, or the start-up
+  migration that encrypts old photos, can't read photos if the phone
+  locks part way (or iOS starts the app in the background while locked).
+  The backup then fails with "try again" and the migration retries at the
+  next start; nothing is lost. Notifications carry no photos and the widget
+  reads only its App Group data, so neither is affected. iOS pickers and
+  the camera leave plain copies in `tmp/`: each form deletes its own when
+  it closes, anything a killed app left is cleared at the next start, and
+  the wipe empties `tmp/` too. `lib/core/security/file_protection.dart`.
+  Not yet checked on a device.
 - **Delete all my data (S10)**: Settings › Delete all my data, after
   typing a word (and the PIN when the app lock is on): signs out of the
-  account (best effort; offline, the session goes with the keys), then
+  account (best effort, cut off after 10 s; whatever it managed, the local
+  session is then dropped with no network call and its auto-refresh
+  stopped, before and again after the wipe, so a late refresh can't save
+  it back), then
   deletes every Keystore / Keychain item (`usra.*`: database, photo,
   recovery and app-lock keys, account session and device keys), cancels
   every notification, empties the widget, deletes the private folder
   (database, photos, inbox, restore leftovers) and the cache (backup
   files, share copies), clears all settings, and starts again as on first
-  run with new keys. Keys go first, so a wipe cut short has already made
+  run with new keys (if a new photo key can't be saved, photos are marked
+  unavailable rather than sealed with the deleted one; if the app can't
+  open again it says to close and reopen it). Keys go first, so a wipe cut short has already made
   the rest unreadable; a marker file makes the next start finish it (at
   most 3 tries). Optional "Erase after 10 wrong PINs" in the app-lock
   settings (off by default, warns before turning on, the PIN to turn
