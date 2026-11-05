@@ -1,0 +1,6 @@
+/* Same text as Android (values-en/dose_widget_strings.xml) and the app's ARB files. */
+"widget.title" = "Today's medicines";
+"widget.description" = "The family's next doses";
+"widget.stale" = "Open Usra to refresh medicines";
+/* Sample line in the widget gallery only. */
+"widget.sample" = "8:00 PM · Omar · Paracetamol";

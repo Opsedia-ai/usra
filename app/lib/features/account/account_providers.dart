@@ -177,8 +177,9 @@ class AccountController extends AsyncNotifier<AccountState> {
     );
   }
 
-  /// Removes this phone's device row (best effort), ends the session and
-  /// wipes the session and this account's device key from the phone.
+  /// Revokes this phone's device row (best effort; approved devices are
+  /// never deleted on the server), ends the session and wipes the session and
+  /// this account's device key from the phone.
   Future<void> signOut() async {
     await _settle();
     final current = state.value;
@@ -186,10 +187,10 @@ class AccountController extends AsyncNotifier<AccountState> {
       final ids = ref.read(deviceIdentityStoreProvider);
       try {
         final deviceId = await ids.deviceId(current.user.id);
-        if (deviceId != null) await _gateway.deleteDevice(deviceId);
+        if (deviceId != null) await _gateway.revokeDevice(deviceId);
       } catch (_) {
-        // Offline: the row stays, but its private key is wiped below, so
-        // nothing wrapped to it can be opened.
+        // Offline: the row stays live, but its private key is wiped below,
+        // so nothing wrapped to it can be opened and it can't be bound again.
       }
       await _gateway.signOut();
       await _forget(current.user.id);

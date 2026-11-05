@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/design/dismiss_keyboard.dart';
 import 'core/design/theme.dart';
 import 'core/preferences.dart';
 import 'core/providers.dart';
@@ -34,7 +35,9 @@ class UsraApp extends ConsumerWidget {
       // page stack. The lock covers every page, deep links included.
       builder: (context, child) => _textScale(
         context,
-        AppLockGate(child: RootWarning(child: child!)),
+        DismissKeyboardOnTap(
+          child: AppLockGate(child: RootWarning(child: child!)),
+        ),
         simple: simple,
       ),
     );

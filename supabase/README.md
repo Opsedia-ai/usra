@@ -27,6 +27,11 @@ supabase/
     revenuecat-webhook/       purchases -> credits_ledger / entitlements
     delete-account/           in-app "Delete account": removes the auth user, everything cascades
     send-sms-hook/            Supabase Auth Send SMS hook (Unifonic or Twilio)
+    bind-device/              sync: bind an Auth session to a phone that proves its key
+    approve-device/           sync: an approved phone approves a new one (QR or comparison code)
+    recover-device/           sync: approve a new phone with the recovery device's key
+    append-family-log/        sync: append a signed entry to a family log
+    publish-head/             sync: publish a signed head beacon
   tests/
     functions/                Deno unit tests (no network, no database)
     database/                 pgTAP tests, run with `supabase test db`
@@ -39,17 +44,26 @@ supabase/
 | Table | Holds | Who can read | Who can write |
 | --- | --- | --- | --- |
 | `accounts` | 1:1 with `auth.users`: country, locale | own row | own `country`, `locale` |
-| `devices` | platform, app version, X25519 + Ed25519 public keys (immutable), `status` pending / approved / revoked, the session that registered it | own | insert (keys, platform, version); update `app_version`, `last_seen_at` of this session's own device; delete own device, others only from an approved device. Status only through `approve_device` / `revoke_device` |
-| `device_sessions` | Auth session id → device (set by `bind-device`, B2) | nobody | service role (`bind_device_session`) |
+| `devices` | `kind` phone / recovery, platform, app version, X25519 + Ed25519 public keys (immutable), `status` pending / approved / revoked, the session that registered it, when a session was first bound | own | insert phones (keys, platform, version); update `app_version`, `last_seen_at` of this session's own device; delete only pending phones (approved, revoked and recovery devices are revoked, never deleted, except with the account); `revoke_own_device()` for sign-out. Status only through the device functions below |
+| `device_sessions` | Auth session id → phone (one live session per phone) | nobody | service role (`bind-device`) |
+| `device_challenges` | single-use server nonces (purpose, user, session, device, 5 minutes) | nobody | `issue_device_challenge()`; used up by the sync functions |
+| `account_recovery` | recovery salt, Argon2id settings (bounded), recovery device | own (SMS-only sessions too) | `set_account_recovery()` (approved device) |
+| `pairing_sessions` | comparison-code relay: commitment, nonces, status, 10 minutes | the new phone's session; the account's approved phones | `pairing_start` / `respond` / `reveal` / `cancel` |
+| `pairing_bundles` | the HPKE pairing bundle left for a newly approved phone | that phone's session | `approve-device`; the phone deletes it |
+| `account_resets` | 7-day account resets: started, cancelled, completed | own (every session, checked on launch) | `start_account_reset()`, `cancel_account_reset()`; completed by `sync_housekeeping()` |
 | `push_tokens` | FCM tokens | this session's own device | this session's own device only |
 | `entitlements` | Usra Plus status and expiry | own | service role (webhook) |
 | `credits_ledger` | append-only AI credit movements | own | service role, through functions only |
 | `purchase_events` | processed RevenueCat event ids (idempotency) | nobody | service role |
-| `families` | creator (null once deleted), current key version, rotation pending | members on an approved device | create: approved device; delete: `delete_family()` (owner, approved device) |
-| `family_members` | membership and roles (owner, guardian, cared_for, viewer); one owner | members on an approved device | only through the family log (`append_family_log`) |
-| `family_invites` | role, sha256 of the one-time code, expiry, accepted / used / revoked | owner on an approved device | `create_family_invite()`, `revoke_family_invite()` (owner, approved device) |
-| `family_log` | signed, hash-chained membership log (`hash = sha256(entry)`) | members on an approved device | service role (`append_family_log`, compare-and-set on the head) |
-| `e2ee_records` | `family_id`, random v4 `sync_id`, `revision`, `key_version`, padded `ciphertext` (required), `deleted_at` | members on an approved device | `push_e2ee_records()` only (owner, guardian) |
+| `families` | creator (null once deleted), current key version, rotation pending | members on an approved device | create: a genesis log entry; delete: `delete_family()` (owner, approved device) |
+| `family_members` | membership, roles (owner, guardian, cared_for, viewer; one owner), `status` active / reset | members on an approved device | only through the family log |
+| `family_devices` | exact mirror of the devices each family's log lists, with a `revoked_seq` marker once its `revoke_device` entry lands | members on an approved device | only through the family log |
+| `family_invites` | role, invite lookup hash, expiry, accepted / used / revoked, the invitee's device records and MAC | owner on an approved device | `create_family_invite()`, `revoke_family_invite()`, `accept_family_invite()` |
+| `family_log` | signed, hash-chained membership log (`hash = sha256(entry)`) | members on an approved device | `append-family-log` (compare-and-set on the head) |
+| `family_epochs` | per key version: commitment `KC_v`, history blob, log seq | current devices of the family | only through `rotate_key` / genesis |
+| `family_key_wraps` | HPKE wraps of the family key, per device per epoch, signed by the sender | the recipient phone (and its account's recovery device's wraps) | `put_family_key_wraps()`; all of an epoch with `rotate_key`; the recipient phone deletes its own |
+| `family_heads` | newest signed head beacon per device | current devices of the family | `publish-head` |
+| `e2ee_records` | `family_id`, random v4 `sync_id`, `revision`, `key_version`, padded `ciphertext` (required), `deleted_at` | current devices of the family | `push_e2ee_records()` only (owner, guardian) |
 | `ai_runs` | model, token counts, status per AI run | own | service role |
 | `ocr_requests` | one row per cloud OCR call (timestamp only) | own | service role |
 
@@ -77,54 +91,147 @@ Every table has RLS on. The API roles start with no privileges on new tables
 ### End-to-end-encrypted sync (v2): what the database enforces today
 
 The design is [`docs/sync-design.md`](../docs/sync-design.md). Migration
-`20261105000001_sync_blockers_b0.sql` closes its B0 blockers; the Edge
-Functions that check signatures (`bind-device`, `approve-device`,
-`append-family-log`, B2–B5) are still to come.
+`20261105000001_sync_blockers_b0.sql` closes its B0 blockers;
+`20261105000002_sync_log_devices.sql` adds device approval, session binding,
+recovery and account reset (B1–B4) and the signed family log, invites, key
+wraps and rotation (B5, B6, B9). Every function that trusts an Ed25519
+signature is service-role only and is called by its Edge Function after a
+strict check; the function then re-checks the caller's user and Auth session
+against `device_sessions` itself.
 
 - **Approved-device sessions.** A JWT counts for sync only when its
-  `session_id` is bound to an approved device of the user
-  (`private.device_ok()`). A session that only proved an SMS code reads no
-  ciphertext, log, families or members and can't create or delete families,
-  create, accept or revoke invites, or push records.
-- **Devices.** Keys can't change after insert, for any role (a new key is a
-  new device). Every device starts `pending`. `approve_device(device,
-  approver)` (service role) approves it from another approved device of the
-  same account; `approver = null` is allowed once per account
-  (`accounts.sync_enrolled_at`). `revoke_device` is final, drops the
-  device's sessions and push tokens, and (for an approved device) flags a
-  key rotation in every family of its user. The trust columns can't be
-  changed by the API roles directly, the service role included.
-- **Push tokens** are readable and writable only for this session's device:
-  the bound device, or before binding the device rows this session
-  registered.
-- **Family log.** `append_family_log(family, seq, prev_hash, entry, sig)`
-  (service role, after the Edge Function checked the Ed25519 signature and
-  strict JSON) appends only on top of the current head, checks who may write
-  each entry type, and mirrors it into `family_members`, `devices`
-  (`revoke_device`) and `families` (`current_key_version`,
-  `rotation_pending`). Entry fields used by the mirror: `v`, `family`, `seq`,
-  `prev` (base64url), `type`, `by` (device id), and `user`, `role`, `reason`,
-  `device`, `key_version`, `invite` by type.
-- **Joining.** `accept_family_invite` only marks the invite accepted. The
-  person becomes a member when the owner's phone appends `add_member` naming
-  that invite, for that person and that role; each invite is used once.
-  Revoked invites are kept (they count towards the 20-a-day limit).
-- **Removing.** `remove_member` with reason `account_deleted` is accepted
-  only once the account is gone (its membership row went with it, and the
-  delete already flagged the rotation); `reset` is refused until
-  `account_resets` exists (B3). Any membership delete flags a rotation.
+  `session_id` is bound to an approved phone of the user
+  (`private.device_ok()`). A family's records, wraps, epochs and beacons also
+  need that phone to be a current device of the family, of an active member
+  (`private.family_device_ok()`). A session that only proved an SMS code reads
+  and writes none of it, and can't create, accept or revoke invites, push,
+  append, wrap, publish beacons or approve devices.
+- **Server nonces.** `issue_device_challenge(purpose, device)` returns 32
+  random bytes (base64), single-use, bound to the user, the Auth session, the
+  purpose and the device, valid 5 minutes; 20 per session per hour.
+  `bind`: any session, for its own phone. `approve`: from an approved phone,
+  for a pending phone of the account. `recover`: from the session that
+  registered (or is bound to) the pending phone; 5 per phone per day (per
+  phone, so an SMS-only session can't use up the real phone's tries; a guess
+  at a ~100-bit recovery key gains nothing anyway).
+- **A session's own device.** A bound session acts only for the phone it is
+  bound to. A session not bound acts only for a pending phone it registered
+  that was never bound. A session that lost its binding (its phone revoked, or
+  re-bound to a newer session) acts for nothing, and the server ends it
+  (`auth.sessions` and its refresh tokens), so a stolen phone's leftover
+  session can't delete or touch anything. A new phone therefore binds its
+  session while still pending, before it is approved and reads its pairing
+  bundle.
+- **Binding and re-registration** (`bind-device`). The phone signs
+  `"usra/v1/bind-session" || 0x00 || session_id (16) || nonce (32)`. Binding a
+  session unbinds the phone's older sessions, so after a lost session the app
+  binds its existing device row again instead of registering a new one.
+  `enroll: true` lets the account's very first phone approve itself (once
+  ever, `accounts.sync_enrolled_at`; after a completed reset, only the phone
+  that started it, within 72 hours). Recovery devices never get a session.
+- **Revoking.** Approved and recovery devices are never deleted while the
+  account exists (a trigger answers `revoke_instead`). Sign-out with sync calls
+  `revoke_own_device(device)`. Revoking ends the device's Auth sessions, drops
+  its push tokens, wraps and beacons, and flags a rotation in every family
+  whose log lists it; each family's list changes only when its log gets the
+  `revoke_device` entry, and a rotation is refused (`revoked_device_listed`)
+  until then. A person whose last phone in a family was revoked gets back in
+  with the recovery key: the recovered phone appends `revoke_device` for the
+  old phone and `add_device` for itself, both signed by the recovery device
+  (a current device of theirs in that family), then rotates. Revoked rows are
+  purged by housekeeping after 90 days unless a family log lists them.
+- **Approving** (`approve-device`, ways 1 and 2). The approving phone signs
+  `"usra/v1/approve-device" || 0x00 || user_id || device_id || dkx || dsig ||
+  nonce` over the keys the server holds for the new phone. With a comparison
+  code, `pairing_start(device, commitment)` (new phone, 3 per account per
+  hour), `pairing_respond(id, n_E)` (approved phone), `pairing_reveal(id,
+  n_N)` (new phone; the server checks `SHA-256(n_N || dkx || dsig)` against the
+  commitment, and a wrong reveal ends the session) and then `approve-device`
+  with `pairing_id`. The optional `bundle` waits in `pairing_bundles` for the
+  new phone's session. Revoked is final; device ids are never reused.
+- **Recovery** (`recover-device`, way 3). `set_account_recovery(salt, kdf,
+  kx, sig)` from an approved phone (3 a day) creates the recovery device (a
+  `devices` row of kind `recovery`, approved by that phone, registered by no
+  session) and revokes the previous one, which flags a key rotation. A pending phone reads the salt and KDF settings,
+  derives the keys and signs the same approve-device message with the
+  recovery device's key. In the log it then appends `add_device` for itself,
+  signed by the recovery device, and reads the recovery device's wrap.
+- **Account reset.** `start_account_reset(pending phone)` from any session of
+  an enrolled account; `cancel_account_reset(id)` only from an approved phone
+  approved 7+ days before the reset began. After 7 days `sync_housekeeping()`
+  revokes every device of the account except the phone that started it
+  (recovery device included), forgets the recovery settings, marks the
+  memberships `reset`, flags rotations and lets the account enrol again. If
+  that phone signs out (is revoked) or doesn't enrol within 72 hours, the
+  account may start a new reset, again with the full 7-day wait, so it is
+  never locked out and the delay is never shortened. While that new reset is
+  open, any other phone gets `reset_in_progress` (only the phone that started
+  it may enrol).
+- **Family log** (`append-family-log`). The function strict-parses the entry
+  (valid UTF-8, no duplicate keys, depth ≤ 8, integers only, ≤ 16 KiB, exactly
+  the fields of its type) and checks
+  `Ed25519("usra/v1/log-entry" || 0x00 || entry)` with the key of its `by`
+  device, which must be the caller's phone or the caller's recovery device.
+  Before locking the family or answering with its head, the signer's account
+  must be an active member (`signer_not_member`, the same answer as for a
+  family that doesn't exist).
+  `append_family_log` repeats the strict parse and appends only on top of the
+  current head (`head_mismatch` with the server's head otherwise). The signer
+  must be a current device of the family, of an active member. A genesis
+  creates the family, lists the creator's approved devices (recovery device
+  included) and `KC_1`. Entry fields, by type: `genesis` (`user`, `devices`,
+  `key_version`, `kc`), `add_member` (`user`, `role`, `devices`, `invite`,
+  `mac`, and `profile` for `cared_for`), `change_role` (`user`, `role`,
+  `profile`?), `transfer_owner` (`user`), `remove_member` (`user`, `reason`;
+  `account_deleted` only for an account that is gone and that this log added),
+  `add_device` (`user`, `device` record), `revoke_device` (`user`, `device`
+  id), `rotate_key` (`key_version`, `kc`, `history`, `recipients`). A device
+  record is `{ id, user, kind, kx, sig }` and must match an approved `devices`
+  row.
+- **Joining.** The owner's phone stores `code_hash = hex(SHA-256(
+  "usra/v1/invite-lookup" || 0x00 || secret))`. The invitee, on an approved
+  phone, calls `accept_family_invite(lookup_hash, devices, mac)`; the server
+  never sees the secret. Ten tries per hour (failed ones count). The owner
+  lists accepted invites with the invitee's phone number and last reset
+  (`pending_family_invites`) and appends `add_member` naming the invite, with
+  the same MAC and devices; each invite is used once. Revoked invites are kept
+  and count towards the 20-a-day limit.
+- **Removing.** `remove_member`: `removed` by the owner, `left` by the member,
+  `account_deleted` once the account is gone, `reset` by any member once the
+  reset completed; never the owner. `revoke_device` of one's own device is
+  final everywhere; the owner's revocation of another member's device is final
+  in that family (a revoked marker stays, so it can't be added back). Either
+  drops its wraps and beacons there and flags a rotation.
+- **Keys.** `put_family_key_wraps(family, key_version, wraps)` stores wraps of
+  the current epoch for devices of the family (existing wraps are kept; a
+  phone may delete its own wrap, for example one it can't open).
+  `rotate_key` must ship the 72-byte history blob (the entry's `history` is its
+  SHA-256) and one wrap for every current device of every active member (the
+  entry's `recipients` is SHA-256 of their sorted 16-byte ids); epoch, history
+  and wraps are stored in the same transaction and older wraps are dropped.
+  While a member whose account was deleted is still in the log, a rotation
+  answers `member_removal_pending` (append `remove_member` with
+  `account_deleted` first).
+- **Head beacons** (`publish-head`). The phone signs
+  `"usra/v1/head" || 0x00 || beacon` where the beacon is
+  `{ v, family, device, seq, h, at }` for itself and a `(seq, hash)` on the
+  log; older beacons never replace newer ones.
 - **Records.** `push_e2ee_records(family, log_seq, records)` takes up to 100
   records (2 MiB) as `{ sync_id, key_version, ciphertext (base64), deleted,
-  expected_revision }`. The batch is refused unless `log_seq` is the log
-  head (`stale_log`) and no rotation is pending (`rotation_pending`). Each
-  record must use the current key version (`stale_key`) and the revision the
-  writer merged, 0 for new (`revision_conflict`, with the current row).
-  Ciphertext is padded plaintext of 256 B–64 KiB (power of two) + 40 bytes;
-  sync ids are random UUID v4. `pull_e2ee_changes(family, after_txid,
-  after_sync, limit)` pages by transaction id.
+  expected_revision }`, from a current device of the family. The batch is
+  refused unless `log_seq` is the log head (`stale_log`) and no rotation is
+  pending (`rotation_pending`). Each record must use the current key version
+  (`stale_key`) and the revision the writer merged, 0 for new
+  (`revision_conflict`, with the current row). Ciphertext is padded plaintext
+  of 256 B–64 KiB (power of two) + 40 bytes; sync ids are random UUID v4.
+  `pull_e2ee_changes(family, after_txid, after_sync, limit)` pages by
+  transaction id.
 - **Deleting.** `delete_family()` needs the owner role and an approved
   device. Deleting an account clears `families.created_by` instead of
   cascading; a family left with no members is removed with its ciphertext.
+- **Housekeeping.** `sync_housekeeping()` (pg_cron, every 15 minutes)
+  completes due resets and purges old nonces, pairing state, attempt counters
+  and pending phones nobody approved within a week.
 
 ## Edge Functions
 
@@ -138,6 +245,23 @@ and never echo request bodies or log health data, phone numbers or codes.
 | `delete-account` | user JWT | `{ confirm: true }` | `{ status: "deleted" \| "not_found" }`; `400 confirmation_required`, `409 family_has_members`, `502 delete_failed` |
 | `revenuecat-webhook` | `Authorization` = shared secret | RevenueCat webhook body | `{ status: "applied" \| "duplicate" \| "ignored" }` |
 | `send-sms-hook` | Standard Webhooks signature | Supabase Auth hook payload | `{}` or `{ error: { http_code, message } }` |
+| `bind-device` | user JWT | `{ device_id, nonce, signature, enroll? }` | `{ device_id, status }` |
+| `approve-device` | user JWT (approved phone) | `{ device_id, nonce, signature, pairing_id?, bundle? }` | `{ device_id, status, approved_by }` |
+| `recover-device` | user JWT (the new phone's session) | `{ device_id, nonce, signature }` | `{ device_id, status, approved_by }` |
+| `append-family-log` | user JWT (approved phone) | `{ family_id, seq, prev_hash, entry, signature, history?, wraps? }` | `{ ok, seq, hash }`; `409 { ok: false, error: "head_mismatch", head_seq, head_hash }` |
+| `publish-head` | user JWT (approved phone) | `{ family_id, beacon, signature }` | `{ ok, seq }`; `409 stale_beacon / not_on_log` |
+
+The sync functions take binary values as standard base64 (signed JSON inside
+uses base64url) and verify Ed25519 strictly (`_shared/ed25519.ts`: S < L,
+canonical A and R, small-order A and R rejected, cofactorless), with RFC 8032,
+Wycheproof and "Taming the many EdDSAs" vectors in
+`tests/functions/ed25519_test.ts`. The handlers are tested with a fake
+store (`tests/functions/sync_test.ts`); an end-to-end test through PostgREST
+needs the full local stack (`supabase start` and `functions serve`), which CI
+doesn't run yet. A wrong signature is `403 bad_signature`;
+an unknown signing device answers the same; a used, expired or foreign
+nonce `403 bad_challenge`; database refusals come back as their own names (`403 approved_device_required`, `409 already_member`,
+`429 too_many_recovery_tries`, ...).
 
 ### ai-doctor
 
@@ -257,6 +381,7 @@ supabase link --project-ref <ref>
 supabase db push
 supabase secrets set --env-file ./functions/.env
 supabase functions deploy ai-doctor ocr-fallback delete-account
+supabase functions deploy bind-device approve-device recover-device append-family-log publish-head
 supabase functions deploy revenuecat-webhook send-sms-hook --no-verify-jwt
 ```
 
@@ -284,7 +409,7 @@ and adds its `devices` row with an X25519 public key. The key pair is per
 account and its private half stays in the phone's secure storage (iOS
 this-device-only, Android backups off), ready for wrapping the family key in
 v2 sync. The session and Auth's PKCE items are in secure storage too. Sign-out
-deletes the device row (best effort) and wipes the session and that
+revokes the device row through `revoke_own_device` (best effort; revoked is final, so signing in again registers a new device) and wipes the session and that
 account's key pair; delete-account does the same after the server delete.
 Both wait for any device setup still running after sign-in. iOS keeps Keychain
 items after the app is deleted, so on the first run of an install the app
@@ -313,6 +438,8 @@ in Egypt get the PDPL cross-border licence or use an in-region model endpoint
 ## Follow-ups
 
 - Server-side country gate for AI Doctor (e.g. block `accounts.country = 'SA'`).
-- v2 sync Edge Functions and tables still to build: `bind-device`, `approve-device`, `append-family-log`, key wraps, blobs (sync design B1–B13).
+- v2 sync still to build (sync design section 20): attachment blobs (B8), approved-device checks on `delete-account` and
+  sign-out revoking instead of deleting (B10), push notifications (B11), the shared rate-limit store and kill switch
+  (B12), logging and restore runbook (B13), tombstone purge (B7).
 - `pg_cron` job for `expire_stale_reservations()`.
 - A Google Cloud Vision `MedicationReader` if it reads Arabic prescriptions better.

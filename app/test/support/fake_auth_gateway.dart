@@ -101,12 +101,13 @@ class FakeAuthGateway implements AuthGateway {
     return id;
   }
 
-  final deletedDevices = <String>[];
+  final revokedDevices = <String>[];
 
   @override
-  Future<void> deleteDevice(String deviceId) async {
+  Future<void> revokeDevice(String deviceId) async {
     _setUpCall();
-    deletedDevices.add(deviceId);
+    revokedDevices.add(deviceId);
+    // Revoked is final: the live list drops it and it is never reused.
     devices.remove(deviceId);
   }
 

@@ -184,8 +184,8 @@ void main() {
       gateway.holdRegister!.complete();
       await (verifying, signingOut).wait;
 
-      // The row the setup made is deleted and nothing is left behind.
-      expect(gateway.deletedDevices, ['device-1']);
+      // The row the setup made is revoked and nothing is left behind.
+      expect(gateway.revokedDevices, ['device-1']);
       expect(gateway.devices, isEmpty);
       expect(ids.keys, isEmpty);
       expect(ids.devices, isEmpty);
@@ -288,7 +288,7 @@ void main() {
       },
     );
 
-    test('signing out removes the device row and wipes its key; signing in again makes new ones', () async {
+    test('signing out revokes the device row and wipes its key; signing in again makes new ones', () async {
       final c = make();
       final account = c.read(accountProvider.notifier);
       await c.read(accountProvider.future);
@@ -299,7 +299,7 @@ void main() {
       final firstKey = await ids.publicKey(id);
       await account.signOut();
       expect(c.read(accountProvider).value, isA<AccountSignedOut>());
-      expect(gateway.deletedDevices, ['device-1']);
+      expect(gateway.revokedDevices, ['device-1']);
       expect(ids.devices, isEmpty);
       expect(ids.keys, isEmpty);
 

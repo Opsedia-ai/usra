@@ -445,3 +445,18 @@ verify_jwt = false
 
 [functions.send-sms-hook]
 verify_jwt = false
+
+[functions.bind-device]
+verify_jwt = true
+
+[functions.approve-device]
+verify_jwt = true
+
+[functions.recover-device]
+verify_jwt = true
+
+[functions.append-family-log]
+verify_jwt = true
+
+[functions.publish-head]
+verify_jwt = true

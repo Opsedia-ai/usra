@@ -41,6 +41,44 @@ returns jsonb language sql as $$
   select public.append_family_log('f0000000-0000-4000-8000-00000000000f', p_seq, pg_temp.head(),
     pg_temp.entry(p_seq, pg_temp.head(), p_type, p_by, p_extra), decode(repeat('00', 64), 'hex'));
 $$;
+create function pg_temp.b64(p bytea) returns text language sql as $$
+  select replace(encode(p, 'base64'), E'\n', '');
+$$;
+create function pg_temp.b64url(p bytea) returns text language sql as $$
+  select rtrim(translate(encode(p, 'base64'), E'+/\n', '-_'), '=');
+$$;
+-- A device record as log entries and invites carry it.
+create function pg_temp.dev(p_device uuid) returns jsonb language sql as $$
+  select jsonb_build_object('id', id, 'user', user_id, 'kind', kind,
+    'kx', pg_temp.b64url(public_key), 'sig', pg_temp.b64url(signing_public_key))
+  from public.devices where id = p_device;
+$$;
+create function pg_temp.mac() returns bytea language sql as $$ select decode(repeat('ab', 32), 'hex'); $$;
+-- add_member for C with the devices and MAC C posted when accepting.
+create function pg_temp.add_c(p_role text, p_user uuid default 'cccccccc-cccc-4ccc-8ccc-cccccccccccc')
+returns jsonb language sql as $$
+  select jsonb_build_object('user', p_user, 'role', p_role,
+    'devices', jsonb_build_array(pg_temp.dev('dc000000-0000-4000-8000-0000000000c1')),
+    'mac', pg_temp.b64url(pg_temp.mac()),
+    'invite', (select id from public.family_invites where code_hash = encode(sha256('code-c'::bytea), 'hex')));
+$$;
+-- rotate_key with a history blob and one wrap per current device of the family.
+create function pg_temp.rotate(p_seq int, p_by uuid, p_kv int) returns jsonb language sql as $$
+  with cur as (
+    select fd.device_id from public.family_devices fd
+    join public.family_members m using (family_id, user_id)
+    where fd.family_id = 'f0000000-0000-4000-8000-00000000000f' and fd.revoked_seq is null and m.status = 'active')
+  select public.append_family_log('f0000000-0000-4000-8000-00000000000f', p_seq, pg_temp.head(),
+    pg_temp.entry(p_seq, pg_temp.head(), 'rotate_key', p_by, jsonb_build_object(
+      'key_version', p_kv, 'kc', pg_temp.b64url(decode(repeat('22', 32), 'hex')),
+      'history', pg_temp.b64url(sha256(decode(repeat('11', 72), 'hex'))),
+      'recipients', pg_temp.b64url((select sha256(string_agg(decode(replace(device_id::text, '-', ''), 'hex'),
+                                                             ''::bytea order by device_id)) from cur)))),
+    decode(repeat('00', 64), 'hex'), decode(repeat('11', 72), 'hex'),
+    (select jsonb_agg(jsonb_build_object('recipient', device_id,
+       'enc', pg_temp.b64(decode(repeat('01', 32), 'hex')), 'ct', pg_temp.b64(decode(repeat('02', 48), 'hex')),
+       'sig', pg_temp.b64(decode(repeat('03', 64), 'hex')))) from cur));
+$$;
 create function pg_temp.rec(p_sync uuid, p_kv int, p_expected int, p_len int default 296)
 returns jsonb language sql as $$
   select jsonb_build_array(jsonb_build_object(
@@ -76,7 +114,14 @@ insert into public.families (id, created_by) values
 insert into public.family_members (family_id, user_id, role) values
   ('f0000000-0000-4000-8000-00000000000f', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'guardian'),
   ('f0000000-0000-4000-8000-00000000000f', 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'viewer');
-select pg_temp.append(1, 'genesis', 'da000000-0000-4000-8000-0000000000a1');
+select pg_temp.append(1, 'genesis', 'da000000-0000-4000-8000-0000000000a1', jsonb_build_object(
+  'user', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'key_version', 1,
+  'kc', pg_temp.b64url(decode(repeat('21', 32), 'hex')),
+  'devices', jsonb_build_array(pg_temp.dev('da000000-0000-4000-8000-0000000000a1'))));
+-- B was added directly above; their phone is a current device of the family.
+insert into public.family_devices (family_id, device_id, user_id, added_seq) values
+  ('f0000000-0000-4000-8000-00000000000f', 'db000000-0000-4000-8000-0000000000b1',
+   'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 1);
 
 -- Privileges the apps never get -----------------------------------------------------
 select ok(not has_column_privilege('authenticated', 'public.devices', 'status', 'INSERT')
@@ -113,7 +158,7 @@ select ok(not has_table_privilege('authenticated', 'public.device_sessions', 'SE
 select ok(not has_function_privilege('authenticated', 'public.approve_device(uuid, uuid)', 'execute')
       and not has_function_privilege('authenticated', 'public.revoke_device(uuid)', 'execute')
       and not has_function_privilege('authenticated', 'public.bind_device_session(uuid, uuid, uuid)', 'execute')
-      and not has_function_privilege('authenticated', 'public.append_family_log(uuid, integer, bytea, bytea, bytea)', 'execute'),
+      and not has_function_privilege('authenticated', 'public.append_family_log(uuid, integer, bytea, bytea, bytea, bytea, jsonb)', 'execute'),
   'signature-trusting functions are service-role only');
 select ok(not has_function_privilege('anon', 'public.push_e2ee_records(uuid, integer, jsonb)', 'execute')
       and not has_function_privilege('anon', 'public.delete_family(uuid)', 'execute')
@@ -221,7 +266,8 @@ select is((select count(*)::int from public.family_invites), 0, 'a guardian cann
 
 -- C: first only SMS (sC2), then on an approved device (sC1)
 select pg_temp.as_user('cccccccc-cccc-4ccc-8ccc-cccccccccccc', '5c000000-0000-4000-8000-0000000000c2');
-select throws_ok($$ select public.accept_family_invite('code-c') $$,
+select throws_ok($$ select public.accept_family_invite(encode(sha256('code-c'::bytea), 'hex'),
+    jsonb_build_array(pg_temp.dev('dc000000-0000-4000-8000-0000000000c1')), pg_temp.mac()) $$,
   '42501', 'approved_device_required', 'accepting an invite needs an approved device');
 select pg_temp.as_user('cccccccc-cccc-4ccc-8ccc-cccccccccccc', '5c000000-0000-4000-8000-0000000000c1');
 select throws_ok($$ select public.delete_family('f0000000-0000-4000-8000-00000000000f') $$,
@@ -230,10 +276,12 @@ select throws_ok($$ select pg_temp.push(1, pg_temp.rec('e0000000-0000-4000-8000-
   '42501', 'forbidden', 'B0.6: another user cannot push records');
 select throws_ok($$ select public.revoke_family_invite((select id from public.family_invites limit 1)) $$,
   '42501', 'forbidden', 'B0.5: another user cannot revoke invites');
-select throws_ok($$ select public.accept_family_invite('code-x') $$,
-  'P0002', 'invalid_invite', 'a revoked invite cannot be accepted');
-select is(public.accept_family_invite('code-c'), 'f0000000-0000-4000-8000-00000000000f'::uuid,
-  'accepting on an approved device marks the invite accepted');
+select is(public.accept_family_invite(encode(sha256('code-x'::bytea), 'hex'),
+    jsonb_build_array(pg_temp.dev('dc000000-0000-4000-8000-0000000000c1')), pg_temp.mac()) ->> 'error',
+  'invalid_invite', 'a revoked invite cannot be accepted');
+select is(public.accept_family_invite(encode(sha256('code-c'::bytea), 'hex'),
+    jsonb_build_array(pg_temp.dev('dc000000-0000-4000-8000-0000000000c1')), pg_temp.mac()) ->> 'family_id',
+  'f0000000-0000-4000-8000-00000000000f', 'accepting on an approved device marks the invite accepted');
 select is((select count(*)::int from public.families), 0,
   'accepting alone does not make a member');
 select throws_ok($$ select pg_temp.push(1, pg_temp.rec('e0000000-0000-4000-8000-000000000001', 1, 0)) $$,
@@ -242,21 +290,22 @@ select throws_ok($$ select pg_temp.push(1, pg_temp.rec('e0000000-0000-4000-8000-
 -- The family log: compare-and-set on the head (service role) -----------------------
 reset role;
 select pg_temp.as_service();
-create function pg_temp.invite_c() returns text language sql as $$
-  select id::text from public.family_invites where code_hash = encode(sha256('code-c'::bytea), 'hex');
-$$;
 
 select is(public.append_family_log('f0000000-0000-4000-8000-00000000000f', 1, null,
-    pg_temp.entry(1, null, 'genesis', 'da000000-0000-4000-8000-0000000000a1'),
+    pg_temp.entry(1, null, 'genesis', 'da000000-0000-4000-8000-0000000000a1', jsonb_build_object(
+      'user', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'key_version', 1,
+      'kc', pg_temp.b64url(decode(repeat('21', 32), 'hex')),
+      'devices', jsonb_build_array(pg_temp.dev('da000000-0000-4000-8000-0000000000a1')))),
     decode(repeat('00', 64), 'hex')) ->> 'error', 'head_mismatch',
   'an append at a seq the log already has is refused');
 select is(public.append_family_log('f0000000-0000-4000-8000-00000000000f', 2, decode(repeat('00', 32), 'hex'),
-    pg_temp.entry(2, decode(repeat('00', 32), 'hex'), 'rotate_key', 'da000000-0000-4000-8000-0000000000a1',
-                  '{"key_version":2}'),
+    pg_temp.entry(2, decode(repeat('00', 32), 'hex'), 'change_role', 'da000000-0000-4000-8000-0000000000a1',
+                  '{"user":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"viewer"}'),
     decode(repeat('00', 64), 'hex')) ->> 'error', 'head_mismatch',
   'an append on a different prev hash is refused');
 select is(public.append_family_log('f0000000-0000-4000-8000-00000000000f', 3, pg_temp.head(),
-    pg_temp.entry(3, pg_temp.head(), 'rotate_key', 'da000000-0000-4000-8000-0000000000a1', '{"key_version":2}'),
+    pg_temp.entry(3, pg_temp.head(), 'change_role', 'da000000-0000-4000-8000-0000000000a1',
+                  '{"user":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"viewer"}'),
     decode(repeat('00', 64), 'hex')) ->> 'error', 'head_mismatch',
   'an append that skips a seq is refused');
 select throws_ok($$ select public.append_family_log('f0000000-0000-4000-8000-00000000000f', 2, pg_temp.head(),
@@ -266,20 +315,19 @@ select throws_ok($$ select public.append_family_log('f0000000-0000-4000-8000-000
 
 -- add_member: only the owner, only with the person's accepted invite for that role
 select throws_ok($$ select pg_temp.append(2, 'add_member', 'da000000-0000-4000-8000-0000000000a1',
-    '{"user":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","role":"viewer"}') $$,
-  '42501', 'no_accepted_invite', 'add_member must name an invite');
+    pg_temp.add_c('viewer') - 'invite') $$,
+  '22023', 'bad_entry_fields', 'add_member must name an invite');
 select throws_ok($$ select pg_temp.append(2, 'add_member', 'da000000-0000-4000-8000-0000000000a1',
-    jsonb_build_object('user', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'role', 'guardian', 'invite', pg_temp.invite_c())) $$,
+    pg_temp.add_c('guardian')) $$,
   '42501', 'no_accepted_invite', 'add_member must use the role the person was invited to');
 select throws_ok($$ select pg_temp.append(2, 'add_member', 'da000000-0000-4000-8000-0000000000a1',
-    jsonb_build_object('user', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'role', 'viewer', 'invite', pg_temp.invite_c())) $$,
+    pg_temp.add_c('viewer', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')) $$,
   '42501', 'no_accepted_invite', 'an invite only admits the person who accepted it');
 select throws_ok($$ select pg_temp.append(2, 'add_member', 'db000000-0000-4000-8000-0000000000b1',
-    jsonb_build_object('user', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'role', 'viewer', 'invite', pg_temp.invite_c())) $$,
+    pg_temp.add_c('viewer')) $$,
   '42501', 'forbidden', 'a guardian''s device cannot add members');
 select is(pg_temp.append(2, 'add_member', 'da000000-0000-4000-8000-0000000000a1',
-    jsonb_build_object('user', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'role', 'viewer', 'invite', pg_temp.invite_c()))
-    ->> 'ok', 'true',
+    pg_temp.add_c('viewer')) ->> 'ok', 'true',
   'B0.5: the owner''s signed add_member admits the invite holder');
 select is((select role from public.family_members
            where family_id = 'f0000000-0000-4000-8000-00000000000f'
@@ -296,16 +344,16 @@ select throws_ok($$ select pg_temp.push(2, pg_temp.rec('e0000000-0000-4000-8000-
 reset role;
 
 select throws_ok($$ select pg_temp.append(3, 'add_member', 'da000000-0000-4000-8000-0000000000a1',
-    jsonb_build_object('user', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'role', 'viewer', 'invite', pg_temp.invite_c())) $$,
+    pg_temp.add_c('viewer')) $$,
   '42501', 'no_accepted_invite', 'an invite is used once');
 
 -- remove_member reasons
 select throws_ok($$ select pg_temp.append(3, 'remove_member', 'dc000000-0000-4000-8000-0000000000c1',
     '{"user":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","reason":"account_deleted"}') $$,
-  '42501', 'account_exists', 'a viewer cannot remove a living guardian as "account deleted"');
+  '42501', 'bad_target', 'a viewer cannot remove a living guardian as "account deleted"');
 select throws_ok($$ select pg_temp.append(3, 'remove_member', 'dc000000-0000-4000-8000-0000000000c1',
     '{"user":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","reason":"reset"}') $$,
-  '0A000', 'reset_not_supported', 'reset removals wait for account_resets (B3)');
+  '42501', 'not_reset', 'a "reset" removal needs an account whose reset completed');
 select throws_ok($$ select pg_temp.append(3, 'remove_member', 'dc000000-0000-4000-8000-0000000000c1',
     '{"user":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","reason":"removed"}') $$,
   '42501', 'forbidden', 'only the owner removes others');
@@ -374,10 +422,9 @@ select pg_temp.as_user('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '5a000000-0000-40
 select is(pg_temp.push(4, pg_temp.rec('e0000000-0000-4000-8000-000000000001', 1, 2)) ->> 'error',
   'rotation_pending', 'no record is written until the key rotates');
 reset role;
-select throws_ok($$ select pg_temp.append(5, 'rotate_key', 'da000000-0000-4000-8000-0000000000a1',
-    '{"key_version":3}') $$,
+select throws_ok($$ select pg_temp.rotate(5, 'da000000-0000-4000-8000-0000000000a1', 3) $$,
   '22023', 'bad_key_version', 'a rotation must go to the next key version');
-select is(pg_temp.append(5, 'rotate_key', 'db000000-0000-4000-8000-0000000000b1', '{"key_version":2}') ->> 'ok',
+select is(pg_temp.rotate(5, 'db000000-0000-4000-8000-0000000000b1', 2) ->> 'ok',
   'true', 'any member''s device rotates the key');
 select is((select current_key_version from public.families where id = 'f0000000-0000-4000-8000-00000000000f'), 2,
   'the new key version is mirrored');
@@ -395,17 +442,19 @@ select ok(not (select rotation_pending from public.families where id = 'f0000000
 delete from auth.users where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
 select ok((select rotation_pending from public.families where id = 'f0000000-0000-4000-8000-00000000000f'),
   'deleting a member''s account makes a key rotation pending');
-select is(pg_temp.append(6, 'remove_member', 'db000000-0000-4000-8000-0000000000b1',
-    '{"user":"dddddddd-dddd-4ddd-8ddd-dddddddddddd","reason":"account_deleted"}') ->> 'ok', 'true',
-  'any member records the removal of a deleted account, whose row is already gone');
-select is(pg_temp.append(7, 'rotate_key', 'da000000-0000-4000-8000-0000000000a1', '{"key_version":3}') ->> 'ok',
+-- D joined by a fixture, not through the log, so the log can't record their
+-- removal (sync_log_devices.test.sql covers the case of a member the log added).
+select throws_ok($$ select pg_temp.append(6, 'remove_member', 'db000000-0000-4000-8000-0000000000b1',
+    '{"user":"dddddddd-dddd-4ddd-8ddd-dddddddddddd","reason":"account_deleted"}') $$,
+  '42501', 'bad_target', '"account deleted" only for someone this log added');
+select is(pg_temp.rotate(6, 'da000000-0000-4000-8000-0000000000a1', 3) ->> 'ok',
   'true', 'and the key rotates');
 
 -- Ownership
-select throws_ok($$ select pg_temp.append(8, 'remove_member', 'da000000-0000-4000-8000-0000000000a1',
+select throws_ok($$ select pg_temp.append(7, 'remove_member', 'da000000-0000-4000-8000-0000000000a1',
     '{"user":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","reason":"left"}') $$,
   '42501', 'owner_cannot_be_removed', 'the owner cannot leave without handing over');
-select is(pg_temp.append(8, 'transfer_owner', 'da000000-0000-4000-8000-0000000000a1',
+select is(pg_temp.append(7, 'transfer_owner', 'da000000-0000-4000-8000-0000000000a1',
     '{"user":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"}') ->> 'ok', 'true',
   'the owner hands the family over through the log');
 select is((select string_agg(role, ',' order by role) from public.family_members
@@ -446,8 +495,8 @@ select ok(not (select rotation_pending from public.families where id = 'f0000000
   '(no rotation pending before the revoke)');
 select public.revoke_device((select id from public.devices
                              where created_session_id = '5a000000-0000-4000-8000-0000000000a2'));
-select ok((select rotation_pending from public.families where id = 'f0000000-0000-4000-8000-00000000000f'),
-  'revoking an approved device makes a rotation pending in every family of its user');
+select ok(not (select rotation_pending from public.families where id = 'f0000000-0000-4000-8000-00000000000f'),
+  'revoking a device that no family log lists flags no rotation (sync_log_devices covers listed devices)');
 select throws_ok($$ select public.approve_device(
     (select id from public.devices where created_session_id = '5a000000-0000-4000-8000-0000000000a2'),
     'da000000-0000-4000-8000-0000000000a1') $$,

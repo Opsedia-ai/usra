@@ -69,8 +69,10 @@ abstract class AuthGateway {
     required List<int> publicKey,
   });
 
-  /// Removes this phone's device row, before signing out.
-  Future<void> deleteDevice(String deviceId);
+  /// Revokes this phone's device row, before signing out. Revoked is final:
+  /// the row stays on the server (it may be listed in a family's log), its
+  /// sessions end, and signing in again registers a new device.
+  Future<void> revokeDevice(String deviceId);
 
   /// Ends the session and wipes it from the phone, even offline.
   Future<void> signOut();
