@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/util/bidi.dart';
 import '../../core/database/app_database.dart';
 import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
@@ -172,7 +173,7 @@ class _VisitTile extends ConsumerWidget {
       child: ListTile(
         onTap: () => context.go('/family/${visit.person.id}'),
         title: Text(
-          '${visit.person.displayName} · ${type?.labelOf(context) ?? e.type}',
+          '${isolate(visit.person.displayName)} · ${type?.labelOf(context) ?? e.type}',
         ),
         subtitle: Text(
           [

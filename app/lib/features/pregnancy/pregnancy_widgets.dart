@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
+import '../../core/util/bidi.dart';
 import '../../core/database/app_database.dart';
 import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
@@ -68,7 +69,7 @@ class PregnancySummaryCard extends StatelessWidget {
                   children: [
                     Text(
                       showName
-                          ? '${profile.displayName} · ${l.pregnancyWeek(age.weeks, age.days)}'
+                          ? '${isolate(profile.displayName)} · ${l.pregnancyWeek(age.weeks, age.days)}'
                           : l.pregnancyWeek(age.weeks, age.days),
                       style: text.titleMedium,
                     ),

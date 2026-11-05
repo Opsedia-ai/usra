@@ -203,7 +203,7 @@ void main() {
     final doctorId = doctors.singleWhere((d) => d.name == 'د. منى').id;
     GoRouter.of(router).go('/doctors/$doctorId');
     await tester.pumpAndSettle();
-    expect(find.text('عمر · زيارة دكتور'), findsOneWidget);
+    expect(find.text('${isolate('عمر')} · زيارة دكتور'), findsOneWidget);
   });
 
   testWidgets('the Money tab adds up spending for the family and a person', (

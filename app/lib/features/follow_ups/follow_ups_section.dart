@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/util/bidi.dart';
 import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
@@ -146,7 +147,7 @@ class FollowUpTile extends ConsumerWidget {
                       children: [
                         Text(
                           showName
-                              ? '${profile.displayName} · ${f.title(context)}'
+                              ? '${isolate(profile.displayName)} · ${f.title(context)}'
                               : f.title(context),
                           style: text.titleMedium,
                         ),

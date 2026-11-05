@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:usra/core/util/bidi.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:usra/app.dart';
@@ -79,7 +80,10 @@ void main() {
     expect(tiles('home-follow-ups'), findsNWidgets(homeFollowUpCount));
     final first = find.byKey(ValueKey('follow-up-$dueKey'));
     expect(
-      find.descendant(of: first, matching: find.text('منى · زيارة متابعة')),
+      find.descendant(
+        of: first,
+        matching: find.text('${isolate('منى')} · زيارة متابعة'),
+      ),
       findsOneWidget,
     );
     expect(

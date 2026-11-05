@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:usra/core/util/bidi.dart';
 import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
@@ -88,7 +89,7 @@ void main() {
 
     // Home shows the pregnancy, and the visits due feed the follow-ups.
     expect(find.byKey(ValueKey('pregnancy-summary-$mona')), findsOneWidget);
-    expect(find.textContaining('منى · 25 أسبوع'), findsOneWidget);
+    expect(find.textContaining('${isolate('منى')} · 25 أسبوع'), findsOneWidget);
 
     // Men get no pregnancy button or record type.
     router.go('/family/$ali');

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/util/bidi.dart';
 import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
@@ -28,7 +29,7 @@ class EpisodeListScreen extends ConsumerWidget {
         title: Text(
           person == null
               ? l.sickDaysTitle
-              : '${l.sickDaysTitle} · ${person.displayName}',
+              : '${l.sickDaysTitle} · ${isolate(person.displayName)}',
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
