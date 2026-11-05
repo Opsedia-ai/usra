@@ -3,7 +3,8 @@ import 'package:usra/core/design/tokens.dart';
 import 'package:usra/features/children/children_module.dart';
 import 'package:usra/features/children/egypt_vaccines.dart';
 import 'package:usra/features/children/growth.dart';
-import 'package:usra/features/children/who_growth_data.dart' show Lms;
+import 'package:usra/features/children/who_growth_data.dart'
+    show Lms, whoHeadForAge;
 
 void main() {
   group('WHO LMS maths', () {
@@ -39,6 +40,37 @@ void main() {
     test('height is used from 24 months, length before', () {
       expect(lms(GrowthIndicator.height, true, 23.99).$2, closeTo(87.8, 0.1));
       expect(lms(GrowthIndicator.height, true, 24).$2, 87.1161);
+    });
+
+    test('head circumference matches the WHO tables (C9)', () {
+      // hcfa_boys_0_5_zscores / hcfa_girls_0_5_zscores: L is always 1.
+      expect(lms(GrowthIndicator.head, true, 0), (1.0, 34.4618, 0.03686));
+      expect(lms(GrowthIndicator.head, false, 12), (1.0, 44.8965, 0.03027));
+      expect(lms(GrowthIndicator.head, false, 60), (1.0, 49.9229, 0.0285));
+      expect(whoHeadForAge(male: true), hasLength(61));
+      expect(whoHeadForAge(male: false), hasLength(61));
+      // WHO's printed percentile table: boys at birth, 3rd 32.1, 97th 36.9.
+      final birth = lms(GrowthIndicator.head, true, 0);
+      expect(lmsValue(birth, -1.880794), closeTo(32.1, 0.05));
+      expect(lmsValue(birth, 1.880794), closeTo(36.9, 0.05));
+      expect(whoLms(GrowthIndicator.head, male: true, months: 61), isNull);
+      final median = readGrowth(
+        GrowthIndicator.head,
+        male: false,
+        months: 12,
+        value: 44.8965,
+      )!;
+      expect(median.percentile, closeTo(50, 1e-6));
+      expect(
+        readGrowth(
+          GrowthIndicator.head,
+          male: true,
+          months: 6,
+          value: 38,
+        )!.withinUsualRange,
+        isFalse,
+      );
+      expect(GrowthFields.of(GrowthIndicator.head), 'headCm');
     });
 
     test('ages between months are interpolated', () {

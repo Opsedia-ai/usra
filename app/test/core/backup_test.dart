@@ -94,7 +94,22 @@ void main() {
       final id = await db.addProfile('فاطمة', bloodType: 'O+');
       await db.addProfile('أحمد');
       await db.softDeleteProfile(id);
-      await db.addProfile('ليلى');
+      final layla = await db.addProfile('ليلى');
+      // A prescription with one medicine, its photo in the medicines folder.
+      await db.savePrescription(
+        profileId: layla,
+        prescribedOn: DateTime(2026, 11, 1),
+        diagnosis: 'برد',
+        photos: const ['medicines/box.front.jpg'],
+        items: const [
+          PrescriptionItemInput(
+            name: 'باراسيتامول',
+            dose: '5 مل',
+            times: ['08:00'],
+            days: 3,
+          ),
+        ],
+      );
       oldPhone.writePhoto('attachments/a1.jpg', photo);
       oldPhone.writePhoto('insurance_cards/c1.png', [1, 2, 3]);
       // Not reached by the start-up migration yet.
@@ -132,13 +147,15 @@ void main() {
     final staged = await newPhone.service.stage(
       backup,
       recovery,
-      currentSchema: 6,
+      currentSchema: 7,
     );
-    expect(staged.manifest.schemaVersion, 6);
+    expect(staged.manifest.schemaVersion, 7);
     expect(staged.manifest.appVersion, '0.1.0+1');
     expect(staged.manifest.createdAt, DateTime.utc(2026, 11, 3));
     expect(staged.manifest.count('people'), 2);
     expect(staged.manifest.count('photos'), 3);
+    expect(staged.manifest.count('prescriptions'), 1);
+    expect(staged.manifest.count('medicines'), 1);
 
     await newPhone.service.commit();
     await newPhone.service.discardAside();
@@ -151,6 +168,13 @@ void main() {
     addTearDown(db.close);
     final names = (await db.watchProfiles().first).map((p) => p.displayName);
     expect(names, ['أحمد', 'ليلى']);
+    final layla = (await db.watchProfiles().first).last.id;
+    final rx = (await db.watchPrescriptions(layla).first).single;
+    expect(rx.diagnosis, 'برد');
+    expect(decodeMedicinePhotos(rx.photosJson), ['medicines/box.front.jpg']);
+    final course = (await db.watchPrescriptionMedicines(rx.id).first).single;
+    expect(course.instructions, '5 مل');
+    expect(course.endOn!.toUtc(), DateTime.utc(2026, 11, 3));
     // Encrypted again for the new phone, and only it can open them.
     expect(newPhone.readPhoto('attachments/a1.jpg'), photo);
     expect(newPhone.readPhoto('insurance_cards/c1.png'), [1, 2, 3]);
@@ -182,7 +206,7 @@ void main() {
 
   test('the restored database opens only with the new phone\'s key', () async {
     final backup = await backupOldPhone();
-    await newPhone.service.stage(backup, recovery, currentSchema: 6);
+    await newPhone.service.stage(backup, recovery, currentSchema: 7);
     await newPhone.service.commit();
     final db = sqlite3.open(newPhone.dbFile.path);
     addTearDown(db.close);
@@ -204,7 +228,7 @@ void main() {
         newPhone.service.stage(
           backup,
           RecoveryKey.generate(),
-          currentSchema: 6,
+          currentSchema: 7,
         ),
         throwsA(
           isA<BackupException>().having(
@@ -242,7 +266,7 @@ void main() {
     ]) {
       copy.writeAsBytesSync(bytes.sublist(0, cut));
       await expectLater(
-        newPhone.service.stage(copy, recovery, currentSchema: 6),
+        newPhone.service.stage(copy, recovery, currentSchema: 7),
         throwsA(damaged),
         reason: 'cut at $cut of ${bytes.length}',
       );
@@ -253,14 +277,14 @@ void main() {
     flipped[bytes.length ~/ 2] ^= 1;
     copy.writeAsBytesSync(flipped);
     await expectLater(
-      newPhone.service.stage(copy, recovery, currentSchema: 6),
+      newPhone.service.stage(copy, recovery, currentSchema: 7),
       throwsA(damaged),
     );
 
     // Something appended.
     copy.writeAsBytesSync([...bytes, 0]);
     await expectLater(
-      newPhone.service.stage(copy, recovery, currentSchema: 6),
+      newPhone.service.stage(copy, recovery, currentSchema: 7),
       throwsA(damaged),
     );
     expect(
@@ -271,7 +295,7 @@ void main() {
 
   test('a backup opened but not restored leaves nothing behind', () async {
     final backup = await backupOldPhone();
-    await newPhone.service.stage(backup, recovery, currentSchema: 6);
+    await newPhone.service.stage(backup, recovery, currentSchema: 7);
     await newPhone.service.discardStaged();
     expect(newPhone.root.listSync(), isEmpty);
   });
@@ -279,7 +303,7 @@ void main() {
   test('a file that is not a backup is refused', () async {
     final other = File(p.join(dir.path, 'photo.jpg'))..writeAsBytesSync(photo);
     await expectLater(
-      newPhone.service.stage(other, recovery, currentSchema: 6),
+      newPhone.service.stage(other, recovery, currentSchema: 7),
       throwsA(
         isA<BackupException>().having(
           (e) => e.failure,
@@ -314,6 +338,7 @@ void main() {
     raw.execute('DROP TABLE dose_logs');
     raw.execute('DROP TABLE dose_schedules');
     raw.execute('DROP TABLE medicines');
+    raw.execute('DROP TABLE prescriptions');
     raw.userVersion = 5;
     raw.close();
 
@@ -330,7 +355,7 @@ void main() {
     final staged = await newPhone.service.stage(
       backup,
       recovery,
-      currentSchema: 6,
+      currentSchema: 7,
     );
     expect(staged.manifest.schemaVersion, 5);
     await newPhone.service.commit();
@@ -350,7 +375,7 @@ void main() {
     await fresh.close();
     newPhone.writePhoto('medicines/m.jpg', [5]);
 
-    await newPhone.service.stage(backup, recovery, currentSchema: 6);
+    await newPhone.service.stage(backup, recovery, currentSchema: 7);
     await newPhone.service.commit();
     // Pretend the app died right after the swap, before it was confirmed:
     // put the marker back as it was mid-swap.
@@ -392,7 +417,7 @@ void main() {
     final staged = await newPhone.service.stage(
       backup,
       recovery,
-      currentSchema: 6,
+      currentSchema: 7,
     );
     expect(staged.manifest.count('photos'), 1);
     await newPhone.service.commit();
@@ -402,7 +427,7 @@ void main() {
 
   test('restored photos never touch the disk unencrypted', () async {
     final backup = await backupOldPhone();
-    await newPhone.service.stage(backup, recovery, currentSchema: 6);
+    await newPhone.service.stage(backup, recovery, currentSchema: 7);
     final staging = Directory(p.join(newPhone.root.path, 'restore-staging'));
     for (final f in staging.listSync(recursive: true).whereType<File>()) {
       if (p.basename(f.path).startsWith('usra.sqlite')) continue;
@@ -461,7 +486,7 @@ void main() {
       final staged = await newPhone.service.stage(
         backup,
         recovery,
-        currentSchema: 6,
+        currentSchema: 7,
       );
       expect(staged.skippedPhotos, 1);
       await newPhone.service.commit();
@@ -497,7 +522,7 @@ void main() {
       final staged = await newPhone.service.stage(
         created.file,
         recovery,
-        currentSchema: 6,
+        currentSchema: 7,
       );
       expect(staged.manifest.count('photos'), 1);
     },
@@ -511,13 +536,13 @@ void main() {
       photoKeys: PhotoKeys.unavailable(PhotoKeyProblem.lost),
     );
 
-    await lost.service.stage(backup, recovery, currentSchema: 6);
+    await lost.service.stage(backup, recovery, currentSchema: 7);
     await lost.service.discardStaged();
     // Not restored: no key was saved, the phone still says it has none.
     expect(lost.keyStore.value, isNull);
     expect(lost.photoKeys.problem, PhotoKeyProblem.lost);
 
-    await lost.service.stage(backup, recovery, currentSchema: 6);
+    await lost.service.stage(backup, recovery, currentSchema: 7);
     await lost.service.commit();
     expect(lost.keyStore.value, isNotNull);
     expect(lost.photoKeys.cipher, isNotNull);
@@ -541,7 +566,7 @@ void main() {
         photoKeys: PhotoKeys.unavailable(PhotoKeyProblem.unreadable),
       );
       await expectLater(
-        unreadable.service.stage(backup, recovery, currentSchema: 6),
+        unreadable.service.stage(backup, recovery, currentSchema: 7),
         throwsA(isA<PhotoKeyUnavailableException>()),
       );
       expect(unreadable.keyStore.value, isNull);

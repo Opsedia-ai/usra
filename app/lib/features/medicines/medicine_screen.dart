@@ -12,6 +12,7 @@ import '../doctors/doctors_providers.dart';
 import 'dose_schedule.dart';
 import 'medicine_text.dart';
 import 'medicines_providers.dart';
+import 'prescription_screen.dart' show prescriptionTitle;
 
 /// One medicine: what the doctor prescribed, its photos, schedule and the
 /// history of doses taken or skipped.
@@ -128,6 +129,9 @@ class _Details extends ConsumerWidget {
     final photos = decodeMedicinePhotos(m.photosJson);
     final store = ref.watch(medicinePhotoStoreProvider);
     final now = ref.watch(clockProvider)();
+    final prescription = m.prescriptionId == null
+        ? null
+        : ref.watch(prescriptionProvider(m.prescriptionId!)).value;
     final next = schedule == null || !m.active
         ? null
         : DoseRule.of(m, schedule).nextAfter(now);
@@ -162,6 +166,15 @@ class _Details extends ConsumerWidget {
               style: text.titleMedium?.copyWith(color: UsraColors.textMuted),
             ),
           ),
+        if (courseProgress(m, now) case final c? when m.active)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              l.courseDayOf(c.day, c.total),
+              key: const ValueKey('medicine-course'),
+              style: text.titleLarge,
+            ),
+          ),
         if (next != null)
           Card(
             color: UsraColors.primaryTint,
@@ -173,6 +186,27 @@ class _Details extends ConsumerWidget {
                   '${formatDoseTime(context, next)}',
                 ),
                 style: text.titleMedium,
+              ),
+            ),
+          ),
+        if (prescription != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Card(
+              child: ListTile(
+                key: const ValueKey('medicine-prescription'),
+                leading: const Icon(Icons.receipt_long_outlined),
+                title: Text(l.prescriptionLink),
+                subtitle: Text(
+                  [
+                    prescriptionTitle(context, prescription),
+                    ?prescription.diagnosis,
+                  ].join(' · '),
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.go(
+                  '/family/${m.profileId}/prescriptions/${prescription.id}',
+                ),
               ),
             ),
           ),
