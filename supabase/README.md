@@ -21,7 +21,7 @@ supabase/
   migrations/                 SQL schema + RLS, applied in order
   functions/
     _shared/                  CORS/JSON errors, env, auth, Supabase stores, LLM provider,
-                              JSON-schema validator, rate limiter, webhook signatures
+                              JSON-schema validator, rate limiter
     ai-doctor/                Dr. Usra AI: credits + LLM + schema-checked findings
     ocr-fallback/             cloud reading of medicine photos (Arabic, handwriting)
     revenuecat-webhook/       purchases -> credits_ledger / entitlements

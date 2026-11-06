@@ -57,18 +57,19 @@ class PluginNativeSignIn implements NativeSignIn {
 
   Future<String> _startGoogle() async {
     final raw = _googleNonce ??= _rawNonce();
-    await (_googleReady ??= GoogleSignIn.instance
-        .initialize(
-          clientId: Platform.isIOS ? config.googleIosClientId : null,
-          serverClientId: config.googleWebClientId,
-          nonce: await _sha256Hex(raw),
-        )
-        .catchError((Object e) {
-          _googleReady = null;
-          throw e;
-        }));
+    await (_googleReady ??= _initializeGoogle(raw).catchError((Object e) {
+      _googleReady = null;
+      throw e;
+    }));
     return raw;
   }
+
+  Future<void> _initializeGoogle(String rawNonce) async =>
+      GoogleSignIn.instance.initialize(
+        clientId: Platform.isIOS ? config.googleIosClientId : null,
+        serverClientId: config.googleWebClientId,
+        nonce: await _sha256Hex(rawNonce),
+      );
 
   @override
   bool get appleSupported => Platform.isIOS;
@@ -85,14 +86,9 @@ class PluginNativeSignIn implements NativeSignIn {
       if (idToken == null) {
         throw const AccountException(AccountErrorKind.unknown);
       }
-      // iOS ID tokens carry a hash of the access token, which Supabase checks
-      // when it's there. Android's don't, and may have no token without asking
-      // again, so none is fine.
-      final authorization = await account.authorizationClient
-          .authorizationForScopes(_googleScopes);
       return (
         idToken: idToken,
-        accessToken: authorization?.accessToken,
+        accessToken: await _googleAccessToken(account),
         nonce: nonce,
       );
     } on GoogleSignInException catch (e) {
@@ -101,6 +97,19 @@ class PluginNativeSignIn implements NativeSignIn {
         GoogleSignInExceptionCode.interrupted => AccountErrorKind.cancelled,
         _ => AccountErrorKind.unknown,
       });
+    }
+  }
+
+  /// iOS ID tokens carry a hash of the access token, which Supabase checks when
+  /// it's there. Android's don't, and may have no token without asking again.
+  /// So a failure here doesn't end the sign-in: Supabase decides.
+  Future<String?> _googleAccessToken(GoogleSignInAccount account) async {
+    try {
+      final authorization = await account.authorizationClient
+          .authorizationForScopes(_googleScopes);
+      return authorization?.accessToken;
+    } catch (_) {
+      return null;
     }
   }
 

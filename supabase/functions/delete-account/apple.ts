@@ -4,6 +4,8 @@
 // deletion; this swaps it for a token and revokes that. Apple's refresh token
 // is used for a moment and never stored.
 
+import { base64ToBytes, bytesToBase64 } from "../_shared/crypto.ts";
+
 export type AppleRevokeConfig = {
   /** The app's bundle id: what the native code was issued to. */
   clientId: string;
@@ -17,7 +19,7 @@ const APPLE = "https://appleid.apple.com";
 const TIMEOUT_MS = 10_000;
 
 function base64url(bytes: Uint8Array): string {
-  return btoa(String.fromCharCode(...bytes)).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+  return bytesToBase64(bytes).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 }
 
 const text = new TextEncoder();
@@ -30,7 +32,7 @@ export async function appleClientSecret(config: AppleRevokeConfig, now = Date.no
     .replace(/\s/g, "");
   const key = await crypto.subtle.importKey(
     "pkcs8",
-    Uint8Array.from(atob(pem), (c) => c.charCodeAt(0)),
+    base64ToBytes(pem) as BufferSource,
     { name: "ECDSA", namedCurve: "P-256" },
     false,
     ["sign"],

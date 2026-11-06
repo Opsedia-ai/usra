@@ -189,6 +189,9 @@ These change the answers above and need a new review before release:
   - No SMS is sent, and no phone number is collected for sign-in.
   - The sign-in SDKs are in every build, but do nothing and make no network calls until
     someone taps a button.
+  - Android: `google_sign_in_android` adds the `INTERNET` permission to every release
+    build, including builds with accounts off. It doesn't change what's sent, but don't
+    answer that a build has no network permission.
 - **Push notifications**: device push token (Device or other IDs).
 - **End-to-end encrypted sync**: ciphertext only; still declare "Health info" collected
   if any readable metadata leaves the phone; otherwise document why ciphertext is not

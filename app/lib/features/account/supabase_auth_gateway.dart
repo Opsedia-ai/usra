@@ -185,7 +185,8 @@ class SupabaseAuthGateway implements AuthGateway {
       // Offline, the server's copy of the session just expires.
     } finally {
       await _wipe();
-      await _native.forgetGoogle();
+      // Not awaited: the session is gone, so nothing should wait on the plugin.
+      unawaited(_native.forgetGoogle());
     }
   }
 
@@ -209,7 +210,7 @@ class SupabaseAuthGateway implements AuthGateway {
       // The stored copy goes below either way.
     } finally {
       await _wipe();
-      // Not awaited: "Delete all my data" must not wait on Google's plugin.
+      // Not awaited: the session is gone, so nothing should wait on the plugin.
       unawaited(_native.forgetGoogle());
     }
   }
@@ -247,7 +248,8 @@ class SupabaseAuthGateway implements AuthGateway {
     } catch (_) {
     } finally {
       await _wipe();
-      await _native.forgetGoogle();
+      // Not awaited: the session is gone, so nothing should wait on the plugin.
+      unawaited(_native.forgetGoogle());
     }
   });
 
@@ -258,6 +260,8 @@ class SupabaseAuthGateway implements AuthGateway {
       return (await _native.apple()).authorizationCode;
     } on AccountException catch (e) {
       if (e.kind == AccountErrorKind.cancelled) rethrow;
+      return null;
+    } catch (_) {
       return null;
     }
   }

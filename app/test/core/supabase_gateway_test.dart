@@ -15,7 +15,7 @@ class FakeNativeSignIn implements NativeSignIn {
   bool appleSupported = true;
 
   /// Thrown instead of a token, like closing the sheet.
-  AccountException? failure;
+  Object? failure;
   var appleCalls = 0;
   var googleForgets = 0;
 
@@ -233,6 +233,17 @@ void main() {
       expect(deleteBody(), {'confirm': true});
       expect(wipes, 1);
     });
+
+    test(
+      'an unexpected error from the sheet doesn\'t stop it either',
+      () async {
+        final g = await signedIn(['apple'], deleted);
+        native.failure = StateError('plugin error');
+        await g.deleteAccount();
+        expect(deleteBody(), {'confirm': true});
+        expect(wipes, 1);
+      },
+    );
 
     test('a phone without Apple\'s sheet just deletes', () async {
       final g = await signedIn(['google', 'apple'], deleted);
