@@ -64,11 +64,18 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   snapshot, `quick_check` on restore. `app/lib/core/backup/`.
 - **OS backup**: Android `allowBackup=false` plus data extraction rules that
   exclude everything; iOS photo folders excluded from iCloud backup.
+- **Secure storage fails closed on Android:** every `FlutterSecureStorage` uses
+  `secureStorageAndroidOptions` (`resetOnError: false`). The plugin's default
+  deletes keys on a Keystore or decrypt error, and the first call in the process
+  sets the options for all stores, so one store on the default would put the
+  database key at risk. A test checks every store in `lib/`. If the database key
+  can't be read, the app says so and offers to try again; it never makes a new key
+  over it. Only an unreadable account session is deleted, since signing in again
+  replaces it.
 - **App lock** (S2): optional 6-digit PIN (trivial ones refused), stored
   only as a salted Argon2id hash (19 MiB, 2 passes) in Keystore / Keychain
-  this-device-only, checked in constant time. On Android the lock's storage
-  uses `resetOnError: false`, so a Keystore error keeps the app locked
-  instead of wiping the lock (fail closed); an unreadable lock is never
+  this-device-only, checked in constant time. A Keystore error keeps the app
+  locked instead of wiping the lock (fail closed); an unreadable lock is never
   written over and is read again on each try and on resume. Fingerprint or
   face through `local_auth`, biometrics only and, on Android, only with a
   strong (Class 3) sensor; Settings warns that anyone enrolled on the phone

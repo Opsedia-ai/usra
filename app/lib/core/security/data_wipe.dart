@@ -157,7 +157,15 @@ class DataWiper {
         for (final key in appSecureKeys) {
           await storage.delete(key: key);
         }
-        final all = await storage.readAll();
+        final Map<String, String> all;
+        try {
+          all = await storage.readAll();
+        } catch (_) {
+          // One value it can't decrypt fails the whole read. This is a wipe,
+          // and everything in the app's secure storage is ours.
+          await storage.deleteAll();
+          continue;
+        }
         for (final key in [...all.keys]) {
           if (key.startsWith(appSecureKeyPrefix)) {
             await storage.delete(key: key);

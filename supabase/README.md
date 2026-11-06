@@ -241,7 +241,7 @@ and never echo request bodies or log health data, emails, names or tokens.
 | --- | --- | --- | --- |
 | `ai-doctor` | user JWT | `{ snapshot, locale?: "ar"\|"en", request_id?: uuid }` | `{ report: { findings[], urgent, disclaimer }, credits: { charged, balance }, model }` |
 | `ocr-fallback` | user JWT | `{ image_base64, media_type?, consent: true }` (≤ 300 KB, JPEG/PNG/WebP) | `{ medications: [{ name, strength, dose, frequency, duration, confidence }], quota }` |
-| `delete-account` | user JWT | `{ confirm: true, apple_authorization_code? }` | `{ status: "deleted" \| "not_found" }`; `400 confirmation_required / invalid_apple_code`, `409 family_has_members`, `502 delete_failed` |
+| `delete-account` | user JWT | `{ confirm: true, apple_authorization_code?, apple_revoke_skipped? }` | `{ status: "deleted" \| "not_found" }`; `400 confirmation_required / invalid_apple_code`, `409 family_has_members`, `502 delete_failed` |
 | `revenuecat-webhook` | `Authorization` = shared secret | RevenueCat webhook body | `{ status: "applied" \| "duplicate" \| "ignored" }` |
 | `bind-device` | user JWT | `{ device_id, nonce, signature, enroll? }` | `{ device_id, status }` |
 | `approve-device` | user JWT (approved phone) | `{ device_id, nonce, signature, pairing_id?, bundle? }` | `{ device_id, status, approved_by }` |
@@ -304,8 +304,11 @@ and device key pair. Records on the phone are untouched.
   Apple's sheet again and sends the fresh code as `apple_authorization_code`. The
   function swaps it for a token and revokes that (`apple.ts`, with `APPLE_TEAM_ID`,
   `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`), then deletes the user. Nothing from Apple is
-  stored. A failure here is logged as a fixed code and never stops the deletion, as
-  Apple's TN3194 asks. Closing the sheet in the app cancels the deletion.
+  stored. A failure here is logged as a fixed code (`apple_revoke_failed` with
+  `token_http_400`, say) and never stops the deletion, as Apple's TN3194 asks. Closing
+  the sheet in the app cancels the deletion. If the sheet fails, or answers for a
+  different Apple ID than the account's, the app deletes without a code and sends
+  `apple_revoke_skipped: true`, which is logged as `apple_revoke_skipped`.
 - **Retry-safe:** if the delete went through but the response was lost, the
   retry's token is still genuine but its user is gone; Auth says
   `user_not_found` and the function answers `200 { status: "not_found" }`.

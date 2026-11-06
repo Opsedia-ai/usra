@@ -88,3 +88,9 @@ The first version of Usra: a health file for each person, medicine reminders, va
 ```text
 Usra stores everything on the device: records in an encrypted database, photos in the app's private storage (excluded from iCloud backup). There is no account or sign-in, so no demo account is needed. Camera and photo access are asked only when the user photographs an insurance card, a report or a medicine box; text is read on the device with Google ML Kit. Notifications are medicine reminders the user sets. Usra does not use HealthKit and keeps no health data in iCloud (its database and photo folders are excluded from device backup): backups are an encrypted file the user shares to a place they choose, opened with a recovery key only the user holds. Usra does not diagnose, treat or calculate doses; follow-up suggestions are informational and cite their sources.
 ```
+
+For a build with accounts, use this instead:
+
+```text
+Usra stores all health data on the device: records in an encrypted database, photos in the app's private storage (excluded from iCloud backup). An account is optional and every feature works without one, so no demo account is needed. Sign in with Apple and Google are in More > Account, and the account can be deleted there. Camera and photo access are asked only when the user photographs an insurance card, a report or a medicine box; text is read on the device with Google ML Kit. Notifications are medicine reminders the user sets. Usra does not use HealthKit and keeps no health data in iCloud (its database and photo folders are excluded from device backup): backups are an encrypted file the user shares to a place they choose, opened with a recovery key only the user holds. Usra does not diagnose, treat or calculate doses; follow-up suggestions are informational and cite their sources.
+```

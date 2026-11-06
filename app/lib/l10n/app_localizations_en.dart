@@ -106,6 +106,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'No account, no sign-in, no ads and no tracking. We never sell or share anyone\'s data.';
 
   @override
+  String get aboutPrivacyOptionalAccount =>
+      'An account is optional, and there are no ads and no tracking. If you sign in, we keep your email (and your name with Google) to run the account, and we never receive your health records. We never sell or share anyone\'s data.';
+
+  @override
   String get aboutPrivacyBackup =>
       'A backup is an encrypted file you keep wherever you choose. Only your recovery key opens it, and we don\'t have it.';
 
@@ -1657,6 +1661,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Usra couldn\'t open again after deleting. Close it and open it again.';
 
   @override
+  String get databaseKeyUnavailable =>
+      'Usra can\'t open the key to your records right now. Your records are still here and nothing was deleted. Try again, or restart your phone. If this keeps happening, contact us before deleting the app.';
+
+  @override
   String get recoveryKeyCopyFailed =>
       'Couldn\'t copy the key. Write it down from the screen instead.';
 
@@ -2303,7 +2311,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountSignInIntro =>
-      'An account is optional: the app works fully without one. Google or Apple shares your name and email with us.';
+      'An account is optional: the app works fully without one. Google shares your name and email with us; Apple shares your email.';
+
+  @override
+  String get accountSignInConsent =>
+      'By signing in, you agree that we keep this to run your account, as the privacy policy says.';
+
+  @override
+  String get accountReadPrivacy => 'Read about privacy';
 
   @override
   String get accountSignInWithGoogle => 'Sign in with Google';

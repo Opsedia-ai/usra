@@ -10,6 +10,7 @@ import 'package:local_auth/local_auth.dart';
 
 import '../preferences.dart';
 import 'pin_hasher.dart';
+import 'secure_storage_options.dart';
 
 /// Where the app lock's settings and PIN hash are kept.
 abstract class LockStore {
@@ -28,10 +29,9 @@ class SecureLockStore implements LockStore {
             iOptions: IOSOptions(
               accessibility: KeychainAccessibility.first_unlock_this_device,
             ),
-            // The plugin's default wipes its storage on a Keystore error,
-            // which would turn the lock off. A read error must keep the
-            // app locked instead (fail closed); AppLock retries it.
-            aOptions: AndroidOptions(resetOnError: false),
+            // A read error must keep the app locked (fail closed), not turn
+            // the lock off; AppLock retries it.
+            aOptions: secureStorageAndroidOptions,
           );
 
   static const _keyName = 'usra.app_lock.v1';

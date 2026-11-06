@@ -52,10 +52,14 @@ export async function appleClientSecret(config: AppleRevokeConfig, now = Date.no
   return `${unsigned}.${base64url(new Uint8Array(signature))}`;
 }
 
-/**
- * Makes the revoker. Throws on any failure, with only Apple's status in the
- * message: never the code, a token or Apple's response body.
- */
+/** A failure with a fixed code, safe to log: never a token or Apple's answer. */
+export class AppleRevokeError extends Error {
+  constructor(readonly code: string) {
+    super(code);
+  }
+}
+
+/** Makes the revoker. Every failure it throws on purpose is an [AppleRevokeError]. */
 export function createAppleRevoker(
   config: AppleRevokeConfig,
   fetchFn: typeof fetch = fetch,
@@ -75,14 +79,16 @@ export function createAppleRevoker(
       code: authorizationCode,
       grant_type: "authorization_code",
     });
-    if (!exchanged.ok) throw new Error(`apple token ${exchanged.status}`);
-    const tokens = await exchanged.json();
+    if (!exchanged.ok) throw new AppleRevokeError(`token_http_${exchanged.status}`);
+    const tokens = await exchanged.json().catch(() => {
+      throw new AppleRevokeError("token_bad_response");
+    });
     const [token, hint] = tokens.refresh_token
       ? [tokens.refresh_token, "refresh_token"]
       : [tokens.access_token, "access_token"];
-    if (typeof token !== "string") throw new Error("apple token missing");
+    if (typeof token !== "string") throw new AppleRevokeError("token_missing");
     const revoked = await post("/auth/revoke", { ...client, token, token_type_hint: hint });
-    if (!revoked.ok) throw new Error(`apple revoke ${revoked.status}`);
+    if (!revoked.ok) throw new AppleRevokeError(`revoke_http_${revoked.status}`);
   };
 }
 

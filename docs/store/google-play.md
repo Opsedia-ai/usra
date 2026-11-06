@@ -61,6 +61,12 @@ Counts are `characters / limit`; check with `python3 tools/store/check_lengths.p
 مهم: أسرة مش جهاز طبي ومش بتشخّص ولا بتعالج. المعلومات والاقتراحات اللي فيها للتنظيم والمعرفة بس. اسأل دكتورك دايماً قبل أي قرار طبي، وفي الطوارئ كلّم الإسعاف ١٢٣.
 ```
 
+لو النسخة فيها حسابات، استبدل السطر ده بـ:
+
+```text
+• بيانات العيلة بتفضل على الموبايل ده: السجلات متشفرة، والصور في مساحة التطبيق الخاصة مش في المعرض. الحساب اختياري، وكل المميزات شغالة من غيره.
+```
+
 ### Release notes (93/500)
 
 ```text
@@ -120,6 +126,12 @@ Your privacy first
 • Backups are an encrypted file you keep (Drive, Files, or WhatsApp to yourself), and only you hold the recovery key.
 
 Important: Usra is not a medical device and does not diagnose or treat. Its information and suggestions are for organising and general knowledge only. Always ask your doctor before medical decisions, and in an emergency call your local emergency number (123 in Egypt).
+```
+
+For a build with accounts, replace that line with:
+
+```text
+• The family's data stays on this phone: records encrypted, photos in the app's private storage, not your gallery. An account is optional, and every feature works without one.
 ```
 
 ### Release notes (109/500)

@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' show SocketException;
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' show ClientException;
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
@@ -234,13 +236,17 @@ class SupabaseAuthGateway implements AuthGateway {
   @override
   Future<void> deleteAccount() => _guard(call: _Call.delete, () async {
     final client = await _client();
-    final appleCode =
-        _user(client.auth.currentUser)?.confirmsDeleteWithApple == true
-        ? await _appleCodeForDelete()
-        : null;
+    final user = client.auth.currentUser;
+    final usesApple = _user(user)?.confirmsDeleteWithApple ?? false;
+    final appleCode = usesApple ? await _appleCodeForDelete(user) : null;
     await client.functions.invoke(
       'delete-account',
-      body: {'confirm': true, 'apple_authorization_code': ?appleCode},
+      body: {
+        'confirm': true,
+        'apple_authorization_code': ?appleCode,
+        // No secrets or names: lets the server log a revocation it couldn't do.
+        if (usesApple && appleCode == null) 'apple_revoke_skipped': true,
+      },
     );
     try {
       // The server session is gone with the user; drop the local copy.
@@ -253,14 +259,44 @@ class SupabaseAuthGateway implements AuthGateway {
     }
   });
 
-  /// Apple's code to revoke with, or null if the sheet failed: deleting must
-  /// still work then (Apple says so too, TN3194), only closing it stops it.
-  Future<String?> _appleCodeForDelete() async {
+  /// Apple's code to revoke with. Null if the sheet failed, or if it answered
+  /// for a different Apple ID than this account's, whose link isn't ours to
+  /// revoke: deleting must still work then (Apple says so too, TN3194). Only
+  /// closing the sheet stops it.
+  Future<String?> _appleCodeForDelete(sb.User? user) async {
     try {
-      return (await _native.apple()).authorizationCode;
+      final tokens = await _native.apple();
+      final sub = _subject(tokens.idToken);
+      return sub != null && sub == _appleSubject(user)
+          ? tokens.authorizationCode
+          : null;
     } on AccountException catch (e) {
       if (e.kind == AccountErrorKind.cancelled) rethrow;
       return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// The Apple ID linked to this account, as Apple's `sub`.
+  static String? _appleSubject(sb.User? user) {
+    for (final identity in user?.identities ?? const <sb.UserIdentity>[]) {
+      if (identity.provider == 'apple') {
+        return identity.identityData?['sub'] as String? ?? identity.id;
+      }
+    }
+    return null;
+  }
+
+  /// The `sub` of an ID token just received from Apple's sheet. It's compared,
+  /// never trusted for anything else, so the signature isn't checked here.
+  static String? _subject(String idToken) {
+    try {
+      final payload = idToken.split('.')[1];
+      final claims = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(payload))),
+      );
+      return claims['sub'] as String?;
     } catch (_) {
       return null;
     }
@@ -328,10 +364,10 @@ const _secure = accountSecureStorage;
 /// Keeps the Supabase session (with its refresh token) in Android Keystore /
 /// iOS Keychain, this device only, instead of shared preferences.
 class SecureSessionStorage extends sb.LocalStorage {
-  const SecureSessionStorage();
+  const SecureSessionStorage([this._storage = _secure]);
 
   static const _key = 'usra.account.session.v1';
-  static const _storage = _secure;
+  final FlutterSecureStorage _storage;
 
   @override
   Future<void> initialize() async {}
@@ -339,8 +375,17 @@ class SecureSessionStorage extends sb.LocalStorage {
   @override
   Future<bool> hasAccessToken() => _storage.containsKey(key: _key);
 
+  /// A session that can't be read is only a reason to sign in again, so it
+  /// goes. Just this key: nothing here may touch the keys to local records.
   @override
-  Future<String?> accessToken() => _storage.read(key: _key);
+  Future<String?> accessToken() async {
+    try {
+      return await _storage.read(key: _key);
+    } catch (_) {
+      await _storage.delete(key: _key);
+      return null;
+    }
+  }
 
   @override
   Future<void> persistSession(String persistSessionString) =>

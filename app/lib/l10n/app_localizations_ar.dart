@@ -105,6 +105,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'مفيش حساب ولا تسجيل دخول ولا إعلانات ولا تتبع. وعمرنا ما بنبيع ولا بنشارك بيانات حد.';
 
   @override
+  String get aboutPrivacyOptionalAccount =>
+      'الحساب اختياري، ومفيش إعلانات ولا تتبع. لو دخلت، بنحتفظ بإيميلك (واسمك مع Google) علشان الحساب يشتغل، ومش بنستلم سجلاتك الصحية. وعمرنا ما بنبيع ولا بنشارك بيانات حد.';
+
+  @override
   String get aboutPrivacyBackup =>
       'النسخة الاحتياطية ملف متشفر إنت بتحتفظ بيه في المكان اللي تختاره. ميتفتحش غير بمفتاح الاسترجاع بتاعك، وهو مش معانا.';
 
@@ -1663,6 +1667,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'أسرة مقدرتش تفتح تاني بعد المسح. اقفلها وافتحها تاني.';
 
   @override
+  String get databaseKeyUnavailable =>
+      'أسرة مقدرتش تفتح مفتاح سجلاتك دلوقتي. سجلاتك لسه موجودة ومتمسحتش. جرّب تاني، أو اقفل الموبايل وافتحه. لو المشكلة فضلت، كلمنا قبل ما تمسح التطبيق.';
+
+  @override
   String get recoveryKeyCopyFailed =>
       'مقدرناش ننسخ المفتاح. اكتبه من على الشاشة بدل كده.';
 
@@ -2314,7 +2322,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accountSignInIntro =>
-      'الحساب اختياري، والتطبيق بيشتغل كله من غيره. Google أو Apple بيبعتولنا اسمك وإيميلك.';
+      'الحساب اختياري، والتطبيق بيشتغل كله من غيره. Google بيبعتلنا اسمك وإيميلك، وApple بتبعتلنا إيميلك.';
+
+  @override
+  String get accountSignInConsent =>
+      'لما تدخل، إنت موافق إننا نحتفظ بالبيانات دي علشان الحساب يشتغل، زي ما سياسة الخصوصية بتقول.';
+
+  @override
+  String get accountReadPrivacy => 'اقرا عن الخصوصية';
 
   @override
   String get accountSignInWithGoogle => 'تسجيل الدخول باستخدام Google';

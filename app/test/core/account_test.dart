@@ -1,20 +1,34 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:usra/core/database/connection.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
+import 'package:usra/core/security/secure_storage_options.dart';
 import 'package:usra/features/account/account_secure_storage.dart';
 import 'package:usra/features/account/account_providers.dart';
 import 'package:usra/features/account/auth_gateway.dart';
 import 'package:usra/features/account/device_identity.dart';
 import 'package:usra/features/account/login_config.dart';
+import 'package:usra/features/account/supabase_auth_gateway.dart';
 import 'package:usra/features/account/supabase_config.dart';
 import 'package:usra/features/backup/backup_providers.dart';
 
 import '../support/fake_auth_gateway.dart';
+import '../support/spy_secure_storage.dart';
+
+int _closingParen(String source, int open) {
+  var depth = 0;
+  for (var i = open; i < source.length; i++) {
+    if (source[i] == '(') depth++;
+    if (source[i] == ')' && --depth == 0) return i;
+  }
+  return source.length;
+}
 
 void main() {
   group('sign-in buttons', () {
@@ -51,12 +65,10 @@ void main() {
       );
     });
 
-    test('each button hides on its own when its setup is missing', () {
-      expect(google.methods(isIos: true), [SignInMethod.google]);
+    test('each button hides when its setup is missing', () {
       expect(const LoginConfig(appleEnabled: true).methods(isIos: true), [
         SignInMethod.apple,
       ]);
-      // Google on iOS needs both clients.
       expect(
         const LoginConfig(googleWebClientId: 'web').methods(isIos: true),
         isEmpty,
@@ -65,6 +77,83 @@ void main() {
         const LoginConfig(googleIosClientId: 'ios').methods(isIos: true),
         isEmpty,
       );
+    });
+
+    test('iOS never shows Google without Apple (guideline 4.8)', () {
+      expect(google.methods(isIos: true), isEmpty);
+      expect(google.methods(isIos: false), [SignInMethod.google]);
+    });
+  });
+
+  group('a storage error never touches local records', () {
+    const keys = {
+      'usra.db.key.v1': 'database key',
+      'usra.photos.key.v1': 'photo key',
+      'usra.backup.recovery_key.v1': 'recovery key',
+      'usra.app_lock.v1': 'lock',
+      'usra.account.session.v1': 'session',
+    };
+
+    test('Android never reads all keys to check for a reinstall', () async {
+      final storage = SpySecureStorage(values: Map.of(keys));
+      final prefs = MemoryKeyValueStore();
+      await wipeAccountSecretsAfterReinstall(
+        prefs,
+        storage: storage,
+        isIos: false,
+      );
+      expect(storage.calls, isEmpty);
+      expect(prefs.getBool(accountInstalledPref), isTrue);
+    });
+
+    test('a failed read on iOS wipes nothing and can be retried', () async {
+      final storage = SpySecureStorage(values: Map.of(keys), failReads: true);
+      final prefs = MemoryKeyValueStore();
+      await expectLater(
+        wipeAccountSecretsAfterReinstall(prefs, storage: storage, isIos: true),
+        throwsStateError,
+      );
+      expect(storage.values, keys);
+      expect(prefs.getBool(accountInstalledPref), isNull);
+    });
+
+    test('an unreadable session goes, and only the session', () async {
+      final storage = SpySecureStorage(values: Map.of(keys), failReads: true);
+      expect(await SecureSessionStorage(storage).accessToken(), isNull);
+      expect(storage.values, {...keys}..remove('usra.account.session.v1'));
+      expect(storage.calls, isNot(contains('deleteAll')));
+    });
+
+    test('an unreadable database key is never replaced', () async {
+      final storage = SpySecureStorage(values: Map.of(keys), failReads: true);
+      await expectLater(
+        DatabaseKeyStore(storage).readOrCreate(),
+        throwsStateError,
+      );
+      expect(storage.values, keys);
+      expect(storage.calls, ['read']);
+    });
+
+    test('every secure storage in the app fails closed on Android', () {
+      // The plugin's first caller in the process sets the options for all,
+      // so one store left on the default would turn deleting back on.
+      expect(secureStorageAndroidOptions.toMap()['resetOnError'], 'false');
+      final call = RegExp(r'\bFlutterSecureStorage\(');
+      var found = 0;
+      for (final file in Directory('lib').listSync(recursive: true)) {
+        if (file is! File || !file.path.endsWith('.dart')) continue;
+        final source = file.readAsStringSync();
+        for (final match in call.allMatches(source)) {
+          found++;
+          final end = _closingParen(source, match.end - 1);
+          expect(
+            source.substring(match.start, end),
+            contains('aOptions: secureStorageAndroidOptions'),
+            reason: '${file.path} at offset ${match.start}',
+          );
+        }
+      }
+      expect(found, greaterThanOrEqualTo(6));
     });
   });
 
@@ -111,7 +200,11 @@ void main() {
     });
     const storage = FlutterSecureStorage();
     final prefs = MemoryKeyValueStore();
-    await wipeAccountSecretsAfterReinstall(prefs, storage);
+    await wipeAccountSecretsAfterReinstall(
+      prefs,
+      storage: storage,
+      isIos: true,
+    );
     expect(await storage.readAll(), {
       'usra.db.key.v1': 'database key',
       'usra.backup.recovery_key.v1': 'recovery key',
@@ -120,7 +213,11 @@ void main() {
 
     // Same install later: what it saved since is kept.
     await storage.write(key: 'usra.account.session.v1', value: 'new');
-    await wipeAccountSecretsAfterReinstall(prefs, storage);
+    await wipeAccountSecretsAfterReinstall(
+      prefs,
+      storage: storage,
+      isIos: true,
+    );
     expect(await storage.read(key: 'usra.account.session.v1'), 'new');
   });
 

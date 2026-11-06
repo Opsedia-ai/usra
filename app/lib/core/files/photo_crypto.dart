@@ -6,6 +6,8 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../security/secure_storage_options.dart';
+
 /// A stored photo that can't be opened: changed, cut short, or sealed with
 /// another phone's key.
 class PhotoUnreadableException implements Exception {
@@ -218,6 +220,7 @@ class SecurePhotoKeyStore extends PhotoKeyStore {
             iOptions: IOSOptions(
               accessibility: KeychainAccessibility.first_unlock_this_device,
             ),
+            aOptions: secureStorageAndroidOptions,
           );
 
   static const _keyName = 'usra.photos.key.v1';

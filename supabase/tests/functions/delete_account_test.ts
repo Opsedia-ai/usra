@@ -1,6 +1,11 @@
 import { assertEquals, assertRejects } from "jsr:@std/assert@1";
 import { HttpError, withHttp } from "../../functions/_shared/http.ts";
-import { appleClientSecret, appleRevokerFromEnv, createAppleRevoker } from "../../functions/delete-account/apple.ts";
+import {
+  appleClientSecret,
+  AppleRevokeError,
+  appleRevokerFromEnv,
+  createAppleRevoker,
+} from "../../functions/delete-account/apple.ts";
 import { createDeleteAccountHandler } from "../../functions/delete-account/handler.ts";
 
 function setup(
@@ -240,14 +245,50 @@ Deno.test("apple: failures carry only the status, never the code or a token", as
   const { config } = await appleConfig();
   for (
     const [apple, message] of [
-      [fakeApple(new Response("secret-body", { status: 400 })), "apple token 400"],
-      [fakeApple(Response.json({ refresh_token: "rt" }), new Response("secret", { status: 500 })), "apple revoke 500"],
-      [fakeApple(Response.json({})), "apple token missing"],
+      [fakeApple(new Response("secret-body", { status: 400 })), "token_http_400"],
+      [fakeApple(Response.json({ refresh_token: "rt" }), new Response("secret", { status: 500 })), "revoke_http_500"],
+      [fakeApple(Response.json({})), "token_missing"],
     ] as const
   ) {
     const err = await assertRejects(() => createAppleRevoker(config, apple.fetchFn)("code-1"));
     assertEquals((err as Error).message, message);
   }
+});
+
+Deno.test("apple: an answer that isn't JSON is a fixed code, not a quote of it", async () => {
+  const { config } = await appleConfig();
+  const { fetchFn } = fakeApple(new Response("private-text", { status: 200 }));
+  const err = await assertRejects(() => createAppleRevoker(config, fetchFn)("code-1"));
+  assertEquals((err as Error).message, "token_bad_response");
+});
+
+async function logged(run: () => Promise<unknown>): Promise<string[]> {
+  const lines: string[] = [];
+  const original = console.error;
+  console.error = (...args: unknown[]) => lines.push(args.join(" "));
+  try {
+    await run();
+  } finally {
+    console.error = original;
+  }
+  return lines;
+}
+
+Deno.test("delete-account: logs only fixed codes for Apple", async () => {
+  const delete1 = setup({ revokeApple: () => Promise.reject(new AppleRevokeError("token_http_400")) });
+  assertEquals(await logged(() => delete1.call({ confirm: true, apple_authorization_code: "c" })), [
+    "apple_revoke_failed token_http_400",
+  ]);
+  const delete2 = setup({ revokeApple: () => Promise.reject(new Error("private text from apple")) });
+  assertEquals(await logged(() => delete2.call({ confirm: true, apple_authorization_code: "c" })), [
+    "apple_revoke_failed unexpected",
+  ]);
+});
+
+Deno.test("delete-account: a revocation the app had to skip is logged, and still deletes", async () => {
+  const { call, deleted } = setup();
+  assertEquals(await logged(() => call({ confirm: true, apple_revoke_skipped: true })), ["apple_revoke_skipped"]);
+  assertEquals(deleted, ["user-1"]);
 });
 
 Deno.test("apple: not set up means no revoker", () => {

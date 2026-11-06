@@ -27,10 +27,11 @@ class LoginConfig {
 
   /// The buttons to show, in order. Apple is iOS only: on Android it would
   /// need a web redirect through a server of ours, for no store requirement.
+  /// Google on iOS needs Apple beside it (App Store guideline 4.8).
   List<SignInMethod> methods({required bool isIos}) => [
     if (isIos && appleEnabled) SignInMethod.apple,
     if (googleWebClientId.isNotEmpty &&
-        (!isIos || googleIosClientId.isNotEmpty))
+        (!isIos || (googleIosClientId.isNotEmpty && appleEnabled)))
       SignInMethod.google,
   ];
 }

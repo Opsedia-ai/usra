@@ -278,6 +278,12 @@ abstract class AppLocalizations {
   /// **'No account, no sign-in, no ads and no tracking. We never sell or share anyone\'s data.'**
   String get aboutPrivacyNoAccount;
 
+  /// No description provided for @aboutPrivacyOptionalAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'An account is optional, and there are no ads and no tracking. If you sign in, we keep your email (and your name with Google) to run the account, and we never receive your health records. We never sell or share anyone\'s data.'**
+  String get aboutPrivacyOptionalAccount;
+
   /// No description provided for @aboutPrivacyBackup.
   ///
   /// In en, this message translates to:
@@ -2912,6 +2918,12 @@ abstract class AppLocalizations {
   /// **'Usra couldn\'t open again after deleting. Close it and open it again.'**
   String get wipeReopenFailed;
 
+  /// No description provided for @databaseKeyUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra can\'t open the key to your records right now. Your records are still here and nothing was deleted. Try again, or restart your phone. If this keeps happening, contact us before deleting the app.'**
+  String get databaseKeyUnavailable;
+
   /// No description provided for @recoveryKeyCopyFailed.
   ///
   /// In en, this message translates to:
@@ -3767,8 +3779,20 @@ abstract class AppLocalizations {
   /// No description provided for @accountSignInIntro.
   ///
   /// In en, this message translates to:
-  /// **'An account is optional: the app works fully without one. Google or Apple shares your name and email with us.'**
+  /// **'An account is optional: the app works fully without one. Google shares your name and email with us; Apple shares your email.'**
   String get accountSignInIntro;
+
+  /// No description provided for @accountSignInConsent.
+  ///
+  /// In en, this message translates to:
+  /// **'By signing in, you agree that we keep this to run your account, as the privacy policy says.'**
+  String get accountSignInConsent;
+
+  /// No description provided for @accountReadPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Read about privacy'**
+  String get accountReadPrivacy;
 
   /// No description provided for @accountSignInWithGoogle.
   ///

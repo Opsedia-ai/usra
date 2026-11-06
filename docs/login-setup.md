@@ -60,9 +60,11 @@ Go to <https://developer.apple.com/account/resources>.
 
 The key has one job: when someone deletes their account, the `delete-account` function uses it to revoke Apple's tokens, as Apple requires. That function makes a fresh short-lived secret from the key each time, so there's nothing to renew every six months.
 
-Free Apple accounts can't use this capability. A device build signed with a personal team fails until the entitlement is removed locally, so build with the Opsedia team. Simulator builds aren't affected.
+**Every signed iOS build needs this capability,** including builds with accounts off, because `Runner.entitlements` asks for it in all of them. Turn it on before the first signed build, even if accounts come later. Free Apple accounts can't use it, so build with the Opsedia team. Simulator builds and CI's unsigned builds aren't affected.
 
 ## 3. Supabase (free)
+
+Create the project in **Frankfurt**. Supabase has no region in the Middle East, and the founder's backend research recommends Frankfurt over the other nearby regions. Confirm this with the lawyer (see step 6), because moving a project later is work.
 
 In the project dashboard:
 
@@ -113,7 +115,7 @@ flutter build ipa --dart-define=SUPABASE_URL=https://<ref>.supabase.co --dart-de
 Two rules for iOS builds:
 
 - **Set the URL scheme whenever you set `GOOGLE_IOS_CLIENT_ID`.** Without it, Google's iOS library stops the app when someone taps the button.
-- **Always offer Apple when you offer Google.** App Store guideline 4.8 requires it, and the build doesn't check this for you.
+- **Set `SIGN_IN_WITH_APPLE=true` whenever you offer Google.** App Store guideline 4.8 requires Apple beside Google, so without it the app hides Google on iOS.
 
 Never put the service-role key or the Apple key in an app build.
 
@@ -136,6 +138,50 @@ This code has only been tested with fake sign-in. No real Google or Apple client
 | "Something went wrong" after choosing an account | Supabase's **Client IDs** don't include the client ID, or the provider is off |
 | Supabase's logs mention a nonce or `at_hash` | The app and Google disagree about the token. Tell the developer. Don't turn on **Skip nonce check** without checking first |
 | Only test users can sign in with Google | The app is still in testing: see step 1.2 |
+
+## 6. Before shipping a build with accounts
+
+Today's store listings, policy and legal text describe an app with no accounts. All of this has to change in the same release that turns accounts on.
+
+**Legal, first.** An account row is personal data on a server outside Egypt. Before accounts go live, have an Egyptian lawyer answer these questions:
+
+- [ ] Is a developer whose records stay on the phone a controller or a holder of this data?
+- [ ] Does a table holding only login details need a licence, and a cross-border licence?
+- [ ] Does it count as sensitive data, given that it shows a named person uses a family health app?
+- [ ] Can Opsedia get any licence that's needed in time?
+- [ ] Does tapping a sign-in button count as "explicit written" consent? The app currently treats signing in as agreeing, with a notice and a link on the account screen.
+- [ ] Is Frankfurt the right region for the Supabase project?
+
+Take separate advice before opening accounts in Saudi Arabia or the UAE.
+
+**Privacy policy** (`docs/legal/privacy-policy.en.md` and `.ar.md`):
+
+- [ ] Move the account bullet out of section 10, "Later optional cloud features", into the main policy, and write it as what happens now, not what would happen.
+- [ ] Rewrite the summary at the top, which says "we have no account for you".
+- [ ] Update sections 4, 6 and 7 so they cover the account, what leaves the phone, and how to delete it.
+- [ ] Check that the policy matches what the account screen says, and publish it before the release.
+
+**Terms** (`docs/legal/terms-of-use.en.md` and `.ar.md`):
+
+- [ ] Move the accounts bullet out of the "planned" section.
+
+**Store listings**, which already have the text to switch to:
+
+- [ ] `docs/store/app-store.md`: App Review notes.
+- [ ] `docs/store/google-play.md`: the "No account, no sign-in" line in Arabic and English.
+
+**Store forms** (`docs/store/data-safety.md`):
+
+- [ ] Google Play Data safety and Apple App Privacy: use the answers under "When M6 cloud features ship".
+- [ ] Play's deletion question, and its required web page for deletion requests, which doesn't exist yet.
+- [ ] Play's app access declaration and Apple's guideline 5.1.1 row.
+
+**App and backend:**
+
+- [ ] Add the `APPLE_*` secrets (step 3).
+- [ ] Run the checks in step 5.
+- [ ] With `SUPABASE_URL` set, check that More > About & privacy says an account is optional, in both languages.
+- [ ] Check that every feature still works with no account. Login must stay optional.
 
 ## Good to know
 

@@ -16,6 +16,7 @@ import 'package:usra/features/account/auth_gateway.dart';
 import 'package:usra/features/account/device_identity.dart';
 import 'package:usra/features/account/login_config.dart';
 import 'package:usra/features/account/supabase_config.dart';
+import 'package:usra/features/settings/key_unavailable.dart';
 
 import '../support/fake_auth_gateway.dart';
 
@@ -155,6 +156,19 @@ void main() {
     await openAccount(tester, root: app(isIos: false));
     expect(find.byKey(googleKey), findsOneWidget);
     expect(find.byKey(appleKey), findsNothing);
+  });
+
+  testWidgets('the sign-in screen says what agreeing means, with a link', (
+    tester,
+  ) async {
+    await openAccount(tester);
+    expect(
+      find.byKey(const ValueKey('account-sign-in-consent')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('account-privacy-link')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('about-medical')), findsOneWidget);
   });
 
   testWidgets('a button whose setup is missing is hidden', (tester) async {
@@ -349,6 +363,37 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(googleKey), findsNothing);
     expect(find.byKey(const ValueKey('settings-backup')), findsOneWidget);
+  });
+
+  testWidgets('with no account, every tab still opens', (tester) async {
+    await tester.pumpWidget(app(configured: false));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    for (final tab in ['العيلة', 'الأدوية', 'الدكاترة', 'الفلوس', 'المزيد']) {
+      await tester.tap(find.text(tab).last);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: tab);
+    }
+    expect(gateway.restores, 0);
+  });
+
+  testWidgets('the database key screen says records are safe and retries', (
+    tester,
+  ) async {
+    var retries = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: DatabaseKeyUnavailable(onRetry: () => retries++),
+          ),
+        ),
+      ),
+    );
+    expect(find.textContaining('nothing was deleted'), findsOneWidget);
+    expect(find.textContaining('متمسحتش'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('database-key-retry')));
+    expect(retries, 1);
   });
 
   testWidgets('English strings', (tester) async {

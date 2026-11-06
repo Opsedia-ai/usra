@@ -7,6 +7,7 @@
 // Apple's tokens (see apple.ts).
 
 import { type Handler, HttpError, isRecord, json, readJson } from "../_shared/http.ts";
+import { AppleRevokeError } from "./apple.ts";
 
 export interface AccountDeleter {
   /** Families the user owns that have other members (see the migrations). */
@@ -51,6 +52,9 @@ export function createDeleteAccountHandler(deps: DeleteAccountDeps): Handler {
         throw new HttpError(409, "family_has_members", "A family you own has other members");
       }
       if (appleCode) await revokeAppleBestEffort(deps, appleCode);
+      // The app couldn't get a code for this account's Apple ID. It can't be
+      // revoked from here; the person can still do it in their Apple ID.
+      else if (body.apple_revoke_skipped === true) console.error("apple_revoke_skipped");
       deleted = await deps.deleter.deleteUser(userId);
     } catch (err) {
       if (err instanceof HttpError) throw err;
@@ -71,6 +75,7 @@ async function revokeAppleBestEffort(deps: DeleteAccountDeps, code: string) {
   try {
     await deps.revokeApple(code);
   } catch (err) {
-    console.error("apple_revoke_failed", err instanceof Error ? err.message : typeof err);
+    // Only fixed codes: other errors' messages could quote Apple's answer.
+    console.error("apple_revoke_failed", err instanceof AppleRevokeError ? err.code : "unexpected");
   }
 }

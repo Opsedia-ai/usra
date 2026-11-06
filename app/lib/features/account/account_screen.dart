@@ -7,6 +7,7 @@ import '../../l10n/app_localizations.dart';
 import 'account_providers.dart';
 import 'auth_gateway.dart';
 import 'sign_in_buttons.dart';
+import '../settings/about_privacy_screen.dart';
 
 const accountPath = '/settings/account';
 
@@ -166,6 +167,19 @@ class _SignInOptionsState extends ConsumerState<_SignInOptions>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(l.accountSignInIntro),
+        const SizedBox(height: 8),
+        Text(
+          l.accountSignInConsent,
+          key: const ValueKey('account-sign-in-consent'),
+        ),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton(
+            key: const ValueKey('account-privacy-link'),
+            onPressed: () => context.push(aboutPath),
+            child: Text(l.accountReadPrivacy),
+          ),
+        ),
         for (final method in methods) ...[
           const SizedBox(height: 16),
           SignInButton(

@@ -137,9 +137,11 @@ from the clipboard after a minute.
   device information to run the account. We would not get your Google or Apple
   password. You would be able to delete the account from inside the app, which also
   ends the Sign in with Apple link; you can remove Usra from your Google account in
-  your Google account settings.
+  your Google account settings. The account screen would say this before you sign in,
+  with a link to this policy, and signing in would mean you agree to it.
 - **Sync between family phones**, end-to-end encrypted: records would be encrypted on
-  your phone before upload, so our servers store only data we cannot read.
+  your phone before upload, so our servers store only data we cannot read. If you join
+  a family, its owner would see your email address so they can check it's you.
 - **AI Doctor**: if you choose to use it, a de-identified summary (no names, phone
   numbers, dates of birth, notes or photos), which you can preview first, would be
   sent to an AI service to produce informational findings. Credits may be bought in

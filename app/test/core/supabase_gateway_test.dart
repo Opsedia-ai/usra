@@ -9,6 +9,11 @@ import 'package:usra/features/account/native_sign_in.dart';
 import 'package:usra/features/account/supabase_auth_gateway.dart';
 import 'package:usra/features/account/supabase_config.dart';
 
+String _appleToken(String sub) {
+  String part(Object value) => base64Url.encode(utf8.encode(jsonEncode(value)));
+  return '${part({'alg': 'ES256'})}.${part({'sub': sub})}.signature';
+}
+
 /// The system sheets, without the system.
 class FakeNativeSignIn implements NativeSignIn {
   @override
@@ -17,6 +22,9 @@ class FakeNativeSignIn implements NativeSignIn {
   /// Thrown instead of a token, like closing the sheet.
   Object? failure;
   var appleCalls = 0;
+
+  /// The Apple ID the sheet answers for.
+  String appleSub = 'apple-sub-1';
   var googleForgets = 0;
 
   void _check() {
@@ -34,7 +42,7 @@ class FakeNativeSignIn implements NativeSignIn {
     appleCalls++;
     _check();
     return (
-      idToken: 'apple-id',
+      idToken: _appleToken(appleSub),
       nonce: 'raw-a',
       authorizationCode: 'apple-code',
     );
@@ -90,6 +98,16 @@ void main() {
       'email': 'mona@example.com',
       'created_at': '2026-11-06T00:00:00Z',
       'app_metadata': {'provider': providers.first, 'providers': providers},
+      'identities': [
+        for (final provider in providers)
+          {
+            'id': '$provider-sub-1',
+            'user_id': 'u1',
+            'identity_id': 'identity-$provider',
+            'provider': provider,
+            'identity_data': {'sub': '$provider-sub-1'},
+          },
+      ],
       'user_metadata': <String, Object>{},
     },
   };
@@ -141,7 +159,7 @@ void main() {
     expect(user.confirmsDeleteWithApple, isTrue);
     final body = jsonDecode(requests.single.body) as Map<String, dynamic>;
     expect(body['provider'], 'apple');
-    expect(body['id_token'], 'apple-id');
+    expect(body['id_token'], _appleToken('apple-sub-1'));
     expect(body['nonce'], 'raw-a');
     // Used only when deleting, never sent to sign in.
     expect(requests.single.body, isNot(contains('apple-code')));
@@ -230,7 +248,7 @@ void main() {
       final g = await signedIn(['apple'], deleted);
       native.failure = const AccountException(AccountErrorKind.unknown);
       await g.deleteAccount();
-      expect(deleteBody(), {'confirm': true});
+      expect(deleteBody(), {'confirm': true, 'apple_revoke_skipped': true});
       expect(wipes, 1);
     });
 
@@ -240,10 +258,19 @@ void main() {
         final g = await signedIn(['apple'], deleted);
         native.failure = StateError('plugin error');
         await g.deleteAccount();
-        expect(deleteBody(), {'confirm': true});
+        expect(deleteBody(), {'confirm': true, 'apple_revoke_skipped': true});
         expect(wipes, 1);
       },
     );
+
+    test('a different Apple ID on the phone is never revoked', () async {
+      final g = await signedIn(['apple'], deleted);
+      native.appleSub = 'someone-elses-apple-id';
+      await g.deleteAccount();
+      expect(native.appleCalls, 1);
+      expect(deleteBody(), {'confirm': true, 'apple_revoke_skipped': true});
+      expect(wipes, 1);
+    });
 
     test('a phone without Apple\'s sheet just deletes', () async {
       final g = await signedIn(['google', 'apple'], deleted);
