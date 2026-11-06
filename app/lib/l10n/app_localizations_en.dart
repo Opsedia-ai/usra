@@ -107,7 +107,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutPrivacyBackup =>
-      'A backup is an encrypted file you keep wherever you choose, and Usra can save one to a folder you pick by itself. Only your recovery key opens it, and we don\'t have it. Usra never saves backups to iCloud Drive for you.';
+      'A backup is an encrypted file you keep wherever you choose. Only your recovery key opens it, and we don\'t have it.';
 
   @override
   String get aboutPrivacyPhotos =>
@@ -3747,4 +3747,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backupAutoFolderTop => 'The main folder of the place you chose';
+
+  @override
+  String get aboutPrivacyBackupAuto =>
+      'If you turn on automatic backup, Usra saves that file by itself to a folder you pick. It sends us nothing, and it won\'t use iCloud Drive.';
 }

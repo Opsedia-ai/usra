@@ -457,6 +457,34 @@ void main() {
       ]);
     });
 
+    test('a restore clears the drop notice and keeps what\'s expected', () {
+      final at = DateTime.utc(2026, 11, 6);
+      final after = _on(failure: AutoBackupFailure.noSpace)
+          .copyWith(
+            baselineCounts: const {'people': 4},
+            latestCounts: const {'people': 1},
+            contentDropped: true,
+            heldBackups: const ['a.usra'],
+          )
+          .afterRestore(at);
+      expect(after.contentDropped, isFalse);
+      expect(after.heldBackups, isEmpty);
+      expect(after.baselineCounts, {'people': 4});
+      // Only a pause turns anything back on; other failures stay as they are.
+      expect(after.failure, AutoBackupFailure.noSpace);
+      expect(after.enabledAt, isNull);
+    });
+
+    test('a restore ends a pause', () {
+      final at = DateTime.utc(2026, 11, 6);
+      final after = _on(failure: AutoBackupFailure.pausedForRecovery)
+          .copyWith(enabled: false)
+          .afterRestore(at);
+      expect(after.enabled, isTrue);
+      expect(after.enabledAt, at);
+      expect(after.failure, isNull);
+    });
+
     test('a damaged file means off, and says so, not a crash', () async {
       File(p.join(dir.path, AutoBackupStore.fileName)).writeAsStringSync('{{');
       final store = await AutoBackupStore.open(dir);
@@ -572,7 +600,7 @@ void main() {
         deviceKey: dbKey,
         photoKeys: photoKeys,
         temporary: temp,
-        folders: const ['attachments'],
+        folders: const ['attachments', 'insurance_cards', 'medicines'],
         kdf: _testKdf,
         chunkSize: 4096,
       );
@@ -922,6 +950,118 @@ void main() {
         expect(whole().single, endsWith('-p.usra'));
       });
 
+      group('photos other tables point at', () {
+        void photoFile(String path) =>
+            (File(p.join(root.path, path))..createSync(recursive: true))
+                .writeAsBytesSync(photoKeys.require.seal([1, 2, 3]));
+
+        Future<String> person() => db.addProfile('a');
+
+        test('the cards folder gone: 3 of 43 is under the share, and still '
+            'found', () async {
+          final who = await person();
+          final event = await db.addEvent(
+            profileId: who,
+            type: 'visit',
+            occurredAt: DateTime.utc(2026),
+          );
+          final attached = [for (var i = 0; i < 40; i++) 'attachments/$i.jpg'];
+          await db.addAttachments(event, attached);
+          attached.forEach(photoFile);
+          for (final path in [
+            'insurance_cards/f.jpg',
+            'insurance_cards/b.jpg',
+            'insurance_cards/c.jpg',
+          ]) {
+            photoFile(path);
+          }
+          await db.saveInsuranceCard(
+            profileId: who,
+            label: 'one',
+            frontPhoto: 'insurance_cards/f.jpg',
+            backPhoto: 'insurance_cards/b.jpg',
+          );
+          await db.saveInsuranceCard(
+            profileId: who,
+            label: 'two',
+            frontPhoto: 'insurance_cards/c.jpg',
+          );
+          final first = await runner().run();
+          expect(first.settings.latestCounts!['photos'], 43);
+          final good = whole().single;
+          expect(good, isNot(endsWith('-p.usra')));
+
+          Directory(p.join(root.path, 'insurance_cards'))
+              .deleteSync(recursive: true);
+          now = now.add(const Duration(days: 7));
+          final second = await runner().run();
+          expect(second.settings.latestCounts!['photos'], 40);
+          expect(second.settings.latestCounts![backupMissingPhotosCount], 3);
+          expect(second.settings.contentDropped, isTrue);
+          expect(second.settings.heldBackups, [good]);
+          expect(whole().where((n) => n.endsWith('-p.usra')), hasLength(1));
+        });
+
+        test('medicine and prescription photos are in JSON lists', () async {
+          final who = await person();
+          await db.saveMedicine(
+            profileId: who,
+            name: 'x',
+            startOn: DateTime.utc(2026),
+            photos: const ['medicines/m.jpg', 'medicines/n.jpg'],
+          );
+          await db.savePrescription(
+            profileId: who,
+            prescribedOn: DateTime.utc(2026),
+            photos: const ['medicines/r.jpg'],
+            items: const [PrescriptionItemInput(name: 'x')],
+          );
+          photoFile('medicines/n.jpg');
+          final result = await runner().run();
+          expect(result.settings.latestCounts![backupMissingPhotosCount], 2);
+          expect(whole().single, endsWith('-p.usra'));
+        });
+
+        test('all there: nothing missing, and named complete', () async {
+          final who = await person();
+          await db.saveMedicine(
+            profileId: who,
+            name: 'x',
+            startOn: DateTime.utc(2026),
+            photos: const ['medicines/m.jpg'],
+          );
+          photoFile('medicines/m.jpg');
+          final result = await runner().run();
+          expect(result.settings.latestCounts![backupMissingPhotosCount], 0);
+          expect(whole().single, isNot(endsWith('-p.usra')));
+        });
+
+        test('deleted rows and a damaged list don\'t count', () async {
+          final who = await person();
+          final medicine = await db.saveMedicine(
+            profileId: who,
+            name: 'x',
+            startOn: DateTime.utc(2026),
+            photos: const ['medicines/gone.jpg'],
+          );
+          await db.customStatement(
+            'UPDATE medicines SET deleted_at = 1 WHERE id = ?',
+            [medicine],
+          );
+          await db.saveMedicine(
+            profileId: who,
+            name: 'y',
+            startOn: DateTime.utc(2026),
+          );
+          await db.customStatement(
+            "UPDATE medicines SET photos_json = 'not json' WHERE name = 'y'",
+          );
+          final result = await runner().run();
+          expect(result.landed, isTrue);
+          expect(result.settings.latestCounts![backupMissingPhotosCount], 0);
+        });
+      });
+
       test('back to normal: the hold clears by itself', () async {
         await threeGood();
         await runWith(shrunk, day: 4);
@@ -947,6 +1087,19 @@ void main() {
           final result = await runWith(shrunk, day: 5);
           expect(result.settings.contentDropped, isFalse);
           expect(whole(), hasLength(autoBackupKeep));
+        },
+      );
+
+      test(
+        'restoring something smaller is flagged again at the next run',
+        () async {
+          final good = await threeGood();
+          await runWith(shrunk, day: 4);
+          await store.save(store.current.afterRestore(now));
+          expect(store.current.contentDropped, isFalse);
+          final result = await runWith(shrunk, day: 5);
+          expect(result.settings.contentDropped, isTrue);
+          expect(whole(), containsAll(good));
         },
       );
 

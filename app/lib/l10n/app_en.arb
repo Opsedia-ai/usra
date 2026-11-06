@@ -30,7 +30,7 @@
   "aboutPrivacyHeading": "Your privacy, in plain words",
   "aboutPrivacyOnPhone": "Everything you record stays on this phone. Records are in an encrypted database; photos are in the app's private storage, never in your gallery or in cloud backups. We don't receive any of it and can't see it.",
   "aboutPrivacyNoAccount": "No account, no sign-in, no ads and no tracking. We never sell or share anyone's data.",
-  "aboutPrivacyBackup": "A backup is an encrypted file you keep wherever you choose, and Usra can save one to a folder you pick by itself. Only your recovery key opens it, and we don't have it. Usra never saves backups to iCloud Drive for you.",
+  "aboutPrivacyBackup": "A backup is an encrypted file you keep wherever you choose. Only your recovery key opens it, and we don't have it.",
   "aboutPrivacyPhotos": "The camera and photos are used only when you choose, and text is read from them on this phone.",
   "aboutPrivacyReminders": "Reminders are set on this phone. People's names and medicine names can show on the lock screen (the name as you typed it) and on the home-screen widget (first names).",
   "aboutPrivacyDelete": "You can erase everything Usra keeps on this phone at any time: More › Delete all my data.",
@@ -2023,5 +2023,6 @@
   "backupContentDroppedTitle": "The latest backup holds less than before",
   "backupContentDroppedBody": "It has fewer people, records or photos, or some photos are missing, so we kept your older backups. If you deleted these on purpose, confirm it. If not, restore an older backup.",
   "backupContentDroppedAccept": "I deleted them on purpose",
-  "backupAutoFolderTop": "The main folder of the place you chose"
+  "backupAutoFolderTop": "The main folder of the place you chose",
+  "aboutPrivacyBackupAuto": "If you turn on automatic backup, Usra saves that file by itself to a folder you pick. It sends us nothing, and it won't use iCloud Drive."
 }

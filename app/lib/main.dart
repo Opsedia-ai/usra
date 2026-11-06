@@ -369,17 +369,9 @@ Future<void> main() async {
           PrefKeys.lastBackupAt,
           staged.manifest.createdAt.millisecondsSinceEpoch,
         );
-        // The records are back, so it's safe for backups to resume.
-        final auto = autoBackupStore.current;
-        if (auto.failure == AutoBackupFailure.pausedForRecovery) {
-          await autoBackupStore.save(
-            auto.copyWith(
-              enabled: true,
-              enabledAt: DateTime.now(),
-              failure: null,
-            ),
-          );
-        }
+        await autoBackupStore.save(
+          autoBackupStore.current.afterRestore(DateTime.now()),
+        );
         await backup.discardAside();
       } catch (e, s) {
         // The records are back; these only matter for the next backup.

@@ -136,6 +136,20 @@ class AutoBackupSettings {
 
   static const _unset = Object();
 
+  /// After a restore worked. The records are back, so a pause is over and any
+  /// notice about the old data no longer applies. What's expected stays, so
+  /// restoring something smaller is noticed at the next backup.
+  AutoBackupSettings afterRestore(DateTime now) {
+    final paused = failure == AutoBackupFailure.pausedForRecovery;
+    return copyWith(
+      enabled: paused ? true : null,
+      enabledAt: paused ? now : null,
+      failure: paused ? null : failure,
+      contentDropped: false,
+      heldBackups: const [],
+    );
+  }
+
   AutoBackupSettings copyWith({
     bool? enabled,
     BackupFrequency? frequency,

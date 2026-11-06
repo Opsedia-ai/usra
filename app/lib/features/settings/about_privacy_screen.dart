@@ -86,6 +86,7 @@ class AboutPrivacyScreen extends ConsumerWidget {
                 _Point(Icons.phone_android, l.aboutPrivacyOnPhone),
                 _Point(Icons.block, l.aboutPrivacyNoAccount),
                 _Point(Icons.backup_outlined, l.aboutPrivacyBackup),
+                _Point(Icons.schedule, l.aboutPrivacyBackupAuto),
                 _Point(Icons.photo_camera_outlined, l.aboutPrivacyPhotos),
                 _Point(Icons.notifications_none, l.aboutPrivacyReminders),
                 _Point(Icons.text_fields, l.aboutPrivacyGoogle),

@@ -281,7 +281,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutPrivacyBackup.
   ///
   /// In en, this message translates to:
-  /// **'A backup is an encrypted file you keep wherever you choose, and Usra can save one to a folder you pick by itself. Only your recovery key opens it, and we don\'t have it. Usra never saves backups to iCloud Drive for you.'**
+  /// **'A backup is an encrypted file you keep wherever you choose. Only your recovery key opens it, and we don\'t have it.'**
   String get aboutPrivacyBackup;
 
   /// No description provided for @aboutPrivacyPhotos.
@@ -6061,6 +6061,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The main folder of the place you chose'**
   String get backupAutoFolderTop;
+
+  /// No description provided for @aboutPrivacyBackupAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'If you turn on automatic backup, Usra saves that file by itself to a folder you pick. It sends us nothing, and it won\'t use iCloud Drive.'**
+  String get aboutPrivacyBackupAuto;
 }
 
 class _AppLocalizationsDelegate

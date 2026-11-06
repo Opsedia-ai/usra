@@ -35,7 +35,7 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
 | Health records (timeline, medicines, pregnancy, children, follow-ups) | Encrypted SQLite on the phone |
 | Photos: insurance cards, prescriptions, reports, medicine boxes | App private folder |
 | Database key, recovery key, device keys, auth session | Keystore / Keychain |
-| Backup files | Wherever the user puts them (Drive, Files, WhatsApp), or a folder they choose for automatic backup (never iCloud Drive) |
+| Backup files | Wherever the user puts them (Drive, Files, WhatsApp) |
 | Account data (phone number, country, devices), v2 ciphertext | Supabase |
 | AI Doctor and cloud OCR requests | Edge function memory, the LLM/OCR provider |
 
@@ -255,7 +255,8 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   three runs after a data loss remove every good backup. If the database came
   back empty after it couldn't be opened, automatic backup pauses. Each backup
   also reports how many people, records and photos it holds, and how many
-  attachment rows have no file. If any person is gone, or records or photos
+  photos a live row points at have no file (attachments, insurance cards,
+  medicines and prescriptions). If any person is gone, or records or photos
   drop by 3 or more and at least 10%, or a photo is newly missing, the new file
   still lands, but the backups already there are held out of retention and Home
   says so (Simple Mode too). What's expected doesn't move down until the person

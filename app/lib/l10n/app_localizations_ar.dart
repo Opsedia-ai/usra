@@ -106,7 +106,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutPrivacyBackup =>
-      'النسخة الاحتياطية ملف متشفر إنت بتحتفظ بيه في المكان اللي تختاره، وأسرة تقدر تحفظها لوحدها في فولدر تحدده. ميتفتحش غير بمفتاح الاسترجاع بتاعك، وهو مش معانا. أسرة عمرها ما بتحفظ النسخ على iCloud Drive من نفسها.';
+      'النسخة الاحتياطية ملف متشفر إنت بتحتفظ بيه في المكان اللي تختاره. ميتفتحش غير بمفتاح الاسترجاع بتاعك، وهو مش معانا.';
 
   @override
   String get aboutPrivacyPhotos =>
@@ -3765,4 +3765,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get backupAutoFolderTop => 'الفولدر الرئيسي للمكان اللي اخترته';
+
+  @override
+  String get aboutPrivacyBackupAuto =>
+      'لو شغّلت النسخ التلقائي، أسرة بتحفظ الملف ده لوحدها في فولدر تختاره. مش بتبعتلنا حاجة، ومش هتستخدم iCloud Drive.';
 }
