@@ -89,19 +89,6 @@ void main() {
     },
   );
 
-  testWidgets('a build with accounts doesn\'t say there are none', (
-    tester,
-  ) async {
-    cloud = const SupabaseConfig(
-      url: 'https://example.supabase.co',
-      anonKey: 'anon',
-    );
-    addTearDown(() => cloud = SupabaseConfig.none);
-    await openAbout(tester);
-    expect(find.textContaining('مفيش حساب'), findsNothing);
-    expect(find.textContaining('الحساب اختياري'), findsOneWidget);
-  });
-
   testWidgets('the back arrow returns to More', (tester) async {
     await openAbout(tester);
 
@@ -145,6 +132,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('مقدرناش نفتح الصفحة. اتأكد من النت.'), findsOneWidget);
+  });
+
+  testWidgets('a build with accounts doesn\'t say there are none', (
+    tester,
+  ) async {
+    cloud = const SupabaseConfig(
+      url: 'https://example.supabase.co',
+      anonKey: 'anon',
+    );
+    addTearDown(() => cloud = SupabaseConfig.none);
+    await openAbout(tester);
+    expect(find.textContaining('مفيش حساب'), findsNothing);
+    expect(find.textContaining('الحساب اختياري'), findsOneWidget);
   });
 
   testWidgets('in English', (tester) async {
