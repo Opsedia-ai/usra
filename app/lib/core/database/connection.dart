@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -52,13 +53,33 @@ class EncryptionUnavailableError extends StateError {
       );
 }
 
+/// SQLite's primary result code for "this file is not a database": what a
+/// wrong key gives, and the only case that means the key can't open the file.
+const sqliteNotADatabase = 26;
+
+/// The database file couldn't be checked or moved, for a reason that says
+/// nothing about the key: a full disk, a read error, a lock. The file is left
+/// where it is, so trying again later may work.
+///
+/// Carries only the SQLite code. A [SqliteException]'s text can quote the
+/// `PRAGMA key` statement.
+class DatabaseOpenException implements Exception {
+  const DatabaseOpenException([this.code]);
+
+  /// SQLite extended result code. Null if the file system refused instead.
+  final int? code;
+
+  @override
+  String toString() => 'DatabaseOpenException($code)';
+}
+
 /// What [prepareDatabaseFile] found.
 enum DatabaseOpenOutcome {
   /// New or readable database.
   ready,
 
-  /// The old file could not be opened with this key (for example the key
-  /// was reset). It was moved aside, never deleted, and a new one starts.
+  /// The key does not open the old file (for example the key was reset). It
+  /// was moved aside, never deleted, and a new one starts.
   recoveredFromUnreadableFile,
 }
 
@@ -76,23 +97,38 @@ void unlockDatabase(Database db, String hexKey) {
 }
 
 /// Makes sure [file] can be opened with [hexKey] before the app uses it.
-DatabaseOpenOutcome prepareDatabaseFile(File file, String hexKey) {
+///
+/// Moves the file aside only on [sqliteNotADatabase]. Any other failure throws
+/// [DatabaseOpenException] and leaves the file alone: a full disk must never
+/// look like a lost key, or a family opens an empty app.
+DatabaseOpenOutcome prepareDatabaseFile(
+  File file,
+  String hexKey, {
+  @visibleForTesting void Function(Database, String) unlock = unlockDatabase,
+}) {
   _checkKey(hexKey);
   if (!file.existsSync()) return DatabaseOpenOutcome.ready;
 
-  var readable = true;
-  final db = sqlite3.open(file.path);
   try {
-    unlockDatabase(db, hexKey);
-  } on SqliteException {
-    readable = false;
-  } finally {
-    db.close();
+    final db = sqlite3.open(file.path);
+    try {
+      unlock(db, hexKey);
+      return DatabaseOpenOutcome.ready;
+    } finally {
+      db.close();
+    }
+  } on SqliteException catch (e) {
+    if (e.resultCode != sqliteNotADatabase) {
+      throw DatabaseOpenException(e.extendedResultCode);
+    }
   }
-  if (readable) return DatabaseOpenOutcome.ready;
 
   final stamp = DateTime.now().toUtc().millisecondsSinceEpoch;
-  file.renameSync('${file.path}.unreadable-$stamp');
+  try {
+    file.renameSync('${file.path}.unreadable-$stamp');
+  } on FileSystemException {
+    throw const DatabaseOpenException();
+  }
   return DatabaseOpenOutcome.recoveredFromUnreadableFile;
 }
 

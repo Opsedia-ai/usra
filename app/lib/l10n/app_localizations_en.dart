@@ -107,7 +107,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutPrivacyOptionalAccount =>
-      'An account is optional, and there are no ads and no tracking. If you sign in, we keep your email (and your name with Google) to run the account, and we never receive your health records. We never sell or share anyone\'s data.';
+      'An account is optional, and there are no ads and no tracking. If you sign in, we keep your email, account ID, language and device information to run the account, plus your name and profile photo link if you use Google. We never receive your health records. We never sell or share anyone\'s data.';
 
   @override
   String get aboutPrivacyBackup =>
@@ -1671,6 +1671,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Usra can\'t open the key to your records right now. Your records are still here and nothing was deleted. Try again, or restart your phone. If this keeps happening, contact us before deleting the app.';
 
   @override
+  String get databaseOpenFailed =>
+      'Usra can\'t open your records right now. Your records are still here and nothing was deleted. Check that your phone has free storage, then try again or restart your phone. If this keeps happening, contact us before deleting the app.';
+
+  @override
   String get recoveryKeyCopyFailed =>
       'Couldn\'t copy the key. Write it down from the screen instead.';
 
@@ -2317,7 +2321,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountSignInIntro =>
-      'An account is optional: the app works fully without one. Google shares your name and email with us; Apple shares your email.';
+      'An account is optional: the app works fully without one. Google shares your name, email, profile photo link and an account ID with us; Apple shares your email (or a replacement address if you hide yours) and an account ID. We store these with your language and device information to run the account.';
 
   @override
   String get accountSignInConsent =>

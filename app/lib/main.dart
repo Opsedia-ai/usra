@@ -43,6 +43,17 @@ import 'l10n/app_localizations.dart';
 import 'core/security/secure_storage_options.dart';
 import 'features/settings/key_unavailable.dart';
 
+/// Replaces the app with [screen]. Never makes a new key or a new database:
+/// the records are still there.
+void _showRecordsUnavailable(Widget screen) => runApp(
+  MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: Scaffold(
+      body: Center(child: SingleChildScrollView(child: screen)),
+    ),
+  ),
+);
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Log.installErrorHandlers();
@@ -108,18 +119,7 @@ Future<void> main() async {
     // Never make a new key over one that can't be read: the records are still
     // there. Show why, and let the person try again.
     Log.error('Database key unavailable', e);
-    runApp(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          body: Center(
-            child: SingleChildScrollView(
-              child: DatabaseKeyUnavailable(onRetry: () => main()),
-            ),
-          ),
-        ),
-      ),
-    );
+    _showRecordsUnavailable(DatabaseKeyUnavailable(onRetry: main));
     return;
   }
   final photoKeyStore = SecurePhotoKeyStore();
@@ -165,7 +165,15 @@ Future<void> main() async {
   }
   // iOS Data Protection (S9). Not awaited: the app opens meanwhile.
   var protection = protectAppFiles(root, photoFolders);
-  var outcome = prepareDatabaseFile(file, key);
+  DatabaseOpenOutcome outcome;
+  try {
+    outcome = prepareDatabaseFile(file, key);
+  } on DatabaseOpenException catch (e) {
+    // Not a wrong key (a full disk, a lock): the file stays where it is.
+    Log.error('Database could not be opened', e);
+    _showRecordsUnavailable(DatabaseKeyUnavailable.openFailed(onRetry: main));
+    return;
+  }
   var database = AppDatabase(openEncryptedDatabase(file, key));
   final (
     preferences,
@@ -378,7 +386,15 @@ Future<void> main() async {
         );
       }
     }
-    outcome = prepareDatabaseFile(file, key);
+    try {
+      outcome = prepareDatabaseFile(file, key);
+    } on DatabaseOpenException catch (e) {
+      // The old connection is closed and the old providers are gone, so
+      // starting again from main() is safe.
+      Log.error('Database could not be reopened', e);
+      _showRecordsUnavailable(DatabaseKeyUnavailable.openFailed(onRetry: main));
+      return;
+    }
     database = AppDatabase(openEncryptedDatabase(file, key));
     dismissals = await FileDismissalStore.open();
     autoBackupStore = await AutoBackupStore.open(root);

@@ -17,6 +17,7 @@ import 'package:usra/features/account/device_identity.dart';
 import 'package:usra/features/account/login_config.dart';
 import 'package:usra/features/account/supabase_config.dart';
 import 'package:usra/features/settings/key_unavailable.dart';
+import 'package:usra/l10n/app_localizations.dart';
 
 import '../support/fake_auth_gateway.dart';
 
@@ -385,7 +386,7 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: SingleChildScrollView(
-            child: DatabaseKeyUnavailable(onRetry: () => retries++),
+            child: DatabaseKeyUnavailable(onRetry: () async => retries++),
           ),
         ),
       ),
@@ -394,6 +395,120 @@ void main() {
     expect(find.textContaining('متمسحتش'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('database-key-retry')));
     expect(retries, 1);
+  });
+
+  group('the database unavailable screen', () {
+    Future<void> pump(WidgetTester tester, Widget child) => tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: SingleChildScrollView(child: child)),
+      ),
+    );
+    final retry = find.byKey(const ValueKey('database-key-retry'));
+    bool enabled(WidgetTester tester) =>
+        tester.widget<FilledButton>(retry).onPressed != null;
+
+    testWidgets('a double tap retries once and disables the button', (
+      tester,
+    ) async {
+      var retries = 0;
+      final done = Completer<void>();
+      await pump(
+        tester,
+        DatabaseKeyUnavailable(
+          onRetry: () {
+            retries++;
+            return done.future;
+          },
+        ),
+      );
+      // Same frame: the button hasn't been rebuilt between the two calls.
+      final press = tester.widget<FilledButton>(retry).onPressed!;
+      press();
+      press();
+      expect(retries, 1);
+      await tester.pump();
+      expect(enabled(tester), isFalse);
+      await tester.tap(retry, warnIfMissed: false);
+      expect(retries, 1);
+      done.complete();
+    });
+
+    testWidgets('the button comes back when the retry fails again', (
+      tester,
+    ) async {
+      // main() shows this screen again with runApp, which keeps the State.
+      var retries = 0;
+      Future<void> onRetry() async => retries++;
+      await pump(tester, DatabaseKeyUnavailable(onRetry: onRetry));
+      await tester.tap(retry);
+      await tester.pump();
+      await pump(tester, DatabaseKeyUnavailable(onRetry: onRetry));
+      await tester.pump();
+      expect(enabled(tester), isTrue);
+      await tester.tap(retry);
+      expect(retries, 2);
+    });
+
+    testWidgets('a retry that throws brings the button back too', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        DatabaseKeyUnavailable(onRetry: () async => throw StateError('no')),
+      );
+      await tester.tap(retry);
+      await tester.pump();
+      expect(tester.takeException(), isStateError);
+      expect(enabled(tester), isTrue);
+    });
+
+    testWidgets('an open failure says records are safe, not the key', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        DatabaseKeyUnavailable.openFailed(onRetry: () async {}),
+      );
+      expect(find.textContaining('free storage'), findsOneWidget);
+      expect(find.textContaining('nothing was deleted'), findsOneWidget);
+      expect(find.textContaining('مساحة فاضية'), findsOneWidget);
+      expect(find.textContaining('مفتاح'), findsNothing);
+    });
+  });
+
+  test('account privacy text lists what the privacy policy lists', () {
+    final en = lookupAppLocalizations(const Locale('en'));
+    for (final text in [
+      en.aboutPrivacyOptionalAccount,
+      en.accountSignInIntro,
+    ]) {
+      for (final item in [
+        'email',
+        'name',
+        'profile photo link',
+        'account ID',
+        'language',
+        'device information',
+      ]) {
+        expect(text, contains(item));
+      }
+    }
+    final ar = lookupAppLocalizations(const Locale('ar'));
+    for (final text in [
+      ar.aboutPrivacyOptionalAccount,
+      ar.accountSignInIntro,
+    ]) {
+      for (final item in [
+        'إيميلك',
+        'اسمك',
+        'لينك صورة حسابك',
+        'رقم تعريف للحساب',
+        'اللغة',
+        'معلومات الجهاز',
+      ]) {
+        expect(text, contains(item));
+      }
+    }
   });
 
   testWidgets('English strings', (tester) async {
