@@ -85,10 +85,14 @@ class _FakeFolder implements BackupFolderAccess {
   }
 
   @override
-  Future<int> write(String id, String sourcePath, String name) async {
+  Future<void> write(String id, String sourcePath, String name) async {
     if (writeProblem case final problem?) throw BackupFolderException(problem);
-    return files[name] = File(sourcePath).lengthSync();
+    files[name] = File(sourcePath).lengthSync();
   }
+
+  @override
+  Future<int> verify(String id, String sourcePath, String name) async =>
+      files[name]!;
 
   @override
   Future<void> rename(String id, String from, String to) async {
@@ -143,7 +147,10 @@ void main() {
     dir.deleteSync(recursive: true);
   });
 
-  Widget app({List<Override> extra = const []}) => ProviderScope(
+  Widget app({
+    List<Override> extra = const [],
+    Duration startDelay = Duration.zero,
+  }) => ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
       keyValueStoreProvider.overrideWithValue(prefs),
@@ -152,7 +159,7 @@ void main() {
       backupFolderAccessProvider.overrideWithValue(folder),
       autoBackupStoreProvider.overrideWithValue(store),
       backupGateProvider.overrideWithValue(gate),
-      autoBackupStartDelayProvider.overrideWithValue(Duration.zero),
+      autoBackupStartDelayProvider.overrideWithValue(startDelay),
       ...extra,
     ],
     child: const UsraApp(),
@@ -439,6 +446,24 @@ void main() {
       expect(store.current.failure, isNull);
     });
 
+    testWidgets('left during the short wait: nothing starts', (tester) async {
+      store = AutoBackupStore.memory(
+        on().copyWith(lastAt: DateTime.now().subtract(const Duration(days: 8))),
+      );
+      await tester.runAsync(() => db.addProfile('فاطمة'));
+      tester.view.physicalSize = const Size(1170, 4000);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(app(startDelay: const Duration(seconds: 4)));
+      await tester.pumpAndSettle();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump(const Duration(seconds: 1));
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump(const Duration(seconds: 5));
+      await settleBackup(tester);
+      expect(service.made, isEmpty);
+    });
+
     testWidgets('not due: nothing happens', (tester) async {
       store = AutoBackupStore.memory(on());
       await open(tester);
@@ -567,7 +592,84 @@ void main() {
       container.read(localeProvider.notifier).change(const Locale('en'));
       await tester.pumpAndSettle();
       expect(find.text('The automatic backup didn\'t finish'), findsOneWidget);
-      expect(find.textContaining('half saved'), findsOneWidget);
+      expect(find.textContaining('removed next time'), findsOneWidget);
+    });
+
+    testWidgets('paused after recovery reaches Home, in Simple Mode too', (
+      tester,
+    ) async {
+      prefs = MemoryKeyValueStore({
+        PrefKeys.tutorialSeen: true,
+        PrefKeys.elderTutorialSeen: true,
+        PrefKeys.simpleMode: true,
+      });
+      store = AutoBackupStore.memory(
+        on(enabled: false, failure: AutoBackupFailure.pausedForRecovery),
+      );
+      await open(tester);
+      expect(find.byKey(const ValueKey('auto-backup-failed')), findsOneWidget);
+      expect(find.text('النسخ التلقائي واقف'), findsOneWidget);
+      await tester.tap(find.text('افتح النسخة الاحتياطية'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('backup-auto-paused')), findsOneWidget);
+    });
+
+    testWidgets('settings that couldn\'t be read are said on Home', (
+      tester,
+    ) async {
+      await tester.runAsync(() async {
+        File(p.join(dir.path, AutoBackupStore.fileName))
+            .writeAsStringSync('{{');
+        store = await AutoBackupStore.open(dir);
+      });
+      final container = await open(tester);
+      expect(
+        find.byKey(const ValueKey('auto-backup-unreadable')),
+        findsOneWidget,
+      );
+      await tester.runAsync(
+        () => container.read(autoBackupProvider.notifier).enable(),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('auto-backup-unreadable')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('a drop in content is said on Home and can be accepted', (
+      tester,
+    ) async {
+      prefs = MemoryKeyValueStore({
+        PrefKeys.tutorialSeen: true,
+        PrefKeys.elderTutorialSeen: true,
+        PrefKeys.simpleMode: true,
+      });
+      store = AutoBackupStore.memory(
+        on().copyWith(
+          baselineCounts: const {'people': 4},
+          latestCounts: const {'people': 1},
+          contentDropped: true,
+          heldBackups: const ['usra-auto-abcd1234-20261101-100000.usra'],
+        ),
+      );
+      await open(tester);
+      expect(
+        find.byKey(const ValueKey('auto-backup-content-dropped')),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('افتح النسخة الاحتياطية'));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('backup-content-restore')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey('backup-content-accept')));
+      await tester.pumpAndSettle();
+      expect(store.current.contentDropped, isFalse);
+      expect(store.current.heldBackups, isEmpty);
+      expect(store.current.baselineCounts, {'people': 1});
+      expect(find.byKey(const ValueKey('backup-content-accept')), findsNothing);
     });
 
     testWidgets('no notice while off, or while trying again', (tester) async {

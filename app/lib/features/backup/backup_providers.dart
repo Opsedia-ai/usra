@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState, WidgetsBinding;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -131,10 +132,17 @@ final autoBackupStartDelayProvider = Provider<Duration>(
 
 /// The settings, and whether a backup is being made right now.
 class AutoBackupStatus {
-  const AutoBackupStatus(this.settings, {this.running = false});
+  const AutoBackupStatus(
+    this.settings, {
+    this.running = false,
+    this.unreadable = false,
+  });
 
   final AutoBackupSettings settings;
   final bool running;
+
+  /// The saved settings couldn't be read, so automatic backup is off.
+  final bool unreadable;
 }
 
 /// What came of asking for a folder.
@@ -154,11 +162,16 @@ class AutoBackupController extends Notifier<AutoBackupStatus> {
   @override
   AutoBackupStatus build() {
     ref.onDispose(() => _start?.cancel());
-    return AutoBackupStatus(ref.watch(autoBackupStoreProvider).current);
+    final store = ref.watch(autoBackupStoreProvider);
+    return AutoBackupStatus(store.current, unreadable: store.unreadable);
   }
 
   Future<void> _save(AutoBackupSettings settings) async {
-    state = AutoBackupStatus(settings, running: state.running);
+    state = AutoBackupStatus(
+      settings,
+      running: state.running,
+      unreadable: state.unreadable && !settings.enabled,
+    );
     await ref.read(autoBackupStoreProvider).save(settings);
   }
 
@@ -208,6 +221,19 @@ class AutoBackupController extends Notifier<AutoBackupStatus> {
     ),
   );
 
+  /// The person says the drop in what's backed up is right: what the last
+  /// backup holds is the new normal, and older ones can go again.
+  Future<void> acceptContentChange() {
+    final settings = state.settings;
+    return _save(
+      settings.copyWith(
+        baselineCounts: settings.latestCounts,
+        contentDropped: false,
+        heldBackups: const [],
+      ),
+    );
+  }
+
   /// Stops new backups. What's in the folder stays there.
   Future<void> disable() =>
       _save(state.settings.copyWith(enabled: false, failure: null));
@@ -228,17 +254,25 @@ class AutoBackupController extends Notifier<AutoBackupStatus> {
       discard: service.discardCreated,
       onChange: (settings) {
         if (ref.mounted) {
-          state = AutoBackupStatus(settings, running: state.running);
+          state = AutoBackupStatus(
+            settings,
+            running: state.running,
+            unreadable: state.unreadable,
+          );
         }
       },
     );
     final result = await gate.tryRun(() {
-      state = AutoBackupStatus(state.settings, running: true);
+      state = AutoBackupStatus(
+        state.settings,
+        running: true,
+        unreadable: state.unreadable,
+      );
       return runner.run();
     });
     // Busy (the share sheet has a backup open), or closed for a restore.
     if (result == null || !ref.mounted) return;
-    state = AutoBackupStatus(result.settings);
+    state = AutoBackupStatus(result.settings, unreadable: state.unreadable);
     // Home's reminder is about a copy off this phone: a folder on the
     // phone, or one that may be, doesn't quiet it.
     if (result.landed && result.settings.folder?.onThisPhone == false) {
@@ -270,7 +304,7 @@ class AutoBackupController extends Notifier<AutoBackupStatus> {
   }
 
   Future<void> _startIfStillDue() async {
-    if (!ref.mounted) return;
+    if (!ref.mounted || !_onScreen) return;
     if (!shouldStartAutoBackup(state.settings, DateTime.now())) return;
     try {
       // Nobody in the family yet: nothing worth pushing older backups out.
@@ -279,6 +313,10 @@ class AutoBackupController extends Notifier<AutoBackupStatus> {
       Log.error('Auto backup family check failed', e);
       return;
     }
-    if (ref.mounted) await runNow();
+    if (ref.mounted && _onScreen) await runNow();
   }
+
+  /// The person may have left while the short wait ran.
+  bool get _onScreen =>
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
 }

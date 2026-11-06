@@ -33,7 +33,11 @@ class _Folder implements BackupFolderAccess {
 
   /// Writes this many bytes, then stops: a killed app or a full disk.
   int? writeOnly;
+
+  /// Writes the whole file with this byte changed: a provider's fault.
+  int? corruptAt;
   bool ubiquitous = false;
+  Future<void> Function()? onInspect;
   String? path;
   String? renewedId;
   bool protectedData = true;
@@ -54,6 +58,7 @@ class _Folder implements BackupFolderAccess {
   @override
   Future<FolderStatus> inspect(String id) async {
     _throw(inspectProblem);
+    await onInspect?.call();
     return FolderStatus(
       path: path ?? dir.path,
       isUbiquitous: ubiquitous,
@@ -62,18 +67,33 @@ class _Folder implements BackupFolderAccess {
   }
 
   @override
-  Future<int> write(String id, String sourcePath, String name) async {
+  Future<void> write(String id, String sourcePath, String name) async {
     writes.add(name);
     final target = File(p.join(dir.path, name));
     final bytes = await File(sourcePath).readAsBytes();
     if (writeOnly case final only?) {
       await target.writeAsBytes(bytes.sublist(0, only));
       _throw(writeProblem);
-      return only;
+      return;
     }
     _throw(writeProblem);
+    if (corruptAt case final at?) bytes[at] ^= 0xff;
     await target.writeAsBytes(bytes);
-    return bytes.length;
+  }
+
+  @override
+  Future<int> verify(String id, String sourcePath, String name) async {
+    final landed = await File(p.join(dir.path, name)).readAsBytes();
+    final original = await File(sourcePath).readAsBytes();
+    if (landed.length != original.length) {
+      throw const BackupFolderException(BackupFolderProblem.failed);
+    }
+    for (var i = 0; i < landed.length; i++) {
+      if (landed[i] != original[i]) {
+        throw const BackupFolderException(BackupFolderProblem.failed);
+      }
+    }
+    return landed.length;
   }
 
   @override
@@ -101,6 +121,21 @@ class _Folder implements BackupFolderAccess {
 
   @override
   Future<bool> protectedDataAvailable() async => protectedData;
+}
+
+/// Retires the store once the copy is done, as a wipe overtaking a slow run
+/// would.
+class _RetiringFolder extends _Folder {
+  _RetiringFolder(super.dir, this.onWritten);
+
+  final void Function() onWritten;
+
+  @override
+  Future<int> verify(String id, String sourcePath, String name) async {
+    final size = await super.verify(id, sourcePath, name);
+    onWritten();
+    return size;
+  }
 }
 
 AutoBackupSettings _on({
@@ -220,8 +255,14 @@ void main() {
 
     test('keeps the newest 3', () {
       final names = [named(1), named(2), named(3), named(4), named(5)];
-      expect(backupsToDelete(names, _tag), [named(2), named(1)]);
-      expect(backupsToDelete(names.take(3), _tag), isEmpty);
+      expect(backupsToDelete(names, _tag, now: DateTime.utc(2026, 12)), [
+        named(2),
+        named(1),
+      ]);
+      expect(
+        backupsToDelete(names.take(3), _tag, now: DateTime.utc(2026, 12)),
+        isEmpty,
+      );
     });
 
     test('never deletes what this phone didn\'t write', () {
@@ -236,7 +277,9 @@ void main() {
         // This phone's.
         named(1), named(2), named(3), named(4),
       ];
-      expect(backupsToDelete(names, _tag), [named(1)]);
+      expect(backupsToDelete(names, _tag, now: DateTime.utc(2026, 12)), [
+        named(1),
+      ]);
     });
 
     test('backups missing photos can\'t push out the last whole one', () {
@@ -247,39 +290,112 @@ void main() {
         named(4, complete: false),
         named(5, complete: false),
       ];
-      expect(backupsToDelete(names, _tag), [named(1)]);
-      expect(backupsToDelete([...names, named(6, complete: false)], _tag), [
-        named(3, complete: false),
+      expect(backupsToDelete(names, _tag, now: DateTime.utc(2026, 12)), [
         named(1),
       ]);
+      expect(
+        backupsToDelete(
+          [...names, named(6, complete: false)],
+          _tag,
+          now: DateTime.utc(2026, 12),
+        ),
+        [named(3, complete: false), named(1)],
+      );
     });
 
-    test('a clock corrected from a wrong date can\'t delete the new one', () {
-      final wrong = [
+    test('files dated ahead of the clock go before real ones', () {
+      final future = [
         for (final year in [2030, 2031, 2032])
           AutoBackupFileName.make(_tag, DateTime.utc(year)),
       ];
-      final landed = named(6);
-      final doomed = backupsToDelete(
-        [...wrong, landed],
-        _tag,
-        justLanded: landed,
+      final clock = DateTime.utc(2026, 11, 6, 10, 30, 5);
+      // The new one stays, and the oldest of the wrong ones goes.
+      expect(backupsToDelete([...future, named(6)], _tag, now: clock), [
+        future.first,
+      ]);
+      // Real ones build up, and the wrong ones don't outrank them.
+      expect(
+        backupsToDelete(
+          [...future, named(1), named(2), named(3)],
+          _tag,
+          now: clock,
+        ),
+        unorderedEquals(future),
       );
-      expect(doomed, isNot(contains(landed)));
-      expect(doomed, [wrong.first]);
+    });
+
+    test('held backups aren\'t touched or counted', () {
+      final names = [for (var d = 1; d <= 7; d++) named(d)];
+      final held = names.take(3).toList();
+      expect(
+        backupsToDelete(names, _tag, now: DateTime.utc(2026, 12), held: held),
+        [named(4)],
+      );
     });
 
     test('only this phone\'s half-written files are leftovers', () {
       final mine = AutoBackupFileName.partialOf(named(1));
       final other = AutoBackupFileName.partialOf(named(1, tag: 'ffffffff'));
       expect(mine, 'usra-auto-abcd1234-20261101-103005.partial');
-      expect(partialsToDelete([mine, other, 'x.partial', named(2)], _tag), [
-        mine,
-      ]);
+      const renamed = 'usra-auto-abcd1234-20261101-103005 (1).partial';
+      expect(
+        partialsToDelete([mine, other, renamed, 'x.partial', named(2)], _tag),
+        [mine, renamed],
+      );
     });
 
     test('a new tag is 8 hex characters', () {
       expect(newBackupTag(Random(1)), matches(RegExp(r'^[0-9a-f]{8}$')));
+    });
+  });
+
+  group('what counts as a drop in content', () {
+    const before = {
+      'people': 4,
+      'records': 100,
+      'photos': 50,
+      backupMissingPhotosCount: 0,
+    };
+
+    test('nothing to compare yet, or the same or more, isn\'t one', () {
+      expect(hasContentDropped(null, before), isFalse);
+      expect(hasContentDropped(before, const {}), isFalse);
+      expect(hasContentDropped(before, before), isFalse);
+      expect(hasContentDropped(before, {...before, 'records': 200}), isFalse);
+    });
+
+    test('any person gone is', () {
+      expect(hasContentDropped(before, {...before, 'people': 3}), isTrue);
+    });
+
+    test('tidying up a few records or photos isn\'t', () {
+      expect(hasContentDropped(before, {...before, 'records': 98}), isFalse);
+      expect(hasContentDropped(before, {...before, 'photos': 48}), isFalse);
+      // 3 gone but under 10%.
+      expect(hasContentDropped(before, {...before, 'records': 97}), isFalse);
+      // 10% gone but under 3.
+      expect(
+        hasContentDropped({...before, 'photos': 10}, {...before, 'photos': 8}),
+        isFalse,
+      );
+    });
+
+    test('3 or more and at least 10% is', () {
+      expect(hasContentDropped(before, {...before, 'records': 90}), isTrue);
+      expect(hasContentDropped(before, {...before, 'photos': 45}), isTrue);
+      expect(
+        hasContentDropped(
+          {...before, 'records': 10},
+          {...before, 'records': 7},
+        ),
+        isTrue,
+      );
+    });
+
+    test('a photo row with no file is, until accepted', () {
+      final missing = {...before, backupMissingPhotosCount: 1};
+      expect(hasContentDropped(before, missing), isTrue);
+      expect(hasContentDropped(missing, missing), isFalse);
     });
   });
 
@@ -341,10 +457,42 @@ void main() {
       ]);
     });
 
-    test('a damaged file means off, not a crash', () async {
+    test('a damaged file means off, and says so, not a crash', () async {
       File(p.join(dir.path, AutoBackupStore.fileName)).writeAsStringSync('{{');
       final store = await AutoBackupStore.open(dir);
       expect(store.current.enabled, isFalse);
+      expect(store.unreadable, isTrue);
+    });
+
+    test('nothing to read isn\'t unreadable', () async {
+      expect((await AutoBackupStore.open(dir)).unreadable, isFalse);
+    });
+
+    test('a retired store writes nothing back', () async {
+      final store = await AutoBackupStore.open(dir);
+      await store.save(_on());
+      File(p.join(dir.path, AutoBackupStore.fileName)).deleteSync();
+      store.retire();
+      await store.save(_on(failure: AutoBackupFailure.failed));
+      expect(dir.listSync(), isEmpty);
+      expect(store.current.failure, isNull);
+    });
+
+    test('content counts and held backups survive a restart', () async {
+      final store = await AutoBackupStore.open(dir);
+      await store.save(
+        _on().copyWith(
+          baselineCounts: const {'people': 3},
+          latestCounts: const {'people': 2},
+          contentDropped: true,
+          heldBackups: const ['a.usra'],
+        ),
+      );
+      final reopened = (await AutoBackupStore.open(dir)).current;
+      expect(reopened.baselineCounts, {'people': 3});
+      expect(reopened.latestCounts, {'people': 2});
+      expect(reopened.contentDropped, isTrue);
+      expect(reopened.heldBackups, ['a.usra']);
     });
   });
 
@@ -534,6 +682,30 @@ void main() {
         expect(folder.names, isEmpty);
       });
 
+      test(
+        'a file changed on the way in fails, and pushes nothing out',
+        () async {
+          for (var day = 1; day <= 3; day++) {
+            now = DateTime.utc(2026, 11, day, 10);
+            await runner().run();
+          }
+          final good = whole().toList();
+          now = DateTime.utc(2026, 11, 4, 10);
+          folder.corruptAt = 100;
+          final result = await runner().run();
+          expect(result.landed, isFalse);
+          expect(result.settings.failure, AutoBackupFailure.failed);
+          expect(result.settings.lastAt, DateTime.utc(2026, 11, 3, 10));
+          expect(folder.names, good);
+        },
+      );
+
+      test('reports the size that landed', () async {
+        final result = await runner().run();
+        final file = File(p.join(folderDir.path, whole().single));
+        expect(result.settings.lastSize, file.lengthSync());
+      });
+
       test('a rename that fails leaves no half file', () async {
         folder.renameProblem = BackupFolderProblem.failed;
         final result = await runner().run();
@@ -622,7 +794,295 @@ void main() {
       });
     });
 
+    group('when the content drops', () {
+      /// A run whose backup holds [counts], as the real one reports them.
+      Future<AutoBackupResult> runWith(Map<String, int> counts, {int day = 1}) {
+        now = DateTime.utc(2026, 11, day, 10);
+        return AutoBackupRunner(
+          folders: folder,
+          keys: keys,
+          store: store,
+          make: (key, at) async {
+            final made = await service.create(
+              db,
+              key,
+              appVersion: '1.0.0+1',
+              now: at,
+            );
+            return CreatedBackup(made.file, counts: counts);
+          },
+          discard: service.discardCreated,
+          clock: () => now,
+        ).run();
+      }
+
+      const full = {'people': 4, 'records': 100, 'photos': 50};
+      const shrunk = {'people': 1, 'records': 2, 'photos': 0};
+
+      Future<List<String>> threeGood() async {
+        for (var day = 1; day <= 3; day++) {
+          await runWith(full, day: day);
+        }
+        return whole().toList();
+      }
+
+      test('it lands, older ones stay, and it says so', () async {
+        final good = await threeGood();
+        final result = await runWith(shrunk, day: 4);
+        expect(result.landed, isTrue);
+        expect(result.settings.failure, isNull);
+        expect(result.settings.contentDropped, isTrue);
+        expect(result.settings.heldBackups, good);
+        expect(whole(), hasLength(4));
+        // What's expected doesn't move down.
+        expect(result.settings.baselineCounts, full);
+        expect(result.settings.latestCounts, shrunk);
+      });
+
+      test(
+        'run after run can\'t push out the good ones, and stays bounded',
+        () async {
+          final good = await threeGood();
+          for (var day = 4; day <= 12; day++) {
+            final result = await runWith(shrunk, day: day);
+            expect(result.settings.contentDropped, isTrue);
+            expect(result.settings.heldBackups, good);
+          }
+          final names = whole().toList();
+          expect(names, containsAll(good));
+          expect(names, hasLength(good.length + autoBackupKeep));
+        },
+      );
+
+      test('restoring an older backup: the next due run holds', () async {
+        final good = await threeGood();
+        // As after `restoreAndRestart`, with far fewer records than expected.
+        final result = await runWith(const {
+          'people': 4,
+          'records': 40,
+          'photos': 50,
+        }, day: 10);
+        expect(result.settings.contentDropped, isTrue);
+        expect(whole(), containsAll(good));
+      });
+
+      test('a missing database: a new one with one person holds', () async {
+        // `prepareDatabaseFile` calls a missing file "ready", so nothing
+        // pauses this. The family's first new person is what starts a run.
+        final good = await threeGood();
+        final result = await runWith(const {
+          'people': 1,
+          'records': 0,
+          'photos': 0,
+        }, day: 10);
+        expect(result.settings.contentDropped, isTrue);
+        expect(whole(), containsAll(good));
+      });
+
+      test(
+        'a whole photo folder gone is found, and named incomplete',
+        () async {
+          await db.addProfile('a');
+          final person = await db.addProfile('b');
+          final event = await db.addEvent(
+            profileId: person,
+            type: 'visit',
+            occurredAt: DateTime.utc(2026),
+          );
+          await db.addAttachments(event, const ['attachments/a.jpg']);
+          final photo = File(p.join(root.path, 'attachments', 'a.jpg'))
+            ..createSync(recursive: true)
+            ..writeAsBytesSync(photoKeys.require.seal([1, 2, 3]));
+          final first = await runner().run();
+          expect(first.settings.latestCounts!['photos'], 1);
+          expect(first.settings.latestCounts![backupMissingPhotosCount], 0);
+          expect(whole().single, isNot(endsWith('-p.usra')));
+
+          photo.parent.deleteSync(recursive: true);
+          now = now.add(const Duration(days: 7));
+          final second = await runner().run();
+          expect(second.landed, isTrue);
+          expect(second.settings.latestCounts![backupMissingPhotosCount], 1);
+          expect(second.settings.contentDropped, isTrue);
+          expect(whole().where((n) => n.endsWith('-p.usra')), hasLength(1));
+          expect(whole(), hasLength(2));
+        },
+      );
+
+      test('an attachment row with no file is found too', () async {
+        final person = await db.addProfile('a');
+        final event = await db.addEvent(
+          profileId: person,
+          type: 'visit',
+          occurredAt: DateTime.utc(2026),
+        );
+        await db.addAttachments(event, const ['attachments/never.jpg']);
+        final result = await runner().run();
+        expect(result.settings.latestCounts![backupMissingPhotosCount], 1);
+        expect(whole().single, endsWith('-p.usra'));
+      });
+
+      test('back to normal: the hold clears by itself', () async {
+        await threeGood();
+        await runWith(shrunk, day: 4);
+        final result = await runWith(full, day: 5);
+        expect(result.settings.contentDropped, isFalse);
+        expect(result.settings.heldBackups, isEmpty);
+        expect(whole(), hasLength(autoBackupKeep));
+      });
+
+      test(
+        'once accepted, the new normal applies and old ones can go',
+        () async {
+          await threeGood();
+          await runWith(shrunk, day: 4);
+          // What "I deleted them on purpose" does.
+          await store.save(
+            store.current.copyWith(
+              baselineCounts: store.current.latestCounts,
+              contentDropped: false,
+              heldBackups: const [],
+            ),
+          );
+          final result = await runWith(shrunk, day: 5);
+          expect(result.settings.contentDropped, isFalse);
+          expect(whole(), hasLength(autoBackupKeep));
+        },
+      );
+
+      test('the first backup has nothing to compare with', () async {
+        final result = await runWith(shrunk);
+        expect(result.settings.contentDropped, isFalse);
+        expect(result.settings.baselineCounts, shrunk);
+      });
+    });
+
+    group('a run outlived by a restore or wipe', () {
+      late Completer<void> hold;
+
+      AutoBackupRunner slow() => AutoBackupRunner(
+        folders: folder,
+        keys: keys,
+        store: store,
+        make: (key, at) async {
+          final made = await service.create(
+            db,
+            key,
+            appVersion: '1.0.0+1',
+            now: at,
+          );
+          await hold.future;
+          return made;
+        },
+        discard: service.discardCreated,
+        clock: () => now,
+      );
+
+      setUp(() => hold = Completer<void>());
+
+      test('stops: nothing lands, and no settings come back', () async {
+        final file = Directory(p.join(dir.path, 'settings'))..createSync();
+        store = await AutoBackupStore.open(file);
+        await store.save(_on());
+        final running = slow().run();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        store.retire();
+        for (final entity in file.listSync()) {
+          entity.deleteSync();
+        }
+        hold.complete();
+        final result = await running;
+
+        expect(result.landed, isFalse);
+        expect(folder.writes, isEmpty);
+        expect(file.listSync(), isEmpty);
+        expect(temp.listSync(), isEmpty);
+      });
+
+      test(
+        'retired during the copy: the file goes, and nothing is pruned',
+        () async {
+          await runner().run();
+          final retiring = _RetiringFolder(folderDir, () => store.retire());
+          now = now.add(const Duration(days: 7));
+          final result = await AutoBackupRunner(
+            folders: retiring,
+            keys: keys,
+            store: store,
+            make: (key, at) =>
+                service.create(db, key, appVersion: '1.0.0+1', now: at),
+            discard: service.discardCreated,
+            clock: () => now,
+          ).run();
+          expect(result.landed, isFalse);
+          expect(whole(), hasLength(1));
+          expect(folder.names.where((n) => n.endsWith('.partial')), isEmpty);
+        },
+      );
+    });
+
+    group('settings changed during a run', () {
+      AutoBackupRunner changing(
+        AutoBackupSettings Function(AutoBackupSettings) c,
+      ) => AutoBackupRunner(
+        folders: folder,
+        keys: keys,
+        store: store,
+        make: (key, at) async {
+          await store.save(c(store.current));
+          return service.create(db, key, appVersion: '1.0.0+1', now: at);
+        },
+        discard: service.discardCreated,
+        clock: () => now,
+      );
+
+      test('a new frequency isn\'t overwritten', () async {
+        final result = await changing(
+          (s) => s.copyWith(frequency: BackupFrequency.daily),
+        ).run();
+        expect(result.landed, isTrue);
+        expect(store.current.frequency, BackupFrequency.daily);
+      });
+
+      test('a new folder isn\'t overwritten', () async {
+        const other = BackupFolder(id: 'other', name: 'O', onThisPhone: true);
+        await changing((s) => s.copyWith(folder: other)).run();
+        expect(store.current.folder!.id, 'other');
+        expect(store.current.lastAt, now);
+      });
+
+      test(
+        'a renewed bookmark doesn\'t replace a folder chosen since',
+        () async {
+          const other = BackupFolder(id: 'other', name: 'O', onThisPhone: true);
+          folder
+            ..renewedId = 'fresh'
+            ..onInspect = () =>
+                store.save(store.current.copyWith(folder: other));
+          await runner().run();
+          expect(store.current.folder!.id, 'other');
+        },
+      );
+
+      test('turned off during a run stays off', () async {
+        await changing((s) => s.copyWith(enabled: false)).run();
+        expect(store.current.enabled, isFalse);
+      });
+    });
+
     group('what can go wrong', () {
+      test(
+        'the folder moves into iCloud while the file is being made',
+        () async {
+          folder.writeProblem = BackupFolderProblem.iCloud;
+          final result = await runner().run();
+          expect(result.landed, isFalse);
+          expect(result.settings.failure, AutoBackupFailure.iCloudFolder);
+          expect(folder.names, isEmpty);
+        },
+      );
+
       test('folder gone', () async {
         folder.inspectProblem = BackupFolderProblem.missing;
         final result = await runner().run();

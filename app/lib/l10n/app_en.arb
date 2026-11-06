@@ -1969,7 +1969,7 @@
   "backupAutoFailSpace": "There isn't enough storage space for the backup. Free up some space, then try again.",
   "backupAutoFailLocked": "The phone locked during the backup. Keep it unlocked, then try again.",
   "backupAutoFailKey": "The recovery key isn't on this phone any more. Set it up again to keep backing up.",
-  "backupAutoFailInterrupted": "Usra closed before the backup finished. Nothing was left half saved, and your earlier backups are safe. Try again.",
+  "backupAutoFailInterrupted": "Usra closed before the backup finished. Any unfinished file is removed next time, and your earlier backups are safe. Try again.",
   "backupAutoFailOther": "Something stopped the backup. Your earlier backups are safe. Try again.",
   "backupAutoPaused": "Automatic backup is paused because Usra started fresh, so new backups don't push out the ones holding your records. Restore a backup, or turn this on again.",
   "backupDueAuto": "If your backup folder is on this phone, losing the phone loses the backups too. Send a copy somewhere else.",
@@ -2015,5 +2015,13 @@
         "type": "int"
       }
     }
-  }
+  },
+  "backupAutoOpen": "Open Backup",
+  "backupAutoPausedTitle": "Automatic backup is paused",
+  "backupAutoUnreadableTitle": "Automatic backup is off",
+  "backupAutoUnreadableBody": "We couldn't read your automatic backup settings. Your backups are still in your folder. Open Backup to turn it on again.",
+  "backupContentDroppedTitle": "The latest backup holds less than before",
+  "backupContentDroppedBody": "It has fewer people, records or photos, or some photos are missing, so we kept your older backups. If you deleted these on purpose, confirm it. If not, restore an older backup.",
+  "backupContentDroppedAccept": "I deleted them on purpose",
+  "backupAutoFolderTop": "The main folder of the place you chose"
 }

@@ -6,6 +6,7 @@ import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../core/security/data_wipe.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/backup/auto_backup.dart';
 import 'auto_backup_section.dart';
 import 'backup_providers.dart';
 import 'backup_screen.dart';
@@ -82,10 +83,34 @@ class BackupNotices extends ConsumerWidget {
             key: const ValueKey('auto-backup-failed'),
             severity: Severity.actSoon,
             icon: Icons.backup_outlined,
-            title: l.backupAutoFailedTitle,
+            title: failure == AutoBackupFailure.pausedForRecovery
+                ? l.backupAutoPausedTitle
+                : l.backupAutoFailedTitle,
             body: autoBackupFailureText(l, failure),
             action: autoBackupRecoverLabel(l, failure),
             onAction: () => recoverAutoBackup(context, ref, failure),
+            simple: simple,
+          ),
+        if (auto.unreadable && !auto.settings.enabled)
+          _Notice(
+            key: const ValueKey('auto-backup-unreadable'),
+            severity: Severity.headsUp,
+            icon: Icons.backup_outlined,
+            title: l.backupAutoUnreadableTitle,
+            body: l.backupAutoUnreadableBody,
+            action: l.backupAutoOpen,
+            onAction: () => context.go(backupPath),
+            simple: simple,
+          ),
+        if (auto.settings.contentDropped && !auto.running)
+          _Notice(
+            key: const ValueKey('auto-backup-content-dropped'),
+            severity: Severity.actSoon,
+            icon: Icons.backup_outlined,
+            title: l.backupContentDroppedTitle,
+            body: l.backupContentDroppedBody,
+            action: l.backupAutoOpen,
+            onAction: () => context.go(backupPath),
             simple: simple,
           ),
         if (!simple && ref.watch(backupDueProvider))

@@ -16,7 +16,10 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
+import java.io.SyncFailedException
 import java.util.concurrent.Executors
 
 /// The folder automatic backups go to (lib/core/backup/backup_folder.dart):
@@ -32,6 +35,11 @@ class BackupFolderChannel(private val activity: Activity, messenger: BinaryMesse
     private val main = Handler(Looper.getMainLooper())
     private var pending: MethodChannel.Result? = null
 
+    /// What [write] created, by the name it asked for. Only touched on
+    /// [background]. A provider can change a name, and finding by name could
+    /// then pick up an older half-written file.
+    private val written = mutableMapOf<String, Uri>()
+
     init {
         MethodChannel(messenger, CHANNEL).setMethodCallHandler(::handle)
     }
@@ -46,6 +54,10 @@ class BackupFolderChannel(private val activity: Activity, messenger: BinaryMesse
             }
             "write" -> run(result) {
                 write(treeOf(call), call.argument<String>("source")!!, nameOf(call, "name"))
+                null
+            }
+            "verify" -> run(result) {
+                verify(treeOf(call), call.argument<String>("source")!!, nameOf(call, "name"))
             }
             "rename" -> run(result) {
                 rename(treeOf(call), nameOf(call, "from"), nameOf(call, "to"))
@@ -53,7 +65,9 @@ class BackupFolderChannel(private val activity: Activity, messenger: BinaryMesse
             }
             "delete" -> run(result) {
                 val tree = treeOf(call)
-                find(tree, nameOf(call, "name"))?.let { DocumentsContract.deleteDocument(resolver, it) }
+                val name = nameOf(call, "name")
+                documentOf(tree, name)?.let { deleteOrThrow(it) }
+                written.remove(name)
                 null
             }
             "list" -> run(result) {
@@ -137,23 +151,31 @@ class BackupFolderChannel(private val activity: Activity, messenger: BinaryMesse
         return true
     }
 
-    /// Everything a backup will do, tried once with a small empty file: some
-    /// places can't rename or delete, and an atomic write needs both.
+    /// Everything a backup will do, tried once with a small file: some places
+    /// can't read back, rename or delete, and a safe write needs all three.
     private fun probe(tree: Uri) {
         val name = "usra-check-${System.nanoTime()}.partial"
         val renamed = "usra-check-${System.nanoTime()}.tmp"
         val created = DocumentsContract.createDocument(resolver, parentOf(tree), MIME, name)
             ?: throw IOException()
-        var left: Uri? = created
+        var left = created
         try {
             resolver.openOutputStream(created, "w")?.use { it.write(0) } ?: throw IOException()
             val moved = DocumentsContract.renameDocument(resolver, created, renamed)
                 ?: find(tree, renamed)
                 ?: throw IOException()
             left = moved
-        } finally {
-            left?.let { DocumentsContract.deleteDocument(resolver, it) }
+            val read = resolver.openInputStream(moved)?.use { it.read() } ?: throw IOException()
+            if (read != 0) throw IOException()
+        } catch (e: Exception) {
+            try {
+                DocumentsContract.deleteDocument(resolver, left)
+            } catch (ignored: Exception) {
+                // Refused already; the small file is all that's left.
+            }
+            throw e
         }
+        deleteOrThrow(left)
     }
 
     /// Fails with "missing" unless access is still held and the folder is
@@ -169,29 +191,88 @@ class BackupFolderChannel(private val activity: Activity, messenger: BinaryMesse
             }
     }
 
-    private fun write(tree: Uri, source: String, name: String): Long {
+    private fun write(tree: Uri, source: String, name: String) {
         requireAccess(tree)
         // A leftover under the same name would make the provider pick another.
-        find(tree, name)?.let { DocumentsContract.deleteDocument(resolver, it) }
+        documentOf(tree, name)?.let { deleteOrThrow(it) }
+        written.remove(name)
         val target = DocumentsContract.createDocument(resolver, parentOf(tree), MIME, name)
             ?: throw IOException()
-        var written = 0L
+        if (displayName(target) != name) {
+            // Everything after this goes by name, so it can't stay.
+            deleteOrThrow(target)
+            throw IOException()
+        }
+        written[name] = target
         File(source).inputStream().use { input ->
-            // "w" is a new, empty file here; close() is when providers report
-            // a write that failed, so it's inside the try of the caller.
-            (resolver.openOutputStream(target, "w") ?: throw IOException()).use { output ->
-                written = input.copyTo(output, BUFFER)
+            (resolver.openFileDescriptor(target, "w") ?: throw IOException()).use { descriptor ->
+                // Not closed itself: the descriptor owns the file.
+                val output = FileOutputStream(descriptor.fileDescriptor)
+                input.copyTo(output, BUFFER)
+                output.flush()
+                try {
+                    descriptor.fileDescriptor.sync()
+                } catch (e: SyncFailedException) {
+                    // A pipe to another app's storage has nothing to sync.
+                    // verify() is what decides whether this landed.
+                }
             }
         }
-        return written
+    }
+
+    /// Reads the file back and compares every byte with the original: what
+    /// the provider really has, not what it was handed. Its size.
+    private fun verify(tree: Uri, source: String, name: String): Long {
+        val document = documentOf(tree, name) ?: throw FileNotFoundException()
+        var total = 0L
+        File(source).inputStream().use { original ->
+            (resolver.openInputStream(document) ?: throw IOException()).use { landed ->
+                val left = ByteArray(BUFFER)
+                val right = ByteArray(BUFFER)
+                while (true) {
+                    val count = fill(original, left)
+                    if (fill(landed, right) != count) throw IOException()
+                    for (i in 0 until count) {
+                        if (left[i] != right[i]) throw IOException()
+                    }
+                    total += count
+                    if (count < BUFFER) break
+                }
+            }
+        }
+        return total
+    }
+
+    /// As much as fits, stopping short only at the end of the file: a read
+    /// from another app's provider can return less at any time.
+    private fun fill(input: InputStream, buffer: ByteArray): Int {
+        var filled = 0
+        while (filled < buffer.size) {
+            val read = input.read(buffer, filled, buffer.size - filled)
+            if (read < 0) break
+            filled += read
+        }
+        return filled
     }
 
     private fun rename(tree: Uri, from: String, to: String) {
-        val document = find(tree, from) ?: throw FileNotFoundException()
+        val document = documentOf(tree, from) ?: throw FileNotFoundException()
         DocumentsContract.renameDocument(resolver, document, to)
+        written.remove(from)
         // Some providers return null yet rename; only the result counts.
         if (find(tree, to) == null) throw IOException()
     }
+
+    private fun documentOf(tree: Uri, name: String): Uri? = written[name] ?: find(tree, name)
+
+    /// A provider can answer false rather than throw.
+    private fun deleteOrThrow(document: Uri) {
+        if (!DocumentsContract.deleteDocument(resolver, document)) throw IOException()
+    }
+
+    private fun displayName(document: Uri): String? =
+        resolver.query(document, arrayOf(Document.COLUMN_DISPLAY_NAME), null, null, null)
+            ?.use { cursor -> if (cursor.moveToFirst()) cursor.getString(0) else null }
 
     private fun release(tree: Uri) {
         try {

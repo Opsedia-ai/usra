@@ -35,8 +35,8 @@ class BackupGate {
 
   /// Stops new backups and waits for the one running, but not for ever: a
   /// call stuck in another app's folder must not stop "Delete all my data" or
-  /// the wipe after too many wrong PINs. A backup that outlives this can only
-  /// fail, or land one more file in the folder.
+  /// the wipe after too many wrong PINs. A backup that outlives this stops at
+  /// its next step, as its settings store is retired too.
   Future<void> close({Duration timeout = const Duration(minutes: 2)}) async {
     _closed = true;
     await _running?.timeout(timeout, onTimeout: () {});
@@ -62,10 +62,11 @@ class AutoBackupResult {
 ///
 /// 1. the file is made in the app's temporary folder ([BackupService.create],
 ///    in an isolate), so a failure there touches nothing in the folder;
-/// 2. it's copied to the folder under a `.partial` name;
-/// 3. the bytes are checked, and only then is it renamed to its real name,
-///    so a `.usra` file there is always a whole one;
-/// 4. only then are older backups deleted.
+/// 2. it's copied to the folder under a `.partial` name and flushed;
+/// 3. it's read back and compared with the original, byte for byte, and only
+///    then renamed to its real name;
+/// 4. only then are older backups deleted, and not if the new one holds
+///    materially less than expected ([hasContentDropped]).
 ///
 /// A killed app leaves at most a `.partial`, which the next run removes.
 class AutoBackupRunner {
@@ -92,7 +93,13 @@ class AutoBackupRunner {
   /// Told each time the settings are saved.
   final void Function(AutoBackupSettings settings)? onChange;
 
-  Future<AutoBackupSettings> _save(AutoBackupSettings settings) async {
+  /// Applies a change to the settings as they are now, not as they were when
+  /// the run started: the person may have chosen a folder or frequency since.
+  Future<AutoBackupSettings> _update(
+    AutoBackupSettings Function(AutoBackupSettings settings) change,
+  ) async {
+    if (store.retired) return store.current;
+    final settings = change(store.current);
     try {
       await store.save(settings);
     } catch (e) {
@@ -104,17 +111,17 @@ class AutoBackupRunner {
   }
 
   Future<AutoBackupResult> run() async {
-    var settings = store.current;
-    final BackupFolder? folder = settings.folder;
+    final folder = store.current.folder;
     final now = _clock();
-    if (settings.tag.isEmpty) settings = settings.copyWith(tag: newBackupTag());
     // Only a finished run clears this: see [AutoBackupFailure.interrupted].
-    settings = await _save(
-      settings.copyWith(
+    final started = await _update(
+      (s) => s.copyWith(
+        tag: s.tag.isEmpty ? newBackupTag() : null,
         lastAttemptAt: now,
         failure: AutoBackupFailure.interrupted,
       ),
     );
+    final tag = started.tag;
     try {
       if (folder == null) {
         throw const BackupFolderException(BackupFolderProblem.missing);
@@ -122,8 +129,8 @@ class AutoBackupRunner {
       final key = await keys.read();
       if (key == null) {
         return AutoBackupResult(
-          await _save(
-            settings.copyWith(failure: AutoBackupFailure.noRecoveryKey),
+          await _update(
+            (s) => s.copyWith(failure: AutoBackupFailure.noRecoveryKey),
           ),
         );
       }
@@ -132,36 +139,48 @@ class AutoBackupRunner {
       }
       final status = await folders.inspect(folder.id);
       if (isInICloud(path: status.path, isUbiquitous: status.isUbiquitous)) {
-        return AutoBackupResult(
-          await _save(
-            settings.copyWith(failure: AutoBackupFailure.iCloudFolder),
-          ),
-        );
+        throw const BackupFolderException(BackupFolderProblem.iCloud);
       }
       var id = folder.id;
       if (status.renewedId case final renewed?) {
         id = renewed;
-        settings = await _save(settings.copyWith(folder: folder.withId(id)));
+        await _update(
+          (s) => s.folder?.id == folder.id
+              ? s.copyWith(folder: folder.withId(id))
+              : s,
+        );
       }
-      await _removeLeftovers(id, settings.tag);
+      final before = await _removeLeftovers(id, tag);
 
       final created = await make(key, now);
       try {
+        if (store.retired) return AutoBackupResult(store.current);
+        final missing = created.counts[backupMissingPhotosCount] ?? 0;
         final name = AutoBackupFileName.make(
-          settings.tag,
+          tag,
           now,
-          complete: created.skippedPhotos == 0,
+          complete: created.skippedPhotos == 0 && missing == 0,
         );
         final size = await _land(id, created.file, name);
-        settings = await _save(
-          settings.copyWith(
+        if (store.retired) return AutoBackupResult(store.current);
+        final settings = await _update((s) {
+          final dropped = hasContentDropped(s.baselineCounts, created.counts);
+          return s.copyWith(
             lastAt: now,
             lastSize: size,
             lastSkippedPhotos: created.skippedPhotos,
             failure: null,
-          ),
-        );
-        await _prune(id, settings.tag, name);
+            latestCounts: created.counts,
+            baselineCounts: dropped ? null : created.counts,
+            contentDropped: dropped,
+            heldBackups: !dropped
+                ? const []
+                : s.contentDropped
+                ? s.heldBackups
+                : ownBackups(before, tag),
+          );
+        });
+        await _prune(id, tag, now, settings.heldBackups);
         return AutoBackupResult(settings, landed: true);
       } finally {
         await _discard(created);
@@ -169,18 +188,22 @@ class AutoBackupRunner {
     } catch (e) {
       Log.error('Auto backup failed', e);
       final failure = await _classify(e);
-      return AutoBackupResult(await _save(settings.copyWith(failure: failure)));
+      return AutoBackupResult(
+        await _update((s) => s.copyWith(failure: failure)),
+      );
     }
   }
 
-  /// Steps 2 and 3. The `.partial` is deleted if anything goes wrong; if the
-  /// app dies instead, [_removeLeftovers] gets it next time.
+  /// Steps 2 and 3; the landed file's size. The `.partial` is deleted if
+  /// anything goes wrong; if the app dies instead, [_removeLeftovers] gets it
+  /// next time.
   Future<int> _land(String id, File source, String name) async {
     final partial = AutoBackupFileName.partialOf(name);
-    final size = await source.length();
     try {
-      final written = await folders.write(id, source.path, partial);
-      if (written != size) {
+      await folders.write(id, source.path, partial);
+      final size = await folders.verify(id, source.path, partial);
+      // A restore or wipe took over while this ran: nothing more lands.
+      if (store.retired) {
         throw const BackupFolderException(BackupFolderProblem.failed);
       }
       await folders.rename(id, partial, name);
@@ -195,9 +218,11 @@ class AutoBackupRunner {
     }
   }
 
-  Future<void> _removeLeftovers(String id, String tag) async {
-    final names = (await folders.list(id)).map((e) => e.name);
-    for (final name in partialsToDelete(names, tag)) {
+  /// Everything in the folder apart from the leftovers it removed.
+  Future<List<String>> _removeLeftovers(String id, String tag) async {
+    final names = [for (final entry in await folders.list(id)) entry.name];
+    final leftovers = partialsToDelete(names, tag);
+    for (final name in leftovers) {
       try {
         await folders.delete(id, name);
       } catch (e) {
@@ -205,14 +230,24 @@ class AutoBackupRunner {
         Log.error('Auto backup leftover not deleted', e);
       }
     }
+    return [
+      for (final name in names)
+        if (!leftovers.contains(name)) name,
+    ];
   }
 
   /// A new backup is safely in, so nothing here may fail the run: older
   /// files left behind are tried again next time.
-  Future<void> _prune(String id, String tag, String landed) async {
+  Future<void> _prune(
+    String id,
+    String tag,
+    DateTime now,
+    List<String> held,
+  ) async {
+    if (store.retired) return;
     try {
       final names = (await folders.list(id)).map((e) => e.name);
-      for (final name in backupsToDelete(names, tag, justLanded: landed)) {
+      for (final name in backupsToDelete(names, tag, now: now, held: held)) {
         await folders.delete(id, name);
       }
     } catch (e) {
@@ -235,6 +270,8 @@ class AutoBackupRunner {
         case BackupFolderProblem.missing:
         case BackupFolderProblem.cantUse:
           return AutoBackupFailure.folderMissing;
+        case BackupFolderProblem.iCloud:
+          return AutoBackupFailure.iCloudFolder;
         case BackupFolderProblem.noSpace:
           return AutoBackupFailure.noSpace;
         case BackupFolderProblem.locked:

@@ -5963,7 +5963,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupAutoFailInterrupted.
   ///
   /// In en, this message translates to:
-  /// **'Usra closed before the backup finished. Nothing was left half saved, and your earlier backups are safe. Try again.'**
+  /// **'Usra closed before the backup finished. Any unfinished file is removed next time, and your earlier backups are safe. Try again.'**
   String get backupAutoFailInterrupted;
 
   /// No description provided for @backupAutoFailOther.
@@ -6013,6 +6013,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 photo couldn\'t be opened on this phone and isn\'t in this backup.} other{{count} photos couldn\'t be opened on this phone and aren\'t in this backup.}}'**
   String backupAutoPhotosSkipped(int count);
+
+  /// No description provided for @backupAutoOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Backup'**
+  String get backupAutoOpen;
+
+  /// No description provided for @backupAutoPausedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup is paused'**
+  String get backupAutoPausedTitle;
+
+  /// No description provided for @backupAutoUnreadableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup is off'**
+  String get backupAutoUnreadableTitle;
+
+  /// No description provided for @backupAutoUnreadableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t read your automatic backup settings. Your backups are still in your folder. Open Backup to turn it on again.'**
+  String get backupAutoUnreadableBody;
+
+  /// No description provided for @backupContentDroppedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The latest backup holds less than before'**
+  String get backupContentDroppedTitle;
+
+  /// No description provided for @backupContentDroppedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It has fewer people, records or photos, or some photos are missing, so we kept your older backups. If you deleted these on purpose, confirm it. If not, restore an older backup.'**
+  String get backupContentDroppedBody;
+
+  /// No description provided for @backupContentDroppedAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'I deleted them on purpose'**
+  String get backupContentDroppedAccept;
+
+  /// No description provided for @backupAutoFolderTop.
+  ///
+  /// In en, this message translates to:
+  /// **'The main folder of the place you chose'**
+  String get backupAutoFolderTop;
 }
 
 class _AppLocalizationsDelegate

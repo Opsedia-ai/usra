@@ -335,6 +335,7 @@ Future<void> main() async {
       reminders.dispose();
       // An automatic backup still reading the database and photos.
       await backupGate.close();
+      autoBackupStore.retire();
       await database.close();
       // The restore replaces the photo folders the migration works in.
       await photoMigration;
@@ -358,6 +359,7 @@ Future<void> main() async {
     outcome = prepareDatabaseFile(file, key);
     database = AppDatabase(openEncryptedDatabase(file, key));
     dismissals = await FileDismissalStore.open();
+    autoBackupStore = await AutoBackupStore.open(root);
     // The restored files came in with the staging folder's class.
     protection = protectAppFiles(root, photoFolders);
     if (restored) {
@@ -419,6 +421,7 @@ Future<void> main() async {
       old.dispose();
       reminders.dispose();
       await backupGate.close();
+      autoBackupStore.retire();
       await database.close();
       // Nothing may still be writing in the folders being deleted.
       await photoMigration;

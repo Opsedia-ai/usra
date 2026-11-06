@@ -12,9 +12,10 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
   private static var shared: BackupFolderChannel?
   private var pending: FlutterResult?
   private let queue = DispatchQueue(label: "usra.backup-folder", qos: .utility)
+  private static let chunk = 256 * 1024
 
   private enum Failure: Error {
-    case missing, cantUse, failed
+    case missing, cantUse, failed, iCloud
   }
 
   static func register(messenger: FlutterBinaryMessenger) {
@@ -37,7 +38,12 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
     case "inspect":
       work(result) { try self.inspect(args) }
     case "write":
-      work(result) { try self.write(args) }
+      work(result) {
+        try self.write(args)
+        return nil
+      }
+    case "verify":
+      work(result) { try self.verify(args) }
     case "rename":
       work(result) {
         try self.rename(args)
@@ -103,10 +109,9 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
     let scoped = url.startAccessingSecurityScopedResource()
     work(result) {
       defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-      // What Files calls it: "On My iPhone", not its folder on disk.
-      let name =
-        (try? url.resourceValues(forKeys: [.localizedNameKey]))?.localizedName
-        ?? url.lastPathComponent
+      // The top of a Files location is this on disk, whichever location it
+      // is, which means nothing to a person. Empty: Dart says it in words.
+      let name = url.lastPathComponent == "File Provider Storage" ? "" : url.lastPathComponent
       let path = url.resolvingSymlinksInPath().path
       // Told to Dart, which refuses it (and tests that). Nothing is written
       // there, not even the small test file below.
@@ -132,7 +137,7 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
   }
 
   /// Everything a backup will do, tried once with a small file: some places
-  /// can't rename or delete, and an atomic write needs both.
+  /// can't read back, rename or delete, and a safe write needs all three.
   private func probe(_ folder: URL) throws {
     let token = UUID().uuidString
     let first = folder.appendingPathComponent("usra-check-\(token).partial")
@@ -144,6 +149,7 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
       for url in [first, second] { try? FileManager.default.removeItem(at: url) }
     }
     try move(first, to: second)
+    guard try Data(contentsOf: second) == Data([0]) else { throw Failure.failed }
     try coordinate(.forDeleting, second) { url in
       try FileManager.default.removeItem(at: url)
     }
@@ -195,18 +201,66 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
     }
   }
 
-  private func write(_ args: [String: Any]) throws -> Any? {
+  private func write(_ args: [String: Any]) throws {
     guard let source = args["source"] as? String else { throw Failure.failed }
     let name = try BackupFolderChannel.fileName(args["name"])
-    return try withFolder(args) { folder, _ in
+    try withFolder(args) { folder, _ in
+      // Checked here as well as before the backup was made, which can take
+      // a while: nothing is written once the folder is in iCloud.
+      try BackupFolderChannel.refuseICloud(folder)
       let target = folder.appendingPathComponent(name)
       try coordinate(.forReplacing, target) { url in
         let manager = FileManager.default
         if manager.fileExists(atPath: url.path) { try manager.removeItem(at: url) }
         try manager.copyItem(at: URL(fileURLWithPath: source), to: url)
+        // Excluded from the start, not only once it has its real name.
+        try BackupFolderChannel.excludeFromBackup(url)
+        let handle = try FileHandle(forUpdating: url)
+        defer { try? handle.close() }
+        try handle.synchronize()
       }
-      let attributes = try FileManager.default.attributesOfItem(atPath: target.path)
-      return (attributes[.size] as? NSNumber)?.int64Value ?? -1
+    }
+  }
+
+  /// Reads the file back and compares every byte with the original: what the
+  /// place really has, not what it was handed. Its size.
+  private func verify(_ args: [String: Any]) throws -> Any? {
+    guard let source = args["source"] as? String else { throw Failure.failed }
+    let name = try BackupFolderChannel.fileName(args["name"])
+    return try withFolder(args) { folder, _ in
+      var total: Int64 = 0
+      var coordination: NSError?
+      var failure: Error?
+      NSFileCoordinator().coordinate(
+        readingItemAt: folder.appendingPathComponent(name), options: [], error: &coordination
+      ) { actual in
+        do {
+          total = try BackupFolderChannel.compare(URL(fileURLWithPath: source), actual)
+        } catch {
+          failure = error
+        }
+      }
+      if let error = coordination ?? failure { throw error }
+      return total
+    }
+  }
+
+  private static func compare(_ original: URL, _ landed: URL) throws -> Int64 {
+    let left = try FileHandle(forReadingFrom: original)
+    defer { try? left.close() }
+    let right = try FileHandle(forReadingFrom: landed)
+    defer { try? right.close() }
+    var total: Int64 = 0
+    while true {
+      // Drained each time: these can be many large reads on a small phone.
+      let done: Bool = try autoreleasepool {
+        let a = try left.read(upToCount: chunk) ?? Data()
+        let b = try right.read(upToCount: chunk) ?? Data()
+        guard a == b else { throw Failure.failed }
+        total += Int64(a.count)
+        return a.isEmpty
+      }
+      if done { return total }
     }
   }
 
@@ -214,14 +268,10 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
     let from = try BackupFolderChannel.fileName(args["from"])
     let to = try BackupFolderChannel.fileName(args["to"])
     try withFolder(args) { folder, _ in
-      var target = folder.appendingPathComponent(to)
+      try BackupFolderChannel.refuseICloud(folder)
+      let target = folder.appendingPathComponent(to)
       try move(folder.appendingPathComponent(from), to: target)
-      // On My iPhone is part of the phone's iCloud device backup unless told
-      // otherwise, and no health backup goes to iCloud (5.1.3). Not every
-      // provider has this setting, and those aren't in that device backup.
-      var values = URLResourceValues()
-      values.isExcludedFromBackup = true
-      try? target.setResourceValues(values)
+      try BackupFolderChannel.excludeFromBackup(target)
     }
   }
 
@@ -284,6 +334,33 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
     return (try? url.resourceValues(forKeys: [.isUbiquitousItemKey]))?.isUbiquitousItem == true
   }
 
+  private static func refuseICloud(_ folder: URL) throws {
+    let path = folder.resolvingSymlinksInPath().path.lowercased()
+    if isUbiquitous(folder) || path.contains("/mobile documents") {
+      throw Failure.iCloud
+    }
+  }
+
+  /// On My iPhone is part of the phone's iCloud device backup unless told
+  /// otherwise, and no health backup goes to iCloud (5.1.3). A place without
+  /// this setting isn't in that device backup; any other failure stops the
+  /// run. Set again after the rename, in case a provider dropped it.
+  private static func excludeFromBackup(_ file: URL) throws {
+    var url = file
+    url.removeAllCachedResourceValues()
+    let current = try url.resourceValues(forKeys: [.isExcludedFromBackupKey])
+    if current.isExcludedFromBackup == true { return }
+    var values = URLResourceValues()
+    values.isExcludedFromBackup = true
+    do {
+      try url.setResourceValues(values)
+    } catch let error as NSError
+      where error.domain == NSCocoaErrorDomain && error.code == NSFeatureUnsupportedError
+    {
+      return
+    }
+  }
+
   /// Only ever a plain file name: nothing outside the folder.
   private static func fileName(_ value: Any?) throws -> String {
     guard let name = value as? String, !name.contains("/"), name != ".", name != ".." else {
@@ -298,6 +375,7 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
       case .missing: return "missing"
       case .cantUse: return "cant_use"
       case .failed: return "failed"
+      case .iCloud: return "icloud"
       }
     }
     let ns = error as NSError

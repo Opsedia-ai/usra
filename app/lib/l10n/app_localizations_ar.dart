@@ -3692,7 +3692,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get backupAutoFailInterrupted =>
-      'أسرة اتقفلت قبل ما النسخة تخلص. مفيش حاجة اتحفظت نص نص، والنسخ القديمة سليمة. حاول تاني.';
+      'أسرة اتقفلت قبل ما النسخة تخلص. أي ملف مكملش هيتمسح المرة الجاية، والنسخ القديمة سليمة. حاول تاني.';
 
   @override
   String get backupAutoFailOther =>
@@ -3738,4 +3738,31 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get backupAutoOpen => 'افتح النسخة الاحتياطية';
+
+  @override
+  String get backupAutoPausedTitle => 'النسخ التلقائي واقف';
+
+  @override
+  String get backupAutoUnreadableTitle => 'النسخ التلقائي مقفول';
+
+  @override
+  String get backupAutoUnreadableBody =>
+      'مقدرناش نقرا إعدادات النسخ التلقائي. نسخك لسه في الفولدر بتاعك. افتح النسخة الاحتياطية وشغّله تاني.';
+
+  @override
+  String get backupContentDroppedTitle =>
+      'آخر نسخة فيها حاجات أقل من اللي قبلها';
+
+  @override
+  String get backupContentDroppedBody =>
+      'فيها أشخاص أو سجلات أو صور أقل، أو فيه صور ناقصة، فسيبنا النسخ القديمة زي ما هي. لو إنت مسحتهم بنفسك، أكّد ده. لو لأ، رجّع نسخة أقدم.';
+
+  @override
+  String get backupContentDroppedAccept => 'أنا اللي مسحتهم';
+
+  @override
+  String get backupAutoFolderTop => 'الفولدر الرئيسي للمكان اللي اخترته';
 }

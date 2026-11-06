@@ -9,6 +9,7 @@ import 'package:sqlite3/sqlite3.dart';
 import '../database/app_database.dart';
 import '../database/connection.dart';
 import '../files/photo_crypto.dart';
+import 'auto_backup.dart' show backupMissingPhotosCount;
 import 'backup_archive.dart';
 import 'backup_crypto.dart';
 import 'recovery_key.dart';
@@ -59,9 +60,17 @@ class StagedRestore {
 
 /// A backup file made by [BackupService.create].
 class CreatedBackup {
-  const CreatedBackup(this.file, {this.skippedPhotos = 0});
+  const CreatedBackup(
+    this.file, {
+    this.skippedPhotos = 0,
+    this.counts = const {},
+  });
 
   final File file;
+
+  /// What's in it, as in [BackupManifest.counts], plus the photos with a row
+  /// in the database but no file (`backupMissingPhotosCount`).
+  final Map<String, int> counts;
 
   /// Photos left out because they can't be opened on this phone (damaged,
   /// or the photo key is gone); the backup isn't complete without saying so.
@@ -168,7 +177,7 @@ class BackupService {
         this.kdf,
         chunkSize,
       );
-      final skipped = await Isolate.run(
+      final (skipped, counts) = await Isolate.run(
         () => _pack(
           snapshot: snapshot,
           out: out.path,
@@ -184,7 +193,7 @@ class BackupService {
           createdAt: createdAt,
         ),
       );
-      return CreatedBackup(out, skippedPhotos: skipped);
+      return CreatedBackup(out, skippedPhotos: skipped, counts: counts);
     } catch (_) {
       if (await out.exists()) await out.delete();
       rethrow;
@@ -395,8 +404,8 @@ const _countedTables = {
   'attachments': 'attachments',
 };
 
-/// Returns how many photos were left out.
-Future<int> _pack({
+/// Returns how many photos were left out, and what's in it.
+Future<(int, Map<String, int>)> _pack({
   required String snapshot,
   required String out,
   required String root,
@@ -415,6 +424,7 @@ Future<int> _pack({
   final snapshotKey = DatabaseKeyStore.generateKey();
   final counts = <String, int>{};
   final int schemaVersion;
+  final attachmentPaths = <String>[];
   final db = sqlite3.open(snapshot);
   try {
     unlockDatabase(db, deviceKey);
@@ -435,6 +445,13 @@ Future<int> _pack({
                   .first['n']
               as int;
     }
+    if (tables.contains('attachments')) {
+      for (final row in db.select(
+        'SELECT path FROM attachments WHERE deleted_at IS NULL',
+      )) {
+        attachmentPaths.add(row['path'] as String);
+      }
+    }
     db.execute("PRAGMA rekey = '$snapshotKey';");
   } finally {
     db.close();
@@ -453,6 +470,11 @@ Future<int> _pack({
       photos.add((name, entity));
     }
   }
+
+  // In the database but not on disk: its folder is gone, or it never landed.
+  // Nothing in the file can show this, so it's reported here.
+  final found = {for (final (name, _) in photos) name};
+  final missing = attachmentPaths.where((path) => !found.contains(path)).length;
 
   var skipped = 0;
   final writer = await BackupFileWriter.create(
@@ -513,7 +535,7 @@ Future<int> _pack({
   } finally {
     await writer.close();
   }
-  return skipped;
+  return (skipped, {...counts, backupMissingPhotosCount: missing});
 }
 
 Future<Map<String, dynamic>> _unpack({

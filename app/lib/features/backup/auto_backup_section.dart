@@ -34,9 +34,13 @@ String formatBackupSize(BuildContext context, int bytes) {
 }
 
 /// The failure worth a notice, if any: never while a new try is running, or
-/// once automatic backup is off.
-AutoBackupFailure? autoBackupNoticeFailure(AutoBackupStatus status) =>
-    status.running || !status.settings.enabled ? null : status.settings.failure;
+/// once automatic backup is off, unless it's what turned it off.
+AutoBackupFailure? autoBackupNoticeFailure(AutoBackupStatus status) {
+  final failure = status.settings.failure;
+  if (status.running) return null;
+  if (failure == AutoBackupFailure.pausedForRecovery) return failure;
+  return status.settings.enabled ? failure : null;
+}
 
 String autoBackupFailureText(AppLocalizations l, AutoBackupFailure failure) =>
     switch (failure) {
@@ -56,6 +60,7 @@ String autoBackupRecoverLabel(AppLocalizations l, AutoBackupFailure failure) =>
       AutoBackupFailure.folderMissing ||
       AutoBackupFailure.iCloudFolder => l.backupAutoChooseFolder,
       AutoBackupFailure.noRecoveryKey => l.backupAutoSetKey,
+      AutoBackupFailure.pausedForRecovery => l.backupAutoOpen,
       _ => l.backupAutoRetry,
     };
 
@@ -67,6 +72,10 @@ Future<void> recoverAutoBackup(
 ) async {
   final controller = ref.read(autoBackupProvider.notifier);
   switch (failure) {
+    case AutoBackupFailure.pausedForRecovery:
+      // The person decides there: restore, or turn it back on.
+      context.go(backupPath);
+      return;
     case AutoBackupFailure.folderMissing || AutoBackupFailure.iCloudFolder:
       if (!await _chooseFolder(context, ref)) return;
     case AutoBackupFailure.noRecoveryKey:
@@ -226,7 +235,7 @@ class AutoBackupSection extends ConsumerWidget {
     final controller = ref.read(autoBackupProvider.notifier);
     final folder = settings.folder;
     final last = settings.lastAt;
-    final failure = autoBackupNoticeFailure(status);
+    final failure = settings.enabled ? autoBackupNoticeFailure(status) : null;
     final paused = settings.failure == AutoBackupFailure.pausedForRecovery;
     return Card(
       child: Column(
@@ -248,13 +257,46 @@ class AutoBackupSection extends ConsumerWidget {
               severity: Severity.headsUp,
               text: l.backupAutoPaused,
             ),
+          if (settings.contentDropped && !status.running) ...[
+            _Message(
+              key: const ValueKey('backup-content-dropped'),
+              severity: Severity.actSoon,
+              text: l.backupContentDroppedBody,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.end,
+                children: [
+                  TextButton(
+                    key: const ValueKey('backup-content-accept'),
+                    onPressed: controller.acceptContentChange,
+                    child: Text(l.backupContentDroppedAccept),
+                  ),
+                  FilledButton.tonal(
+                    key: const ValueKey('backup-content-restore'),
+                    onPressed: () => context.push(restorePath),
+                    child: Text(l.restoreTitle),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (settings.enabled) ...[
             const Divider(height: 1),
             ListTile(
               key: const ValueKey('backup-auto-folder'),
               leading: const Icon(Icons.folder_outlined),
               title: Text(l.backupAutoFolder),
-              subtitle: Text(folder?.name ?? l.backupAutoChooseFolder),
+              subtitle: Text(
+                folder == null
+                    ? l.backupAutoChooseFolder
+                    : folder.name.isEmpty
+                    ? l.backupAutoFolderTop
+                    : folder.name,
+              ),
               onTap: status.running ? null : () => _changeFolder(context, ref),
             ),
             if (folder?.onThisPhone == true)

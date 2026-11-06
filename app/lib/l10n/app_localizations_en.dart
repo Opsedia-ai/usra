@@ -3675,7 +3675,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backupAutoFailInterrupted =>
-      'Usra closed before the backup finished. Nothing was left half saved, and your earlier backups are safe. Try again.';
+      'Usra closed before the backup finished. Any unfinished file is removed next time, and your earlier backups are safe. Try again.';
 
   @override
   String get backupAutoFailOther =>
@@ -3720,4 +3720,31 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get backupAutoOpen => 'Open Backup';
+
+  @override
+  String get backupAutoPausedTitle => 'Automatic backup is paused';
+
+  @override
+  String get backupAutoUnreadableTitle => 'Automatic backup is off';
+
+  @override
+  String get backupAutoUnreadableBody =>
+      'We couldn\'t read your automatic backup settings. Your backups are still in your folder. Open Backup to turn it on again.';
+
+  @override
+  String get backupContentDroppedTitle =>
+      'The latest backup holds less than before';
+
+  @override
+  String get backupContentDroppedBody =>
+      'It has fewer people, records or photos, or some photos are missing, so we kept your older backups. If you deleted these on purpose, confirm it. If not, restore an older backup.';
+
+  @override
+  String get backupContentDroppedAccept => 'I deleted them on purpose';
+
+  @override
+  String get backupAutoFolderTop => 'The main folder of the place you chose';
 }

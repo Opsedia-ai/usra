@@ -9,6 +9,9 @@ enum BackupFolderProblem {
   /// Moved, removed, unplugged, or access was taken away.
   missing,
 
+  /// The folder is (now) in iCloud, so nothing may be written there.
+  iCloud,
+
   /// No space left there.
   noSpace,
 
@@ -97,9 +100,13 @@ abstract class BackupFolderAccess {
   /// Throws [BackupFolderProblem.missing] if it can't be reached.
   Future<FolderStatus> inspect(String id);
 
-  /// Copies [sourcePath] to a new file [name] in the folder; the bytes
-  /// written.
-  Future<int> write(String id, String sourcePath, String name);
+  /// Copies [sourcePath] to a new file [name] in the folder and flushes it
+  /// to storage where the place allows.
+  Future<void> write(String id, String sourcePath, String name);
+
+  /// Reads [name] back from the folder and compares it with [sourcePath],
+  /// byte for byte; its size. Throws if they differ.
+  Future<int> verify(String id, String sourcePath, String name);
 
   Future<void> rename(String id, String from, String to);
 
@@ -122,6 +129,7 @@ class ChannelBackupFolderAccess implements BackupFolderAccess {
 
   static BackupFolderProblem _problem(String code) => switch (code) {
     'missing' => BackupFolderProblem.missing,
+    'icloud' => BackupFolderProblem.iCloud,
     'no_space' => BackupFolderProblem.noSpace,
     'locked' => BackupFolderProblem.locked,
     'cant_use' => BackupFolderProblem.cantUse,
@@ -172,8 +180,12 @@ class ChannelBackupFolderAccess implements BackupFolderAccess {
   }
 
   @override
-  Future<int> write(String id, String sourcePath, String name) async =>
-      (await _call<int>('write', {
+  Future<void> write(String id, String sourcePath, String name) =>
+      _call<void>('write', {'id': id, 'source': sourcePath, 'name': name});
+
+  @override
+  Future<int> verify(String id, String sourcePath, String name) async =>
+      (await _call<int>('verify', {
         'id': id,
         'source': sourcePath,
         'name': name,

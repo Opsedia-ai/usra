@@ -97,6 +97,10 @@ class AutoBackupSettings {
     this.lastSkippedPhotos = 0,
     this.lastAttemptAt,
     this.failure,
+    this.baselineCounts,
+    this.latestCounts,
+    this.contentDropped = false,
+    this.heldBackups = const [],
   });
 
   final bool enabled;
@@ -115,6 +119,21 @@ class AutoBackupSettings {
   final DateTime? lastAttemptAt;
   final AutoBackupFailure? failure;
 
+  /// What a backup is expected to hold (see [hasContentDropped]). A backup
+  /// holding less doesn't move this down until the person says it's right,
+  /// or three such backups later the good ones would be gone anyway.
+  final Map<String, int>? baselineCounts;
+
+  /// What the last backup to land holds.
+  final Map<String, int>? latestCounts;
+
+  /// The last backup holds materially less than [baselineCounts].
+  final bool contentDropped;
+
+  /// The backups that were there when the content dropped, which retention
+  /// leaves alone until that's settled.
+  final List<String> heldBackups;
+
   static const _unset = Object();
 
   AutoBackupSettings copyWith({
@@ -128,6 +147,10 @@ class AutoBackupSettings {
     int? lastSkippedPhotos,
     DateTime? lastAttemptAt,
     Object? failure = _unset,
+    Map<String, int>? baselineCounts,
+    Map<String, int>? latestCounts,
+    bool? contentDropped,
+    List<String>? heldBackups,
   }) => AutoBackupSettings(
     enabled: enabled ?? this.enabled,
     frequency: frequency ?? this.frequency,
@@ -141,6 +164,10 @@ class AutoBackupSettings {
     failure: identical(failure, _unset)
         ? this.failure
         : failure as AutoBackupFailure?,
+    baselineCounts: baselineCounts ?? this.baselineCounts,
+    latestCounts: latestCounts ?? this.latestCounts,
+    contentDropped: contentDropped ?? this.contentDropped,
+    heldBackups: heldBackups ?? this.heldBackups,
   );
 
   Map<String, Object?> toJson() => {
@@ -154,7 +181,14 @@ class AutoBackupSettings {
     'lastSkippedPhotos': lastSkippedPhotos,
     'lastAttemptAt': lastAttemptAt?.millisecondsSinceEpoch,
     'failure': failure?.name,
+    'baselineCounts': baselineCounts,
+    'latestCounts': latestCounts,
+    'contentDropped': contentDropped,
+    'heldBackups': heldBackups,
   };
+
+  static Map<String, int>? _counts(Object? json) =>
+      (json as Map<String, dynamic>?)?.map((k, v) => MapEntry(k, v as int));
 
   static DateTime? _time(Object? ms) =>
       ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms as int);
@@ -178,6 +212,13 @@ class AutoBackupSettings {
         failure: AutoBackupFailure.values
             .where((f) => f.name == json['failure'])
             .firstOrNull,
+        baselineCounts: _counts(json['baselineCounts']),
+        latestCounts: _counts(json['latestCounts']),
+        contentDropped: json['contentDropped'] as bool? ?? false,
+        heldBackups: [
+          for (final name in json['heldBackups'] as List<dynamic>? ?? const [])
+            name as String,
+        ],
       );
 }
 
@@ -222,6 +263,41 @@ bool shouldStartAutoBackup(AutoBackupSettings settings, DateTime now) {
 
 /// How many backups stay in the folder.
 const autoBackupKeep = 3;
+
+/// [BackupManifest] counts this compares, and the photos with a row in the
+/// database but no file, which only [CreatedBackup] carries.
+const backupMissingPhotosCount = 'missingPhotos';
+
+/// Records or photos lost before it's called a drop: at least this many...
+const contentDropMinimum = 3;
+
+/// ...and at least this share of what was there.
+const contentDropShare = 0.10;
+
+/// Whether [latest] holds materially less than [baseline], so older backups
+/// must not be pushed out. No backup is deleted on this, so a false alarm
+/// costs one tap and a miss can cost the family's records:
+///
+/// - any person gone: a family is small, and removing someone is rare;
+/// - records or photos, 3 or more and at least 10% gone: tidying up a few
+///   doesn't ask, and at 1,000 records 50 gone doesn't either, but damage or
+///   restoring a much older backup does;
+/// - any photo with a row in the database but no file, beyond those already
+///   accepted: its folder is gone, or it was never saved.
+bool hasContentDropped(Map<String, int>? baseline, Map<String, int> latest) {
+  if (baseline == null || latest.isEmpty) return false;
+  int count(Map<String, int> counts, String name) => counts[name] ?? 0;
+  if (count(latest, 'people') < count(baseline, 'people')) return true;
+  for (final name in const ['records', 'photos']) {
+    final before = count(baseline, name);
+    final lost = before - count(latest, name);
+    if (lost >= contentDropMinimum && lost >= before * contentDropShare) {
+      return true;
+    }
+  }
+  return count(latest, backupMissingPhotosCount) >
+      count(baseline, backupMissingPhotosCount);
+}
 
 /// A backup file in the folder written by this feature:
 /// `usra-auto-<tag>-<yyyyMMdd-HHmmss>[-p].usra`, UTC, where `-p` means some
@@ -268,26 +344,31 @@ class AutoBackupFileName {
 /// Which of [names] (everything in the folder) to delete now a new backup
 /// has landed: this phone's backups beyond the newest [keep]. The newest
 /// complete one always stays, even if it's older, so backups that had to
-/// leave photos out can't push out the last one that has them all.
+/// leave photos out can't push out the last one that has them all. [held] are
+/// left out of all this ([AutoBackupSettings.heldBackups]).
 ///
-/// [justLanded] counts as the newest whatever its name says: times in names
-/// come from the phone's clock, and one corrected from a wrong date would
-/// otherwise rank each new backup oldest and delete it straight away.
+/// Times in names come from the phone's clock. One later than [now] was made
+/// with the clock wrong, so it counts as older than any real one: otherwise it
+/// would outrank each new backup, which is what would then be deleted.
 List<String> backupsToDelete(
   Iterable<String> names,
   String tag, {
-  String? justLanded,
+  required DateTime now,
+  Iterable<String> held = const [],
   int keep = autoBackupKeep,
 }) {
+  final latest = AutoBackupFileName.parse(AutoBackupFileName.make(tag, now))!
+      .stamp;
+  bool future(AutoBackupFileName f) => f.stamp.compareTo(latest) > 0;
   final own =
       names
+          .where((name) => !held.contains(name))
           .map(AutoBackupFileName.parse)
           .nonNulls
           .where((f) => f.tag == tag)
           .toList()
         ..sort((a, b) {
-          if (a.name == justLanded) return -1;
-          if (b.name == justLanded) return 1;
+          if (future(a) != future(b)) return future(a) ? 1 : -1;
           return b.stamp.compareTo(a.stamp);
         });
   final kept = own.take(keep).toList();
@@ -301,13 +382,18 @@ List<String> backupsToDelete(
   ];
 }
 
-/// This phone's half-written files in [names], left by a killed app.
+/// This phone's backups among [names].
+List<String> ownBackups(Iterable<String> names, String tag) => [
+  for (final name in names)
+    if (AutoBackupFileName.parse(name)?.tag == tag) name,
+];
+
+/// This phone's half-written files in [names], left by a killed app. A
+/// provider may have changed the end of the name, so only the start counts.
 List<String> partialsToDelete(Iterable<String> names, String tag) => [
   for (final name in names)
-    if (name.endsWith(AutoBackupFileName.partialExtension) &&
-        AutoBackupFileName.parse('${p.basenameWithoutExtension(name)}.usra')
-                ?.tag ==
-            tag)
+    if (name.startsWith('usra-auto-$tag-') &&
+        name.contains(AutoBackupFileName.partialExtension))
       name,
 ];
 
@@ -316,11 +402,12 @@ List<String> partialsToDelete(Iterable<String> names, String tag) => [
 /// device backup, and that folder is excluded (see `docs/security.md`).
 /// "Delete all my data" empties it.
 class AutoBackupStore {
-  AutoBackupStore._(this._file, this._current);
+  AutoBackupStore._(this._file, this._current, {this.unreadable = false});
 
   /// Kept only while the app runs; what tests use.
   AutoBackupStore.memory([AutoBackupSettings? initial])
     : _file = null,
+      unreadable = false,
       _current = initial ?? const AutoBackupSettings();
 
   static const fileName = 'auto_backup.json';
@@ -328,11 +415,25 @@ class AutoBackupStore {
   final File? _file;
   AutoBackupSettings _current;
 
+  /// The saved settings couldn't be read, so automatic backup is off. The
+  /// file stays until the next save replaces it.
+  final bool unreadable;
+  var _retired = false;
+
   AutoBackupSettings get current => _current;
+
+  /// A restore or wipe has taken over from whatever is still using this
+  /// store: see [retire].
+  bool get retired => _retired;
+
+  /// Saves become no-ops, so a backup that outlived its wait can't write the
+  /// settings back after "Delete all my data". The app opens a new store.
+  void retire() => _retired = true;
 
   static Future<AutoBackupStore> open(Directory root) async {
     final file = File(p.join(root.path, fileName));
     var current = const AutoBackupSettings();
+    var unreadable = false;
     try {
       if (await file.exists()) {
         current = AutoBackupSettings.fromJson(
@@ -340,16 +441,18 @@ class AutoBackupStore {
         );
       }
     } catch (e) {
-      // Damaged: automatic backup is off until it's set up again, and the
-      // Backup screen shows that.
+      // Damaged: automatic backup is off until it's set up again, and Home
+      // says so.
       Log.error('Auto backup settings unreadable', e);
+      unreadable = true;
     }
-    return AutoBackupStore._(file, current);
+    return AutoBackupStore._(file, current, unreadable: unreadable);
   }
 
   /// Written to a temporary name, then renamed, so a killed app leaves the
   /// old settings or the new ones, never half of either.
   Future<void> save(AutoBackupSettings settings) async {
+    if (_retired) return;
     _current = settings;
     final file = _file;
     if (file == null) return;
