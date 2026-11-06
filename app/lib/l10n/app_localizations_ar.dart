@@ -2740,6 +2740,96 @@ class AppLocalizationsAr extends AppLocalizations {
   String get vaccineSetupSaved => 'التطعيمات اتحفظت';
 
   @override
+  String get vaccineScanTitle => 'اقرا كارت التطعيمات';
+
+  @override
+  String get vaccineScanHelp =>
+      'صوّر الكارت. الموبايل بيقرا التواريخ وأسامي التطعيمات بالإنجليزي بنفسه، ومفيش حاجة بتتبعت لأي مكان، والصورة مش بتتحفظ. راجع كل جرعة على الكارت.';
+
+  @override
+  String get vaccineScanReading => 'بنقرا الكارت…';
+
+  @override
+  String vaccineScanFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لقينا $count جرعات في الكارت.',
+      two: 'لقينا جرعتين في الكارت.',
+      one: 'لقينا جرعة واحدة في الكارت.',
+    );
+    return '$_temp0 راجع كل واحدة تحت وعلّم على «زي اللي في الكارت».';
+  }
+
+  @override
+  String get vaccineScanNothing =>
+      'ملقيناش جرعات بتواريخ في الصورة دي. علّم عليها بإيدك تحت.';
+
+  @override
+  String vaccineScanAlready(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count جرعات من الكارت كانت متسجلة قبل كده، فمغيّرناهاش.',
+      one: 'جرعة من الكارت كانت متسجلة قبل كده، فمغيّرناهاش.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineScanFutureRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count سطور كان فيها تواريخ لسه مجتش (مواعيد الزيارة الجاية)، فمعلّمناش عليها.',
+      one: 'سطر واحد كان فيه تاريخ لسه مجاش (ميعاد الزيارة الجاية)، فمعلّمناش عليه.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get vaccineScanFailed => 'مقدرناش نقرا الصورة';
+
+  @override
+  String vaccineFromCard(String row) {
+    return 'في الكارت: $row';
+  }
+
+  @override
+  String get vaccineDoseGuessed => 'الكارت مش مكتوب فيه رقم الجرعة: اتأكد منه.';
+
+  @override
+  String get vaccineDateCheck =>
+      'راجع التاريخ على الكارت: السطر كان فيه أكتر من تاريخ، أو التاريخ مش مظبوط مع الجدول (قبل جرعة أقدم، أو بدري قوي عن سن الجرعة دي).';
+
+  @override
+  String get vaccineConfirmCard => 'زي اللي في الكارت';
+
+  @override
+  String get vaccineConfirmNeeded =>
+      'قبل الحفظ، أكّد كل جرعة اتقرت من الكارت (أو شيل العلامة)، وقول كل سطر مش معروف هو أنهي جرعة، أو سيبه.';
+
+  @override
+  String get vaccineUnknownTitle => 'سطور الموبايل معرفش اسمها';
+
+  @override
+  String vaccineUnknownRow(String text, String date) {
+    return '«$text»، اتاخدت $date';
+  }
+
+  @override
+  String vaccineUnknownDateOnly(String date) {
+    return 'جرعة اتاخدت $date';
+  }
+
+  @override
+  String get vaccineUnknownPick => 'دي أنهي جرعة؟';
+
+  @override
+  String get vaccineUnknownSkip => 'سيبها';
+
+  @override
   String get vaccineChangeDate => 'غيّر التاريخ';
 
   @override
@@ -3052,6 +3142,75 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get prescriptionTimesHint =>
       'اتأكد إن المواعيد زي ما الدكتور كتب، مثلاً كل ٨ ساعات.';
+
+  @override
+  String get rxScanTitle => 'اقرا الروشتة من صورة';
+
+  @override
+  String get rxScanHelp =>
+      'الموبايل بيقرا أسامي الأدوية المطبوعة بالإنجليزي بنفسه، ومفيش حاجة بتتبعت لأي مكان. مبيقراش خط الإيد: لو الدكتور كاتب بإيده، اكتب الأدوية وإنت باصص على الصورة. الصورة بتتحفظ متشفّرة مع الروشتة.';
+
+  @override
+  String get rxScanReading => 'بنقرا الروشتة…';
+
+  @override
+  String rxScanFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لقينا $count أدوية.',
+      two: 'لقينا دوائين.',
+      one: 'لقينا دوا واحد.',
+    );
+    return '$_temp0 راجع كل واحد على الورقة؛ الخانات المعلّمة الموبايل مكانش متأكد منها.';
+  }
+
+  @override
+  String get rxScanUnclear =>
+      'الروشتة شكلها بخط الإيد أو مش واضحة، فمكتبناش حاجة. الصورة محفوظة مع الروشتة: اكتب الأدوية وإنت باصص عليها.';
+
+  @override
+  String get rxScanNothing =>
+      'ملقيناش أدوية في الصورة دي. اكتبها بإيدك، والصورة هتتحفظ مع الروشتة.';
+
+  @override
+  String get rxScanFailed => 'مقدرناش نقرا الصورة';
+
+  @override
+  String get rxScanPhoto => 'صورة الروشتة';
+
+  @override
+  String get rxFromPhoto => 'اتقرا من الصورة: راجعه على الورقة';
+
+  @override
+  String get rxConfirmMedicine => 'زي اللي في الورقة';
+
+  @override
+  String get rxTimesChecked => 'المواعيد زي اللي في الورقة';
+
+  @override
+  String rxDidYouMean(String name) {
+    return 'تقصد $name؟';
+  }
+
+  @override
+  String get rxConfirmFirstCheck => 'راجع الخانات المعلّمة الأول';
+
+  @override
+  String get rxConfirmNeeded =>
+      'قبل الحفظ، راجع كل دوا اتقرا من الصورة على الورقة وعلّم على «زي اللي في الورقة»، وراجع التاريخ والدكتور.';
+
+  @override
+  String rxDoctorOnPaper(String name) {
+    return 'في الورقة: $name';
+  }
+
+  @override
+  String get rxDoctorAdd => 'ضيفه لدكاترتي';
+
+  @override
+  String get rxTimesFromPaper =>
+      'عدد المرات اتقرا من الورقة، ومواعيد التنبيه متوزعة على اليوم بس. غيّرها لو الدكتور قال غير كده.';
 
   @override
   String get growthNoPrematurity =>

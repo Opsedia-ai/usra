@@ -7,7 +7,7 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 /// One line of recognised text and where it is in the photo, in the
 /// photo's pixels (after its orientation is applied).
 class OcrLine {
-  const OcrLine(this.text, this.box, {this.angle});
+  const OcrLine(this.text, this.box, {this.angle, this.confidence});
 
   final String text;
   final Rect box;
@@ -15,6 +15,10 @@ class OcrLine {
   /// How far the line is turned, in degrees (clockwise), when the
   /// recogniser says; a tilted photo turns every line about the same.
   final double? angle;
+
+  /// How sure the recogniser was, 0 to 1, when it says (Android does, iOS
+  /// doesn't). Handwriting usually comes back low.
+  final double? confidence;
 }
 
 /// A paragraph-like group of [lines], as the recogniser found it.
@@ -68,7 +72,12 @@ class MlKitOcrService implements OcrService {
       for (final b in text.blocks)
         OcrBlock(b.text, b.boundingBox, [
           for (final l in b.lines)
-            OcrLine(l.text, l.boundingBox, angle: l.angle),
+            OcrLine(
+              l.text,
+              l.boundingBox,
+              angle: l.angle,
+              confidence: l.confidence,
+            ),
         ]),
     ]);
   }

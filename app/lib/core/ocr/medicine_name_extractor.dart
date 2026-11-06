@@ -188,6 +188,10 @@ class MedicineNameExtractor {
       )
       .join('/');
 
+  /// Names from the list found in [text], spelled as listed; OCR slips
+  /// ("Augrnentin") are matched to the nearest name.
+  List<String> knownIn(String text) => _knownIn(_tidy(text));
+
   List<String> _knownIn(String text) {
     var rest = text.toLowerCase();
     final found = <String>[];

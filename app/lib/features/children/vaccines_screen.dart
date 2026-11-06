@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/database/app_database.dart';
 import '../../core/design/severity_chip.dart';
 import '../../core/design/tokens.dart';
+import '../../core/files/photo_store.dart';
+import '../../core/log.dart';
+import '../../core/ocr/ocr_service.dart';
 import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -14,10 +18,12 @@ import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import '../follow_ups/follow_ups_providers.dart' show todayProvider;
 import '../medicines/medicines_providers.dart' show reminderSchedulerProvider;
 import '../reports/reports_screens.dart' show shareVaccinationRecord;
+import '../scan/scan_widgets.dart';
 import 'child_vaccines.dart';
 import 'egypt_vaccine_sources.dart';
 import 'egypt_vaccines.dart';
 import 'growth.dart' show isUnderFive;
+import 'vaccine_card_parser.dart';
 
 /// [profile]'s vaccines today, once their records have loaded; null for
 /// anyone five or over.
@@ -692,6 +698,140 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
   final _dates = <String, DateTime>{};
   var _saving = false;
 
+  /// Reading a photo of the vaccination card.
+  var _reading = false;
+  List<String> _scanMessages = const [];
+
+  /// Doses read from the card, by [ScheduledDose.key]: each is confirmed
+  /// against the card (or unticked) before saving.
+  final _fromCard = <String, CardDose>{};
+  final _confirmed = <String>{};
+
+  /// Dated rows of the card the phone couldn't name: the family says which
+  /// dose each is, or skips it.
+  final _unknown = <CardUnknownRow>[];
+
+  bool _ticked(DoseStatus s) => _toggled[s.dose.key] ?? s.done;
+
+  /// Something read from the card still waits for the family.
+  bool get _needsCheck =>
+      _unknown.isNotEmpty ||
+      _fromCard.keys.any(
+        (k) => (_toggled[k] ?? false) && !_confirmed.contains(k),
+      );
+
+  /// Reads a photo of the card and ticks the dated doses on it, each to be
+  /// confirmed. The photo is only read, on the phone, and then deleted.
+  Future<void> _scan(
+    ImageSource source,
+    Profile profile,
+    List<DoseStatus> statuses,
+  ) async {
+    final l = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    String? path;
+    try {
+      path = await ref.read(photoPickerProvider)(source);
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l.photoFailed)));
+      return;
+    }
+    if (path == null) return;
+    if (!mounted) {
+      discardPicked(path);
+      return;
+    }
+    setState(() {
+      _reading = true;
+      _scanMessages = const [];
+    });
+    VaccineCardScan scan;
+    // Keeps the recogniser open while it reads.
+    final ocr = ref.listenManual(ocrServiceProvider, (_, _) {});
+    try {
+      final text = await ocr.read().recognise(path);
+      scan = const VaccineCardParser().parse(
+        text,
+        today: ref.read(todayProvider),
+        birthDate: profile.birthDate,
+      );
+    } catch (error) {
+      Log.error('Vaccine card scan failed', error);
+      if (mounted) {
+        setState(() => _reading = false);
+        messenger.showSnackBar(SnackBar(content: Text(l.vaccineScanFailed)));
+      }
+      return;
+    } finally {
+      ocr.close();
+      // Not kept: the card's plain copy goes as soon as it's read.
+      discardPicked(path);
+    }
+    if (!mounted) return;
+    final byKey = {for (final s in statuses) s.dose.key: s};
+    final birth = profile.birthDate!;
+    setState(() {
+      _reading = false;
+      var added = 0;
+      var already = 0;
+      for (final d in scan.doses) {
+        final keys = cardDoseKeys(d, byKey.keys);
+        if (keys.isEmpty) {
+          // Not on this child's schedule: the family says what it is.
+          _unknown.add(CardUnknownRow(text: d.row, date: d.date));
+          continue;
+        }
+        // Before the child was born: a misread, not a dose.
+        if (d.date.isBefore(DateUtils.dateOnly(birth))) continue;
+        for (final key in keys) {
+          final s = byKey[key]!;
+          if (s.done) {
+            if (s.givenOn == null || !DateUtils.isSameDay(s.givenOn, d.date)) {
+              already++;
+            }
+            continue;
+          }
+          _toggled[key] = true;
+          _dates[key] = d.date;
+          _fromCard[key] = d;
+          _confirmed.remove(key);
+          added++;
+        }
+      }
+      // A second photo of the same card doesn't list its rows twice.
+      for (final row in scan.unknown) {
+        if (!_unknown.any((u) => u.text == row.text && u.date == row.date)) {
+          _unknown.add(row);
+        }
+      }
+      _scanMessages = [
+        if (added > 0)
+          l.vaccineScanFound(added)
+        else if (_unknown.isEmpty)
+          l.vaccineScanNothing,
+        if (already > 0) l.vaccineScanAlready(already),
+        if (scan.futureRows > 0) l.vaccineScanFutureRows(scan.futureRows),
+      ];
+    });
+  }
+
+  /// The family said which dose an unnamed row is.
+  void _mapUnknown(int i, DoseStatus s) {
+    setState(() {
+      final row = _unknown.removeAt(i);
+      final key = s.dose.key;
+      _toggled[key] = true;
+      _dates[key] = row.date;
+      _fromCard[key] = CardDose(
+        kinds: {s.dose.kind},
+        dose: s.dose.dose,
+        date: row.date,
+        row: row.text,
+      );
+      _confirmed.remove(key);
+    });
+  }
+
   String get _back => widget.first
       ? '/family/${widget.profileId}'
       : '/family/${widget.profileId}/vaccines';
@@ -747,9 +887,13 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
     final soon = today.add(const Duration(days: dueSoonDays));
     final checklist = [
       for (final s in statuses)
-        if (s.done || (s.followed && !s.dueOn.isAfter(soon))) s,
+        if (s.done ||
+            (s.followed && !s.dueOn.isAfter(soon)) ||
+            _fromCard.containsKey(s.dose.key))
+          s,
     ];
-    bool ticked(DoseStatus s) => _toggled[s.dose.key] ?? s.done;
+    final ticked = _ticked;
+    final needsCheck = _needsCheck;
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
@@ -811,48 +955,96 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
         Text(l.vaccineSetupGiven, style: text.titleMedium),
         const SizedBox(height: 4),
         Text(l.vaccineSetupGivenHint, style: muted),
+        const SizedBox(height: 12),
+        DocumentScanCard(
+          keyPrefix: 'vaccine-scan',
+          title: l.vaccineScanTitle,
+          help: l.vaccineScanHelp,
+          readingText: l.vaccineScanReading,
+          reading: _reading,
+          messages: _scanMessages,
+          onScan: _saving ? null : (source) => _scan(source, profile, statuses),
+        ),
+        const SizedBox(height: 8),
         if (checklist.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Text(l.vaccineSetupNoneYet),
           ),
         for (final s in checklist)
-          CheckboxListTile(
-            key: ValueKey('setup-${s.dose.key}'),
-            contentPadding: EdgeInsets.zero,
-            controlAffinity: ListTileControlAffinity.leading,
-            value: ticked(s),
-            onChanged: (on) =>
-                setState(() => _toggled[s.dose.key] = on == true),
-            title: Text(doseName(l, s.dose)),
-            subtitle: Text(
-              '${doseAge(l, s.dose)} · '
-              '${s.dose.required ? l.vaccineRequired : l.vaccineOptional}'
-              '${ticked(s) ? ' · ${_fmt(context, _dateOf(s))}' : ''}',
+          _CardCheck(
+            card: ticked(s) ? _fromCard[s.dose.key] : null,
+            confirmed: _confirmed.contains(s.dose.key),
+            doseKey: s.dose.key,
+            onConfirmed: (on) => setState(
+              () => on
+                  ? _confirmed.add(s.dose.key)
+                  : _confirmed.remove(s.dose.key),
             ),
-            secondary: ticked(s) && !s.done
-                ? IconButton(
-                    key: ValueKey('setup-date-${s.dose.key}'),
-                    tooltip: l.vaccineChangeDate,
-                    icon: const Icon(Icons.edit_calendar_outlined),
-                    onPressed: () async {
-                      final picked = await pickGivenDate(
-                        context,
-                        initial: _dateOf(s),
-                        birthDate: profile.birthDate!,
-                      );
-                      if (picked != null) {
-                        setState(() => _dates[s.dose.key] = picked);
-                      }
-                    },
-                  )
-                : null,
+            child: CheckboxListTile(
+              key: ValueKey('setup-${s.dose.key}'),
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              value: ticked(s),
+              onChanged: (on) =>
+                  setState(() => _toggled[s.dose.key] = on == true),
+              title: Text(doseName(l, s.dose)),
+              subtitle: Text(
+                '${doseAge(l, s.dose)} · '
+                '${s.dose.required ? l.vaccineRequired : l.vaccineOptional}'
+                '${ticked(s) ? ' · ${_fmt(context, _dateOf(s))}' : ''}',
+              ),
+              secondary: ticked(s) && !s.done
+                  ? IconButton(
+                      key: ValueKey('setup-date-${s.dose.key}'),
+                      tooltip: l.vaccineChangeDate,
+                      icon: const Icon(Icons.edit_calendar_outlined),
+                      onPressed: () async {
+                        final picked = await pickGivenDate(
+                          context,
+                          initial: _dateOf(s),
+                          birthDate: profile.birthDate!,
+                        );
+                        if (picked != null) {
+                          setState(() => _dates[s.dose.key] = picked);
+                        }
+                      },
+                    )
+                  : null,
+            ),
           ),
+        if (_unknown.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Text(l.vaccineUnknownTitle, style: text.titleMedium),
+          for (final (i, row) in _unknown.indexed)
+            _UnknownRow(
+              key: ValueKey('setup-unknown-$i-${row.hashCode}'),
+              index: i,
+              label: row.text.isEmpty
+                  ? l.vaccineUnknownDateOnly(_fmt(context, row.date))
+                  : l.vaccineUnknownRow(row.text, _fmt(context, row.date)),
+              choices: [
+                for (final s in statuses)
+                  if (!ticked(s)) s,
+              ],
+              onPick: (s) => _mapUnknown(i, s),
+              onSkip: () => setState(() => _unknown.removeAt(i)),
+            ),
+        ],
         const SizedBox(height: 24),
+        if (needsCheck)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              l.vaccineConfirmNeeded,
+              key: const ValueKey('vaccine-confirm-needed'),
+              style: TextStyle(color: Severity.headsUp.foreground),
+            ),
+          ),
         FilledButton(
           key: const ValueKey('vaccine-setup-save'),
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-          onPressed: _saving
+          onPressed: _saving || needsCheck
               ? null
               : () => _save(profile, plan, statuses, checklist),
           child: Text(l.familySave),
@@ -872,9 +1064,10 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
     List<DoseStatus> statuses,
     List<DoseStatus> checklist,
   ) async {
+    if (_needsCheck) return;
     final l = AppLocalizations.of(context);
     final db = ref.read(databaseProvider);
-    bool ticked(DoseStatus s) => _toggled[s.dose.key] ?? s.done;
+    final ticked = _ticked;
     final changes = vaccineRecordChanges(l, statuses, {
       for (final s in checklist)
         if (ticked(s) != s.done) s.dose.key: ticked(s) ? _dateOf(s) : null,
@@ -909,5 +1102,142 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(l.vaccineSetupSaved)));
     context.go('/family/${profile.id}/vaccines');
+  }
+}
+
+/// A checklist row ticked from the card: marked until the family says it
+/// matches the card, with what the card said and anything to look at.
+class _CardCheck extends StatelessWidget {
+  const _CardCheck({
+    required this.card,
+    required this.confirmed,
+    required this.doseKey,
+    required this.onConfirmed,
+    required this.child,
+  });
+
+  /// What the card said; null for a row not read from it (or unticked).
+  final CardDose? card;
+  final bool confirmed;
+  final String doseKey;
+  final ValueChanged<bool> onConfirmed;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final card = this.card;
+    if (card == null) return child;
+    final l = AppLocalizations.of(context);
+    final style = TextStyle(color: Severity.headsUp.foreground);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      // A Material, so the tiles' ink shows on the colour.
+      child: Material(
+        color: confirmed
+            ? Theme.of(context).colorScheme.surface
+            : Severity.headsUp.background,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Severity.headsUp.foreground.withAlpha(80)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              child,
+              if (card.row.isNotEmpty)
+                Text(l.vaccineFromCard(card.row), style: style),
+              if (card.doseGuessed)
+                Text(
+                  l.vaccineDoseGuessed,
+                  key: ValueKey('setup-guessed-$doseKey'),
+                  style: style,
+                ),
+              if (card.dateUnsure)
+                Text(
+                  l.vaccineDateCheck,
+                  key: ValueKey('setup-date-check-$doseKey'),
+                  style: style,
+                ),
+              CheckboxListTile(
+                key: ValueKey('setup-confirm-$doseKey'),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                value: confirmed,
+                title: Text(l.vaccineConfirmCard),
+                onChanged: (on) => onConfirmed(on == true),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A dated row of the card the phone couldn't name: pick which dose it
+/// is, or skip it.
+class _UnknownRow extends StatelessWidget {
+  const _UnknownRow({
+    super.key,
+    required this.index,
+    required this.label,
+    required this.choices,
+    required this.onPick,
+    required this.onSkip,
+  });
+
+  final int index;
+  final String label;
+  final List<DoseStatus> choices;
+  final ValueChanged<DoseStatus> onPick;
+  final VoidCallback onSkip;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Card(
+      color: Severity.headsUp.background,
+      elevation: 0,
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(label, key: ValueKey('setup-unknown-label-$index')),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              key: ValueKey('setup-unknown-pick-$index'),
+              isExpanded: true,
+              decoration: InputDecoration(labelText: l.vaccineUnknownPick),
+              items: [
+                for (final s in choices)
+                  DropdownMenuItem(
+                    value: s.dose.key,
+                    child: Text(
+                      '${doseName(l, s.dose)} · ${doseAge(l, s.dose)}',
+                    ),
+                  ),
+              ],
+              onChanged: (key) {
+                final s = choices.where((c) => c.dose.key == key).firstOrNull;
+                if (s != null) onPick(s);
+              },
+            ),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: TextButton(
+                key: ValueKey('setup-unknown-skip-$index'),
+                style: TextButton.styleFrom(minimumSize: const Size(0, 48)),
+                onPressed: onSkip,
+                child: Text(l.vaccineUnknownSkip),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
