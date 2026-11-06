@@ -4,9 +4,9 @@
 begin;
 select plan(21);
 
-insert into auth.users (id, phone) values
-  ('33333333-3333-3333-3333-333333333333', '201000000003'),
-  ('44444444-4444-4444-4444-444444444444', '201000000004');
+insert into auth.users (id, email) values
+  ('33333333-3333-3333-3333-333333333333', 'user03@example.com'),
+  ('44444444-4444-4444-4444-444444444444', 'user04@example.com');
 
 select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 

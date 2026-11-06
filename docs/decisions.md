@@ -16,7 +16,8 @@ All decisions as of 2 Nov 2026. Details and sources are in the PDFs in `docs/pdf
 | Ads | Only labelled, contextual sponsored listings (city + specialty). Never targeted using health data | Apple 5.1.3, Google Play user data policy |
 | First market | Egypt (57.2% out-of-pocket health spending, 2023), then KSA as a Sehhaty complement, then UAE | MENA research |
 | Mobile framework | Flutter (Android + iOS from one codebase). React Native only if the founding developer is React/TS-first | Technical design comparison |
-| Backend | Supabase: Auth (phone OTP via SMS hook), Postgres + RLS, Edge Functions (Deno/TS), Storage | User's recommendation |
+| Sign-in | Optional account with Google and Apple only, native ID tokens. No SMS. Decided 2026-11-06 | SMS costs about $1,980 per 5,000 users at Twilio's Egypt price; the free-for-5,000 rule; Apple guideline 4.8 |
+| Backend | Supabase: Auth (Google and Apple), Postgres + RLS, Edge Functions (Deno/TS), Storage | User's recommendation |
 | Data location | Health data on the phone (SQLCipher) in v1. v2 sync is end-to-end encrypted. Readable cloud data only on self-hosted Supabase in-region | Supabase Cloud has no Middle East region; Egypt/KSA/UAE data rules |
 | Backups | Encrypted file to the user's own Google Drive. Never iCloud | Apple guideline 5.1.3 forbids health data in iCloud |
 | OCR | Barcode → ML Kit on-device text → drug-list matching → cloud fallback (with consent) for Arabic and handwriting | ML Kit cannot read Arabic |

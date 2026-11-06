@@ -2303,53 +2303,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountSignInIntro =>
-      'Sign in with your mobile number. We\'ll text you a code.';
+      'An account is optional: the app works fully without one. Google or Apple shares your name and email with us.';
 
   @override
-  String get countryEgypt => 'Egypt';
+  String get accountSignInWithGoogle => 'Sign in with Google';
 
   @override
-  String get countrySaudiArabia => 'Saudi Arabia';
+  String get accountSignInWithApple => 'Sign in with Apple';
 
   @override
-  String get countryUae => 'UAE';
-
-  @override
-  String get accountPhone => 'Mobile number';
-
-  @override
-  String get accountPhoneInvalid => 'Check the mobile number';
-
-  @override
-  String get accountSendCode => 'Send code';
-
-  @override
-  String accountCodeSentTo(String phone) {
-    return 'Enter the 6-digit code we sent to $phone';
-  }
-
-  @override
-  String get accountCode => 'Code';
-
-  @override
-  String get accountVerify => 'Confirm';
-
-  @override
-  String get accountResend => 'Send the code again';
-
-  @override
-  String get accountCodeResent => 'Code sent again';
-
-  @override
-  String get accountChangeNumber => 'Change number';
+  String get accountSignInUnavailable =>
+      'Sign-in isn\'t available in this version of the app.';
 
   @override
   String get accountSignedIn => 'Signed in';
-
-  @override
-  String accountSignedInAs(String phone) {
-    return 'Signed in as $phone';
-  }
 
   @override
   String get accountSignOut => 'Sign out';
@@ -2366,10 +2333,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Delete your account? Your account, devices and credits are erased from our servers. The records on this phone stay here.';
 
   @override
-  String get accountDeleted => 'Account deleted';
+  String get accountDeleteAppleNote =>
+      'Apple will ask you to confirm once more, so we can unlink your Apple ID from the app.';
 
   @override
-  String get accountErrorInvalidCode => 'That code isn\'t right or has expired';
+  String get accountDeleted => 'Account deleted';
 
   @override
   String get accountErrorTooMany =>
@@ -2384,11 +2352,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountRetry => 'Try again';
-
-  @override
-  String accountResendIn(int seconds) {
-    return 'Send the code again in ${seconds}s';
-  }
 
   @override
   String get accountErrorSignInAgain =>

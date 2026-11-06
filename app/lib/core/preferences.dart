@@ -89,7 +89,11 @@ abstract final class PrefKeys {
 
   /// "Don't ask again" on the warning before sharing outside the app.
   static const shareWarningOff = 'share_warning_off';
+
+  /// This install has checked for account secrets left by an earlier one.
+  static const accountInstalled = 'usra.account.installed.v1';
   static const all = {
+    accountInstalled,
     simpleMode,
     tutorialSeen,
     elderTutorialSeen,

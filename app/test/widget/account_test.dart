@@ -14,6 +14,7 @@ import 'package:usra/core/routing/app_router.dart';
 import 'package:usra/features/account/account_providers.dart';
 import 'package:usra/features/account/auth_gateway.dart';
 import 'package:usra/features/account/device_identity.dart';
+import 'package:usra/features/account/login_config.dart';
 import 'package:usra/features/account/supabase_config.dart';
 
 import '../support/fake_auth_gateway.dart';
@@ -40,32 +41,45 @@ void main() {
     anonKey: 'anon',
   );
 
-  Widget app({bool configured = true, List<Override> extra = const []}) =>
-      ProviderScope(
-        overrides: [
-          databaseProvider.overrideWithValue(db),
-          keyValueStoreProvider.overrideWithValue(
-            MemoryKeyValueStore({
-              PrefKeys.tutorialSeen: true,
-              PrefKeys.elderTutorialSeen: true,
-            }),
-          ),
-          supabaseConfigProvider.overrideWithValue(
-            configured ? cloud : SupabaseConfig.none,
-          ),
-          if (configured) authGatewayProvider.overrideWithValue(gateway),
-          deviceIdentityStoreProvider.overrideWithValue(ids),
-          accountReinstallCheckProvider.overrideWithValue(() async {}),
-          ...extra,
-        ],
-        child: const UsraApp(),
-      );
+  const googleKey = ValueKey('account-sign-in-google');
+  const appleKey = ValueKey('account-sign-in-apple');
 
-  Future<void> openAccount(WidgetTester tester) async {
+  Widget app({
+    bool configured = true,
+    bool isIos = true,
+    LoginConfig login = const LoginConfig(
+      googleWebClientId: 'web',
+      googleIosClientId: 'ios',
+      appleEnabled: true,
+    ),
+    List<Override> extra = const [],
+  }) => ProviderScope(
+    overrides: [
+      databaseProvider.overrideWithValue(db),
+      keyValueStoreProvider.overrideWithValue(
+        MemoryKeyValueStore({
+          PrefKeys.tutorialSeen: true,
+          PrefKeys.elderTutorialSeen: true,
+        }),
+      ),
+      supabaseConfigProvider.overrideWithValue(
+        configured ? cloud : SupabaseConfig.none,
+      ),
+      if (configured) authGatewayProvider.overrideWithValue(gateway),
+      loginConfigProvider.overrideWithValue(login),
+      devicePlatformProvider.overrideWithValue(isIos ? 'ios' : 'android'),
+      deviceIdentityStoreProvider.overrideWithValue(ids),
+      accountReinstallCheckProvider.overrideWithValue(() async {}),
+      ...extra,
+    ],
+    child: const UsraApp(),
+  );
+
+  Future<void> openAccount(WidgetTester tester, {Widget? root}) async {
     tester.view.physicalSize = const Size(1170, 3000);
     tester.view.devicePixelRatio = 1.5;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(app());
+    await tester.pumpWidget(root ?? app());
     await tester.pumpAndSettle();
     await tester.tap(find.text('المزيد').last);
     await tester.pumpAndSettle();
@@ -96,9 +110,7 @@ void main() {
     expect(gateway.restores, 0);
   });
 
-  testWidgets('sign in with an Egyptian number and a texted code', (
-    tester,
-  ) async {
+  testWidgets('sign in with Google, in Arabic', (tester) async {
     await openAccount(tester);
     expect(gateway.restores, 1);
     // Says plainly that records stay on the phone.
@@ -106,98 +118,158 @@ void main() {
       find.textContaining('سجلات العيلة الصحية فاضلة على الموبايل ده'),
       findsOneWidget,
     );
-    expect(find.text('+20 '), findsOneWidget);
-
-    await tester.enterText(find.byKey(const ValueKey('account-phone')), '123');
-    await tester.tap(find.byKey(const ValueKey('account-send-code')));
-    await tester.pumpAndSettle();
-    expect(find.text('اتأكد من رقم الموبايل'), findsOneWidget);
-    expect(gateway.codesSent, isEmpty);
-
-    await tester.enterText(
-      find.byKey(const ValueKey('account-phone')),
-      '٠١٠٠١٢٣٤٥٦٧',
+    expect(find.text('تسجيل الدخول باستخدام Google'), findsOneWidget);
+    expect(find.text('تسجيل الدخول باستخدام Apple'), findsOneWidget);
+    expect(
+      Directionality.of(tester.element(find.byKey(googleKey))),
+      TextDirection.rtl,
     );
-    await tester.tap(find.byKey(const ValueKey('account-send-code')));
-    await tester.pumpAndSettle();
-    expect(gateway.codesSent, ['+201001234567']);
-    expect(find.textContaining('+20 10•••••567'), findsOneWidget);
 
-    await tester.enterText(
-      find.byKey(const ValueKey('account-code')),
-      '000000',
-    );
-    await tester.tap(find.byKey(const ValueKey('account-verify')));
+    await tester.tap(find.byKey(googleKey));
     await tester.pumpAndSettle();
-    expect(find.text('الكود ده مش صح أو انتهى'), findsOneWidget);
-
-    await tester.enterText(
-      find.byKey(const ValueKey('account-code')),
-      FakeAuthGateway.validCode,
+    expect(gateway.signIns, [SignInMethod.google]);
+    expect(find.byKey(const ValueKey('account-signed-in')), findsOneWidget);
+    expect(find.text('mona@example.com'), findsOneWidget);
+    // An address stays left to right on the Arabic screen.
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey('account-email')))
+          .textDirection,
+      TextDirection.ltr,
     );
-    await tester.tap(find.byKey(const ValueKey('account-verify')));
+    expect(gateway.accountUpdates.single, 'ar');
+    expect(gateway.devices, hasLength(1));
+    expect(find.byKey(googleKey), findsNothing);
+  });
+
+  testWidgets('sign in with Apple', (tester) async {
+    gateway.nextUser = FakeAuthGateway.appleUser;
+    await openAccount(tester);
+    await tester.tap(find.byKey(appleKey));
+    await tester.pumpAndSettle();
+    expect(gateway.signIns, [SignInMethod.apple]);
+    expect(find.byKey(const ValueKey('account-signed-in')), findsOneWidget);
+  });
+
+  testWidgets('Android shows Google and no Apple', (tester) async {
+    await openAccount(tester, root: app(isIos: false));
+    expect(find.byKey(googleKey), findsOneWidget);
+    expect(find.byKey(appleKey), findsNothing);
+  });
+
+  testWidgets('a button whose setup is missing is hidden', (tester) async {
+    await openAccount(
+      tester,
+      root: app(login: const LoginConfig(appleEnabled: true)),
+    );
+    expect(find.byKey(appleKey), findsOneWidget);
+    expect(find.byKey(googleKey), findsNothing);
+  });
+
+  testWidgets('no button at all says so plainly', (tester) async {
+    await openAccount(tester, root: app(login: const LoginConfig()));
+    expect(find.byKey(appleKey), findsNothing);
+    expect(find.byKey(googleKey), findsNothing);
+    expect(
+      find.byKey(const ValueKey('account-sign-in-unavailable')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('closing the sheet shows no error and stays signed out', (
+    tester,
+  ) async {
+    await openAccount(tester);
+    gateway.failSignIn = const AccountException(AccountErrorKind.cancelled);
+    await tester.tap(find.byKey(googleKey));
+    await tester.pumpAndSettle();
+    expect(find.byType(SnackBar), findsNothing);
+    expect(find.byKey(googleKey), findsOneWidget);
+    expect(gateway.signIns, isEmpty);
+    expect(gateway.devices, isEmpty);
+  });
+
+  testWidgets('a failed sign-in says so; trying again works', (tester) async {
+    await openAccount(tester);
+    gateway.failSignIn = const AccountException(AccountErrorKind.unknown);
+    await tester.tap(find.byKey(appleKey));
+    await tester.pumpAndSettle();
+    expect(find.text('حصلت مشكلة. جرّب تاني'), findsOneWidget);
+    expect(find.byKey(appleKey), findsOneWidget);
+
+    await tester.tap(find.byKey(appleKey));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('account-signed-in')), findsOneWidget);
-    expect(gateway.accountUpdates.single, (country: 'EG', locale: 'ar'));
-    expect(gateway.devices, hasLength(1));
   });
 
-  testWidgets('choose Saudi Arabia, resend and change the number', (
-    tester,
-  ) async {
+  testWidgets('no internet during sign-in says so', (tester) async {
     await openAccount(tester);
-    await tester.tap(find.text('السعودية'));
+    gateway.failSignIn = const AccountException(AccountErrorKind.network);
+    await tester.tap(find.byKey(googleKey));
     await tester.pumpAndSettle();
-    expect(find.text('+966 '), findsOneWidget);
-    await tester.enterText(
-      find.byKey(const ValueKey('account-phone')),
-      '0501234567',
-    );
-    await tester.tap(find.byKey(const ValueKey('account-send-code')));
-    await tester.pumpAndSettle();
-    expect(gateway.codesSent, ['+966501234567']);
-
-    // Resend waits a minute.
-    expect(find.text('تقدر تطلب كود تاني بعد 60 ثانية'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('account-resend')));
-    await tester.pump(const Duration(seconds: 30));
-    expect(gateway.codesSent, ['+966501234567']);
-    expect(find.text('تقدر تطلب كود تاني بعد 30 ثانية'), findsOneWidget);
-    await tester.pump(const Duration(seconds: 30));
-    await tester.tap(find.byKey(const ValueKey('account-resend')));
-    await tester.pumpAndSettle();
-    expect(gateway.codesSent, ['+966501234567', '+966501234567']);
-    expect(find.text('الكود اتبعت تاني'), findsOneWidget);
-    expect(find.text('تقدر تطلب كود تاني بعد 60 ثانية'), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('account-change-number')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('account-phone')), findsOneWidget);
+    expect(find.text('مفيش اتصال. اتأكد من النت وجرّب تاني'), findsOneWidget);
   });
 
-  testWidgets('pressing Enter twice while sending sends one code', (
+  testWidgets('tapping twice while signing in signs in once', (tester) async {
+    await openAccount(tester);
+    gateway.holdSignIn = Completer();
+    await tester.tap(find.byKey(googleKey));
+    await tester.pump();
+    await tester.tap(find.byKey(googleKey), warnIfMissed: false);
+    await tester.tap(find.byKey(appleKey), warnIfMissed: false);
+    await tester.pump();
+    gateway.holdSignIn!.complete();
+    await tester.pumpAndSettle();
+    expect(gateway.signIns, [SignInMethod.google]);
+  });
+
+  testWidgets('Simple Mode text fits the buttons, in Arabic', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await openAccount(tester);
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(googleKey), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(googleKey)).height,
+      greaterThanOrEqualTo(52),
+    );
+  });
+
+  testWidgets('deleting an Apple account warns about Apple\'s sheet', (
     tester,
   ) async {
+    const id = 'user-1';
+    gateway.signedIn = FakeAuthGateway.appleUser;
+    await ids.saveDeviceId(id, 'device-1');
     await openAccount(tester);
-    gateway.holdSend = Completer();
-    await tester.enterText(
-      find.byKey(const ValueKey('account-phone')),
-      '01001234567',
-    );
-    await tester.testTextInput.receiveAction(TextInputAction.done);
-    await tester.pump();
-    await tester.testTextInput.receiveAction(TextInputAction.done);
-    await tester.pump();
-    gateway.holdSend!.complete();
+    await tester.tap(find.byKey(const ValueKey('account-delete')));
     await tester.pumpAndSettle();
-    expect(gateway.codesSent, ['+201001234567']);
+    expect(find.textContaining('Apple هتطلب منك تأكيد'), findsOneWidget);
+
+    // Closing Apple's sheet: nothing happens and nothing is shown.
+    gateway.failDelete = const AccountException(AccountErrorKind.cancelled);
+    await tester.tap(find.byKey(const ValueKey('account-confirm')));
+    await tester.pumpAndSettle();
+    expect(find.byType(SnackBar), findsNothing);
+    expect(gateway.deleted, 0);
+    expect(find.byKey(const ValueKey('account-signed-in')), findsOneWidget);
+  });
+
+  testWidgets('deleting a Google account has no Apple step', (tester) async {
+    const id = 'user-1';
+    gateway.signedIn = FakeAuthGateway.googleUser;
+    await ids.saveDeviceId(id, 'device-1');
+    await openAccount(tester);
+    await tester.tap(find.byKey(const ValueKey('account-delete')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Apple'), findsNothing);
   });
 
   testWidgets('a family with other members blocks delete, plainly', (
     tester,
   ) async {
-    const id = 'user-201001234567';
-    gateway.signedIn = const AccountUser(id: id, phone: '+201001234567');
+    const id = 'user-1';
+    gateway.signedIn = FakeAuthGateway.googleUser;
     await ids.saveDeviceId(id, 'device-1');
     await openAccount(tester);
     gateway.failDelete = const AccountException(
@@ -214,49 +286,37 @@ void main() {
     expect(find.byKey(const ValueKey('account-signed-in')), findsOneWidget);
   });
 
-  testWidgets('too many codes shows a wait message', (tester) async {
+  testWidgets('too many tries shows a wait message', (tester) async {
     await openAccount(tester);
-    gateway.failSend = const AccountException(AccountErrorKind.tooManyRequests);
-    await tester.enterText(
-      find.byKey(const ValueKey('account-phone')),
-      '01001234567',
+    gateway.failSignIn = const AccountException(
+      AccountErrorKind.tooManyRequests,
     );
-    await tester.tap(find.byKey(const ValueKey('account-send-code')));
+    await tester.tap(find.byKey(googleKey));
     await tester.pumpAndSettle();
     expect(find.text('محاولات كتير. استنى شوية وجرّب تاني'), findsOneWidget);
-    expect(find.byKey(const ValueKey('account-phone')), findsOneWidget);
+    expect(find.byKey(googleKey), findsOneWidget);
   });
 
   testWidgets('sign out and delete both wipe the device key', (tester) async {
-    const id = 'user-201001234567';
-    gateway.signedIn = const AccountUser(id: id, phone: '+201001234567');
+    const id = 'user-1';
+    gateway.signedIn = FakeAuthGateway.googleUser;
     gateway.devices['device-1'] = (platform: 'ios', appVersion: '1', key: [1]);
     await ids.saveDeviceId(id, 'device-1');
     await ids.publicKey(id);
     await openAccount(tester);
-    expect(find.textContaining('+20 10•••••567'), findsOneWidget);
+    expect(find.text('mona@example.com'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('account-sign-out')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('account-confirm')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('account-phone')), findsOneWidget);
+    expect(find.byKey(googleKey), findsOneWidget);
     expect(ids.devices, isEmpty);
     expect(ids.keys, isEmpty);
     expect(gateway.revokedDevices, ['device-1']);
 
     // Back in, then delete (cancelling once first).
-    await tester.enterText(
-      find.byKey(const ValueKey('account-phone')),
-      '01001234567',
-    );
-    await tester.tap(find.byKey(const ValueKey('account-send-code')));
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const ValueKey('account-code')),
-      FakeAuthGateway.validCode,
-    );
-    await tester.tap(find.byKey(const ValueKey('account-verify')));
+    await tester.tap(find.byKey(googleKey));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('account-delete')));
@@ -272,7 +332,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(gateway.deleted, 1);
     expect(find.text('الحساب اتمسح'), findsOneWidget);
-    expect(find.byKey(const ValueKey('account-phone')), findsOneWidget);
+    expect(find.byKey(googleKey), findsOneWidget);
     expect(ids.devices, isEmpty);
     expect(ids.keys, isEmpty);
   });
@@ -287,7 +347,7 @@ void main() {
         .read(routerProvider)
         .go('/settings/account');
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('account-phone')), findsNothing);
+    expect(find.byKey(googleKey), findsNothing);
     expect(find.byKey(const ValueKey('settings-backup')), findsOneWidget);
   });
 
@@ -310,6 +370,7 @@ void main() {
       find.textContaining("Your family's health records stay on this phone"),
       findsOneWidget,
     );
-    expect(find.text('Send code'), findsOneWidget);
+    expect(find.text('Sign in with Google'), findsOneWidget);
+    expect(find.text('Sign in with Apple'), findsOneWidget);
   });
 }

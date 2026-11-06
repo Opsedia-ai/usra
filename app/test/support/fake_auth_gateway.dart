@@ -2,26 +2,40 @@ import 'dart:async';
 
 import 'package:usra/features/account/auth_gateway.dart';
 
-/// An account backend in memory. The right code is always [validCode].
+/// An account backend in memory. Sign-in always works unless told otherwise.
 class FakeAuthGateway implements AuthGateway {
-  FakeAuthGateway({this.signedIn});
+  FakeAuthGateway({this.signedIn, this.nextUser = googleUser});
 
-  static const validCode = '123456';
+  static const googleUser = AccountUser(
+    id: 'user-1',
+    email: 'mona@example.com',
+  );
+
+  /// Deleting this one asks Apple again.
+  static const appleUser = AccountUser(
+    id: 'user-1',
+    email: 'abc123@privaterelay.appleid.com',
+    confirmsDeleteWithApple: true,
+  );
 
   AccountUser? signedIn;
-  final codesSent = <String>[];
-  final accountUpdates = <({String country, String locale})>[];
+
+  /// Who signs in next.
+  AccountUser nextUser;
+  final signIns = <SignInMethod>[];
+  final accountUpdates = <String>[];
   final devices =
       <String, ({String platform, String appVersion, List<int> key})>{};
   final registerCalls = <String?>[];
   var deleted = 0;
   var restores = 0;
 
-  /// While set, sendCode / registerDevice wait for it.
-  Completer<void>? holdSend, holdRegister;
+  /// While set, sign-in / registerDevice wait for it.
+  Completer<void>? holdSignIn, holdRegister;
 
-  /// Thrown by the next call of that kind.
-  AccountException? failSend, failVerify, failSetUp, failDelete;
+  /// Thrown by the next call of that kind. A closed sheet is
+  /// [AccountErrorKind.cancelled].
+  AccountException? failSignIn, failSetUp, failDelete;
 
   final _changes = StreamController<AccountUser?>.broadcast();
 
@@ -40,30 +54,21 @@ class FakeAuthGateway implements AuthGateway {
   @override
   Stream<AccountUser?> get userChanges => _changes.stream;
 
-  @override
-  Future<void> sendCode(String phone) async {
-    if (failSend case final e?) {
-      failSend = null;
+  Future<AccountUser> _signIn(SignInMethod method) async {
+    await holdSignIn?.future;
+    if (failSignIn case final e?) {
+      failSignIn = null;
       throw e;
     }
-    codesSent.add(phone);
-    await holdSend?.future;
+    signIns.add(method);
+    return signedIn = nextUser;
   }
 
   @override
-  Future<AccountUser> verifyCode(String phone, String code) async {
-    if (failVerify case final e?) {
-      failVerify = null;
-      throw e;
-    }
-    if (code != validCode || !codesSent.contains(phone)) {
-      throw const AccountException(AccountErrorKind.invalidCode);
-    }
-    return signedIn = AccountUser(
-      id: 'user-${phone.substring(1)}',
-      phone: phone,
-    );
-  }
+  Future<AccountUser> signInWithGoogle() => _signIn(SignInMethod.google);
+
+  @override
+  Future<AccountUser> signInWithApple() => _signIn(SignInMethod.apple);
 
   void _setUpCall() {
     if (signedIn == null) {
@@ -76,12 +81,9 @@ class FakeAuthGateway implements AuthGateway {
   }
 
   @override
-  Future<void> updateAccount({
-    required String country,
-    required String locale,
-  }) async {
+  Future<void> updateAccount({required String locale}) async {
     _setUpCall();
-    accountUpdates.add((country: country, locale: locale));
+    accountUpdates.add(locale);
   }
 
   @override

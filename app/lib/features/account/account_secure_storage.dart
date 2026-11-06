@@ -17,7 +17,7 @@ const accountSecureStorage = FlutterSecureStorage(
 const accountKeyPrefix = 'usra.account.';
 
 /// Set in shared preferences once this install has checked for leftovers.
-const accountInstalledPref = 'usra.account.installed.v1';
+const accountInstalledPref = PrefKeys.accountInstalled;
 
 /// iOS keeps Keychain items after the app is deleted, but not shared
 /// preferences. On the first run of an install, wipe any account secrets

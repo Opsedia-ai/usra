@@ -1254,53 +1254,21 @@
   "accountTitle": "Account",
   "accountSettingsHint": "Optional. Your records stay on this phone",
   "accountPrivacy": "Your family's health records stay on this phone. An account doesn't upload them: it only gets things ready for syncing between your family's phones and for AI features later, and you'll choose before anything is shared.",
-  "accountSignInIntro": "Sign in with your mobile number. We'll text you a code.",
-  "countryEgypt": "Egypt",
-  "countrySaudiArabia": "Saudi Arabia",
-  "countryUae": "UAE",
-  "accountPhone": "Mobile number",
-  "accountPhoneInvalid": "Check the mobile number",
-  "accountSendCode": "Send code",
-  "accountCodeSentTo": "Enter the 6-digit code we sent to {phone}",
-  "@accountCodeSentTo": {
-    "placeholders": {
-      "phone": {
-        "type": "String"
-      }
-    }
-  },
-  "accountCode": "Code",
-  "accountVerify": "Confirm",
-  "accountResend": "Send the code again",
-  "accountCodeResent": "Code sent again",
-  "accountChangeNumber": "Change number",
+  "accountSignInIntro": "An account is optional: the app works fully without one. Google or Apple shares your name and email with us.",
+  "accountSignInWithGoogle": "Sign in with Google",
+  "accountSignInWithApple": "Sign in with Apple",
+  "accountSignInUnavailable": "Sign-in isn't available in this version of the app.",
   "accountSignedIn": "Signed in",
-  "accountSignedInAs": "Signed in as {phone}",
-  "@accountSignedInAs": {
-    "placeholders": {
-      "phone": {
-        "type": "String"
-      }
-    }
-  },
   "accountSignOut": "Sign out",
   "accountSignOutConfirm": "Sign out? Your records stay on this phone.",
   "accountDelete": "Delete account",
   "accountDeleteConfirm": "Delete your account? Your account, devices and credits are erased from our servers. The records on this phone stay here.",
+  "accountDeleteAppleNote": "Apple will ask you to confirm once more, so we can unlink your Apple ID from the app.",
   "accountDeleted": "Account deleted",
-  "accountErrorInvalidCode": "That code isn't right or has expired",
   "accountErrorTooMany": "Too many tries. Wait a little and try again",
   "accountErrorNetwork": "No connection. Check the internet and try again",
   "accountErrorGeneric": "Something went wrong. Try again",
   "accountRetry": "Try again",
-  "accountResendIn": "Send the code again in {seconds}s",
-  "@accountResendIn": {
-    "placeholders": {
-      "seconds": {
-        "type": "int"
-      }
-    }
-  },
   "accountErrorSignInAgain": "Your sign-in has expired. Sign in again",
   "accountErrorFamilyHasMembers": "You created a family that other people are in. Their shared records would be deleted too, so this account can't be deleted yet.",
   "lockTitle": "Usra is locked",

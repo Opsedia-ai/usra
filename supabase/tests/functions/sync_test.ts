@@ -505,7 +505,7 @@ Deno.test("publish-head: another device's beacon, extra fields or a bad signatur
   assertEquals(store.calls, []);
 });
 
-Deno.test("publish-head: an SMS-only session has no device to publish for", async () => {
+Deno.test("publish-head: an sign-in-only session has no device to publish for", async () => {
   const { keys, store, deps, post } = await setup({ noBoundDevice: true });
   await expectError(
     await post(createPublishHeadHandler(deps), await headBody(keys.phone, beacon())),

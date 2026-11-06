@@ -2,7 +2,7 @@
 -- signed family log, invites, key wraps, rotation and head beacons (B5, B6, B9)
 -- from docs/sync-design.md. Signatures are checked by the Edge Functions
 -- (tests/functions); here every rule the database enforces is checked for the
--- allowed caller and for another user, an SMS-only session (signed in, not bound
+-- allowed caller and for another user, an sign-in-only session (signed in, not bound
 -- to an approved device), a revoked or removed device, and replays.
 -- Run with: supabase test db
 begin;
@@ -10,11 +10,11 @@ select plan(238);
 
 -- People: A owns family F; B joins as guardian and later resets their account;
 -- C is an outsider; D never enrolled.
-insert into auth.users (id, phone) values
-  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '201000000021'),
-  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '201000000022'),
-  ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', '201000000023'),
-  ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', '201000000024');
+insert into auth.users (id, email) values
+  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'user21@example.com'),
+  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'user22@example.com'),
+  ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'user23@example.com'),
+  ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'user24@example.com');
 
 create function pg_temp.u(p text) returns uuid language sql immutable as $$
   select (repeat(lower(p), 8) || '-' || repeat(lower(p), 4) || '-4' || repeat(lower(p), 3) || '-8'
@@ -123,7 +123,7 @@ create function pg_temp.beacon(p_device uuid, p_seq int, p_hash bytea) returns b
     'h', pg_temp.b64url(p_hash), 'at', '019300f8a1b20003')::text, 'UTF8');
 $$;
 
--- Phones registered by their own SMS sessions, as the app does after sign-in.
+-- Phones registered by their own sessions, as the app does after sign-in.
 insert into public.devices (id, user_id, platform, public_key, signing_public_key, created_session_id) values
   (pg_temp.d('a1'), pg_temp.u('a'), 'android', pg_temp.key(1), pg_temp.key(2), pg_temp.s('a1')),
   (pg_temp.d('a2'), pg_temp.u('a'), 'ios', pg_temp.key(3), pg_temp.key(4), pg_temp.s('a2')),
@@ -194,11 +194,11 @@ set local role authenticated;
 select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a1'));
 insert into vals (k, b) select 'n-bind', decode(public.issue_device_challenge('bind', pg_temp.d('a1')), 'base64');
 insert into vals (k, b) select 'n-old', decode(public.issue_device_challenge('bind', pg_temp.d('a1')), 'base64');
-select is(octet_length(pg_temp.v('n-bind')), 32, 'an SMS-only session gets a 32-byte nonce to bind its phone');
+select is(octet_length(pg_temp.v('n-bind')), 32, 'an sign-in-only session gets a 32-byte nonce to bind its phone');
 select throws_ok($$ select public.issue_device_challenge('bind', pg_temp.d('c1')) $$,
   'P0002', 'unknown_device', 'no nonce for another user''s phone');
 select throws_ok($$ select public.issue_device_challenge('approve', pg_temp.d('a2')) $$,
-  '42501', 'approved_device_required', 'an SMS-only session cannot ask to approve a phone');
+  '42501', 'approved_device_required', 'an sign-in-only session cannot ask to approve a phone');
 select throws_ok($$ select public.issue_device_challenge('sign-anything', pg_temp.d('a1')) $$,
   '22023', 'bad_purpose', 'nonces only for known purposes');
 reset role;
@@ -281,7 +281,7 @@ select throws_ok($$ select public.approve_device_signed(pg_temp.u('a'), pg_temp.
     pg_temp.d('a3')) $$,
   '42501', 'approver_changed', 'the approval is refused if the signing phone is no longer the session''s phone');
 select throws_ok($$ select public.approve_device_signed(pg_temp.u('a'), pg_temp.s('a2'), pg_temp.d('a2')) $$,
-  '42501', 'approved_device_required', 'an SMS-only session cannot approve, not even its own new phone');
+  '42501', 'approved_device_required', 'an sign-in-only session cannot approve, not even its own new phone');
 select throws_ok($$ select public.approve_device_signed(pg_temp.u('c'), pg_temp.s('c1'), pg_temp.d('a2')) $$,
   'P0002', 'unknown_device', 'another account''s session cannot approve it');
 -- The new phone binds its session while still pending (it proves its key).
@@ -317,7 +317,7 @@ select ok(pg_temp.id('p1') is not null, 'a pending phone opens a comparison sess
 select throws_ok($$ select public.pairing_start(pg_temp.d('a1'), pg_temp.bytes('00', 32)) $$,
   '42501', 'forbidden', 'only for the session''s own new phone');
 select throws_ok($$ select public.pairing_respond(pg_temp.id('p1'), pg_temp.bytes('22', 32)) $$,
-  '42501', 'approved_device_required', 'an SMS-only session cannot respond');
+  '42501', 'approved_device_required', 'an sign-in-only session cannot respond');
 select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a7'));
 select lives_ok($$ select public.pairing_respond(pg_temp.id('p1'), pg_temp.bytes('22', 32)) $$,
   'an approved phone responds with its own nonce');
@@ -374,7 +374,7 @@ set local role authenticated;
 select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a4'));
 select throws_ok($$ select public.set_account_recovery(pg_temp.bytes('5a', 16), '{"m":19456,"t":2,"p":1}',
     pg_temp.key(9), pg_temp.key(10)) $$,
-  '42501', 'approved_device_required', 'an SMS-only session cannot set the recovery device');
+  '42501', 'approved_device_required', 'an sign-in-only session cannot set the recovery device');
 select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a7'));
 insert into vals (k, id) select 'rec', public.set_account_recovery(pg_temp.bytes('5a', 16),
   '{"m":19456,"t":2,"p":1}', pg_temp.key(9), pg_temp.key(10));
@@ -427,7 +427,7 @@ reset role;
 -- =====================================================================================
 select throws_ok($$ select pg_temp.next(pg_temp.u('a'), pg_temp.s('a5'), 'genesis', pg_temp.d('a1'),
     pg_temp.genesis(jsonb_build_array(pg_temp.dev(pg_temp.d('a1')), pg_temp.dev(pg_temp.id('rec'))))) $$,
-  '42501', 'approved_device_required', 'an SMS-only session cannot append');
+  '42501', 'approved_device_required', 'an sign-in-only session cannot append');
 select throws_ok($$ select pg_temp.next(pg_temp.u('a'), pg_temp.s('a7'), 'genesis', pg_temp.d('c1'),
     pg_temp.genesis(jsonb_build_array(pg_temp.dev(pg_temp.d('a1')), pg_temp.dev(pg_temp.id('rec'))))) $$,
   '42501', 'signer_not_caller', 'a session appends only entries its phone or its recovery device signed');
@@ -520,10 +520,10 @@ select throws_ok($$ select * from public.pending_family_invites(pg_temp.f()) $$,
   '42501', 'forbidden', 'only the owner lists accepted invites');
 select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a5'));
 select throws_ok($$ select * from public.pending_family_invites(pg_temp.f()) $$,
-  '42501', 'forbidden', 'and not from an SMS-only session');
+  '42501', 'forbidden', 'and not from an sign-in-only session');
 select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a7'));
-select is((select phone from public.pending_family_invites(pg_temp.f())), '201000000022',
-  'the owner sees the invitee''s phone number before admitting them ("Is this Mona?")');
+select is((select email from public.pending_family_invites(pg_temp.f())), 'user22@example.com',
+  'the owner sees the invitee''s email before admitting them ("Is this Mona?")');
 reset role;
 insert into public.invite_accept_attempts (user_id) select pg_temp.u('c') from generate_series(1, 10);
 set local role authenticated;
@@ -607,7 +607,7 @@ select is((select count(*)::int from public.family_key_wraps) + (select count(*)
   'and reads no wraps or epochs');
 select pg_temp.as_user(pg_temp.u('a'), pg_temp.s('a5'));
 select throws_ok($$ select public.put_family_key_wraps(pg_temp.f(), 1, pg_temp.wraps(array[pg_temp.d('a1')])) $$,
-  '42501', 'approved_device_required', 'an SMS-only session cannot write wraps');
+  '42501', 'approved_device_required', 'an sign-in-only session cannot write wraps');
 select is((select count(*)::int from public.family_key_wraps), 0, 'or read them');
 reset role;
 
@@ -760,7 +760,7 @@ select throws_ok($$ select public.publish_family_head(pg_temp.u('a'), pg_temp.s(
   '22023', 'bad_beacon', 'a phone publishes only its own beacon');
 select throws_ok($$ select public.publish_family_head(pg_temp.u('a'), pg_temp.s('a5'), pg_temp.f(),
     pg_temp.beacon(pg_temp.d('a5'), pg_temp.head_seq(), pg_temp.head()), pg_temp.bytes('00', 64)) $$,
-  '42501', 'approved_device_required', 'an SMS-only session publishes none');
+  '42501', 'approved_device_required', 'an sign-in-only session publishes none');
 select throws_ok($$ select public.publish_family_head(pg_temp.u('b'), pg_temp.s('b1'), pg_temp.f(),
     pg_temp.beacon(pg_temp.d('b1'), pg_temp.head_seq(), pg_temp.head()), pg_temp.bytes('00', 64)) $$,
   '42501', 'forbidden', 'nor does a device removed from the family');
@@ -852,11 +852,11 @@ select throws_ok($$ select public.start_account_reset(pg_temp.d('d1')) $$,
   '22023', 'not_enrolled', 'an account that never enrolled has nothing to reset');
 select pg_temp.as_user(pg_temp.u('b'), pg_temp.s('b9'));
 insert into vals (k, id) select 'reset1', public.start_account_reset(pg_temp.d('b9'));
-select ok(pg_temp.id('reset1') is not null, 'an SMS-only session starts a reset of an enrolled account');
+select ok(pg_temp.id('reset1') is not null, 'an sign-in-only session starts a reset of an enrolled account');
 select is(public.start_account_reset(pg_temp.d('b9')), pg_temp.id('reset1'), 'starting again returns the open reset');
 select is((select count(*)::int from public.account_resets), 1, 'every session of the account sees it (checked on launch)');
 select throws_ok($$ select public.cancel_account_reset(pg_temp.id('reset1')) $$,
-  '42501', 'approved_device_required', 'an SMS-only session cannot cancel it');
+  '42501', 'approved_device_required', 'an sign-in-only session cannot cancel it');
 select pg_temp.as_user(pg_temp.u('b'), pg_temp.s('b1'));
 select throws_ok($$ select public.cancel_account_reset(pg_temp.id('reset1')) $$,
   '42501', 'cannot_cancel', 'nor can a phone approved less than 7 days before the reset began');
@@ -943,7 +943,7 @@ select is((select count(*)::int from public.device_challenges where nonce = pg_t
 -- =====================================================================================
 -- After a reset: no lockout if its phone signs out or never enrols (review B)
 -- =====================================================================================
-insert into auth.users (id, phone) values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', '201000000025');
+insert into auth.users (id, email) values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'user25@example.com');
 insert into public.devices (id, user_id, platform, public_key, signing_public_key, created_session_id, created_at) values
   (pg_temp.d('e1'), pg_temp.u('e'), 'ios', pg_temp.key(51), pg_temp.key(52), pg_temp.s('e1'), now()),
   (pg_temp.d('e2'), pg_temp.u('e'), 'ios', pg_temp.key(53), pg_temp.key(54), pg_temp.s('e2'), now());

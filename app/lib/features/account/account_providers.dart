@@ -10,7 +10,8 @@ import '../backup/backup_providers.dart' show appVersionProvider;
 import 'auth_gateway.dart';
 import 'account_secure_storage.dart';
 import 'device_identity.dart';
-import 'phone_number.dart';
+import 'login_config.dart';
+import 'native_sign_in.dart';
 import 'supabase_auth_gateway.dart';
 import 'supabase_config.dart';
 
@@ -23,8 +24,24 @@ final supabaseConfigProvider = Provider<SupabaseConfig>(
 /// then hidden). Overridden in tests with a fake.
 final authGatewayProvider = Provider<AuthGateway?>((ref) {
   final config = ref.watch(supabaseConfigProvider);
-  return config.isConfigured ? SupabaseAuthGateway(config) : null;
+  if (!config.isConfigured) return null;
+  return SupabaseAuthGateway(
+    config,
+    PluginNativeSignIn(ref.watch(loginConfigProvider)),
+  );
 });
+
+/// The sign-in client ids from `--dart-define`; overridden in tests.
+final loginConfigProvider = Provider<LoginConfig>(
+  (ref) => LoginConfig.fromEnvironment,
+);
+
+/// The sign-in buttons on this phone, in order.
+final signInMethodsProvider = Provider<List<SignInMethod>>(
+  (ref) => ref
+      .watch(loginConfigProvider)
+      .methods(isIos: ref.watch(devicePlatformProvider) == 'ios'),
+);
 
 /// Runs before the account backend starts; see
 /// [wipeAccountSecretsAfterReinstall]. Overridden in tests.
@@ -48,13 +65,6 @@ sealed class AccountState {
 
 class AccountSignedOut extends AccountState {
   const AccountSignedOut();
-}
-
-/// A code was texted to [phone] (E.164) and is waiting to be typed.
-class AccountCodeSent extends AccountState {
-  const AccountCodeSent(this.phone);
-
-  final String phone;
 }
 
 class AccountSignedIn extends AccountState {
@@ -90,8 +100,8 @@ class AccountController extends AsyncNotifier<AccountState> {
     ref.onDispose(changes.cancel);
     // The account's language follows the app's.
     ref.listen(localeProvider, (_, locale) {
-      if (state.value case AccountSignedIn(:final user)) {
-        _saveAccount(user, locale).catchError((_) {});
+      if (state.value is AccountSignedIn) {
+        _saveAccount(locale).catchError((_) {});
       }
     });
     if (user == null) return const AccountSignedOut();
@@ -101,31 +111,14 @@ class AccountController extends AsyncNotifier<AccountState> {
     return AccountSignedIn(user);
   }
 
-  /// Texts a code to the number typed for [country]. Throws
-  /// [FormatException] if it isn't a mobile number there.
-  Future<void> sendCode(AccountCountry country, String typed) async {
-    final phone = country.toE164(typed);
-    if (phone == null) throw const FormatException('Not a mobile number');
-    await _gateway.sendCode(phone);
-    state = AsyncData(AccountCodeSent(phone));
-  }
-
-  Future<void> resendCode() async {
-    final current = state.value;
-    if (current is AccountCodeSent) await _gateway.sendCode(current.phone);
-  }
-
-  /// Back to typing the number.
-  void changeNumber() => state = const AsyncData(AccountSignedOut());
-
-  Future<void> verifyCode(String typed) async {
-    final current = state.value;
-    if (current is! AccountCodeSent) return;
-    final code = asciiDigits(typed) ?? '';
-    if (code.length != 6) {
-      throw const AccountException(AccountErrorKind.invalidCode);
-    }
-    final user = await _gateway.verifyCode(current.phone, code);
+  /// Opens the [method]'s sheet. Throws [AccountException], with
+  /// [AccountErrorKind.cancelled] if the person closes the sheet; either way
+  /// they stay signed out.
+  Future<void> signIn(SignInMethod method) async {
+    final user = await switch (method) {
+      SignInMethod.google => _gateway.signInWithGoogle(),
+      SignInMethod.apple => _gateway.signInWithApple(),
+    };
     state = AsyncData(AccountSignedIn(user));
     await _startSetUp(user);
   }
@@ -145,14 +138,14 @@ class AccountController extends AsyncNotifier<AccountState> {
 
   Future<void> _settle() async => await _setUpRunning;
 
-  /// Saves the account's country and language and registers this phone
+  /// Saves the account's language and registers this phone
   /// with its public key. Best effort: tried again the next time the
   /// account opens if it didn't get through.
   Future<bool> _setUp(AccountUser user) async {
     try {
       final ids = ref.read(deviceIdentityStoreProvider);
       final (_, (deviceId, publicKey)) = await (
-        _saveAccount(user, ref.read(localeProvider)),
+        _saveAccount(ref.read(localeProvider)),
         (ids.deviceId(user.id), ids.publicKey(user.id)).wait,
       ).wait;
       final saved = await _gateway.registerDevice(
@@ -168,14 +161,8 @@ class AccountController extends AsyncNotifier<AccountState> {
     }
   }
 
-  Future<void> _saveAccount(AccountUser user, Locale locale) async {
-    final country = AccountCountry.ofE164(user.phone);
-    if (country == null) return;
-    await _gateway.updateAccount(
-      country: country.code,
-      locale: locale.languageCode,
-    );
-  }
+  Future<void> _saveAccount(Locale locale) =>
+      _gateway.updateAccount(locale: locale.languageCode);
 
   /// Revokes this phone's device row (best effort; approved devices are
   /// never deleted on the server), ends the session and wipes the session and

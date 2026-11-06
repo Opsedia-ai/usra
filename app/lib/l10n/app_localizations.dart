@@ -3767,92 +3767,32 @@ abstract class AppLocalizations {
   /// No description provided for @accountSignInIntro.
   ///
   /// In en, this message translates to:
-  /// **'Sign in with your mobile number. We\'ll text you a code.'**
+  /// **'An account is optional: the app works fully without one. Google or Apple shares your name and email with us.'**
   String get accountSignInIntro;
 
-  /// No description provided for @countryEgypt.
+  /// No description provided for @accountSignInWithGoogle.
   ///
   /// In en, this message translates to:
-  /// **'Egypt'**
-  String get countryEgypt;
+  /// **'Sign in with Google'**
+  String get accountSignInWithGoogle;
 
-  /// No description provided for @countrySaudiArabia.
+  /// No description provided for @accountSignInWithApple.
   ///
   /// In en, this message translates to:
-  /// **'Saudi Arabia'**
-  String get countrySaudiArabia;
+  /// **'Sign in with Apple'**
+  String get accountSignInWithApple;
 
-  /// No description provided for @countryUae.
+  /// No description provided for @accountSignInUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'UAE'**
-  String get countryUae;
-
-  /// No description provided for @accountPhone.
-  ///
-  /// In en, this message translates to:
-  /// **'Mobile number'**
-  String get accountPhone;
-
-  /// No description provided for @accountPhoneInvalid.
-  ///
-  /// In en, this message translates to:
-  /// **'Check the mobile number'**
-  String get accountPhoneInvalid;
-
-  /// No description provided for @accountSendCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Send code'**
-  String get accountSendCode;
-
-  /// No description provided for @accountCodeSentTo.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter the 6-digit code we sent to {phone}'**
-  String accountCodeSentTo(String phone);
-
-  /// No description provided for @accountCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Code'**
-  String get accountCode;
-
-  /// No description provided for @accountVerify.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirm'**
-  String get accountVerify;
-
-  /// No description provided for @accountResend.
-  ///
-  /// In en, this message translates to:
-  /// **'Send the code again'**
-  String get accountResend;
-
-  /// No description provided for @accountCodeResent.
-  ///
-  /// In en, this message translates to:
-  /// **'Code sent again'**
-  String get accountCodeResent;
-
-  /// No description provided for @accountChangeNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Change number'**
-  String get accountChangeNumber;
+  /// **'Sign-in isn\'t available in this version of the app.'**
+  String get accountSignInUnavailable;
 
   /// No description provided for @accountSignedIn.
   ///
   /// In en, this message translates to:
   /// **'Signed in'**
   String get accountSignedIn;
-
-  /// No description provided for @accountSignedInAs.
-  ///
-  /// In en, this message translates to:
-  /// **'Signed in as {phone}'**
-  String accountSignedInAs(String phone);
 
   /// No description provided for @accountSignOut.
   ///
@@ -3878,17 +3818,17 @@ abstract class AppLocalizations {
   /// **'Delete your account? Your account, devices and credits are erased from our servers. The records on this phone stay here.'**
   String get accountDeleteConfirm;
 
+  /// No description provided for @accountDeleteAppleNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple will ask you to confirm once more, so we can unlink your Apple ID from the app.'**
+  String get accountDeleteAppleNote;
+
   /// No description provided for @accountDeleted.
   ///
   /// In en, this message translates to:
   /// **'Account deleted'**
   String get accountDeleted;
-
-  /// No description provided for @accountErrorInvalidCode.
-  ///
-  /// In en, this message translates to:
-  /// **'That code isn\'t right or has expired'**
-  String get accountErrorInvalidCode;
 
   /// No description provided for @accountErrorTooMany.
   ///
@@ -3913,12 +3853,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try again'**
   String get accountRetry;
-
-  /// No description provided for @accountResendIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Send the code again in {seconds}s'**
-  String accountResendIn(int seconds);
 
   /// No description provided for @accountErrorSignInAgain.
   ///

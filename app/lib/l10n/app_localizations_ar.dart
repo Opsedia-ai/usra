@@ -2313,53 +2313,21 @@ class AppLocalizationsAr extends AppLocalizations {
       'سجلات العيلة الصحية فاضلة على الموبايل ده. الحساب مش بيرفعها: هو بس بيجهّز لمزامنة موبايلات العيلة ولخدمات الذكاء الاصطناعي بعدين، وإنت اللي هتختار قبل ما أي حاجة تتبعت.';
 
   @override
-  String get accountSignInIntro => 'ادخل برقم موبايلك، وهنبعتلك كود في رسالة.';
+  String get accountSignInIntro =>
+      'الحساب اختياري، والتطبيق بيشتغل كله من غيره. Google أو Apple بيبعتولنا اسمك وإيميلك.';
 
   @override
-  String get countryEgypt => 'مصر';
+  String get accountSignInWithGoogle => 'تسجيل الدخول باستخدام Google';
 
   @override
-  String get countrySaudiArabia => 'السعودية';
+  String get accountSignInWithApple => 'تسجيل الدخول باستخدام Apple';
 
   @override
-  String get countryUae => 'الإمارات';
-
-  @override
-  String get accountPhone => 'رقم الموبايل';
-
-  @override
-  String get accountPhoneInvalid => 'اتأكد من رقم الموبايل';
-
-  @override
-  String get accountSendCode => 'ابعت الكود';
-
-  @override
-  String accountCodeSentTo(String phone) {
-    return 'اكتب الكود اللي فيه ٦ أرقام اللي بعتناه على $phone';
-  }
-
-  @override
-  String get accountCode => 'الكود';
-
-  @override
-  String get accountVerify => 'تأكيد';
-
-  @override
-  String get accountResend => 'ابعت الكود تاني';
-
-  @override
-  String get accountCodeResent => 'الكود اتبعت تاني';
-
-  @override
-  String get accountChangeNumber => 'غيّر الرقم';
+  String get accountSignInUnavailable =>
+      'الدخول مش متاح في النسخة دي من التطبيق.';
 
   @override
   String get accountSignedIn => 'إنت داخل على حسابك';
-
-  @override
-  String accountSignedInAs(String phone) {
-    return 'داخل برقم $phone';
-  }
 
   @override
   String get accountSignOut => 'اخرج من الحساب';
@@ -2376,10 +2344,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'تمسح حسابك؟ الحساب والأجهزة والرصيد هيتمسحوا من السيرفرات بتاعتنا. السجلات اللي على الموبايل ده هتفضل زي ما هي.';
 
   @override
-  String get accountDeleted => 'الحساب اتمسح';
+  String get accountDeleteAppleNote =>
+      'Apple هتطلب منك تأكيد كمان مرة علشان نلغي ربط حسابك بالتطبيق.';
 
   @override
-  String get accountErrorInvalidCode => 'الكود ده مش صح أو انتهى';
+  String get accountDeleted => 'الحساب اتمسح';
 
   @override
   String get accountErrorTooMany => 'محاولات كتير. استنى شوية وجرّب تاني';
@@ -2392,11 +2361,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accountRetry => 'جرّب تاني';
-
-  @override
-  String accountResendIn(int seconds) {
-    return 'تقدر تطلب كود تاني بعد $seconds ثانية';
-  }
 
   @override
   String get accountErrorSignInAgain => 'الدخول انتهى. ادخل تاني';

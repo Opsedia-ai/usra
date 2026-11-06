@@ -172,8 +172,23 @@ build, not in this change.
 
 These change the answers above and need a new review before release:
 
-- **Phone-number accounts (Supabase Auth)**: Personal info → Phone number; Device or
-  other IDs; account deletion inside the app and on the web (Play and Apple 5.1.1(v)).
+- **Google and Apple accounts (Supabase Auth, Google Sign-In SDK)**: optional. Only
+  builds with `SUPABASE_URL` and sign-in client IDs show them
+  ([`docs/login-setup.md`](../login-setup.md)).
+  - Play: Personal info → Name, Email address, User IDs; Device or other IDs. Collected,
+    not shared, for App functionality and Account management. Account creation method:
+    OAuth.
+  - Apple: Contact Info → Name, Email Address; Identifiers → User ID. Linked to the user,
+    for App Functionality, not used for tracking. Apple sign-in sends the email or a relay
+    address only; Google also sends the name and a profile photo link, which Supabase Auth
+    keeps with the user.
+  - Sign in with Apple sits beside Google (guideline 4.8).
+  - Deleting the account works in the app, and revokes Sign in with Apple through Apple's
+    API (5.1.1(v), TN3194). Play also needs a web page for deletion requests. That page
+    doesn't exist yet.
+  - No SMS is sent, and no phone number is collected for sign-in.
+  - The sign-in SDKs are in every build, but do nothing and make no network calls until
+    someone taps a button.
 - **Push notifications**: device push token (Device or other IDs).
 - **End-to-end encrypted sync**: ciphertext only; still declare "Health info" collected
   if any readable metadata leaves the phone; otherwise document why ciphertext is not

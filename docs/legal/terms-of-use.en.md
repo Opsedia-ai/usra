@@ -80,8 +80,9 @@ right to use its courts. [Legal review: KSA and UAE users.]
 > Planned for a later version, **optional**. These terms will be updated before they
 > start, and you will be asked to agree in the app.
 
-- **Accounts** with your phone number: you must give a number you own and keep access
-  to it; we may suspend accounts used for abuse; you can delete your account in the app.
+- **Accounts** with Google or Apple: you must use your own Google or Apple account and
+  keep access to it, because we have no other way to sign you in; we may suspend accounts
+  used for abuse; you can delete your account in the app.
 - **Family sync**: end-to-end encrypted; anyone you invite to the family can see the
   family's shared records.
 - **AI Doctor**: informational findings only, not a diagnosis; it may be unavailable

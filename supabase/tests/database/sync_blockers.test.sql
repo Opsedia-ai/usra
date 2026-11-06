@@ -1,18 +1,18 @@
 -- pgTAP: the sync backend blockers (B0.1–B0.7 in docs/sync-design.md).
 -- Each rule is checked for the allowed caller, another user, and an
--- "SMS-only" session: signed in, but not bound to an approved device.
+-- "sign-in-only" session: signed in, but not bound to an approved device.
 -- Run with: supabase test db
 begin;
 select plan(113);
 
 -- People: A owns family F, B is a guardian, D a viewer, C is invited later.
 -- Sessions: sA1 / sB1 / sC1 are bound to approved devices A1 / B1 / C1.
--- sA2 and sC2 only proved an SMS code (not bound). sA2 registers device A2.
-insert into auth.users (id, phone) values
-  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '201000000011'),
-  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '201000000012'),
-  ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', '201000000013'),
-  ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', '201000000014');
+-- sA2 and sC2 only signed in (not bound). sA2 registers device A2.
+insert into auth.users (id, email) values
+  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'user11@example.com'),
+  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'user12@example.com'),
+  ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'user13@example.com'),
+  ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'user14@example.com');
 
 create function pg_temp.as_user(p_user uuid, p_session uuid) returns text language sql as $$
   select set_config('request.jwt.claims',
@@ -165,44 +165,44 @@ select ok(not has_function_privilege('anon', 'public.push_e2ee_records(uuid, int
       and not has_function_privilege('anon', 'public.create_family_invite(uuid, text, text, timestamptz)', 'execute'),
   'anonymous callers cannot call the family functions');
 
--- The owner's SMS-only session (sA2) ------------------------------------------------
+-- The owner's sign-in-only session (sA2) ------------------------------------------------
 set local role authenticated;
 select pg_temp.as_user('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '5a000000-0000-4000-8000-0000000000a2');
 
 select throws_ok($$ insert into public.devices (platform, status) values ('ios', 'approved') $$,
-  '42501', null, 'B0.2: an SMS-only session cannot insert an approved device');
+  '42501', null, 'B0.2: an sign-in-only session cannot insert an approved device');
 select lives_ok($$ insert into public.devices (platform, app_version, public_key, signing_public_key)
   values ('ios', '1.0.0', pg_temp.key(7), pg_temp.key(8)) $$,
-  'an SMS-only session registers a device');
+  'an sign-in-only session registers a device');
 select is((select status from public.devices
            where created_session_id = '5a000000-0000-4000-8000-0000000000a2'), 'pending',
   'the new device is pending and remembers the session that registered it');
 select throws_ok($$ update public.devices set public_key = pg_temp.key(9)
   where id = 'da000000-0000-4000-8000-0000000000a1' $$,
-  '42501', null, 'B0.1: an SMS-only session cannot overwrite the approved device''s key');
+  '42501', null, 'B0.1: an sign-in-only session cannot overwrite the approved device''s key');
 select throws_ok($$ update public.devices set signing_public_key = pg_temp.key(9)
   where created_session_id = '5a000000-0000-4000-8000-0000000000a2' $$,
   '42501', null, 'B0.1: nor the key of the device it registered');
 insert into public.devices (platform, public_key, signing_public_key) values ('ios', pg_temp.key(10), pg_temp.key(11));
 delete from public.devices where public_key = pg_temp.key(10);
 select is((select count(*)::int from public.devices where public_key = pg_temp.key(10)), 0,
-  'an SMS-only session deletes a device it registered (sign-out)');
+  'an sign-in-only session deletes a device it registered (sign-out)');
 update public.devices set last_seen_at = now() - interval '1 year'
   where id = 'da000000-0000-4000-8000-0000000000a1';
 select ok((select last_seen_at > now() - interval '1 day' from public.devices
            where id = 'da000000-0000-4000-8000-0000000000a1'),
-  'an SMS-only session cannot update another device row');
+  'an sign-in-only session cannot update another device row');
 delete from public.devices where id = 'da000000-0000-4000-8000-0000000000a1';
 select is((select count(*)::int from public.devices where id = 'da000000-0000-4000-8000-0000000000a1'), 1,
-  'an SMS-only session cannot delete the approved device');
+  'an sign-in-only session cannot delete the approved device');
 select throws_ok($$ select public.approve_device(
     (select id from public.devices where created_session_id = '5a000000-0000-4000-8000-0000000000a2'),
     'da000000-0000-4000-8000-0000000000a1') $$,
-  '42501', null, 'an SMS-only session cannot approve its own device');
+  '42501', null, 'an sign-in-only session cannot approve its own device');
 
 -- B0.3 push tokens
 select is((select count(*)::int from public.push_tokens), 0,
-  'B0.3: an SMS-only session cannot see the approved device''s push token');
+  'B0.3: an sign-in-only session cannot see the approved device''s push token');
 select throws_ok($$ insert into public.push_tokens (device_id, token)
   values ('da000000-0000-4000-8000-0000000000a1', 'fcm-attacker') $$,
   '42501', null, 'B0.3: cannot add a token to another device of the account');
@@ -213,23 +213,23 @@ select lives_ok($$ insert into public.push_tokens (device_id, token)
   'B0.3: an unbound session adds a token for the device it registered');
 reset role;
 select is((select token from public.push_tokens where device_id = 'da000000-0000-4000-8000-0000000000a1'), 'fcm-a1',
-  'B0.3: an SMS-only session cannot redirect or delete another device''s token');
+  'B0.3: an sign-in-only session cannot redirect or delete another device''s token');
 set local role authenticated;
 
 -- B0.4–B0.6 as the owner without an approved device
 select throws_ok($$ select public.delete_family('f0000000-0000-4000-8000-00000000000f') $$,
-  '42501', 'approved_device_required', 'B0.4: the owner''s SMS-only session cannot delete the family');
+  '42501', 'approved_device_required', 'B0.4: the owner''s sign-in-only session cannot delete the family');
 select throws_ok($$ insert into public.families (created_by) values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') $$,
-  '42501', null, 'an SMS-only session cannot create a family');
+  '42501', null, 'an sign-in-only session cannot create a family');
 select throws_ok($$ select public.create_family_invite('f0000000-0000-4000-8000-00000000000f', 'viewer',
-    encode(sha256('code-sms'::bytea), 'hex')) $$,
-  '42501', 'approved_device_required', 'B0.5: the owner''s SMS-only session cannot create invites');
+    encode(sha256('code-unbound'::bytea), 'hex')) $$,
+  '42501', 'approved_device_required', 'B0.5: the owner''s sign-in-only session cannot create invites');
 select throws_ok($$ select pg_temp.push(1, pg_temp.rec('e0000000-0000-4000-8000-000000000001', 1, 0)) $$,
-  '42501', 'approved_device_required', 'B0.6: the owner''s SMS-only session cannot push records');
-select is((select count(*)::int from public.family_log), 0, 'an SMS-only session reads no family log');
-select is((select count(*)::int from public.family_invites), 0, 'an SMS-only owner session reads no invites');
+  '42501', 'approved_device_required', 'B0.6: the owner''s sign-in-only session cannot push records');
+select is((select count(*)::int from public.family_log), 0, 'an sign-in-only session reads no family log');
+select is((select count(*)::int from public.family_invites), 0, 'an sign-in-only owner session reads no invites');
 select is((select count(*)::int from public.families) + (select count(*)::int from public.family_members), 0,
-  'an SMS-only session reads no families or members');
+  'an sign-in-only session reads no families or members');
 
 -- The owner on an approved device (sA1) ----------------------------------------------
 select pg_temp.as_user('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '5a000000-0000-4000-8000-0000000000a1');
@@ -264,7 +264,7 @@ select throws_ok($$ select public.create_family_invite('f0000000-0000-4000-8000-
   '42501', 'forbidden', 'B0.5: a guardian cannot create invites');
 select is((select count(*)::int from public.family_invites), 0, 'a guardian cannot read invites');
 
--- C: first only SMS (sC2), then on an approved device (sC1)
+-- C: first only signed in (sC2), then on an approved device (sC1)
 select pg_temp.as_user('cccccccc-cccc-4ccc-8ccc-cccccccccccc', '5c000000-0000-4000-8000-0000000000c2');
 select throws_ok($$ select public.accept_family_invite(encode(sha256('code-c'::bytea), 'hex'),
     jsonb_build_array(pg_temp.dev('dc000000-0000-4000-8000-0000000000c1')), pg_temp.mac()) $$,
@@ -400,7 +400,7 @@ select throws_ok($$ select pg_temp.push(3, pg_temp.rec('01890000-0000-7000-8000-
 select is((select count(*)::int from public.e2ee_records), 1, 'an approved device reads the family''s records');
 
 select pg_temp.as_user('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '5a000000-0000-4000-8000-0000000000a2');
-select is((select count(*)::int from public.e2ee_records), 0, 'an SMS-only session reads no ciphertext');
+select is((select count(*)::int from public.e2ee_records), 0, 'an sign-in-only session reads no ciphertext');
 
 select pg_temp.as_user('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '5b000000-0000-4000-8000-0000000000b1');
 select is(pg_temp.push(3, pg_temp.rec('e0000000-0000-4000-8000-000000000003', 1, 0)) -> 'results' -> 0 ->> 'ok',
