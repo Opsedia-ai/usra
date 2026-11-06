@@ -57,6 +57,15 @@ encrypted on the phone, and save or send it where you choose (for example Google
 Drive, Files or WhatsApp to yourself). That place is run by its own provider under
 its own privacy policy.
 
+You can also turn on **automatic backup**, which saves this same encrypted file in a
+folder you choose when you open Usra and a backup is due, and keeps the last three. It
+needs no account and sends nothing to us. If that folder belongs to another provider,
+the file goes to that provider under its own privacy policy. If the folder is on your
+phone, a lost phone means those backups are lost too. Usra won't use a folder in iCloud
+Drive for automatic backup. If you save a backup yourself with the share sheet, the
+phone may offer iCloud Drive among the places you can choose; that choice is yours and
+that copy is then handled by Apple.
+
 The backup can only be opened with your **recovery key**, which is shown to you and
 kept on your phone. We never have it: if you lose the key and the phone, nobody,
 including us, can open the backup.

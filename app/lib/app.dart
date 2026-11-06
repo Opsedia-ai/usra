@@ -9,6 +9,7 @@ import 'core/routing/app_router.dart';
 import 'features/app_lock/lock_screen.dart';
 import 'core/screen_privacy.dart';
 import 'core/security/root_warning.dart';
+import 'features/backup/auto_backup_trigger.dart';
 import 'l10n/app_localizations.dart';
 
 /// Simple Mode grows text up to this, so screens still fit when the phone's
@@ -36,7 +37,9 @@ class UsraApp extends ConsumerWidget {
       builder: (context, child) => _textScale(
         context,
         DismissKeyboardOnTap(
-          child: AppLockGate(child: RootWarning(child: child!)),
+          child: AutoBackupTrigger(
+            child: AppLockGate(child: RootWarning(child: child!)),
+          ),
         ),
         simple: simple,
       ),

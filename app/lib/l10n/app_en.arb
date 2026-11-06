@@ -30,7 +30,7 @@
   "aboutPrivacyHeading": "Your privacy, in plain words",
   "aboutPrivacyOnPhone": "Everything you record stays on this phone. Records are in an encrypted database; photos are in the app's private storage, never in your gallery or in cloud backups. We don't receive any of it and can't see it.",
   "aboutPrivacyNoAccount": "No account, no sign-in, no ads and no tracking. We never sell or share anyone's data.",
-  "aboutPrivacyBackup": "A backup is an encrypted file you keep wherever you choose. Only your recovery key opens it, and we don't have it.",
+  "aboutPrivacyBackup": "A backup is an encrypted file you keep wherever you choose, and Usra can save one to a folder you pick by itself. Only your recovery key opens it, and we don't have it. Usra never saves backups to iCloud Drive for you.",
   "aboutPrivacyPhotos": "The camera and photos are used only when you choose, and text is read from them on this phone.",
   "aboutPrivacyReminders": "Reminders are set on this phone. People's names and medicine names can show on the lock screen (the name as you typed it) and on the home-screen widget (first names).",
   "aboutPrivacyDelete": "You can erase everything Usra keeps on this phone at any time: More › Delete all my data.",
@@ -1929,5 +1929,91 @@
     }
   },
   "readingConfirmYes": "Save anyway",
-  "readingConfirmNo": "Change it"
+  "readingConfirmNo": "Change it",
+  "backupLastCopy": "Last copy sent elsewhere: {date}",
+  "@backupLastCopy": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "backupAutoTitle": "Automatic backup",
+  "backupAutoHint": "When you open Usra and a backup is due, it saves an encrypted copy in a folder you choose. No account needed.",
+  "backupAutoFolder": "Folder",
+  "backupAutoChooseFolder": "Choose a folder",
+  "backupAutoFrequency": "How often",
+  "backupFrequencyDaily": "Every day",
+  "backupFrequencyWeekly": "Every week",
+  "backupFrequencyMonthly": "Every month",
+  "backupAutoNever": "No automatic backup yet",
+  "backupAutoRunning": "Backing up. You can keep using the app.",
+  "backupAutoDone": "Backup saved in your folder.",
+  "backupSendCopy": "Send a copy somewhere else",
+  "backupBusy": "A backup is already running. Try again in a moment.",
+  "backupAutoDriveHint": "Google Drive may not appear when you choose a folder, and Usra doesn't ask for access to your Drive. To keep a copy in Drive, tap \"Send a copy somewhere else\" and choose Drive.",
+  "backupAutoOnPhone": "This folder is on this phone. If the phone is lost, these backups go with it, so send a copy somewhere else too.",
+  "backupAutoIosHint": "Choose a place off this phone if you can, such as another app in Files or an external drive. A folder in On My iPhone is lost with the phone. iCloud Drive can't be used for health records.",
+  "backupICloudTitle": "iCloud Drive can't be used",
+  "backupICloudBody": "Apple's rules don't allow health records in iCloud, even encrypted, so Usra won't save backups there. Choose another place, such as another app in Files or an external drive.",
+  "backupFolderCantUseTitle": "This place can't be used",
+  "backupFolderCantUseBody": "Usra couldn't save and tidy up its files there. Choose another folder.",
+  "backupAutoKeyFirstTitle": "First, your recovery key",
+  "backupAutoKeyFirstBody": "Backups are encrypted, and only your recovery key opens them. You'll write it on paper now. It stays in this phone's secure storage and is never saved with the backups.",
+  "backupAutoKeyFirstContinue": "Continue",
+  "backupAutoFailedTitle": "The automatic backup didn't finish",
+  "backupAutoRetry": "Try again",
+  "backupAutoSetKey": "Set up the key",
+  "backupAutoFailFolder": "We can't reach the backup folder. It may have been moved or removed. Choose it again.",
+  "backupAutoFailICloud": "The backup folder is now in iCloud Drive, which can't be used for health records. Choose another place.",
+  "backupAutoFailSpace": "There isn't enough storage space for the backup. Free up some space, then try again.",
+  "backupAutoFailLocked": "The phone locked during the backup. Keep it unlocked, then try again.",
+  "backupAutoFailKey": "The recovery key isn't on this phone any more. Set it up again to keep backing up.",
+  "backupAutoFailInterrupted": "Usra closed before the backup finished. Nothing was left half saved, and your earlier backups are safe. Try again.",
+  "backupAutoFailOther": "Something stopped the backup. Your earlier backups are safe. Try again.",
+  "backupAutoPaused": "Automatic backup is paused because Usra started fresh, so new backups don't push out the ones holding your records. Restore a backup, or turn this on again.",
+  "backupDueAuto": "If your backup folder is on this phone, losing the phone loses the backups too. Send a copy somewhere else.",
+  "backupAutoLast": "Last automatic backup: {date} ({size})",
+  "@backupAutoLast": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "backupSizeKb": "{size} KB",
+  "@backupSizeKb": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "backupSizeMb": "{size} MB",
+  "@backupSizeMb": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "backupSizeGb": "{size} GB",
+  "@backupSizeGb": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "backupAutoPhotosSkipped": "{count, plural, =1{1 photo couldn't be opened on this phone and isn't in this backup.} other{{count} photos couldn't be opened on this phone and aren't in this backup.}}",
+  "@backupAutoPhotosSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

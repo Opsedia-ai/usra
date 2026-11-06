@@ -24,6 +24,9 @@ import flutter_local_notifications
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "UsraFiles") {
       registerFilesChannel(messenger: registrar.messenger())
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "UsraBackupFolder") {
+      BackupFolderChannel.register(messenger: registrar.messenger())
+    }
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "UsraClock") {
       registerClockChannel(messenger: registrar.messenger())
     }

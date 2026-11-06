@@ -8,6 +8,7 @@ import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
 import '../../core/security/app_lock.dart';
 import '../../l10n/app_localizations.dart';
+import '../backup/backup_providers.dart';
 import '../backup/backup_screen.dart';
 import '../family/family_screen.dart';
 import 'lock_screen.dart';
@@ -66,7 +67,8 @@ Future<bool> setUpPin(BuildContext context) async =>
 Future<bool> turnOnLock(BuildContext context, WidgetRef ref) async {
   final l = AppLocalizations.of(context);
   final noBackup =
-      ref.read(keyValueStoreProvider).getInt(PrefKeys.lastBackupAt) == null;
+      ref.read(keyValueStoreProvider).getInt(PrefKeys.lastBackupAt) == null &&
+      ref.read(autoBackupProvider).settings.lastAt == null;
   var hasRecords = false;
   if (noBackup) {
     try {

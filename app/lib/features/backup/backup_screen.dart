@@ -14,6 +14,7 @@ import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../core/screen_privacy.dart';
 import '../../l10n/app_localizations.dart';
+import 'auto_backup_section.dart';
 import 'backup_providers.dart';
 
 const backupPath = '/settings/backup';
@@ -23,7 +24,8 @@ const restorePath = '/settings/backup/restore';
 String _day(BuildContext context, DateTime at) =>
     DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(at);
 
-/// Make a backup, see the recovery key, or restore from a backup.
+/// Make a backup, set up automatic ones, see the recovery key, or restore
+/// from a backup.
 class BackupScreen extends ConsumerStatefulWidget {
   const BackupScreen({super.key});
 
@@ -47,6 +49,22 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       if (key == null) return;
     }
     setState(() => _working = true);
+    try {
+      final ran = await ref.read(backupGateProvider).tryRun<bool>(() async {
+        await _makeAndShare(key!, box);
+        return true;
+      });
+      if (ran == null) {
+        messenger.showSnackBar(SnackBar(content: Text(l.backupBusy)));
+      }
+    } finally {
+      if (mounted) setState(() => _working = false);
+    }
+  }
+
+  Future<void> _makeAndShare(RecoveryKey key, RenderBox? box) async {
+    final l = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     final service = ref.read(backupServiceProvider);
     CreatedBackup? created;
     try {
@@ -97,7 +115,6 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           // Cleared at the next start or backup.
         }
       }
-      if (mounted) setState(() => _working = false);
     }
   }
 
@@ -129,6 +146,9 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     final text = Theme.of(context).textTheme;
     final last = ref.watch(lastBackupProvider);
     final hasKey = ref.watch(savedRecoveryKeyProvider).value != null;
+    final auto = ref.watch(autoBackupProvider);
+    final autoOn = auto.settings.enabled;
+    final busy = _working || auto.running;
     return Scaffold(
       appBar: AppBar(title: Text(l.backupTitle)),
       body: ListView(
@@ -136,32 +156,53 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
         children: [
           Text(l.backupIntro, style: text.bodyLarge),
           const SizedBox(height: 16),
-          Card(
-            color: ref.watch(backupDueProvider)
-                ? Severity.headsUp.background
-                : null,
-            child: ListTile(
-              key: const ValueKey('backup-last'),
-              leading: const Icon(Icons.history),
-              title: Text(
-                last == null
-                    ? l.backupNever
-                    : l.backupLast(_day(context, last)),
+          // With automatic backup on, its own date is in the section below:
+          // this one is only about a copy sent somewhere else.
+          if (!autoOn || last != null) ...[
+            Card(
+              color: ref.watch(backupDueProvider)
+                  ? Severity.headsUp.background
+                  : null,
+              child: ListTile(
+                key: const ValueKey('backup-last'),
+                leading: const Icon(Icons.history),
+                title: Text(
+                  last == null
+                      ? l.backupNever
+                      : autoOn
+                      ? l.backupLastCopy(_day(context, last))
+                      : l.backupLast(_day(context, last)),
+                ),
               ),
             ),
-          ),
+            const SizedBox(height: 16),
+          ],
+          const AutoBackupSection(),
           const SizedBox(height: 16),
-          FilledButton.icon(
-            key: const ValueKey('backup-now'),
-            onPressed: _working ? null : _backUp,
-            icon: _working
-                ? const SizedBox.square(
-                    dimension: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.backup_outlined),
-            label: Text(_working ? l.backupWorking : l.backupNow),
-          ),
+          if (autoOn)
+            OutlinedButton.icon(
+              key: const ValueKey('backup-now'),
+              onPressed: busy ? null : _backUp,
+              icon: _working
+                  ? const SizedBox.square(
+                      dimension: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.ios_share),
+              label: Text(_working ? l.backupWorking : l.backupSendCopy),
+            )
+          else
+            FilledButton.icon(
+              key: const ValueKey('backup-now'),
+              onPressed: busy ? null : _backUp,
+              icon: _working
+                  ? const SizedBox.square(
+                      dimension: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.backup_outlined),
+              label: Text(_working ? l.backupWorking : l.backupNow),
+            ),
           const SizedBox(height: 24),
           Card(
             child: Column(
@@ -180,7 +221,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                   leading: const Icon(Icons.settings_backup_restore),
                   title: Text(l.restoreTitle),
                   subtitle: Text(l.restoreHint),
-                  onTap: _working ? null : () => context.push(restorePath),
+                  onTap: busy ? null : () => context.push(restorePath),
                 ),
               ],
             ),

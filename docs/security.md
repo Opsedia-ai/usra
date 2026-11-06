@@ -35,7 +35,7 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
 | Health records (timeline, medicines, pregnancy, children, follow-ups) | Encrypted SQLite on the phone |
 | Photos: insurance cards, prescriptions, reports, medicine boxes | App private folder |
 | Database key, recovery key, device keys, auth session | Keystore / Keychain |
-| Backup files | Wherever the user puts them (Drive, Files, WhatsApp) |
+| Backup files | Wherever the user puts them (Drive, Files, WhatsApp), or a folder they choose for automatic backup (never iCloud Drive) |
 | Account data (phone number, country, devices), v2 ciphertext | Supabase |
 | AI Doctor and cloud OCR requests | Edge function memory, the LLM/OCR provider |
 
@@ -230,6 +230,39 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   recovery key is never written to any file, file name or share text, only
   to the Keystore / Keychain (tested). The recovery key screen warns it's
   the only way in.
+- **Automatic backup (C11)**: optional, off by default, with no server or
+  account. Only runs with the app on screen, when a backup is due: no
+  background task, no notification. The file is made in the cache folder
+  as above, copied to the chosen folder as `.partial`, checked for size,
+  and only then renamed to `.usra`, and only then are older ones deleted.
+  So a killed app leaves at most a `.partial` (removed next time), and a
+  `.usra` there is always whole. Keeps the last 3 this phone wrote; the
+  newest with every photo stays even if later ones left photos out. File
+  names hold a random per-install tag and a UTC time, nothing else, and
+  retention can't touch a name without this phone's tag. If the database
+  came back empty after it couldn't be opened, automatic backup pauses, so
+  new backups can't push out the ones that hold the records. The folder's
+  access (Android tree URI, iOS bookmark) is in `auto_backup.json` in the
+  private folder, excluded from iCloud device backup and removed by the
+  wipe. Errors are logged by type only, and native errors carry a fixed
+  code with no path.
+- **iCloud refusal (C11, Apple 5.1.3)**: automatic backup refuses a folder
+  in iCloud Drive, when it's picked and again before every backup, because
+  a folder can be moved there later. It uses iOS's `isUbiquitousItem` and
+  the `Mobile Documents` path. A file written to On My iPhone is also marked
+  `isExcludedFromBackup`, so it stays out of the iCloud device backup. Still
+  open for legal review: the manual share sheet is the system's, so a person
+  can choose Save to Files > iCloud Drive themselves. Usra can't remove that
+  option from the sheet. Whether that's acceptable for an encrypted file the
+  person chose to save hasn't been confirmed.
+- **Android and Google Drive (C11)**: the system folder picker only lists
+  storage that supports folder access (`FLAG_SUPPORTS_IS_CHILD` in AOSP's
+  DocumentsUI), and developer reports say Google Drive doesn't. Not yet
+  checked on a current phone. Usra doesn't ask for Drive permissions: the
+  Backup screen says to send a copy through the share sheet and choose
+  Drive. A folder on the phone doesn't quiet Home's reminder to keep a copy
+  off the phone, and neither does a folder iOS can't place (it can't tell On
+  My iPhone from another Files app).
 - **Backend**: RLS on every table, API roles start with no privileges,
   credits through functions only with locking, idempotent purchase webhook
   with signature check, in-memory rate limiter, body size limits, AI/OCR

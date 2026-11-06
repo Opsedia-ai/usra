@@ -6,12 +6,14 @@ import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../core/security/data_wipe.dart';
 import '../../l10n/app_localizations.dart';
+import 'auto_backup_section.dart';
 import 'backup_providers.dart';
 import 'backup_screen.dart';
 
 /// What Home says about backups: how a restore went, that old records
-/// couldn't be opened (with a way to restore), and, outside Simple Mode, a
-/// reminder when the last backup is missing or over a month old.
+/// couldn't be opened (with a way to restore), that an automatic backup is
+/// running or didn't finish (with a way to retry), and, outside Simple Mode,
+/// a reminder when the last backup is missing or over a month old.
 class BackupNotices extends ConsumerWidget {
   const BackupNotices({super.key, this.simple = false});
 
@@ -23,6 +25,8 @@ class BackupNotices extends ConsumerWidget {
     final outcome = ref.watch(restoreOutcomeProvider);
     final wipe = ref.watch(wipeOutcomeProvider);
     final last = ref.watch(lastBackupProvider);
+    final auto = ref.watch(autoBackupProvider);
+    final failure = autoBackupNoticeFailure(auto);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -57,13 +61,44 @@ class BackupNotices extends ConsumerWidget {
             onAction: () => context.go(restorePath),
             simple: simple,
           ),
+        if (auto.running)
+          Padding(
+            key: const ValueKey('auto-backup-progress'),
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l.backupAutoRunning,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 6),
+                const LinearProgressIndicator(minHeight: 2),
+              ],
+            ),
+          ),
+        if (failure != null)
+          _Notice(
+            key: const ValueKey('auto-backup-failed'),
+            severity: Severity.actSoon,
+            icon: Icons.backup_outlined,
+            title: l.backupAutoFailedTitle,
+            body: autoBackupFailureText(l, failure),
+            action: autoBackupRecoverLabel(l, failure),
+            onAction: () => recoverAutoBackup(context, ref, failure),
+            simple: simple,
+          ),
         if (!simple && ref.watch(backupDueProvider))
           _Notice(
             key: const ValueKey('backup-due'),
             severity: Severity.headsUp,
             icon: Icons.backup_outlined,
             title: l.backupDueTitle,
-            body: last == null ? l.backupDueNever : l.backupDueOld,
+            body: auto.settings.enabled
+                ? l.backupDueAuto
+                : last == null
+                ? l.backupDueNever
+                : l.backupDueOld,
             action: l.backupNow,
             onAction: () => context.go(backupPath),
             simple: simple,

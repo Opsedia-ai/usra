@@ -11,6 +11,9 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'app.dart';
+import 'core/backup/auto_backup.dart';
+import 'core/backup/auto_backup_runner.dart';
+import 'core/backup/backup_folder.dart';
 import 'core/backup/backup_service.dart';
 import 'core/backup/recovery_key.dart';
 import 'core/database/app_database.dart';
@@ -197,6 +200,8 @@ Future<void> main() async {
   );
   if (freshInstall) await preferences.setBool(PrefKeys.installed, true);
   final recoveryKeys = SecureRecoveryKeyStore();
+  final backupGate = BackupGate();
+  var autoBackupStore = await AutoBackupStore.open(root);
 
   // Null while a restore swaps the data underneath.
   final app = ValueNotifier<ProviderContainer?>(null);
@@ -270,6 +275,8 @@ Future<void> main() async {
           ),
           backupServiceProvider.overrideWithValue(backup),
           recoveryKeyStoreProvider.overrideWithValue(recoveryKeys),
+          backupGateProvider.overrideWithValue(backupGate),
+          autoBackupStoreProvider.overrideWithValue(autoBackupStore),
           appVersionProvider.overrideWithValue(
             '${version.version}+${version.buildNumber}',
           ),
@@ -326,6 +333,8 @@ Future<void> main() async {
       await WidgetsBinding.instance.endOfFrame;
       old.dispose();
       reminders.dispose();
+      // An automatic backup still reading the database and photos.
+      await backupGate.close();
       await database.close();
       // The restore replaces the photo folders the migration works in.
       await photoMigration;
@@ -358,6 +367,17 @@ Future<void> main() async {
           PrefKeys.lastBackupAt,
           staged.manifest.createdAt.millisecondsSinceEpoch,
         );
+        // The records are back, so it's safe for backups to resume.
+        final auto = autoBackupStore.current;
+        if (auto.failure == AutoBackupFailure.pausedForRecovery) {
+          await autoBackupStore.save(
+            auto.copyWith(
+              enabled: true,
+              enabledAt: DateTime.now(),
+              failure: null,
+            ),
+          );
+        }
         await backup.discardAside();
       } catch (e, s) {
         // The records are back; these only matter for the next backup.
@@ -366,6 +386,7 @@ Future<void> main() async {
         );
       }
     }
+    backupGate.open();
     final fresh = build(
       restore: restored ? RestoreOutcome.restored : RestoreOutcome.failed,
     );
@@ -397,12 +418,23 @@ Future<void> main() async {
       await WidgetsBinding.instance.endOfFrame;
       old.dispose();
       reminders.dispose();
+      await backupGate.close();
       await database.close();
       // Nothing may still be writing in the folders being deleted.
       await photoMigration;
       await protection;
     },
     wipe: () async {
+      // Files already in the backup folder stay, but this phone stops
+      // holding on to the folder.
+      final folder = autoBackupStore.current.folder;
+      if (folder != null) {
+        try {
+          await const ChannelBackupFolderAccess().release(folder.id);
+        } catch (e) {
+          Log.error('Backup folder not released', e);
+        }
+      }
       try {
         return await wiper.wipe();
       } finally {
@@ -423,6 +455,8 @@ Future<void> main() async {
           photoKeys.markUnavailable(fresh.problem!);
       }
       backup = newBackup();
+      autoBackupStore = await AutoBackupStore.open(root);
+      backupGate.open();
       outcome = prepareDatabaseFile(file, key);
       database = AppDatabase(openEncryptedDatabase(file, key));
       dismissals = await FileDismissalStore.open();
