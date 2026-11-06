@@ -128,7 +128,10 @@ class BackupFolderChannel(private val activity: Activity, messenger: BinaryMesse
             mapOf(
                 "id" to tree.toString(),
                 "name" to folderName(tree),
-                "onThisPhone" to ON_PHONE_AUTHORITIES.contains(tree.authority ?: ""),
+                // Unknown rather than false: phone makers ship their own
+                // providers for local storage, and only a copy known to be
+                // off the phone may quiet the reminder on Home.
+                "onThisPhone" to if (ON_PHONE_AUTHORITIES.contains(tree.authority ?: "")) true else null,
             )
         }
         return true
@@ -279,7 +282,7 @@ class BackupFolderChannel(private val activity: Activity, messenger: BinaryMesse
         const val BUFFER = 256 * 1024
 
         /// Providers whose files are on the phone itself (an SD card goes
-        /// with the phone too). Anything else is another app's storage.
+        /// with the phone too).
         val ON_PHONE_AUTHORITIES = setOf(
             "com.android.externalstorage.documents",
             "com.android.providers.downloads.documents",

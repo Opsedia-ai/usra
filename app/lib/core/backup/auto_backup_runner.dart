@@ -33,10 +33,13 @@ class BackupGate {
     }
   }
 
-  /// Stops new backups and waits for the one running.
-  Future<void> close() async {
+  /// Stops new backups and waits for the one running, but not for ever: a
+  /// call stuck in another app's folder must not stop "Delete all my data" or
+  /// the wipe after too many wrong PINs. A backup that outlives this can only
+  /// fail, or land one more file in the folder.
+  Future<void> close({Duration timeout = const Duration(minutes: 2)}) async {
     _closed = true;
-    await _running;
+    await _running?.timeout(timeout, onTimeout: () {});
   }
 
   void open() => _closed = false;
@@ -158,7 +161,7 @@ class AutoBackupRunner {
             failure: null,
           ),
         );
-        await _prune(id, settings.tag);
+        await _prune(id, settings.tag, name);
         return AutoBackupResult(settings, landed: true);
       } finally {
         await _discard(created);
@@ -195,16 +198,21 @@ class AutoBackupRunner {
   Future<void> _removeLeftovers(String id, String tag) async {
     final names = (await folders.list(id)).map((e) => e.name);
     for (final name in partialsToDelete(names, tag)) {
-      await folders.delete(id, name);
+      try {
+        await folders.delete(id, name);
+      } catch (e) {
+        // Not worth stopping a new backup for; tried again next time.
+        Log.error('Auto backup leftover not deleted', e);
+      }
     }
   }
 
   /// A new backup is safely in, so nothing here may fail the run: older
   /// files left behind are tried again next time.
-  Future<void> _prune(String id, String tag) async {
+  Future<void> _prune(String id, String tag, String landed) async {
     try {
       final names = (await folders.list(id)).map((e) => e.name);
-      for (final name in backupsToDelete(names, tag)) {
+      for (final name in backupsToDelete(names, tag, justLanded: landed)) {
         await folders.delete(id, name);
       }
     } catch (e) {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -253,6 +254,21 @@ void main() {
       ]);
     });
 
+    test('a clock corrected from a wrong date can\'t delete the new one', () {
+      final wrong = [
+        for (final year in [2030, 2031, 2032])
+          AutoBackupFileName.make(_tag, DateTime.utc(year)),
+      ];
+      final landed = named(6);
+      final doomed = backupsToDelete(
+        [...wrong, landed],
+        _tag,
+        justLanded: landed,
+      );
+      expect(doomed, isNot(contains(landed)));
+      expect(doomed, [wrong.first]);
+    });
+
     test('only this phone\'s half-written files are leftovers', () {
       final mine = AutoBackupFileName.partialOf(named(1));
       final other = AutoBackupFileName.partialOf(named(1, tag: 'ffffffff'));
@@ -350,6 +366,15 @@ void main() {
       gate.open();
       expect(await gate.tryRun(() async => 4), 4);
       expect(gate.busy, isFalse);
+    });
+
+    test('a stuck backup can\'t hold up a wipe for ever', () async {
+      final gate = BackupGate();
+      final stuck = Completer<int>();
+      unawaited(gate.tryRun(() => stuck.future));
+      await gate.close(timeout: const Duration(milliseconds: 10));
+      expect(await gate.tryRun(() async => 1), isNull);
+      stuck.complete(1);
     });
 
     test('a job that throws frees it', () async {
@@ -538,6 +563,28 @@ void main() {
         expect(result.settings.failure, isNull);
         expect(partial.existsSync(), isFalse);
         expect(whole(), hasLength(2));
+      });
+
+      test('a leftover that won\'t delete doesn\'t stop backups', () async {
+        File(p.join(folderDir.path, 'usra-auto-$_tag-20261001-100000.partial'))
+            .writeAsStringSync('half');
+        folder.deleteProblem = BackupFolderProblem.failed;
+        final result = await runner().run();
+        expect(result.landed, isTrue);
+        expect(result.settings.failure, isNull);
+      });
+
+      test('a new backup survives a clock that was set ahead', () async {
+        for (final year in [2030, 2031, 2032]) {
+          now = DateTime.utc(year);
+          await runner().run();
+        }
+        now = DateTime.utc(2026, 11, 6, 10);
+        final result = await runner().run();
+        expect(result.landed, isTrue);
+        final names = whole().toList();
+        expect(names, hasLength(3));
+        expect(names.any((n) => n.contains('20261106')), isTrue);
       });
 
       test('another phone\'s half file is left alone', () async {

@@ -367,9 +367,12 @@ void main() {
     );
     await open(tester, backupPath);
     await tester.tap(find.byKey(const ValueKey('backup-auto-folder')));
-    await tester.pumpAndSettle();
+    await settleBackup(tester);
     expect(store.current.folder!.id, 'other');
     expect(folder.released, ['tree']);
+    // Not left empty until the next one is due.
+    expect(service.made, hasLength(1));
+    expect(folder.files, hasLength(1));
   });
 
   testWidgets('turning it off stays off and keeps the files', (tester) async {
@@ -398,6 +401,11 @@ void main() {
 
     expect(find.byKey(const ValueKey('backup-auto-progress')), findsOneWidget);
     expect(gate.busy, isTrue);
+    // The run saves its own copy of the settings when it ends, so nothing
+    // that changes them can be open during one.
+    for (final row in ['backup-auto-frequency', 'backup-auto-folder']) {
+      expect(tester.widget<ListTile>(find.byKey(ValueKey(row))).onTap, isNull);
+    }
     // No sharing or restoring underneath a backup.
     final send = tester.widget<ButtonStyleButton>(
       find.byKey(const ValueKey('backup-now')),
@@ -480,9 +488,18 @@ void main() {
       expect(store.current.enabled, isFalse);
       expect(store.current.failure, AutoBackupFailure.pausedForRecovery);
       final context = tester.element(find.byType(Navigator).first);
-      ProviderScope.containerOf(context).read(routerProvider).go(backupPath);
+      final container = ProviderScope.containerOf(context);
+      container.read(routerProvider).go(backupPath);
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('backup-auto-paused')), findsOneWidget);
+
+      // Turning it back on sticks when the person comes back to the app.
+      await container.read(autoBackupProvider.notifier).enable();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(store.current.enabled, isTrue);
+      expect(store.current.failure, isNull);
     });
   });
 

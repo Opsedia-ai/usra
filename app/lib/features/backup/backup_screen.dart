@@ -21,7 +21,7 @@ const backupPath = '/settings/backup';
 const recoveryKeyPath = '/settings/backup/key';
 const restorePath = '/settings/backup/restore';
 
-String _day(BuildContext context, DateTime at) =>
+String backupDay(BuildContext context, DateTime at) =>
     DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(at);
 
 /// Make a backup, set up automatic ones, see the recovery key, or restore
@@ -149,6 +149,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     final auto = ref.watch(autoBackupProvider);
     final autoOn = auto.settings.enabled;
     final busy = _working || auto.running;
+    const spinner = SizedBox.square(
+      dimension: 20,
+      child: CircularProgressIndicator(strokeWidth: 2),
+    );
     return Scaffold(
       appBar: AppBar(title: Text(l.backupTitle)),
       body: ListView(
@@ -170,8 +174,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                   last == null
                       ? l.backupNever
                       : autoOn
-                      ? l.backupLastCopy(_day(context, last))
-                      : l.backupLast(_day(context, last)),
+                      ? l.backupLastCopy(backupDay(context, last))
+                      : l.backupLast(backupDay(context, last)),
                 ),
               ),
             ),
@@ -183,24 +187,14 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
             OutlinedButton.icon(
               key: const ValueKey('backup-now'),
               onPressed: busy ? null : _backUp,
-              icon: _working
-                  ? const SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.ios_share),
+              icon: _working ? spinner : const Icon(Icons.ios_share),
               label: Text(_working ? l.backupWorking : l.backupSendCopy),
             )
           else
             FilledButton.icon(
               key: const ValueKey('backup-now'),
               onPressed: busy ? null : _backUp,
-              icon: _working
-                  ? const SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.backup_outlined),
+              icon: _working ? spinner : const Icon(Icons.backup_outlined),
               label: Text(_working ? l.backupWorking : l.backupNow),
             ),
           const SizedBox(height: 24),
@@ -412,7 +406,7 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
                   children: [
                     Text(
                       l.restoreFrom(
-                        _day(context, staged.manifest.createdAt.toLocal()),
+                        backupDay(context, staged.manifest.createdAt.toLocal()),
                       ),
                       style: text.titleMedium,
                     ),

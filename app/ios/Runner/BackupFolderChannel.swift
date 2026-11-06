@@ -14,7 +14,7 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
   private let queue = DispatchQueue(label: "usra.backup-folder", qos: .utility)
 
   private enum Failure: Error {
-    case missing, noSpace, locked, cantUse, failed
+    case missing, cantUse, failed
   }
 
   static func register(messenger: FlutterBinaryMessenger) {
@@ -137,14 +137,14 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
     let token = UUID().uuidString
     let first = folder.appendingPathComponent("usra-check-\(token).partial")
     let second = folder.appendingPathComponent("usra-check-\(token).tmp")
-    try coordinate(writing: first) { url in
+    try coordinate(.forReplacing, first) { url in
       try Data([0]).write(to: url, options: .atomic)
     }
     defer {
       for url in [first, second] { try? FileManager.default.removeItem(at: url) }
     }
     try move(first, to: second)
-    try coordinate(deleting: second) { url in
+    try coordinate(.forDeleting, second) { url in
       try FileManager.default.removeItem(at: url)
     }
   }
@@ -200,7 +200,7 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
     let name = try BackupFolderChannel.fileName(args["name"])
     return try withFolder(args) { folder, _ in
       let target = folder.appendingPathComponent(name)
-      try coordinate(writing: target) { url in
+      try coordinate(.forReplacing, target) { url in
         let manager = FileManager.default
         if manager.fileExists(atPath: url.path) { try manager.removeItem(at: url) }
         try manager.copyItem(at: URL(fileURLWithPath: source), to: url)
@@ -230,7 +230,7 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
     try withFolder(args) { folder, _ in
       let target = folder.appendingPathComponent(name)
       guard FileManager.default.fileExists(atPath: target.path) else { return }
-      try coordinate(deleting: target) { url in
+      try coordinate(.forDeleting, target) { url in
         try FileManager.default.removeItem(at: url)
       }
     }
@@ -249,23 +249,13 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
 
   // MARK: - File coordination, which other apps' folders expect
 
-  private func coordinate(writing url: URL, _ job: (URL) throws -> Void) throws {
+  private func coordinate(
+    _ options: NSFileCoordinator.WritingOptions, _ url: URL, _ job: (URL) throws -> Void
+  ) throws {
     var coordination: NSError?
     var failure: Error?
-    NSFileCoordinator().coordinate(
-      writingItemAt: url, options: .forReplacing, error: &coordination
-    ) { actual in
-      do { try job(actual) } catch { failure = error }
-    }
-    if let error = coordination ?? failure { throw error }
-  }
-
-  private func coordinate(deleting url: URL, _ job: (URL) throws -> Void) throws {
-    var coordination: NSError?
-    var failure: Error?
-    NSFileCoordinator().coordinate(
-      writingItemAt: url, options: .forDeleting, error: &coordination
-    ) { actual in
+    NSFileCoordinator().coordinate(writingItemAt: url, options: options, error: &coordination) {
+      actual in
       do { try job(actual) } catch { failure = error }
     }
     if let error = coordination ?? failure { throw error }
@@ -306,8 +296,6 @@ final class BackupFolderChannel: NSObject, UIDocumentPickerDelegate {
     if let failure = error as? Failure {
       switch failure {
       case .missing: return "missing"
-      case .noSpace: return "no_space"
-      case .locked: return "locked"
       case .cantUse: return "cant_use"
       case .failed: return "failed"
       }

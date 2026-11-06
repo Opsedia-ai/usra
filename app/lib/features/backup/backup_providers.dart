@@ -148,6 +148,9 @@ final autoBackupProvider =
 class AutoBackupController extends Notifier<AutoBackupStatus> {
   Timer? _start;
 
+  /// Turning it back on after the pause is the person's choice, and sticks.
+  var _pausedForRecovery = false;
+
   @override
   AutoBackupStatus build() {
     ref.onDispose(() => _start?.cancel());
@@ -250,7 +253,8 @@ class AutoBackupController extends Notifier<AutoBackupStatus> {
     if (_start?.isActive ?? false) return;
     final settings = state.settings;
     if (!settings.enabled) return;
-    if (ref.read(databaseRecoveredProvider)) {
+    if (ref.read(databaseRecoveredProvider) && !_pausedForRecovery) {
+      _pausedForRecovery = true;
       // Near-empty backups must not push out the ones with the records.
       // Off until a restore or the person turns it back on.
       _save(

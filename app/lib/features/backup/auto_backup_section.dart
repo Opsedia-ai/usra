@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart' show DateFormat, NumberFormat;
+import 'package:intl/intl.dart' show NumberFormat;
 
 import '../../core/backup/auto_backup.dart';
 import '../../core/design/tokens.dart';
@@ -175,6 +175,13 @@ class AutoBackupSection extends ConsumerWidget {
     }
   }
 
+  /// A new folder gets a backup now, so it isn't empty until the next one
+  /// is due while the screen shows the old folder's date beside its name.
+  Future<void> _changeFolder(BuildContext context, WidgetRef ref) async {
+    final controller = ref.read(autoBackupProvider.notifier);
+    if (await _chooseFolder(context, ref)) await controller.runNow();
+  }
+
   Future<void> _pickFrequency(
     BuildContext context,
     WidgetRef ref,
@@ -248,7 +255,7 @@ class AutoBackupSection extends ConsumerWidget {
               leading: const Icon(Icons.folder_outlined),
               title: Text(l.backupAutoFolder),
               subtitle: Text(folder?.name ?? l.backupAutoChooseFolder),
-              onTap: status.running ? null : () => _chooseFolder(context, ref),
+              onTap: status.running ? null : () => _changeFolder(context, ref),
             ),
             if (folder?.onThisPhone == true)
               _Message(
@@ -262,7 +269,9 @@ class AutoBackupSection extends ConsumerWidget {
               leading: const Icon(Icons.event_repeat),
               title: Text(l.backupAutoFrequency),
               subtitle: Text(_frequencyText(l, settings.frequency)),
-              onTap: () => _pickFrequency(context, ref, settings.frequency),
+              onTap: status.running
+                  ? null
+                  : () => _pickFrequency(context, ref, settings.frequency),
             ),
             ListTile(
               key: const ValueKey('backup-auto-last'),
@@ -271,9 +280,7 @@ class AutoBackupSection extends ConsumerWidget {
                 last == null
                     ? l.backupAutoNever
                     : l.backupAutoLast(
-                        DateFormat.yMMMd(
-                          Localizations.localeOf(context).toString(),
-                        ).format(last),
+                        backupDay(context, last),
                         formatBackupSize(context, settings.lastSize ?? 0),
                       ),
               ),

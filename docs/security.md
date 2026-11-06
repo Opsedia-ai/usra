@@ -260,9 +260,10 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   DocumentsUI), and developer reports say Google Drive doesn't. Not yet
   checked on a current phone. Usra doesn't ask for Drive permissions: the
   Backup screen says to send a copy through the share sheet and choose
-  Drive. A folder on the phone doesn't quiet Home's reminder to keep a copy
-  off the phone, and neither does a folder iOS can't place (it can't tell On
-  My iPhone from another Files app).
+  Drive. Only a copy known to be off the phone quiets Home's reminder to keep
+  one there. No folder counts yet: Android only knows its own providers, and
+  iOS can't tell On My iPhone from another Files app. So the manual share is
+  what quiets it.
 - **Backend**: RLS on every table, API roles start with no privileges,
   credits through functions only with locking, idempotent purchase webhook
   with signature check, in-memory rate limiter, body size limits, AI/OCR

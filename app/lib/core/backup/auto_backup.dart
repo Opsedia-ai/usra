@@ -63,7 +63,9 @@ class BackupFolder {
   final String name;
 
   /// Whether losing the phone loses this folder too; null when the system
-  /// doesn't say (iOS can't tell On My iPhone from another Files provider).
+  /// doesn't say: iOS can't tell On My iPhone from another Files
+  /// provider, and Android only knows its own providers. Nothing reports
+  /// false yet; it's what a provider known to be off the phone would say.
   final bool? onThisPhone;
 
   BackupFolder withId(String id) =>
@@ -267,9 +269,14 @@ class AutoBackupFileName {
 /// has landed: this phone's backups beyond the newest [keep]. The newest
 /// complete one always stays, even if it's older, so backups that had to
 /// leave photos out can't push out the last one that has them all.
+///
+/// [justLanded] counts as the newest whatever its name says: times in names
+/// come from the phone's clock, and one corrected from a wrong date would
+/// otherwise rank each new backup oldest and delete it straight away.
 List<String> backupsToDelete(
   Iterable<String> names,
   String tag, {
+  String? justLanded,
   int keep = autoBackupKeep,
 }) {
   final own =
@@ -278,7 +285,11 @@ List<String> backupsToDelete(
           .nonNulls
           .where((f) => f.tag == tag)
           .toList()
-        ..sort((a, b) => b.stamp.compareTo(a.stamp));
+        ..sort((a, b) {
+          if (a.name == justLanded) return -1;
+          if (b.name == justLanded) return 1;
+          return b.stamp.compareTo(a.stamp);
+        });
   final kept = own.take(keep).toList();
   if (!kept.any((f) => f.isComplete)) {
     final complete = own.where((f) => f.isComplete).firstOrNull;
