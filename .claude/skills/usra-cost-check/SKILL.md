@@ -24,7 +24,7 @@ Put the verdict in the PR description.
 ## Free by design: prefer these
 
 - Anything on the phone: encrypted database, photos, local notifications, on-device ML Kit, PDFs.
-- Backup to a folder the user chooses or a place they send it, as an encrypted file. Never iCloud Drive for health data (Apple 5.1.3).
+- Backup to the user's own Files, Drive or iCloud Drive folder, as an encrypted file.
 - Firebase Cloud Messaging for push.
 - GitHub Actions on this public repo.
 
