@@ -914,6 +914,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'كلام وزراير أكبر وتابات أقل. مناسب للجدّ والجدّة لما يستخدموا الموبايل لوحدهم.';
 
   @override
+  String get settingsAiTitle => 'دكتور أسرة الذكي';
+
+  @override
+  String get settingsAiSoon => 'قريب';
+
+  @override
   String get settingsTutorial => 'اعرض الشرح تاني';
 
   @override

@@ -474,6 +474,8 @@
   "navCall": "Call",
   "settingsSimpleMode": "Simple Mode",
   "settingsSimpleModeHint": "Bigger text and buttons, fewer tabs. Good for grandparents using the phone on their own.",
+  "settingsAiTitle": "Dr. Usra AI",
+  "settingsAiSoon": "Coming soon",
   "settingsTutorial": "Show the tour again",
   "profileSimpleMode": "Uses Simple Mode",
   "profileSimpleModeHint": "The phone in their hand: Home greets them by name. Turn Simple Mode on in More on that phone.",

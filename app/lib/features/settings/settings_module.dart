@@ -141,6 +141,14 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  key: const ValueKey('settings-ai-soon'),
+                  enabled: false,
+                  leading: const Icon(Icons.auto_awesome_outlined),
+                  title: Text(l.settingsAiTitle),
+                  subtitle: Text(l.settingsAiSoon),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   key: const ValueKey('settings-about'),
                   leading: const Icon(Icons.privacy_tip_outlined),
                   title: Text(l.aboutTitle),

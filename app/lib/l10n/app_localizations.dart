@@ -1652,6 +1652,18 @@ abstract class AppLocalizations {
   /// **'Bigger text and buttons, fewer tabs. Good for grandparents using the phone on their own.'**
   String get settingsSimpleModeHint;
 
+  /// No description provided for @settingsAiTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dr. Usra AI'**
+  String get settingsAiTitle;
+
+  /// No description provided for @settingsAiSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get settingsAiSoon;
+
   /// No description provided for @settingsTutorial.
   ///
   /// In en, this message translates to:

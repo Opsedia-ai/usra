@@ -912,6 +912,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Bigger text and buttons, fewer tabs. Good for grandparents using the phone on their own.';
 
   @override
+  String get settingsAiTitle => 'Dr. Usra AI';
+
+  @override
+  String get settingsAiSoon => 'Coming soon';
+
+  @override
   String get settingsTutorial => 'Show the tour again';
 
   @override

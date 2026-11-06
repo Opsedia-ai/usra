@@ -32,6 +32,18 @@ All decisions as of 2 Nov 2026. Details and sources are in the PDFs in `docs/pdf
 | Character | Dr. Usra (دكتور أسرة): blue house-shaped character with a heart; 5 poses | User approved the design and chose the name |
 | App name | Usra (أسرة). Avoid Salamtak (an active Kuwaiti medical app), Sehhaty, Sahatna, Malaffi, Riayati, Wasfaty, Sijilli | Name checks |
 
+## v1 decisions (6 Nov 2026)
+
+| Area | Decision | Why / notes |
+| --- | --- | --- |
+| Cost | Everything free for the first 5,000 users; every feature gets a cost check (`CLAUDE.md`) | Founder rule |
+| Login | Google and Apple sign-in only. No SMS verification | One code each for 5,000 users is about 1,980 dollars at Twilio's Egypt price |
+| Backup | Encrypted file in the user's own folder, automatic (C11). Nothing on our servers. Not iCloud | Free for us; Apple 5.1.3 |
+| Sync | No family sync in v1, and no photo sync. Backend sync work is paused | 1 GB of free files fills at about 170 users with 20 photos each |
+| AI | Dr. Usra AI is off in v1 and shown as coming soon | About 130 dollars a month at 5,000 users, on stated assumptions |
+| Cloud photo reading | Off in v1. On-device reading only | Costs per photo, and the photo would leave the phone |
+| Purchases | Nothing to buy in v1, so no RevenueCat | Only needed for AI credits |
+
 ## Open questions
 
 - [ ] Founding developer: Flutter confirmed?
