@@ -4,7 +4,7 @@ Arabic-first family medical records app. Flutter app in `app/`, optional Supabas
 
 ## Cost rule
 
-Everything must stay free for the first 5,000 users, and running the app must cost us $0 a month.
+Everything must stay free for the first 5,000 users, and running the app must cost us nothing each month.
 
 Before designing, building or merging any feature, check whether it costs money, using the `usra-cost-check` skill. Put the verdict and numbers in the PR description.
 

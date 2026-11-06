@@ -84,6 +84,28 @@ void main() {
     },
   );
 
+  testWidgets('Dr. Usra AI shows as coming soon and can\'t be opened', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 3000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.more_horiz).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('English'));
+    await tester.pumpAndSettle();
+
+    final tile = tester.widget<ListTile>(
+      find.byKey(const ValueKey('settings-ai-soon')),
+    );
+    expect(tile.enabled, isFalse);
+    expect(tile.onTap, isNull);
+    expect(find.text('Dr. Usra AI'), findsOneWidget);
+    expect(find.text('Coming soon'), findsOneWidget);
+  });
+
   testWidgets('the back arrow returns to More', (tester) async {
     await openAbout(tester);
 
