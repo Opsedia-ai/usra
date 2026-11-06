@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../security/secure_storage_options.dart';
+
 /// The key that opens backups: 6 groups of 6 digits, like
 /// `482915 730264 ...`, written down on paper by the family.
 ///
@@ -151,6 +153,7 @@ class SecureRecoveryKeyStore implements RecoveryKeyStore {
             iOptions: IOSOptions(
               accessibility: KeychainAccessibility.first_unlock_this_device,
             ),
+            aOptions: secureStorageAndroidOptions,
           );
 
   static const _keyName = 'usra.backup.recovery_key.v1';

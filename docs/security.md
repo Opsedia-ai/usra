@@ -36,7 +36,7 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
 | Photos: insurance cards, prescriptions, reports, medicine boxes | App private folder |
 | Database key, recovery key, device keys, auth session | Keystore / Keychain |
 | Backup files | Wherever the user puts them (Drive, Files, WhatsApp) |
-| Account data (phone number, country, devices), v2 ciphertext | Supabase |
+| Account data (email, name and profile photo link from Google, Apple's email or relay address, language, devices), v2 ciphertext | Supabase |
 | AI Doctor and cloud OCR requests | Edge function memory, the LLM/OCR provider |
 
 | Threat | Example | Main defences |
@@ -47,7 +47,7 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
 | Leaked backup file | Backup shared to the wrong WhatsApp chat | Argon2id + XChaCha20-Poly1305, 100-bit recovery key |
 | Network attacker | Café Wi-Fi | HTTPS only, no cleartext, E2EE |
 | Server breach or rogue insider | Database dump | E2EE (ciphertext only), RLS, minimal account data, no secrets in code |
-| Account takeover | SIM swap, OTP phishing | OTP rate limits, device approval for family keys, alerts on new devices |
+| Account takeover | A stolen Google or Apple account | Google's and Apple's own account protection, nonces on ID tokens, device approval for family keys, alerts on new devices |
 | Abuse of paid APIs | Draining AI credits, OCR cost | Auth, credits ledger, rate limits, body size limits |
 | Supply chain | Malicious package or GitHub Action | Pinned versions, Dependabot, review, pinned action SHAs |
 | Our own mistakes | PHI in a log or crash report, a debug flag in release | Lint rules, release checks, code review, tests |
@@ -64,11 +64,18 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   snapshot, `quick_check` on restore. `app/lib/core/backup/`.
 - **OS backup**: Android `allowBackup=false` plus data extraction rules that
   exclude everything; iOS photo folders excluded from iCloud backup.
+- **Secure storage fails closed on Android:** every `FlutterSecureStorage` uses
+  `secureStorageAndroidOptions` (`resetOnError: false`). The plugin's default
+  deletes keys on a Keystore or decrypt error, and the first call in the process
+  sets the options for all stores, so one store on the default would put the
+  database key at risk. A test checks every store in `lib/`. If the database key
+  can't be read, the app says so and offers to try again; it never makes a new key
+  over it. Only an unreadable account session is deleted, since signing in again
+  replaces it.
 - **App lock** (S2): optional 6-digit PIN (trivial ones refused), stored
   only as a salted Argon2id hash (19 MiB, 2 passes) in Keystore / Keychain
-  this-device-only, checked in constant time. On Android the lock's storage
-  uses `resetOnError: false`, so a Keystore error keeps the app locked
-  instead of wiping the lock (fail closed); an unreadable lock is never
+  this-device-only, checked in constant time. A Keystore error keeps the app
+  locked instead of wiping the lock (fail closed); an unreadable lock is never
   written over and is read again on each try and on resume. Fingerprint or
   face through `local_auth`, biometrics only and, on Android, only with a
   strong (Class 3) sensor; Settings warns that anyone enrolled on the phone
@@ -263,9 +270,9 @@ with the cloud features (M6).
 | # | Item | Pri | Notes |
 | --- | --- | --- | --- |
 | S12 | **Session and device keys in secure storage** | P2 | supabase_flutter defaults to SharedPreferences; use a secure-storage `LocalStorage`. Device keypair this-device-only. (Sent to the accounts PR.) |
-| S13 | **OTP abuse controls** | P2 | Per-number and per-IP limits in the SMS hook, cooldown, block premium-rate destinations, generic errors (no account enumeration), alert on spikes (SMS pumping fraud). |
+| S13 | **Sign-in abuse controls** | P2 | Google and Apple only: the phone and email providers are off, so there's no SMS to pump and no password to guess. ID tokens are checked against our client IDs with a nonce (`skip_nonce_check` stays off). Supabase's per-IP limits apply, and errors are generic (no account enumeration). |
 | S14 | **E2EE sync design review** | P2 | Design written for review: [`docs/sync-design.md`](sync-design.md). Family key per epoch (XChaCha20-Poly1305 records, a random key per file), wrapped to each device with HPKE (X25519); signed hash-chained family log for members, devices and key epochs; signed records; rotation when a member or device is removed; new devices approved from an existing phone (QR or comparison code) or with the recovery key, never by SMS alone. Needs the external crypto review (its section 18) before sync code. **Blocker before any sync code:** the grant and RLS gaps listed as B0 in that doc (device keys overwritable and `devices` insert on all columns, push tokens writable for other devices, family delete from an SMS-only session, direct membership / invite / record writes, `families.created_by` cascade) are **closed** in `20261105000001_sync_blockers_b0.sql`, with pgTAP tests in `supabase/tests/database/sync_blockers.test.sql`. Device approval and session binding, recovery, account reset, the signed family log, invites with a lookup hash, key wraps and rotation (B1–B6, B9) are in `20261105000002_sync_log_devices.sql` and the `bind-device`, `approve-device`, `recover-device`, `append-family-log` and `publish-head` functions (strict Ed25519 with RFC 8032 and Wycheproof vectors). Devices are revoked, never deleted by the apps; revoked rows are purged after 90 days unless a family log lists them. Still needs the external crypto review. |
-| S15 | **Account takeover** | P2 | Notify all devices when a new device joins; new device sees no data until approved; SIM-swap note in the UI. |
+| S15 | **Account takeover** | P2 | Notify all devices when a new device joins; new device sees no data until approved; a note in the UI about a stolen Google or Apple account. |
 | S16 | **AI and cloud OCR consent** | P2 | Explicit per-use consent, show exactly what is sent, strip names and IDs before sending, provider with zero data retention / no training (contract), never logged; region notes in the privacy policy. |
 | S17 | **Backend hardening** | P2 | Rate limits in a shared store (the in-memory limiter resets per instance), JWT verification on every function, CORS locked to the app, Postgres backups encrypted, Supabase MFA on the dashboard for every admin, least-privilege service keys, audit log of admin actions, secrets rotation runbook. |
 | S18 | **Certificate pinning** | P2 | Consider pinning the Supabase host's public key (with a backup pin) once the domain is final; weigh against outage risk. |
@@ -284,7 +291,7 @@ with the cloud features (M6).
 
 ## 5. Rules for every PR
 
-- No health data, phone numbers, tokens or keys in logs, errors, analytics,
+- No health data, phone numbers, emails, names, tokens or keys in logs, errors, analytics,
   URLs, notifications or crash reports.
 - New stored data: encrypted at rest and excluded from OS backup.
 - New permission or network call: say why in the PR, update

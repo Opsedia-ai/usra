@@ -4,9 +4,9 @@
 begin;
 select plan(6);
 
-insert into auth.users (id, phone) values
-  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', '201000000031'),
-  ('ffffffff-ffff-4fff-8fff-ffffffffffff', '201000000032');
+insert into auth.users (id, email) values
+  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'user31@example.com'),
+  ('ffffffff-ffff-4fff-8fff-ffffffffffff', 'user32@example.com');
 
 create function pg_temp.as_user(p_user uuid, p_session uuid) returns text language sql as $$
   select set_config('request.jwt.claims',

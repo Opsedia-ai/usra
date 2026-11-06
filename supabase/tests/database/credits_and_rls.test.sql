@@ -2,9 +2,9 @@
 begin;
 select plan(26);
 
-insert into auth.users (id, phone) values
-  ('11111111-1111-1111-1111-111111111111', '201000000001'),
-  ('22222222-2222-2222-2222-222222222222', '201000000002');
+insert into auth.users (id, email) values
+  ('11111111-1111-1111-1111-111111111111', 'user01@example.com'),
+  ('22222222-2222-2222-2222-222222222222', 'user02@example.com');
 
 select is((select count(*)::int from public.accounts), 2, 'account row created per auth user');
 

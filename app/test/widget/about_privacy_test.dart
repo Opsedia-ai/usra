@@ -10,6 +10,8 @@ import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/features/backup/backup_providers.dart';
 import 'package:usra/features/settings/about_privacy_screen.dart';
+import 'package:usra/features/account/account_providers.dart';
+import 'package:usra/features/account/supabase_config.dart';
 
 void main() {
   late AppDatabase db;
@@ -33,8 +35,11 @@ void main() {
   });
   tearDown(() => db.close());
 
+  var cloud = SupabaseConfig.none;
+
   Widget app() => ProviderScope(
     overrides: [
+      supabaseConfigProvider.overrideWithValue(cloud),
       databaseProvider.overrideWithValue(db),
       keyValueStoreProvider.overrideWithValue(prefs),
       recoveryKeyStoreProvider.overrideWithValue(MemoryRecoveryKeyStore()),
@@ -149,6 +154,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('مقدرناش نفتح الصفحة. اتأكد من النت.'), findsOneWidget);
+  });
+
+  testWidgets('a build with accounts doesn\'t say there are none', (
+    tester,
+  ) async {
+    cloud = const SupabaseConfig(
+      url: 'https://example.supabase.co',
+      anonKey: 'anon',
+    );
+    addTearDown(() => cloud = SupabaseConfig.none);
+    await openAbout(tester);
+    expect(find.textContaining('مفيش حساب'), findsNothing);
+    expect(find.textContaining('الحساب اختياري'), findsOneWidget);
   });
 
   testWidgets('in English', (tester) async {

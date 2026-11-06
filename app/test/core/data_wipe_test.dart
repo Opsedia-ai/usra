@@ -10,6 +10,7 @@ import 'package:usra/core/security/data_wipe.dart';
 import 'package:usra/core/security/sensitive_clipboard.dart';
 
 import '../support/fake_lock.dart';
+import '../support/spy_secure_storage.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -328,5 +329,23 @@ void main() {
     test('the app waits a minute', () {
       expect(sensitiveClipboardLifetime, const Duration(seconds: 60));
     });
+  });
+
+  test('a key it can\'t decrypt doesn\'t stop the wipe', () async {
+    final storage = SpySecureStorage(
+      values: {'usra.db.key.v1': 'key', 'usra.account.session.v1': 'session'},
+      failReads: true,
+    );
+    final folder = await Directory.systemTemp.createTemp('wipe');
+    addTearDown(() => folder.delete(recursive: true));
+    final wiper = DataWiper(
+      root: await Directory(p.join(folder.path, 'root')).create(),
+      temporary: await Directory(p.join(folder.path, 'tmp')).create(),
+      secureStorage: [storage],
+      clearPreferences: () async {},
+    );
+    expect(await wiper.wipe(), isTrue);
+    expect(storage.values, isEmpty);
+    expect(storage.calls, contains('deleteAll'));
   });
 }

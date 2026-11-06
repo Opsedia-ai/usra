@@ -35,6 +35,8 @@ dependencies:
   supabase_flutter: ^2.18.3
   http: ^1.6.0
   pdf: ^3.13.1
+  google_sign_in: ^7.2.0
+  sign_in_with_apple: ^8.2.0
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +49,11 @@ dev_dependencies:
   xml: ^7.1.0
 
 flutter:
+  # CocoaPods only. ML Kit has no Swift package and needs GTMSessionFetcher 3.x,
+  # while Swift packages pull 5.x for Google Sign-In: mixing them links both
+  # versions into the app, and which one runs is undefined.
+  config:
+    enable-swift-package-manager: false
   uses-material-design: true
   generate: true
   assets:

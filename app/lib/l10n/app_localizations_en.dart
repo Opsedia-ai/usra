@@ -106,6 +106,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'No account, no sign-in, no ads and no tracking. We never sell or share anyone\'s data.';
 
   @override
+  String get aboutPrivacyOptionalAccount =>
+      'An account is optional, and there are no ads and no tracking. If you sign in, we keep your email (and your name with Google) to run the account, and we never receive your health records. We never sell or share anyone\'s data.';
+
+  @override
   String get aboutPrivacyBackup =>
       'A backup is an encrypted file you keep wherever you choose. Only your recovery key opens it, and we don\'t have it.';
 
@@ -1663,6 +1667,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Usra couldn\'t open again after deleting. Close it and open it again.';
 
   @override
+  String get databaseKeyUnavailable =>
+      'Usra can\'t open the key to your records right now. Your records are still here and nothing was deleted. Try again, or restart your phone. If this keeps happening, contact us before deleting the app.';
+
+  @override
   String get recoveryKeyCopyFailed =>
       'Couldn\'t copy the key. Write it down from the screen instead.';
 
@@ -2309,53 +2317,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountSignInIntro =>
-      'Sign in with your mobile number. We\'ll text you a code.';
+      'An account is optional: the app works fully without one. Google shares your name and email with us; Apple shares your email.';
 
   @override
-  String get countryEgypt => 'Egypt';
+  String get accountSignInConsent =>
+      'By signing in, you agree that we keep this to run your account, as the privacy policy says.';
 
   @override
-  String get countrySaudiArabia => 'Saudi Arabia';
+  String get accountReadPrivacy => 'Read about privacy';
 
   @override
-  String get countryUae => 'UAE';
+  String get accountSignInWithGoogle => 'Sign in with Google';
 
   @override
-  String get accountPhone => 'Mobile number';
+  String get accountSignInWithApple => 'Sign in with Apple';
 
   @override
-  String get accountPhoneInvalid => 'Check the mobile number';
-
-  @override
-  String get accountSendCode => 'Send code';
-
-  @override
-  String accountCodeSentTo(String phone) {
-    return 'Enter the 6-digit code we sent to $phone';
-  }
-
-  @override
-  String get accountCode => 'Code';
-
-  @override
-  String get accountVerify => 'Confirm';
-
-  @override
-  String get accountResend => 'Send the code again';
-
-  @override
-  String get accountCodeResent => 'Code sent again';
-
-  @override
-  String get accountChangeNumber => 'Change number';
+  String get accountSignInUnavailable =>
+      'Sign-in isn\'t available in this version of the app.';
 
   @override
   String get accountSignedIn => 'Signed in';
-
-  @override
-  String accountSignedInAs(String phone) {
-    return 'Signed in as $phone';
-  }
 
   @override
   String get accountSignOut => 'Sign out';
@@ -2372,10 +2354,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Delete your account? Your account, devices and credits are erased from our servers. The records on this phone stay here.';
 
   @override
-  String get accountDeleted => 'Account deleted';
+  String get accountDeleteAppleNote =>
+      'Apple will ask you to confirm once more, so we can unlink your Apple ID from the app.';
 
   @override
-  String get accountErrorInvalidCode => 'That code isn\'t right or has expired';
+  String get accountDeleted => 'Account deleted';
 
   @override
   String get accountErrorTooMany =>
@@ -2390,11 +2373,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountRetry => 'Try again';
-
-  @override
-  String accountResendIn(int seconds) {
-    return 'Send the code again in ${seconds}s';
-  }
 
   @override
   String get accountErrorSignInAgain =>

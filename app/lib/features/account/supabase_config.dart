@@ -17,7 +17,7 @@ class SupabaseConfig {
   final String anonKey;
 
   /// HTTPS only: a plain-http URL counts as not configured, so tokens
-  /// and phone numbers never travel unencrypted.
+  /// and email addresses never travel unencrypted.
   bool get isConfigured {
     final uri = Uri.tryParse(url);
     return anonKey.isNotEmpty &&

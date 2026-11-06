@@ -88,6 +88,15 @@
 				<string>usra</string>
 			</array>
 		</dict>
+		<!-- Google's sign-in sheet comes back on this. Flutter/Login.xcconfig. -->
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.opsedia.usra.google-sign-in</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$(GOOGLE_REVERSED_CLIENT_ID)</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>

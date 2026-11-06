@@ -60,7 +60,7 @@ default unless a reviewer finds a reason not to.
   encryption, so a viewer who knows the family key still can't forge a
   guardian's edit. Authorship is hidden from a database dump, not from the
   live server, which knows which signed-in device uploaded each version.
-- **OTP alone never gives data access.** A newly signed-in phone is a
+- **Signing in alone never gives data access.** A newly signed-in phone is a
   *pending* device until an existing phone approves it (QR, or a 6-digit
   comparison code) or the person types their **recovery key**. Postgres
   row-level security checks that the session belongs to an approved device,
@@ -98,7 +98,7 @@ default unless a reviewer finds a reason not to.
    in the existing `family_members` table.
 4. **Several phones per person**, and moving to a new phone.
 5. **Recovery** after losing every phone, with the recovery key.
-6. **Account takeover resistance.** A SIM swap or a phished SMS code gives
+6. **Account takeover resistance.** A stolen Google or Apple account gives
    no health data and can't lock the real person out silently.
 7. **Offline first.** The phone's database stays the source of truth; sync
    is a background job that can be off for weeks.
@@ -114,7 +114,7 @@ default unless a reviewer finds a reason not to.
   keeps it outside the family (or in a later "private scope", section 18,
   Q9). The app must say this plainly when someone is invited.
 - **Hiding the social graph from the server.** The server knows which
-  accounts (phone numbers) share a family; row-level security needs it.
+  accounts (email addresses) share a family; row-level security needs it.
 - **Hiding that someone uses Usra, or when.** Request times and sizes are
   visible to the server and to Google (push).
 - **Protecting against a compromised phone OS or a malicious app build**
@@ -130,7 +130,7 @@ default unless a reviewer finds a reason not to.
 
 | Actor | What it is |
 | --- | --- |
-| **Account** | A Supabase Auth user, signed in with a phone number + SMS code. Holds no health data. |
+| **Account** | A Supabase Auth user, signed in with Google or Apple. Holds no health data. |
 | **Device** | One install of the app signed in to one account. Has its own X25519 and Ed25519 key pairs in secure storage (Keystore / Keychain, this device only). |
 | **Recovery device** | Not a phone: a key pair derived from the account's recovery key. Receives family keys like a phone; used only to enrol a new phone. |
 | **Family** | A shared space of records. Has a family log, a family key per epoch, and members. A person using sync alone has a family of one. |
@@ -152,7 +152,7 @@ family key (rotation gives no new access; section 10).
 
 | The server sees | The server never sees |
 | --- | --- |
-| Phone numbers, account ids, country, locale | Profile names, birth dates, any health data |
+| Email addresses, names and profile photo links from Google, account ids, locale | Profile names, birth dates, any health data |
 | Devices: platform, app version, public keys, approval state, created / last seen times | Device names or models (not stored) |
 | Push tokens; when it sends a push | Push content beyond "sync" or a fixed security alert text |
 | Families, who is a member of which, roles, when they joined or left | The family's name (kept in an encrypted record) |
@@ -482,7 +482,7 @@ when that row is gone or revoked. Public keys alone never identify a device
 (they are public). Row-level security on
 every sync table calls `private.device_ok()`, which is true only if the
 JWT's `session_id` is bound to an **approved** device of `auth.uid()`. A
-session that only proved an SMS code therefore reads and writes nothing in
+session that has only signed in therefore reads and writes nothing in
 `e2ee_records`, `family_log`, wraps or blobs.
 
 **First device.** An account's very first device approves itself and
@@ -490,14 +490,14 @@ creates the person's family (genesis), adding its recovery device at the same
 time. `accounts.sync_enrolled_at` is set then. From that moment on, **a new
 device can never self-approve**, even if every device row is later deleted
 (sign-out used to delete the device row and now revokes it; without this rule, signing out of the
-last phone would let an SMS code alone start over).
+last phone would let a Google or Apple sign-in alone start over).
 
 Enabling sync requires a recovery key the person has written down: the app
 asks them to type two of its groups back before turning sync on.
 
 ### Way 1: approve from an existing phone with a QR code (default)
 
-1. New phone N signs in with SMS, makes its keys, registers as `pending`, and
+1. New phone N signs in, makes its keys, registers as `pending`, and
    shows a QR code: `usra:pair:v1:` + base64url(`device_id_N || dkx_N ||
    dsig_N || s`), where `s` is 32 random bytes. The screen says not to share
    a screenshot of the code.
@@ -554,7 +554,7 @@ talks someone into approving is still a risk (section 14).
 
 ### Way 3: the recovery key
 
-1. N signs in with SMS, registers as `pending`, and the person types the
+1. N signs in, registers as `pending`, and the person types the
    recovery key (checked locally with its check digits first).
 2. N fetches `account_recovery.salt` and KDF settings (allowed for a pending
    device; 5 tries per account per day), derives the recovery device keys, and
@@ -574,7 +574,7 @@ talks someone into approving is still a risk (section 14).
 
 ### Account reset (lost every phone and the recovery key)
 
-Signing in with SMS on an account that has no approved device left (or whose
+Signing in on an account that has no approved device left (or whose
 person says they lost them) offers **account reset**:
 
 - It takes **7 days**. During that time every approved device of the account
@@ -594,23 +594,23 @@ person says they lost them) offers **account reset**:
   again.
 - If the person who reset was the family's only owner, see section 11.
 
-A SIM-swapper can start a reset, but the real person is warned on every
+An account thief can start a reset, but the real person is warned on every
 phone for a week and can cancel it.
 
 **Race after an unclaimed reset.** If the phone that started a completed reset
 is revoked or doesn't enrol within 72 hours, the account (now not enrolled)
 may start a new reset. Two phones can race for it, for example the real
-person's new phone and a SIM-swapper's. The first `start_account_reset` opens
+person's new phone and an account thief's. The first `start_account_reset` opens
 the reset, and that phone is the only one that may enrol when it completes;
 any other phone gets `reset_in_progress` and is not joined in. There is no
-approved phone left to cancel it, so a SIM-swapper who wins this race holds the
+approved phone left to cancel it, so an account thief who wins this race holds the
 account after 7 days, exactly as with a reset on an account that has no older
 phone (section 14). What protects the person is what protects any reset: the
 7-day wait, the reset check on every launch of their phones, and support. The
 loser can start a new reset only once this one completes and is itself
 unclaimed.
 
-A SIM-swapper who strikes **before** the person ever turns on sync can make
+An account thief who strikes **before** the person ever turns on sync can make
 the account's first device and genesis. The real person then finds their
 account already enrolled and must use an account reset. If the attacker's
 device was enrolled more than 7 days before the reset began, it can cancel
@@ -618,9 +618,9 @@ the reset. The Devices screen shows each device's enrolment date and the
 reset screen says when the account was first enrolled, so the person can
 see it and contact support; section 14 lists this as residual.
 
-### What an SMS code alone can do
+### What signing in alone can do
 
-| Action | With SMS only (pending device) | Needs an approved device |
+| Action | Signed in only (pending device) | Needs an approved device |
 | --- | --- | --- |
 | Read or write records, logs, wraps, blobs | no | yes |
 | Register a pending device, push token | yes | |
@@ -630,14 +630,32 @@ see it and contact support; section 14 lists this as residual.
 | Leave a family, accept an invite | no | yes |
 | Delete the account or a family | no (B0.4, B10) | yes |
 | Change a device's keys, mark a device approved, touch another device's push token | no, ever (B0.1–B0.3) | only through functions |
-| Change country or locale | yes (harmless) | |
+| Change locale | yes (harmless) | |
+
+### Signing in, and getting back in
+
+Sign-in is Google or Apple only (native ID tokens through Supabase Auth; the
+phone and email providers are off). So:
+
+- **Getting back into the account is Google's or Apple's job.** There's no
+  code we can resend and no support route that signs someone in. Someone locked
+  out of their Google or Apple account is locked out of Usra's account until
+  they recover it. Their records are still on their phones.
+- **Taking over the account means taking over theirs,** usually by phishing or
+  a stolen mailbox. An old phone number passing to a new owner is no longer a
+  way in. Everything above still applies: the thief gets a pending device.
+- **One verified email, one account.** Supabase links Google and Apple sign-ins
+  that share a verified email, so someone who controls that mailbox's Google
+  account also reaches the account first made with Apple. It's still only a
+  pending device. Apple's Hide My Email gives a relay address, and so a separate
+  account with no link to the first.
 
 ### Notifications
 
 Every approved device of the account gets a push with fixed text (no names,
 no health data) when: a phone asks to join; a phone is approved or revoked;
 the recovery key is used; an account reset starts. Push tokens can only be
-written for the session's own device (B0), so an SMS-only session can't
+written for the session's own device (B0), so an sign-in-only session can't
 redirect or delete the real phones' tokens. Family members see quieter
 activity entries ("Ahmed added a phone", "the family key was renewed"). The
 Devices screen lists every device with platform and the date it was added, and
@@ -670,10 +688,10 @@ the server must never see the invite secret.
 
 A leaked invite link can be used once and only until it expires (7 days);
 the owner sees who joined before anything is shared and can cancel. The app
-shows the invitee's phone number (from the server, for the owner to
-recognise) and asks "Is this Mona?" before step 4. The phone number is only
-a hint: it is exactly what a SIM-swapper controls, and invite links sent over
-WhatsApp can reach whoever re-registered that number by SMS. So:
+shows the invitee's email (from the server, for the owner to recognise) and
+asks "Is this Mona?" before step 4. The email is only a hint: it is exactly
+what someone who stole the Google or Apple account controls, and with Apple's
+Hide My Email it's a relay address the owner won't recognise. So:
 
 - Inviting someone whose account was **reset** (or who left after a reset)
   must use the QR code **in person**; the app doesn't offer a link, and shows
@@ -1044,7 +1062,7 @@ Weeks offline are fine; more than a year means a full resync (tombstones).
 ### Logging rules (server)
 
 - Never log request or response bodies, ciphertext, wraps, signatures,
-  public keys, invite codes or hashes, phone numbers, or OTPs.
+  public keys, invite codes or hashes, email addresses, names, or Google and Apple tokens.
 - Edge Functions log a request id, function name, outcome code and timing.
   User and family ids only where needed to debug, and only in logs kept 14
   days or less.
@@ -1085,11 +1103,11 @@ Weeks offline are fine; more than a year means a full resync (tombstones).
 
 | Threat | Example | Mitigations | What is left |
 | --- | --- | --- | --- |
-| **Server breach** (database dump, stolen backup) | An attacker copies Postgres and Storage | Only ciphertext, wraps and public keys stored; record and file keys never leave phones unwrapped; recovery key is ~100 bits behind Argon2id; padding; random sync ids; no names, types or edit times | Metadata (section 4): phone numbers, who shares a family, record counts and upload times. Breach notice duties still apply (S23). Harvest-now-decrypt-later if X25519 is broken some day (Q6) |
+| **Server breach** (database dump, stolen backup) | An attacker copies Postgres and Storage | Only ciphertext, wraps and public keys stored; record and file keys never leave phones unwrapped; recovery key is ~100 bits behind Argon2id; padding; random sync ids; no names, types or edit times | Metadata (section 4): email addresses, who shares a family, record counts and upload times. Breach notice duties still apply (S23). Harvest-now-decrypt-later if X25519 is broken some day (Q6) |
 | **Malicious server or insider** (actively lies) | Serves fake records, fake members, its own key | AEAD with keys the server lacks; records and log signed (strict Ed25519, strict JSON); key and history commitments in the log; anchors (QR genesis hash, pairing bundle); phones check roles and clocks themselves; head beacons | It can refuse service, delete data, withhold new records or tombstones, or show one member an older version of a record they haven't seen yet. **It can keep a phone on an old log head**, so that phone would encrypt new writes under a key a removed member holds; the write-stop rule (section 7) limits this to 7 days and to families where every other member's beacon is withheld, and does not catch it if the only other member at that head is the colluding removed member (the member list still shows them) |
 | **Server-reported removals** | Server claims an account was deleted or reset | Removal needs a person to confirm on their phone; shown in activity | The server can still trick a person into confirming, or keep asking |
 | **Key substitution at enrolment** | Server swaps the new phone's public key | QR carries keys directly, scanned in-app only; comparison code with commitment and phone-side attempt counters; signed approvals with server nonces | Person approves without comparing (UI must make comparing the only path) |
-| **SIM swap / OTP phishing** | Attacker gets the SMS code | Pending devices can read and write nothing; approval only from a phone, comparison code, or recovery key; `sync_enrolled_at` stops self-approval; device keys immutable and push tokens bound to their own device (B0); pushes to every phone plus a reset check on every launch; account delete, family delete and device removal need an approved device; reset takes 7 days and can be cancelled only by a device older than the reset by 7 days; re-invites after a reset only in person | Attacker with SMS **and** the paper recovery key gets everything. Social engineering ("read me the code", "scan this screenshot") is mitigated by UI only. A SIM-swapper who enrols the account **before** the person ever turns on sync controls it until the person resets, and can cancel the reset if their device is old enough |
+| **Stolen Google or Apple account** | Attacker signs in as the person | Pending devices can read and write nothing; approval only from a phone, comparison code, or recovery key; `sync_enrolled_at` stops self-approval; device keys immutable and push tokens bound to their own device (B0); pushes to every phone plus a reset check on every launch; account delete, family delete and device removal need an approved device; reset takes 7 days and can be cancelled only by a device older than the reset by 7 days; re-invites after a reset only in person | Attacker with SMS **and** the paper recovery key gets everything. Social engineering ("read me the code", "scan this screenshot") is mitigated by UI only. An account thief who enrols the account **before** the person ever turns on sync controls it until the person resets, and can cancel the reset if their device is old enough |
 | **Stolen or lost phone** | Thief has the phone | DB and photos encrypted, app lock (S2), keys in Keystore / Keychain; remove the phone from another phone → revoke, rotate, new recovery key (the phone stored the old one), server access ends; the phone wipes family data if it reconnects | Whatever the thief can read on an unlocked phone before revocation. Remote wipe only works if the phone goes online with the honest app |
 | **Rogue member** | A relative copies data or vandalises it | Roles: viewers and cared-for can't write (signatures + server RLS); removal rotates the key; reader rules 5–6 reject edits a removed member signs with clocks after their removal or under an old epoch; clinical conflicts are flagged, not silent; activity shows who added members and devices | Every member reads everything (by design). A guardian can overwrite or delete records (the server keeps only the latest version; Q7 proposes version history). A removed member keeps what they had, and with the server's help could still inject an edit dated (by its clock) before their removal, which only wins against older values |
 | **Replay** | Server or network replays an old version or request | TLS; group-clock merge ignores older versions; header rebuilt by the reader binds sync id, family and epoch; wrap `info` binds family, epoch and device; log `seq`/`prev`; single-use server nonces for session binding, approvals and recovery; pairing sessions single-use with 10-minute life | — |
@@ -1099,7 +1117,7 @@ Weeks offline are fine; more than a year means a full resync (tombstones).
 | **Dropped deletes** | Server drops a tombstone, or sets `deleted_at` without one | Readers only honour signed tombstones; `ciphertext` is required on every row; a record missing from a full resync is shown to the person | A dropped tombstone is invisible: phones that missed the delete keep the record (a stopped medicine stays listed). Signed state digests (Q15) would catch it |
 | **Account reset abuse** | Attacker resets the real person's account | 7-day wait, push and banner on every phone, reset check on every launch, cancel from any phone older than 7 days | Someone who has lost access to all their phones can't cancel |
 | **Weak or hostile clocks** | Phone clock set far ahead to make edits win | Groups more than 10 min ahead of the reader's own clock are held, not applied; header clock must equal the largest group clock; server time never used to accept anything | A rogue writer with a correct-looking clock still wins LWW against older edits (normal) |
-| **Malicious invite** | Attacker sends a link to a fake "family" | Invite carries the genesis hash; the app shows the inviter's family and phone number before joining | A person who joins the wrong family on purpose |
+| **Malicious invite** | Attacker sends a link to a fake "family" | Invite carries the genesis hash; the app shows the inviter's family and email before joining | A person who joins the wrong family on purpose |
 | **Coercion inside a family** | A cared-for adult pressured to share | Leaving a family is always possible (needs only their own phone); the app explains that everyone in a family sees everything | Per-profile privacy is a non-goal in v2.0 (Q9) |
 | **Push and network observers** | Google (FCM), mobile operator | Data-only pushes without content, opaque collapse key; TLS; batched writes | Timing of app use |
 | **No forward secrecy** | One device's keys leak later | Rotation on every removal | By design, the current family key opens the family's whole history through the key chain, and the recovery key plus a server dump opens every family the person is in. Old epochs are not deleted |
@@ -1202,7 +1220,7 @@ happens on the server, so no AEAD or HPKE code is deployed there.
 
 - A session not bound to an approved device reads and writes nothing in every
   sync table and the blob bucket, even as the family owner.
-- B0, one test each: an SMS-only session can't change any device's keys, can't
+- B0, one test each: an sign-in-only session can't change any device's keys, can't
   insert a device with `status = 'approved'`, can't write or delete push
   tokens of another device, can't delete a family, can't insert, update or
   delete `family_members` or `family_invites` directly, can't write
@@ -1212,7 +1230,7 @@ happens on the server, so no AEAD or HPKE code is deployed there.
   pending and removed members read nothing; revoked devices lose access.
 - `push_e2ee_records`: compare-and-set, stale key, size buckets, clock bounds.
 - `accept_family_invite` only with the lookup hash; one use; expiry.
-- `delete-account` and device removal refused for SMS-only sessions.
+- `delete-account` and device removal refused for sign-in-only sessions.
 - Family or account deletion removes Storage objects.
 
 **Integration.**
@@ -1288,7 +1306,7 @@ local data; turning sync off on a phone keeps its records.
     days the right staleness bound for families where some members rarely
     open the app?
 13. **Account reset delay.** Is 7 days right for the region (people
-    sometimes change SIM cards and phones at the same time)?
+    sometimes lose their phone and their Google or Apple password at the same time)?
 14. **The server checks.** Are there server-side checks here that create a
     false sense of security, or that a reviewer would expect and are missing?
     (The PR #3 review found the existing grant gaps now listed as B0.)
@@ -1306,7 +1324,7 @@ local data; turning sync off on a phone keeps its records.
 | Conflicts: last writer wins per record by server time | LWW per merge group by hybrid logical clocks inside the signed ciphertext, with conflict flags for clinical groups, plus compare-and-set on a server revision | Server time would let a malicious server pick winners; per-record LWW loses concurrent edits to different fields; per-field LWW would mix coupled clinical fields |
 | `e2ee_records.ciphertext` up to 2 MiB | Up to 64 KiB, power-of-two padded; larger data in encrypted Storage blobs | Size metadata; photos don't belong in rows |
 | `accept_family_invite(p_code)` sends the code | Sends a lookup hash; the secret proves the invitee to the owner's phone | The server must not be able to join with an invite it relays |
-| Any member's session can read ciphertext; members delete their own devices freely | Only sessions bound to approved devices; removing other devices needs an approved device | OTP alone must never give data access |
+| Any member's session can read ciphertext; members delete their own devices freely | Only sessions bound to approved devices; removing other devices needs an approved device | Signing in alone must never give data access |
 | Membership only in `family_members` | Signed family log is the source of truth; tables mirror it | The server must not be able to add members |
 | "Removing a member rotates the key" | Removing members or devices, leaving, account deletion or reset, and a new recovery key all rotate; any member can rotate | Covers lost phones and members who can't be reached |
 | Server-visible `record_id` is the local UUID v7; `updated_at` is the conflict clock | Random v4 sync id on the server; edit clocks only inside the ciphertext | UUID v7 and clocks told the server when each record was made and edited |
@@ -1317,7 +1335,7 @@ comments are updated by the backend follow-ups when the schema changes land.
 
 ## 20. Backend follow-ups (board cards)
 
-Each item gets pgTAP tests (another user and an SMS-only session can't read or
+Each item gets pgTAP tests (another user and an sign-in-only session can't read or
 write) per the security plan's PR rules. SQL below is a sketch, not a
 migration.
 
@@ -1328,10 +1346,10 @@ only as strong as these grants:
 
 | # | Today | Change (pgTAP test for each) |
 | --- | --- | --- |
-| B0.1 | `devices`: `grant update (app_version, public_key, last_seen_at)` with `devices_update_own`, so an SMS-only session can overwrite the keys of the user's **approved** device and then bind its own session to it | Keys are immutable once set: revoke column update on `public_key` (and never grant it on `signing_public_key`); a trigger rejects any change to a non-null key |
+| B0.1 | `devices`: `grant update (app_version, public_key, last_seen_at)` with `devices_update_own`, so an sign-in-only session can overwrite the keys of the user's **approved** device and then bind its own session to it | Keys are immutable once set: revoke column update on `public_key` (and never grant it on `signing_public_key`); a trigger rejects any change to a non-null key |
 | B0.2 | `devices`: `grant insert` on all columns | Insert only `(platform, app_version, public_key, signing_public_key)`; `status`, `approved_*`, `revoked_at` only through functions; ids server-generated |
 | B0.3 | `push_tokens`: insert, update and delete cover every device of the user | Writes only for the device bound to the session (`device_sessions`), or, before binding, only for a device row the session created; the app also checks `account_resets` on every launch |
-| B0.4 | `families_delete_owner`: the owner's SMS-only session can delete the family, cascading every member's ciphertext | Family deletion only through a function that requires `device_ok()` and the owner role; no direct `delete` grant |
+| B0.4 | `families_delete_owner`: the owner's sign-in-only session can delete the family, cascading every member's ciphertext | Family deletion only through a function that requires `device_ok()` and the owner role; no direct `delete` grant |
 | B0.5 | `family_members`: direct `delete` and `update (role)`; `family_invites`: direct insert and delete | Revoke direct writes; membership changes only through `append-family-log`, invites through functions that require `device_ok()` |
 | B0.6 | `e2ee_records`: direct `insert` and `update (key_version, ciphertext, deleted_at)` | Revoke; every write through `push_e2ee_records` (compare-and-set) |
 | B0.7 | `families.created_by … on delete cascade`, and `account_deletion_blockers` keyed on the creator | `on delete set null`; blockers and family deletion keyed on the owner role, so an ownership transfer protects the family |
@@ -1391,7 +1409,7 @@ the E2EE design"** (section 18).
     recipient set and the phones' never disagree. Revoked markers stay, so a
     device revoked in a family can't be added back.
   - Recovery tries are counted per phone (5 a day), not per account, so an
-    SMS-only session can't use up the real phone's tries.
+    sign-in-only session can't use up the real phone's tries.
   - After a completed reset the starting phone has 72 hours to enrol. If it
     is revoked or doesn't, the account may start a new reset (full 7-day
     wait), so a lost or signed-out phone never locks the account out.
@@ -1536,7 +1554,7 @@ From the crypto and threat review posted on PR #3 (2026-11-06).
 | **M2** `transfer_owner` vs `created_by` cascade | B0.7: `on delete set null`, blockers and deletion keyed on the owner role (§19, §20) |
 | **M3** Ed25519 differences; chain hash covers the signature | `hash = SHA-256(entry_bytes)` (§7); strict RFC 8032 verification everywhere (§5, §15); Wycheproof and "Taming the many EdDSAs" vectors run against Dart, Deno and Python (§16) |
 | **M4** JSON ambiguity, HLC precision | Strict parser (no duplicate keys, size and depth caps) on phones and server; HLCs as 16-hex-digit strings; example fixed (§5, §12) |
-| **M5** SIM-swap paths | Re-invite after a reset only in person, with a "reset N days ago" badge (§9); reset cancel only from a device enrolled 7+ days earlier; enrolment dates shown; pre-enrolment takeover listed as residual (§8, §14) |
+| **M5** Stolen-account paths | Re-invite after a reset only in person, with a "reset N days ago" badge (§9); reset cancel only from a device enrolled 7+ days earlier; enrolment dates shown; pre-enrolment takeover listed as residual (§8, §14) |
 | **M6** server can trigger removals | `account_deleted` / `reset` removals need a person to confirm (§7, §8); listed as a server power in §14 |
 | **M7** pairing details | In-app camera only, approval prompt, screenshot warning (way 1); E posts `dkx_E`/`dsig_E` in step 2, N rechecks them in the log; phone-side attempt counters; abort on cancel or timeout (way 2) |
 | **M8** recovery device | Derived keys checked against the log (§6, way 3); server KDF settings bounded like `BackupKdf.isReasonable`; labelled Argon2 input; Q5 answered; old backups and the old paper key (§6) |

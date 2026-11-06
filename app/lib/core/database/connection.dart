@@ -8,6 +8,8 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 
+import '../security/secure_storage_options.dart';
+
 /// Keeps the database key in Android Keystore / iOS Keychain.
 class DatabaseKeyStore {
   DatabaseKeyStore([FlutterSecureStorage? storage])
@@ -18,6 +20,7 @@ class DatabaseKeyStore {
             iOptions: IOSOptions(
               accessibility: KeychainAccessibility.first_unlock_this_device,
             ),
+            aOptions: secureStorageAndroidOptions,
           );
 
   static const _keyName = 'usra.db.key.v1';

@@ -3,5 +3,5 @@
 useDefault = true
 
 [allowlist]
-description = "Published cryptographic test vectors (RFC 8032, Wycheproof, speccheck): public test keys, not secrets"
-paths = ['''^supabase/tests/functions/vectors/[a-z0-9_]+\.json$''']
+description = "Published cryptographic test vectors (RFC 8032, Wycheproof, speccheck): public test keys, not secrets. CocoaPods' lock file: names with 'auth' next to public pod checksums"
+paths = ['''^supabase/tests/functions/vectors/[a-z0-9_]+\.json$''', '''^app/ios/Podfile\.lock$''']

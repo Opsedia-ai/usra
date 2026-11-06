@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,14 +6,12 @@ import '../../core/design/tokens.dart';
 import '../../l10n/app_localizations.dart';
 import 'account_providers.dart';
 import 'auth_gateway.dart';
-import 'phone_number.dart';
+import 'sign_in_buttons.dart';
+import '../settings/about_privacy_screen.dart';
 
 const accountPath = '/settings/account';
 
 String accountErrorText(AppLocalizations l, Object error) => switch (error) {
-  FormatException() => l.accountPhoneInvalid,
-  AccountException(kind: AccountErrorKind.invalidCode) =>
-    l.accountErrorInvalidCode,
   AccountException(kind: AccountErrorKind.tooManyRequests) =>
     l.accountErrorTooMany,
   AccountException(kind: AccountErrorKind.network) => l.accountErrorNetwork,
@@ -53,8 +49,8 @@ class AccountSettingsTile extends ConsumerWidget {
   }
 }
 
-/// Sign in with a phone number and a texted code, see who is signed in,
-/// sign out or delete the account.
+/// Sign in with Google or Apple, see who is signed in, sign out or delete
+/// the account.
 class AccountScreen extends ConsumerWidget {
   const AccountScreen({super.key});
 
@@ -70,10 +66,7 @@ class AccountScreen extends ConsumerWidget {
           const _PrivacyNote(),
           const SizedBox(height: 24),
           switch (account) {
-            AsyncData(value: AccountSignedOut()) => const _PhoneForm(),
-            AsyncData(value: AccountCodeSent(:final phone)) => _CodeForm(
-              phone: phone,
-            ),
+            AsyncData(value: AccountSignedOut()) => const _SignInOptions(),
             AsyncData(value: AccountSignedIn(:final user)) => _SignedIn(
               user: user,
             ),
@@ -127,8 +120,8 @@ class _PrivacyNote extends StatelessWidget {
 mixin _Busy<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   var busy = false;
 
-  /// Does nothing while another action runs, so a keyboard submit can't
-  /// send twice past the disabled button.
+  /// Does nothing while another action runs, so a second tap can't get past
+  /// the disabled button. Closing Google's or Apple's sheet shows nothing.
   Future<bool> run(Future<void> Function() action) async {
     if (busy) return false;
     final l = AppLocalizations.of(context);
@@ -137,6 +130,11 @@ mixin _Busy<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     try {
       await action();
       return true;
+    } on AccountException catch (e) {
+      if (e.kind != AccountErrorKind.cancelled) {
+        messenger.showSnackBar(SnackBar(content: Text(accountErrorText(l, e))));
+      }
+      return false;
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(accountErrorText(l, e))));
       return false;
@@ -146,173 +144,53 @@ mixin _Busy<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 }
 
-class _PhoneForm extends ConsumerStatefulWidget {
-  const _PhoneForm();
+class _SignInOptions extends ConsumerStatefulWidget {
+  const _SignInOptions();
 
   @override
-  ConsumerState<_PhoneForm> createState() => _PhoneFormState();
+  ConsumerState<_SignInOptions> createState() => _SignInOptionsState();
 }
 
-class _PhoneFormState extends ConsumerState<_PhoneForm> with _Busy<_PhoneForm> {
-  final _phone = TextEditingController();
-  var _country = AccountCountry.egypt;
-  var _invalid = false;
-
-  @override
-  void dispose() {
-    _phone.dispose();
-    super.dispose();
-  }
-
-  Future<void> _send() async {
-    if (busy) return;
-    if (_country.toE164(_phone.text) == null) {
-      setState(() => _invalid = true);
-      return;
-    }
-    setState(() => _invalid = false);
-    await run(
-      () => ref.read(accountProvider.notifier).sendCode(_country, _phone.text),
-    );
-  }
-
+class _SignInOptionsState extends ConsumerState<_SignInOptions>
+    with _Busy<_SignInOptions> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final methods = ref.watch(signInMethodsProvider);
+    if (methods.isEmpty) {
+      return Text(
+        l.accountSignInUnavailable,
+        key: const ValueKey('account-sign-in-unavailable'),
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(l.accountSignInIntro),
-        const SizedBox(height: 16),
-        SegmentedButton<AccountCountry>(
-          key: const ValueKey('account-country'),
-          showSelectedIcon: false,
-          segments: [
-            for (final c in AccountCountry.values)
-              ButtonSegment(value: c, label: Text(_countryName(l, c))),
-          ],
-          selected: {_country},
-          onSelectionChanged: (s) => setState(() => _country = s.first),
+        const SizedBox(height: 8),
+        Text(
+          l.accountSignInConsent,
+          key: const ValueKey('account-sign-in-consent'),
         ),
-        const SizedBox(height: 16),
-        TextField(
-          key: const ValueKey('account-phone'),
-          controller: _phone,
-          keyboardType: TextInputType.phone,
-          textDirection: TextDirection.ltr,
-          autofillHints: const [AutofillHints.telephoneNumberNational],
-          decoration: InputDecoration(
-            labelText: l.accountPhone,
-            prefixText: '+${_country.dialCode} ',
-            errorText: _invalid ? l.accountPhoneInvalid : null,
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton(
+            key: const ValueKey('account-privacy-link'),
+            onPressed: () => context.push(aboutPath),
+            child: Text(l.accountReadPrivacy),
           ),
-          onSubmitted: (_) => _send(),
         ),
-        const SizedBox(height: 16),
-        FilledButton(
-          key: const ValueKey('account-send-code'),
-          onPressed: busy ? null : _send,
-          child: Text(l.accountSendCode),
-        ),
-      ],
-    );
-  }
-}
-
-String _countryName(AppLocalizations l, AccountCountry c) => switch (c) {
-  AccountCountry.egypt => l.countryEgypt,
-  AccountCountry.saudiArabia => l.countrySaudiArabia,
-  AccountCountry.uae => l.countryUae,
-};
-
-class _CodeForm extends ConsumerStatefulWidget {
-  const _CodeForm({required this.phone});
-
-  final String phone;
-
-  @override
-  ConsumerState<_CodeForm> createState() => _CodeFormState();
-}
-
-/// How long before another code can be asked for.
-const resendWait = Duration(seconds: 60);
-
-class _CodeFormState extends ConsumerState<_CodeForm> with _Busy<_CodeForm> {
-  final _code = TextEditingController();
-  Timer? _timer;
-  var _wait = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _startWait();
-  }
-
-  void _startWait() {
-    _timer?.cancel();
-    setState(() => _wait = resendWait.inSeconds);
-    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      setState(() => _wait--);
-      if (_wait <= 0) t.cancel();
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _code.dispose();
-    super.dispose();
-  }
-
-  Future<void> _verify() =>
-      run(() => ref.read(accountProvider.notifier).verifyCode(_code.text));
-
-  Future<void> _resend() async {
-    final l = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    if (await run(ref.read(accountProvider.notifier).resendCode)) {
-      if (mounted) _startWait();
-      messenger.showSnackBar(SnackBar(content: Text(l.accountCodeResent)));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(l.accountCodeSentTo(displayPhone(widget.phone))),
-        const SizedBox(height: 16),
-        TextField(
-          key: const ValueKey('account-code'),
-          controller: _code,
-          keyboardType: TextInputType.number,
-          textDirection: TextDirection.ltr,
-          autofillHints: const [AutofillHints.oneTimeCode],
-          maxLength: 6,
-          decoration: InputDecoration(labelText: l.accountCode),
-          onSubmitted: (_) => _verify(),
-        ),
-        const SizedBox(height: 8),
-        FilledButton(
-          key: const ValueKey('account-verify'),
-          onPressed: busy ? null : _verify,
-          child: Text(l.accountVerify),
-        ),
-        const SizedBox(height: 8),
-        TextButton(
-          key: const ValueKey('account-resend'),
-          onPressed: busy || _wait > 0 ? null : _resend,
-          child: Text(_wait > 0 ? l.accountResendIn(_wait) : l.accountResend),
-        ),
-        TextButton(
-          key: const ValueKey('account-change-number'),
-          onPressed: busy
-              ? null
-              : ref.read(accountProvider.notifier).changeNumber,
-          child: Text(l.accountChangeNumber),
-        ),
+        for (final method in methods) ...[
+          const SizedBox(height: 16),
+          SignInButton(
+            method: method,
+            onPressed: busy
+                ? null
+                : () => run(
+                    () => ref.read(accountProvider.notifier).signIn(method),
+                  ),
+          ),
+        ],
       ],
     );
   }
@@ -359,7 +237,10 @@ class _SignedInState extends ConsumerState<_SignedIn> with _Busy<_SignedIn> {
   Future<void> _delete() async {
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    if (!await _confirm(l.accountDeleteConfirm, l.accountDelete)) return;
+    final message = widget.user.confirmsDeleteWithApple
+        ? '${l.accountDeleteConfirm}\n\n${l.accountDeleteAppleNote}'
+        : l.accountDeleteConfirm;
+    if (!await _confirm(message, l.accountDelete)) return;
     if (await run(ref.read(accountProvider.notifier).deleteAccount)) {
       messenger.showSnackBar(SnackBar(content: Text(l.accountDeleted)));
     }
@@ -368,7 +249,7 @@ class _SignedInState extends ConsumerState<_SignedIn> with _Busy<_SignedIn> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final phone = widget.user.phone;
+    final email = widget.user.email;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -376,11 +257,18 @@ class _SignedInState extends ConsumerState<_SignedIn> with _Busy<_SignedIn> {
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.verified_user_outlined),
           title: Text(
-            phone == null
-                ? l.accountSignedIn
-                : l.accountSignedInAs(displayPhone(phone)),
+            l.accountSignedIn,
             key: const ValueKey('account-signed-in'),
           ),
+          subtitle: email == null
+              ? null
+              // An address reads left to right, also on the Arabic screen.
+              : Text(
+                  email,
+                  key: const ValueKey('account-email'),
+                  textDirection: TextDirection.ltr,
+                  textAlign: TextAlign.start,
+                ),
         ),
         const SizedBox(height: 16),
         OutlinedButton(

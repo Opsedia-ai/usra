@@ -1,5 +1,27 @@
 PODS:
+  - app_links (7.0.0):
+    - Flutter
+  - AppAuth (3.0.0):
+    - AppAuth/Core (= 3.0.0)
+    - AppAuth/ExternalUserAgent (= 3.0.0)
+  - AppAuth/Core (3.0.0)
+  - AppAuth/ExternalUserAgent (3.0.0):
+    - AppAuth/Core
+  - AppCheckCore (11.3.2):
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - PromisesObjC (~> 2.4)
+    - PromisesSwift (~> 2.4)
+    - RecaptchaInterop (~> 101.0)
+  - file_picker_darwin (1.0.0):
+    - Flutter
+    - FlutterMacOS
   - Flutter (1.0.0)
+  - flutter_local_notifications (0.0.1):
+    - Flutter
+  - flutter_secure_storage_darwin (10.0.0):
+    - Flutter
+    - FlutterMacOS
   - google_mlkit_commons (0.13.0):
     - Flutter
     - MLKitVision (~> 10.0.0)
@@ -7,6 +29,11 @@ PODS:
     - Flutter
     - google_mlkit_commons
     - GoogleMLKit/TextRecognition (~> 9.0.0)
+  - google_sign_in_ios (0.0.1):
+    - Flutter
+    - FlutterMacOS
+    - GoogleSignIn (< 11.0, >= 9.0)
+    - GTMSessionFetcher (>= 3.4.0)
   - GoogleDataTransport (10.1.1):
     - nanopb (~> 3.30910.0)
     - PromisesObjC (~> 2.4)
@@ -15,6 +42,11 @@ PODS:
   - GoogleMLKit/TextRecognition (9.0.0):
     - GoogleMLKit/MLKitCore
     - MLKitTextRecognition (~> 7.0.0)
+  - GoogleSignIn (10.1.0):
+    - AppAuth (~> 3.0)
+    - AppCheckCore (< 13.0, >= 11.0)
+    - GTMAppAuth (~> 6.0)
+    - GTMSessionFetcher/Core (< 6.0, >= 3.3)
   - GoogleToolboxForMac/Defines (4.2.1)
   - GoogleToolboxForMac/Logger (4.2.1):
     - GoogleToolboxForMac/Defines (= 4.2.1)
@@ -29,7 +61,21 @@ PODS:
   - GoogleUtilities/UserDefaults (8.1.5):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
+  - GTMAppAuth (6.0.0):
+    - AppAuth/Core (~> 3.0)
+    - GTMSessionFetcher/Core (< 6.0, >= 3.3)
+  - GTMSessionFetcher (3.5.0):
+    - GTMSessionFetcher/Full (= 3.5.0)
   - GTMSessionFetcher/Core (3.5.0)
+  - GTMSessionFetcher/Full (3.5.0):
+    - GTMSessionFetcher/Core
+  - home_widget (0.0.1):
+    - Flutter
+  - image_picker_ios (0.0.1):
+    - Flutter
+  - local_auth_darwin (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - MLImage (1.0.0-beta8)
   - MLKitCommon (14.0.0):
     - GoogleDataTransport (~> 10.0)
@@ -56,19 +102,51 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
+  - package_info_plus (0.4.5):
+    - Flutter
   - PromisesObjC (2.4.1)
+  - PromisesSwift (2.4.1):
+    - PromisesObjC (= 2.4.1)
+  - RecaptchaInterop (101.0.0)
+  - share_plus (0.0.1):
+    - Flutter
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - sign_in_with_apple (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - url_launcher_ios (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
+  - app_links (from `.symlinks/plugins/app_links/ios`)
+  - file_picker_darwin (from `.symlinks/plugins/file_picker_darwin/darwin`)
   - Flutter (from `Flutter`)
+  - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
+  - flutter_secure_storage_darwin (from `.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
   - google_mlkit_commons (from `.symlinks/plugins/google_mlkit_commons/ios`)
   - google_mlkit_text_recognition (from `.symlinks/plugins/google_mlkit_text_recognition/ios`)
+  - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
+  - home_widget (from `.symlinks/plugins/home_widget/ios`)
+  - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
+  - local_auth_darwin (from `.symlinks/plugins/local_auth_darwin/darwin`)
+  - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
+  - share_plus (from `.symlinks/plugins/share_plus/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
+  - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/darwin`)
+  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
 SPEC REPOS:
   trunk:
+    - AppAuth
+    - AppCheckCore
     - GoogleDataTransport
     - GoogleMLKit
+    - GoogleSignIn
     - GoogleToolboxForMac
     - GoogleUtilities
+    - GTMAppAuth
     - GTMSessionFetcher
     - MLImage
     - MLKitCommon
@@ -77,31 +155,78 @@ SPEC REPOS:
     - MLKitVision
     - nanopb
     - PromisesObjC
+    - PromisesSwift
+    - RecaptchaInterop
 
 EXTERNAL SOURCES:
+  app_links:
+    :path: ".symlinks/plugins/app_links/ios"
+  file_picker_darwin:
+    :path: ".symlinks/plugins/file_picker_darwin/darwin"
   Flutter:
     :path: Flutter
+  flutter_local_notifications:
+    :path: ".symlinks/plugins/flutter_local_notifications/ios"
+  flutter_secure_storage_darwin:
+    :path: ".symlinks/plugins/flutter_secure_storage_darwin/darwin"
   google_mlkit_commons:
     :path: ".symlinks/plugins/google_mlkit_commons/ios"
   google_mlkit_text_recognition:
     :path: ".symlinks/plugins/google_mlkit_text_recognition/ios"
+  google_sign_in_ios:
+    :path: ".symlinks/plugins/google_sign_in_ios/darwin"
+  home_widget:
+    :path: ".symlinks/plugins/home_widget/ios"
+  image_picker_ios:
+    :path: ".symlinks/plugins/image_picker_ios/ios"
+  local_auth_darwin:
+    :path: ".symlinks/plugins/local_auth_darwin/darwin"
+  package_info_plus:
+    :path: ".symlinks/plugins/package_info_plus/ios"
+  share_plus:
+    :path: ".symlinks/plugins/share_plus/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
+  sign_in_with_apple:
+    :path: ".symlinks/plugins/sign_in_with_apple/darwin"
+  url_launcher_ios:
+    :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
+  app_links: a754cbec3c255bd4bbb4d236ecc06f28cd9a7ce8
+  AppAuth: 5dec4b6a833eb0342b26bacbc5f3af694f71274a
+  AppCheckCore: be8fce5469f68d7f6a29aa94b25f097409ff7fdc
+  file_picker_darwin: 4c2b9a50ea44cb3b071381ea0cf48591bdd80251
   Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
+  flutter_local_notifications: 643a3eda1ce1c0599413ca31672536d423dee214
+  flutter_secure_storage_darwin: 46e401699982ee74142909676535e0f6a7321e58
   google_mlkit_commons: b2c0a76e7ef4ff555e70e5d71f21d66ce3d08a97
   google_mlkit_text_recognition: 5a8cb8b73c765938fb7111de6f5f883b90f15d52
+  google_sign_in_ios: 806534db1c1dd465bbc8c1f495bdf7c69cf6f08f
   GoogleDataTransport: a24e58982ab3ba2f64d79613e027fe7f57e88539
   GoogleMLKit: b1eee21a41c57704fe72483b15c85cb2c0cd7444
+  GoogleSignIn: 52f0c3c702ae6ff72fcbcf695a9f26c52f31dc4b
   GoogleToolboxForMac: d1a2cbf009c453f4d6ded37c105e2f67a32206d8
   GoogleUtilities: 7dc09b3fa9ecb5c2298b952313d14628b61b9da3
+  GTMAppAuth: 66e839a30bb63acb109b8986a0c3f642d56d48fd
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
+  home_widget: 54b4f6b36ed8d64cfee594a476225c35c3e45091
+  image_picker_ios: 9285ee31b06d6e15629dd5713b890f0c457a0a8b
+  local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   MLImage: 0de5c6c2bf9e93b80ef752e2797f0836f03b58c0
   MLKitCommon: 47d47b50a031d00db62f1b0efe5a1d8b09a3b2e6
   MLKitTextRecognition: c0ad24510481dfc8893ad15dfcb8a5f05ed9e826
   MLKitTextRecognitionCommon: 234ceb1cfdfb5fceb4fd664943046609a2961cc2
   MLKitVision: 39a5a812db83c4a0794445088e567f3631c11961
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
+  package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
+  PromisesSwift: 217dea0fd5d2ad65222a109c48698add13cc1c5b
+  RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
+  share_plus: eccd7beb7cea61271aeed1800e8ccb2b952c0c7f
+  shared_preferences_foundation: a7c3904f2dedb3701dd1903cb152ef5e7df92422
+  sign_in_with_apple: 5e34677a4e74c5f42760f41b3bbe05343e84d171
+  url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
 
 PODFILE CHECKSUM: 8fb3d7eefbccda80de82ea5c595a88879461ec96
 

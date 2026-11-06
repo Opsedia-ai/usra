@@ -19,7 +19,7 @@ this file whenever a permission, SDK or network call is added; the M6 cloud feat
 | Vaccination record and doctor summary PDFs, made on the phone and shared by the user (not encrypted: readable by whoever receives them; a warning says so first) | `features/reports/`, `pdf`, `share_plus` | Only where the user sends it; we never receive it. The file is deleted from the phone after sharing |
 | Call / WhatsApp a doctor, open links | `features/doctors/`, `url_launcher` | Opens the other app; nothing sent by Usra |
 | App version shown in About | `package_info_plus` | No |
-| Accounts, analytics, crash reporting, ads, payments | none in v1 | – |
+| Accounts, analytics, crash reporting, ads, payments | none in v1, unless a build sets `SUPABASE_URL` (then accounts: see the last section) | – |
 
 Android OS backup and device-to-device transfer are switched off for all app data
 (`android:allowBackup="false"`, `res/xml/data_extraction_rules.xml`). On iOS the
@@ -49,9 +49,11 @@ Android photo picker, `file_picker` the system file picker.
 
 **To verify on the release build** (other session, M5 release build): the merged
 manifest (`build/app/intermediates/merged_manifests/release/.../AndroidManifest.xml`).
-ML Kit pulls in Google's `datatransport` libraries, which normally add `INTERNET` and
-`ACCESS_NETWORK_STATE`. If they are there, the ML Kit row below applies; if not, the
-answer for Android is simply "No data collected".
+`INTERNET` is always there now: `google_sign_in_android` declares it, in builds with
+accounts off too, so it says nothing about what is sent. To decide on the ML Kit row
+below, look for Google's `datatransport` services in the merged manifest. If they are
+there, the row applies. If not, a build with accounts off answers "No data collected"
+on Android. A build with accounts always collects data (see the last section).
 
 iOS, `ios/Runner/Info.plist`: `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`
 (both say photos and text read from them stay on the phone). Notification permission is
@@ -79,7 +81,7 @@ nothing, drop those rows in both forms.
 | --- | --- |
 | Does your app collect or share any of the required user data types? | **Yes** (only because of ML Kit diagnostics; otherwise No) |
 | Is all of the user data collected by your app encrypted in transit? | **Yes** (ML Kit sends over HTTPS) |
-| Do you provide a way for users to request that their data be deleted? | **No** account or server copy exists. Explain in the policy: More › Delete all my data (or deleting the app) deletes all data on the phone; ML Kit data is held by Google, keyed by a random install ID we cannot look up |
+| Do you provide a way for users to request that their data be deleted? | With accounts: **Yes**, see the last section. Without them: **No** account or server copy exists. Explain in the policy: More › Delete all my data (or deleting the app) deletes all data on the phone; ML Kit data is held by Google, keyed by a random install ID we cannot look up |
 
 Data types (everything else: not collected, not shared):
 
@@ -106,7 +108,7 @@ Not collected, with the reason (keep for the reviewer and for our own audits):
 | --- | --- |
 | Privacy policy | Hosted URL of `docs/legal/privacy-policy.en.md` (and `.ar.md`); must match `privacyPolicyUrl` in the app |
 | Ads | No ads |
-| App access | All functionality available without special access (no login) |
+| App access | All functionality available without special access. With accounts: login is optional, and every feature works without it |
 | Target audience | 18 and over. The app is for adults managing their family's records; it is not designed for children, so it stays out of the Families programme |
 | Content rating (IARC) | Reference / medical information, no violence, no user-to-user interaction, no purchases. Expected: Everyone / PEGI 3 |
 | Data safety | As above |
@@ -162,7 +164,7 @@ build, not in this change.
 | --- | --- |
 | 1.4.1 Physical harm, medical apps | No diagnosis or measurement claims; disclaimer in the app and description; sources shown for suggestions |
 | 1.4.2 Drug dosage calculators | None. OCR returns a name and strength only, never a dose |
-| 5.1.1 Data collection and storage | No account; privacy policy linked in App Store Connect and in the app (More → About & privacy) |
+| 5.1.1 Data collection and storage | No account (with accounts: optional, with in-app deletion, see the last section); privacy policy linked in App Store Connect and in the app (More → About & privacy) |
 | 5.1.1(ix) Highly regulated field | Submitted by Opsedia as an organisation |
 | 5.1.3 Health and health research | No HealthKit; database and photo folders excluded from iCloud backup; no data used for ads or sold |
 | Age rating questionnaire | "Medical or Treatment Information": **Infrequent/Mild**. Expected rating 9+ / 12+ depending on the new questionnaire |
@@ -172,8 +174,26 @@ build, not in this change.
 
 These change the answers above and need a new review before release:
 
-- **Phone-number accounts (Supabase Auth)**: Personal info → Phone number; Device or
-  other IDs; account deletion inside the app and on the web (Play and Apple 5.1.1(v)).
+- **Google and Apple accounts (Supabase Auth, Google Sign-In SDK)**: optional. Only
+  builds with `SUPABASE_URL` and sign-in client IDs show them
+  ([`docs/login-setup.md`](../login-setup.md)).
+  - Play: Personal info → Name, Email address, User IDs; Device or other IDs. Collected,
+    not shared, for App functionality and Account management. Account creation method:
+    OAuth.
+  - Apple: Contact Info → Name, Email Address; Identifiers → User ID. Linked to the user,
+    for App Functionality, not used for tracking. Apple sign-in sends the email or a relay
+    address only; Google also sends the name and a profile photo link, which Supabase Auth
+    keeps with the user.
+  - Sign in with Apple sits beside Google (guideline 4.8).
+  - Deleting the account works in the app, and revokes Sign in with Apple through Apple's
+    API (5.1.1(v), TN3194). Play also needs a web page for deletion requests. That page
+    doesn't exist yet.
+  - No SMS is sent, and no phone number is collected for sign-in.
+  - The sign-in SDKs are in every build, but do nothing and make no network calls until
+    someone taps a button.
+  - Android: `google_sign_in_android` adds the `INTERNET` permission to every release
+    build, including builds with accounts off. It doesn't change what's sent, but don't
+    answer that a build has no network permission.
 - **Push notifications**: device push token (Device or other IDs).
 - **End-to-end encrypted sync**: ciphertext only; still declare "Health info" collected
   if any readable metadata leaves the phone; otherwise document why ciphertext is not

@@ -1,6 +1,6 @@
 # Usra backend (Supabase)
 
-Supabase project for the Usra app: Auth (phone OTP through our own SMS hook),
+Supabase project for the Usra app: Auth (Google and Apple sign-in, no SMS),
 Postgres with row-level security, and Edge Functions (Deno / TypeScript).
 
 **What the cloud holds:** accounts, devices and push tokens, entitlements, AI
@@ -17,16 +17,15 @@ Supabase in Egypt, KSA or the UAE later.
 
 ```
 supabase/
-  config.toml                 local stack config (SMS hook, function JWT settings)
+  config.toml                 local stack config (Google and Apple sign-in, function JWT settings)
   migrations/                 SQL schema + RLS, applied in order
   functions/
     _shared/                  CORS/JSON errors, env, auth, Supabase stores, LLM provider,
-                              JSON-schema validator, rate limiter, webhook signatures
+                              JSON-schema validator, rate limiter
     ai-doctor/                Dr. Usra AI: credits + LLM + schema-checked findings
     ocr-fallback/             cloud reading of medicine photos (Arabic, handwriting)
     revenuecat-webhook/       purchases -> credits_ledger / entitlements
     delete-account/           in-app "Delete account": removes the auth user, everything cascades
-    send-sms-hook/            Supabase Auth Send SMS hook (Unifonic or Twilio)
     bind-device/              sync: bind an Auth session to a phone that proves its key
     approve-device/           sync: an approved phone approves a new one (QR or comparison code)
     recover-device/           sync: approve a new phone with the recovery device's key
@@ -47,7 +46,7 @@ supabase/
 | `devices` | `kind` phone / recovery, platform, app version, X25519 + Ed25519 public keys (immutable), `status` pending / approved / revoked, the session that registered it, when a session was first bound | own | insert phones (keys, platform, version); update `app_version`, `last_seen_at` of this session's own device; delete only pending phones (approved, revoked and recovery devices are revoked, never deleted, except with the account); `revoke_own_device()` for sign-out. Status only through the device functions below |
 | `device_sessions` | Auth session id → phone (one live session per phone) | nobody | service role (`bind-device`) |
 | `device_challenges` | single-use server nonces (purpose, user, session, device, 5 minutes) | nobody | `issue_device_challenge()`; used up by the sync functions |
-| `account_recovery` | recovery salt, Argon2id settings (bounded), recovery device | own (SMS-only sessions too) | `set_account_recovery()` (approved device) |
+| `account_recovery` | recovery salt, Argon2id settings (bounded), recovery device | own (sign-in-only sessions too) | `set_account_recovery()` (approved device) |
 | `pairing_sessions` | comparison-code relay: commitment, nonces, status, 10 minutes | the new phone's session; the account's approved phones | `pairing_start` / `respond` / `reveal` / `cancel` |
 | `pairing_bundles` | the HPKE pairing bundle left for a newly approved phone | that phone's session | `approve-device`; the phone deletes it |
 | `account_resets` | 7-day account resets: started, cancelled, completed | own (every session, checked on launch) | `start_account_reset()`, `cancel_account_reset()`; completed by `sync_housekeeping()` |
@@ -103,7 +102,7 @@ against `device_sessions` itself.
   `session_id` is bound to an approved phone of the user
   (`private.device_ok()`). A family's records, wraps, epochs and beacons also
   need that phone to be a current device of the family, of an active member
-  (`private.family_device_ok()`). A session that only proved an SMS code reads
+  (`private.family_device_ok()`). A session that has only signed in reads
   and writes none of it, and can't create, accept or revoke invites, push,
   append, wrap, publish beacons or approve devices.
 - **Server nonces.** `issue_device_challenge(purpose, device)` returns 32
@@ -112,7 +111,7 @@ against `device_sessions` itself.
   `bind`: any session, for its own phone. `approve`: from an approved phone,
   for a pending phone of the account. `recover`: from the session that
   registered (or is bound to) the pending phone; 5 per phone per day (per
-  phone, so an SMS-only session can't use up the real phone's tries; a guess
+  phone, so a sign-in-only session can't use up the real phone's tries; a guess
   at a ~100-bit recovery key gains nothing anyway).
 - **A session's own device.** A bound session acts only for the phone it is
   bound to. A session not bound acts only for a pending phone it registered
@@ -192,7 +191,7 @@ against `device_sessions` itself.
   "usra/v1/invite-lookup" || 0x00 || secret))`. The invitee, on an approved
   phone, calls `accept_family_invite(lookup_hash, devices, mac)`; the server
   never sees the secret. Ten tries per hour (failed ones count). The owner
-  lists accepted invites with the invitee's phone number and last reset
+  lists accepted invites with the invitee's email and last reset
   (`pending_family_invites`) and appends `add_member` naming the invite, with
   the same MAC and devices; each invite is used once. Revoked invites are kept
   and count towards the 20-a-day limit.
@@ -236,15 +235,14 @@ against `device_sessions` itself.
 ## Edge Functions
 
 All functions answer JSON errors as `{ "error": { "code", "message", ... } }`
-and never echo request bodies or log health data, phone numbers or codes.
+and never echo request bodies or log health data, emails, names or tokens.
 
 | Function | Auth | Request | Response |
 | --- | --- | --- | --- |
 | `ai-doctor` | user JWT | `{ snapshot, locale?: "ar"\|"en", request_id?: uuid }` | `{ report: { findings[], urgent, disclaimer }, credits: { charged, balance }, model }` |
 | `ocr-fallback` | user JWT | `{ image_base64, media_type?, consent: true }` (≤ 300 KB, JPEG/PNG/WebP) | `{ medications: [{ name, strength, dose, frequency, duration, confidence }], quota }` |
-| `delete-account` | user JWT | `{ confirm: true }` | `{ status: "deleted" \| "not_found" }`; `400 confirmation_required`, `409 family_has_members`, `502 delete_failed` |
+| `delete-account` | user JWT | `{ confirm: true, apple_authorization_code?, apple_revoke_skipped? }` | `{ status: "deleted" \| "not_found" }`; `400 confirmation_required / invalid_apple_code`, `409 family_has_members`, `502 delete_failed` |
 | `revenuecat-webhook` | `Authorization` = shared secret | RevenueCat webhook body | `{ status: "applied" \| "duplicate" \| "ignored" }` |
-| `send-sms-hook` | Standard Webhooks signature | Supabase Auth hook payload | `{}` or `{ error: { http_code, message } }` |
 | `bind-device` | user JWT | `{ device_id, nonce, signature, enroll? }` | `{ device_id, status }` |
 | `approve-device` | user JWT (approved phone) | `{ device_id, nonce, signature, pairing_id?, bundle? }` | `{ device_id, status, approved_by }` |
 | `recover-device` | user JWT (the new phone's session) | `{ device_id, nonce, signature }` | `{ device_id, status, approved_by }` |
@@ -301,6 +299,16 @@ ciphertext. A family they created but handed over stays
 (`tests/database/account_deletion.test.sql`). The app then wipes its session
 and device key pair. Records on the phone are untouched.
 
+- **Sign in with Apple:** Apple requires its tokens to be revoked when an account
+  is deleted. Native sign-in leaves no Apple token to keep, so the iPhone app opens
+  Apple's sheet again and sends the fresh code as `apple_authorization_code`. The
+  function swaps it for a token and revokes that (`apple.ts`, with `APPLE_TEAM_ID`,
+  `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`), then deletes the user. Nothing from Apple is
+  stored. A failure here is logged as a fixed code (`apple_revoke_failed` with
+  `token_http_400`, say) and never stops the deletion, as Apple's TN3194 asks. Closing
+  the sheet in the app cancels the deletion. If the sheet fails, or answers for a
+  different Apple ID than the account's, the app deletes without a code and sends
+  `apple_revoke_skipped: true`, which is logged as `apple_revoke_skipped`.
 - **Retry-safe:** if the delete went through but the response was lost, the
   retry's token is still genuine but its user is gone; Auth says
   `user_not_found` and the function answers `200 { status: "not_found" }`.
@@ -331,14 +339,6 @@ Each event id is applied at most once (`purchase_events`). Older events never
 overwrite a newer entitlement state. Database errors return 500 so RevenueCat
 retries.
 
-### send-sms-hook
-
-Verifies the Standard Webhooks signature (`webhook-id`, `webhook-timestamp`,
-`webhook-signature`, 5-minute tolerance) against `SEND_SMS_HOOK_SECRETS`, then
-sends a bilingual OTP text through `SmsProvider`: `UnifonicProvider` (default)
-or `TwilioProvider`, chosen by `SMS_PROVIDER`. Add a provider by implementing
-`send(toE164, body)`.
-
 ## Running locally
 
 Tools: [Supabase CLI](https://supabase.com/docs/guides/local-development) (`brew install supabase/tap/supabase`),
@@ -346,7 +346,7 @@ Deno 2 (`brew install deno`), and Docker for the local stack.
 
 ```bash
 cd supabase
-cp .env.example .env              # used by config.toml (SEND_SMS_HOOK_SECRETS)
+cp .env.example .env              # used by config.toml (Google and Apple client IDs)
 cp .env.example functions/.env    # used by the functions
 # fill in real values; both files are git-ignored
 
@@ -382,11 +382,10 @@ supabase db push
 supabase secrets set --env-file ./functions/.env
 supabase functions deploy ai-doctor ocr-fallback delete-account
 supabase functions deploy bind-device approve-device recover-device append-family-log publish-head
-supabase functions deploy revenuecat-webhook send-sms-hook --no-verify-jwt
+supabase functions deploy revenuecat-webhook --no-verify-jwt
 ```
 
-Then, in the dashboard: Auth → Hooks → Send SMS → HTTPS → the
-`send-sms-hook` URL (copy the generated secret into `SEND_SMS_HOOK_SECRETS`),
+Then follow [`docs/login-setup.md`](../docs/login-setup.md) for Google and Apple,
 and in RevenueCat set the webhook URL and the Authorization header to
 `REVENUECAT_WEBHOOK_SECRET`.
 
@@ -403,9 +402,11 @@ The URL must be `https://` (anything else counts as not configured, so
 the local `http://127.0.0.1` stack can't be used from the app).
 Without them the account entry in Settings is hidden and the account route
 redirects to Settings, and the app makes no network calls for accounts. With them, Supabase starts only when the account
-screen is opened. Sign-in is phone + SMS code; on sign-in the app sets
-`accounts.country` / `locale` (the locale follows later language changes)
-and adds its `devices` row with an X25519 public key. The key pair is per
+screen is opened. Sign-in is Google or Apple, through the phone's own sheet and
+`signInWithIdToken` (no web redirect; each button also needs its client IDs, see
+[`docs/login-setup.md`](../docs/login-setup.md)). On sign-in the app sets
+`accounts.locale` (it follows later language changes; `accounts.country` stays
+empty, since neither provider says where someone lives) and adds its `devices` row with an X25519 public key. The key pair is per
 account and its private half stays in the phone's secure storage (iOS
 this-device-only, Android backups off), ready for wrapping the family key in
 v2 sync. The session and Auth's PKCE items are in secure storage too. Sign-out
@@ -421,10 +422,8 @@ wipes any `usra.account.*` secure-storage keys left by an earlier install
 `config.toml` only configures the local stack. Set the same in the hosted
 project's dashboard before shipping a build with accounts:
 
-- [ ] Auth → Providers → Phone: on; Auth → Hooks → Send SMS → the `send-sms-hook` URL (see Deploying).
-- [ ] Auth → Rate limits: **SMS sent per hour** tight for launch (local: 10), **OTP verifications** per 5 min per IP ≤ 30.
-- [ ] Auth → Phone: **minimum interval between OTP sends = 60 seconds** (the app's resend countdown is only a convenience; this is what stops a script).
-- [ ] Watch SMS spend at Unifonic/Twilio and set a spending alert (SMS pumping).
+- [ ] Google and Apple on, Phone and Email off: every step is in [`docs/login-setup.md`](../docs/login-setup.md).
+- [ ] `APPLE_TEAM_ID`, `APPLE_KEY_ID` and `APPLE_PRIVATE_KEY` set as secrets, so deleting an account revokes Sign in with Apple.
 - [ ] Share only the project URL (`https://`) and the anon key with the app build; never the service-role key.
 - [ ] `supabase functions deploy delete-account` before shipping a build with accounts.
 

@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/design/tokens.dart';
 import '../../l10n/app_localizations.dart';
 import '../backup/backup_providers.dart';
+import '../account/account_providers.dart';
 
 const aboutPath = '/settings/about';
 
@@ -84,7 +85,12 @@ class AboutPrivacyScreen extends ConsumerWidget {
             child: Column(
               children: [
                 _Point(Icons.phone_android, l.aboutPrivacyOnPhone),
-                _Point(Icons.block, l.aboutPrivacyNoAccount),
+                _Point(
+                  Icons.block,
+                  ref.watch(supabaseConfigProvider).isConfigured
+                      ? l.aboutPrivacyOptionalAccount
+                      : l.aboutPrivacyNoAccount,
+                ),
                 _Point(Icons.backup_outlined, l.aboutPrivacyBackup),
                 _Point(Icons.photo_camera_outlined, l.aboutPrivacyPhotos),
                 _Point(Icons.notifications_none, l.aboutPrivacyReminders),

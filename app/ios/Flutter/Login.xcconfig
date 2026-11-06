@@ -1,0 +1,9 @@
+// The URL scheme Google's sign-in comes back on: the iOS OAuth client id with
+// its parts reversed (com.googleusercontent.apps.<id>). Not a secret, but real
+// values stay out of this file: see docs/login-setup.md.
+//
+// Set it in Login.local.xcconfig (git-ignored), or for one build with
+//   FLUTTER_XCODE_GOOGLE_REVERSED_CLIENT_ID=... flutter build ipa
+// The app only offers Google when GOOGLE_IOS_CLIENT_ID is set too.
+GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.not-configured
+#include? "Login.local.xcconfig"

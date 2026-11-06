@@ -278,6 +278,12 @@ abstract class AppLocalizations {
   /// **'No account, no sign-in, no ads and no tracking. We never sell or share anyone\'s data.'**
   String get aboutPrivacyNoAccount;
 
+  /// No description provided for @aboutPrivacyOptionalAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'An account is optional, and there are no ads and no tracking. If you sign in, we keep your email (and your name with Google) to run the account, and we never receive your health records. We never sell or share anyone\'s data.'**
+  String get aboutPrivacyOptionalAccount;
+
   /// No description provided for @aboutPrivacyBackup.
   ///
   /// In en, this message translates to:
@@ -2924,6 +2930,12 @@ abstract class AppLocalizations {
   /// **'Usra couldn\'t open again after deleting. Close it and open it again.'**
   String get wipeReopenFailed;
 
+  /// No description provided for @databaseKeyUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra can\'t open the key to your records right now. Your records are still here and nothing was deleted. Try again, or restart your phone. If this keeps happening, contact us before deleting the app.'**
+  String get databaseKeyUnavailable;
+
   /// No description provided for @recoveryKeyCopyFailed.
   ///
   /// In en, this message translates to:
@@ -3779,92 +3791,44 @@ abstract class AppLocalizations {
   /// No description provided for @accountSignInIntro.
   ///
   /// In en, this message translates to:
-  /// **'Sign in with your mobile number. We\'ll text you a code.'**
+  /// **'An account is optional: the app works fully without one. Google shares your name and email with us; Apple shares your email.'**
   String get accountSignInIntro;
 
-  /// No description provided for @countryEgypt.
+  /// No description provided for @accountSignInConsent.
   ///
   /// In en, this message translates to:
-  /// **'Egypt'**
-  String get countryEgypt;
+  /// **'By signing in, you agree that we keep this to run your account, as the privacy policy says.'**
+  String get accountSignInConsent;
 
-  /// No description provided for @countrySaudiArabia.
+  /// No description provided for @accountReadPrivacy.
   ///
   /// In en, this message translates to:
-  /// **'Saudi Arabia'**
-  String get countrySaudiArabia;
+  /// **'Read about privacy'**
+  String get accountReadPrivacy;
 
-  /// No description provided for @countryUae.
+  /// No description provided for @accountSignInWithGoogle.
   ///
   /// In en, this message translates to:
-  /// **'UAE'**
-  String get countryUae;
+  /// **'Sign in with Google'**
+  String get accountSignInWithGoogle;
 
-  /// No description provided for @accountPhone.
+  /// No description provided for @accountSignInWithApple.
   ///
   /// In en, this message translates to:
-  /// **'Mobile number'**
-  String get accountPhone;
+  /// **'Sign in with Apple'**
+  String get accountSignInWithApple;
 
-  /// No description provided for @accountPhoneInvalid.
+  /// No description provided for @accountSignInUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'Check the mobile number'**
-  String get accountPhoneInvalid;
-
-  /// No description provided for @accountSendCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Send code'**
-  String get accountSendCode;
-
-  /// No description provided for @accountCodeSentTo.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter the 6-digit code we sent to {phone}'**
-  String accountCodeSentTo(String phone);
-
-  /// No description provided for @accountCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Code'**
-  String get accountCode;
-
-  /// No description provided for @accountVerify.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirm'**
-  String get accountVerify;
-
-  /// No description provided for @accountResend.
-  ///
-  /// In en, this message translates to:
-  /// **'Send the code again'**
-  String get accountResend;
-
-  /// No description provided for @accountCodeResent.
-  ///
-  /// In en, this message translates to:
-  /// **'Code sent again'**
-  String get accountCodeResent;
-
-  /// No description provided for @accountChangeNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Change number'**
-  String get accountChangeNumber;
+  /// **'Sign-in isn\'t available in this version of the app.'**
+  String get accountSignInUnavailable;
 
   /// No description provided for @accountSignedIn.
   ///
   /// In en, this message translates to:
   /// **'Signed in'**
   String get accountSignedIn;
-
-  /// No description provided for @accountSignedInAs.
-  ///
-  /// In en, this message translates to:
-  /// **'Signed in as {phone}'**
-  String accountSignedInAs(String phone);
 
   /// No description provided for @accountSignOut.
   ///
@@ -3890,17 +3854,17 @@ abstract class AppLocalizations {
   /// **'Delete your account? Your account, devices and credits are erased from our servers. The records on this phone stay here.'**
   String get accountDeleteConfirm;
 
+  /// No description provided for @accountDeleteAppleNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple will ask you to confirm once more, so we can unlink your Apple ID from the app.'**
+  String get accountDeleteAppleNote;
+
   /// No description provided for @accountDeleted.
   ///
   /// In en, this message translates to:
   /// **'Account deleted'**
   String get accountDeleted;
-
-  /// No description provided for @accountErrorInvalidCode.
-  ///
-  /// In en, this message translates to:
-  /// **'That code isn\'t right or has expired'**
-  String get accountErrorInvalidCode;
 
   /// No description provided for @accountErrorTooMany.
   ///
@@ -3925,12 +3889,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try again'**
   String get accountRetry;
-
-  /// No description provided for @accountResendIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Send the code again in {seconds}s'**
-  String accountResendIn(int seconds);
 
   /// No description provided for @accountErrorSignInAgain.
   ///

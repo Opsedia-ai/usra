@@ -37,6 +37,8 @@ import 'features/medicines/reminder_sync.dart';
 import 'features/medicines/reminders.dart';
 import 'features/reports/report.dart' show registerReportFontLicense;
 import 'l10n/app_localizations.dart';
+import 'core/security/secure_storage_options.dart';
+import 'features/settings/key_unavailable.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,10 +68,10 @@ Future<void> main() async {
         iOptions: IOSOptions(
           accessibility: KeychainAccessibility.first_unlock_this_device,
         ),
-        aOptions: AndroidOptions(resetOnError: false),
+        aOptions: secureStorageAndroidOptions,
       ),
       accountSecureStorage,
-      FlutterSecureStorage(),
+      FlutterSecureStorage(aOptions: secureStorageAndroidOptions),
     ],
     // The app's own store once it's open, so its cache is emptied too.
     clearPreferences: () async =>
@@ -96,7 +98,27 @@ Future<void> main() async {
       FlutterErrorDetails(exception: e, stack: s, library: 'wipe'),
     );
   }
-  var key = await DatabaseKeyStore().readOrCreate();
+  String key;
+  try {
+    key = await DatabaseKeyStore().readOrCreate();
+  } catch (e) {
+    // Never make a new key over one that can't be read: the records are still
+    // there. Show why, and let the person try again.
+    Log.error('Database key unavailable', e);
+    runApp(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          body: Center(
+            child: SingleChildScrollView(
+              child: DatabaseKeyUnavailable(onRetry: () => main()),
+            ),
+          ),
+        ),
+      ),
+    );
+    return;
+  }
   final photoKeyStore = SecurePhotoKeyStore();
   // Never throws: without a key the app still opens, and photos say they
   // can't be opened here until a backup is restored.
