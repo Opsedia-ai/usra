@@ -142,4 +142,4 @@ This code has only been tested with fake sign-in. No real Google or Apple client
 - **One email, one account.** Google and Apple sign-ins with the same verified email become one Usra account. Someone who chooses **Hide My Email** with Apple gets a relay address, so that becomes a separate account.
 - **Recovering an account is Google's or Apple's job.** We have no other way to sign someone in. Records stay on the phone either way.
 - **Removing Usra from a Google account:** deleting a Usra account doesn't do this for them. They can do it at <https://myaccount.google.com/connections>.
-- **Free plan limits:** a free Supabase project pauses after a week without activity. Check whether the free plan includes backups before storing anything people can't recreate.
+- **Free plan limits:** a free Supabase project pauses after a week without activity, and it has no automatic backups. An account can be recreated by signing in again, and health records aren't stored there.
