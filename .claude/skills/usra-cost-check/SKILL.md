@@ -47,4 +47,4 @@ Put the verdict in the PR description.
 - **Database:** 500 MB shared by 5,000 users is 100 KB each.
 - **Function calls:** 500,000 a month is 100 calls per user. Don't poll.
 - **AI:** every call costs money. Never free and unlimited: use on-device features, or paid credits.
-- **Free plan:** Supabase's pricing page lists no backups in the free limits above; confirm before storing anything people can't recreate.
+- **Free plan backups:** check whether the plan includes database backups before storing anything people can't recreate.
