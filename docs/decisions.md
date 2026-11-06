@@ -18,7 +18,7 @@ All decisions as of 2 Nov 2026. Details and sources are in the PDFs in `docs/pdf
 | Mobile framework | Flutter (Android + iOS from one codebase). React Native only if the founding developer is React/TS-first | Technical design comparison |
 | Backend | Supabase: Auth (Google and Apple), Postgres + RLS, Edge Functions (Deno/TS), Storage | User's recommendation |
 | Data location | Health data on the phone (SQLCipher) in v1. v2 sync is end-to-end encrypted. Readable cloud data only on self-hosted Supabase in-region | Supabase Cloud has no Middle East region; Egypt/KSA/UAE data rules |
-| Backups | Encrypted file to the user's own Google Drive. Never iCloud | Apple guideline 5.1.3 forbids health data in iCloud |
+| Backups | Encrypted file in the user's own place, at no cost to us: a folder they choose, or sent where they like (Google Drive through the share sheet). No backup on our servers in v1. Never iCloud | Founder decision 2026-11-06. Apple guideline 5.1.3 forbids health data in iCloud. The Android folder picker doesn't appear to offer Drive, and no broad Drive permission is asked for |
 | OCR | Barcode → ML Kit on-device text → drug-list matching → cloud fallback (with consent) for Arabic and handwriting | ML Kit cannot read Arabic |
 | AI Doctor | Rules on the phone first; LLM via Edge Function on a de-identified snapshot the user previews; findings in severity colours; never diagnoses | User request; safety and regulation |
 | AI regulatory gate | Off in KSA until reviewed (SFDA MDS-G27); in Egypt only after PDPL transfer licence or an in-region model | MENA research |

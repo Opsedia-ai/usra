@@ -237,6 +237,61 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   recovery key is never written to any file, file name or share text, only
   to the Keystore / Keychain (tested). The recovery key screen warns it's
   the only way in.
+- **Automatic backup (C11)**: optional, off by default, with no server or
+  account. A backup only starts with the app on screen, when one is due: no
+  background task, no notification. One already running carries on if the
+  person leaves, until the OS stops it. The file is made in the cache folder
+  as above, copied to the chosen folder as `.partial` and flushed where the
+  place allows, then read back and compared with the original byte for byte.
+  Only then is it renamed to `.usra`, and only then are older ones deleted.
+  So a killed app leaves at most a `.partial` (removed next time). A `.usra`
+  there matched the original when it landed; that says nothing about later
+  damage, and the backup itself isn't decrypted to check it. On another
+  app's storage, the read-back may come from that app's cache rather than
+  its servers. Keeps the last 3 this phone wrote; the newest with every photo
+  stays even if later ones left photos out or photos are missing. File names
+  hold a random per-install tag and a UTC time, nothing else, and retention
+  can't touch a name without this phone's tag. Files dated ahead of the clock
+  count as oldest. The folder's access (Android tree URI, iOS bookmark) and
+  the counts below are in `auto_backup.json` in the private folder, excluded
+  from iCloud device backup and removed by the wipe. A backup outliving the
+  wait in a restore or wipe stops at its next step and can't write that file
+  back. Errors are logged by type only, and native errors carry a fixed code
+  with no path.
+- **Automatic backup and shrinking content (C11)**: keep-3 alone would let
+  three runs after a data loss remove every good backup. If the database came
+  back empty after it couldn't be opened, automatic backup pauses. Each backup
+  also reports how many people, records and photos it holds, and how many
+  photos a live row points at have no file (attachments, insurance cards,
+  medicines and prescriptions). If any person is gone, or records or photos
+  drop by 3 or more and at least 10%, or a photo is newly missing, the new file
+  still lands, but the backups already there are held out of retention and Home
+  says so (Simple Mode too). What's expected doesn't move down until the person
+  says the change is right or the counts recover, or the hold would only delay
+  the loss by one run. Later runs still prune among newer files, so the folder
+  stays bounded at the held files plus 3. This catches restoring a much older
+  backup, a missing database file (`prepareDatabaseFile` calls that ready) and a
+  missing photo folder. It doesn't catch losses under those thresholds, or tables
+  it doesn't count, such as medicines.
+- **iCloud refusal (C11, Apple 5.1.3)**: automatic backup refuses a folder
+  in iCloud Drive, when it's picked, before every backup and again at each
+  write, because a folder can be moved there later. It uses iOS's `isUbiquitousItem` and
+  the `Mobile Documents` path. A file written to On My iPhone is also marked
+  `isExcludedFromBackup` as soon as it's copied, so it stays out of the iCloud
+  device backup; the run fails if that can't be set where the place supports it. Still
+  open for legal review: the manual share sheet is the system's, so a person
+  can choose Save to Files > iCloud Drive themselves. Usra can't remove that
+  option from the sheet. Whether that's acceptable for an encrypted file the
+  person chose to save hasn't been confirmed.
+- **Android and Google Drive (C11)**: the system folder picker only lists
+  storage that supports folder access (`FLAG_SUPPORTS_IS_CHILD` in AOSP's
+  DocumentsUI), and developer reports say Google Drive doesn't. Not yet
+  checked on a current phone. Usra doesn't ask for Drive permissions: the
+  Backup screen says to send a copy through the share sheet and choose
+  Drive. Only a copy known to be off the phone quiets Home's reminder to keep
+  one there. No folder counts yet: Android only knows its own providers, and
+  iOS can't tell On My iPhone from another Files app. So the manual share is
+  what quiets it.
 - **Backend**: RLS on every table, API roles start with no privileges,
   credits through functions only with locking, idempotent purchase webhook
   with signature check, in-memory rate limiter, body size limits, AI/OCR

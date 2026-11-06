@@ -3563,4 +3563,195 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get readingConfirmNo => 'عدّل';
+
+  @override
+  String backupLastCopy(String date) {
+    return 'آخر نسخة بعتها لمكان تاني: $date';
+  }
+
+  @override
+  String get backupAutoTitle => 'نسخة احتياطية تلقائية';
+
+  @override
+  String get backupAutoHint =>
+      'لما تفتح أسرة ويكون ميعاد النسخة جه، بتتحفظ نسخة متشفرة في فولدر تختاره. من غير حساب.';
+
+  @override
+  String get backupAutoFolder => 'الفولدر';
+
+  @override
+  String get backupAutoChooseFolder => 'اختار فولدر';
+
+  @override
+  String get backupAutoFrequency => 'كل قد إيه';
+
+  @override
+  String get backupFrequencyDaily => 'كل يوم';
+
+  @override
+  String get backupFrequencyWeekly => 'كل أسبوع';
+
+  @override
+  String get backupFrequencyMonthly => 'كل شهر';
+
+  @override
+  String get backupAutoNever => 'لسه مفيش نسخة تلقائية';
+
+  @override
+  String get backupAutoRunning =>
+      'بنعمل نسخة احتياطية. تقدر تكمل استخدام التطبيق عادي.';
+
+  @override
+  String get backupAutoDone => 'النسخة اتحفظت في الفولدر بتاعك.';
+
+  @override
+  String get backupSendCopy => 'ابعت نسخة لمكان تاني';
+
+  @override
+  String get backupBusy => 'فيه نسخة احتياطية شغالة دلوقتي. جرّب كمان شوية.';
+
+  @override
+  String get backupAutoDriveHint =>
+      'ممكن Google Drive ميظهرش وإنت بتختار الفولدر، وأسرة مش بتطلب إذن تدخل على الدرايف بتاعك. علشان تحتفظ بنسخة على الدرايف، دوس \"ابعت نسخة لمكان تاني\" واختار Drive.';
+
+  @override
+  String get backupAutoOnPhone =>
+      'الفولدر ده على الموبايل نفسه. لو الموبايل ضاع، النسخ دي هتضيع معاه، فابعت نسخة لمكان تاني كمان.';
+
+  @override
+  String get backupAutoIosHint =>
+      'اختار مكان بره الموبايل لو تقدر، زي تطبيق تاني في Files أو هارد خارجي. الفولدر اللي في On My iPhone بيضيع مع الموبايل. وiCloud Drive مينفعش للسجلات الصحية.';
+
+  @override
+  String get backupICloudTitle => 'مينفعش iCloud Drive';
+
+  @override
+  String get backupICloudBody =>
+      'قواعد Apple مش بتسمح بالسجلات الصحية على iCloud، حتى لو متشفرة، فأسرة مش هتحفظ النسخ هناك. اختار مكان تاني، زي تطبيق تاني في Files أو هارد خارجي.';
+
+  @override
+  String get backupFolderCantUseTitle => 'المكان ده مينفعش';
+
+  @override
+  String get backupFolderCantUseBody =>
+      'أسرة مقدرتش تحفظ وتنظم ملفاتها هناك. اختار فولدر تاني.';
+
+  @override
+  String get backupAutoKeyFirstTitle => 'الأول، مفتاح الاسترجاع';
+
+  @override
+  String get backupAutoKeyFirstBody =>
+      'النسخ بتبقى متشفرة، ومفيش غير مفتاح الاسترجاع بيفتحها. هتكتبه على ورقة دلوقتي. بيفضل في المخزن الآمن بتاع الموبايل ومش بيتحفظ أبدًا مع النسخ.';
+
+  @override
+  String get backupAutoKeyFirstContinue => 'كمّل';
+
+  @override
+  String get backupAutoFailedTitle => 'النسخة التلقائية مكملتش';
+
+  @override
+  String get backupAutoRetry => 'حاول تاني';
+
+  @override
+  String get backupAutoSetKey => 'جهّز المفتاح';
+
+  @override
+  String get backupAutoFailFolder =>
+      'مش قادرين نوصل لفولدر النسخ. يمكن اتنقل أو اتمسح. اختاره تاني.';
+
+  @override
+  String get backupAutoFailICloud =>
+      'فولدر النسخ بقى على iCloud Drive، وده مينفعش للسجلات الصحية. اختار مكان تاني.';
+
+  @override
+  String get backupAutoFailSpace =>
+      'مفيش مساحة كفاية للنسخة. فضّي شوية مساحة وحاول تاني.';
+
+  @override
+  String get backupAutoFailLocked =>
+      'الموبايل اتقفل أثناء النسخ. سيبه مفتوح وحاول تاني.';
+
+  @override
+  String get backupAutoFailKey =>
+      'مفتاح الاسترجاع مبقاش على الموبايل ده. جهّزه تاني علشان النسخ تكمل.';
+
+  @override
+  String get backupAutoFailInterrupted =>
+      'أسرة اتقفلت قبل ما النسخة تخلص. أي ملف مكملش هيتمسح المرة الجاية، والنسخ القديمة سليمة. حاول تاني.';
+
+  @override
+  String get backupAutoFailOther =>
+      'حاجة وقفت النسخة. النسخ القديمة سليمة. حاول تاني.';
+
+  @override
+  String get backupAutoPaused =>
+      'النسخ التلقائي واقف لأن أسرة بدأت من جديد، علشان النسخ الجديدة متمسحش اللي فيها سجلاتك. رجّع نسخة احتياطية، أو شغّله تاني.';
+
+  @override
+  String get backupDueAuto =>
+      'لو فولدر النسخ على الموبايل نفسه، ضياع الموبايل معناه ضياع النسخ كمان. ابعت نسخة لمكان تاني.';
+
+  @override
+  String backupAutoLast(String date, String size) {
+    return 'آخر نسخة تلقائية: $date ($size)';
+  }
+
+  @override
+  String backupSizeKb(String size) {
+    return '$size كيلوبايت';
+  }
+
+  @override
+  String backupSizeMb(String size) {
+    return '$size ميجابايت';
+  }
+
+  @override
+  String backupSizeGb(String size) {
+    return '$size جيجابايت';
+  }
+
+  @override
+  String backupAutoPhotosSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة مقدرناش نفتحها على الموبايل ده ومش في النسخة.',
+      few: '$count صور مقدرناش نفتحهم على الموبايل ده ومش في النسخة.',
+      two: 'صورتين مقدرناش نفتحهم على الموبايل ده ومش في النسخة.',
+      one: 'صورة واحدة مقدرناش نفتحها على الموبايل ده ومش في النسخة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupAutoOpen => 'افتح النسخة الاحتياطية';
+
+  @override
+  String get backupAutoPausedTitle => 'النسخ التلقائي واقف';
+
+  @override
+  String get backupAutoUnreadableTitle => 'النسخ التلقائي مقفول';
+
+  @override
+  String get backupAutoUnreadableBody =>
+      'مقدرناش نقرا إعدادات النسخ التلقائي. نسخك لسه في الفولدر بتاعك. افتح النسخة الاحتياطية وشغّله تاني.';
+
+  @override
+  String get backupContentDroppedTitle =>
+      'آخر نسخة فيها حاجات أقل من اللي قبلها';
+
+  @override
+  String get backupContentDroppedBody =>
+      'فيها أشخاص أو سجلات أو صور أقل، أو فيه صور ناقصة، فسيبنا النسخ القديمة زي ما هي. لو إنت مسحتهم بنفسك، أكّد ده. لو لأ، رجّع نسخة أقدم.';
+
+  @override
+  String get backupContentDroppedAccept => 'أنا اللي مسحتهم';
+
+  @override
+  String get backupAutoFolderTop => 'الفولدر الرئيسي للمكان اللي اخترته';
+
+  @override
+  String get aboutPrivacyBackupAuto =>
+      'لو شغّلت النسخ التلقائي، أسرة بتحفظ الملف ده لوحدها في فولدر تختاره. مش بتبعتلنا حاجة، ومش هتستخدم iCloud Drive.';
 }

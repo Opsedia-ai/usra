@@ -34,6 +34,9 @@ class MainActivity : FlutterFragmentActivity() {
     private var cover: View? = null
     private var resumed = false
     private val handler = Handler(Looper.getMainLooper())
+
+    /// Automatic backup's folder (lib/core/backup/backup_folder.dart).
+    private var backupFolder: BackupFolderChannel? = null
     private val uncoverFallback = Runnable { removeCover() }
 
     /// A secret (the recovery key) copied by the app and not cleared yet:
@@ -59,6 +62,12 @@ class MainActivity : FlutterFragmentActivity() {
         if (pendingClip().contains(KEY_COPIED_UPTIME)) {
             handler.post(clipboardClear)
         }
+    }
+
+    @Deprecated("Still what FlutterFragmentActivity forwards to plugins")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (backupFolder?.onActivityResult(requestCode, resultCode, data) == true) return
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onPause() {
@@ -213,6 +222,7 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        backupFolder = BackupFolderChannel(this, flutterEngine.dartExecutor.binaryMessenger)
         // Battery optimisation can stop medicine reminders on some phones;
         // the Medicines tab explains it and opens the setting.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "usra/battery")

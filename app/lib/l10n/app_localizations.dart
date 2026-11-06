@@ -5737,6 +5737,306 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change it'**
   String get readingConfirmNo;
+
+  /// No description provided for @backupLastCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Last copy sent elsewhere: {date}'**
+  String backupLastCopy(String date);
+
+  /// No description provided for @backupAutoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup'**
+  String get backupAutoTitle;
+
+  /// No description provided for @backupAutoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'When you open Usra and a backup is due, it saves an encrypted copy in a folder you choose. No account needed.'**
+  String get backupAutoHint;
+
+  /// No description provided for @backupAutoFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get backupAutoFolder;
+
+  /// No description provided for @backupAutoChooseFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a folder'**
+  String get backupAutoChooseFolder;
+
+  /// No description provided for @backupAutoFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'How often'**
+  String get backupAutoFrequency;
+
+  /// No description provided for @backupFrequencyDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get backupFrequencyDaily;
+
+  /// No description provided for @backupFrequencyWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Every week'**
+  String get backupFrequencyWeekly;
+
+  /// No description provided for @backupFrequencyMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Every month'**
+  String get backupFrequencyMonthly;
+
+  /// No description provided for @backupAutoNever.
+  ///
+  /// In en, this message translates to:
+  /// **'No automatic backup yet'**
+  String get backupAutoNever;
+
+  /// No description provided for @backupAutoRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Backing up. You can keep using the app.'**
+  String get backupAutoRunning;
+
+  /// No description provided for @backupAutoDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved in your folder.'**
+  String get backupAutoDone;
+
+  /// No description provided for @backupSendCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a copy somewhere else'**
+  String get backupSendCopy;
+
+  /// No description provided for @backupBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'A backup is already running. Try again in a moment.'**
+  String get backupBusy;
+
+  /// No description provided for @backupAutoDriveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Drive may not appear when you choose a folder, and Usra doesn\'t ask for access to your Drive. To keep a copy in Drive, tap \"Send a copy somewhere else\" and choose Drive.'**
+  String get backupAutoDriveHint;
+
+  /// No description provided for @backupAutoOnPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'This folder is on this phone. If the phone is lost, these backups go with it, so send a copy somewhere else too.'**
+  String get backupAutoOnPhone;
+
+  /// No description provided for @backupAutoIosHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a place off this phone if you can, such as another app in Files or an external drive. A folder in On My iPhone is lost with the phone. iCloud Drive can\'t be used for health records.'**
+  String get backupAutoIosHint;
+
+  /// No description provided for @backupICloudTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud Drive can\'t be used'**
+  String get backupICloudTitle;
+
+  /// No description provided for @backupICloudBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple\'s rules don\'t allow health records in iCloud, even encrypted, so Usra won\'t save backups there. Choose another place, such as another app in Files or an external drive.'**
+  String get backupICloudBody;
+
+  /// No description provided for @backupFolderCantUseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This place can\'t be used'**
+  String get backupFolderCantUseTitle;
+
+  /// No description provided for @backupFolderCantUseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra couldn\'t save and tidy up its files there. Choose another folder.'**
+  String get backupFolderCantUseBody;
+
+  /// No description provided for @backupAutoKeyFirstTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'First, your recovery key'**
+  String get backupAutoKeyFirstTitle;
+
+  /// No description provided for @backupAutoKeyFirstBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups are encrypted, and only your recovery key opens them. You\'ll write it on paper now. It stays in this phone\'s secure storage and is never saved with the backups.'**
+  String get backupAutoKeyFirstBody;
+
+  /// No description provided for @backupAutoKeyFirstContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get backupAutoKeyFirstContinue;
+
+  /// No description provided for @backupAutoFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The automatic backup didn\'t finish'**
+  String get backupAutoFailedTitle;
+
+  /// No description provided for @backupAutoRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get backupAutoRetry;
+
+  /// No description provided for @backupAutoSetKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up the key'**
+  String get backupAutoSetKey;
+
+  /// No description provided for @backupAutoFailFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'We can\'t reach the backup folder. It may have been moved or removed. Choose it again.'**
+  String get backupAutoFailFolder;
+
+  /// No description provided for @backupAutoFailICloud.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup folder is now in iCloud Drive, which can\'t be used for health records. Choose another place.'**
+  String get backupAutoFailICloud;
+
+  /// No description provided for @backupAutoFailSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'There isn\'t enough storage space for the backup. Free up some space, then try again.'**
+  String get backupAutoFailSpace;
+
+  /// No description provided for @backupAutoFailLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone locked during the backup. Keep it unlocked, then try again.'**
+  String get backupAutoFailLocked;
+
+  /// No description provided for @backupAutoFailKey.
+  ///
+  /// In en, this message translates to:
+  /// **'The recovery key isn\'t on this phone any more. Set it up again to keep backing up.'**
+  String get backupAutoFailKey;
+
+  /// No description provided for @backupAutoFailInterrupted.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra closed before the backup finished. Any unfinished file is removed next time, and your earlier backups are safe. Try again.'**
+  String get backupAutoFailInterrupted;
+
+  /// No description provided for @backupAutoFailOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Something stopped the backup. Your earlier backups are safe. Try again.'**
+  String get backupAutoFailOther;
+
+  /// No description provided for @backupAutoPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup is paused because Usra started fresh, so new backups don\'t push out the ones holding your records. Restore a backup, or turn this on again.'**
+  String get backupAutoPaused;
+
+  /// No description provided for @backupDueAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'If your backup folder is on this phone, losing the phone loses the backups too. Send a copy somewhere else.'**
+  String get backupDueAuto;
+
+  /// No description provided for @backupAutoLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Last automatic backup: {date} ({size})'**
+  String backupAutoLast(String date, String size);
+
+  /// No description provided for @backupSizeKb.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} KB'**
+  String backupSizeKb(String size);
+
+  /// No description provided for @backupSizeMb.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} MB'**
+  String backupSizeMb(String size);
+
+  /// No description provided for @backupSizeGb.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} GB'**
+  String backupSizeGb(String size);
+
+  /// No description provided for @backupAutoPhotosSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo couldn\'t be opened on this phone and isn\'t in this backup.} other{{count} photos couldn\'t be opened on this phone and aren\'t in this backup.}}'**
+  String backupAutoPhotosSkipped(int count);
+
+  /// No description provided for @backupAutoOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Backup'**
+  String get backupAutoOpen;
+
+  /// No description provided for @backupAutoPausedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup is paused'**
+  String get backupAutoPausedTitle;
+
+  /// No description provided for @backupAutoUnreadableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup is off'**
+  String get backupAutoUnreadableTitle;
+
+  /// No description provided for @backupAutoUnreadableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t read your automatic backup settings. Your backups are still in your folder. Open Backup to turn it on again.'**
+  String get backupAutoUnreadableBody;
+
+  /// No description provided for @backupContentDroppedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The latest backup holds less than before'**
+  String get backupContentDroppedTitle;
+
+  /// No description provided for @backupContentDroppedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It has fewer people, records or photos, or some photos are missing, so we kept your older backups. If you deleted these on purpose, confirm it. If not, restore an older backup.'**
+  String get backupContentDroppedBody;
+
+  /// No description provided for @backupContentDroppedAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'I deleted them on purpose'**
+  String get backupContentDroppedAccept;
+
+  /// No description provided for @backupAutoFolderTop.
+  ///
+  /// In en, this message translates to:
+  /// **'The main folder of the place you chose'**
+  String get backupAutoFolderTop;
+
+  /// No description provided for @aboutPrivacyBackupAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'If you turn on automatic backup, Usra saves that file by itself to a folder you pick. It sends us nothing, and it won\'t use iCloud Drive.'**
+  String get aboutPrivacyBackupAuto;
 }
 
 class _AppLocalizationsDelegate

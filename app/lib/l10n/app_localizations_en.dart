@@ -3545,4 +3545,194 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get readingConfirmNo => 'Change it';
+
+  @override
+  String backupLastCopy(String date) {
+    return 'Last copy sent elsewhere: $date';
+  }
+
+  @override
+  String get backupAutoTitle => 'Automatic backup';
+
+  @override
+  String get backupAutoHint =>
+      'When you open Usra and a backup is due, it saves an encrypted copy in a folder you choose. No account needed.';
+
+  @override
+  String get backupAutoFolder => 'Folder';
+
+  @override
+  String get backupAutoChooseFolder => 'Choose a folder';
+
+  @override
+  String get backupAutoFrequency => 'How often';
+
+  @override
+  String get backupFrequencyDaily => 'Every day';
+
+  @override
+  String get backupFrequencyWeekly => 'Every week';
+
+  @override
+  String get backupFrequencyMonthly => 'Every month';
+
+  @override
+  String get backupAutoNever => 'No automatic backup yet';
+
+  @override
+  String get backupAutoRunning => 'Backing up. You can keep using the app.';
+
+  @override
+  String get backupAutoDone => 'Backup saved in your folder.';
+
+  @override
+  String get backupSendCopy => 'Send a copy somewhere else';
+
+  @override
+  String get backupBusy =>
+      'A backup is already running. Try again in a moment.';
+
+  @override
+  String get backupAutoDriveHint =>
+      'Google Drive may not appear when you choose a folder, and Usra doesn\'t ask for access to your Drive. To keep a copy in Drive, tap \"Send a copy somewhere else\" and choose Drive.';
+
+  @override
+  String get backupAutoOnPhone =>
+      'This folder is on this phone. If the phone is lost, these backups go with it, so send a copy somewhere else too.';
+
+  @override
+  String get backupAutoIosHint =>
+      'Choose a place off this phone if you can, such as another app in Files or an external drive. A folder in On My iPhone is lost with the phone. iCloud Drive can\'t be used for health records.';
+
+  @override
+  String get backupICloudTitle => 'iCloud Drive can\'t be used';
+
+  @override
+  String get backupICloudBody =>
+      'Apple\'s rules don\'t allow health records in iCloud, even encrypted, so Usra won\'t save backups there. Choose another place, such as another app in Files or an external drive.';
+
+  @override
+  String get backupFolderCantUseTitle => 'This place can\'t be used';
+
+  @override
+  String get backupFolderCantUseBody =>
+      'Usra couldn\'t save and tidy up its files there. Choose another folder.';
+
+  @override
+  String get backupAutoKeyFirstTitle => 'First, your recovery key';
+
+  @override
+  String get backupAutoKeyFirstBody =>
+      'Backups are encrypted, and only your recovery key opens them. You\'ll write it on paper now. It stays in this phone\'s secure storage and is never saved with the backups.';
+
+  @override
+  String get backupAutoKeyFirstContinue => 'Continue';
+
+  @override
+  String get backupAutoFailedTitle => 'The automatic backup didn\'t finish';
+
+  @override
+  String get backupAutoRetry => 'Try again';
+
+  @override
+  String get backupAutoSetKey => 'Set up the key';
+
+  @override
+  String get backupAutoFailFolder =>
+      'We can\'t reach the backup folder. It may have been moved or removed. Choose it again.';
+
+  @override
+  String get backupAutoFailICloud =>
+      'The backup folder is now in iCloud Drive, which can\'t be used for health records. Choose another place.';
+
+  @override
+  String get backupAutoFailSpace =>
+      'There isn\'t enough storage space for the backup. Free up some space, then try again.';
+
+  @override
+  String get backupAutoFailLocked =>
+      'The phone locked during the backup. Keep it unlocked, then try again.';
+
+  @override
+  String get backupAutoFailKey =>
+      'The recovery key isn\'t on this phone any more. Set it up again to keep backing up.';
+
+  @override
+  String get backupAutoFailInterrupted =>
+      'Usra closed before the backup finished. Any unfinished file is removed next time, and your earlier backups are safe. Try again.';
+
+  @override
+  String get backupAutoFailOther =>
+      'Something stopped the backup. Your earlier backups are safe. Try again.';
+
+  @override
+  String get backupAutoPaused =>
+      'Automatic backup is paused because Usra started fresh, so new backups don\'t push out the ones holding your records. Restore a backup, or turn this on again.';
+
+  @override
+  String get backupDueAuto =>
+      'If your backup folder is on this phone, losing the phone loses the backups too. Send a copy somewhere else.';
+
+  @override
+  String backupAutoLast(String date, String size) {
+    return 'Last automatic backup: $date ($size)';
+  }
+
+  @override
+  String backupSizeKb(String size) {
+    return '$size KB';
+  }
+
+  @override
+  String backupSizeMb(String size) {
+    return '$size MB';
+  }
+
+  @override
+  String backupSizeGb(String size) {
+    return '$size GB';
+  }
+
+  @override
+  String backupAutoPhotosSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count photos couldn\'t be opened on this phone and aren\'t in this backup.',
+      one: '1 photo couldn\'t be opened on this phone and isn\'t in this backup.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupAutoOpen => 'Open Backup';
+
+  @override
+  String get backupAutoPausedTitle => 'Automatic backup is paused';
+
+  @override
+  String get backupAutoUnreadableTitle => 'Automatic backup is off';
+
+  @override
+  String get backupAutoUnreadableBody =>
+      'We couldn\'t read your automatic backup settings. Your backups are still in your folder. Open Backup to turn it on again.';
+
+  @override
+  String get backupContentDroppedTitle =>
+      'The latest backup holds less than before';
+
+  @override
+  String get backupContentDroppedBody =>
+      'It has fewer people, records or photos, or some photos are missing, so we kept your older backups. If you deleted these on purpose, confirm it. If not, restore an older backup.';
+
+  @override
+  String get backupContentDroppedAccept => 'I deleted them on purpose';
+
+  @override
+  String get backupAutoFolderTop => 'The main folder of the place you chose';
+
+  @override
+  String get aboutPrivacyBackupAuto =>
+      'If you turn on automatic backup, Usra saves that file by itself to a folder you pick. It sends us nothing, and it won\'t use iCloud Drive.';
 }

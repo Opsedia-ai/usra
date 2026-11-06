@@ -152,7 +152,7 @@ Proposals that follow from this:
 
 | # | Proposal | Size |
 | --- | --- | --- |
-| C11 | **Automatic encrypted backup**: optional weekly backup of the encrypted file to a folder the user picks once (iCloud Drive, Google Drive or Files), still unreadable without the recovery key; shows "last backup" on Home | M |
+| C11 | **Automatic encrypted backup**: optional weekly backup of the encrypted file to a folder the user picks once (never iCloud Drive: Apple 5.1.3; Google Drive only by sending a copy, as the Android folder picker doesn't appear to offer it), still unreadable without the recovery key; shows the last backup on the Backup screen | M |
 | C12 | **Read lab PDFs**: extract text from text-based PDFs on the device (fall back to rendering a page to an image for the existing reader) | S |
 | C13 | **Calm Home for parents**: a child-focused Home (next vaccine, today's doses, last fever) that hides adult features until used; follow the UX audit's findings | M |
 | C14 | **Store page**: lead with "no account, stays on your phone", then reminders that ring, growth and milestones, the whole family, Android | S |

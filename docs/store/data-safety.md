@@ -16,6 +16,7 @@ this file whenever a permission, SDK or network call is added; the M6 cloud feat
 | Home-screen widget with today's doses (first names and medicine names) | `features/medicines/dose_widget.dart`, `home_widget` | No (shown on the home screen) |
 | Reminder notifications (the person's name as entered and the medicine name, visible on the lock screen) | `features/medicines/local_notification_scheduler.dart` | No |
 | Encrypted backup file, shared by the user to a place they choose | `core/backup/`, `share_plus`, `file_picker` | Only where the user sends it, encrypted; we never receive it |
+| Automatic encrypted backup to a folder the user picks once (optional, off by default; never iCloud Drive) | `core/backup/`, `features/backup/`, Storage Access Framework on Android, security-scoped bookmark on iOS; no new permissions | Only to that folder, encrypted, with no network call by Usra; we never receive it |
 | Vaccination record and doctor summary PDFs, made on the phone and shared by the user (not encrypted: readable by whoever receives them; a warning says so first) | `features/reports/`, `pdf`, `share_plus` | Only where the user sends it; we never receive it. The file is deleted from the phone after sharing |
 | Call / WhatsApp a doctor, open links | `features/doctors/`, `url_launcher` | Opens the other app; nothing sent by Usra |
 | App version shown in About | `package_info_plus` | No |
@@ -98,7 +99,9 @@ Not collected, with the reason (keep for the reviewer and for our own audits):
 - **Photos and videos**: stored only on the phone.
 - **Files and docs**: the backup file is created on the phone and sent only where the
   user chooses with the system share sheet; Play counts that as a user-initiated
-  transfer, not collection or sharing by the developer.
+  transfer, not collection or sharing by the developer. Automatic backup writes the same
+  encrypted file to a folder the user picked with the system picker. Usra makes no network
+  call for it, but if the folder belongs to a cloud provider, that provider's app uploads it.
 - **Personal info, Financial info (spending totals), Contacts (doctors' numbers typed in
   by the user), Location, Messages, App activity, Web browsing**: not collected.
 
@@ -166,7 +169,7 @@ build, not in this change.
 | 1.4.2 Drug dosage calculators | None. OCR returns a name and strength only, never a dose |
 | 5.1.1 Data collection and storage | No account (with accounts: optional, with in-app deletion, see the last section); privacy policy linked in App Store Connect and in the app (More → About & privacy) |
 | 5.1.1(ix) Highly regulated field | Submitted by Opsedia as an organisation |
-| 5.1.3 Health and health research | No HealthKit; database and photo folders excluded from iCloud backup; no data used for ads or sold |
+| 5.1.3 Health and health research | No HealthKit; database and photo folders excluded from iCloud backup; automatic backup refuses iCloud Drive folders; no data used for ads or sold. For legal review: the manual share sheet is the system's and lets a person choose iCloud Drive for the encrypted file themselves |
 | Age rating questionnaire | "Medical or Treatment Information": **Infrequent/Mild**. Expected rating 9+ / 12+ depending on the new questionnaire |
 | Regulated medical device question (EU) | **No** |
 
