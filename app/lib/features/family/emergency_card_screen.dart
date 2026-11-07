@@ -12,6 +12,7 @@ import '../../core/security/app_lock.dart';
 import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../app_lock/app_lock_module.dart' show confirmEmergencyOnLock;
+import '../doctors/contact_links.dart' show callUri;
 import '../doctors/call_buttons.dart';
 import '../medicines/medicine_text.dart';
 import '../medicines/medicines_providers.dart';
@@ -69,6 +70,11 @@ class EmergencyCardScreen extends ConsumerWidget {
             const SizedBox(height: UsraSpacing.s3),
             const _AmbulanceButton(),
             const SizedBox(height: UsraSpacing.s3),
+            if (profile.value case final p?
+                when callUri(p.emergencyPhone) != null) ...[
+              _EmergencyContact(person: p),
+              const SizedBox(height: UsraSpacing.s3),
+            ],
             // Never a choice on the lock screen, which lists its own people.
             if (editable && people.length > 1) ...[
               Semantics(
@@ -217,6 +223,77 @@ class _AmbulanceButton extends StatelessWidget {
             localizedDigits(context, int.parse(ambulanceNumber)),
           ),
           semanticsLabel: l.emergencyCallAmbulance(ambulanceNumber),
+        ),
+      ),
+    );
+  }
+}
+
+/// The number to call for this person, and whose it is. The phone's own dialer
+/// asks before calling. Reachable from the lock screen too: finding someone to
+/// call is what the card is for there.
+class _EmergencyContact extends StatelessWidget {
+  const _EmergencyContact({required this.person});
+
+  final Profile person;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.usra;
+    final phone = person.emergencyPhone!;
+    final name = person.emergencyContactName ?? l.emergencyContactNoName;
+    const shape = StadiumBorder();
+    return Semantics(
+      button: true,
+      label: l.emergencyCallContact(name),
+      excludeSemantics: true,
+      child: Material(
+        color: c.surface,
+        shape: shape,
+        elevation: 1,
+        shadowColor: c.ink.withValues(alpha: 0.2),
+        child: InkWell(
+          key: const ValueKey('emergency-contact'),
+          customBorder: shape,
+          onTap: () => openContact(context, callUri(phone)!),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 64),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              child: Row(
+                spacing: 12,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: c.goodSoft,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.call, color: c.good, size: 22),
+                  ),
+                  Expanded(
+                    child: Text(
+                      name,
+                      style: UsraType.body.copyWith(
+                        color: c.ink,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    child: Text(
+                      phone,
+                      key: const ValueKey('emergency-contact-phone'),
+                      textDirection: TextDirection.ltr,
+                      style: UsraType.body.copyWith(color: c.ink),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

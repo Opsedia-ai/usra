@@ -19,6 +19,15 @@ class Profiles extends Table {
   TextColumn get allergies => text().nullable()();
   TextColumn get conditions => text().nullable()();
 
+  /// How this person is related to the one using the app, as a code: see
+  /// `relationships` in the person form (schema v9).
+  TextColumn get relationship => text().nullable()();
+
+  /// A number to call in an emergency, as typed, and whose it is, free text
+  /// such as "Aya, her mother". Shown on the emergency card (schema v9).
+  TextColumn get emergencyPhone => text().nullable()();
+  TextColumn get emergencyContactName => text().nullable()();
+
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 

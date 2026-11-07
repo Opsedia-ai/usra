@@ -96,6 +96,39 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _relationshipMeta = const VerificationMeta(
+    'relationship',
+  );
+  @override
+  late final GeneratedColumn<String> relationship = GeneratedColumn<String>(
+    'relationship',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _emergencyPhoneMeta = const VerificationMeta(
+    'emergencyPhone',
+  );
+  @override
+  late final GeneratedColumn<String> emergencyPhone = GeneratedColumn<String>(
+    'emergency_phone',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _emergencyContactNameMeta =
+      const VerificationMeta('emergencyContactName');
+  @override
+  late final GeneratedColumn<String> emergencyContactName =
+      GeneratedColumn<String>(
+        'emergency_contact_name',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -128,6 +161,9 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
     bloodType,
     allergies,
     conditions,
+    relationship,
+    emergencyPhone,
+    emergencyContactName,
     updatedAt,
     deletedAt,
   ];
@@ -195,6 +231,33 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
         conditions.isAcceptableOrUnknown(data['conditions']!, _conditionsMeta),
       );
     }
+    if (data.containsKey('relationship')) {
+      context.handle(
+        _relationshipMeta,
+        relationship.isAcceptableOrUnknown(
+          data['relationship']!,
+          _relationshipMeta,
+        ),
+      );
+    }
+    if (data.containsKey('emergency_phone')) {
+      context.handle(
+        _emergencyPhoneMeta,
+        emergencyPhone.isAcceptableOrUnknown(
+          data['emergency_phone']!,
+          _emergencyPhoneMeta,
+        ),
+      );
+    }
+    if (data.containsKey('emergency_contact_name')) {
+      context.handle(
+        _emergencyContactNameMeta,
+        emergencyContactName.isAcceptableOrUnknown(
+          data['emergency_contact_name']!,
+          _emergencyContactNameMeta,
+        ),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -250,6 +313,18 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
         DriftSqlType.string,
         data['${effectivePrefix}conditions'],
       ),
+      relationship: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}relationship'],
+      ),
+      emergencyPhone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}emergency_phone'],
+      ),
+      emergencyContactName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}emergency_contact_name'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -280,6 +355,15 @@ class Profile extends DataClass implements Insertable<Profile> {
   /// Free text, shown on the emergency card (schema v2).
   final String? allergies;
   final String? conditions;
+
+  /// How this person is related to the one using the app, as a code: see
+  /// `relationships` in the person form (schema v9).
+  final String? relationship;
+
+  /// A number to call in an emergency, as typed, and whose it is, free text
+  /// such as "Aya, her mother". Shown on the emergency card (schema v9).
+  final String? emergencyPhone;
+  final String? emergencyContactName;
   final DateTime updatedAt;
   final DateTime? deletedAt;
   const Profile({
@@ -291,6 +375,9 @@ class Profile extends DataClass implements Insertable<Profile> {
     this.bloodType,
     this.allergies,
     this.conditions,
+    this.relationship,
+    this.emergencyPhone,
+    this.emergencyContactName,
     required this.updatedAt,
     this.deletedAt,
   });
@@ -314,6 +401,15 @@ class Profile extends DataClass implements Insertable<Profile> {
     }
     if (!nullToAbsent || conditions != null) {
       map['conditions'] = Variable<String>(conditions);
+    }
+    if (!nullToAbsent || relationship != null) {
+      map['relationship'] = Variable<String>(relationship);
+    }
+    if (!nullToAbsent || emergencyPhone != null) {
+      map['emergency_phone'] = Variable<String>(emergencyPhone);
+    }
+    if (!nullToAbsent || emergencyContactName != null) {
+      map['emergency_contact_name'] = Variable<String>(emergencyContactName);
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
@@ -340,6 +436,15 @@ class Profile extends DataClass implements Insertable<Profile> {
       conditions: conditions == null && nullToAbsent
           ? const Value.absent()
           : Value(conditions),
+      relationship: relationship == null && nullToAbsent
+          ? const Value.absent()
+          : Value(relationship),
+      emergencyPhone: emergencyPhone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(emergencyPhone),
+      emergencyContactName: emergencyContactName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(emergencyContactName),
       updatedAt: Value(updatedAt),
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
@@ -361,6 +466,11 @@ class Profile extends DataClass implements Insertable<Profile> {
       bloodType: serializer.fromJson<String?>(json['bloodType']),
       allergies: serializer.fromJson<String?>(json['allergies']),
       conditions: serializer.fromJson<String?>(json['conditions']),
+      relationship: serializer.fromJson<String?>(json['relationship']),
+      emergencyPhone: serializer.fromJson<String?>(json['emergencyPhone']),
+      emergencyContactName: serializer.fromJson<String?>(
+        json['emergencyContactName'],
+      ),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
@@ -377,6 +487,9 @@ class Profile extends DataClass implements Insertable<Profile> {
       'bloodType': serializer.toJson<String?>(bloodType),
       'allergies': serializer.toJson<String?>(allergies),
       'conditions': serializer.toJson<String?>(conditions),
+      'relationship': serializer.toJson<String?>(relationship),
+      'emergencyPhone': serializer.toJson<String?>(emergencyPhone),
+      'emergencyContactName': serializer.toJson<String?>(emergencyContactName),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
@@ -391,6 +504,9 @@ class Profile extends DataClass implements Insertable<Profile> {
     Value<String?> bloodType = const Value.absent(),
     Value<String?> allergies = const Value.absent(),
     Value<String?> conditions = const Value.absent(),
+    Value<String?> relationship = const Value.absent(),
+    Value<String?> emergencyPhone = const Value.absent(),
+    Value<String?> emergencyContactName = const Value.absent(),
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
   }) => Profile(
@@ -402,6 +518,13 @@ class Profile extends DataClass implements Insertable<Profile> {
     bloodType: bloodType.present ? bloodType.value : this.bloodType,
     allergies: allergies.present ? allergies.value : this.allergies,
     conditions: conditions.present ? conditions.value : this.conditions,
+    relationship: relationship.present ? relationship.value : this.relationship,
+    emergencyPhone: emergencyPhone.present
+        ? emergencyPhone.value
+        : this.emergencyPhone,
+    emergencyContactName: emergencyContactName.present
+        ? emergencyContactName.value
+        : this.emergencyContactName,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
@@ -421,6 +544,15 @@ class Profile extends DataClass implements Insertable<Profile> {
       conditions: data.conditions.present
           ? data.conditions.value
           : this.conditions,
+      relationship: data.relationship.present
+          ? data.relationship.value
+          : this.relationship,
+      emergencyPhone: data.emergencyPhone.present
+          ? data.emergencyPhone.value
+          : this.emergencyPhone,
+      emergencyContactName: data.emergencyContactName.present
+          ? data.emergencyContactName.value
+          : this.emergencyContactName,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
@@ -437,6 +569,9 @@ class Profile extends DataClass implements Insertable<Profile> {
           ..write('bloodType: $bloodType, ')
           ..write('allergies: $allergies, ')
           ..write('conditions: $conditions, ')
+          ..write('relationship: $relationship, ')
+          ..write('emergencyPhone: $emergencyPhone, ')
+          ..write('emergencyContactName: $emergencyContactName, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt')
           ..write(')'))
@@ -453,6 +588,9 @@ class Profile extends DataClass implements Insertable<Profile> {
     bloodType,
     allergies,
     conditions,
+    relationship,
+    emergencyPhone,
+    emergencyContactName,
     updatedAt,
     deletedAt,
   );
@@ -468,6 +606,9 @@ class Profile extends DataClass implements Insertable<Profile> {
           other.bloodType == this.bloodType &&
           other.allergies == this.allergies &&
           other.conditions == this.conditions &&
+          other.relationship == this.relationship &&
+          other.emergencyPhone == this.emergencyPhone &&
+          other.emergencyContactName == this.emergencyContactName &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt);
 }
@@ -481,6 +622,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
   final Value<String?> bloodType;
   final Value<String?> allergies;
   final Value<String?> conditions;
+  final Value<String?> relationship;
+  final Value<String?> emergencyPhone;
+  final Value<String?> emergencyContactName;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
   final Value<int> rowid;
@@ -493,6 +637,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     this.bloodType = const Value.absent(),
     this.allergies = const Value.absent(),
     this.conditions = const Value.absent(),
+    this.relationship = const Value.absent(),
+    this.emergencyPhone = const Value.absent(),
+    this.emergencyContactName = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -506,6 +653,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     this.bloodType = const Value.absent(),
     this.allergies = const Value.absent(),
     this.conditions = const Value.absent(),
+    this.relationship = const Value.absent(),
+    this.emergencyPhone = const Value.absent(),
+    this.emergencyContactName = const Value.absent(),
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -521,6 +671,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     Expression<String>? bloodType,
     Expression<String>? allergies,
     Expression<String>? conditions,
+    Expression<String>? relationship,
+    Expression<String>? emergencyPhone,
+    Expression<String>? emergencyContactName,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
@@ -534,6 +687,10 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
       if (bloodType != null) 'blood_type': bloodType,
       if (allergies != null) 'allergies': allergies,
       if (conditions != null) 'conditions': conditions,
+      if (relationship != null) 'relationship': relationship,
+      if (emergencyPhone != null) 'emergency_phone': emergencyPhone,
+      if (emergencyContactName != null)
+        'emergency_contact_name': emergencyContactName,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
@@ -549,6 +706,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     Value<String?>? bloodType,
     Value<String?>? allergies,
     Value<String?>? conditions,
+    Value<String?>? relationship,
+    Value<String?>? emergencyPhone,
+    Value<String?>? emergencyContactName,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
     Value<int>? rowid,
@@ -562,6 +722,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
       bloodType: bloodType ?? this.bloodType,
       allergies: allergies ?? this.allergies,
       conditions: conditions ?? this.conditions,
+      relationship: relationship ?? this.relationship,
+      emergencyPhone: emergencyPhone ?? this.emergencyPhone,
+      emergencyContactName: emergencyContactName ?? this.emergencyContactName,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
@@ -595,6 +758,17 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     if (conditions.present) {
       map['conditions'] = Variable<String>(conditions.value);
     }
+    if (relationship.present) {
+      map['relationship'] = Variable<String>(relationship.value);
+    }
+    if (emergencyPhone.present) {
+      map['emergency_phone'] = Variable<String>(emergencyPhone.value);
+    }
+    if (emergencyContactName.present) {
+      map['emergency_contact_name'] = Variable<String>(
+        emergencyContactName.value,
+      );
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -618,6 +792,9 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
           ..write('bloodType: $bloodType, ')
           ..write('allergies: $allergies, ')
           ..write('conditions: $conditions, ')
+          ..write('relationship: $relationship, ')
+          ..write('emergencyPhone: $emergencyPhone, ')
+          ..write('emergencyContactName: $emergencyContactName, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
@@ -7821,6 +7998,9 @@ typedef $$ProfilesTableCreateCompanionBuilder = ProfilesCompanion Function({
   Value<String?> bloodType,
   Value<String?> allergies,
   Value<String?> conditions,
+  Value<String?> relationship,
+  Value<String?> emergencyPhone,
+  Value<String?> emergencyContactName,
   required DateTime updatedAt,
   Value<DateTime?> deletedAt,
   Value<int> rowid,
@@ -7834,6 +8014,9 @@ typedef $$ProfilesTableUpdateCompanionBuilder = ProfilesCompanion Function({
   Value<String?> bloodType,
   Value<String?> allergies,
   Value<String?> conditions,
+  Value<String?> relationship,
+  Value<String?> emergencyPhone,
+  Value<String?> emergencyContactName,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
   Value<int> rowid,
@@ -7980,6 +8163,21 @@ class $$ProfilesTableFilterComposer
 
   ColumnFilters<String> get conditions => $composableBuilder(
     column: $table.conditions,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get relationship => $composableBuilder(
+    column: $table.relationship,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get emergencyPhone => $composableBuilder(
+    column: $table.emergencyPhone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get emergencyContactName => $composableBuilder(
+    column: $table.emergencyContactName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8168,6 +8366,21 @@ class $$ProfilesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get relationship => $composableBuilder(
+    column: $table.relationship,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get emergencyPhone => $composableBuilder(
+    column: $table.emergencyPhone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get emergencyContactName => $composableBuilder(
+    column: $table.emergencyContactName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -8215,6 +8428,21 @@ class $$ProfilesTableAnnotationComposer
 
   GeneratedColumn<String> get conditions => $composableBuilder(
     column: $table.conditions,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get relationship => $composableBuilder(
+    column: $table.relationship,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get emergencyPhone => $composableBuilder(
+    column: $table.emergencyPhone,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get emergencyContactName => $composableBuilder(
+    column: $table.emergencyContactName,
     builder: (column) => column,
   );
 
@@ -8392,6 +8620,9 @@ class $$ProfilesTableTableManager
                 Value<String?> bloodType = const Value.absent(),
                 Value<String?> allergies = const Value.absent(),
                 Value<String?> conditions = const Value.absent(),
+                Value<String?> relationship = const Value.absent(),
+                Value<String?> emergencyPhone = const Value.absent(),
+                Value<String?> emergencyContactName = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -8404,6 +8635,9 @@ class $$ProfilesTableTableManager
                 bloodType: bloodType,
                 allergies: allergies,
                 conditions: conditions,
+                relationship: relationship,
+                emergencyPhone: emergencyPhone,
+                emergencyContactName: emergencyContactName,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
                 rowid: rowid,
@@ -8418,6 +8652,9 @@ class $$ProfilesTableTableManager
                 Value<String?> bloodType = const Value.absent(),
                 Value<String?> allergies = const Value.absent(),
                 Value<String?> conditions = const Value.absent(),
+                Value<String?> relationship = const Value.absent(),
+                Value<String?> emergencyPhone = const Value.absent(),
+                Value<String?> emergencyContactName = const Value.absent(),
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -8430,6 +8667,9 @@ class $$ProfilesTableTableManager
                 bloodType: bloodType,
                 allergies: allergies,
                 conditions: conditions,
+                relationship: relationship,
+                emergencyPhone: emergencyPhone,
+                emergencyContactName: emergencyContactName,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
                 rowid: rowid,

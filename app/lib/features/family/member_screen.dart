@@ -255,7 +255,12 @@ class _Identity extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    final age = ageLabel(l, person.birthDate, ref.watch(clockProvider)());
+    final isMe = person.id == ref.watch(meProfileIdProvider);
+    final relationship = isMe ? null : person.relationship;
+    final details = [
+      ?ageLabel(l, person.birthDate, ref.watch(clockProvider)()),
+      if (relationship != null) l.relationshipYours(relationship),
+    ].where((part) => part.isNotEmpty).join(' · ');
     return Row(
       children: [
         Pebble(
@@ -285,9 +290,9 @@ class _Identity extends ConsumerWidget {
                   style: text.headlineMedium,
                 ),
               ),
-              if (age != null)
+              if (details.isNotEmpty)
                 Text(
-                  age,
+                  details,
                   key: const ValueKey('member-age'),
                   style: UsraType.body.copyWith(color: context.usra.inkMuted),
                 ),

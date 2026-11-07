@@ -11,7 +11,11 @@ import 'package:usra/core/design/dr_usra.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/core/security/app_lock.dart';
+import 'package:usra/features/doctors/contact_links.dart' show callUri;
+import 'package:usra/features/family/profile_form_screen.dart'
+    show relationships;
 import 'package:usra/features/medicines/medicines_providers.dart';
+import 'package:usra/l10n/app_localizations.dart';
 
 import '../support/fake_lock.dart';
 
@@ -505,7 +509,153 @@ void main() {
     });
   });
 
+  group('relationship and emergency contact on the person', () {
+    testWidgets(
+      'the person form saves them and the page shows the relationship',
+      (tester) async {
+        phone(tester, height: 2000);
+        final id = (await tester.runAsync(
+          () => db.addProfile('ليلى', birthDate: DateTime(2026, 3, 2)),
+        ))!;
+        await tester.pumpWidget(app());
+        await settleDb(tester);
+        await open(tester, '/family/$id/edit');
+        await tester.tap(
+          find.byKey(const ValueKey('profile-relationship-daughter')),
+        );
+        await tester.pump();
+        await tester.enterText(
+          find.byKey(const ValueKey('profile-emergency-phone')),
+          '010 1234 5678',
+        );
+        await tester.enterText(
+          find.byKey(const ValueKey('profile-emergency-name')),
+          'آية، مامتها',
+        );
+        await tester.tap(find.byKey(const ValueKey('profile-save')));
+        await settleDb(tester);
+        final saved = (await tester.runAsync(() => db.watchProfile(id).first))!;
+        expect(saved.relationship, 'daughter');
+        expect(saved.emergencyPhone, '010 1234 5678');
+        expect(saved.emergencyContactName, 'آية، مامتها');
+        expect(find.textContaining('بنتك'), findsOneWidget);
+
+        // Opening it again shows what's saved, and tapping again clears it.
+        await open(tester, '/family/$id/edit');
+        await tester.tap(
+          find.byKey(const ValueKey('profile-relationship-daughter')),
+        );
+        await tester.pump();
+        await tester.enterText(
+          find.byKey(const ValueKey('profile-emergency-phone')),
+          '',
+        );
+        await tester.tap(find.byKey(const ValueKey('profile-save')));
+        await settleDb(tester);
+        final cleared = (await tester.runAsync(
+          () => db.watchProfile(id).first,
+        ))!;
+        expect(cleared.relationship, isNull);
+        expect(cleared.emergencyPhone, isNull);
+        expect(cleared.emergencyContactName, 'آية، مامتها');
+        expect(find.textContaining('بنتك'), findsNothing);
+      },
+    );
+
+    testWidgets('a number with no digits isn\'t saved', (tester) async {
+      phone(tester, height: 2000);
+      final id = (await tester.runAsync(() => db.addProfile('ليلى')))!;
+      await tester.pumpWidget(app());
+      await settleDb(tester);
+      await open(tester, '/family/$id/edit');
+      await tester.enterText(
+        find.byKey(const ValueKey('profile-emergency-phone')),
+        'ماما',
+      );
+      await tester.tap(find.byKey(const ValueKey('profile-save')));
+      await settleDb(tester);
+      expect(find.text('ده مش رقم تليفون.'), findsOneWidget);
+      final saved = (await tester.runAsync(() => db.watchProfile(id).first))!;
+      expect(saved.emergencyPhone, isNull);
+    });
+
+    testWidgets('the person using the app isn\'t asked how they\'re related', (
+      tester,
+    ) async {
+      phone(tester, height: 2000);
+      final id = (await tester.runAsync(() => db.addProfile('آية')))!;
+      await tester.pumpWidget(app(prefs: {PrefKeys.meProfileId: id}));
+      await settleDb(tester);
+      await open(tester, '/family/$id/edit');
+      expect(
+        find.byKey(const ValueKey('profile-relationship-son')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey('profile-emergency-phone')),
+        findsOneWidget,
+      );
+    });
+
+    test('every relationship has words, in both languages', () {
+      for (final code in ['ar', 'en']) {
+        final l = lookupAppLocalizations(Locale(code));
+        for (final r in relationships) {
+          expect(l.relationshipMine(r), isNotEmpty, reason: '$code $r');
+          if (r != 'other') {
+            expect(l.relationshipYours(r), isNotEmpty, reason: '$code $r');
+          }
+        }
+        expect(l.relationshipYours('other'), isEmpty);
+      }
+    });
+  });
+
   group('Emergency', () {
+    testWidgets('the number and whose it is show at the top, and it calls', (
+      tester,
+    ) async {
+      final id = (await tester.runAsync(
+        () => db.addProfile(
+          'ليلى',
+          emergencyPhone: '٠١٠ ١٢٣٤ ٥٦٧٨',
+          emergencyContactName: 'آية، مامتها',
+        ),
+      ))!;
+      phone(tester);
+      await tester.pumpWidget(app());
+      await settleDb(tester);
+      await open(tester, '/family/$id/emergency');
+      expect(find.text('آية، مامتها'), findsOneWidget);
+      expect(find.text('٠١٠ ١٢٣٤ ٥٦٧٨'), findsOneWidget);
+      // It's above the facts, in the same place on the lock screen's card.
+      expect(
+        tester.getTopLeft(find.byKey(const ValueKey('emergency-contact'))).dy,
+        lessThan(
+          tester.getTopLeft(find.byKey(const ValueKey('emergency-card'))).dy,
+        ),
+      );
+      expect(callUri('٠١٠ ١٢٣٤ ٥٦٧٨').toString(), 'tel:01012345678');
+    });
+
+    testWidgets('a number with no name still shows; no number shows nothing', (
+      tester,
+    ) async {
+      final (withNumber, without) = (await tester.runAsync(
+        () async => (
+          await db.addProfile('ليلى', emergencyPhone: '0101234'),
+          await db.addProfile('يوسف'),
+        ),
+      ))!;
+      phone(tester);
+      await tester.pumpWidget(app());
+      await settleDb(tester);
+      await open(tester, '/family/$withNumber/emergency');
+      expect(find.text('رقم للطوارئ'), findsOneWidget);
+      await open(tester, '/family/$without/emergency');
+      expect(find.byKey(const ValueKey('emergency-contact')), findsNothing);
+    });
+
     testWidgets('the call comes first, then what a paramedic needs', (
       tester,
     ) async {
