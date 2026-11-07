@@ -93,9 +93,7 @@ class InsuranceCardScreen extends ConsumerWidget {
           ),
           FilledButton(
             key: const ValueKey('insurance-delete-confirm'),
-            style: FilledButton.styleFrom(
-              backgroundColor: UsraColors.emergency,
-            ),
+            style: FilledButton.styleFrom(backgroundColor: dialog.usra.urgent),
             onPressed: () => Navigator.pop(dialog, true),
             child: Text(l.insuranceDelete),
           ),
@@ -177,7 +175,7 @@ class _Details extends StatelessWidget {
                   Text(
                     label,
                     style: text.labelLarge?.copyWith(
-                      color: UsraColors.textMuted,
+                      color: context.usra.inkMuted,
                     ),
                   ),
                   SelectableText(value, style: text.titleLarge),
@@ -203,7 +201,7 @@ class _ShareButton extends ConsumerWidget {
       key: const ValueKey('insurance-share'),
       style: FilledButton.styleFrom(
         minimumSize: const Size(0, 56),
-        backgroundColor: Severity.good.foreground,
+        backgroundColor: Severity.good.foregroundOf(context),
       ),
       // Wait for the name: the message is useless without it.
       onPressed: person == null ? null : () => _share(context, ref, person),

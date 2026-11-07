@@ -120,7 +120,7 @@ Future<void> shareVaccinationRecord(
                         Text(
                           l.reportOnPhone,
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: UsraColors.textMuted),
+                              ?.copyWith(color: context.usra.inkMuted),
                         ),
                       ],
                     ),
@@ -230,7 +230,7 @@ class _DoctorSummaryScreenState extends ConsumerState<DoctorSummaryScreen> {
     final profile = ref.watch(profileProvider(id));
     final today = ref.watch(todayProvider);
     final muted = Theme.of(context).textTheme.bodySmall
-        ?.copyWith(color: UsraColors.textMuted);
+        ?.copyWith(color: context.usra.inkMuted);
     return Scaffold(
       appBar: AppBar(
         title: Text(l.memberDoctorSummary),

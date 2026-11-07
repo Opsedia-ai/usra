@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -76,7 +76,7 @@ class _Section extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.event_repeat_outlined, color: UsraColors.primary),
+            Icon(Icons.event_repeat_outlined, color: context.usra.primary),
             const SizedBox(width: 8),
             Text(l.followUpsTitle, style: text.titleLarge),
           ],
@@ -94,7 +94,7 @@ class _Section extends StatelessWidget {
           ],
         Text(
           l.followUpsDisclaimer,
-          style: text.bodySmall?.copyWith(color: UsraColors.textMuted),
+          style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
         ),
       ],
     );
@@ -127,7 +127,7 @@ class FollowUpTile extends ConsumerWidget {
       key: ValueKey('follow-up-${f.cycleKey}'),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: severity.foreground, width: 1.5),
+        side: BorderSide(color: severity.foregroundOf(context), width: 1.5),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -151,7 +151,7 @@ class FollowUpTile extends ConsumerWidget {
                           style: text.titleMedium,
                         ),
                         const SizedBox(height: 6),
-                        SeverityChip(
+                        StatusChip(
                           severity: severity,
                           label: overdue
                               ? l.followUpOverdue(date)
@@ -176,7 +176,7 @@ class FollowUpTile extends ConsumerWidget {
               if (f.source != null)
                 Text(
                   l.followUpSource(f.source!),
-                  style: text.bodySmall?.copyWith(color: UsraColors.textMuted),
+                  style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
                 ),
               if (type != null)
                 Align(

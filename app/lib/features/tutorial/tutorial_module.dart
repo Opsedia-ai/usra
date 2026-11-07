@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design/dr_usra.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
@@ -60,7 +60,7 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
   List<_Page> _content(AppLocalizations l, bool elder) => elder
       ? [
           _Page(
-            DrUsraPose.hello,
+            DrUsraPose.welcome,
             l.tutorialWelcomeTitle,
             l.tutorialElderWelcomeBody,
           ),
@@ -70,19 +70,19 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
             l.tutorialElderButtonsBody,
           ),
           _Page(
-            DrUsraPose.caring,
+            DrUsraPose.explaining,
             l.tutorialElderEmergencyTitle,
             l.tutorialElderEmergencyBody,
           ),
         ]
       : [
           _Page(
-            DrUsraPose.hello,
+            DrUsraPose.welcome,
             l.tutorialWelcomeTitle,
             l.tutorialWelcomeBody,
           ),
           _Page(
-            DrUsraPose.caring,
+            DrUsraPose.explaining,
             l.tutorialPrivacyTitle,
             l.tutorialPrivacyBody,
           ),
@@ -101,12 +101,12 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
               runSpacing: 8,
               children: [
                 for (final s in Severity.values)
-                  SeverityChip(severity: s, label: severityLabel(l, s)),
+                  StatusChip(severity: s, label: severityLabel(l, s)),
               ],
             ),
           ),
           _Page(
-            DrUsraPose.reminding,
+            DrUsraPose.explaining,
             l.tutorialEmergencyTitle,
             l.tutorialEmergencyBody,
           ),
@@ -174,7 +174,7 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
                         l.tutorialStep(_index + 1, pages.length),
                         key: const ValueKey('tutorial-step'),
                         style: text.bodyMedium?.copyWith(
-                          color: UsraColors.textMuted,
+                          color: context.usra.inkMuted,
                         ),
                       ),
                     ),
@@ -268,7 +268,7 @@ class _TutorialPage extends StatelessWidget {
               Text(
                 page.body,
                 style: (elder ? text.titleLarge : text.bodyLarge)?.copyWith(
-                  color: UsraColors.text,
+                  color: context.usra.ink,
                 ),
                 textAlign: TextAlign.center,
               ),

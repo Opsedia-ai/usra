@@ -66,8 +66,8 @@ class EpisodeListScreen extends ConsumerWidget {
                     leading: Icon(
                       Icons.thermostat,
                       color: e.endedAt == null
-                          ? Severity.actSoon.foreground
-                          : UsraColors.textMuted,
+                          ? Severity.actSoon.foregroundOf(context)
+                          : context.usra.inkMuted,
                     ),
                     title: Text(
                       e.endedAt == null

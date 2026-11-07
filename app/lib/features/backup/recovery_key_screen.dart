@@ -162,7 +162,7 @@ class _RecoveryKeyScreenState extends ConsumerState<RecoveryKeyScreen> {
             _error!,
             key: const ValueKey('recovery-confirm-error'),
             style: text.bodyMedium?.copyWith(
-              color: Severity.actSoon.foreground,
+              color: Severity.actSoon.foregroundOf(context),
             ),
           ),
           const SizedBox(height: 12),
@@ -275,19 +275,22 @@ class _Warning extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(14),
     decoration: BoxDecoration(
-      color: Severity.actSoon.background,
+      color: Severity.actSoon.backgroundOf(context),
       borderRadius: BorderRadius.circular(16),
     ),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(Icons.key_off_outlined, color: Severity.actSoon.foreground),
+        Icon(
+          Icons.key_off_outlined,
+          color: Severity.actSoon.foregroundOf(context),
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodyMedium
-                ?.copyWith(color: Severity.actSoon.foreground),
+                ?.copyWith(color: Severity.actSoon.foregroundOf(context)),
           ),
         ),
       ],

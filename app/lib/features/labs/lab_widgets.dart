@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../l10n/app_localizations.dart';
 import 'lab_report.dart';
@@ -36,7 +36,7 @@ class LabFlagChip extends StatelessWidget {
   final LabFlag flag;
 
   @override
-  Widget build(BuildContext context) => SeverityChip(
+  Widget build(BuildContext context) => StatusChip(
     severity: labFlagSeverity(flag),
     label: labFlagLabel(AppLocalizations.of(context), flag),
   );
@@ -51,12 +51,12 @@ class LabInfoNote extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
+        Padding(
           padding: EdgeInsetsDirectional.only(end: 8, top: 2),
           child: Icon(
             Icons.info_outline,
             size: 18,
-            color: UsraColors.textMuted,
+            color: context.usra.inkMuted,
           ),
         ),
         Expanded(
@@ -64,7 +64,7 @@ class LabInfoNote extends StatelessWidget {
             AppLocalizations.of(context).labInfoNote,
             key: const ValueKey('lab-info-note'),
             style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: UsraColors.textMuted),
+                ?.copyWith(color: context.usra.inkMuted),
           ),
         ),
       ],
@@ -100,7 +100,7 @@ class LabReportDetails extends StatelessWidget {
         children: [
           Text(
             label,
-            style: text.labelLarge?.copyWith(color: UsraColors.textMuted),
+            style: text.labelLarge?.copyWith(color: context.usra.inkMuted),
           ),
           SelectableText(value, style: text.titleMedium),
         ],
@@ -136,7 +136,7 @@ class LabReportDetails extends StatelessWidget {
               ),
               trailing: t.value == null
                   ? null
-                  : const Icon(Icons.show_chart, color: UsraColors.primary),
+                  : Icon(Icons.show_chart, color: context.usra.primary),
             ),
           ),
       ],

@@ -145,7 +145,7 @@ class _SpendingScreenState extends ConsumerState<SpendingScreen> {
                       key: const ValueKey('spending-total'),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: UsraColors.primary,
+                        color: context.usra.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -306,8 +306,8 @@ class _TrendBars extends StatelessWidget {
                                           .clamp(3, box.maxHeight),
                                 decoration: BoxDecoration(
                                   color: i == totals.length - 1
-                                      ? UsraColors.primary
-                                      : UsraColors.primaryTint,
+                                      ? context.usra.primary
+                                      : context.usra.primarySoft,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                               ),
@@ -386,8 +386,8 @@ class _SplitState extends ConsumerState<_Split> {
                 for (final s in slices)
                   ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: UsraColors.primaryTint,
-                      foregroundColor: UsraColors.primary,
+                      backgroundColor: context.usra.primarySoft,
+                      foregroundColor: context.usra.primary,
                       child: switch (group) {
                         SpendingGroup.type => Icon(
                           types[s.key]?.icon ?? Icons.description_outlined,
@@ -414,8 +414,8 @@ class _SplitState extends ConsumerState<_Split> {
                               : (s.totalMinor / whole).clamp(0, 1),
                           minHeight: 6,
                           borderRadius: BorderRadius.circular(3),
-                          color: UsraColors.primary,
-                          backgroundColor: UsraColors.primaryTint,
+                          color: context.usra.primary,
+                          backgroundColor: context.usra.primarySoft,
                         ),
                       ],
                     ),

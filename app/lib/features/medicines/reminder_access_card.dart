@@ -74,7 +74,7 @@ class _Banner extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Card(
-      color: severity.background,
+      color: severity.backgroundOf(context),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -82,13 +82,13 @@ class _Banner extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, color: severity.foreground),
+                Icon(icon, color: severity.foregroundOf(context)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     title,
                     style: text.titleMedium?.copyWith(
-                      color: severity.foreground,
+                      color: severity.foregroundOf(context),
                     ),
                   ),
                 ),
