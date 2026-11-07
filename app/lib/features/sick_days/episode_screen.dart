@@ -572,7 +572,10 @@ class _Details extends ConsumerWidget {
                       label: Text(l.symptomName(s)),
                       selected: ticked.contains(s),
                       onSelected: (on) async {
-                        if (!await ref.read(saveGateProvider).allow()) return;
+                        // Taking one off corrects what's there.
+                        if (on && !await ref.read(saveGateProvider).allow()) {
+                          return;
+                        }
                         await db.setEpisodeSymptoms(episode.id, [
                           for (final k in Symptom.all)
                             if (k == s ? on : ticked.contains(k)) k,
@@ -690,7 +693,11 @@ class _NotesState extends ConsumerState<_Notes> {
     final e = widget.episode;
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    if (!await ref.read(saveGateProvider).allow()) return;
+    // Changing notes already there corrects them.
+    if ((e.notes ?? '').isEmpty && !await ref.read(saveGateProvider).allow()) {
+      return;
+    }
+    if (!mounted) return;
     await ref
         .read(databaseProvider)
         .saveEpisode(

@@ -67,6 +67,7 @@ class RecordFormScreen extends ConsumerWidget {
         pickPhotos: (source) => _pickPhotos(context, ref, source),
         onSubmit: (result) async {
           if (!await ref.read(saveGateProvider).allow()) return;
+          if (!context.mounted) return;
           final db = ref.read(databaseProvider);
           final store = result.photos.isEmpty
               ? null

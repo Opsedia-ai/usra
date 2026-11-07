@@ -348,11 +348,13 @@ class _PrescriptionFormScreenState
     final l = AppLocalizations.of(context);
     final db = ref.read(databaseProvider);
     final store = ref.read(medicinePhotoStoreProvider);
-    if (widget.prescriptionId == null &&
+    if ((widget.prescriptionId == null ||
+            _items.any((i) => i.medicineId == null)) &&
         !await ref.read(saveGateProvider).allow()) {
       if (mounted) setState(() => _saving = false);
       return;
     }
+    if (!mounted) return;
     final String id;
     try {
       for (var i = 0; i < _photos.length; i++) {

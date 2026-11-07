@@ -8,6 +8,7 @@ import '../../core/design/tokens.dart';
 import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/account_providers.dart';
 import '../home/home_module.dart' show severityLabel;
 
 /// The Dr. Usra walkthrough: Simple Mode's elder tour the first time, and from
@@ -84,7 +85,9 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
           _Page(
             DrUsraPose.explaining,
             l.tutorialPrivacyTitle,
-            l.tutorialPrivacyBody,
+            ref.read(supabaseConfigProvider).isConfigured
+                ? l.tutorialPrivacyBodyAccount
+                : l.tutorialPrivacyBody,
           ),
           _Page(
             DrUsraPose.celebrating,

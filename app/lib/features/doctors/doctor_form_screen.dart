@@ -88,6 +88,7 @@ class _DoctorFormScreenState extends ConsumerState<DoctorFormScreen> {
       if (mounted) setState(() => _saving = false);
       return;
     }
+    if (!mounted) return;
     final String id;
     try {
       id = await ref

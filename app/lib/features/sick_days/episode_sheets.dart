@@ -154,6 +154,7 @@ class _ReadingSheetState extends ConsumerState<_ReadingSheet> {
       if (mounted) setState(() => _saving = false);
       return;
     }
+    if (!mounted) return;
     await ref
         .read(databaseProvider)
         .saveReading(
@@ -362,6 +363,7 @@ class _GivenSheetState extends ConsumerState<_GivenSheet> {
       if (mounted) setState(() => _saving = false);
       return;
     }
+    if (!mounted) return;
     await ref
         .read(databaseProvider)
         .saveGivenMedicine(

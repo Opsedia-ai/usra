@@ -1259,7 +1259,9 @@ class AppDatabase extends _$AppDatabase {
     List<String> photos = const [],
     required List<PrescriptionItemInput> items,
   }) async {
-    if (id == null) newRecordGuard?.call();
+    if (id == null || items.any((i) => i.medicineId == null)) {
+      newRecordGuard?.call();
+    }
     if (items.isEmpty) {
       throw ArgumentError.value(items, 'items', 'needs at least one medicine');
     }

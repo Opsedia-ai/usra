@@ -1916,6 +1916,12 @@ abstract class AppLocalizations {
   /// **'Everything is saved on this phone, encrypted. No account needed.'**
   String get tutorialPrivacyBody;
 
+  /// No description provided for @tutorialPrivacyBodyAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Records are saved on this phone, encrypted. The account doesn\'t hold them.'**
+  String get tutorialPrivacyBodyAccount;
+
   /// No description provided for @tutorialFamilyTitle.
   ///
   /// In en, this message translates to:
@@ -4061,7 +4067,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountGateBody.
   ///
   /// In en, this message translates to:
-  /// **'Saving your first record needs a sign-in. What was typed won\'t be lost.'**
+  /// **'Saving records needs a sign-in. What was typed stays on the page.'**
   String get accountGateBody;
 
   /// No description provided for @accountGateBackupBody.
@@ -6178,7 +6184,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupAutoHint.
   ///
   /// In en, this message translates to:
-  /// **'When you open Usra and a backup is due, it saves an encrypted copy in a folder you choose. No account needed.'**
+  /// **'When you open Usra and a backup is due, it saves an encrypted copy in a folder you choose, never iCloud.'**
   String get backupAutoHint;
 
   /// No description provided for @backupAutoFolder.

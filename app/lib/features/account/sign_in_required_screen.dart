@@ -51,7 +51,9 @@ class _SignInRequiredScreenState extends ConsumerState<SignInRequiredScreen> {
       _error = null;
     });
     try {
-      await ref.read(accountProvider.notifier).signIn(method);
+      await ref
+          .read(accountProvider.notifier)
+          .signIn(method, waitForSetUp: false);
       if (mounted) Navigator.of(context).pop(true);
       return;
     } on AccountException catch (e) {
@@ -150,11 +152,13 @@ class _SignInRequiredScreenState extends ConsumerState<SignInRequiredScreen> {
                 key: const ValueKey('account-privacy-link'),
                 // On this navigator, not the router's: the page must open
                 // above this one, and the form underneath must stay as it is.
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const AboutPrivacyScreen(),
-                  ),
-                ),
+                onPressed: _busy
+                    ? null
+                    : () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const AboutPrivacyScreen(),
+                        ),
+                      ),
                 child: Text(l.accountReadPrivacy),
               ),
             ),

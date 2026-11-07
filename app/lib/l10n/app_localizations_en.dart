@@ -1088,6 +1088,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Everything is saved on this phone, encrypted. No account needed.';
 
   @override
+  String get tutorialPrivacyBodyAccount =>
+      'Records are saved on this phone, encrypted. The account doesn\'t hold them.';
+
+  @override
   String get tutorialFamilyTitle => 'Add your family';
 
   @override
@@ -2514,7 +2518,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountGateBody =>
-      'Saving your first record needs a sign-in. What was typed won\'t be lost.';
+      'Saving records needs a sign-in. What was typed stays on the page.';
 
   @override
   String get accountGateBackupBody => 'Backing up needs a sign-in.';
@@ -3887,7 +3891,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backupAutoHint =>
-      'When you open Usra and a backup is due, it saves an encrypted copy in a folder you choose. No account needed.';
+      'When you open Usra and a backup is due, it saves an encrypted copy in a folder you choose, never iCloud.';
 
   @override
   String get backupAutoFolder => 'Folder';

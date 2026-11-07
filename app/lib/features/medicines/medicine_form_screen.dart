@@ -401,6 +401,7 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
       if (mounted) setState(() => _saving = false);
       return;
     }
+    if (!mounted) return;
     final String id;
     try {
       // Copy picked photos in, one at a time, so a retry after a failure

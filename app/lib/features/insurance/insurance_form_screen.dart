@@ -138,6 +138,7 @@ class _InsuranceFormScreenState extends ConsumerState<InsuranceFormScreen> {
       if (mounted) setState(() => _saving = false);
       return;
     }
+    if (!mounted) return;
     final db = ref.read(databaseProvider);
     final photos = ref.read(cardPhotoStoreProvider);
     final String id;

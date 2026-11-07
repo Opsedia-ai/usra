@@ -410,6 +410,7 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
       if (mounted) setState(() => _submitting = false);
       return;
     }
+    if (!mounted) return;
     final db = ref.read(databaseProvider);
     final store = _photos.isEmpty && _pdfs.isEmpty
         ? null

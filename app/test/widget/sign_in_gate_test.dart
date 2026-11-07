@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -224,6 +226,37 @@ void main() {
     expect(await doctors(tester), 0);
   });
 
+  testWidgets('a form left behind doesn\'t save when sign-in finishes', (
+    tester,
+  ) async {
+    phone(tester);
+    await open(tester, '/doctors/new');
+    await tester.enterText(find.byKey(name), 'د. منى');
+    await tapSave(tester);
+    GoRouter.of(tester.element(find.byKey(page))).go('/records');
+    await settle(tester);
+    await tester.tap(find.byKey(google));
+    await settle(tester);
+    expect(tester.takeException(), isNull);
+    expect(await doctors(tester), 0);
+  });
+
+  testWidgets('a slow network after sign-in doesn\'t hold up the save', (
+    tester,
+  ) async {
+    phone(tester);
+    gateway.holdRegister = Completer<void>();
+    await open(tester, '/doctors/new');
+    await tester.enterText(find.byKey(name), 'د. منى');
+    await tapSave(tester);
+    await tester.tap(find.byKey(google));
+    await settle(tester);
+    expect(find.byKey(page), findsNothing);
+    expect(await doctors(tester), 1);
+    gateway.holdRegister!.complete();
+    await settle(tester);
+  });
+
   testWidgets('correcting a saved record doesn\'t ask', (tester) async {
     phone(tester);
     final id = await tester.runAsync(() => db.saveDoctor(name: 'د. منى'));
@@ -377,6 +410,13 @@ void main() {
         type: 'visit',
         occurredAt: now,
       );
+      final episode = await db.saveEpisode(profileId: me, startedAt: now);
+      final prescription = await db.savePrescription(
+        profileId: me,
+        prescribedOn: now,
+        items: const [PrescriptionItemInput(name: 'x')],
+      );
+      final kept = await db.watchPrescriptionMedicines(prescription).first;
       db.newRecordGuard = () => throw const SignInRequiredException();
       await db.saveMedicine(
         id: medicine,
@@ -387,6 +427,26 @@ void main() {
       await db.updateEvent(event, occurredAt: now, dataJson: '{}');
       await db.logDose(medicine, now, 'taken');
       await db.setMedicineActive(medicine, false);
+      await db.setEpisodeSymptoms(episode, const []);
+      // A saved prescription can be corrected, but not gain a medicine.
+      await db.savePrescription(
+        id: prescription,
+        profileId: me,
+        prescribedOn: now,
+        items: [PrescriptionItemInput(medicineId: kept.single.id, name: 'y')],
+      );
+      await expectLater(
+        db.savePrescription(
+          id: prescription,
+          profileId: me,
+          prescribedOn: now,
+          items: [
+            PrescriptionItemInput(medicineId: kept.single.id, name: 'y'),
+            const PrescriptionItemInput(name: 'z'),
+          ],
+        ),
+        throwsA(isA<SignInRequiredException>()),
+      );
       await db.softDeleteEvent(event);
       await db.softDeleteMedicine(medicine);
       await db.softDeleteProfile(me);

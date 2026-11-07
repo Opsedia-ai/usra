@@ -95,6 +95,11 @@ Future<bool> confirmRemovingUserRecords(
   return ok ?? false;
 }
 
+/// Whether this child already has a saved plan, so saving only updates it.
+Future<bool> _hasVaccinePlan(AppDatabase db, String profileId) async =>
+    (await db.eventsOfTypes({VaccinePlanFields.type}))
+        .any((e) => e.profileId == profileId);
+
 /// Saves [changes] in one transaction; nothing when there are none.
 Future<void> applyVaccineChanges(
   AppDatabase db,
@@ -583,12 +588,16 @@ class _DoseSheetState extends ConsumerState<_DoseSheet> {
     if (!mounted) return;
     setState(() => _saving = true);
     final plan = child.plan.withNote(s.dose.key, _note.text);
-    // Taking a tick off or changing a date corrects what's there.
-    if ((plan != child.plan || changes.add.isNotEmpty) &&
-        !await ref.read(saveGateProvider).allow()) {
+    // Taking a tick off, changing a date or a saved plan's note corrects
+    // what's there.
+    final isNew =
+        changes.add.isNotEmpty ||
+        (plan != child.plan && !await _hasVaccinePlan(db, child.profile.id));
+    if (isNew && !await ref.read(saveGateProvider).allow()) {
       if (mounted) setState(() => _saving = false);
       return;
     }
+    if (!mounted) return;
     try {
       if (plan != child.plan) {
         await db.saveSingletonEvent(
@@ -906,10 +915,13 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
     }
     if (!mounted) return;
     setState(() => _saving = true);
-    if (!await ref.read(saveGateProvider).allow()) {
+    final isNew =
+        changes.add.isNotEmpty || !await _hasVaccinePlan(db, profile.id);
+    if (isNew && !await ref.read(saveGateProvider).allow()) {
       if (mounted) setState(() => _saving = false);
       return;
     }
+    if (!mounted) return;
     try {
       await db.saveSingletonEvent(
         profileId: profile.id,

@@ -109,6 +109,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
       if (mounted) setState(() => _saving = false);
       return;
     }
+    if (!mounted) return;
     final db = ref.read(databaseProvider);
     final String savedId;
     try {

@@ -1086,7 +1086,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tutorialPrivacyBody =>
-      'كل حاجة متسجّلة على الموبايل ده ومتشفّرة. مش محتاج حساب.';
+      'كل حاجة متسجّلة على الموبايل ده ومتشفّرة، من غير حساب.';
+
+  @override
+  String get tutorialPrivacyBodyAccount =>
+      'السجلات متسجّلة على الموبايل ده ومتشفّرة، والحساب مش بيشيلها.';
 
   @override
   String get tutorialFamilyTitle => 'ضيف عيلتك';
@@ -2525,7 +2529,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accountGateBody =>
-      'حفظ أول سجل محتاج تسجيل دخول. اللي اتكتب مش هيضيع.';
+      'حفظ السجلات محتاج تسجيل دخول. اللي اتكتب بيفضل في الصفحة.';
 
   @override
   String get accountGateBackupBody => 'النسخة الاحتياطية محتاجة تسجيل دخول.';
@@ -3910,7 +3914,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get backupAutoHint =>
-      'لما تفتح أسرة ويكون ميعاد النسخة جه، بتتحفظ نسخة متشفرة في فولدر تختاره. من غير حساب.';
+      'لما أسرة تتفتح ويكون ميعاد النسخة جه، بتتحفظ نسخة متشفرة في فولدر من اختيارك، مش iCloud.';
 
   @override
   String get backupAutoFolder => 'الفولدر';

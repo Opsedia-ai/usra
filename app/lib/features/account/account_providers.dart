@@ -114,13 +114,18 @@ class AccountController extends AsyncNotifier<AccountState> {
   /// Opens the [method]'s sheet. Throws [AccountException], with
   /// [AccountErrorKind.cancelled] if the person closes the sheet; either way
   /// they stay signed out.
-  Future<void> signIn(SignInMethod method) async {
+  ///
+  /// With [waitForSetUp] false this returns as soon as the person is signed
+  /// in, for a save waiting behind it: the setup is best effort and may be
+  /// slow, and the save doesn't need the network.
+  Future<void> signIn(SignInMethod method, {bool waitForSetUp = true}) async {
     final user = await switch (method) {
       SignInMethod.google => _gateway.signInWithGoogle(),
       SignInMethod.apple => _gateway.signInWithApple(),
     };
     state = AsyncData(AccountSignedIn(user));
-    await _startSetUp(user);
+    final setUp = _startSetUp(user);
+    if (waitForSetUp) await setUp;
   }
 
   /// The setup after sign-in, while it runs. Sign-out and delete wait for

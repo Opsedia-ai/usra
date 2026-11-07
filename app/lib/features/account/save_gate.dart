@@ -19,8 +19,8 @@ enum SaveGateReason { record, backup }
 /// and signing in carries on with the same save.
 ///
 /// With no cloud configured this says yes at once and never starts the account
-/// backend. So does anything that can't be answered: this isn't a security
-/// check, and a broken check mustn't stop a family saving a health record. A
+/// backend. So does anything that can't be answered, or not soon: this isn't a
+/// security check, and a broken check mustn't stop a family saving a record. A
 /// session already on the phone counts as signed in, with or without a network.
 ///
 /// Later: seats and the trial or pass check belong here too, in one place.
@@ -34,7 +34,9 @@ class SaveGate {
     if (!_ref.read(supabaseConfigProvider).isConfigured) return true;
     final AccountState account;
     try {
-      account = await _ref.read(accountProvider.future);
+      account = await _ref
+          .read(accountProvider.future)
+          .timeout(const Duration(seconds: 5));
     } catch (_) {
       return true;
     }

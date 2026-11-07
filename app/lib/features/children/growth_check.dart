@@ -117,7 +117,7 @@ class _GrowthCheckCardState extends ConsumerState<GrowthCheckCard> {
   Future<void> _save() async {
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    if (!await ref.read(saveGateProvider).allow()) return;
+    if (!await ref.read(saveGateProvider).allow() || !mounted) return;
     try {
       await ref
           .read(databaseProvider)
