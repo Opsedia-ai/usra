@@ -258,8 +258,10 @@ Future<void> main() async {
     }
   }
 
-  // The app starts in Arabic; iOS fixes action labels at start-up.
-  final startup = lookupAppLocalizations(const Locale('ar'));
+  // The app starts in the saved language; iOS fixes action labels at start-up.
+  final startup = lookupAppLocalizations(
+    Locale(preferences.getString(PrefKeys.language) ?? 'ar'),
+  );
   LocalNotificationScheduler? notifications;
   try {
     notifications = await LocalNotificationScheduler.init(
@@ -386,11 +388,9 @@ Future<void> main() async {
     protection = protectAppFiles(root, photoFolders);
     if (restored) {
       try {
+        // First, so nothing below can leave the restored family behind Welcome.
+        await rememberRestore(preferences, staged.manifest.createdAt);
         await recoveryKeys.write(recoveryKey);
-        await preferences.setInt(
-          PrefKeys.lastBackupAt,
-          staged.manifest.createdAt.millisecondsSinceEpoch,
-        );
         await autoBackupStore.save(
           autoBackupStore.current.afterRestore(DateTime.now()),
         );

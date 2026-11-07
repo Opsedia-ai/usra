@@ -16,11 +16,20 @@ final routerProvider = Provider<GoRouter>((ref) {
   final hasTutorial = registry.fullScreenRoutes.any(
     (r) => r is GoRoute && r.path == tutorialPath,
   );
+  final hasWelcome = registry.fullScreenRoutes.any(
+    (r) => r is GoRoute && r.path == welcomePath,
+  );
   final router = buildRouter(
     registry,
-    // While the Dr. Usra tour is pending, every page leads to it; it goes
-    // back to where the user was once finished.
+    // While the first run is pending, every page leads to it. Then, while the
+    // Dr. Usra tour is pending, every page leads to that; it goes back to
+    // where the user was once finished.
     redirect: (_, state) {
+      if (hasWelcome) {
+        final onWelcome = state.uri.path.startsWith(welcomePath);
+        if (ref.read(onboardingProvider)) return onWelcome ? null : welcomePath;
+        if (onWelcome) return '/home';
+      }
       if (!hasTutorial || state.uri.path == tutorialPath) return null;
       if (!ref.read(tutorialProvider)) return null;
       return Uri(
@@ -30,6 +39,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
   );
   ref.listen(tutorialProvider, (_, _) => router.refresh());
+  ref.listen(onboardingProvider, (_, _) => router.refresh());
   ref.onDispose(router.dispose);
   return router;
 });

@@ -2445,7 +2445,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lockForgotBody =>
-      'عشان سجلات عيلتك تفضل سر، مفيش حاجة تعدّي الرقم السري، ولا حتى إحنا.\n\nعشان تبدأ من جديد:\n1. امسح بيانات أسرة. على أندرويد: إعدادات الموبايل › التطبيقات › أسرة › التخزين › مسح البيانات. على الآيفون: امسح أسرة ونزّلها تاني. ده بيمسح كل حاجة أسرة شايلاها على الموبايل ده.\n2. افتح أسرة ورجّع آخر نسخة احتياطية بمفتاح الاسترجاع (المزيد › النسخة الاحتياطية).\n\nمن غير نسخة احتياطية ومفتاحها، السجلات مش هترجع.';
+      'عشان سجلات عيلتك تفضل سر، مفيش حاجة تعدّي الرقم السري، ولا حتى إحنا.\n\nعشان تبدأ من جديد:\n1. امسح بيانات أسرة. على أندرويد: إعدادات الموبايل › التطبيقات › أسرة › التخزين › مسح البيانات. على الآيفون: امسح أسرة ونزّلها تاني. ده بيمسح كل حاجة أسرة شايلاها على الموبايل ده.\n2. افتح أسرة ورجّع آخر نسخة احتياطية بمفتاح الاسترجاع («عندي نسخة احتياطية» في أول شاشة).\n\nمن غير نسخة احتياطية ومفتاحها، السجلات مش هترجع.';
 
   @override
   String get lockEmergency => 'معلومات الطوارئ';
@@ -3358,6 +3358,111 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sickDayNotesSaved => 'الملاحظات اتحفظت';
 
   @override
+  String sickDayPersonUnwell(String sex, String name) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'male': '$name تعبان',
+      'female': '$name تعبانة',
+      'other': '$name: يوم تعب',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayPersonWasUnwell(String sex, String name) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'male': '$name كان تعبان',
+      'female': '$name كانت تعبانة',
+      'other': '$name: يوم تعب',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sickDaySinceToday(String time) {
+    return 'من النهارده $time';
+  }
+
+  @override
+  String sickDaySinceYesterday(String time) {
+    return 'من امبارح $time';
+  }
+
+  @override
+  String get sickDayLatestReading => 'آخر قراءة';
+
+  @override
+  String sickDayFeverLogged(String duration) {
+    return 'سخونية متسجلة: $duration';
+  }
+
+  @override
+  String get sickDayFeverUnderHour => 'أقل من ساعة';
+
+  @override
+  String sickDayFeverHours(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown ساعة',
+      few: '$shown ساعات',
+      two: 'ساعتين',
+      one: 'ساعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayFeverDays(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown يوم',
+      few: '$shown أيام',
+      two: 'يومين',
+      one: 'يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayRecordedGiven(String what, String time) {
+    return 'مسجل: $what · $time';
+  }
+
+  @override
+  String sickDayChartSemantics(
+    String start,
+    String end,
+    String values,
+    String fever,
+  ) {
+    return 'القراءات من $start لحد $end: $values. الخط المتقطع عند $fever، من عندها تبقى سخونية.';
+  }
+
+  @override
+  String get sickDayChartThen => ' ثم ';
+
+  @override
+  String get sickDayAddReadingShort => 'قراءة حرارة';
+
+  @override
+  String get sickDayGivenShort => 'دوا اتاخد';
+
+  @override
+  String get sickDayAllReadings => 'كل القراءات';
+
+  @override
+  String get sickDayNoSymptoms => 'لسه مفيش أعراض متسجلة.';
+
+  @override
+  String sickDayCallDoctorNamed(String name) {
+    return 'كلّم $name';
+  }
+
+  @override
+  String get sickDayBack => 'رجوع';
+
+  @override
   String get readingValue => 'الحرارة';
 
   @override
@@ -3934,6 +4039,90 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get homeLoadError =>
       'مش قادرين نقرا البيانات دلوقتي. اقفل التطبيق وافتحه تاني.';
+
+  @override
+  String homeGreetingNamed(String greeting, String name) {
+    return '$greeting يا $name';
+  }
+
+  @override
+  String get welcomeHeadline => 'صحة العيلة كلها\nفي مكان واحد';
+
+  @override
+  String get welcomePrivacyLine =>
+      'ملف لكل فرد وتذكير بالدوا. بياناتك على موبايلك ومتشفرة، وإحنا مش بنشوفها.';
+
+  @override
+  String get welcomeStart => 'يلا نبدأ';
+
+  @override
+  String get welcomeHaveBackup => 'عندي نسخة احتياطية';
+
+  @override
+  String get welcomeDisclaimer => 'أسرة مش جهاز طبي ومش بديل عن الدكتور.';
+
+  @override
+  String get welcomePrivacy => 'الخصوصية';
+
+  @override
+  String get welcomeTerms => 'الشروط';
+
+  @override
+  String get welcomeLanguageOther => 'English';
+
+  @override
+  String onboardingStep(String current, String total) {
+    return 'خطوة $current من $total';
+  }
+
+  @override
+  String get onboardingBack => 'رجوع';
+
+  @override
+  String get countryTitle => 'البلد';
+
+  @override
+  String get countryHint => 'علشان جدول التطعيمات ورقم الإسعاف يبقوا صح.';
+
+  @override
+  String get countryEgypt => 'مصر';
+
+  @override
+  String get countryEgyptDetail => 'وزارة الصحة والسكان · الإسعاف ١٢٣';
+
+  @override
+  String get countrySaudi => 'السعودية';
+
+  @override
+  String get countryJordan => 'الأردن';
+
+  @override
+  String get countrySoon => 'قريب';
+
+  @override
+  String get aboutYouTitle => 'أول ملف في عيلتك';
+
+  @override
+  String get aboutYouHint => 'ده ملفك، وممكن يتعدّل بعدين.';
+
+  @override
+  String get aboutYouSex => 'النوع';
+
+  @override
+  String get aboutYouSexHint => 'علشان منحنيات النمو والحمل.';
+
+  @override
+  String get aboutYouDone => 'يلا بينا';
+
+  @override
+  String get lockKeyFirstTitle => 'مفتاح الاسترجاع الأول';
+
+  @override
+  String get lockKeyFirstBody =>
+      'لو الرقم السري اتنسى، مفيش طريقة تانية تفتح أسرة، ولا حتى إحنا. الطريقة الوحيدة هي مسح بيانات أسرة واسترجاع نسخة احتياطية بمفتاح الاسترجاع بتاعها. من غير نسخة احتياطية السجلات بتضيع.\n\nقبل الرقم السري هنعمل مفتاح الاسترجاع، يتكتب في مكان أمان.';
+
+  @override
+  String get lockKeyFirstContinue => 'اعمل مفتاح الاسترجاع';
 
   @override
   String personAddFor(String name) {

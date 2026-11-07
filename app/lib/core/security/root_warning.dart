@@ -40,7 +40,11 @@ class _RootWarningState extends ConsumerState<RootWarning> {
 
   Future<void> _maybeShow() async {
     if (_done || _checking || !mounted) return;
-    if (_lock.locked || ref.read(tutorialProvider)) return;
+    if (_lock.locked ||
+        ref.read(tutorialProvider) ||
+        ref.read(onboardingProvider)) {
+      return;
+    }
     _checking = true;
     try {
       final prefs = ref.read(keyValueStoreProvider);
@@ -91,6 +95,9 @@ class _RootWarningState extends ConsumerState<RootWarning> {
     // The tour ending is one of the moments to look again.
     ref.listen(tutorialProvider, (_, showing) {
       if (!showing) _maybeShow();
+    });
+    ref.listen(onboardingProvider, (_, pending) {
+      if (!pending) _maybeShow();
     });
     return widget.child;
   }

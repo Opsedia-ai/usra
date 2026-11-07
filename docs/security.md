@@ -90,8 +90,10 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   cover (`coverUntilReady` / `uncover`). Covers every page;
   notification / widget deep links wait until unlocked. Loosening a setting
   needs the PIN. No reset that skips the PIN: wipe app data and restore a
-  backup with the recovery key (turning the lock on suggests a backup
-  first). Emergency cards on the lock screen are opt-in per person.
+  backup with the recovery key. So without a backup, turning the lock on
+  says what a forgotten PIN means, offers a backup, and always makes the
+  recovery key first; the phone's own PIN isn't accepted as a way in, since
+  family members nearby often know it. Emergency cards on the lock screen are opt-in per person.
   `app/lib/core/security/`, `app/lib/features/app_lock/`.
 - **Notifications**: payloads hold only the medicine id, dose time and
   language; the text is rebuilt from the current settings each time a
@@ -309,7 +311,7 @@ with the cloud features (M6).
 | # | Item | Pri | Notes |
 | --- | --- | --- | --- |
 | S1 | **Encrypt photos at rest** | P0 | Done (see section 3); verify on a device with existing photos. Was the biggest gap: insurance cards and prescriptions were plain files. Encrypt each file with XChaCha20-Poly1305 using a file key kept in the Keystore (or derived from the DB key); decrypt into memory for display; migrate existing files; share decrypts to a temp file that is deleted after. |
-| S2 | **App lock** | P0 | Optional PIN plus biometrics (`local_auth`), on by default from onboarding with skip. Re-lock after N minutes in the background. Simple Mode keeps it easy (biometrics first, big PIN pad). |
+| S2 | **App lock** | P0 | Optional PIN plus biometrics (`local_auth`), off until a PIN is chosen. Offered after Simple Mode's first tour and in More › App lock; the shorter first run doesn't ask. Re-lock after N minutes in the background. Simple Mode keeps it easy (biometrics first, big PIN pad). |
 | S3 | **Screen privacy** | P0 | Blur the app in the recent-apps switcher (iOS snapshot cover, Android `FLAG_SECURE` or `setRecentsScreenshotEnabled(false)`). `FLAG_SECURE` on the recovery key, emergency card is exempt so it can be shown. |
 | S4 | **Discreet mode** | P0 | Setting to show "Time for your medicine" instead of medicine/person names in notifications and the widget. Default on for the lock screen. |
 | S5 | **No PHI in logs** | P0 | Replace `debugPrint` of exceptions with a logger that is silent in release and never prints record data. Lint/grep check in CI for `print(`/`debugPrint(` outside the logger. |

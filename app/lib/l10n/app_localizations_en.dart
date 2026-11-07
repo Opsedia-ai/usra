@@ -2437,7 +2437,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lockForgotBody =>
-      'To keep your family\'s records private, nothing can skip the PIN, not even us.\n\nTo start again:\n1. Remove Usra\'s data. On Android: phone Settings › Apps › Usra › Storage › Clear data. On iPhone: delete Usra and install it again. This deletes everything Usra keeps on this phone.\n2. Open Usra and restore your latest backup with your recovery key (More › Backup).\n\nWithout a backup and its recovery key, the records can\'t be brought back.';
+      'To keep your family\'s records private, nothing can skip the PIN, not even us.\n\nTo start again:\n1. Remove Usra\'s data. On Android: phone Settings › Apps › Usra › Storage › Clear data. On iPhone: delete Usra and install it again. This deletes everything Usra keeps on this phone.\n2. Open Usra and restore your latest backup with your recovery key (\"I have a backup\" on the first screen).\n\nWithout a backup and its recovery key, the records can\'t be brought back.';
 
   @override
   String get lockEmergency => 'Emergency info';
@@ -3336,6 +3336,107 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sickDayNotesSaved => 'Notes saved';
 
   @override
+  String sickDayPersonUnwell(String sex, String name) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'male': '$name is unwell',
+      'female': '$name is unwell',
+      'other': '$name is unwell',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayPersonWasUnwell(String sex, String name) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'male': '$name was unwell',
+      'female': '$name was unwell',
+      'other': '$name was unwell',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sickDaySinceToday(String time) {
+    return 'Since today $time';
+  }
+
+  @override
+  String sickDaySinceYesterday(String time) {
+    return 'Since yesterday $time';
+  }
+
+  @override
+  String get sickDayLatestReading => 'Latest reading';
+
+  @override
+  String sickDayFeverLogged(String duration) {
+    return 'Fever logged: $duration';
+  }
+
+  @override
+  String get sickDayFeverUnderHour => 'under an hour';
+
+  @override
+  String sickDayFeverHours(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayFeverDays(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayRecordedGiven(String what, String time) {
+    return 'Recorded: $what · $time';
+  }
+
+  @override
+  String sickDayChartSemantics(
+    String start,
+    String end,
+    String values,
+    String fever,
+  ) {
+    return 'Readings from $start to $end: $values. The dashed line is at $fever, where a fever starts.';
+  }
+
+  @override
+  String get sickDayChartThen => ', then ';
+
+  @override
+  String get sickDayAddReadingShort => 'Add reading';
+
+  @override
+  String get sickDayGivenShort => 'Medicine given';
+
+  @override
+  String get sickDayAllReadings => 'All readings';
+
+  @override
+  String get sickDayNoSymptoms => 'No symptoms logged yet.';
+
+  @override
+  String sickDayCallDoctorNamed(String name) {
+    return 'Call $name';
+  }
+
+  @override
+  String get sickDayBack => 'Back';
+
+  @override
   String get readingValue => 'Temperature';
 
   @override
@@ -3910,6 +4011,93 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get homeLoadError =>
       'Can\'t read your data right now. Close the app and open it again.';
+
+  @override
+  String homeGreetingNamed(String greeting, String name) {
+    return '$greeting, $name';
+  }
+
+  @override
+  String get welcomeHeadline => 'The whole family\'s\nhealth in one place';
+
+  @override
+  String get welcomePrivacyLine =>
+      'A file for each person and medicine reminders. Your data stays on your phone, encrypted, and we can\'t see it.';
+
+  @override
+  String get welcomeStart => 'Let\'s start';
+
+  @override
+  String get welcomeHaveBackup => 'I have a backup';
+
+  @override
+  String get welcomeDisclaimer =>
+      'Usra is not a medical device and doesn\'t replace a doctor.';
+
+  @override
+  String get welcomePrivacy => 'Privacy';
+
+  @override
+  String get welcomeTerms => 'Terms';
+
+  @override
+  String get welcomeLanguageOther => 'العربية';
+
+  @override
+  String onboardingStep(String current, String total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get onboardingBack => 'Back';
+
+  @override
+  String get countryTitle => 'Country';
+
+  @override
+  String get countryHint =>
+      'So the vaccine schedule and the ambulance number are right.';
+
+  @override
+  String get countryEgypt => 'Egypt';
+
+  @override
+  String get countryEgyptDetail =>
+      'Ministry of Health and Population · Ambulance 123';
+
+  @override
+  String get countrySaudi => 'Saudi Arabia';
+
+  @override
+  String get countryJordan => 'Jordan';
+
+  @override
+  String get countrySoon => 'Coming soon';
+
+  @override
+  String get aboutYouTitle => 'The first file in your family';
+
+  @override
+  String get aboutYouHint => 'This one is yours, and it can be changed later.';
+
+  @override
+  String get aboutYouSex => 'Sex';
+
+  @override
+  String get aboutYouSexHint => 'For growth charts and pregnancy.';
+
+  @override
+  String get aboutYouDone => 'Let\'s go';
+
+  @override
+  String get lockKeyFirstTitle => 'Recovery key first';
+
+  @override
+  String get lockKeyFirstBody =>
+      'If the PIN is forgotten, nothing else opens Usra, not even us. The only way back is to remove Usra\'s data and restore a backup with its recovery key. Without a backup, the records are lost.\n\nBefore the PIN, we\'ll make the recovery key, to be written down somewhere safe.';
+
+  @override
+  String get lockKeyFirstContinue => 'Make the recovery key';
 
   @override
   String personAddFor(String name) {
