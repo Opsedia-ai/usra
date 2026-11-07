@@ -387,10 +387,7 @@ Future<void> main() async {
     if (restored) {
       try {
         await recoveryKeys.write(recoveryKey);
-        await preferences.setInt(
-          PrefKeys.lastBackupAt,
-          staged.manifest.createdAt.millisecondsSinceEpoch,
-        );
+        await rememberRestore(preferences, staged.manifest.createdAt);
         await autoBackupStore.save(
           autoBackupStore.current.afterRestore(DateTime.now()),
         );

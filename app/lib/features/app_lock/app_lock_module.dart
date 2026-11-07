@@ -61,51 +61,81 @@ Future<bool> setUpPin(BuildContext context) async =>
     ) ??
     false;
 
-/// Turning the lock on: a forgotten PIN means wiping the app, so without
-/// a backup of existing records it suggests making one first. True when
-/// the lock was turned on.
+/// Turning the lock on. A forgotten PIN can only be undone by wiping the app
+/// and restoring a backup with its recovery key, and the phone's own lock
+/// isn't accepted (see [LocalAuthBiometrics]), so nothing else can get back
+/// in. The lock is only ever on after a PIN is chosen, twice, and:
+///
+/// - with a backup, that's all it needs, since a backup has a key;
+/// - without one, it says what a forgotten PIN means and offers a backup, if
+///   there's anything to back up;
+/// - without a recovery key, it makes one first, with no way round it.
+///
+/// True when the lock was turned on.
 Future<bool> turnOnLock(BuildContext context, WidgetRef ref) async {
   final l = AppLocalizations.of(context);
   final noBackup =
       ref.read(keyValueStoreProvider).getInt(PrefKeys.lastBackupAt) == null &&
       ref.read(autoBackupProvider).settings.lastAt == null;
-  var hasRecords = false;
   if (noBackup) {
+    var hasRecords = false;
+    var hasKey = false;
     try {
       hasRecords = (await ref.read(profilesProvider.future)).isNotEmpty;
     } catch (_) {
       hasRecords = true;
     }
-  }
-  if (!context.mounted) return false;
-  if (hasRecords) {
-    final backupFirst = await showDialog<bool>(
+    try {
+      hasKey = await ref.read(recoveryKeyStoreProvider).read() != null;
+    } catch (_) {
+      // Can't tell: making one is the safe way, and it says if one is saved.
+      hasKey = false;
+    }
+    if (!context.mounted) return false;
+    final choice = await showDialog<_NoBackup>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l.lockBackupFirstTitle),
-        content: Text(l.lockBackupFirstBody),
+        key: const ValueKey('lock-no-backup'),
+        title: Text(hasKey ? l.lockBackupFirstTitle : l.lockKeyFirstTitle),
+        content: SingleChildScrollView(
+          child: Text(hasKey ? l.lockBackupFirstBody : l.lockKeyFirstBody),
+        ),
         actions: [
           TextButton(
+            key: const ValueKey('lock-no-backup-cancel'),
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l.familyCancel),
+          ),
+          TextButton(
             key: const ValueKey('lock-backup-skip'),
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l.lockBackupFirstSkip),
+            onPressed: () => Navigator.of(context).pop(_NoBackup.goOn),
+            child: Text(
+              hasKey ? l.lockBackupFirstSkip : l.lockKeyFirstContinue,
+            ),
           ),
-          FilledButton(
-            key: const ValueKey('lock-backup-make'),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l.lockBackupFirstMake),
-          ),
+          if (hasRecords)
+            FilledButton(
+              key: const ValueKey('lock-backup-make'),
+              onPressed: () => Navigator.of(context).pop(_NoBackup.backUp),
+              child: Text(l.lockBackupFirstMake),
+            ),
         ],
       ),
     );
-    if (!context.mounted || backupFirst == null) return false;
-    if (backupFirst) {
+    if (!context.mounted || choice == null) return false;
+    if (choice == _NoBackup.backUp) {
       context.go(backupPath);
       return false;
+    }
+    if (!hasKey) {
+      final made = await context.push<bool>(recoveryKeyPath);
+      if (made != true || !context.mounted) return false;
     }
   }
   return setUpPin(context);
 }
+
+enum _NoBackup { goOn, backUp }
 
 class _VerifyScreen extends ConsumerStatefulWidget {
   const _VerifyScreen();
@@ -352,7 +382,9 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
   }
 }
 
-/// Shown once after the first-run tour: turn the lock on, or skip.
+/// Shown once after Simple Mode's first tour: turn the lock on, or skip. Nothing
+/// is on until a PIN is chosen. The regular first run doesn't ask; the lock is
+/// in More › App lock.
 class AppLockOfferScreen extends ConsumerWidget {
   const AppLockOfferScreen({super.key, this.from});
 

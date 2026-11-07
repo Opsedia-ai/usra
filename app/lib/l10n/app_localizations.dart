@@ -4007,7 +4007,7 @@ abstract class AppLocalizations {
   /// No description provided for @lockForgotBody.
   ///
   /// In en, this message translates to:
-  /// **'To keep your family\'s records private, nothing can skip the PIN, not even us.\n\nTo start again:\n1. Remove Usra\'s data. On Android: phone Settings › Apps › Usra › Storage › Clear data. On iPhone: delete Usra and install it again. This deletes everything Usra keeps on this phone.\n2. Open Usra and restore your latest backup with your recovery key (More › Backup).\n\nWithout a backup and its recovery key, the records can\'t be brought back.'**
+  /// **'To keep your family\'s records private, nothing can skip the PIN, not even us.\n\nTo start again:\n1. Remove Usra\'s data. On Android: phone Settings › Apps › Usra › Storage › Clear data. On iPhone: delete Usra and install it again. This deletes everything Usra keeps on this phone.\n2. Open Usra and restore your latest backup with your recovery key (\"I have a backup\" on the first screen).\n\nWithout a backup and its recovery key, the records can\'t be brought back.'**
   String get lockForgotBody;
 
   /// No description provided for @lockEmergency.
@@ -6337,6 +6337,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Can\'t read your data right now. Close the app and open it again.'**
   String get homeLoadError;
+
+  /// No description provided for @homeGreetingNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'{greeting}, {name}'**
+  String homeGreetingNamed(String greeting, String name);
+
+  /// No description provided for @welcomeHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole family\'s\nhealth in one place'**
+  String get welcomeHeadline;
+
+  /// No description provided for @welcomePrivacyLine.
+  ///
+  /// In en, this message translates to:
+  /// **'A file for each person and medicine reminders. Your data stays on your phone, encrypted, and we can\'t see it.'**
+  String get welcomePrivacyLine;
+
+  /// No description provided for @welcomeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s start'**
+  String get welcomeStart;
+
+  /// No description provided for @welcomeHaveBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'I have a backup'**
+  String get welcomeHaveBackup;
+
+  /// No description provided for @welcomeDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra is not a medical device and doesn\'t replace a doctor.'**
+  String get welcomeDisclaimer;
+
+  /// No description provided for @welcomePrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get welcomePrivacy;
+
+  /// No description provided for @welcomeTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms'**
+  String get welcomeTerms;
+
+  /// No description provided for @welcomeLanguageOther.
+  ///
+  /// In en, this message translates to:
+  /// **'العربية'**
+  String get welcomeLanguageOther;
+
+  /// No description provided for @onboardingStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String onboardingStep(String current, String total);
+
+  /// No description provided for @onboardingBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get onboardingBack;
+
+  /// No description provided for @countryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get countryTitle;
+
+  /// No description provided for @countryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'So the vaccine schedule and the ambulance number are right.'**
+  String get countryHint;
+
+  /// No description provided for @countryEgypt.
+  ///
+  /// In en, this message translates to:
+  /// **'Egypt'**
+  String get countryEgypt;
+
+  /// No description provided for @countryEgyptDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Ministry of Health and Population · Ambulance 123'**
+  String get countryEgyptDetail;
+
+  /// No description provided for @countrySaudi.
+  ///
+  /// In en, this message translates to:
+  /// **'Saudi Arabia'**
+  String get countrySaudi;
+
+  /// No description provided for @countryJordan.
+  ///
+  /// In en, this message translates to:
+  /// **'Jordan'**
+  String get countryJordan;
+
+  /// No description provided for @countrySoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get countrySoon;
+
+  /// No description provided for @aboutYouTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The first file in your family'**
+  String get aboutYouTitle;
+
+  /// No description provided for @aboutYouHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This one is yours, and it can be changed later.'**
+  String get aboutYouHint;
+
+  /// No description provided for @aboutYouSex.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get aboutYouSex;
+
+  /// No description provided for @aboutYouSexHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For growth charts and pregnancy.'**
+  String get aboutYouSexHint;
+
+  /// No description provided for @aboutYouDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s go'**
+  String get aboutYouDone;
+
+  /// No description provided for @lockKeyFirstTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery key first'**
+  String get lockKeyFirstTitle;
+
+  /// No description provided for @lockKeyFirstBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If the PIN is forgotten, nothing else opens Usra, not even us. The only way back is to remove Usra\'s data and restore a backup with its recovery key. Without a backup, the records are lost.\n\nBefore the PIN, we\'ll make the recovery key, to be written down somewhere safe.'**
+  String get lockKeyFirstBody;
+
+  /// No description provided for @lockKeyFirstContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Make the recovery key'**
+  String get lockKeyFirstContinue;
 }
 
 class _AppLocalizationsDelegate
