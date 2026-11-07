@@ -294,6 +294,7 @@ void main() {
       ),
     );
     await start(tester, '/family/$dad');
+    await tapKey(tester, 'member-visits');
     await tapKey(tester, 'member-labs');
     expect(find.byKey(const ValueKey('lab-series-fbs|mg/dL')), findsOneWidget);
     expect(find.byKey(const ValueKey('lab-series-fbs|mmol/L')), findsOneWidget);

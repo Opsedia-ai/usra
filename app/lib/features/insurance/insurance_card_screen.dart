@@ -6,6 +6,7 @@ import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
+import '../../core/security/sensitive_clipboard.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider;
 import 'insurance_info.dart';
@@ -69,6 +70,32 @@ class InsuranceCardScreen extends ConsumerWidget {
               _Details(card: c),
               const SizedBox(height: 24),
               _ShareButton(profileId: profileId, card: c),
+              if (c.memberNumber case final number?) ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  key: const ValueKey('insurance-copy'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(UsraSizes.touchTarget),
+                  ),
+                  onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final copied = await ref
+                        .read(sensitiveClipboardProvider)
+                        .copy(number);
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          copied
+                              ? l.insuranceNumberCopied
+                              : l.insuranceCopyFailed,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.copy_outlined),
+                  label: Text(l.insuranceCopyNumber),
+                ),
+              ],
             ],
           );
         },

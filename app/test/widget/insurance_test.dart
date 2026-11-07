@@ -80,6 +80,7 @@ void main() {
     final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
     router.go('/family/$mom');
     await tester.pumpAndSettle();
+    await tapKey(tester, 'member-insurance');
     expect(find.text('كروت التأمين'), findsOneWidget);
 
     await tapKey(tester, 'insurance-add');
@@ -134,12 +135,12 @@ void main() {
     await tapKey(tester, 'insurance-delete');
     await tapKey(tester, 'insurance-delete-confirm');
     expect(find.text('نقابة'), findsNothing);
-    expect(find.text('كروت التأمين'), findsOneWidget);
+    expect(find.text('التأمين'), findsOneWidget);
     // The photo left the phone with its card.
     expect(photos.fileOf(card.frontPhoto!).existsSync(), isFalse);
   });
 
-  testWidgets('cards near or past expiry are flagged on the person\'s page', (
+  testWidgets('cards near or past expiry are flagged in the person\'s list', (
     tester,
   ) async {
     final today = DateTime.now();
@@ -159,7 +160,8 @@ void main() {
     }))!;
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
-    GoRouter.of(tester.element(find.byType(Scaffold).first)).go('/family/$kid');
+    GoRouter.of(tester.element(find.byType(Scaffold).first))
+        .go('/family/$kid/insurance');
     await tester.pumpAndSettle();
 
     expect(find.text('شغل 1'), findsOneWidget);

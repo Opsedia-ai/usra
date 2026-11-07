@@ -3,12 +3,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/modules/feature_module.dart';
 import '../../core/records/record_type.dart';
+import '../../core/routing/app_router.dart' show noTabBarRoute;
 import '../../l10n/app_localizations.dart';
 import '../insurance/insurance_card_screen.dart';
 import '../insurance/insurance_form_screen.dart';
 import 'emergency_card_screen.dart';
 import 'family_screen.dart';
 import 'member_screen.dart';
+import 'person_sections_screen.dart';
 import 'profile_form_screen.dart';
 import 'record_form_screen.dart';
 import 'record_screen.dart';
@@ -42,6 +44,7 @@ class FamilyModule extends FeatureModule {
         GoRoute(path: 'new', builder: (_, _) => const ProfileFormScreen()),
         GoRoute(
           path: ':id',
+          name: '${noTabBarRoute}person',
           builder: (_, s) => MemberScreen(profileId: s.pathParameters['id']!),
           routes: [
             GoRoute(
@@ -51,6 +54,7 @@ class FamilyModule extends FeatureModule {
             ),
             GoRoute(
               path: 'emergency',
+              name: '${noTabBarRoute}emergency',
               builder: (_, s) =>
                   EmergencyCardScreen(profileId: s.pathParameters['id']!),
             ),
@@ -71,6 +75,26 @@ class FamilyModule extends FeatureModule {
                 profileId: s.pathParameters['id']!,
                 eventId: s.pathParameters['eventId']!,
               ),
+            ),
+            GoRoute(
+              path: 'visits',
+              builder: (_, s) =>
+                  PersonVisitsScreen(profileId: s.pathParameters['id']!),
+            ),
+            GoRoute(
+              path: 'documents',
+              builder: (_, s) =>
+                  PersonDocumentsScreen(profileId: s.pathParameters['id']!),
+            ),
+            GoRoute(
+              path: 'follow-ups',
+              builder: (_, s) =>
+                  PersonFollowUpsScreen(profileId: s.pathParameters['id']!),
+            ),
+            GoRoute(
+              path: 'insurance',
+              builder: (_, s) =>
+                  PersonInsuranceScreen(profileId: s.pathParameters['id']!),
             ),
             GoRoute(
               path: 'insurance/new',

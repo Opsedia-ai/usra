@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,7 +8,6 @@ import '../../core/design/pebble.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/preferences.dart';
-import '../../core/providers.dart';
 import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../backup/backup_notices.dart';
@@ -37,42 +34,8 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  late final AppLifecycleListener _lifecycle;
-  late final Timer _minute;
-  late DateTime _day = _today();
-
-  DateTime _today() {
-    final now = ref.read(clockProvider)();
-    return DateTime(now.year, now.month, now.day);
-  }
-
-  /// Statuses depend on the time, so they move on while the app stays open,
-  /// and today's doses change at midnight.
-  void _refresh() {
-    final today = _today();
-    if (today != _day) {
-      _day = today;
-      ref.invalidate(todayLogsProvider);
-      ref.invalidate(todayDosesProvider);
-    }
-    setState(() {});
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _lifecycle = AppLifecycleListener(onResume: _refresh);
-    _minute = Timer.periodic(const Duration(minutes: 1), (_) => _refresh());
-  }
-
-  @override
-  void dispose() {
-    _minute.cancel();
-    _lifecycle.dispose();
-    super.dispose();
-  }
-
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with TodayRefresh<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     if (ref.watch(simpleModeProvider)) return const SimpleHome();
@@ -528,35 +491,6 @@ class _DoseRow extends ConsumerWidget {
   final PlannedDose dose;
   final bool canMark;
 
-  Future<void> _taken(BuildContext context, WidgetRef ref) async {
-    final l = AppLocalizations.of(context);
-    final db = ref.read(databaseProvider);
-    final r = dose.regimen;
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await db.logDose(
-        r.medicine.id,
-        dose.scheduledAt,
-        DoseOutcome.taken,
-        at: ref.read(clockProvider)(),
-      );
-    } catch (_) {
-      messenger.showSnackBar(SnackBar(content: Text(l.saveFailed)));
-      return;
-    }
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          l.homeDoseLogged(medicineTitle(r.medicine), r.person.displayName),
-        ),
-        action: SnackBarAction(
-          label: l.doseUndo,
-          onPressed: () => db.clearDoseLog(r.medicine.id, dose.scheduledAt),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
@@ -602,7 +536,7 @@ class _DoseRow extends ConsumerWidget {
                   style: FilledButton.styleFrom(
                     minimumSize: const Size(0, UsraSizes.touchTarget),
                   ),
-                  onPressed: () => _taken(context, ref),
+                  onPressed: () => logDoseTaken(context, ref, dose),
                   icon: const Icon(Icons.check),
                   label: Text(l.doseTaken),
                 ),

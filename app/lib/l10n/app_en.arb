@@ -1341,13 +1341,13 @@
   "lockTimeoutImmediately": "Right away",
   "lockTimeoutOneMinute": "1 minute",
   "lockTimeoutFiveMinutes": "5 minutes",
-  "lockSettingsEmergency": "Emergency card on the lock screen",
-  "lockSettingsEmergencyHint": "A paramedic can see the blood type, allergies and conditions of the people you choose here without the PIN. Anyone holding the phone can see them too.",
+  "lockSettingsEmergency": "Emergency card on Usra's lock screen",
+  "lockSettingsEmergencyHint": "The blood type, allergies, conditions, surgeries and current medicines of the people you choose here can be seen without the PIN by anyone holding the phone with Usra open. This is Usra's lock screen, not the phone's: for a locked phone, use the phone's own Medical ID.",
   "lockVerifyTitle": "Confirm it's you",
   "lockOffDone": "App lock is off",
   "lockUnavailable": "Couldn't read the lock just now. Try again in a moment.",
   "lockSetupTrivial": "That PIN is too easy to guess. Avoid repeated or sequential numbers.",
-  "lockEmergencyFor": "Show on the lock screen",
+  "lockEmergencyFor": "Show on Usra's lock screen",
   "lockBackupFirstTitle": "Make a backup first?",
   "lockBackupFirstBody": "If you forget your PIN, the only way back in is to remove Usra's data and restore a backup with its recovery key. You don't have a backup yet.",
   "lockBackupFirstMake": "Make a backup",
@@ -2250,5 +2250,201 @@
   "aboutYouDone": "Let's go",
   "lockKeyFirstTitle": "Recovery key first",
   "lockKeyFirstBody": "If the PIN is forgotten, nothing else opens Usra, not even us. The only way back is to remove Usra's data and restore a backup with its recovery key. Without a backup, the records are lost.\n\nBefore the PIN, we'll make the recovery key, to be written down somewhere safe.",
-  "lockKeyFirstContinue": "Make the recovery key"
+  "lockKeyFirstContinue": "Make the recovery key",
+  "personAddFor": "Add for {name}",
+  "@personAddFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "personVaccineWasDue": "It was due on {date}. Ask the doctor when to give it.",
+  "@personVaccineWasDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "personDoctorSummary": "Doctor summary",
+  "personInsuranceOpen": "Open card",
+  "personVaccineLog": "Given? Log it",
+  "personVaccineSource": "Reference: Egypt's vaccine schedule, {route} · checked {date}",
+  "@personVaccineSource": {
+    "placeholders": {
+      "route": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "personVaccineSourceOptional": "Reference: pediatricians' usual schedules in Egypt · checked {date}",
+  "@personVaccineSourceOptional": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "personNextDose": "Next dose · {time}",
+  "@personNextDose": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "personDoseWasAt": "Was due at {time}",
+  "@personDoseWasAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "personRecordedTitle": "Recorded by the family",
+  "personTimelineTitle": "All records",
+  "personTileGrowth": "Growth",
+  "personTileVisits": "Visits and labs",
+  "personTileInsurance": "Insurance",
+  "personTileDocuments": "Documents and photos",
+  "personVaccinesSummary": "{done} of {total} · Egypt schedule",
+  "@personVaccinesSummary": {
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "personGrowthWeight": "{value} kg · {date}",
+  "@personGrowthWeight": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "personGrowthHeight": "{value} cm · {date}",
+  "@personGrowthHeight": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "personLatestOn": "Latest {date}",
+  "@personLatestOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "personInsuranceCount": "{count, plural, =0{None yet} =1{1 card} other{{shown} cards}}",
+  "@personInsuranceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "personMedicinesCount": "{count, plural, =0{None current} =1{1 current} other{{shown} current}}",
+  "@personMedicinesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "personFollowUpsCount": "{count, plural, =0{None for now} =1{1 follow-up} other{{shown} follow-ups}}",
+  "@personFollowUpsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "personDocumentsCount": "{count, plural, =0{None yet} =1{1 record with photos} other{{shown} records with photos}}",
+  "@personDocumentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "personVisitsEmpty": "No visits or lab results recorded yet.",
+  "personDocumentsEmpty": "No records with photos yet.",
+  "personAgeYears": "{count, plural, =1{1 year} other{{shown} years}}",
+  "@personAgeYears": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "personAgeMonths": "{count, plural, =0{Under 1 month} =1{1 month} other{{shown} months}}",
+  "@personAgeMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyAmbulanceShort": "Ambulance {number}",
+  "@emergencyAmbulanceShort": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyOtherLanguage": "عربي",
+  "emergencyMedicines": "Current medicines",
+  "emergencyAsTyped": "This is what the family recorded, as they typed it.",
+  "emergencyLockTitle": "Show on Usra's lock screen",
+  "emergencyLockHint": "Anyone holding the phone can see it once Usra is open",
+  "emergencyMedicalIdHint": "Usra's lock screen only appears once the phone itself is unlocked. So a paramedic can read this on a locked phone, also add it to the phone's own Medical ID or emergency information, in the phone's settings.",
+  "lockEmergencyConfirmTitle": "Show {name}'s card on Usra's lock screen?",
+  "@lockEmergencyConfirmTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "lockEmergencyConfirmBody": "Anyone holding the phone with Usra open will be able to see the blood type, allergies, conditions, surgeries and current medicines without the PIN. This is Usra's lock screen, not the phone's.",
+  "lockEmergencyConfirmYes": "Yes, show it",
+  "insuranceCopyNumber": "Copy member number",
+  "insuranceCopyFailed": "Couldn't copy the number",
+  "insuranceNumberCopied": "Member number copied"
 }

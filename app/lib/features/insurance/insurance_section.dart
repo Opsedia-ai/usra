@@ -36,7 +36,7 @@ class InsuranceSection extends ConsumerWidget {
         OutlinedButton.icon(
           key: const ValueKey('insurance-add'),
           style: OutlinedButton.styleFrom(minimumSize: const Size(0, 56)),
-          onPressed: () => context.go('/family/$profileId/insurance/new'),
+          onPressed: () => context.push('/family/$profileId/insurance/new'),
           icon: const Icon(Icons.add_card_outlined),
           label: Text(l.insuranceAdd),
         ),
@@ -56,7 +56,7 @@ class _CardTile extends StatelessWidget {
     return Card(
       child: ListTile(
         key: ValueKey('insurance-${card.id}'),
-        onTap: () => context.go('/family/$profileId/insurance/${card.id}'),
+        onTap: () => context.push('/family/$profileId/insurance/${card.id}'),
         leading: CircleAvatar(
           backgroundColor: context.usra.primarySoft,
           child: Icon(Icons.credit_card, color: context.usra.primary),
