@@ -1,6 +1,6 @@
 # Usra Terms of Use
 
-> **DRAFT – needs legal review** before publishing (Egypt, Saudi Arabia, UAE:
+> **DRAFT – needs legal review** before publishing (Egypt, Saudi Arabia, Jordan:
 > consumer protection, e-commerce, data protection, and health-software rules incl.
 > SFDA). Placeholders are in [square brackets].
 
@@ -18,7 +18,7 @@ growth and vaccines, pregnancy notes, doctors and insurance cards on your phone.
 ## 2. Not medical advice, not a medical device
 
 - Usra is **not a medical device** and has not been reviewed or approved by any health
-  authority (including EDA, SFDA or MOHAP).
+  authority (including EDA, SFDA or JFDA).
 - Usra **does not diagnose, treat, prevent or cure** any condition and does not
   replace a doctor, pharmacist or any health professional.
 - Growth charts, vaccine dates, follow-up suggestions, pregnancy information and text
@@ -28,7 +28,7 @@ growth and vaccines, pregnancy notes, doctors and insurance cards on your phone.
 - Text read from a photo (for example a medicine name) can be misread. Check it
   before you save it.
 - **In an emergency, call your local emergency number** (123 in Egypt, 997 in Saudi
-  Arabia, 998 in the UAE) or go to the nearest hospital. Do not rely on Usra.
+  Arabia, 911 in Jordan) or go to the nearest hospital. Do not rely on Usra.
 - Reminders depend on your phone (battery saving, notification settings, silent
   mode, the phone being on). Do not rely on Usra alone for medicines that must not be
   missed.
@@ -52,8 +52,8 @@ content belong to Opsedia or its licensors.
 
 ## 5. Price
 
-The current version of Usra is free. If we add paid features later (see section 9),
-their price will be shown before you buy, and store terms will apply to purchases.
+The current version of Usra is free. If paid plans start (see section 9), their price
+will be shown before you buy, and store terms will apply to purchases.
 
 ## 6. Changes and availability
 
@@ -73,11 +73,11 @@ caps and wording valid in each country.]
 
 These terms are governed by the laws of [Arab Republic of Egypt], and disputes go to
 the courts of [Cairo], unless the law of your country of residence gives you the
-right to use its courts. [Legal review: KSA and UAE users.]
+right to use its courts. [Legal review: KSA and Jordan users.]
 
 ## 9. Later optional cloud features (not in the current version)
 
-> Planned for a later version, **optional**. These terms will be updated before they
+> Planned for a later version. These terms will be updated before they
 > start, and you will be asked to agree in the app.
 
 - **Accounts** with Google or Apple: you must use your own Google or Apple account and
@@ -86,10 +86,14 @@ right to use its courts. [Legal review: KSA and UAE users.]
 - **Family sync**: end-to-end encrypted; anyone you invite to the family can see the
   family's shared records.
 - **AI Doctor**: informational findings only, not a diagnosis; it may be unavailable
-  in some countries; it uses credits.
-- **Credits and Usra Plus subscription**: bought through Google Play or the App Store;
-  credits are not money, cannot be transferred and may expire as shown at purchase;
-  refunds follow the store's rules and local law.
+  in some countries.
+- **Founding members, 1-year pass and Lifetime**: the first 5,000 signed-in users to save
+  a record would use Usra free for life. After that, adding new records would need a
+  1-year pass or Lifetime, bought through Google Play or the App Store after a 14-day
+  free trial; refunds follow the store's rules and local law. When a trial or pass ends
+  you could still read, export, back up and delete your records and use the emergency
+  card, and medicine reminders would keep ringing; only adding new records would stop.
+  [Legal review: wording of "free for life".]
 - **Cloud text reading**: only with your consent for each photo.
 
 ## 10. Contact

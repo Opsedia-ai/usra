@@ -1,11 +1,15 @@
 ---
 name: usra-cost-check
-description: Check what a Usra feature costs at 5,000 users before designing, building or merging it. Use for any feature that adds a backend call, SMS, push, AI or LLM call, file upload, cloud storage, third-party SDK or paid API, and whenever someone asks what something costs or whether it stays free.
+description: Check what a Usra feature costs at 5,000 users before designing, building or merging it. Use for any feature that adds a backend call, SMS, push, AI or LLM call, file upload, cloud storage, third-party SDK or paid API, and whenever someone asks what something costs or whether it stays free for users.
 ---
 
 # Usra cost check
 
-Usra's goal: everything is free for the first 5,000 users, and running it costs us nothing each month. A feature that breaks this needs the founder's approval before any work starts.
+The free goal is about what users get: the first 5,000 users get everything free.
+
+Approved fixed running cost (founder, 7 Nov 2026): Supabase Pro, about 25 dollars a month, from the moment real member numbers exist, because they can't be recreated and Free has no backups (until then nothing runs); the Apple Developer account, 99 dollars a year; and the Google Play account, 25 dollars once.
+
+Any other paid use still needs the founder's approval before any work starts.
 
 ## Steps
 
@@ -14,9 +18,9 @@ Usra's goal: everything is free for the first 5,000 users, and running it costs 
 3. Compare with the free limits below. Open the pricing page and confirm a price first when it decides the verdict or the table is over 3 months old.
 4. Also work out the cost at 10,000 and 50,000 users, so nothing surprises us later.
 5. Give one verdict, with the numbers:
-   - FREE: runs on the phone, or stays under 60% of every free limit.
+   - FREE: runs on the phone, or stays under 60% of every free limit (for Supabase, once Pro is running, of what Pro includes).
    - TIGHT: over 60% of a free limit. Say which limit, and when it would run out.
-   - COSTS MONEY: any paid usage. Say the monthly cost, then the cheapest free alternative.
+   - COSTS MONEY: any paid usage beyond the approved fixed cost. Say the monthly cost, then the cheapest free alternative.
 6. For COSTS MONEY or TIGHT, stop and ask the founder before building. Never turn on a paid service, or add an API key for one, without a clear yes.
 
 Put the verdict in the PR description.
@@ -24,7 +28,7 @@ Put the verdict in the PR description.
 ## Free by design: prefer these
 
 - Anything on the phone: encrypted database, photos, local notifications, on-device ML Kit, PDFs.
-- Backup to the user's own Files or Drive folder, as an encrypted file. Not iCloud: Apple guideline 5.1.3 says apps may not store personal health information there.
+- Backup to a folder the user chooses, as an encrypted file (Google Drive manually, through the share sheet). Not iCloud: Apple guideline 5.1.3 says apps may not store personal health information there.
 - Firebase Cloud Messaging for push.
 - GitHub Actions on this public repo.
 
@@ -49,4 +53,4 @@ Amounts are written without a dollar sign on purpose: skill arguments replace a 
 - **Database:** 500 MB shared by 5,000 users is 100 KB each.
 - **Function calls:** 500,000 a month is 100 calls per user. Don't poll.
 - **AI:** every call costs money. Never free and unlimited: use on-device features, or paid credits.
-- **Free plan backups:** Free has no automatic backups. Don't store anything people can't recreate on it.
+- **Free plan backups:** Free has no automatic backups. Don't store anything people can't recreate on it. Member numbers can't be recreated, so they go on Pro from day one.

@@ -2,19 +2,23 @@
 
 The live, clickable canvas is at https://claude.ai/artifact/44YSoLZ4WSvWkebQyb2cAi (press Play on any screen). `screens/` holds the source of every frame (`.dc.html`) and the canvas layout (`canvas.json`). They are design references, not app code.
 
+The colours below are the current design, from `docs/product-definition.md`. The frames in `screens/` predate the Twilight palette and Variation B navigation, and `app/lib/core/design/tokens.dart` still holds the old Nile blue values until the redesign reaches it.
+
 ## Colours
 
-| Token | Hex | Use |
-| --- | --- | --- |
-| Primary (Nile blue) | `#1F5FA8` | Buttons, active tab, links, brand |
-| Primary dark | `#174A85` | Pressed states, alarm screen |
-| Primary tint | `#E6EEF8` | Icon tiles, selected chips |
-| Background | `#F3F6FA` | Screen background |
-| Surface | `#FFFFFF` | Cards |
-| Text | `#14263D` | Main text |
-| Muted text | `#55657A` | Secondary text |
-| Warm sand | `#F6EEDF` | Warm accents (spending tile, Dr. Usra's face) |
-| Lines | `#DDE5EF`, `#E8EDF4` | Borders, dividers |
+Twilight palette (navy and orchid), light and dark.
+
+| Role | Light | Dark | Use |
+| --- | --- | --- | --- |
+| Primary | `#26415E` | `#83A6CE` | Buttons, links, selected state |
+| On primary | `#FFFFFF` | `#0B1B32` | Text on buttons |
+| Heading | `#0D1E4C` | `#EAF0F7` | Titles, app bar |
+| Background | `#F7F4F8` | `#0B1B32` | Screen background |
+| Card | `#FFFFFF` | `#0D1E4C` | Cards, sheets |
+| Accent | `#C48CB3` | `#C48CB3` | Highlights, the large Add button, Dr. Usra's heart |
+| Soft accent | `#E5C9D7` | `#26415E` | Chip and tag backgrounds |
+| Second highlight | `#83A6CE` | `#83A6CE` | Charts, secondary tags |
+| Text | `#0B1B32` | `#EAF0F7` | Body text |
 
 ## Severity scale
 
@@ -30,11 +34,11 @@ Always pair a colour with a word or icon (colour-blind and older users).
 
 ## Type
 
-IBM Plex Sans Arabic for Arabic and English. Body 15–16 px, Simple Mode 22–30 px. Touch targets at least 44 px (56–76 px in Simple Mode).
+Baloo Bhaijaan 2 for titles, Dr. Usra and the tour; IBM Plex Sans Arabic for everything people read closely. Body 16 px, Simple Mode 20 px. Touch targets 48 dp, 56 dp in Simple Mode.
 
 ## Character: Dr. Usra (دكتور أسرة)
 
-A Nile blue house-shaped character with a sand face, warm cheeks and a white heart. Poses: hello, reminding (holding a pill), celebrating, caring (needs attention), explaining. Never shown on emergency screens.
+A house-shaped character with a heart; new artwork is being made to the Twilight palette. Poses: hello, reminding (holding a pill), celebrating, caring (needs attention), explaining. Never shown on emergency screens.
 
 ## Screens (31 frames, 5 pages)
 

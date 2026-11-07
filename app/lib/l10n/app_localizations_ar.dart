@@ -2324,11 +2324,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accountPrivacy =>
-      'سجلات العيلة الصحية فاضلة على الموبايل ده. الحساب مش بيرفعها: هو بس بيجهّز لمزامنة موبايلات العيلة ولخدمات الذكاء الاصطناعي بعدين، وإنت اللي هتختار قبل ما أي حاجة تتبعت.';
+      'سجلات العيلة الصحية فاضلة على الموبايل ده. الحساب مش بيرفعها: هو بس بيحتفظ باللي محتاجينه علشان الحساب يشتغل.';
 
   @override
   String get accountSignInIntro =>
-      'الحساب اختياري، والتطبيق بيشتغل كله من غيره. Google بيبعتلنا اسمك وإيميلك، وApple بتبعتلنا إيميلك.';
+      'الحساب مش مطلوب في النسخة دي من التطبيق. Google بيبعتلنا اسمك وإيميلك، وApple بتبعتلنا إيميلك.';
 
   @override
   String get accountSignInConsent =>
@@ -2362,7 +2362,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accountDeleteConfirm =>
-      'تمسح حسابك؟ الحساب والأجهزة والرصيد هيتمسحوا من السيرفرات بتاعتنا. السجلات اللي على الموبايل ده هتفضل زي ما هي.';
+      'تمسح حسابك؟ الحساب وكل اللي مربوط بيه هيتمسحوا من السيرفرات بتاعتنا. السجلات اللي على الموبايل ده هتفضل زي ما هي.';
 
   @override
   String get accountDeleteAppleNote =>
