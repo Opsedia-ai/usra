@@ -2584,17 +2584,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get lockEmergencyFor => 'يظهر على قفل أسرة';
 
   @override
-  String get lockBackupFirstTitle => 'تعمل نسخة احتياطية الأول؟';
+  String get lockBackupFirstTitle => 'لازم نسخة احتياطية الأول';
 
   @override
   String get lockBackupFirstBody =>
-      'لو نسيت الرقم السري، الطريقة الوحيدة إنك تمسح بيانات أسرة وترجّع نسخة احتياطية بمفتاح الاسترجاع بتاعها. إنت لسه معملتش نسخة احتياطية.';
+      'لو الرقم السري اتنسى، الطريقة الوحيدة هي مسح بيانات أسرة واسترجاع نسخة احتياطية بمفتاح الاسترجاع بتاعها. ولسه مفيش نسخة احتياطية، ومن غيرها السجلات بتضيع.\n\nأول ما النسخة الاحتياطية تتعمل، القفل يقدر يشتغل.';
 
   @override
   String get lockBackupFirstMake => 'اعمل نسخة احتياطية';
 
   @override
-  String get lockBackupFirstSkip => 'كمّل من غيرها';
+  String get lockNothingYetTitle => 'العيلة الأول';
+
+  @override
+  String get lockNothingYetBody =>
+      'القفل محتاج نسخة احتياطية، ولسه مفيش حاجة تتحفظ. لما حد من العيلة يتضاف وتتعمل نسخة احتياطية، القفل يقدر يشتغل.';
+
+  @override
+  String get lockOnNoBackupBody =>
+      'القفل شغال بس لسه مفيش نسخة احتياطية. لو الرقم السري اتنسى، السجلات هتضيع.';
 
   @override
   String backupDonePhotosSkipped(int count) {
@@ -4131,16 +4139,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutYouDone => 'يلا بينا';
-
-  @override
-  String get lockKeyFirstTitle => 'مفتاح الاسترجاع الأول';
-
-  @override
-  String get lockKeyFirstBody =>
-      'لو الرقم السري اتنسى، مفيش طريقة تانية تفتح أسرة، ولا حتى إحنا. الطريقة الوحيدة هي مسح بيانات أسرة واسترجاع نسخة احتياطية بمفتاح الاسترجاع بتاعها. من غير نسخة احتياطية السجلات بتضيع.\n\nقبل الرقم السري هنعمل مفتاح الاسترجاع، يتكتب في مكان أمان.';
-
-  @override
-  String get lockKeyFirstContinue => 'اعمل مفتاح الاسترجاع';
 
   @override
   String personAddFor(String name) {

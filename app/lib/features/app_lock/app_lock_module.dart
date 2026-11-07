@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/dr_usra.dart';
 import '../../core/design/tokens.dart';
 import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
@@ -15,7 +14,7 @@ import '../family/family_screen.dart';
 import 'lock_screen.dart';
 import 'pin_pad.dart';
 
-/// The app lock's first-run offer and its settings. The lock screen itself
+/// The app lock's settings. The lock screen itself
 /// is [AppLockGate], around the whole app.
 class AppLockModule extends FeatureModule {
   const AppLockModule();
@@ -28,15 +27,6 @@ class AppLockModule extends FeatureModule {
     GoRoute(
       path: appLockSettingsPath,
       builder: (_, _) => const AppLockSettingsScreen(),
-    ),
-  ];
-
-  @override
-  List<RouteBase> get fullScreenRoutes => [
-    GoRoute(
-      path: appLockOfferPath,
-      builder: (_, s) =>
-          AppLockOfferScreen(from: s.uri.queryParameters['from']),
     ),
   ];
 }
@@ -94,84 +84,48 @@ Future<bool> setUpPin(BuildContext context) async =>
 /// Turning the lock on. A forgotten PIN can only be undone by wiping the app
 /// and restoring a backup with its recovery key, and the phone's own lock
 /// isn't accepted (see [LocalAuthBiometrics]), so nothing else can get back
-/// in. The lock is only ever on after a PIN is chosen, twice, and:
-///
-/// - with a backup, that's all it needs, since a backup has a key;
-/// - without one, it says what a forgotten PIN means and offers a backup, if
-///   there's anything to back up;
-/// - without a recovery key, it makes one first, with no way round it.
+/// in. So the lock needs a backup first, and there's no way round that: a
+/// backup has a key, and without one a forgotten PIN loses everything. Someone
+/// who turned the lock on before this rule keeps it (see [_NoBackupWarning]).
 ///
 /// True when the lock was turned on.
 Future<bool> turnOnLock(BuildContext context, WidgetRef ref) async {
+  if (ref.read(hasBackupProvider)) return setUpPin(context);
   final l = AppLocalizations.of(context);
-  final noBackup =
-      ref.read(keyValueStoreProvider).getInt(PrefKeys.lastBackupAt) == null &&
-      ref.read(autoBackupProvider).settings.lastAt == null;
-  if (noBackup) {
-    var hasRecords = false;
-    var hasKey = false;
-    try {
-      hasRecords = (await ref.read(profilesProvider.future)).isNotEmpty;
-    } catch (_) {
-      hasRecords = true;
-    }
-    try {
-      hasKey = await ref.read(recoveryKeyStoreProvider).read() != null;
-    } catch (_) {
-      // Can't tell: making one is the safe way, and it says if one is saved.
-      hasKey = false;
-    }
-    if (!context.mounted) return false;
-    final choice = await showDialog<_NoBackup>(
-      context: context,
-      builder: (context) => AlertDialog(
-        key: const ValueKey('lock-no-backup'),
-        title: Text(
-          !hasKey
-              ? l.lockKeyFirstTitle
-              : hasRecords
-              ? l.lockBackupFirstTitle
-              : l.lockForgotTitle,
-        ),
-        content: SingleChildScrollView(
-          child: Text(hasKey ? l.lockBackupFirstBody : l.lockKeyFirstBody),
-        ),
-        actions: [
-          TextButton(
-            key: const ValueKey('lock-no-backup-cancel'),
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l.familyCancel),
-          ),
-          TextButton(
-            key: const ValueKey('lock-backup-skip'),
-            onPressed: () => Navigator.of(context).pop(_NoBackup.goOn),
-            child: Text(
-              hasKey ? l.lockBackupFirstSkip : l.lockKeyFirstContinue,
-            ),
-          ),
-          if (hasRecords)
-            FilledButton(
-              key: const ValueKey('lock-backup-make'),
-              onPressed: () => Navigator.of(context).pop(_NoBackup.backUp),
-              child: Text(l.lockBackupFirstMake),
-            ),
-        ],
-      ),
-    );
-    if (!context.mounted || choice == null) return false;
-    if (choice == _NoBackup.backUp) {
-      context.go(backupPath);
-      return false;
-    }
-    if (!hasKey) {
-      final made = await context.push<bool>(recoveryKeyPath);
-      if (made != true || !context.mounted) return false;
-    }
+  bool hasRecords;
+  try {
+    hasRecords = (await ref.read(profilesProvider.future)).isNotEmpty;
+  } catch (_) {
+    // Can't tell: the backup screen says if a backup can't be made.
+    hasRecords = true;
   }
-  return setUpPin(context);
+  if (!context.mounted) return false;
+  final backUp = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      key: const ValueKey('lock-no-backup'),
+      title: Text(hasRecords ? l.lockBackupFirstTitle : l.lockNothingYetTitle),
+      content: SingleChildScrollView(
+        child: Text(hasRecords ? l.lockBackupFirstBody : l.lockNothingYetBody),
+      ),
+      actions: [
+        TextButton(
+          key: const ValueKey('lock-no-backup-cancel'),
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(l.familyCancel),
+        ),
+        if (hasRecords)
+          FilledButton(
+            key: const ValueKey('lock-backup-make'),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l.lockBackupFirstMake),
+          ),
+      ],
+    ),
+  );
+  if (backUp == true && context.mounted) context.go(backupPath);
+  return false;
 }
-
-enum _NoBackup { goOn, backUp }
 
 class _VerifyScreen extends ConsumerStatefulWidget {
   const _VerifyScreen();
@@ -418,106 +372,127 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
   }
 }
 
-/// Shown once after Simple Mode's first tour: turn the lock on, or skip. Nothing
-/// is on until a PIN is chosen. The regular first run doesn't ask; the lock is
-/// in More › App lock.
-class AppLockOfferScreen extends ConsumerWidget {
-  const AppLockOfferScreen({super.key, this.from});
-
-  /// Where to go next.
-  final String? from;
-
-  Future<void> _done(BuildContext context, WidgetRef ref) async {
-    try {
-      await ref
-          .read(keyValueStoreProvider)
-          .setBool(PrefKeys.appLockOffered, true);
-    } catch (_) {
-      // Only means it's offered again next time.
-    }
-    if (!context.mounted) return;
-    final next = from;
-    context.go(
-      next == null || next.startsWith(appLockOfferPath) ? '/home' : next,
-    );
-  }
+/// Home's optional offer of the lock, in every mode, once there's a backup to
+/// make a forgotten PIN survivable. Nothing is on until a PIN is chosen. "Not
+/// now" hides it for good; the lock stays in More › App lock.
+class AppLockOfferCard extends ConsumerWidget {
+  const AppLockOfferCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l = AppLocalizations.of(context);
-    final text = Theme.of(context).textTheme;
+    final lock = ref.watch(appLockProvider);
+    final eligible =
+        ref.watch(hasBackupProvider) &&
+        !ref.watch(appLockOfferAnsweredProvider);
     final simple = ref.watch(simpleModeProvider);
-    return PopScope(
-      canPop: false,
-      child: Scaffold(
-        body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, box) => SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: box.maxHeight - 48),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    DrUsra(
-                      pose: DrUsraPose.explaining,
-                      size: (box.maxHeight * 0.3).clamp(96.0, 180.0),
-                    ),
-                    const SizedBox(height: 20),
-                    Semantics(
-                      header: true,
-                      child: Text(
-                        l.lockOfferTitle,
-                        key: const ValueKey('app-lock-offer'),
-                        style: simple
-                            ? text.headlineMedium
-                            : text.headlineSmall,
-                        textAlign: TextAlign.center,
+    return ListenableBuilder(
+      listenable: lock,
+      builder: (context, _) {
+        if (lock.enabled || !eligible) return const SizedBox.shrink();
+        final l = AppLocalizations.of(context);
+        final text = Theme.of(context).textTheme;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Card(
+            key: const ValueKey('app-lock-offer'),
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.lock_outline, color: context.usra.primary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(l.lockOfferTitle, style: text.titleMedium),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l.lockOfferBody,
+                    style: simple ? text.bodyLarge : text.bodyMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l.lockOfferLater,
+                    style: text.bodySmall?.copyWith(
+                      color: context.usra.inkMuted,
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      l.lockOfferBody,
-                      style: simple ? text.titleLarge : text.bodyLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton.icon(
-                      key: const ValueKey('app-lock-offer-yes'),
-                      style: FilledButton.styleFrom(
-                        minimumSize: Size.fromHeight(simple ? 64 : 52),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    alignment: WrapAlignment.end,
+                    spacing: 8,
+                    children: [
+                      TextButton(
+                        key: const ValueKey('app-lock-offer-skip'),
+                        onPressed: () => _notNow(ref),
+                        child: Text(l.lockOfferSkip),
                       ),
-                      onPressed: () async {
-                        if (await turnOnLock(context, ref) && context.mounted) {
-                          await _done(context, ref);
-                        }
-                      },
-                      icon: const Icon(Icons.lock_outline),
-                      label: Text(l.lockOfferYes),
-                    ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      key: const ValueKey('app-lock-offer-skip'),
-                      style: TextButton.styleFrom(
-                        minimumSize: Size.fromHeight(simple ? 64 : 48),
+                      FilledButton.tonal(
+                        key: const ValueKey('app-lock-offer-yes'),
+                        onPressed: () => turnOnLock(context, ref),
+                        child: Text(l.lockOfferYes),
                       ),
-                      onPressed: () => _done(context, ref),
-                      child: Text(l.lockOfferSkip),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l.lockOfferLater,
-                      style: text.bodySmall?.copyWith(
-                        color: context.usra.inkMuted,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
-        ),
+        );
+      },
+    );
+  }
+
+  Future<void> _notNow(WidgetRef ref) async {
+    try {
+      await ref.read(appLockOfferAnsweredProvider.notifier).set(true);
+    } catch (_) {
+      // Only means it's offered again next time.
+    }
+  }
+}
+
+/// The lock was turned on before it needed a backup, and there still isn't
+/// one. The lock stays on: this says what a forgotten PIN would mean and how
+/// to fix it.
+class _NoBackupWarning extends StatelessWidget {
+  const _NoBackupWarning();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final text = Theme.of(context).textTheme;
+    const severity = Severity.actSoon;
+    final color = severity.foregroundOf(context);
+    return Container(
+      key: const ValueKey('app-lock-no-backup-warning'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: severity.backgroundOf(context),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l.lockOnNoBackupBody,
+            style: text.bodyMedium?.copyWith(color: color),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: FilledButton.tonal(
+              key: const ValueKey('app-lock-no-backup-make'),
+              onPressed: () => context.go(backupPath),
+              child: Text(l.lockBackupFirstMake),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -636,6 +611,10 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
           body: ListView(
             padding: const EdgeInsets.all(20),
             children: [
+              if (on && !ref.watch(hasBackupProvider)) ...[
+                const _NoBackupWarning(),
+                const SizedBox(height: 20),
+              ],
               Card(
                 child: Column(
                   children: [

@@ -7,6 +7,7 @@ import '../../core/design/dr_usra.dart';
 import '../../core/design/theme.dart';
 import '../../core/design/tokens.dart';
 import '../../l10n/app_localizations.dart';
+import '../app_lock/app_lock_module.dart';
 import '../backup/backup_notices.dart';
 import '../children/vaccines_screen.dart' show HomeVaccines;
 import '../family/family_screen.dart';
@@ -29,6 +30,7 @@ class SimpleHome extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
       children: [
         const BackupNotices(simple: true),
+        const AppLockOfferCard(),
         Row(
           children: [
             DrUsra(size: 72, semanticLabel: l.homeGreeting),

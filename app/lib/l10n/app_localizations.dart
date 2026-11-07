@@ -4253,13 +4253,13 @@ abstract class AppLocalizations {
   /// No description provided for @lockBackupFirstTitle.
   ///
   /// In en, this message translates to:
-  /// **'Make a backup first?'**
+  /// **'A backup comes first'**
   String get lockBackupFirstTitle;
 
   /// No description provided for @lockBackupFirstBody.
   ///
   /// In en, this message translates to:
-  /// **'If you forget your PIN, the only way back in is to remove Usra\'s data and restore a backup with its recovery key. You don\'t have a backup yet.'**
+  /// **'If the PIN is forgotten, the only way back in is to remove Usra\'s data and restore a backup with its recovery key. There\'s no backup yet, and without one the records are lost.\n\nOnce a backup is made, the lock can go on.'**
   String get lockBackupFirstBody;
 
   /// No description provided for @lockBackupFirstMake.
@@ -4268,11 +4268,23 @@ abstract class AppLocalizations {
   /// **'Make a backup'**
   String get lockBackupFirstMake;
 
-  /// No description provided for @lockBackupFirstSkip.
+  /// No description provided for @lockNothingYetTitle.
   ///
   /// In en, this message translates to:
-  /// **'Continue without'**
-  String get lockBackupFirstSkip;
+  /// **'Family first'**
+  String get lockNothingYetTitle;
+
+  /// No description provided for @lockNothingYetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The lock needs a backup, and there\'s nothing to back up yet. Once someone is added to the family and a backup is made, the lock can go on.'**
+  String get lockNothingYetBody;
+
+  /// No description provided for @lockOnNoBackupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The lock is on, but there\'s no backup yet. If the PIN is forgotten, the records are lost.'**
+  String get lockOnNoBackupBody;
 
   /// No description provided for @backupDonePhotosSkipped.
   ///
@@ -6606,24 +6618,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Let\'s go'**
   String get aboutYouDone;
-
-  /// No description provided for @lockKeyFirstTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Recovery key first'**
-  String get lockKeyFirstTitle;
-
-  /// No description provided for @lockKeyFirstBody.
-  ///
-  /// In en, this message translates to:
-  /// **'If the PIN is forgotten, nothing else opens Usra, not even us. The only way back is to remove Usra\'s data and restore a backup with its recovery key. Without a backup, the records are lost.\n\nBefore the PIN, we\'ll make the recovery key, to be written down somewhere safe.'**
-  String get lockKeyFirstBody;
-
-  /// No description provided for @lockKeyFirstContinue.
-  ///
-  /// In en, this message translates to:
-  /// **'Make the recovery key'**
-  String get lockKeyFirstContinue;
 
   /// No description provided for @personAddFor.
   ///

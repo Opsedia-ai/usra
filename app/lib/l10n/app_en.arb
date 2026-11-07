@@ -1356,10 +1356,12 @@
   "lockUnavailable": "Couldn't read the lock just now. Try again in a moment.",
   "lockSetupTrivial": "That PIN is too easy to guess. Avoid repeated or sequential numbers.",
   "lockEmergencyFor": "Show on Usra's lock screen",
-  "lockBackupFirstTitle": "Make a backup first?",
-  "lockBackupFirstBody": "If you forget your PIN, the only way back in is to remove Usra's data and restore a backup with its recovery key. You don't have a backup yet.",
+  "lockBackupFirstTitle": "A backup comes first",
+  "lockBackupFirstBody": "If the PIN is forgotten, the only way back in is to remove Usra's data and restore a backup with its recovery key. There's no backup yet, and without one the records are lost.\n\nOnce a backup is made, the lock can go on.",
   "lockBackupFirstMake": "Make a backup",
-  "lockBackupFirstSkip": "Continue without",
+  "lockNothingYetTitle": "Family first",
+  "lockNothingYetBody": "The lock needs a backup, and there's nothing to back up yet. Once someone is added to the family and a backup is made, the lock can go on.",
+  "lockOnNoBackupBody": "The lock is on, but there's no backup yet. If the PIN is forgotten, the records are lost.",
   "backupDonePhotosSkipped": "Backup ready, but {count, plural, =1{1 photo couldn't be opened on this phone and isn't} other{{count} photos couldn't be opened on this phone and aren't}} in it. Keep it somewhere safe off this phone.",
   "@backupDonePhotosSkipped": {
     "placeholders": {
@@ -2265,9 +2267,6 @@
   "aboutYouSex": "Sex",
   "aboutYouSexHint": "For growth charts and pregnancy.",
   "aboutYouDone": "Let's go",
-  "lockKeyFirstTitle": "Recovery key first",
-  "lockKeyFirstBody": "If the PIN is forgotten, nothing else opens Usra, not even us. The only way back is to remove Usra's data and restore a backup with its recovery key. Without a backup, the records are lost.\n\nBefore the PIN, we'll make the recovery key, to be written down somewhere safe.",
-  "lockKeyFirstContinue": "Make the recovery key",
   "personAddFor": "Add for {name}",
   "@personAddFor": {
     "placeholders": {

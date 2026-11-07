@@ -10,6 +10,7 @@ import '../../core/design/type.dart';
 import '../../core/preferences.dart';
 import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
+import '../app_lock/app_lock_module.dart';
 import '../backup/backup_notices.dart';
 import '../backup/backup_providers.dart';
 import '../children/vaccines_screen.dart' show HomeVaccines;
@@ -78,6 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         const SizedBox(height: UsraSpacing.s4),
         const _UpcomingDoses(),
         const BackupNotices(),
+        const AppLockOfferCard(),
         const HomePregnancies(),
         const HomeVaccines(),
         const HomeFollowUps(),
