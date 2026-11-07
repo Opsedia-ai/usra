@@ -1905,13 +1905,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get recoveryKeyShow => 'Show recovery key';
-
-  @override
   String get restoreTitle => 'Restore from a backup';
 
   @override
   String get restoreHint => 'Replaces everything on this phone';
+
+  @override
+  String get recoveryKeyRowHint => 'Written on your paper';
+
+  @override
+  String get restoreKeyHelp => '6 groups of 6 digits.';
+
+  @override
+  String get restoreCancel => 'Go back with no changes';
 
   @override
   String get restoreIntro =>

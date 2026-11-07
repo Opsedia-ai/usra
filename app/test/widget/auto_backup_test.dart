@@ -423,7 +423,7 @@ void main() {
     await settleBackup(tester);
     expect(find.byKey(const ValueKey('backup-auto-progress')), findsNothing);
     expect(folder.files, hasLength(1));
-    expect(find.text('ابعت نسخة لمكان تاني'), findsOneWidget);
+    expect(find.text('نسخة لمكان تاني'), findsOneWidget);
   });
 
   group('opening the app', () {
@@ -570,8 +570,8 @@ void main() {
         on(failure: AutoBackupFailure.folderMissing),
       );
       await open(tester);
-      expect(find.text('اختار فولدر'), findsOneWidget);
-      await tester.tap(find.text('اختار فولدر'));
+      expect(find.text('اختيار فولدر'), findsOneWidget);
+      await tester.tap(find.text('اختيار فولدر'));
       await settleBackup(tester);
       expect(folder.picks, 1);
       expect(store.current.failure, isNull);

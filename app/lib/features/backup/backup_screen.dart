@@ -189,8 +189,6 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
             ),
             const SizedBox(height: 16),
           ],
-          const AutoBackupSection(),
-          const SizedBox(height: 16),
           if (autoOn)
             OutlinedButton.icon(
               key: const ValueKey('backup-now'),
@@ -205,24 +203,31 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               icon: _working ? spinner : const Icon(Icons.backup_outlined),
               label: Text(_working ? l.backupWorking : l.backupNow),
             ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          const AutoBackupSection(),
+          const SizedBox(height: 16),
           Card(
             child: Column(
               children: [
                 if (hasKey) ...[
                   ListTile(
                     key: const ValueKey('backup-show-key'),
+                    minTileHeight: UsraSizes.touchTarget,
                     leading: const Icon(Icons.key_outlined),
-                    title: Text(l.recoveryKeyShow),
+                    title: Text(l.recoveryKeyTitle),
+                    subtitle: Text(l.recoveryKeyRowHint),
+                    trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.push(recoveryKeyPath),
                   ),
                   const Divider(height: 1),
                 ],
                 ListTile(
                   key: const ValueKey('backup-restore'),
+                  minTileHeight: UsraSizes.touchTarget,
                   leading: const Icon(Icons.settings_backup_restore),
                   title: Text(l.restoreTitle),
                   subtitle: Text(l.restoreHint),
+                  trailing: const Icon(Icons.chevron_right),
                   onTap: busy ? null : () => context.push(restorePath),
                 ),
               ],
@@ -357,6 +362,7 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
             icon: const Icon(Icons.folder_open_outlined),
             label: Text(
               _file == null ? l.restorePick : _file!.split('/').last,
+              textDirection: _file == null ? null : TextDirection.ltr,
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -375,6 +381,8 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
               decoration: InputDecoration(
                 labelText: l.restoreKeyLabel,
                 hintText: '123456 123456 123456 123456 123456 123456',
+                helperText: l.restoreKeyHelp,
+                helperMaxLines: 2,
               ),
               maxLines: null,
             ),
@@ -455,6 +463,12 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
               onPressed: _working ? null : _replace,
               icon: const Icon(Icons.settings_backup_restore),
               label: Text(l.restoreReplace),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              key: const ValueKey('restore-cancel'),
+              onPressed: _working ? null : () => Navigator.maybePop(context),
+              child: Text(l.restoreCancel),
             ),
           ],
         ],

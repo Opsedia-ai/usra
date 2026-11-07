@@ -1689,10 +1689,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get backupIntro =>
-      'النسخة الاحتياطية ملف واحد متشفّر فيه كل سجلات العيلة وصورها. احفظه على Google Drive أو في الملفات، أو ابعته لنفسك على واتساب. علشان تفتحه على موبايل جديد هتحتاج مفتاح الاسترجاع بتاعك.';
+      'النسخة الاحتياطية ملف واحد متشفّر فيه كل سجلات العيلة وصورها، وبيتحفظ على Google Drive أو في الملفات أو على واتساب. فتحه على موبايل جديد محتاج مفتاح الاسترجاع.';
 
   @override
-  String get backupNever => 'لسه معملتش نسخة احتياطية';
+  String get backupNever => 'لسه مفيش نسخة احتياطية';
 
   @override
   String backupLast(String date) {
@@ -1700,7 +1700,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get backupNow => 'اعمل نسخة احتياطية دلوقتي';
+  String get backupNow => 'نسخة احتياطية دلوقتي';
 
   @override
   String get backupWorking => 'بنجهّز النسخة…';
@@ -1729,22 +1729,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recoveryKeyIntro =>
-      'ده مفتاح الاسترجاع بتاعك. اكتبه على ورقة واحتفظ بيها في مكان أمين بعيد عن الموبايل. هتحتاجه علشان تفتح النسخ الاحتياطية على موبايل جديد.';
+      'ده مفتاح الاسترجاع. مكانه ورقة في مكان أمين بعيد عن الموبايل. فتح النسخ الاحتياطية على موبايل جديد محتاجه.';
 
   @override
   String get recoveryKeyShowIntro =>
-      'ده المفتاح اللي بيفتح نسخك الاحتياطية. اتأكد إنه زي اللي مكتوب عندك على الورقة.';
+      'ده المفتاح اللي بيفتح النسخ الاحتياطية. لازم يكون زي اللي مكتوب على الورقة.';
 
   @override
   String get recoveryKeyLoseWarning =>
       'من غير المفتاح ده محدش يقدر يفتح نسخك الاحتياطية، ولا حتى إحنا. ولو ضاع مش هنقدر نرجّعه.';
 
   @override
-  String get recoveryKeyWrittenDown => 'كتبته';
+  String get recoveryKeyWrittenDown => 'اتكتب على الورقة';
 
   @override
   String get recoveryKeyConfirmIntro =>
-      'علشان نتأكد إنه مكتوب صح، اكتب المجموعتين دول من الورقة.';
+      'علشان نتأكد إنه مكتوب صح: المجموعتين دول من الورقة.';
 
   @override
   String recoveryKeyGroupLabel(int number) {
@@ -1755,10 +1755,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recoveryKeyConfirm => 'تأكيد';
 
   @override
-  String get recoveryKeyShowAgain => 'اعرض المفتاح تاني';
+  String get recoveryKeyShowAgain => 'عرض المفتاح تاني';
 
   @override
-  String get recoveryKeyCopy => 'انسخ المفتاح';
+  String get recoveryKeyCopy => 'نسخ المفتاح';
 
   @override
   String get recoveryKeyCopied =>
@@ -1911,20 +1911,26 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get recoveryKeyShow => 'اعرض مفتاح الاسترجاع';
+  String get restoreTitle => 'استرجاع من نسخة احتياطية';
 
   @override
-  String get restoreTitle => 'استرجع من نسخة احتياطية';
+  String get restoreHint => 'كل اللي على الموبايل ده هيتبدل';
 
   @override
-  String get restoreHint => 'هتستبدل كل اللي على الموبايل ده';
+  String get recoveryKeyRowHint => 'مكتوب على الورقة';
+
+  @override
+  String get restoreKeyHelp => '٦ مجموعات، كل مجموعة ٦ أرقام.';
+
+  @override
+  String get restoreCancel => 'رجوع من غير تغيير';
 
   @override
   String get restoreIntro =>
-      'اختار ملف النسخة الاحتياطية (بينتهي بـ ‎.usra‎) من Drive أو الملفات أو واتساب، وبعدين اكتب مفتاح الاسترجاع.';
+      'ملف النسخة الاحتياطية بينتهي بـ ‎.usra‎ وبيبقى على Drive أو في الملفات أو واتساب. بعد الملف، مفتاح الاسترجاع.';
 
   @override
-  String get restorePick => 'اختار ملف النسخة';
+  String get restorePick => 'اختيار ملف النسخة';
 
   @override
   String get restoreKeyLabel => 'مفتاح الاسترجاع (٣٦ رقم)';
@@ -1935,7 +1941,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get restoreOpen => 'افتح النسخة';
+  String get restoreOpen => 'فتح النسخة';
 
   @override
   String get restoreNotABackup => 'الملف ده مش نسخة احتياطية من أسرة.';
@@ -2001,7 +2007,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'كل اللي على الموبايل ده دلوقتي هيتشال ويتحط مكانه اللي في النسخة دي.';
 
   @override
-  String get restoreReplace => 'استرجع واستبدل';
+  String get restoreReplace => 'استرجاع واستبدال';
 
   @override
   String get restoreDoneNotice => 'رجّعنا نسختك الاحتياطية.';
@@ -3920,7 +3926,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backupAutoFolder => 'الفولدر';
 
   @override
-  String get backupAutoChooseFolder => 'اختار فولدر';
+  String get backupAutoChooseFolder => 'اختيار فولدر';
 
   @override
   String get backupAutoFrequency => 'كل قد إيه';
@@ -3945,14 +3951,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backupAutoDone => 'النسخة اتحفظت في الفولدر بتاعك.';
 
   @override
-  String get backupSendCopy => 'ابعت نسخة لمكان تاني';
+  String get backupSendCopy => 'نسخة لمكان تاني';
 
   @override
   String get backupBusy => 'فيه نسخة احتياطية شغالة دلوقتي. جرّب كمان شوية.';
 
   @override
   String get backupAutoDriveHint =>
-      'ممكن Google Drive ميظهرش وإنت بتختار الفولدر، وأسرة مش بتطلب إذن تدخل على الدرايف بتاعك. علشان تحتفظ بنسخة على الدرايف، دوس \"ابعت نسخة لمكان تاني\" واختار Drive.';
+      'ممكن Google Drive ميظهرش وإنت بتختار الفولدر، وأسرة مش بتطلب إذن تدخل على الدرايف بتاعك. علشان تحتفظ بنسخة على الدرايف، دوس \"نسخة لمكان تاني\" واختار Drive.';
 
   @override
   String get backupAutoOnPhone =>

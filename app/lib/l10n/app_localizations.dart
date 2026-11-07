@@ -3254,12 +3254,6 @@ abstract class AppLocalizations {
   /// **'Group {groups} doesn\'t match. Check your paper.'**
   String recoveryKeyMismatch(String groups);
 
-  /// No description provided for @recoveryKeyShow.
-  ///
-  /// In en, this message translates to:
-  /// **'Show recovery key'**
-  String get recoveryKeyShow;
-
   /// No description provided for @restoreTitle.
   ///
   /// In en, this message translates to:
@@ -3271,6 +3265,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replaces everything on this phone'**
   String get restoreHint;
+
+  /// No description provided for @recoveryKeyRowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Written on your paper'**
+  String get recoveryKeyRowHint;
+
+  /// No description provided for @restoreKeyHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'6 groups of 6 digits.'**
+  String get restoreKeyHelp;
+
+  /// No description provided for @restoreCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Go back with no changes'**
+  String get restoreCancel;
 
   /// No description provided for @restoreIntro.
   ///

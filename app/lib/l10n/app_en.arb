@@ -992,9 +992,11 @@
       }
     }
   },
-  "recoveryKeyShow": "Show recovery key",
   "restoreTitle": "Restore from a backup",
   "restoreHint": "Replaces everything on this phone",
+  "recoveryKeyRowHint": "Written on your paper",
+  "restoreKeyHelp": "6 groups of 6 digits.",
+  "restoreCancel": "Go back with no changes",
   "restoreIntro": "Choose your backup file (it ends in .usra) from Drive, Files or WhatsApp, then type your recovery key.",
   "restorePick": "Choose the backup file",
   "restoreKeyLabel": "Recovery key (36 digits)",
