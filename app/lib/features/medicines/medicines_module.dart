@@ -44,8 +44,10 @@ class MedicinesModule extends FeatureModule {
       routes: [
         GoRoute(
           path: 'new',
-          builder: (_, s) =>
-              MedicineFormScreen(profileId: s.pathParameters['id']!),
+          builder: (_, s) => MedicineFormScreen(
+            key: ValueKey(s.uri.path),
+            profileId: s.pathParameters['id']!,
+          ),
         ),
         GoRoute(
           path: ':medicineId',
@@ -57,6 +59,7 @@ class MedicinesModule extends FeatureModule {
             GoRoute(
               path: 'edit',
               builder: (_, s) => MedicineFormScreen(
+                key: ValueKey(s.uri.path),
                 profileId: s.pathParameters['id']!,
                 medicineId: s.pathParameters['medicineId'],
               ),
@@ -74,8 +77,10 @@ class MedicinesModule extends FeatureModule {
       routes: [
         GoRoute(
           path: 'new',
-          builder: (_, s) =>
-              PrescriptionFormScreen(profileId: s.pathParameters['id']!),
+          builder: (_, s) => PrescriptionFormScreen(
+            key: ValueKey(s.uri.path),
+            profileId: s.pathParameters['id']!,
+          ),
         ),
         GoRoute(
           path: ':prescriptionId',
@@ -87,6 +92,7 @@ class MedicinesModule extends FeatureModule {
             GoRoute(
               path: 'edit',
               builder: (_, s) => PrescriptionFormScreen(
+                key: ValueKey(s.uri.path),
                 profileId: s.pathParameters['id']!,
                 prescriptionId: s.pathParameters['prescriptionId'],
               ),

@@ -281,7 +281,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutPrivacyOptionalAccount.
   ///
   /// In en, this message translates to:
-  /// **'An account is optional, and there are no ads and no tracking. If you sign in, we keep your email (and your name with Google) to run the account, and we never receive your health records. We never sell or share anyone\'s data.'**
+  /// **'An account is optional, and there are no ads and no tracking. If you sign in, we keep your email, account ID, language and device information to run the account, plus your name and profile photo link if you use Google. We never receive your health records. We never sell or share anyone\'s data.'**
   String get aboutPrivacyOptionalAccount;
 
   /// No description provided for @aboutPrivacyBackup.
@@ -2327,8 +2327,8 @@ abstract class AppLocalizations {
   /// No description provided for @doseReminderBody.
   ///
   /// In en, this message translates to:
-  /// **'Tap Taken once it\'s done'**
-  String get doseReminderBody;
+  /// **'{sex, select, other{Tap Taken once it\'s done}}'**
+  String doseReminderBody(String sex);
 
   /// No description provided for @doseChannelName.
   ///
@@ -2989,6 +2989,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Usra can\'t open the key to your records right now. Your records are still here and nothing was deleted. Try again, or restart your phone. If this keeps happening, contact us before deleting the app.'**
   String get databaseKeyUnavailable;
+
+  /// No description provided for @databaseOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra can\'t open your records right now. Your records are still here and nothing was deleted. Check that your phone has free storage, then try again or restart your phone. If this keeps happening, contact us before deleting the app.'**
+  String get databaseOpenFailed;
 
   /// No description provided for @recoveryKeyCopyFailed.
   ///
@@ -3845,7 +3851,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountSignInIntro.
   ///
   /// In en, this message translates to:
-  /// **'An account is optional: the app works fully without one. Google shares your name and email with us; Apple shares your email.'**
+  /// **'An account is optional: the app works fully without one. Google shares your name, email, profile photo link and an account ID with us; Apple shares your email (or a replacement address if you hide yours) and an account ID. We store these with your language and device information to run the account.'**
   String get accountSignInIntro;
 
   /// No description provided for @accountSignInConsent.
@@ -4007,7 +4013,7 @@ abstract class AppLocalizations {
   /// No description provided for @lockForgotBody.
   ///
   /// In en, this message translates to:
-  /// **'To keep your family\'s records private, nothing can skip the PIN, not even us.\n\nTo start again:\n1. Remove Usra\'s data. On Android: phone Settings › Apps › Usra › Storage › Clear data. On iPhone: delete Usra and install it again. This deletes everything Usra keeps on this phone.\n2. Open Usra and restore your latest backup with your recovery key (More › Backup).\n\nWithout a backup and its recovery key, the records can\'t be brought back.'**
+  /// **'To keep your family\'s records private, nothing can skip the PIN, not even us.\n\nTo start again:\n1. Remove Usra\'s data. On Android: phone Settings › Apps › Usra › Storage › Clear data. On iPhone: delete Usra and install it again. This deletes everything Usra keeps on this phone.\n2. Open Usra and restore your latest backup with your recovery key (\"I have a backup\" on the first screen).\n\nWithout a backup and its recovery key, the records can\'t be brought back.'**
   String get lockForgotBody;
 
   /// No description provided for @lockEmergency.
@@ -4205,13 +4211,13 @@ abstract class AppLocalizations {
   /// No description provided for @lockSettingsEmergency.
   ///
   /// In en, this message translates to:
-  /// **'Emergency card on the lock screen'**
+  /// **'Emergency card on Usra\'s lock screen'**
   String get lockSettingsEmergency;
 
   /// No description provided for @lockSettingsEmergencyHint.
   ///
   /// In en, this message translates to:
-  /// **'A paramedic can see the blood type, allergies and conditions of the people you choose here without the PIN. Anyone holding the phone can see them too.'**
+  /// **'The blood type, allergies, conditions, surgeries and current medicines of the people you choose here can be seen without the PIN by anyone holding the phone with Usra open. This is Usra\'s lock screen, not the phone\'s: for a locked phone, use the phone\'s own Medical ID.'**
   String get lockSettingsEmergencyHint;
 
   /// No description provided for @lockVerifyTitle.
@@ -4241,7 +4247,7 @@ abstract class AppLocalizations {
   /// No description provided for @lockEmergencyFor.
   ///
   /// In en, this message translates to:
-  /// **'Show on the lock screen'**
+  /// **'Show on Usra\'s lock screen'**
   String get lockEmergencyFor;
 
   /// No description provided for @lockBackupFirstTitle.
@@ -4289,7 +4295,7 @@ abstract class AppLocalizations {
   /// No description provided for @doseReminderDiscreetTitle.
   ///
   /// In en, this message translates to:
-  /// **'Time for a medicine'**
+  /// **'Your medicine time'**
   String get doseReminderDiscreetTitle;
 
   /// No description provided for @widgetDiscreetDose.
@@ -4307,7 +4313,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDiscreetHint.
   ///
   /// In en, this message translates to:
-  /// **'Reminders and the home-screen widget say \"Time for a medicine\", without the person\'s or the medicine\'s name.'**
+  /// **'Reminders and the home-screen widget say \"Your medicine time\", without the person\'s or the medicine\'s name. When several doses are close together, open Usra to mark them.'**
   String get settingsDiscreetHint;
 
   /// No description provided for @settingsBlockScreenshots.
@@ -4327,6 +4333,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open Usra to see which'**
   String get doseReminderDiscreetBody;
+
+  /// No description provided for @doseReminderDiscreetTimeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The {time} dose'**
+  String doseReminderDiscreetTimeBody(String time);
+
+  /// No description provided for @doseReminderDiscreetSeveralBody.
+  ///
+  /// In en, this message translates to:
+  /// **'More than one dose is due around now. Open Usra to see which'**
+  String get doseReminderDiscreetSeveralBody;
 
   /// No description provided for @memberVaccines.
   ///
@@ -5498,6 +5516,119 @@ abstract class AppLocalizations {
   /// **'Notes saved'**
   String get sickDayNotesSaved;
 
+  /// No description provided for @sickDayPersonUnwell.
+  ///
+  /// In en, this message translates to:
+  /// **'{sex, select, male{{name} is unwell} female{{name} is unwell} other{{name} is unwell}}'**
+  String sickDayPersonUnwell(String sex, String name);
+
+  /// No description provided for @sickDayPersonWasUnwell.
+  ///
+  /// In en, this message translates to:
+  /// **'{sex, select, male{{name} was unwell} female{{name} was unwell} other{{name} was unwell}}'**
+  String sickDayPersonWasUnwell(String sex, String name);
+
+  /// No description provided for @sickDaySinceToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Since today {time}'**
+  String sickDaySinceToday(String time);
+
+  /// No description provided for @sickDaySinceYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Since yesterday {time}'**
+  String sickDaySinceYesterday(String time);
+
+  /// No description provided for @sickDayLatestReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest reading'**
+  String get sickDayLatestReading;
+
+  /// No description provided for @sickDayFeverLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Fever logged: {duration}'**
+  String sickDayFeverLogged(String duration);
+
+  /// No description provided for @sickDayFeverUnderHour.
+  ///
+  /// In en, this message translates to:
+  /// **'under an hour'**
+  String get sickDayFeverUnderHour;
+
+  /// No description provided for @sickDayFeverHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour} other{{shown} hours}}'**
+  String sickDayFeverHours(int count, String shown);
+
+  /// No description provided for @sickDayFeverDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{shown} days}}'**
+  String sickDayFeverDays(int count, String shown);
+
+  /// No description provided for @sickDayRecordedGiven.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded: {what} · {time}'**
+  String sickDayRecordedGiven(String what, String time);
+
+  /// No description provided for @sickDayChartSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings from {start} to {end}: {values}. The dashed line is at {fever}, where a fever starts.'**
+  String sickDayChartSemantics(
+    String start,
+    String end,
+    String values,
+    String fever,
+  );
+
+  /// No description provided for @sickDayChartThen.
+  ///
+  /// In en, this message translates to:
+  /// **', then '**
+  String get sickDayChartThen;
+
+  /// No description provided for @sickDayAddReadingShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Add reading'**
+  String get sickDayAddReadingShort;
+
+  /// No description provided for @sickDayGivenShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine given'**
+  String get sickDayGivenShort;
+
+  /// No description provided for @sickDayAllReadings.
+  ///
+  /// In en, this message translates to:
+  /// **'All readings'**
+  String get sickDayAllReadings;
+
+  /// No description provided for @sickDayNoSymptoms.
+  ///
+  /// In en, this message translates to:
+  /// **'No symptoms logged yet.'**
+  String get sickDayNoSymptoms;
+
+  /// No description provided for @sickDayCallDoctorNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Call {name}'**
+  String sickDayCallDoctorNamed(String name);
+
+  /// No description provided for @sickDayBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get sickDayBack;
+
   /// No description provided for @readingValue.
   ///
   /// In en, this message translates to:
@@ -6337,6 +6468,402 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Can\'t read your data right now. Close the app and open it again.'**
   String get homeLoadError;
+
+  /// No description provided for @homeGreetingNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'{greeting}, {name}'**
+  String homeGreetingNamed(String greeting, String name);
+
+  /// No description provided for @welcomeHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole family\'s\nhealth in one place'**
+  String get welcomeHeadline;
+
+  /// No description provided for @welcomePrivacyLine.
+  ///
+  /// In en, this message translates to:
+  /// **'A file for each person and medicine reminders. Your data stays on your phone, encrypted, and we can\'t see it.'**
+  String get welcomePrivacyLine;
+
+  /// No description provided for @welcomeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s start'**
+  String get welcomeStart;
+
+  /// No description provided for @welcomeHaveBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'I have a backup'**
+  String get welcomeHaveBackup;
+
+  /// No description provided for @welcomeDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra is not a medical device and doesn\'t replace a doctor.'**
+  String get welcomeDisclaimer;
+
+  /// No description provided for @welcomePrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get welcomePrivacy;
+
+  /// No description provided for @welcomeTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms'**
+  String get welcomeTerms;
+
+  /// No description provided for @welcomeLanguageOther.
+  ///
+  /// In en, this message translates to:
+  /// **'العربية'**
+  String get welcomeLanguageOther;
+
+  /// No description provided for @onboardingStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String onboardingStep(String current, String total);
+
+  /// No description provided for @onboardingBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get onboardingBack;
+
+  /// No description provided for @countryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get countryTitle;
+
+  /// No description provided for @countryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'So the vaccine schedule and the ambulance number are right.'**
+  String get countryHint;
+
+  /// No description provided for @countryEgypt.
+  ///
+  /// In en, this message translates to:
+  /// **'Egypt'**
+  String get countryEgypt;
+
+  /// No description provided for @countryEgyptDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Ministry of Health and Population · Ambulance 123'**
+  String get countryEgyptDetail;
+
+  /// No description provided for @countrySaudi.
+  ///
+  /// In en, this message translates to:
+  /// **'Saudi Arabia'**
+  String get countrySaudi;
+
+  /// No description provided for @countryJordan.
+  ///
+  /// In en, this message translates to:
+  /// **'Jordan'**
+  String get countryJordan;
+
+  /// No description provided for @countrySoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get countrySoon;
+
+  /// No description provided for @aboutYouTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The first file in your family'**
+  String get aboutYouTitle;
+
+  /// No description provided for @aboutYouHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This one is yours, and it can be changed later.'**
+  String get aboutYouHint;
+
+  /// No description provided for @aboutYouSex.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get aboutYouSex;
+
+  /// No description provided for @aboutYouSexHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For growth charts and pregnancy.'**
+  String get aboutYouSexHint;
+
+  /// No description provided for @aboutYouDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s go'**
+  String get aboutYouDone;
+
+  /// No description provided for @lockKeyFirstTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery key first'**
+  String get lockKeyFirstTitle;
+
+  /// No description provided for @lockKeyFirstBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If the PIN is forgotten, nothing else opens Usra, not even us. The only way back is to remove Usra\'s data and restore a backup with its recovery key. Without a backup, the records are lost.\n\nBefore the PIN, we\'ll make the recovery key, to be written down somewhere safe.'**
+  String get lockKeyFirstBody;
+
+  /// No description provided for @lockKeyFirstContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Make the recovery key'**
+  String get lockKeyFirstContinue;
+
+  /// No description provided for @personAddFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Add for {name}'**
+  String personAddFor(String name);
+
+  /// No description provided for @personVaccineWasDue.
+  ///
+  /// In en, this message translates to:
+  /// **'It was due on {date}. Ask the doctor when to give it.'**
+  String personVaccineWasDue(String date);
+
+  /// No description provided for @personDoctorSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor summary'**
+  String get personDoctorSummary;
+
+  /// No description provided for @personInsuranceOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open card'**
+  String get personInsuranceOpen;
+
+  /// No description provided for @personVaccineLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Given? Log it'**
+  String get personVaccineLog;
+
+  /// No description provided for @personVaccineSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference: Egypt\'s vaccine schedule, {route} · checked {date}'**
+  String personVaccineSource(String route, String date);
+
+  /// No description provided for @personVaccineSourceOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference: pediatricians\' usual schedules in Egypt · checked {date}'**
+  String personVaccineSourceOptional(String date);
+
+  /// No description provided for @personNextDose.
+  ///
+  /// In en, this message translates to:
+  /// **'Next dose · {time}'**
+  String personNextDose(String time);
+
+  /// No description provided for @personDoseWasAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Was due at {time}'**
+  String personDoseWasAt(String time);
+
+  /// No description provided for @personRecordedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded by the family'**
+  String get personRecordedTitle;
+
+  /// No description provided for @personTimelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All records'**
+  String get personTimelineTitle;
+
+  /// No description provided for @personTileGrowth.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth'**
+  String get personTileGrowth;
+
+  /// No description provided for @personTileVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Visits and labs'**
+  String get personTileVisits;
+
+  /// No description provided for @personTileInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get personTileInsurance;
+
+  /// No description provided for @personTileDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents and photos'**
+  String get personTileDocuments;
+
+  /// No description provided for @personVaccinesSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} · Egypt schedule'**
+  String personVaccinesSummary(String done, String total);
+
+  /// No description provided for @personGrowthWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} kg · {date}'**
+  String personGrowthWeight(String value, String date);
+
+  /// No description provided for @personGrowthHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} cm · {date}'**
+  String personGrowthHeight(String value, String date);
+
+  /// No description provided for @personLatestOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest {date}'**
+  String personLatestOn(String date);
+
+  /// No description provided for @personInsuranceCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{None yet} =1{1 card} other{{shown} cards}}'**
+  String personInsuranceCount(int count, String shown);
+
+  /// No description provided for @personMedicinesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{None current} =1{1 current} other{{shown} current}}'**
+  String personMedicinesCount(int count, String shown);
+
+  /// No description provided for @personFollowUpsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{None for now} =1{1 follow-up} other{{shown} follow-ups}}'**
+  String personFollowUpsCount(int count, String shown);
+
+  /// No description provided for @personDocumentsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{None yet} =1{1 record with photos} other{{shown} records with photos}}'**
+  String personDocumentsCount(int count, String shown);
+
+  /// No description provided for @personVisitsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No visits or lab results recorded yet.'**
+  String get personVisitsEmpty;
+
+  /// No description provided for @personDocumentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No records with photos yet.'**
+  String get personDocumentsEmpty;
+
+  /// No description provided for @personAgeYears.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 year} other{{shown} years}}'**
+  String personAgeYears(int count, String shown);
+
+  /// No description provided for @personAgeMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Under 1 month} =1{1 month} other{{shown} months}}'**
+  String personAgeMonths(int count, String shown);
+
+  /// No description provided for @emergencyAmbulanceShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Ambulance {number}'**
+  String emergencyAmbulanceShort(String number);
+
+  /// No description provided for @emergencyOtherLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'عربي'**
+  String get emergencyOtherLanguage;
+
+  /// No description provided for @emergencyMedicines.
+  ///
+  /// In en, this message translates to:
+  /// **'Current medicines'**
+  String get emergencyMedicines;
+
+  /// No description provided for @emergencyAsTyped.
+  ///
+  /// In en, this message translates to:
+  /// **'This is what the family recorded, as they typed it.'**
+  String get emergencyAsTyped;
+
+  /// No description provided for @emergencyLockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on Usra\'s lock screen'**
+  String get emergencyLockTitle;
+
+  /// No description provided for @emergencyLockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone holding the phone can see it once Usra is open'**
+  String get emergencyLockHint;
+
+  /// No description provided for @emergencyMedicalIdHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra\'s lock screen only appears once the phone itself is unlocked. So a paramedic can read this on a locked phone, also add it to the phone\'s own Medical ID or emergency information, in the phone\'s settings.'**
+  String get emergencyMedicalIdHint;
+
+  /// No description provided for @lockEmergencyConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show {name}\'s card on Usra\'s lock screen?'**
+  String lockEmergencyConfirmTitle(String name);
+
+  /// No description provided for @lockEmergencyConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone holding the phone with Usra open will be able to see the blood type, allergies, conditions, surgeries and current medicines without the PIN. This is Usra\'s lock screen, not the phone\'s.'**
+  String get lockEmergencyConfirmBody;
+
+  /// No description provided for @lockEmergencyConfirmYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, show it'**
+  String get lockEmergencyConfirmYes;
+
+  /// No description provided for @insuranceCopyNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy member number'**
+  String get insuranceCopyNumber;
+
+  /// No description provided for @insuranceCopyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t copy the number'**
+  String get insuranceCopyFailed;
+
+  /// No description provided for @insuranceNumberCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Member number copied'**
+  String get insuranceNumberCopied;
 
   /// No description provided for @doseGroupMissed.
   ///

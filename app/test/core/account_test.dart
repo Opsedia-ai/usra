@@ -127,7 +127,7 @@ void main() {
     test('an unreadable database key is never replaced', () async {
       final storage = SpySecureStorage(values: Map.of(keys), failReads: true);
       await expectLater(
-        DatabaseKeyStore(storage).readOrCreate(),
+        DatabaseKeyStore(storage).readOrCreate(beforeCreating: () {}),
         throwsStateError,
       );
       expect(storage.values, keys);

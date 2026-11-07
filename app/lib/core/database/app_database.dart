@@ -721,6 +721,14 @@ class AppDatabase extends _$AppDatabase {
         .watchSingleOrNull();
   }
 
+  /// The row is live and belongs to [profileId]. A save never moves a record
+  /// to another person, so a wrong id can't put one person's photos on another.
+  Expression<bool> _liveFor(
+    GeneratedColumn<String> owner,
+    GeneratedColumn<DateTime> deletedAt,
+    String profileId,
+  ) => owner.equals(profileId) & deletedAt.isNull();
+
   /// Creates a card for [profileId], or updates [id] when given.
   /// Returns the card's id.
   Future<String> saveInsuranceCard({
@@ -759,10 +767,15 @@ class AppDatabase extends _$AppDatabase {
       if (id == null) {
         await into(insuranceCards).insert(row);
       } else {
-        final changed = await (update(
-          insuranceCards,
-        )..where((c) => c.id.equals(id) & c.deletedAt.isNull())).write(row);
+        final changed =
+            await (update(insuranceCards)..where(
+                  (c) =>
+                      c.id.equals(id) &
+                      _liveFor(c.profileId, c.deletedAt, profileId),
+                ))
+                .write(row);
         // Deleted meanwhile (or never existed): don't revive a tombstone.
+        // Someone else's card: its photos must not move to this person.
         if (changed == 0) throw StateError('Insurance card $id not found');
       }
       await _queue('insurance_card', cardId, 'upsert');
@@ -872,10 +885,15 @@ class AppDatabase extends _$AppDatabase {
       if (id == null) {
         await into(medicines).insert(row);
       } else {
-        final changed = await (update(
-          medicines,
-        )..where((m) => m.id.equals(id) & m.deletedAt.isNull())).write(row);
+        final changed =
+            await (update(medicines)..where(
+                  (m) =>
+                      m.id.equals(id) &
+                      _liveFor(m.profileId, m.deletedAt, profileId),
+                ))
+                .write(row);
         // Deleted meanwhile (or never existed): don't revive a tombstone.
+        // Someone else's medicine: its photos must not move to this person.
         if (changed == 0) throw StateError('Medicine $id not found');
       }
       await _queue('medicine', medicineId, 'upsert');
@@ -1112,9 +1130,14 @@ class AppDatabase extends _$AppDatabase {
       if (id == null) {
         await into(prescriptions).insert(row);
       } else {
-        final changed = await (update(
-          prescriptions,
-        )..where((p) => p.id.equals(id) & p.deletedAt.isNull())).write(row);
+        final changed =
+            await (update(prescriptions)..where(
+                  (p) =>
+                      p.id.equals(id) &
+                      _liveFor(p.profileId, p.deletedAt, profileId),
+                ))
+                .write(row);
+        // Someone else's prescription: it and its medicines stay with them.
         if (changed == 0) throw StateError('Prescription $id not found');
       }
       await _queue('prescription', prescriptionId, 'upsert');

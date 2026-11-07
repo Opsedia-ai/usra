@@ -6,10 +6,25 @@ import 'package:flutter/widgets.dart';
 String localizedDigits(BuildContext context, int number) =>
     localizedDigitsIn(context, '$number');
 
-/// [text] with its digits in the language's, for a sentence the app wrote.
-String localizedDigitsIn(BuildContext context, String text) {
-  if (Localizations.localeOf(context).languageCode != 'ar') return text;
+/// [text] the app wrote, in the digits of the app's language, with a decimal
+/// point as ٫ in Arabic. Never for what a person typed.
+String localizedDigitsIn(BuildContext context, String text) =>
+    digitsIn(Localizations.localeOf(context).languageCode, text);
+
+/// The same for [languageCode], for text in a language other than the app's.
+String digitsIn(String languageCode, String text) {
+  if (languageCode != 'ar') return text;
   return String.fromCharCodes(
-    text.codeUnits.map((u) => u >= 0x30 && u <= 0x39 ? u + 0x0660 - 0x30 : u),
+    text.codeUnits.map(
+      (u) => u >= 0x30 && u <= 0x39
+          ? u + 0x0660 - 0x30
+          : u == 0x2E
+          ? 0x066B
+          : u,
+    ),
   );
 }
+
+/// A reading to one decimal, like a thermometer shows.
+String localizedReading(BuildContext context, double value) =>
+    localizedDigitsIn(context, value.toStringAsFixed(1));

@@ -94,6 +94,8 @@ void main() {
     router.go('/family/$ali');
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('member-pregnancy')), findsNothing);
+    await tester.ensureVisible(find.byKey(const ValueKey('add-record')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('add-record')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('type-visit')), findsOneWidget);
@@ -103,10 +105,13 @@ void main() {
         .pop();
     await tester.pumpAndSettle();
 
+    router.go('/family/$mona/follow-ups');
+    await tester.pumpAndSettle();
+    expect(find.text('تحليل سكر الحمل (منحنى السكر)'), findsWidgets);
+
     router.go('/family/$mona');
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('member-pregnancy')), findsOneWidget);
-    expect(find.text('تحليل سكر الحمل (منحنى السكر)'), findsWidgets);
 
     await tester.tap(find.byKey(ValueKey('pregnancy-summary-$mona')));
     await tester.pumpAndSettle();
@@ -171,6 +176,8 @@ void main() {
     router.go('/family/$kid');
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('member-pregnancy')), findsNothing);
+    await tester.ensureVisible(find.byKey(const ValueKey('member-baby-log')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('member-baby-log')));
     await tester.pumpAndSettle();
 
@@ -206,6 +213,10 @@ void main() {
     expect(find.textContaining('مهارة'), findsNothing);
 
     // Milestones: the 2-month list is a month overdue except what's ticked.
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('member-development')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('member-development')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('dev-late-banner')), findsOneWidget);

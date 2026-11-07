@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../modules.dart';
 import 'database/app_database.dart';
+import 'log.dart';
 import 'modules/module_registry.dart';
+import 'preferences.dart';
 
 /// All feature modules. Override in tests to load a subset.
 final moduleRegistryProvider = Provider<ModuleRegistry>(
@@ -26,7 +30,24 @@ final localeProvider = NotifierProvider<LocaleController, Locale>(
 
 class LocaleController extends Notifier<Locale> {
   @override
-  Locale build() => const Locale('ar');
+  Locale build() => Locale(
+    ref.watch(keyValueStoreProvider).getString(PrefKeys.language) ?? 'ar',
+  );
 
-  void change(Locale locale) => state = locale;
+  void change(Locale locale) {
+    state = locale;
+    // Kept for the next start; if it can't be saved it only falls back to
+    // Arabic then.
+    unawaited(_save(locale));
+  }
+
+  Future<void> _save(Locale locale) async {
+    try {
+      await ref
+          .read(keyValueStoreProvider)
+          .setString(PrefKeys.language, locale.languageCode);
+    } catch (e) {
+      Log.error('Language save failed', e);
+    }
+  }
 }

@@ -19,6 +19,11 @@ class SickDaysModule extends FeatureModule {
       path: '/family/:id/sick-days',
       builder: (_, s) => EpisodeListScreen(profileId: s.pathParameters['id']!),
     ),
+  ];
+
+  @override
+  List<RouteBase> get fullScreenRoutes => [
+    // Its own bottom actions take the tab bar's place.
     GoRoute(
       path: '/family/:id/sick-days/:episodeId',
       builder: (_, s) => EpisodeScreen(

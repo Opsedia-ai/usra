@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -26,9 +27,19 @@ class DatabaseKeyStore {
   static const _keyName = 'usra.db.key.v1';
   final FlutterSecureStorage _storage;
 
-  Future<String> readOrCreate() async {
+  /// The stored key, or a new one if none is stored.
+  ///
+  /// [beforeCreating] runs first when there is none: it's the only moment we
+  /// know for certain that the key can't open a file already there. If it
+  /// throws, no key is written, so the next start still knows.
+  Future<String> readOrCreate({required void Function() beforeCreating}) async {
     final existing = await _storage.read(key: _keyName);
-    if (existing != null) return existing;
+    if (existing != null) {
+      // Not replaced, whatever it holds. The caller says it can't be read.
+      _checkKey(existing);
+      return existing;
+    }
+    beforeCreating();
     final key = generateKey();
     await _storage.write(key: _keyName, value: key);
     return key;
@@ -52,13 +63,29 @@ class EncryptionUnavailableError extends StateError {
       );
 }
 
-/// What [prepareDatabaseFile] found.
+/// The database file couldn't be opened with the stored key, or couldn't be
+/// moved: a full disk, a read error, a lock, damage. The records stay where
+/// they are, so trying again later may work.
+///
+/// Carries only the SQLite code. A [SqliteException]'s text can quote the
+/// `PRAGMA key` statement.
+class DatabaseOpenException implements Exception {
+  const DatabaseOpenException([this.code]);
+
+  /// SQLite extended result code. Null if the file system refused instead.
+  final int? code;
+
+  @override
+  String toString() => 'DatabaseOpenException($code)';
+}
+
+/// How the database file was found at start.
 enum DatabaseOpenOutcome {
   /// New or readable database.
   ready,
 
-  /// The old file could not be opened with this key (for example the key
-  /// was reset). It was moved aside, never deleted, and a new one starts.
+  /// The key was gone, so the old file can't be opened. It was moved aside,
+  /// never deleted, and a new one starts.
   recoveredFromUnreadableFile,
 }
 
@@ -76,24 +103,58 @@ void unlockDatabase(Database db, String hexKey) {
 }
 
 /// Makes sure [file] can be opened with [hexKey] before the app uses it.
-DatabaseOpenOutcome prepareDatabaseFile(File file, String hexKey) {
+///
+/// Never moves the file. Any SQLite failure throws [DatabaseOpenException],
+/// including SQLITE_NOTADB: a damaged first page or a
+/// cut-short file reports exactly what a wrong key reports, so that code can't
+/// prove the key is wrong. The only proof is an empty key store, see
+/// [setAsideAfterLostKey].
+void prepareDatabaseFile(
+  File file,
+  String hexKey, {
+  @visibleForTesting void Function(Database, String) unlock = unlockDatabase,
+}) {
   _checkKey(hexKey);
-  if (!file.existsSync()) return DatabaseOpenOutcome.ready;
+  if (!file.existsSync()) return;
 
-  var readable = true;
-  final db = sqlite3.open(file.path);
   try {
-    unlockDatabase(db, hexKey);
-  } on SqliteException {
-    readable = false;
-  } finally {
-    db.close();
+    final db = sqlite3.open(file.path);
+    try {
+      unlock(db, hexKey);
+    } finally {
+      db.close();
+    }
+  } on SqliteException catch (e) {
+    throw DatabaseOpenException(e.extendedResultCode);
   }
-  if (readable) return DatabaseOpenOutcome.ready;
+}
 
+/// The key store has no key, so nothing can open [file] any more: moves it
+/// aside, with its journal files, so a new database can start. Never deletes.
+/// Only for [DatabaseKeyStore.readOrCreate]'s `beforeCreating`.
+DatabaseOpenOutcome setAsideAfterLostKey(File file) {
   final stamp = DateTime.now().toUtc().millisecondsSinceEpoch;
-  file.renameSync('${file.path}.unreadable-$stamp');
-  return DatabaseOpenOutcome.recoveredFromUnreadableFile;
+  // Also true if an earlier start moved it and was stopped before saving the
+  // new key, so the notice still shows. A stray journal file alone isn't.
+  final name = '${p.basename(file.path)}.unreadable-';
+  final recovered =
+      file.existsSync() ||
+      (file.parent.existsSync() &&
+          file.parent.listSync().any(
+            (e) => p.basename(e.path).startsWith(name),
+          ));
+  try {
+    for (final suffix in ['', '-journal', '-wal', '-shm']) {
+      final part = File('${file.path}$suffix');
+      if (!part.existsSync()) continue;
+      part.renameSync('${file.path}$suffix.unreadable-$stamp');
+    }
+  } on FileSystemException {
+    throw const DatabaseOpenException();
+  }
+  return recovered
+      ? DatabaseOpenOutcome.recoveredFromUnreadableFile
+      : DatabaseOpenOutcome.ready;
 }
 
 Future<File> defaultDatabaseFile() async {

@@ -30,7 +30,7 @@
   "aboutPrivacyHeading": "Your privacy, in plain words",
   "aboutPrivacyOnPhone": "Everything you record stays on this phone. Records are in an encrypted database; photos are in the app's private storage, never in your gallery or in cloud backups. We don't receive any of it and can't see it.",
   "aboutPrivacyNoAccount": "No account, no sign-in, no ads and no tracking. We never sell or share anyone's data.",
-  "aboutPrivacyOptionalAccount": "An account is optional, and there are no ads and no tracking. If you sign in, we keep your email (and your name with Google) to run the account, and we never receive your health records. We never sell or share anyone's data.",
+  "aboutPrivacyOptionalAccount": "An account is optional, and there are no ads and no tracking. If you sign in, we keep your email, account ID, language and device information to run the account, plus your name and profile photo link if you use Google. We never receive your health records. We never sell or share anyone's data.",
   "aboutPrivacyBackup": "A backup is an encrypted file you keep wherever you choose. Only your recovery key opens it, and we don't have it.",
   "aboutPrivacyPhotos": "The camera and photos are used only when you choose, and text is read from them on this phone.",
   "aboutPrivacyReminders": "Reminders are set on this phone. People's names and medicine names can show on the lock screen (the name as you typed it) and on the home-screen widget (first names).",
@@ -733,7 +733,14 @@
       }
     }
   },
-  "doseReminderBody": "Tap Taken once it's done",
+  "doseReminderBody": "{sex, select, other{Tap Taken once it's done}}",
+  "@doseReminderBody": {
+    "placeholders": {
+      "sex": {
+        "type": "String"
+      }
+    }
+  },
   "doseChannelName": "Medicine reminders",
   "doseChannelDescription": "Reminders at the times the doctor prescribed",
   "widgetEmpty": "No medicines today",
@@ -917,6 +924,7 @@
   "wipeWorking": "Deleting…",
   "wipeReopenFailed": "Usra couldn't open again after deleting. Close it and open it again.",
   "databaseKeyUnavailable": "Usra can't open the key to your records right now. Your records are still here and nothing was deleted. Try again, or restart your phone. If this keeps happening, contact us before deleting the app.",
+  "databaseOpenFailed": "Usra can't open your records right now. Your records are still here and nothing was deleted. Check that your phone has free storage, then try again or restart your phone. If this keeps happening, contact us before deleting the app.",
   "recoveryKeyCopyFailed": "Couldn't copy the key. Write it down from the screen instead.",
   "wipeDoneNotice": "Everything Usra kept on this phone was deleted.",
   "wipeIncompleteNotice": "Some of Usra's data couldn't be deleted. Usra will try again the next time it starts.",
@@ -1267,7 +1275,7 @@
   "accountTitle": "Account",
   "accountSettingsHint": "Optional. Your records stay on this phone",
   "accountPrivacy": "Your family's health records stay on this phone. An account doesn't upload them: it only gets things ready for syncing between your family's phones and for AI features later, and you'll choose before anything is shared.",
-  "accountSignInIntro": "An account is optional: the app works fully without one. Google shares your name and email with us; Apple shares your email.",
+  "accountSignInIntro": "An account is optional: the app works fully without one. Google shares your name, email, profile photo link and an account ID with us; Apple shares your email (or a replacement address if you hide yours) and an account ID. We store these with your language and device information to run the account.",
   "accountSignInConsent": "By signing in, you agree that we keep this to run your account, as the privacy policy says.",
   "accountReadPrivacy": "Read about privacy",
   "accountSignInWithGoogle": "Sign in with Google",
@@ -1301,7 +1309,7 @@
   },
   "lockForgot": "Forgot your PIN?",
   "lockForgotTitle": "If you forget your PIN",
-  "lockForgotBody": "To keep your family's records private, nothing can skip the PIN, not even us.\n\nTo start again:\n1. Remove Usra's data. On Android: phone Settings › Apps › Usra › Storage › Clear data. On iPhone: delete Usra and install it again. This deletes everything Usra keeps on this phone.\n2. Open Usra and restore your latest backup with your recovery key (More › Backup).\n\nWithout a backup and its recovery key, the records can't be brought back.",
+  "lockForgotBody": "To keep your family's records private, nothing can skip the PIN, not even us.\n\nTo start again:\n1. Remove Usra's data. On Android: phone Settings › Apps › Usra › Storage › Clear data. On iPhone: delete Usra and install it again. This deletes everything Usra keeps on this phone.\n2. Open Usra and restore your latest backup with your recovery key (\"I have a backup\" on the first screen).\n\nWithout a backup and its recovery key, the records can't be brought back.",
   "lockEmergency": "Emergency info",
   "lockEmergencyPick": "Whose emergency card?",
   "lockEmergencyNone": "No one has been added yet.",
@@ -1341,13 +1349,13 @@
   "lockTimeoutImmediately": "Right away",
   "lockTimeoutOneMinute": "1 minute",
   "lockTimeoutFiveMinutes": "5 minutes",
-  "lockSettingsEmergency": "Emergency card on the lock screen",
-  "lockSettingsEmergencyHint": "A paramedic can see the blood type, allergies and conditions of the people you choose here without the PIN. Anyone holding the phone can see them too.",
+  "lockSettingsEmergency": "Emergency card on Usra's lock screen",
+  "lockSettingsEmergencyHint": "The blood type, allergies, conditions, surgeries and current medicines of the people you choose here can be seen without the PIN by anyone holding the phone with Usra open. This is Usra's lock screen, not the phone's: for a locked phone, use the phone's own Medical ID.",
   "lockVerifyTitle": "Confirm it's you",
   "lockOffDone": "App lock is off",
   "lockUnavailable": "Couldn't read the lock just now. Try again in a moment.",
   "lockSetupTrivial": "That PIN is too easy to guess. Avoid repeated or sequential numbers.",
-  "lockEmergencyFor": "Show on the lock screen",
+  "lockEmergencyFor": "Show on Usra's lock screen",
   "lockBackupFirstTitle": "Make a backup first?",
   "lockBackupFirstBody": "If you forget your PIN, the only way back in is to remove Usra's data and restore a backup with its recovery key. You don't have a backup yet.",
   "lockBackupFirstMake": "Make a backup",
@@ -1369,13 +1377,22 @@
     }
   },
   "photosLocked": "Photos can't be opened on this phone. Restore your backup to get them back.",
-  "doseReminderDiscreetTitle": "Time for a medicine",
+  "doseReminderDiscreetTitle": "Your medicine time",
   "widgetDiscreetDose": "Dose due",
   "settingsDiscreet": "Discreet notifications",
-  "settingsDiscreetHint": "Reminders and the home-screen widget say \"Time for a medicine\", without the person's or the medicine's name.",
+  "settingsDiscreetHint": "Reminders and the home-screen widget say \"Your medicine time\", without the person's or the medicine's name. When several doses are close together, open Usra to mark them.",
   "settingsBlockScreenshots": "Block screenshots",
   "settingsBlockScreenshotsHint": "No screenshots or screen recording anywhere in the app. The recovery key is always protected. Leave off to screenshot the emergency card.",
   "doseReminderDiscreetBody": "Open Usra to see which",
+  "doseReminderDiscreetTimeBody": "The {time} dose",
+  "@doseReminderDiscreetTimeBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "doseReminderDiscreetSeveralBody": "More than one dose is due around now. Open Usra to see which",
   "@vaccinesDisclaimer": {
     "placeholders": {
       "date": {
@@ -1778,6 +1795,118 @@
   "sickDayNoMedicines": "No medicines logged.",
   "sickDayNotes": "Notes",
   "sickDayNotesSaved": "Notes saved",
+  "sickDayPersonUnwell": "{sex, select, male{{name} is unwell} female{{name} is unwell} other{{name} is unwell}}",
+  "@sickDayPersonUnwell": {
+    "placeholders": {
+      "sex": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayPersonWasUnwell": "{sex, select, male{{name} was unwell} female{{name} was unwell} other{{name} was unwell}}",
+  "@sickDayPersonWasUnwell": {
+    "placeholders": {
+      "sex": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDaySinceToday": "Since today {time}",
+  "@sickDaySinceToday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDaySinceYesterday": "Since yesterday {time}",
+  "@sickDaySinceYesterday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayLatestReading": "Latest reading",
+  "sickDayFeverLogged": "Fever logged: {duration}",
+  "@sickDayFeverLogged": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayFeverUnderHour": "under an hour",
+  "sickDayFeverHours": "{count, plural, =1{1 hour} other{{shown} hours}}",
+  "@sickDayFeverHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayFeverDays": "{count, plural, =1{1 day} other{{shown} days}}",
+  "@sickDayFeverDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayRecordedGiven": "Recorded: {what} · {time}",
+  "@sickDayRecordedGiven": {
+    "placeholders": {
+      "what": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayChartSemantics": "Readings from {start} to {end}: {values}. The dashed line is at {fever}, where a fever starts.",
+  "@sickDayChartSemantics": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      },
+      "values": {
+        "type": "String"
+      },
+      "fever": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayChartThen": ", then ",
+  "sickDayAddReadingShort": "Add reading",
+  "sickDayGivenShort": "Medicine given",
+  "sickDayAllReadings": "All readings",
+  "sickDayNoSymptoms": "No symptoms logged yet.",
+  "sickDayCallDoctorNamed": "Call {name}",
+  "@sickDayCallDoctorNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayBack": "Back",
   "readingValue": "Temperature",
   "readingCelsius": "°C",
   "readingFahrenheit": "°F",
@@ -2093,6 +2222,248 @@
   "statusSickFemale": "Unwell",
   "emergencyPickPerson": "Whose card?",
   "homeLoadError": "Can't read your data right now. Close the app and open it again.",
+  "homeGreetingNamed": "{greeting}, {name}",
+  "@homeGreetingNamed": {
+    "placeholders": {
+      "greeting": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "welcomeHeadline": "The whole family's\nhealth in one place",
+  "welcomePrivacyLine": "A file for each person and medicine reminders. Your data stays on your phone, encrypted, and we can't see it.",
+  "welcomeStart": "Let's start",
+  "welcomeHaveBackup": "I have a backup",
+  "welcomeDisclaimer": "Usra is not a medical device and doesn't replace a doctor.",
+  "welcomePrivacy": "Privacy",
+  "welcomeTerms": "Terms",
+  "welcomeLanguageOther": "العربية",
+  "onboardingStep": "Step {current} of {total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingBack": "Back",
+  "countryTitle": "Country",
+  "countryHint": "So the vaccine schedule and the ambulance number are right.",
+  "countryEgypt": "Egypt",
+  "countryEgyptDetail": "Ministry of Health and Population · Ambulance 123",
+  "countrySaudi": "Saudi Arabia",
+  "countryJordan": "Jordan",
+  "countrySoon": "Coming soon",
+  "aboutYouTitle": "The first file in your family",
+  "aboutYouHint": "This one is yours, and it can be changed later.",
+  "aboutYouSex": "Sex",
+  "aboutYouSexHint": "For growth charts and pregnancy.",
+  "aboutYouDone": "Let's go",
+  "lockKeyFirstTitle": "Recovery key first",
+  "lockKeyFirstBody": "If the PIN is forgotten, nothing else opens Usra, not even us. The only way back is to remove Usra's data and restore a backup with its recovery key. Without a backup, the records are lost.\n\nBefore the PIN, we'll make the recovery key, to be written down somewhere safe.",
+  "lockKeyFirstContinue": "Make the recovery key",
+  "personAddFor": "Add for {name}",
+  "@personAddFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "personVaccineWasDue": "It was due on {date}. Ask the doctor when to give it.",
+  "@personVaccineWasDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "personDoctorSummary": "Doctor summary",
+  "personInsuranceOpen": "Open card",
+  "personVaccineLog": "Given? Log it",
+  "personVaccineSource": "Reference: Egypt's vaccine schedule, {route} · checked {date}",
+  "@personVaccineSource": {
+    "placeholders": {
+      "route": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "personVaccineSourceOptional": "Reference: pediatricians' usual schedules in Egypt · checked {date}",
+  "@personVaccineSourceOptional": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "personNextDose": "Next dose · {time}",
+  "@personNextDose": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "personDoseWasAt": "Was due at {time}",
+  "@personDoseWasAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "personRecordedTitle": "Recorded by the family",
+  "personTimelineTitle": "All records",
+  "personTileGrowth": "Growth",
+  "personTileVisits": "Visits and labs",
+  "personTileInsurance": "Insurance",
+  "personTileDocuments": "Documents and photos",
+  "personVaccinesSummary": "{done} of {total} · Egypt schedule",
+  "@personVaccinesSummary": {
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "personGrowthWeight": "{value} kg · {date}",
+  "@personGrowthWeight": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "personGrowthHeight": "{value} cm · {date}",
+  "@personGrowthHeight": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "personLatestOn": "Latest {date}",
+  "@personLatestOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "personInsuranceCount": "{count, plural, =0{None yet} =1{1 card} other{{shown} cards}}",
+  "@personInsuranceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "personMedicinesCount": "{count, plural, =0{None current} =1{1 current} other{{shown} current}}",
+  "@personMedicinesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "personFollowUpsCount": "{count, plural, =0{None for now} =1{1 follow-up} other{{shown} follow-ups}}",
+  "@personFollowUpsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "personDocumentsCount": "{count, plural, =0{None yet} =1{1 record with photos} other{{shown} records with photos}}",
+  "@personDocumentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "personVisitsEmpty": "No visits or lab results recorded yet.",
+  "personDocumentsEmpty": "No records with photos yet.",
+  "personAgeYears": "{count, plural, =1{1 year} other{{shown} years}}",
+  "@personAgeYears": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "personAgeMonths": "{count, plural, =0{Under 1 month} =1{1 month} other{{shown} months}}",
+  "@personAgeMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyAmbulanceShort": "Ambulance {number}",
+  "@emergencyAmbulanceShort": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyOtherLanguage": "عربي",
+  "emergencyMedicines": "Current medicines",
+  "emergencyAsTyped": "This is what the family recorded, as they typed it.",
+  "emergencyLockTitle": "Show on Usra's lock screen",
+  "emergencyLockHint": "Anyone holding the phone can see it once Usra is open",
+  "emergencyMedicalIdHint": "Usra's lock screen only appears once the phone itself is unlocked. So a paramedic can read this on a locked phone, also add it to the phone's own Medical ID or emergency information, in the phone's settings.",
+  "lockEmergencyConfirmTitle": "Show {name}'s card on Usra's lock screen?",
+  "@lockEmergencyConfirmTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "lockEmergencyConfirmBody": "Anyone holding the phone with Usra open will be able to see the blood type, allergies, conditions, surgeries and current medicines without the PIN. This is Usra's lock screen, not the phone's.",
+  "lockEmergencyConfirmYes": "Yes, show it",
+  "insuranceCopyNumber": "Copy member number",
+  "insuranceCopyFailed": "Couldn't copy the number",
+  "insuranceNumberCopied": "Member number copied",
   "doseGroupMissed": "Missed",
   "doseGroupNow": "Now",
   "doseGroupDone": "Logged",
@@ -2103,27 +2474,93 @@
   "doseSnoozeShort": "In 10 min",
   "doseTakenEarly": "Taken early",
   "doseSnoozedUntil": "Snoozed until {time}",
-  "@doseSnoozedUntil": {"placeholders": {"time": {"type": "String"}}},
+  "@doseSnoozedUntil": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "doseLoggedEarly": "Logged early: {medicine} for {person}",
-  "@doseLoggedEarly": {"placeholders": {"medicine": {"type": "String"}, "person": {"type": "String"}}},
+  "@doseLoggedEarly": {
+    "placeholders": {
+      "medicine": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
   "doseLoggedNotTaken": "Logged as not taken: {medicine} for {person}",
-  "@doseLoggedNotTaken": {"placeholders": {"medicine": {"type": "String"}, "person": {"type": "String"}}},
+  "@doseLoggedNotTaken": {
+    "placeholders": {
+      "medicine": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
   "doseLoggedSnoozed": "Reminder in 10 minutes: {medicine} for {person}",
-  "@doseLoggedSnoozed": {"placeholders": {"medicine": {"type": "String"}, "person": {"type": "String"}}},
+  "@doseLoggedSnoozed": {
+    "placeholders": {
+      "medicine": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
   "medicinesAll": "All medicines",
   "medicinesFilterAll": "All",
   "medicinesTodayEmptyFor": "No medicines for {name} today.",
-  "@medicinesTodayEmptyFor": {"placeholders": {"name": {"type": "String"}}},
+  "@medicinesTodayEmptyFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "medicineFor": "This medicine is for {name}",
-  "@medicineFor": {"placeholders": {"name": {"type": "String"}}},
+  "@medicineFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "medicineForChange": "Change",
   "medicineForPick": "Who is this medicine for?",
   "medicineSaveFor": "Save for {name}",
-  "@medicineSaveFor": {"placeholders": {"name": {"type": "String"}}},
+  "@medicineSaveFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "medicineSaveForRemind": "Save for {name} and remind me",
-  "@medicineSaveForRemind": {"placeholders": {"name": {"type": "String"}}},
+  "@medicineSaveForRemind": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "medicineSavedFor": "Saved: {medicine} for {name}",
-  "@medicineSavedFor": {"placeholders": {"medicine": {"type": "String"}, "name": {"type": "String"}}},
+  "@medicineSavedFor": {
+    "placeholders": {
+      "medicine": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "medicineScanOption": "Read the name from a box photo",
   "medicineScanOptionBody": "You'll check the name and strength before saving",
   "medicineScanRead": "Read from the box photo",
@@ -2137,7 +2574,13 @@
   "medicineFreqAsNeeded": "When needed",
   "medicineAddAnotherTime": "Another time",
   "medicineChangeTime": "Change {time}",
-  "@medicineChangeTime": {"placeholders": {"time": {"type": "String"}}},
+  "@medicineChangeTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "medicineOngoing": "Ongoing",
   "medicineUntilDate": "Until a date",
   "medicineLastDay": "Last day",

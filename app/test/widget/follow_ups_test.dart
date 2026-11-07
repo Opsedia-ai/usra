@@ -98,7 +98,7 @@ void main() {
 
     // Her page: everything, each saying why.
     final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
-    router.go('/family/$mona');
+    router.go('/family/$mona/follow-ups');
     await tester.pumpAndSettle();
     final section = find.byKey(const ValueKey('member-follow-ups'));
     expect(

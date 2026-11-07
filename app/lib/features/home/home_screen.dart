@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,7 +8,6 @@ import '../../core/design/pebble.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/preferences.dart';
-import '../../core/providers.dart';
 import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../backup/backup_notices.dart';
@@ -37,42 +34,8 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  late final AppLifecycleListener _lifecycle;
-  late final Timer _minute;
-  late DateTime _day = _today();
-
-  DateTime _today() {
-    final now = ref.read(clockProvider)();
-    return DateTime(now.year, now.month, now.day);
-  }
-
-  /// Statuses depend on the time, so they move on while the app stays open,
-  /// and today's doses change at midnight.
-  void _refresh() {
-    final today = _today();
-    if (today != _day) {
-      _day = today;
-      ref.invalidate(todayLogsProvider);
-      ref.invalidate(todayDosesProvider);
-    }
-    setState(() {});
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _lifecycle = AppLifecycleListener(onResume: _refresh);
-    _minute = Timer.periodic(const Duration(minutes: 1), (_) => _refresh());
-  }
-
-  @override
-  void dispose() {
-    _minute.cancel();
-    _lifecycle.dispose();
-    super.dispose();
-  }
-
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with TodayRefresh<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     if (ref.watch(simpleModeProvider)) return const SimpleHome();
@@ -178,67 +141,84 @@ class _Header extends ConsumerWidget {
     final c = context.usra;
     final text = Theme.of(context).textTheme;
     final hour = ref.watch(clockProvider)().hour;
+    final greeting = hour >= 4 && hour < 12 ? l.homeMorning : l.homeEvening;
+    final meId = ref.watch(meProfileIdProvider);
+    // The whole name as written: "عبد الرحمن" has no usable first word.
+    final me = [
+      for (final p in people)
+        if (p.id == meId) p.displayName,
+    ].firstOrNull;
     final attention = [
       for (final p in people)
         if (statuses[p.id]?.needsAttention ?? false) p,
     ];
-    return Row(
+    final greetingBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Semantics(
-                header: true,
-                child: Text(
-                  hour >= 4 && hour < 12 ? l.homeMorning : l.homeEvening,
-                  key: const ValueKey('home-greeting'),
-                  style: text.headlineMedium,
-                ),
-              ),
-              if (attention.isNotEmpty) _AttentionLine(people: attention),
-            ],
+        Semantics(
+          header: true,
+          child: Text(
+            me == null ? greeting : l.homeGreetingNamed(greeting, me),
+            key: const ValueKey('home-greeting'),
+            style: text.headlineMedium,
           ),
         ),
-        const SizedBox(width: UsraSpacing.s2),
-        Material(
-          color: c.surface,
-          shape: const StadiumBorder(),
-          elevation: 1,
-          shadowColor: c.ink.withValues(alpha: 0.2),
-          child: InkWell(
-            key: const ValueKey('home-emergency'),
-            customBorder: const StadiumBorder(),
-            onTap: () => context.push('/family/${people.first.id}/emergency'),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                minHeight: UsraSizes.touchTarget,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.local_hospital_outlined,
-                      size: 20,
-                      color: c.urgent,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      l.homeEmergency,
-                      style: UsraType.body.copyWith(
-                        color: c.urgent,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+        if (attention.isNotEmpty) _AttentionLine(people: attention),
+      ],
+    );
+    // With very large text the two don't fit side by side.
+    final stacked = MediaQuery.textScalerOf(context).scale(16) > 24;
+    final emergencyLabel = Text(
+      l.homeEmergency,
+      style: UsraType.body.copyWith(
+        color: c.urgent,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+    final emergency = Material(
+      color: c.surface,
+      shape: const StadiumBorder(),
+      elevation: 1,
+      shadowColor: c.ink.withValues(alpha: 0.2),
+      child: InkWell(
+        key: const ValueKey('home-emergency'),
+        customBorder: const StadiumBorder(),
+        onTap: () => context.push('/family/${people.first.id}/emergency'),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: UsraSizes.touchTarget),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.local_hospital_outlined, size: 20, color: c.urgent),
+                const SizedBox(width: 6),
+                if (stacked)
+                  Flexible(child: emergencyLabel)
+                else
+                  emergencyLabel,
+              ],
             ),
           ),
         ),
+      ),
+    );
+    if (stacked) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          greetingBlock,
+          const SizedBox(height: UsraSpacing.s2),
+          emergency,
+        ],
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: greetingBlock),
+        const SizedBox(width: UsraSpacing.s2),
+        emergency,
       ],
     );
   }
@@ -511,35 +491,6 @@ class _DoseRow extends ConsumerWidget {
   final PlannedDose dose;
   final bool canMark;
 
-  Future<void> _taken(BuildContext context, WidgetRef ref) async {
-    final l = AppLocalizations.of(context);
-    final db = ref.read(databaseProvider);
-    final r = dose.regimen;
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await db.logDose(
-        r.medicine.id,
-        dose.scheduledAt,
-        DoseOutcome.taken,
-        at: ref.read(clockProvider)(),
-      );
-    } catch (_) {
-      messenger.showSnackBar(SnackBar(content: Text(l.saveFailed)));
-      return;
-    }
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          l.homeDoseLogged(medicineTitle(r.medicine), r.person.displayName),
-        ),
-        action: SnackBarAction(
-          label: l.doseUndo,
-          onPressed: () => db.clearDoseLog(r.medicine.id, dose.scheduledAt),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
@@ -585,7 +536,7 @@ class _DoseRow extends ConsumerWidget {
                   style: FilledButton.styleFrom(
                     minimumSize: const Size(0, UsraSizes.touchTarget),
                   ),
-                  onPressed: () => _taken(context, ref),
+                  onPressed: () => logDoseTaken(context, ref, dose),
                   icon: const Icon(Icons.check),
                   label: Text(l.doseTaken),
                 ),

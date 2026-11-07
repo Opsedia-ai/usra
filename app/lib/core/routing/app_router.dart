@@ -7,16 +7,29 @@ import '../modules/module_registry.dart';
 import '../preferences.dart';
 import '../providers.dart';
 
+/// A route whose name starts with this draws without the tab bar: it has its
+/// own actions and a way back.
+const noTabBarRoute = 'no-tab-bar/';
+
 final routerProvider = Provider<GoRouter>((ref) {
   final registry = ref.watch(moduleRegistryProvider);
   final hasTutorial = registry.fullScreenRoutes.any(
     (r) => r is GoRoute && r.path == tutorialPath,
   );
+  final hasWelcome = registry.fullScreenRoutes.any(
+    (r) => r is GoRoute && r.path == welcomePath,
+  );
   final router = buildRouter(
     registry,
-    // While the Dr. Usra tour is pending, every page leads to it; it goes
-    // back to where the user was once finished.
+    // While the first run is pending, every page leads to it. Then, while the
+    // Dr. Usra tour is pending, every page leads to that; it goes back to
+    // where the user was once finished.
     redirect: (_, state) {
+      if (hasWelcome) {
+        final onWelcome = state.uri.path.startsWith(welcomePath);
+        if (ref.read(onboardingProvider)) return onWelcome ? null : welcomePath;
+        if (onWelcome) return '/home';
+      }
       if (!hasTutorial || state.uri.path == tutorialPath) return null;
       if (!ref.read(tutorialProvider)) return null;
       return Uri(
@@ -26,6 +39,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
   );
   ref.listen(tutorialProvider, (_, _) => router.refresh());
+  ref.listen(onboardingProvider, (_, _) => router.refresh());
   ref.onDispose(router.dispose);
   return router;
 });
@@ -68,6 +82,13 @@ class AppShell extends ConsumerWidget {
   final String location;
   final Widget child;
 
+  /// A pushed page isn't in this shell's own `location`, so this asks the
+  /// router what's on top. Simple Mode keeps its big buttons everywhere.
+  bool _noBar(BuildContext context) {
+    final top = GoRouter.of(context).routerDelegate.currentConfiguration.last;
+    return top.route.name?.startsWith(noTabBarRoute) ?? false;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final simple = ref.watch(simpleModeProvider);
@@ -79,7 +100,10 @@ class AppShell extends ConsumerWidget {
     );
     return Scaffold(
       body: SafeArea(child: child),
-      bottomNavigationBar: tabs.length < 2 || _medicineForm.hasMatch(location)
+      bottomNavigationBar:
+          tabs.length < 2 ||
+              _medicineForm.hasMatch(location) ||
+              (!simple && _noBar(context))
           ? null
           : !simple
           ? UsraBottomBar(tabs: tabs, selected: index < 0 ? 0 : index)

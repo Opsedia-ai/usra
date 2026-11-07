@@ -11,7 +11,8 @@ import '../../core/security/app_lock.dart';
 import '../../l10n/app_localizations.dart';
 import '../home/home_module.dart' show severityLabel;
 
-/// The Dr. Usra walkthrough: shown on first run, and from Settings.
+/// The Dr. Usra walkthrough: Simple Mode's elder tour the first time, and from
+/// Settings. The regular first run is the onboarding module.
 class TutorialModule extends FeatureModule {
   const TutorialModule();
 
@@ -118,7 +119,7 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
     if (!mounted) return;
     final from = widget.from;
     final next = from == null || from.startsWith(tutorialPath) ? '/home' : from;
-    // Onboarding ends with the offer to turn the app lock on.
+    // The elder tour ends with the offer to turn the app lock on.
     final offer =
         firstRun &&
         appLockOfferPending(

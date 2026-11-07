@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,8 +7,10 @@ import '../../core/database/app_database.dart';
 import '../../core/design/pebble.dart';
 import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
+import '../../core/providers.dart';
+import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
-import '../children/growth.dart' show isUnderFive;
+import '../children/growth.dart' show addMonths, isUnderFive;
 import '../children/vaccines_screen.dart' show watchChildVaccines;
 import '../medicines/dose_schedule.dart';
 import '../medicines/medicine_text.dart';
@@ -50,6 +54,94 @@ bool isDoseMissed(PlannedDose dose, DateTime now) {
   if (dose.isDone) return false;
   final due = dose.log == null ? dose.at : doseSnoozedUntil(dose);
   return now.isAfter(due.add(doseMissedAfter));
+}
+
+/// Keeps a page that shows today's doses honest while it stays open: statuses
+/// depend on the time, so they move on, and today's doses change at midnight.
+mixin TodayRefresh<T extends ConsumerStatefulWidget> on ConsumerState<T> {
+  late final AppLifecycleListener _lifecycle;
+  late final Timer _minute;
+  late DateTime _day;
+
+  DateTime _today() {
+    final now = ref.read(clockProvider)();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  void _refresh() {
+    final today = _today();
+    if (today != _day) {
+      _day = today;
+      ref.invalidate(todayLogsProvider);
+      ref.invalidate(todayDosesProvider);
+    }
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _day = _today();
+    _lifecycle = AppLifecycleListener(onResume: _refresh);
+    _minute = Timer.periodic(const Duration(minutes: 1), (_) => _refresh());
+  }
+
+  @override
+  void dispose() {
+    _minute.cancel();
+    _lifecycle.dispose();
+    super.dispose();
+  }
+}
+
+/// Marks [dose] taken now, with Undo in the confirmation that names the
+/// medicine and the person.
+Future<void> logDoseTaken(
+  BuildContext context,
+  WidgetRef ref,
+  PlannedDose dose,
+) async {
+  final l = AppLocalizations.of(context);
+  final db = ref.read(databaseProvider);
+  final r = dose.regimen;
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    await db.logDose(
+      r.medicine.id,
+      dose.scheduledAt,
+      DoseOutcome.taken,
+      at: ref.read(clockProvider)(),
+    );
+  } catch (_) {
+    messenger.showSnackBar(SnackBar(content: Text(l.saveFailed)));
+    return;
+  }
+  messenger.showSnackBar(
+    SnackBar(
+      content: Text(
+        l.homeDoseLogged(medicineTitle(r.medicine), r.person.displayName),
+      ),
+      action: SnackBarAction(
+        label: l.doseUndo,
+        onPressed: () => db.clearDoseLog(r.medicine.id, dose.scheduledAt),
+      ),
+    ),
+  );
+}
+
+/// "8 months" under two years, "68 years" after, in [l]'s language and digits;
+/// null without a birth date, or for one in the future.
+String? ageLabel(AppLocalizations l, DateTime? birthDate, DateTime now) {
+  if (birthDate == null) return null;
+  final today = DateTime(now.year, now.month, now.day);
+  final birth = DateTime(birthDate.year, birthDate.month, birthDate.day);
+  if (birth.isAfter(today)) return null;
+  var months = (today.year - birth.year) * 12 + today.month - birth.month;
+  if (addMonths(birth, months).isAfter(today)) months--;
+  String shown(int n) => digitsIn(l.localeName, '$n');
+  if (months < 24) return l.personAgeMonths(months, shown(months));
+  final years = months ~/ 12;
+  return l.personAgeYears(years, shown(years));
 }
 
 /// The person's status; null while something it depends on is loading or

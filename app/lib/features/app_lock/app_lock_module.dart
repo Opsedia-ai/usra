@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/database/app_database.dart';
 import '../../core/design/dr_usra.dart';
 import '../../core/design/tokens.dart';
 import '../../core/modules/feature_module.dart';
@@ -51,6 +52,35 @@ Future<bool> confirmItsYou(BuildContext context) async =>
     ) ??
     false;
 
+/// Before someone's emergency card opens without the PIN: says what shows and
+/// to whom, then asks for the PIN. True to go ahead.
+Future<bool> confirmEmergencyOnLock(BuildContext context, String name) async {
+  final l = AppLocalizations.of(context);
+  final yes = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      key: const ValueKey('emergency-lock-confirm'),
+      icon: Icon(Icons.emergency_outlined, color: context.usra.urgent),
+      title: Text(l.lockEmergencyConfirmTitle(name)),
+      content: SingleChildScrollView(child: Text(l.lockEmergencyConfirmBody)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(l.lockWipeCancel),
+        ),
+        FilledButton(
+          key: const ValueKey('emergency-lock-yes'),
+          style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(l.lockEmergencyConfirmYes),
+        ),
+      ],
+    ),
+  );
+  if (yes != true || !context.mounted) return false;
+  return confirmItsYou(context);
+}
+
 /// Choosing a new PIN (twice), then fingerprint or face. True when saved.
 Future<bool> setUpPin(BuildContext context) async =>
     await Navigator.of(context, rootNavigator: true).push<bool>(
@@ -61,51 +91,87 @@ Future<bool> setUpPin(BuildContext context) async =>
     ) ??
     false;
 
-/// Turning the lock on: a forgotten PIN means wiping the app, so without
-/// a backup of existing records it suggests making one first. True when
-/// the lock was turned on.
+/// Turning the lock on. A forgotten PIN can only be undone by wiping the app
+/// and restoring a backup with its recovery key, and the phone's own lock
+/// isn't accepted (see [LocalAuthBiometrics]), so nothing else can get back
+/// in. The lock is only ever on after a PIN is chosen, twice, and:
+///
+/// - with a backup, that's all it needs, since a backup has a key;
+/// - without one, it says what a forgotten PIN means and offers a backup, if
+///   there's anything to back up;
+/// - without a recovery key, it makes one first, with no way round it.
+///
+/// True when the lock was turned on.
 Future<bool> turnOnLock(BuildContext context, WidgetRef ref) async {
   final l = AppLocalizations.of(context);
   final noBackup =
       ref.read(keyValueStoreProvider).getInt(PrefKeys.lastBackupAt) == null &&
       ref.read(autoBackupProvider).settings.lastAt == null;
-  var hasRecords = false;
   if (noBackup) {
+    var hasRecords = false;
+    var hasKey = false;
     try {
       hasRecords = (await ref.read(profilesProvider.future)).isNotEmpty;
     } catch (_) {
       hasRecords = true;
     }
-  }
-  if (!context.mounted) return false;
-  if (hasRecords) {
-    final backupFirst = await showDialog<bool>(
+    try {
+      hasKey = await ref.read(recoveryKeyStoreProvider).read() != null;
+    } catch (_) {
+      // Can't tell: making one is the safe way, and it says if one is saved.
+      hasKey = false;
+    }
+    if (!context.mounted) return false;
+    final choice = await showDialog<_NoBackup>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l.lockBackupFirstTitle),
-        content: Text(l.lockBackupFirstBody),
+        key: const ValueKey('lock-no-backup'),
+        title: Text(
+          !hasKey
+              ? l.lockKeyFirstTitle
+              : hasRecords
+              ? l.lockBackupFirstTitle
+              : l.lockForgotTitle,
+        ),
+        content: SingleChildScrollView(
+          child: Text(hasKey ? l.lockBackupFirstBody : l.lockKeyFirstBody),
+        ),
         actions: [
           TextButton(
+            key: const ValueKey('lock-no-backup-cancel'),
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l.familyCancel),
+          ),
+          TextButton(
             key: const ValueKey('lock-backup-skip'),
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l.lockBackupFirstSkip),
+            onPressed: () => Navigator.of(context).pop(_NoBackup.goOn),
+            child: Text(
+              hasKey ? l.lockBackupFirstSkip : l.lockKeyFirstContinue,
+            ),
           ),
-          FilledButton(
-            key: const ValueKey('lock-backup-make'),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l.lockBackupFirstMake),
-          ),
+          if (hasRecords)
+            FilledButton(
+              key: const ValueKey('lock-backup-make'),
+              onPressed: () => Navigator.of(context).pop(_NoBackup.backUp),
+              child: Text(l.lockBackupFirstMake),
+            ),
         ],
       ),
     );
-    if (!context.mounted || backupFirst == null) return false;
-    if (backupFirst) {
+    if (!context.mounted || choice == null) return false;
+    if (choice == _NoBackup.backUp) {
       context.go(backupPath);
       return false;
+    }
+    if (!hasKey) {
+      final made = await context.push<bool>(recoveryKeyPath);
+      if (made != true || !context.mounted) return false;
     }
   }
   return setUpPin(context);
 }
+
+enum _NoBackup { goOn, backUp }
 
 class _VerifyScreen extends ConsumerStatefulWidget {
   const _VerifyScreen();
@@ -352,7 +418,9 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
   }
 }
 
-/// Shown once after the first-run tour: turn the lock on, or skip.
+/// Shown once after Simple Mode's first tour: turn the lock on, or skip. Nothing
+/// is on until a PIN is chosen. The regular first run doesn't ask; the lock is
+/// in More › App lock.
 class AppLockOfferScreen extends ConsumerWidget {
   const AppLockOfferScreen({super.key, this.from});
 
@@ -548,9 +616,11 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
     await _guard(() => _lock.setWipeOnFailures(on));
   }
 
-  Future<void> _setEmergency(String profileId, bool on) async {
-    if (on && !await _loosen()) return;
-    await _guard(() => _lock.setEmergencyProfile(profileId, on));
+  Future<void> _setEmergency(Profile person, bool on) async {
+    if (on && !await confirmEmergencyOnLock(context, person.displayName)) {
+      return;
+    }
+    await _guard(() => _lock.setEmergencyProfile(person.id, on));
   }
 
   @override
@@ -653,7 +723,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
                         CheckboxListTile(
                           key: ValueKey('app-lock-emergency-${p.id}'),
                           value: _lock.emergencyProfiles.contains(p.id),
-                          onChanged: (v) => _setEmergency(p.id, v ?? false),
+                          onChanged: (v) => _setEmergency(p, v ?? false),
                           title: Text(p.displayName),
                           subtitle: Text(l.lockEmergencyFor),
                         ),
