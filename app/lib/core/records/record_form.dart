@@ -98,6 +98,9 @@ class RecordForm extends StatefulWidget {
     required this.strings,
     required this.onSubmit,
     this.initialDate,
+    this.initialData = const {},
+    this.initialCostText,
+    this.initialDoctorId,
     this.doctors = const [],
     this.pickPhotos,
   });
@@ -108,6 +111,14 @@ class RecordForm extends StatefulWidget {
   /// Awaited; the Save button stays disabled until it completes.
   final Future<void> Function(RecordFormResult) onSubmit;
   final DateTime? initialDate;
+
+  /// What an existing record holds, when correcting it.
+  final Map<String, Object?> initialData;
+  final String? initialCostText;
+
+  /// Kept unless the doctor's name is changed, as the saved doctors may not
+  /// have loaded yet when the form opens.
+  final String? initialDoctorId;
 
   /// Saved doctors, offered when the type has a [RecordTypeDefinition.doctorField].
   final List<DoctorChoice> doctors;
@@ -134,6 +145,8 @@ class _RecordFormState extends State<RecordForm> {
   DoctorChoice? _doctor;
   final _photos = <String>[];
 
+  String? _doctorNameAtStart;
+
   /// The fee text last filled in from a doctor, so switching doctors can
   /// replace it without overwriting a cost the user typed.
   String? _autoFee;
@@ -142,8 +155,15 @@ class _RecordFormState extends State<RecordForm> {
   void initState() {
     super.initState();
     for (final f in widget.type.fields) {
-      if (_usesTextField(f.kind)) _text[f.key] = TextEditingController();
+      final initial = widget.initialData[f.key];
+      if (_usesTextField(f.kind)) {
+        _text[f.key] = TextEditingController(text: initial?.toString() ?? '');
+      } else if (initial != null) {
+        _values[f.key] = initial;
+      }
     }
+    _cost.text = widget.initialCostText ?? '';
+    _doctorNameAtStart = _doctorText?.text.trim();
     // Typing a different name unlinks the picked doctor.
     _doctorText?.addListener(() {
       if (_doctor != null && _doctorText!.text.trim() != _doctor!.name) {
@@ -231,7 +251,12 @@ class _RecordFormState extends State<RecordForm> {
           occurredAt: _occurredAt,
           data: data,
           costMinor: costMinor,
-          doctorId: _doctor?.id,
+          doctorId:
+              _doctor?.id ??
+              (_doctorText == null ||
+                      _doctorText!.text.trim() == _doctorNameAtStart
+                  ? widget.initialDoctorId
+                  : null),
           photos: List.unmodifiable(_photos),
         ),
       );

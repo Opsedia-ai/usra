@@ -563,6 +563,34 @@ class AppDatabase extends _$AppDatabase {
     return query.watch();
   }
 
+  /// The first live photo of each of a person's records, for a thumbnail.
+  Stream<Map<String, String>> watchFirstPhotos(String profileId) {
+    final query =
+        select(attachments).join([
+            innerJoin(
+              medicalEvents,
+              medicalEvents.id.equalsExp(attachments.eventId),
+              useColumns: false,
+            ),
+          ])
+          ..where(
+            medicalEvents.profileId.equals(profileId) &
+                attachments.kind.equals('photo') &
+                attachments.deletedAt.isNull(),
+          )
+          ..orderBy([
+            OrderingTerm.asc(const CustomExpression<int>('attachments.rowid')),
+          ]);
+    return query.watch().map((rows) {
+      final first = <String, String>{};
+      for (final row in rows) {
+        final a = row.readTable(attachments);
+        first.putIfAbsent(a.eventId, () => a.path);
+      }
+      return first;
+    });
+  }
+
   /// How many live photos each of a person's records has (PDFs aren't
   /// counted); records without any are left out.
   Stream<Map<String, int>> watchAttachmentCounts(String profileId) {

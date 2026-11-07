@@ -6700,7 +6700,7 @@ abstract class AppLocalizations {
   /// No description provided for @recordsAdd.
   ///
   /// In en, this message translates to:
-  /// **'Add a record'**
+  /// **'New record'**
   String get recordsAdd;
 
   /// No description provided for @moreFamily.

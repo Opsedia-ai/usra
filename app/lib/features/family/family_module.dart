@@ -75,6 +75,17 @@ class FamilyModule extends FeatureModule {
                 profileId: s.pathParameters['id']!,
                 eventId: s.pathParameters['eventId']!,
               ),
+              routes: [
+                GoRoute(
+                  path: 'edit/:type',
+                  builder: (_, s) => RecordFormScreen(
+                    key: ValueKey(s.uri.path),
+                    profileId: s.pathParameters['id']!,
+                    typeKey: s.pathParameters['type']!,
+                    eventId: s.pathParameters['eventId'],
+                  ),
+                ),
+              ],
             ),
             GoRoute(
               path: 'visits',
