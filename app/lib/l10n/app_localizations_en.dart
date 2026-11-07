@@ -1914,6 +1914,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get restoreHint => 'Replaces everything on this phone';
 
   @override
+  String get recoveryKeyRowHint => 'Written on your paper';
+
+  @override
+  String get restoreKeyHelp => '6 groups of 6 digits.';
+
+  @override
+  String get restoreCancel => 'Go back with no changes';
+
+  @override
   String get restoreIntro =>
       'Choose your backup file (it ends in .usra) from Drive, Files or WhatsApp, then type your recovery key.';
 

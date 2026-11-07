@@ -141,6 +141,7 @@ class _RecoveryKeyScreenState extends ConsumerState<RecoveryKeyScreen> {
         Text(l.recoveryKeyConfirmIntro, style: text.bodyLarge),
         const SizedBox(height: 16),
         for (var i = 0; i < 2; i++) ...[
+          // Only ever digits, and a number on paper reads left to right.
           TextField(
             key: ValueKey('recovery-confirm-${_asked[i] + 1}'),
             controller: _typed[i],
@@ -248,7 +249,7 @@ class RecoveryKeyGroups extends StatelessWidget {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('${i + 1}', style: text.labelMedium),
+                    Text('${i + 1}', style: text.labelLarge),
                     // Not selectable: the system's copy would skip the
                     // sensitive marking and the clearing.
                     Text(
