@@ -756,6 +756,6 @@ const appLockOfferPath = '/app-lock/offer';
 /// Where the lock's settings live.
 const appLockSettingsPath = '/settings/app-lock';
 
-/// The lock is offered once, after the first-run tour.
+/// The lock is offered once, after Simple Mode's first tour.
 bool appLockOfferPending(KeyValueStore store, AppLock lock) =>
     !lock.enabled && store.getBool(PrefKeys.appLockOffered) != true;

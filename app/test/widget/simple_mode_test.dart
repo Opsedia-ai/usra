@@ -70,32 +70,13 @@ void main() {
     }
   }
 
-  testWidgets('the tour shows on first run only, and reopens from More', (
-    tester,
-  ) async {
+  testWidgets('the regular tour no longer opens the app, and reopens from '
+      'More', (tester) async {
+    store = MemoryKeyValueStore({PrefKeys.tutorialSeen: true});
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
-
-    expect(find.text('أهلاً، أنا دكتور أسرة'), findsOneWidget);
-    expect(find.text('١ من ٥'), findsNothing);
-    expect(find.text('1 من 5'), findsOneWidget);
-    expect(tabs(), findsNothing);
-
-    // A stray back press doesn't skip the first-run tour for good.
-    await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
-    expect(find.text('1 من 5'), findsOneWidget);
-    await finishTour(tester);
-
-    expect(find.text('أهلاً! أنا دكتور أسرة'), findsOneWidget);
-    expect(store.getBool(PrefKeys.tutorialSeen), isTrue);
-    expect(store.getBool(PrefKeys.appLockOffered), isTrue);
-
-    // Opening the app again goes straight Home.
-    await tester.pumpWidget(app());
-    await tester.pumpAndSettle();
-    expect(find.text('أهلاً! أنا دكتور أسرة'), findsOneWidget);
     expect(find.byKey(const ValueKey('tutorial-step')), findsNothing);
+    expect(find.text('أهلاً! أنا دكتور أسرة'), findsOneWidget);
 
     // Reopened from More, skipped, and back on More.
     await tester.tap(find.text('المزيد').last);
@@ -105,9 +86,16 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('settings-tutorial')));
     await tester.pumpAndSettle();
     expect(find.text('1 من 5'), findsOneWidget);
+
+    // A stray back press steps out of a reopened tour, as before.
     await tester.tap(find.byKey(const ValueKey('tutorial-skip')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('settings-simple-mode')), findsOneWidget);
+
+    // Opening the app again still goes straight Home.
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('tutorial-step')), findsNothing);
   });
 
   testWidgets('Simple Mode: three tabs, bigger text, big Home buttons', (

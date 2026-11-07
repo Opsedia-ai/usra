@@ -16,7 +16,15 @@ import 'backup_screen.dart';
 /// running or didn't finish (with a way to retry), and, outside Simple Mode,
 /// a reminder when the last backup is missing or over a month old.
 class BackupNotices extends ConsumerWidget {
-  const BackupNotices({super.key, this.simple = false});
+  const BackupNotices({
+    super.key,
+    this.simple = false,
+    this.outcomesOnly = false,
+  });
+
+  /// Only how a restore or a wipe went, for Welcome, which shows after both
+  /// when there's no family yet.
+  final bool outcomesOnly;
 
   final bool simple;
 
@@ -28,31 +36,38 @@ class BackupNotices extends ConsumerWidget {
     final last = ref.watch(lastBackupProvider);
     final auto = ref.watch(autoBackupProvider);
     final failure = autoBackupNoticeFailure(auto);
+    final outcomes = [
+      if (outcome != null)
+        _Notice(
+          key: const ValueKey('restore-outcome'),
+          severity: outcome == RestoreOutcome.restored
+              ? Severity.good
+              : Severity.actSoon,
+          body: outcome == RestoreOutcome.restored
+              ? l.restoreDoneNotice
+              : l.restoreFailedNotice,
+          simple: simple,
+        ),
+      if (wipe != null)
+        _Notice(
+          key: const ValueKey('wipe-outcome'),
+          severity: wipe == WipeOutcome.done ? Severity.good : Severity.actSoon,
+          body: wipe == WipeOutcome.done
+              ? l.wipeDoneNotice
+              : l.wipeIncompleteNotice,
+          simple: simple,
+        ),
+    ];
+    if (outcomesOnly) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: outcomes,
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (outcome != null)
-          _Notice(
-            key: const ValueKey('restore-outcome'),
-            severity: outcome == RestoreOutcome.restored
-                ? Severity.good
-                : Severity.actSoon,
-            body: outcome == RestoreOutcome.restored
-                ? l.restoreDoneNotice
-                : l.restoreFailedNotice,
-            simple: simple,
-          ),
-        if (wipe != null)
-          _Notice(
-            key: const ValueKey('wipe-outcome'),
-            severity: wipe == WipeOutcome.done
-                ? Severity.good
-                : Severity.actSoon,
-            body: wipe == WipeOutcome.done
-                ? l.wipeDoneNotice
-                : l.wipeIncompleteNotice,
-            simple: simple,
-          ),
+        ...outcomes,
         if (ref.watch(databaseRecoveredProvider))
           _Notice(
             key: const ValueKey('recovery-notice'),

@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:usra/app.dart';
+import 'package:usra/core/backup/recovery_key.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/core/routing/app_router.dart';
 import 'package:usra/core/screen_privacy.dart';
 import 'package:usra/core/security/app_lock.dart';
+import 'package:usra/features/backup/backup_providers.dart';
 
 import '../support/fake_lock.dart';
 
@@ -20,6 +22,7 @@ void main() {
   late MemoryLockStore store;
   late FakeClocks clocks;
   late FakeBiometrics biometrics;
+  late MemoryRecoveryKeyStore keys;
 
   setUp(() {
     db = AppDatabase(
@@ -31,6 +34,7 @@ void main() {
     store = MemoryLockStore();
     clocks = FakeClocks();
     biometrics = FakeBiometrics();
+    keys = MemoryRecoveryKeyStore();
   });
   tearDown(() => db.close());
 
@@ -60,13 +64,45 @@ void main() {
     return openLock(tester);
   }
 
-  Widget app(AppLock lock) => ProviderScope(
+  Widget app(AppLock lock, {KeyValueStore? prefs}) => ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
       appLockProvider.overrideWithValue(lock),
+      recoveryKeyStoreProvider.overrideWithValue(keys),
+      if (prefs != null) keyValueStoreProvider.overrideWithValue(prefs),
     ],
     child: const UsraApp(),
   );
+
+  /// Goes through the recovery key screen: written down, two groups back.
+  Future<void> makeRecoveryKey(WidgetTester tester) async {
+    final groups = [
+      for (var n = 1; n <= 6; n++)
+        tester
+            .widget<Text>(
+              find.byKey(ValueKey('recovery-group-$n'), skipOffstage: false),
+            )
+            .data!,
+    ];
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('recovery-key-written'), skipOffstage: false),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('recovery-key-written')));
+    await tester.pumpAndSettle();
+    for (var n = 1; n <= 6; n++) {
+      final field = find.byKey(ValueKey('recovery-confirm-$n'));
+      if (field.evaluate().isNotEmpty) {
+        await tester.enterText(field, groups[n - 1]);
+      }
+    }
+    await tester.tap(find.byKey(const ValueKey('recovery-confirm')));
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pumpAndSettle();
+  }
 
   /// Taps the PIN in and waits for the (real, off-thread) hash check.
   Future<void> typePin(WidgetTester tester, String pin) async {
@@ -368,6 +404,11 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('app-lock-switch')));
     await tester.pumpAndSettle();
 
+    // No backup and no key yet: the key comes first.
+    await tester.tap(find.byKey(const ValueKey('lock-backup-skip')));
+    await tester.pumpAndSettle();
+    await makeRecoveryKey(tester);
+
     // Too easy to guess: refused.
     await typePin(tester, '123456');
     expect(find.byKey(const ValueKey('setup-trivial')), findsOneWidget);
@@ -424,6 +465,129 @@ void main() {
     expect(store.value, isNull);
   });
 
+  group('a forgotten PIN can\'t lose everything unannounced', () {
+    Future<AppLock> toSwitch(
+      WidgetTester tester, {
+      KeyValueStore? prefs,
+    }) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      final lock = await openLock(tester);
+      await tester.pumpWidget(app(lock, prefs: prefs));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('المزيد').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('settings-app-lock')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('app-lock-switch')));
+      await tester.pumpAndSettle();
+      return lock;
+    }
+
+    testWidgets('leaving the recovery key screen leaves the lock off, with '
+        'no PIN pad', (tester) async {
+      final lock = await toSwitch(tester);
+      expect(find.byKey(const ValueKey('lock-no-backup')), findsOneWidget);
+      expect(find.textContaining('السجلات بتضيع'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('lock-backup-skip')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('recovery-key-written'), skipOffstage: false),
+        findsOneWidget,
+      );
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('pin-1')), findsNothing);
+      expect(lock.enabled, isFalse);
+      expect(store.value, isNull);
+    });
+
+    testWidgets('cancelling the warning leaves the lock off', (tester) async {
+      final lock = await toSwitch(tester);
+      await tester.tap(find.byKey(const ValueKey('lock-no-backup-cancel')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('pin-1')), findsNothing);
+      expect(lock.enabled, isFalse);
+    });
+
+    testWidgets('with no records there\'s no backup to offer, only the key', (
+      tester,
+    ) async {
+      await toSwitch(tester);
+      expect(find.byKey(const ValueKey('lock-backup-make')), findsNothing);
+      expect(find.byKey(const ValueKey('lock-backup-skip')), findsOneWidget);
+    });
+
+    testWidgets('with a key but no backup it warns, then asks for the PIN', (
+      tester,
+    ) async {
+      await tester.runAsync(() async {
+        await keys.write(RecoveryKey.generate());
+        await db.addProfile('جدو');
+      });
+      await toSwitch(tester);
+      expect(find.text('تعمل نسخة احتياطية الأول؟'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('lock-backup-skip')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('recovery-key-written')), findsNothing);
+      expect(find.byKey(const ValueKey('pin-1')), findsOneWidget);
+    });
+
+    testWidgets('with a key and no records it warns without asking for a '
+        'backup it can\'t offer', (tester) async {
+      await tester.runAsync(() => keys.write(RecoveryKey.generate()));
+      await toSwitch(tester);
+      expect(find.text('تعمل نسخة احتياطية الأول؟'), findsNothing);
+      expect(find.text('لو نسيت الرقم السري'), findsWidgets);
+      expect(find.byKey(const ValueKey('lock-backup-make')), findsNothing);
+    });
+
+    testWidgets('with a backup it goes straight to choosing a PIN', (
+      tester,
+    ) async {
+      await toSwitch(
+        tester,
+        prefs: MemoryKeyValueStore({
+          PrefKeys.tutorialSeen: true,
+          PrefKeys.lastBackupAt: 1,
+        }),
+      );
+      expect(find.byKey(const ValueKey('lock-no-backup')), findsNothing);
+      expect(find.byKey(const ValueKey('pin-1')), findsOneWidget);
+    });
+
+    testWidgets('the offer after the elder tour turns nothing on by itself', (
+      tester,
+    ) async {
+      final lock = await openLock(tester);
+      final prefs = MemoryKeyValueStore({
+        PrefKeys.simpleMode: true,
+        PrefKeys.tutorialSeen: true,
+        PrefKeys.elderTutorialSeen: true,
+      });
+      await tester.pumpWidget(app(lock, prefs: prefs));
+      await tester.pumpAndSettle();
+      ProviderScope.containerOf(tester.element(find.byType(Navigator).first))
+          .read(routerProvider)
+          .go(appLockOfferPath);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('app-lock-offer')), findsOneWidget);
+      expect(lock.enabled, isFalse);
+      final skip = find.byKey(const ValueKey('app-lock-offer-skip'));
+      await tester.ensureVisible(skip);
+      await tester.pumpAndSettle();
+      await tester.tap(skip);
+      await tester.pump();
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pumpAndSettle();
+      expect(lock.enabled, isFalse);
+      expect(prefs.getBool(PrefKeys.appLockOffered), isTrue);
+    });
+  });
+
   testWidgets('with records and no backup, turning it on suggests one', (
     tester,
   ) async {
@@ -441,13 +605,13 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('app-lock-switch')));
     await tester.pumpAndSettle();
-    expect(find.text('تعمل نسخة احتياطية الأول؟'), findsOneWidget);
+    expect(find.text('مفتاح الاسترجاع الأول'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('lock-backup-make')));
     await tester.pumpAndSettle();
     expect(location(tester), '/settings/backup');
     expect(lock.enabled, isFalse);
 
-    // Or carry on without one.
+    // Or carry on without one, once there's a recovery key.
     await tester.tap(find.text('المزيد').last);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('settings-app-lock')));
@@ -456,6 +620,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('lock-backup-skip')));
     await tester.pumpAndSettle();
+    await makeRecoveryKey(tester);
     await typePin(tester, '730184');
     await typePin(tester, '730184');
     await tester.tap(find.byKey(const ValueKey('setup-biometrics-no')));
