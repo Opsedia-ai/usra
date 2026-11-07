@@ -1375,5 +1375,6 @@
   "growthHistoryTitle": "القياسات",
   "growthLegendOwn": "قياسات {name}",
   "growthLegendReference": "المعدل المرجعي",
-  "growthLastOn": "آخر قياس {date}"
+  "growthLastOn": "آخر قياس {date}",
+  "growthTabOutside": "برّه المدى المعتاد"
 }

@@ -7638,6 +7638,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last measured {date}'**
   String growthLastOn(String date);
+
+  /// No description provided for @growthTabOutside.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside the usual range'**
+  String get growthTabOutside;
 }
 
 class _AppLocalizationsDelegate

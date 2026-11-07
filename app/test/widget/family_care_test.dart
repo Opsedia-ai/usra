@@ -262,6 +262,11 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('check-save')));
     await settleDb(tester);
     expect(find.textContaining('آخر قياس'), findsOneWidget);
-    expect(find.textContaining('٦'), findsWidgets);
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey('growth-value-weight')))
+          .data,
+      startsWith('٦'),
+    );
   });
 }

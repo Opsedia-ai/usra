@@ -86,6 +86,63 @@ void main() {
     );
   });
 
+  testWidgets('opens on a measure outside the range and marks its tab', (
+    tester,
+  ) async {
+    h.tall(tester);
+    final (id, _) = await seed(tester);
+    await tester.runAsync(
+      () => h.db.addEvent(
+        profileId: id,
+        type: 'growth',
+        occurredAt: DateUtils.dateOnly(DateTime.now()),
+        dataJson: jsonEncode({'headCm': 60.0}),
+      ),
+    );
+    await h.open(tester, '/family/$id/growth');
+    expect(key('growth-card-head'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: key('growth-tab-head'),
+        matching: find.byIcon(Icons.warning_amber_rounded),
+      ),
+      findsOneWidget,
+    );
+    await h.tapKey(tester, 'growth-tab-weight');
+    expect(key('growth-card-weight'), findsOneWidget);
+  });
+
+  testWidgets('a new measurement comes back to Growth', (tester) async {
+    h.tall(tester);
+    final (id, _) = await seed(tester);
+    await h.open(tester, '/family/$id/growth');
+    await h.tapKey(tester, 'growth-add');
+    await tester.enterText(key('field-weightKg'), '7.7');
+    await h.tapKey(tester, 'record-save');
+    expect(key('growth-history'), findsOneWidget);
+  });
+
+  testWidgets('no sex recorded: measurements still listed', (tester) async {
+    h.tall(tester);
+    final id = (await tester.runAsync(() async {
+      final id = await h.db.addProfile(
+        'سما',
+        birthDate: addMonths(DateUtils.dateOnly(DateTime.now()), -7),
+      );
+      await h.db.addEvent(
+        profileId: id,
+        type: 'growth',
+        occurredAt: DateUtils.dateOnly(DateTime.now()),
+        dataJson: jsonEncode({'weightKg': 7.6}),
+      );
+      return id;
+    }))!;
+    await h.open(tester, '/family/$id/growth');
+    expect(key('growth-card-weight'), findsNothing);
+    expect(key('growth-history'), findsOneWidget);
+    expect(find.textContaining('٧٫٦ كجم'), findsOneWidget);
+  });
+
   testWidgets('one measure at a time, and every measurement in the history', (
     tester,
   ) async {

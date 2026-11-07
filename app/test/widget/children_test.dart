@@ -91,6 +91,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('vaccine-summary')), findsOneWidget);
+    // Opens on the measure outside the range; the others are a tap away.
+    await tester.tap(find.byKey(const ValueKey('growth-tab-weight')));
+    await tester.pumpAndSettle();
     expect(
       chipText('growth-status-weight', 'جوه المعدل المرجعي'),
       findsOneWidget,
@@ -136,6 +139,8 @@ void main() {
     await tester.enterText(find.byKey(const ValueKey('field-weightKg')), '٨');
     await tester.tap(find.byKey(const ValueKey('record-save')));
     await tester.pumpAndSettle();
-    expect(find.text('قياس نمو · 8'), findsOneWidget);
+    // Back on Growth, in the history.
+    expect(find.byKey(const ValueKey('growth-history')), findsOneWidget);
+    expect(find.textContaining('٨ كجم'), findsWidgets);
   });
 }

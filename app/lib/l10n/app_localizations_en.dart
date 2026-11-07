@@ -4820,4 +4820,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String growthLastOn(String date) {
     return 'Last measured $date';
   }
+
+  @override
+  String get growthTabOutside => 'Outside the usual range';
 }

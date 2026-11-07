@@ -4852,4 +4852,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String growthLastOn(String date) {
     return 'آخر قياس $date';
   }
+
+  @override
+  String get growthTabOutside => 'برّه المدى المعتاد';
 }

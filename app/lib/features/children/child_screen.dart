@@ -67,7 +67,8 @@ class ChildScreen extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
           child: FilledButton.icon(
             key: const ValueKey('growth-add'),
-            onPressed: () => context.go('/family/$profileId/add/growth'),
+            onPressed: () =>
+                context.go('/family/$profileId/add/growth?back=growth'),
             icon: const Icon(Icons.add),
             label: Text(l.growthNew),
           ),
@@ -99,7 +100,22 @@ class _Body extends StatefulWidget {
 }
 
 class _BodyState extends State<_Body> {
-  var _indicator = GrowthIndicator.weight;
+  /// Null until chosen: starts on the first measure outside the range, so a
+  /// reading to take to the doctor is never behind a tab nobody opens.
+  GrowthIndicator? _chosen;
+
+  bool _outside(GrowthIndicator i) {
+    final birth = widget.profile.birthDate!;
+    final points = growthPoints(widget.events, birth, i);
+    if (points.isEmpty) return false;
+    final reading = readGrowth(
+      i,
+      male: widget.profile.sex == 'male',
+      months: points.last.months,
+      value: points.last.value,
+    );
+    return reading != null && !reading.withinUsualRange;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,11 +126,19 @@ class _BodyState extends State<_Body> {
     final sex = profile.sex;
     final now = DateTime.now();
     final text = Theme.of(context).textTheme;
+    final known = sex == 'male' || sex == 'female';
+    final outside = known
+        ? {
+            for (final i in GrowthIndicator.values)
+              if (_outside(i)) i,
+          }
+        : const <GrowthIndicator>{};
+    final indicator = _chosen ?? outside.firstOrNull ?? GrowthIndicator.weight;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
-        if (sex != 'male' && sex != 'female')
+        if (!known)
           Text(l.growthNoSex, style: text.bodyLarge)
         else ...[
           Wrap(
@@ -122,32 +146,38 @@ class _BodyState extends State<_Body> {
             runSpacing: UsraSpacing.s2,
             children: [
               for (final i in GrowthIndicator.values)
-                UsraPill(
-                  key: ValueKey('growth-tab-${i.name}'),
-                  selected: _indicator == i,
-                  onTap: () => setState(() => _indicator = i),
-                  label: switch (i) {
-                    GrowthIndicator.weight => l.growthTabWeight,
-                    GrowthIndicator.height => l.growthTabHeight,
-                    GrowthIndicator.head => l.growthTabHead,
-                  },
+                Semantics(
+                  value: outside.contains(i) ? l.growthTabOutside : null,
+                  child: UsraPill(
+                    key: ValueKey('growth-tab-${i.name}'),
+                    selected: indicator == i,
+                    icon: outside.contains(i)
+                        ? Icons.warning_amber_rounded
+                        : null,
+                    onTap: () => setState(() => _chosen = i),
+                    label: switch (i) {
+                      GrowthIndicator.weight => l.growthTabWeight,
+                      GrowthIndicator.height => l.growthTabHeight,
+                      GrowthIndicator.head => l.growthTabHead,
+                    },
+                  ),
                 ),
             ],
           ),
           const SizedBox(height: UsraSpacing.s3),
           _GrowthCard(
-            key: ValueKey('growth-card-${_indicator.name}'),
-            indicator: _indicator,
+            key: ValueKey('growth-card-${indicator.name}'),
+            indicator: indicator,
             male: sex == 'male',
             name: profile.displayName,
-            points: growthPoints(events, birth, _indicator),
+            points: growthPoints(events, birth, indicator),
             ageMonths: ageInMonths(birth, now),
           ),
           const SizedBox(height: UsraSpacing.s3),
-          _History(profileId: profile.id, events: events),
-          const SizedBox(height: UsraSpacing.s3),
           GrowthCheckCard(profile: profile),
         ],
+        const SizedBox(height: UsraSpacing.s3),
+        _History(profileId: profile.id, events: events),
         const SizedBox(height: UsraSpacing.s4),
         Text(l.vaccinesTitle, style: text.titleLarge),
         const SizedBox(height: UsraSpacing.s2),
@@ -315,8 +345,12 @@ class _GrowthCard extends StatelessWidget {
                   key: ValueKey('growth-status-${indicator.name}'),
                   severity: reading.severity,
                   label: reading.withinUsualRange
-                      ? l.growthWithinRange(reading.percentileLabel)
-                      : l.growthOutsideRange(reading.percentileLabel),
+                      ? l.growthWithinRange(
+                          localizedDigitsIn(context, reading.percentileLabel),
+                        )
+                      : l.growthOutsideRange(
+                          localizedDigitsIn(context, reading.percentileLabel),
+                        ),
                 ),
               ],
             ],

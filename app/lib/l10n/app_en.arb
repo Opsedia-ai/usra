@@ -2758,5 +2758,6 @@
         "type": "String"
       }
     }
-  }
+  },
+  "growthTabOutside": "Outside the usual range"
 }
