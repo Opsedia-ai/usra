@@ -15,7 +15,7 @@ last section).
 | Taking / picking those photos | `image_picker` | No |
 | Text recognition on photos (Latin script) | `core/ocr/`, `google_mlkit_text_recognition` (bundled model) | Photos and text: no. Google ML Kit may send its own diagnostics with a random per-installation ID, see below |
 | Medicine reminders, Taken / Snooze buttons | `features/medicines/`, `flutter_local_notifications` | No |
-| Home-screen widget with today's doses (neutral text by default; first names and medicine names if discreet mode is off) | `features/medicines/dose_widget.dart`, `home_widget` | No (shown on the home screen) |
+| Home-screen widget with today's doses (times and how many doses only, never names) | `features/medicines/dose_widget.dart`, `home_widget` | No (shown on the home screen) |
 | Reminder notifications (neutral text by default; the person's name as entered and the medicine name can show on the lock screen if discreet mode is off) | `features/medicines/local_notification_scheduler.dart` | No |
 | Encrypted backup file, shared by the user to a place they choose | `core/backup/`, `share_plus`, `file_picker` | Only where the user sends it, encrypted; we never receive it |
 | Automatic encrypted backup to a folder the user picks once (optional, off by default; never iCloud Drive) | `core/backup/`, `features/backup/`, Storage Access Framework on Android, security-scoped bookmark on iOS; no new permissions | Only to that folder, encrypted, with no network call by Usra; we never receive it |

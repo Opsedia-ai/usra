@@ -39,7 +39,7 @@ struct WidgetDose: Decodable {
   let m: String
   /// May have Taken once due: the app decides (never on a row that could be
   /// someone else's dose).
-  let t: Bool?
+  let t: Bool
 
   var key: String { "\(m)@\(at)" }
   var date: Date { Date(timeIntervalSince1970: TimeInterval(at) / 1000) }
@@ -70,8 +70,11 @@ struct WidgetSnapshot: Decodable {
       snapshot.v == snapshotVersion
     else {
       // One with names from before an update, gone even if the app isn't
-      // opened: it says to open the app until a new one comes.
-      defaults.removeObject(forKey: dataKey)
+      // opened: it says to open the app until a new one comes. Only if it's
+      // still the one read: the app may have just written a new one.
+      if defaults.string(forKey: dataKey) == raw {
+        defaults.removeObject(forKey: dataKey)
+      }
       return nil
     }
     return snapshot
@@ -226,7 +229,7 @@ struct DoseProvider: TimelineProvider {
       rows: due.prefix(shown).map { d in
         // Only doses already due: a later one still has its reminder
         // coming, which Taken here can't cancel.
-        DoseRow(line: d.line, dose: d.t == true && d.date <= date ? d : nil)
+        DoseRow(line: d.line, dose: d.t && d.date <= date ? d : nil)
       },
       taken: s.taken ?? "", message: s.empty)
   }

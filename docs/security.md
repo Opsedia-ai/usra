@@ -155,10 +155,13 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   (`docs/research/fever-warning-signs.md`, needs medical review).
 - **Widget**: no names of people or medicines in any mode, only times and how
   many doses (Apple 5.1.3: the snapshot may reach iCloud device backup). The
-  medicine id is a random id. A snapshot from an older version held names: the
-  widgets refuse and delete it when they next draw, and the app overwrites it
-  when it next runs. Taken only under the notification rule above (otherwise a
-  tap opens the app, behind the lock).
+  only other thing in a row is the medicine's id, and only on a row with Taken,
+  so that Taken can say which dose. It holds no name, but it is a UUID v7, so it
+  shows when the medicine was added. A snapshot from an older version held
+  names: the app overwrites it when it next runs, and the widgets refuse it and
+  delete it when they next draw, which on iOS needs a widget on the home screen
+  to ask for a timeline. Taken only under the notification rule above
+  (otherwise a tap opens the app, behind the lock).
   A snoozed dose has no Taken here, as its reminder is still coming. iOS 17+
   only; its Taken asks to unlock first (StandBy shows widgets on a locked phone)
   and goes through an inbox in the App Group, holding medicine id and time,
@@ -354,7 +357,7 @@ with the cloud features (M6).
 | S1 | **Encrypt photos at rest** | P0 | Done (see section 3); verify on a device with existing photos. Was the biggest gap: insurance cards and prescriptions were plain files. Encrypt each file with XChaCha20-Poly1305 using a file key kept in the Keystore (or derived from the DB key); decrypt into memory for display; migrate existing files; share decrypts to a temp file that is deleted after. |
 | S2 | **App lock** | P0 | Optional PIN plus biometrics (`local_auth`), off until a PIN is chosen. Offered after Simple Mode's first tour and in More › App lock; the shorter first run doesn't ask. Re-lock after N minutes in the background. Simple Mode keeps it easy (biometrics first, big PIN pad). |
 | S3 | **Screen privacy** | P0 | Blur the app in the recent-apps switcher (iOS snapshot cover, Android `FLAG_SECURE` or `setRecentsScreenshotEnabled(false)`). `FLAG_SECURE` on the recovery key, emergency card is exempt so it can be shown. |
-| S4 | **Discreet mode** | P0 | Setting to show "Your medicine time" instead of medicine/person names in notifications and the widget. Default on for the lock screen. |
+| S4 | **Discreet mode** | P0 | Setting to show "Your medicine time" instead of medicine/person names in notifications. Default on for the lock screen. The widget has no names in any mode. |
 | S5 | **No PHI in logs** | P0 | Replace `debugPrint` of exceptions with a logger that is silent in release and never prints record data. Lint/grep check in CI for `print(`/`debugPrint(` outside the logger. |
 | S6 | **Release hardening** | P0 | R8/obfuscation with `--obfuscate --split-debug-info` (symbols kept privately), `debuggable=false`, no cleartext (`usesCleartextTraffic=false` + network security config), iOS ATS default. Android done in the M5 release PR (#19, `docs/release.md`); symbols must be archived per release. iOS ATS still to check when iOS is built. |
 | S7 | **Clipboard and sharing** | P1 | Done (see section 3). Clear copied recovery key from the clipboard after 60 s; mark it sensitive on Android 13+. Warn before sharing an insurance card or record outside the app. |

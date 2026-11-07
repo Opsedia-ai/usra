@@ -4310,11 +4310,11 @@ abstract class AppLocalizations {
   /// **'Your medicine time'**
   String get doseReminderDiscreetTitle;
 
-  /// No description provided for @widgetDiscreetDose.
+  /// No description provided for @widgetDoseDue.
   ///
   /// In en, this message translates to:
   /// **'Dose due'**
-  String get widgetDiscreetDose;
+  String get widgetDoseDue;
 
   /// No description provided for @widgetDoseCount.
   ///

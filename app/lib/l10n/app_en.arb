@@ -1380,7 +1380,7 @@
   },
   "photosLocked": "Photos can't be opened on this phone. Restore your backup to get them back.",
   "doseReminderDiscreetTitle": "Your medicine time",
-  "widgetDiscreetDose": "Dose due",
+  "widgetDoseDue": "Dose due",
   "widgetDoseCount": "{count, plural, other{{digits} doses due}}",
   "@widgetDoseCount": {"placeholders": {"count": {"type": "int"}, "digits": {"type": "String"}}},
   "settingsDiscreet": "Discreet notifications",

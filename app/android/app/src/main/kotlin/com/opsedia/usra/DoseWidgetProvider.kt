@@ -123,15 +123,16 @@ class DoseWidgetProvider : HomeWidgetProvider() {
             ids: IntArray,
             widgetData: SharedPreferences,
         ) {
-            if (ids.isEmpty()) return
-            val now = System.currentTimeMillis()
             val raw = widgetData.getString(DATA_KEY, null)
             val snapshot = read(raw)
             // One with names from before an update, gone even if the app isn't
-            // opened: it says to open the app until a new one comes.
+            // opened and no widget is placed: the app kept writing it anyway.
+            // It says to open the app until a new one comes.
             if (raw != null && snapshot == null) {
                 widgetData.edit().remove(DATA_KEY).apply()
             }
+            if (ids.isEmpty()) return
+            val now = System.currentTimeMillis()
             val taken = pendingTaken(context, snapshot)
             val views = RemoteViews(context.packageName, R.layout.dose_widget)
 
@@ -312,7 +313,7 @@ class DoseWidgetProvider : HomeWidgetProvider() {
                             time = d.getString("time"),
                             label = d.getString("label"),
                             medicineId = d.getString("m"),
-                            canMark = d.optBoolean("t", false),
+                            canMark = d.getBoolean("t"),
                         )
                     },
                 )

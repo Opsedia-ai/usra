@@ -2638,7 +2638,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get doseReminderDiscreetTitle => 'ميعاد الدوا';
 
   @override
-  String get widgetDiscreetDose => 'ميعاد جرعة';
+  String get widgetDoseDue => 'ميعاد جرعة';
 
   @override
   String widgetDoseCount(int count, String digits) {

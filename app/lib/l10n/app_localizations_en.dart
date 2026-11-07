@@ -2627,7 +2627,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get doseReminderDiscreetTitle => 'Your medicine time';
 
   @override
-  String get widgetDiscreetDose => 'Dose due';
+  String get widgetDoseDue => 'Dose due';
 
   @override
   String widgetDoseCount(int count, String digits) {

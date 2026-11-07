@@ -778,7 +778,7 @@
   "restorePhotosSkipped": "{count, plural, =1{صورة واحدة في النسخة دي مش هتتفتح وهتتساب.} =2{صورتين في النسخة دي مش هيتفتحوا وهيتسابوا.} few{{count} صور في النسخة دي مش هيتفتحوا وهيتسابوا.} other{{count} صورة في النسخة دي مش هيتفتحوا وهيتسابوا.}}",
   "photosLocked": "الصور مش بتتفتح على الموبايل ده. رجّع نسختك الاحتياطية عشان ترجعلك.",
   "doseReminderDiscreetTitle": "ميعاد الدوا",
-  "widgetDiscreetDose": "ميعاد جرعة",
+  "widgetDoseDue": "ميعاد جرعة",
   "widgetDoseCount": "{count, plural, =2{جرعتين} few{{digits} جرعات} other{{digits} جرعة}}",
   "settingsDiscreet": "تنبيهات من غير أسامي",
   "settingsDiscreetHint": "التنبيهات بتقول \"ميعاد الدوا\" بس، من غير اسم الشخص ولا اسم الدوا. لو كذا جرعة قريبين من بعض، افتح أسرة عشان تعلّم عليهم.",

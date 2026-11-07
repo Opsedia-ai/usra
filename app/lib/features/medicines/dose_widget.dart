@@ -24,8 +24,8 @@ import 'reminders.dart'
 /// widget, with Taken.
 const widgetGrace = Duration(hours: 1);
 
-/// Most doses kept in a snapshot; the widget shows three.
-const widgetMaxDoses = 20;
+/// Most rows kept in a snapshot; the widget shows three.
+const widgetMaxRows = 20;
 
 /// One row on the home-screen widget: a time and how many doses are due then,
 /// and the key to mark it taken. Never a person's or a medicine's name, in any
@@ -54,8 +54,8 @@ class WidgetDose {
   /// "Dose due", or how many are due at this time.
   final String label;
 
-  /// Only for a row of one dose: there's nothing to mark on a row of several.
-  /// A random id that says nothing about the medicine.
+  /// Only on a row with Taken, so Taken can say which dose: empty otherwise. An
+  /// id with no name in it, though a UUID v7 shows when the medicine was added.
   final String medicineId;
 
   /// Has a Taken button once due, only if this row can be told from others'
@@ -144,7 +144,9 @@ WidgetSnapshot buildWidgetSnapshot(
     from: now.subtract(doseCompanyLookback),
     to: validUntil,
   );
-  final rows = <DateTime, _WidgetRow>{};
+  // Doses that also leave together: a shared row can't lose one and keep a
+  // right count.
+  final rows = <(DateTime, DateTime), _WidgetRow>{};
   for (final d in plannedDoses(regimens, logs, from: today, to: validUntil)) {
     if (d.isDone) continue;
     final log = d.log;
@@ -155,18 +157,17 @@ WidgetSnapshot buildWidgetSnapshot(
       widgetGrace,
     );
     if (until.isBefore(now)) continue;
-    final row = rows[d.at];
+    final row = rows[(d.at, until)];
     if (row != null) {
-      row.add(until);
+      row.count++;
       continue;
     }
-    if (rows.length == widgetMaxDoses) break;
-    rows[d.at] = _WidgetRow(
-      until: until,
+    if (rows.length == widgetMaxRows) break;
+    rows[(d.at, until)] = _WidgetRow(
       medicineId: d.regimen.medicine.id,
       // A snoozed dose still has its reminder coming, which Taken here can't
       // cancel: it would ring for a dose already given.
-      canMark:
+      markable:
           log?.status != DoseOutcome.snoozed &&
           company[doseKey(d.regimen.medicine.id, d.at)] == DoseCompany.alone,
     );
@@ -180,19 +181,19 @@ WidgetSnapshot buildWidgetSnapshot(
     stale: l.widgetStale,
     taken: l.doseTaken,
     doses: [
-      for (final MapEntry(key: at, value: row) in rows.entries)
+      for (final MapEntry(key: (at, until), value: row) in rows.entries)
         WidgetDose(
           at: at,
-          until: row.until,
+          until: until,
           time: doseTimeText(at, l.localeName),
           label: row.count == 1
-              ? l.widgetDiscreetDose
+              ? l.widgetDoseDue
               : l.widgetDoseCount(
                   row.count,
                   digitsIn(l.localeName, '${row.count}'),
                 ),
-          medicineId: row.count == 1 ? row.medicineId : '',
-          canMark: row.count == 1 && row.canMark,
+          medicineId: row.canMark ? row.medicineId : '',
+          canMark: row.canMark,
         ),
     ],
   );
@@ -200,21 +201,13 @@ WidgetSnapshot buildWidgetSnapshot(
 
 /// The doses due at one time, while a snapshot is built.
 class _WidgetRow {
-  _WidgetRow({
-    required this.until,
-    required this.medicineId,
-    required this.canMark,
-  });
+  _WidgetRow({required this.medicineId, required this.markable});
 
-  DateTime until;
   final String medicineId;
-  final bool canMark;
+  final bool markable;
   var count = 1;
 
-  void add(DateTime otherUntil) {
-    count++;
-    if (otherUntil.isAfter(until)) until = otherUntil;
-  }
+  bool get canMark => count == 1 && markable;
 }
 
 /// Date formats for [locale]; the snapshot may be built before the app's
