@@ -9,10 +9,17 @@ import 'package:intl/intl.dart' show DateFormat, NumberFormat;
 import '../../core/database/app_database.dart';
 import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/follow_ups/follow_up.dart';
+import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
+import '../add/add_sheet.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import '../follow_ups/follow_ups_providers.dart' show todayProvider;
+import '../medicines/dose_schedule.dart' show PlannedDose;
+import '../medicines/medicine_text.dart' show formatDoseTime, medicineTitle;
+import '../medicines/medicines_providers.dart' show todayDosesProvider;
+import '../family/person_status.dart' show logDoseTaken;
 import 'antenatal_schedule.dart';
 import 'pregnancy.dart';
 import 'pregnancy_widgets.dart';
@@ -38,6 +45,26 @@ class PregnancyScreen extends ConsumerWidget {
         title: Text(l.pregnancyTitle),
         leading: BackButton(onPressed: () => context.go('/family/$profileId')),
       ),
+      // Only while a pregnancy is being followed: before that, its main action
+      // is starting one.
+      bottomNavigationBar: switch ((profile.value, timeline.value)) {
+        (final p?, final events?)
+            when canBePregnant(p, today) &&
+                activePregnancy(FollowUpSubject(p, events).records, today) !=
+                    null =>
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+              child: FilledButton.icon(
+                key: const ValueKey('pregnancy-add'),
+                onPressed: () => showAddSheet(context, person: profileId),
+                icon: const Icon(Icons.add),
+                label: Text(l.pregnancyAddRecord),
+              ),
+            ),
+          ),
+        _ => null,
+      },
       body: switch ((profile, timeline)) {
         (AsyncError(:final error), _) ||
         (_, AsyncError(:final error)) => Center(child: Text('$error')),
@@ -70,7 +97,7 @@ class _Message extends StatelessWidget {
   );
 }
 
-class _Body extends StatelessWidget {
+class _Body extends StatefulWidget {
   const _Body({
     required this.profile,
     required this.records,
@@ -82,7 +109,17 @@ class _Body extends StatelessWidget {
   final DateTime today;
 
   @override
+  State<_Body> createState() => _BodyState();
+}
+
+class _BodyState extends State<_Body> {
+  var _doneOpen = false;
+
+  @override
   Widget build(BuildContext context) {
+    final profile = widget.profile;
+    final records = widget.records;
+    final today = widget.today;
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     final muted = text.bodySmall?.copyWith(color: context.usra.inkMuted);
@@ -111,6 +148,15 @@ class _Body extends StatelessWidget {
 
     final readings = pregnancyReadings(records, pregnancy);
     final left = pregnancy.daysLeft(today);
+    final anc = ancStatuses(pregnancy, records, today);
+    final open = [
+      for (final s in anc)
+        if (s.state == AncState.open) s,
+    ];
+    final past = [
+      for (final s in anc)
+        if (s.state != AncState.open) s,
+    ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
@@ -151,10 +197,49 @@ class _Body extends StatelessWidget {
         const SizedBox(height: 16),
         const DangerSignsCard(),
         const SizedBox(height: 24),
+        _SupplementsCard(person: profile),
+        const SizedBox(height: 24),
         Text(l.pregnancyScheduleTitle, style: text.titleLarge),
         const SizedBox(height: 4),
-        for (final s in ancStatuses(pregnancy, records, today))
-          _AncTile(status: s, today: today),
+        if (open.isNotEmpty) ...[
+          Text(
+            l.pregnancyNextTitle,
+            key: const ValueKey('pregnancy-next'),
+            style: text.titleMedium,
+          ),
+          for (final s in open) _AncTile(status: s, today: today),
+        ],
+        if (past.isNotEmpty) ...[
+          Semantics(
+            button: true,
+            expanded: _doneOpen,
+            child: InkWell(
+              key: const ValueKey('pregnancy-past-toggle'),
+              onTap: () => setState(() => _doneOpen = !_doneOpen),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: UsraSizes.touchTarget,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l.pregnancyPastTitle,
+                        style: text.titleMedium,
+                      ),
+                    ),
+                    Icon(
+                      _doneOpen ? Icons.expand_less : Icons.expand_more,
+                      color: context.usra.inkMuted,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (_doneOpen)
+            for (final s in past) _AncTile(status: s, today: today),
+        ],
         const SizedBox(height: 4),
         Text(l.pregnancyScheduleSource, style: muted),
         const SizedBox(height: 24),
@@ -271,17 +356,140 @@ class _AncTile extends StatelessWidget {
         final s => (s, l.followUpDue(date)),
       },
     };
-    return ListTile(
+    final c = context.usra;
+    return Padding(
       key: ValueKey('anc-${item.id}'),
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(switch (item.kind) {
-        AncKind.contact => Icons.medical_services_outlined,
-        AncKind.scan => Icons.image_outlined,
-        AncKind.lab => Icons.science_outlined,
-      }, color: context.usra.primary),
-      title: Text(ancTitle(l, item)),
-      subtitle: Text(ancReason(l, item)),
-      trailing: StatusChip(severity: severity, label: label),
+      padding: const EdgeInsets.symmetric(vertical: UsraSpacing.s2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ExcludeSemantics(
+            child: Icon(switch (item.kind) {
+              AncKind.contact => Icons.medical_services_outlined,
+              AncKind.scan => Icons.image_outlined,
+              AncKind.lab => Icons.science_outlined,
+            }, color: c.primary),
+          ),
+          const SizedBox(width: UsraSpacing.s3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  ancTitle(l, item),
+                  style: UsraType.body.copyWith(
+                    color: c.ink,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  ancReason(l, item),
+                  style: UsraType.body.copyWith(color: c.inkMuted),
+                ),
+                const SizedBox(height: UsraSpacing.s1),
+                StatusChip(severity: severity, label: label),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Today's doses for this person, each ticked on its own. They're whatever the
+/// family added as a medicine: the app names no supplement and suggests none.
+class _SupplementsCard extends ConsumerWidget {
+  const _SupplementsCard({required this.person});
+
+  final Profile person;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final c = context.usra;
+    final doses = [
+      for (final d
+          in ref.watch(todayDosesProvider).value ?? const <PlannedDose>[])
+        if (d.regimen.person.id == person.id) d,
+    ];
+    return Card(
+      key: const ValueKey('pregnancy-supplements'),
+      child: Padding(
+        padding: const EdgeInsets.all(UsraSpacing.s4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l.pregnancySupplementsTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            if (doses.isEmpty) ...[
+              const SizedBox(height: UsraSpacing.s1),
+              Text(
+                l.pregnancySupplementsEmpty,
+                key: const ValueKey('pregnancy-supplements-empty'),
+                style: UsraType.body.copyWith(color: c.inkMuted),
+              ),
+              const SizedBox(height: UsraSpacing.s1),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton(
+                  key: const ValueKey('pregnancy-supplements-add'),
+                  onPressed: () =>
+                      context.push('/family/${person.id}/medicines/new'),
+                  child: Text(l.pregnancySupplementsAdd),
+                ),
+              ),
+            ],
+            for (final d in doses)
+              Padding(
+                key: ValueKey(
+                  'pregnancy-dose-${d.regimen.medicine.id}-'
+                  '${d.at.millisecondsSinceEpoch}',
+                ),
+                padding: const EdgeInsets.only(top: UsraSpacing.s2),
+                child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: UsraSpacing.s2,
+                  runSpacing: UsraSpacing.s1,
+                  children: [
+                    Text(
+                      '${medicineTitle(d.regimen.medicine)} · '
+                      '${formatDoseTime(context, d.at)}',
+                      style: UsraType.body.copyWith(
+                        color: c.ink,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (d.isDone)
+                      // A skipped dose must never read as taken.
+                      d.log!.status == DoseOutcome.taken
+                          ? StatusChip(
+                              severity: Severity.good,
+                              label: l.doseTaken,
+                            )
+                          : StatusChip(
+                              severity: Severity.info,
+                              icon: Icons.remove,
+                              label: l.doseSkipped,
+                            )
+                    else
+                      OutlinedButton(
+                        key: ValueKey(
+                          'pregnancy-tick-${d.regimen.medicine.id}-'
+                          '${d.at.millisecondsSinceEpoch}',
+                        ),
+                        onPressed: () => logDoseTaken(context, ref, d),
+                        child: Text(l.doseTaken),
+                      ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -325,6 +533,7 @@ class _ReadingsCard extends StatelessWidget {
                       colors: context.usra,
                       series: series,
                       unit: unit,
+                      language: Localizations.localeOf(context).languageCode,
                     ),
                   ),
                 ),
@@ -348,15 +557,18 @@ class _LinePainter extends CustomPainter {
     required this.colors,
     required this.series,
     required this.unit,
+    required this.language,
   });
 
   final UsraColors colors;
   final List<List<(double, double)>> series;
   final String unit;
+  final String language;
 
   static const _maxWeek = 42.0;
-  static const _left = 36.0;
-  static const _bottom = 20.0;
+  static const _left = 40.0;
+  static const _top = 22.0;
+  static const _bottom = 24.0;
   List<Color> get _colors => [colors.primary, colors.orchidInk];
 
   @override
@@ -369,7 +581,7 @@ class _LinePainter extends CustomPainter {
     high = (high + pad).ceilToDouble();
     final chart = Rect.fromLTRB(
       _left,
-      4,
+      _top,
       size.width - 4,
       size.height - _bottom,
     );
@@ -384,14 +596,19 @@ class _LinePainter extends CustomPainter {
     for (var w = 0; w <= _maxWeek; w += 6) {
       final x = at(w.toDouble(), low).dx;
       canvas.drawLine(Offset(x, chart.top), Offset(x, chart.bottom), grid);
-      _label(canvas, '$w', Offset(x, chart.bottom + 3), center: true);
+      _label(
+        canvas,
+        digitsIn(language, '$w'),
+        Offset(x, chart.bottom + 2),
+        center: true,
+      );
     }
     for (final v in [low, (low + high) / 2, high]) {
       final y = at(0, v).dy;
       canvas.drawLine(Offset(chart.left, y), Offset(chart.right, y), grid);
-      _label(canvas, '${v.round()}', Offset(2, y - 7));
+      _label(canvas, digitsIn(language, '${v.round()}'), Offset(2, y - 9));
     }
-    _label(canvas, unit, Offset(chart.left + 4, chart.top));
+    _label(canvas, unit, const Offset(2, 0));
 
     for (final (i, s) in series.indexed) {
       final color = _colors[i % _colors.length];
@@ -415,7 +632,7 @@ class _LinePainter extends CustomPainter {
     final painter = TextPainter(
       text: TextSpan(
         text: text,
-        style: TextStyle(fontSize: 10, color: colors.inkMuted),
+        style: TextStyle(fontSize: 14, color: colors.inkMuted),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
@@ -426,6 +643,7 @@ class _LinePainter extends CustomPainter {
   @override
   bool shouldRepaint(_LinePainter old) =>
       old.colors != colors ||
+      old.language != language ||
       old.unit != unit ||
       old.series.length != series.length ||
       [

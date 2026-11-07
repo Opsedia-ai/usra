@@ -665,7 +665,7 @@
   "ancDone": "اتعمل",
   "ancMissed": "مش متسجل",
   "pregDangerTitle": "روحي المستشفى فورًا لو حصل أي حاجة من دول",
-  "pregDangerSign": "{sign, select, bleeding{نزيف من المهبل} headache{صداع جامد} vision{زغللة في النظر} fits{تشنجات أو إغماء} pain{وجع جامد في البطن} fever{سخونية} water{نزول مية من المهبل} movement{حركة البيبي قلّت عن العادي أو وقفت} swelling{ورم في الوش أو الإيدين} breathing{صعوبة في التنفس} other{}}",
+  "pregDangerSign": "{sign, select, bleeding{نزيف من المهبل} headache{صداع جامد} vision{زغللة في النظر} fits{تشنجات أو إغماء} pain{وجع جامد في البطن} fever{سخونية} water{نزول مية من المهبل} movement{حركة البيبي قلّت عن العادي أو وقفت} swelling{تورّم في الوش أو الإيدين} breathing{صعوبة في التنفس} other{}}",
   "pregDangerSource": "علامات الخطر من إرشادات منظمة الصحة العالمية ووزارة الصحة المصرية لصحة الأم.",
   "pregnancyWeightTitle": "الوزن",
   "pregnancyBpTitle": "الضغط",
@@ -1364,5 +1364,11 @@
   "vaccineOtherChoice": "تطعيم تاني",
   "vaccineWhoFor": "لمين؟",
   "vaccineSavedFor": "اتحفظ: {vaccine} لـ{name}",
-  "vaccineChoiceOverdue": "{dose} · متأخر"
+  "vaccineChoiceOverdue": "{dose} · متأخر",
+  "pregnancyAddRecord": "سجّلي زيارة أو تحليل",
+  "pregnancyNextTitle": "الجاي",
+  "pregnancyPastTitle": "اللي فات",
+  "pregnancySupplementsTitle": "الأدوية والمكمّلات النهارده",
+  "pregnancySupplementsEmpty": "مفيش حاجة متسجلة للنهارده.",
+  "pregnancySupplementsAdd": "ضيفي دوا أو مكمّل"
 }

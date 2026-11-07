@@ -123,6 +123,12 @@ void main() {
     );
     expect(find.byKey(const ValueKey('pregnancy-ambulance')), findsOneWidget);
     expect(find.text('نزيف من المهبل'), findsOneWidget);
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('pregnancy-past-toggle')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('pregnancy-past-toggle')));
+    await tester.pumpAndSettle();
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('anc-anomalyScan')),

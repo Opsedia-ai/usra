@@ -4781,4 +4781,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String vaccineChoiceOverdue(String dose) {
     return '$dose · overdue';
   }
+
+  @override
+  String get pregnancyAddRecord => 'Add a visit or test';
+
+  @override
+  String get pregnancyNextTitle => 'Coming up';
+
+  @override
+  String get pregnancyPastTitle => 'Earlier';
+
+  @override
+  String get pregnancySupplementsTitle => 'Medicines and supplements today';
+
+  @override
+  String get pregnancySupplementsEmpty => 'Nothing recorded for today.';
+
+  @override
+  String get pregnancySupplementsAdd => 'Add a medicine or supplement';
 }
