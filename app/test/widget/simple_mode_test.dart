@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:usra/core/design/bottom_bar.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/preferences.dart';
@@ -35,6 +36,7 @@ void main() {
   );
 
   Finder tabs() => find.byType(NavigationDestination);
+  Finder regularBar() => find.byType(UsraBottomBar);
 
   // Simple Home's More link is below the big buttons.
   Future<void> openMoreFromSimpleHome(WidgetTester tester) async {
@@ -114,9 +116,10 @@ void main() {
     store = MemoryKeyValueStore({PrefKeys.tutorialSeen: true});
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
-    expect(tabs(), findsNWidgets(6));
+    expect(regularBar(), findsOneWidget);
+    expect(tabs(), findsNothing);
     double scale() =>
-        MediaQuery.textScalerOf(tester.element(find.byType(NavigationBar)))
+        MediaQuery.textScalerOf(tester.element(find.byType(Scaffold).first))
             .scale(10) /
         10;
     expect(scale(), 1.0);
@@ -164,7 +167,8 @@ void main() {
     await openMoreFromSimpleHome(tester);
     await tester.tap(find.byKey(const ValueKey('settings-simple-mode')));
     await tester.pumpAndSettle();
-    expect(tabs(), findsNWidgets(6));
+    expect(regularBar(), findsOneWidget);
+    expect(tabs(), findsNothing);
     expect(scale(), 1.0);
   });
 
@@ -181,9 +185,7 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('العيلة'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('ضيف شخص'));
+    await tester.tap(find.byKey(const ValueKey('home-add-first')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('profile-name')), 'فاطمة');
     await tester.tap(find.byKey(const ValueKey('profile-simple-mode')));

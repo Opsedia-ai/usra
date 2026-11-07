@@ -22,6 +22,7 @@ class DoctorsModule extends FeatureModule {
       label: (c) => AppLocalizations.of(c).navDoctors,
       order: 20,
       simple: true,
+      simpleOnly: true,
       simpleIcon: Icons.call,
       simpleLabel: (c) => AppLocalizations.of(c).navCall,
     ),

@@ -204,7 +204,7 @@ class MemberScreen extends ConsumerWidget {
                           ]
                         : [
                             for (final e in events) ...[
-                              _EventCard(
+                              EventCard(
                                 event: e,
                                 type: types[e.type],
                                 photos: photoCounts[e.id] ?? 0,
@@ -308,16 +308,21 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _EventCard extends StatelessWidget {
-  const _EventCard({
+class EventCard extends StatelessWidget {
+  const EventCard({
+    super.key,
     required this.event,
     required this.type,
     required this.photos,
+    this.personName,
   });
 
   final MedicalEvent event;
   final RecordTypeDefinition? type;
   final int photos;
+
+  /// Shown first, where records of several people are listed together.
+  final String? personName;
 
   @override
   Widget build(BuildContext context) {
@@ -357,6 +362,7 @@ class _EventCard extends StatelessWidget {
         ),
         subtitle: Text(
           [
+            ?personName,
             DateFormat.yMMMd(locale).format(event.occurredAt),
             ?money,
           ].join(' · '),
