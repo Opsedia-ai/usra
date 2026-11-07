@@ -4203,6 +4203,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addInsurance => 'Insurance card';
 
   @override
+  String get addSurgery => 'Surgery';
+
+  @override
+  String get addPhotoTitle => 'Photo of a medicine box';
+
+  @override
+  String get addPhotoHint =>
+      'Read on the phone: printed English only, and the name and strength still need checking.';
+
+  @override
+  String get profileMoreDetails => 'More details';
+
+  @override
+  String profileSaveNamed(String name) {
+    return 'Save $name';
+  }
+
+  @override
   String get recordsTitle => 'Records';
 
   @override

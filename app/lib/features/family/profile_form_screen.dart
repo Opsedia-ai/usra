@@ -8,6 +8,8 @@ import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
+import '../medicines/medicines_providers.dart' show clockProvider;
+import 'person_status.dart';
 import '../children/growth.dart' show isUnderFive;
 import '../doctors/contact_links.dart' show isCallablePhone;
 
@@ -179,16 +181,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
           : ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                TextField(
-                  key: const ValueKey('profile-name'),
-                  controller: _name,
-                  decoration: InputDecoration(
-                    labelText: '${l.familyNameLabel} *',
-                    errorText: _nameMissing ? l.fieldRequired : null,
-                  ),
-                ),
                 if (!isMe) ...[
-                  const SizedBox(height: 16),
                   Text(
                     l.profileRelationship,
                     style: Theme.of(context).textTheme.bodySmall,
@@ -210,24 +203,12 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                   ),
                 ],
                 const SizedBox(height: 16),
-                InkWell(
-                  key: const ValueKey('profile-birthDate'),
-                  onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: _birthDate ?? DateTime(1990),
-                      firstDate: DateTime(1900),
-                      lastDate: DateTime.now(),
-                    );
-                    if (picked != null) setState(() => _birthDate = picked);
-                  },
-                  child: InputDecorator(
-                    decoration: InputDecoration(labelText: l.profileBirthDate),
-                    child: Text(
-                      _birthDate == null
-                          ? l.pickDate
-                          : DateFormat.yMMMd(locale).format(_birthDate!),
-                    ),
+                TextField(
+                  key: const ValueKey('profile-name'),
+                  controller: _name,
+                  decoration: InputDecoration(
+                    labelText: '${l.familyNameLabel} *',
+                    errorText: _nameMissing ? l.fieldRequired : null,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -247,24 +228,33 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                       setState(() => _sex = s.isEmpty ? null : s.first),
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: _bloodType,
-                  decoration: InputDecoration(labelText: l.profileBloodType),
-                  items: [
-                    for (final b in bloodTypes)
-                      DropdownMenuItem(value: b, child: Text(b)),
-                  ],
-                  onChanged: (v) => setState(() => _bloodType = v),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _allergies,
-                  decoration: InputDecoration(labelText: l.profileAllergies),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _conditions,
-                  decoration: InputDecoration(labelText: l.profileConditions),
+                InkWell(
+                  key: const ValueKey('profile-birthDate'),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _birthDate ?? DateTime(1990),
+                      firstDate: DateTime(1900),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) setState(() => _birthDate = picked);
+                  },
+                  child: InputDecorator(
+                    decoration: InputDecoration(labelText: l.profileBirthDate),
+                    child: Text(
+                      _birthDate == null
+                          ? l.pickDate
+                          : [
+                              DateFormat.yMMMd(locale).format(_birthDate!),
+                              ?ageLabel(
+                                l,
+                                _birthDate,
+                                ref.read(clockProvider)(),
+                              ),
+                            ].join(' · '),
+                      key: const ValueKey('profile-birthDate-text'),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -290,19 +280,70 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                SwitchListTile(
-                  key: const ValueKey('profile-simple-mode'),
-                  contentPadding: EdgeInsets.zero,
-                  value: _simpleMode,
-                  onChanged: (v) => setState(() => _simpleMode = v),
-                  title: Text(l.profileSimpleMode),
-                  subtitle: Text(l.profileSimpleModeHint),
+                // A new person starts short. Details are on show when
+                // changing what's there, so nothing saved is ever tucked away.
+                Theme(
+                  data: Theme.of(context)
+                      .copyWith(dividerColor: Colors.transparent),
+                  child: ExpansionTile(
+                    key: const ValueKey('profile-more'),
+                    tilePadding: EdgeInsets.zero,
+                    childrenPadding: EdgeInsets.zero,
+                    maintainState: true,
+                    initiallyExpanded: widget.profileId != null,
+                    title: Text(l.profileMoreDetails),
+                    children: [
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        initialValue: _bloodType,
+                        decoration: InputDecoration(
+                          labelText: l.profileBloodType,
+                        ),
+                        items: [
+                          for (final b in bloodTypes)
+                            DropdownMenuItem(value: b, child: Text(b)),
+                        ],
+                        onChanged: (v) => setState(() => _bloodType = v),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _allergies,
+                        decoration: InputDecoration(
+                          labelText: l.profileAllergies,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _conditions,
+                        decoration: InputDecoration(
+                          labelText: l.profileConditions,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SwitchListTile(
+                        key: const ValueKey('profile-simple-mode'),
+                        contentPadding: EdgeInsets.zero,
+                        value: _simpleMode,
+                        onChanged: (v) => setState(() => _simpleMode = v),
+                        title: Text(l.profileSimpleMode),
+                        subtitle: Text(l.profileSimpleModeHint),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 20),
                 FilledButton(
                   key: const ValueKey('profile-save'),
                   onPressed: _saving ? null : _save,
-                  child: Text(l.familySave),
+                  child: ListenableBuilder(
+                    listenable: _name,
+                    builder: (_, _) => Text(
+                      widget.profileId != null || _name.text.trim().isEmpty
+                          ? l.familySave
+                          : l.profileSaveNamed(_name.text.trim()),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
               ],
             ),

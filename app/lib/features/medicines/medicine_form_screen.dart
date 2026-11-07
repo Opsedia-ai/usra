@@ -55,10 +55,15 @@ class MedicineFormScreen extends ConsumerStatefulWidget {
     super.key,
     required this.profileId,
     this.medicineId,
+    this.startWithScan = false,
   });
 
   final String profileId;
   final String? medicineId;
+
+  /// Opens the camera first, from "photograph a box" on the Add sheet. What it
+  /// reads still only counts once the person has checked it.
+  final bool startWithScan;
 
   @override
   ConsumerState<MedicineFormScreen> createState() => _MedicineFormScreenState();
@@ -110,6 +115,11 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
     }
     if (widget.medicineId == null) {
       _loaded = true;
+      if (widget.startWithScan) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _scan();
+        });
+      }
     } else {
       // Nothing is tucked away when changing what's already there.
       _showDetails = true;

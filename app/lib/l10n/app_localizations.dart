@@ -6685,6 +6685,36 @@ abstract class AppLocalizations {
   /// **'Insurance card'**
   String get addInsurance;
 
+  /// No description provided for @addSurgery.
+  ///
+  /// In en, this message translates to:
+  /// **'Surgery'**
+  String get addSurgery;
+
+  /// No description provided for @addPhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo of a medicine box'**
+  String get addPhotoTitle;
+
+  /// No description provided for @addPhotoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Read on the phone: printed English only, and the name and strength still need checking.'**
+  String get addPhotoHint;
+
+  /// No description provided for @profileMoreDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'More details'**
+  String get profileMoreDetails;
+
+  /// No description provided for @profileSaveNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Save {name}'**
+  String profileSaveNamed(String name);
+
   /// No description provided for @recordsTitle.
   ///
   /// In en, this message translates to:

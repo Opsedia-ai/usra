@@ -53,6 +53,8 @@ class _AddSheetState extends ConsumerState<AddSheet> {
         : people.any((p) => p.id == _person)
         ? _person
         : null;
+    // Only what has a form. Vitals, an admission, an allergy or a condition
+    // have no record form yet: allergies and conditions are on the person.
     final items = <(String, IconData, String)>[
       ('medicines/new', Icons.medication_outlined, l.addMedicine),
       ('add/vaccine', Icons.vaccines_outlined, l.addVaccine),
@@ -61,6 +63,7 @@ class _AddSheetState extends ConsumerState<AddSheet> {
       ('add/scan', Icons.document_scanner_outlined, l.addScan),
       ('sick-days', Icons.thermostat, l.addFever),
       ('add/growth', Icons.monitor_weight_outlined, l.addGrowth),
+      ('add/surgery', Icons.healing_outlined, l.addSurgery),
       ('insurance/new', Icons.badge_outlined, l.addInsurance),
     ];
     return SafeArea(
@@ -111,28 +114,99 @@ class _AddSheetState extends ConsumerState<AddSheet> {
                   ),
                 ),
               const SizedBox(height: UsraSpacing.s3),
-              GridView.count(
-                crossAxisCount: 4,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: UsraSpacing.s2,
-                crossAxisSpacing: UsraSpacing.s2,
-                childAspectRatio:
-                    0.8 / MediaQuery.textScalerOf(context).scale(1),
-                children: [
-                  for (final (path, icon, label) in items)
-                    _AddTile(
-                      key: ValueKey('add-$path'),
-                      icon: icon,
-                      label: label,
-                      onTap: person == null
-                          ? null
-                          : () => _open('/family/$person/$path'),
-                    ),
-                ],
+              _PhotoCard(
+                onTap: person == null
+                    ? null
+                    : () => _open('/family/$person/medicines/new?scan=1'),
+              ),
+              const SizedBox(height: UsraSpacing.s3),
+              LayoutBuilder(
+                builder: (context, box) {
+                  final scale = MediaQuery.textScalerOf(context).scale(1);
+                  // Big text gets fewer, wider tiles, never cut-off labels.
+                  final columns = (box.maxWidth / (76 * scale)).floor().clamp(
+                    2,
+                    4,
+                  );
+                  final width =
+                      (box.maxWidth - (columns - 1) * UsraSpacing.s2) / columns;
+                  return Wrap(
+                    spacing: UsraSpacing.s2,
+                    runSpacing: UsraSpacing.s2,
+                    children: [
+                      for (final (path, icon, label) in items)
+                        SizedBox(
+                          width: width,
+                          child: _AddTile(
+                            key: ValueKey('add-$path'),
+                            icon: icon,
+                            label: label,
+                            onTap: person == null
+                                ? null
+                                : () => _open('/family/$person/$path'),
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The quickest way in, first: photograph a box. Says what the reading can do.
+class _PhotoCard extends StatelessWidget {
+  const _PhotoCard({required this.onTap});
+
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.usra;
+    final enabled = onTap != null;
+    return Material(
+      color: c.primarySoft,
+      borderRadius: BorderRadius.circular(UsraRadius.md),
+      child: InkWell(
+        key: const ValueKey('add-photo'),
+        borderRadius: BorderRadius.circular(UsraRadius.md),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(UsraSpacing.s3),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.photo_camera_outlined,
+                color: enabled ? c.primary : c.inkMuted,
+              ),
+              const SizedBox(width: UsraSpacing.s3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l.addPhotoTitle,
+                      style: UsraType.body.copyWith(
+                        color: enabled ? c.ink : c.inkMuted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: UsraSpacing.s1),
+                    Text(
+                      l.addPhotoHint,
+                      style: UsraType.label.copyWith(color: c.inkMuted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -165,8 +239,12 @@ class _AddTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(UsraRadius.md),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(UsraSpacing.s1),
+            padding: const EdgeInsets.symmetric(
+              horizontal: UsraSpacing.s1,
+              vertical: UsraSpacing.s2,
+            ),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ExcludeSemantics(
@@ -176,8 +254,6 @@ class _AddTile extends StatelessWidget {
                 Text(
                   label,
                   textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: UsraType.label.copyWith(
                     color: enabled ? c.ink : c.inkMuted,
                   ),

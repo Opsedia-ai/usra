@@ -168,6 +168,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-add-first')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('profile-name')), 'فاطمة');
+    await tester.tap(find.byKey(const ValueKey('profile-more')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('profile-simple-mode')));
     await tester.tap(find.byKey(const ValueKey('profile-save')));
     await tester.pumpAndSettle();
