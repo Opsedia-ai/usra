@@ -79,6 +79,9 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   (never deleted) only when the key store has no key at all, which is the one
   proof that the key is gone. It moves before the new key is saved, so a crash
   or a failed move can't leave a new key next to the old records.
+  A restore that went in but won't open is undone while the old data is still
+  aside, so a retry can't delete it. A stored key that's malformed shows the
+  screen too, and is never replaced.
 - **App lock** (S2): optional 6-digit PIN (trivial ones refused), stored
   only as a salted Argon2id hash (19 MiB, 2 passes) in Keystore / Keychain
   this-device-only, checked in constant time. A Keystore error keeps the app

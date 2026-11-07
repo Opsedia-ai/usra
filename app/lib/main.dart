@@ -114,9 +114,13 @@ Future<void> main() async {
   }
   String key;
   var outcome = DatabaseOpenOutcome.ready;
+  var keyWasLost = false;
   try {
     key = await DatabaseKeyStore().readOrCreate(
-      beforeCreating: () => outcome = setAsideAfterLostKey(file),
+      beforeCreating: () {
+        keyWasLost = true;
+        outcome = setAsideAfterLostKey(file);
+      },
     );
   } on DatabaseOpenException catch (e) {
     // The key is gone but the old file couldn't be moved: no new key yet, so
@@ -175,6 +179,8 @@ Future<void> main() async {
   // iOS Data Protection (S9). Not awaited: the app opens meanwhile.
   var protection = protectAppFiles(root, photoFolders);
   try {
+    // Rolling back a stopped restore can bring back a file the lost key opened.
+    if (keyWasLost && file.existsSync()) outcome = setAsideAfterLostKey(file);
     prepareDatabaseFile(file, key);
   } on DatabaseOpenException catch (e) {
     // The key is stored, so this says nothing against it (a full disk, a lock,
@@ -397,7 +403,22 @@ Future<void> main() async {
     }
     outcome = DatabaseOpenOutcome.ready;
     try {
-      prepareDatabaseFile(file, key);
+      try {
+        prepareDatabaseFile(file, key);
+      } on DatabaseOpenException {
+        if (!restored) rethrow;
+        // What came in won't open. The old data is only deleted below, so it
+        // goes back rather than being lost on the next start.
+        restored = false;
+        try {
+          await backup.undoCommit();
+        } catch (e, s) {
+          FlutterError.reportError(
+            FlutterErrorDetails(exception: e, stack: s, library: 'backup'),
+          );
+        }
+        prepareDatabaseFile(file, key);
+      }
     } on DatabaseOpenException catch (e) {
       // The old connection is closed and the old providers are gone, so
       // starting again from main() is safe.

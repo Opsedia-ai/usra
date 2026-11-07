@@ -241,6 +241,38 @@ void main() {
       expect(() => prepareDatabaseFile(kept, keyA), returnsNormally);
     });
 
+    test('stopped before the new key was saved: the notice still shows', () {
+      writeRow(file, keyA);
+      expect(
+        setAsideAfterLostKey(file),
+        DatabaseOpenOutcome.recoveredFromUnreadableFile,
+      );
+      // The next start: no key again, and nothing left to move.
+      expect(
+        setAsideAfterLostKey(file),
+        DatabaseOpenOutcome.recoveredFromUnreadableFile,
+      );
+    });
+
+    test('a stray journal file with no database is no recovery', () {
+      File(p.join(dir.path, 'usra.sqlite-shm')).writeAsStringSync('x');
+      expect(setAsideAfterLostKey(file), DatabaseOpenOutcome.ready);
+      expect(
+        dir.listSync().map((f) => p.basename(f.path)),
+        everyElement(startsWith('usra.sqlite-shm.unreadable-')),
+      );
+    });
+
+    test('a malformed stored key is an error, and is not replaced', () async {
+      final storage = SpySecureStorage(values: {'usra.db.key.v1': 'broken'});
+      await expectLater(
+        DatabaseKeyStore(storage)
+            .readOrCreate(beforeCreating: () => fail('the key is not gone')),
+        throwsArgumentError,
+      );
+      expect(storage.values, {'usra.db.key.v1': 'broken'});
+    });
+
     test('no key and no file: a plain first start', () {
       expect(setAsideAfterLostKey(file), DatabaseOpenOutcome.ready);
       expect(dir.listSync(), isEmpty);

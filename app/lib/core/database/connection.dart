@@ -34,7 +34,11 @@ class DatabaseKeyStore {
   /// throws, no key is written, so the next start still knows.
   Future<String> readOrCreate({required void Function() beforeCreating}) async {
     final existing = await _storage.read(key: _keyName);
-    if (existing != null) return existing;
+    if (existing != null) {
+      // Not replaced, whatever it holds. The caller says it can't be read.
+      _checkKey(existing);
+      return existing;
+    }
     beforeCreating();
     final key = generateKey();
     await _storage.write(key: _keyName, value: key);
@@ -100,8 +104,8 @@ void unlockDatabase(Database db, String hexKey) {
 
 /// Makes sure [file] can be opened with [hexKey] before the app uses it.
 ///
-/// Never moves or changes the file. Any failure throws
-/// [DatabaseOpenException], including SQLITE_NOTADB: a damaged first page or a
+/// Never moves the file. Any SQLite failure throws [DatabaseOpenException],
+/// including SQLITE_NOTADB: a damaged first page or a
 /// cut-short file reports exactly what a wrong key reports, so that code can't
 /// prove the key is wrong. The only proof is an empty key store, see
 /// [setAsideAfterLostKey].
@@ -130,18 +134,25 @@ void prepareDatabaseFile(
 /// Only for [DatabaseKeyStore.readOrCreate]'s `beforeCreating`.
 DatabaseOpenOutcome setAsideAfterLostKey(File file) {
   final stamp = DateTime.now().toUtc().millisecondsSinceEpoch;
-  var moved = false;
+  // Also true if an earlier start moved it and was stopped before saving the
+  // new key, so the notice still shows. A stray journal file alone isn't.
+  final name = '${p.basename(file.path)}.unreadable-';
+  final recovered =
+      file.existsSync() ||
+      (file.parent.existsSync() &&
+          file.parent.listSync().any(
+            (e) => p.basename(e.path).startsWith(name),
+          ));
   try {
     for (final suffix in ['', '-journal', '-wal', '-shm']) {
       final part = File('${file.path}$suffix');
       if (!part.existsSync()) continue;
       part.renameSync('${file.path}$suffix.unreadable-$stamp');
-      moved = true;
     }
   } on FileSystemException {
     throw const DatabaseOpenException();
   }
-  return moved
+  return recovered
       ? DatabaseOpenOutcome.recoveredFromUnreadableFile
       : DatabaseOpenOutcome.ready;
 }
