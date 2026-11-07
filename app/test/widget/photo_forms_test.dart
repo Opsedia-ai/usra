@@ -235,7 +235,7 @@ void main() {
         expect(match.group(1), isNotNull, reason: '${match.group(0)} in $file');
       }
     }
-    // Insurance 2, medicine 2, prescription 2, record 1, lab edit 1.
-    expect(found, 8);
+    // Insurance 2, medicine 2, prescription 2, record 2, lab edit 1.
+    expect(found, 9);
   });
 }

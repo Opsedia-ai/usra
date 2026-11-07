@@ -5,23 +5,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/database/app_database.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../core/records/record_form.dart';
+import '../../core/records/record_type.dart';
+import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
+import '../children/child_vaccines.dart' show checklistSourceKey;
 import '../doctors/doctors_providers.dart';
+import 'member_screen.dart';
 
-/// Adds a record of [typeKey] for one person, using the generic [RecordForm].
+/// Adds a record of [typeKey] for one person, or corrects record [eventId], using
+/// the generic [RecordForm]. Correcting never changes whose record it is.
 class RecordFormScreen extends ConsumerWidget {
   const RecordFormScreen({
     super.key,
     required this.profileId,
     required this.typeKey,
+    this.eventId,
   });
 
   final String profileId;
   final String typeKey;
+  final String? eventId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,7 +41,23 @@ class RecordFormScreen extends ConsumerWidget {
         body: Center(child: Text(l.profileNotFound)),
       );
     }
-    if (type.screens.add case final add?) return add(profileId);
+    final editing = eventId != null;
+    final MedicalEvent? saved;
+    if (editing) {
+      final event = ref.watch(eventProvider(eventId!));
+      saved = event.value;
+      if (saved == null || saved.type != typeKey) {
+        return Scaffold(
+          appBar: AppBar(),
+          body: event.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Center(child: Text(l.recordNotFound)),
+        );
+      }
+    } else {
+      saved = null;
+      if (type.screens.add case final add?) return add(profileId);
+    }
     final doctors = type.doctorField == null
         ? const <DoctorChoice>[]
         : [
@@ -49,9 +73,18 @@ class RecordFormScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(type.labelOf(context))),
       body: RecordForm(
         type: type,
+        initialDate: saved?.occurredAt,
+        initialData: saved == null
+            ? const {}
+            : decodeRecordData(saved.dataJson),
+        initialCostText: saved?.costMinor == null
+            ? null
+            : formatMoneyInput(saved!.costMinor!),
+        initialDoctorId: saved?.doctorId,
         doctors: doctors,
         strings: RecordFormStrings(
           date: l.recordDate,
+          clearDate: l.recordClearDate,
           cost: l.recordCost,
           currency: l.currencyEgp,
           save: l.familySave,
@@ -66,7 +99,7 @@ class RecordFormScreen extends ConsumerWidget {
         ),
         pickPhotos: (source) => _pickPhotos(context, ref, source),
         onSubmit: (result) async {
-          if (!await ref.read(saveGateProvider).allow()) return;
+          if (!editing && !await ref.read(saveGateProvider).allow()) return;
           if (!context.mounted) return;
           final db = ref.read(databaseProvider);
           final store = result.photos.isEmpty
@@ -77,6 +110,29 @@ class RecordFormScreen extends ConsumerWidget {
             final photos = [
               for (final path in result.photos) await store!.import(path),
             ];
+            if (saved != null) {
+              // Anything the form doesn't show stays as it was.
+              final kept = {...decodeRecordData(saved.dataJson)}
+                ..removeWhere((key, _) => type.fields.any((f) => f.key == key))
+                // Corrected by hand, it's the family's own record now, and
+                // unticking the dose warns before removing it.
+                ..remove(checklistSourceKey);
+              await db.updateEvent(
+                saved.id,
+                occurredAt: result.occurredAt,
+                dataJson: jsonEncode({...kept, ...result.data}),
+                costMinor: type.hasCost ? result.costMinor : saved.costMinor,
+                currency: !type.hasCost
+                    ? saved.currency
+                    : result.costMinor == null
+                    ? null
+                    : saved.currency ?? 'EGP',
+                doctorId: result.doctorId,
+                photos: photos,
+              );
+              if (context.mounted) context.pop();
+              return;
+            }
             await db.addEvent(
               profileId: profileId,
               type: type.key,

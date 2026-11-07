@@ -92,7 +92,6 @@ class PrescriptionScreen extends ConsumerWidget {
           ),
           FilledButton(
             key: const ValueKey('rx-delete-confirm'),
-            style: FilledButton.styleFrom(backgroundColor: dialog.usra.urgent),
             onPressed: () => Navigator.pop(dialog, true),
             child: Text(l.medicineDelete),
           ),

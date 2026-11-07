@@ -91,7 +91,6 @@ class MedicineScreen extends ConsumerWidget {
           ),
           FilledButton(
             key: const ValueKey('medicine-delete-confirm'),
-            style: FilledButton.styleFrom(backgroundColor: dialog.usra.urgent),
             onPressed: () => Navigator.pop(dialog, true),
             child: Text(l.medicineDelete),
           ),

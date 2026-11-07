@@ -951,6 +951,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordDelete => 'Delete';
 
   @override
+  String get recordClearDate => 'Remove the date';
+
+  @override
   String get recordDeleteConfirm =>
       'Delete this record? Its photos will be removed from this phone.';
 
@@ -4210,7 +4213,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'No records yet. Tap Add to log a first visit or test.';
 
   @override
-  String get recordsAdd => 'Add a record';
+  String get recordsAdd => 'New record';
 
   @override
   String get moreFamily => 'Family';

@@ -10,7 +10,11 @@ import 'record_type.dart';
 
 /// Words the form needs, passed in so the core stays free of feature strings.
 class RecordFormStrings {
+  /// The tooltip on an optional date's clear button.
+  final String clearDate;
+
   const RecordFormStrings({
+    this.clearDate = '',
     required this.date,
     required this.cost,
     required this.currency,
@@ -98,6 +102,9 @@ class RecordForm extends StatefulWidget {
     required this.strings,
     required this.onSubmit,
     this.initialDate,
+    this.initialData = const {},
+    this.initialCostText,
+    this.initialDoctorId,
     this.doctors = const [],
     this.pickPhotos,
   });
@@ -108,6 +115,14 @@ class RecordForm extends StatefulWidget {
   /// Awaited; the Save button stays disabled until it completes.
   final Future<void> Function(RecordFormResult) onSubmit;
   final DateTime? initialDate;
+
+  /// What an existing record holds, when correcting it.
+  final Map<String, Object?> initialData;
+  final String? initialCostText;
+
+  /// Kept unless the doctor's name is changed, as the saved doctors may not
+  /// have loaded yet when the form opens.
+  final String? initialDoctorId;
 
   /// Saved doctors, offered when the type has a [RecordTypeDefinition.doctorField].
   final List<DoctorChoice> doctors;
@@ -134,6 +149,8 @@ class _RecordFormState extends State<RecordForm> {
   DoctorChoice? _doctor;
   final _photos = <String>[];
 
+  String? _doctorNameAtStart;
+
   /// The fee text last filled in from a doctor, so switching doctors can
   /// replace it without overwriting a cost the user typed.
   String? _autoFee;
@@ -142,14 +159,47 @@ class _RecordFormState extends State<RecordForm> {
   void initState() {
     super.initState();
     for (final f in widget.type.fields) {
-      if (_usesTextField(f.kind)) _text[f.key] = TextEditingController();
+      final initial = widget.initialData[f.key];
+      if (_usesTextField(f.kind)) {
+        _text[f.key] = TextEditingController(text: initial?.toString() ?? '');
+      } else if (switch (f.kind) {
+        FieldKind.choice => f.choices.contains(initial),
+        FieldKind.boolean => initial is bool,
+        _ => initial is String && DateTime.tryParse(initial) != null,
+      }) {
+        // Anything else, say from a newer version, doesn't reach the widgets.
+        _values[f.key] = initial;
+      }
     }
+    _cost.text = widget.initialCostText ?? '';
+    _doctorNameAtStart = _doctorText?.text.trim();
+    _seedDoctor();
     // Typing a different name unlinks the picked doctor.
     _doctorText?.addListener(() {
       if (_doctor != null && _doctorText!.text.trim() != _doctor!.name) {
         setState(() => _doctor = null);
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(RecordForm old) {
+    super.didUpdateWidget(old);
+    _seedDoctor();
+    // Lists are rebuilt: keep the menu's value one of the current items.
+    if (_doctor case final d?) {
+      _doctor = widget.doctors.where((c) => c.id == d.id).firstOrNull ?? d;
+    }
+  }
+
+  /// The saved doctor shows in the menu, once the saved doctors have loaded.
+  void _seedDoctor() {
+    if (_doctor != null || _doctorText?.text.trim() != _doctorNameAtStart) {
+      return;
+    }
+    _doctor = widget.doctors
+        .where((d) => d.id == widget.initialDoctorId)
+        .firstOrNull;
   }
 
   TextEditingController? get _doctorText {
@@ -231,7 +281,12 @@ class _RecordFormState extends State<RecordForm> {
           occurredAt: _occurredAt,
           data: data,
           costMinor: costMinor,
-          doctorId: _doctor?.id,
+          doctorId:
+              _doctor?.id ??
+              (_doctorText == null ||
+                      _doctorText!.text.trim() == _doctorNameAtStart
+                  ? widget.initialDoctorId
+                  : null),
           photos: List.unmodifiable(_photos),
         ),
       );
@@ -319,7 +374,18 @@ class _RecordFormState extends State<RecordForm> {
             }
           },
           child: InputDecorator(
-            decoration: InputDecoration(labelText: label, errorText: error),
+            decoration: InputDecoration(
+              labelText: label,
+              errorText: error,
+              suffixIcon: value == null || f.required
+                  ? null
+                  : IconButton(
+                      key: ValueKey('field-${f.key}-clear'),
+                      tooltip: widget.strings.clearDate,
+                      icon: const Icon(Icons.close),
+                      onPressed: () => setState(() => _values.remove(f.key)),
+                    ),
+            ),
             child: Text(value ?? widget.strings.pickDate),
           ),
         );

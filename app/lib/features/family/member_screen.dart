@@ -51,6 +51,10 @@ final attachmentCountsProvider =
       (ref, id) => ref.watch(databaseProvider).watchAttachmentCounts(id),
     );
 
+final firstPhotosProvider = StreamProvider.family<Map<String, String>, String>(
+  (ref, id) => ref.watch(databaseProvider).watchFirstPhotos(id),
+);
+
 final eventProvider = StreamProvider.family<MedicalEvent?, String>(
   (ref, id) => ref.watch(databaseProvider).watchEvent(id),
 );
@@ -1054,6 +1058,7 @@ class EventCard extends StatelessWidget {
     required this.type,
     required this.photos,
     this.personName,
+    this.thumbnail,
   });
 
   final MedicalEvent event;
@@ -1062,6 +1067,9 @@ class EventCard extends StatelessWidget {
 
   /// Shown first, where records of several people are listed together.
   final String? personName;
+
+  /// The record's first photo, in place of the photo icon.
+  final Widget? thumbnail;
 
   @override
   Widget build(BuildContext context) {
@@ -1115,10 +1123,9 @@ class EventCard extends StatelessWidget {
                   key: ValueKey('event-photos-${event.id}'),
                   label: Text('$photos'),
                   backgroundColor: context.usra.primary,
-                  child: Icon(
-                    Icons.photo_outlined,
-                    color: context.usra.primary,
-                  ),
+                  child:
+                      thumbnail ??
+                      Icon(Icons.photo_outlined, color: context.usra.primary),
                 ),
               ),
       ),

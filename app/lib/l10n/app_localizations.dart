@@ -1664,6 +1664,12 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get recordDelete;
 
+  /// No description provided for @recordClearDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the date'**
+  String get recordClearDate;
+
   /// No description provided for @recordDeleteConfirm.
   ///
   /// In en, this message translates to:
@@ -6700,7 +6706,7 @@ abstract class AppLocalizations {
   /// No description provided for @recordsAdd.
   ///
   /// In en, this message translates to:
-  /// **'Add a record'**
+  /// **'New record'**
   String get recordsAdd;
 
   /// No description provided for @moreFamily.

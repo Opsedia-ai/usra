@@ -11,6 +11,7 @@ import '../../core/providers.dart';
 import '../../core/records/record_type.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
+import 'family_screen.dart';
 import 'member_screen.dart';
 import 'record_display.dart';
 
@@ -34,18 +35,19 @@ class RecordScreen extends ConsumerWidget {
     final type = e == null
         ? null
         : ref.watch(moduleRegistryProvider).recordTypes[e.type];
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final title = e == null ? null : _title(context, e, type);
+    final person = e == null
+        ? null
+        : (ref.watch(profilesProvider).value ?? const <Profile>[])
+              .where((p) => p.id == e.profileId)
+              .firstOrNull
+              ?.displayName;
     return Scaffold(
       appBar: AppBar(
-        title: Text(e == null ? '' : type?.labelOf(context) ?? e.type),
+        title: Text(title ?? ''),
         actions: [
-          if (e != null) ...[
-            if (type?.screens.editPath case final edit?)
-              IconButton(
-                key: const ValueKey('record-edit'),
-                tooltip: l.familyEdit,
-                icon: const Icon(Icons.edit_outlined),
-                onPressed: () => context.go(edit(profileId, e.id)),
-              ),
+          if (e != null)
             // Its own context, so the iPad share sheet points at it.
             Builder(
               builder: (button) => IconButton(
@@ -55,13 +57,6 @@ class RecordScreen extends ConsumerWidget {
                 onPressed: () => _share(button, ref, e, type, photos),
               ),
             ),
-            IconButton(
-              key: const ValueKey('record-delete'),
-              tooltip: l.recordDelete,
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () => _confirmDelete(context, ref),
-            ),
-          ],
         ],
       ),
       body: event.when(
@@ -72,7 +67,17 @@ class RecordScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              for (final (label, value) in _lines(context, e, type))
+              Text(
+                [
+                  ?person,
+                  DateFormat.yMMMd(locale).format(e.occurredAt),
+                ].join(' · '),
+                key: const ValueKey('record-person-date'),
+                style: UsraType.body.copyWith(color: context.usra.inkMuted),
+              ),
+              const SizedBox(height: 12),
+              // The date is in the line above; sharing keeps it with the rest.
+              for (final (label, value) in _lines(context, e, type).skip(1))
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: _Line(label: label, value: value),
@@ -114,11 +119,55 @@ class RecordScreen extends ConsumerWidget {
                     ),
                   ),
               ],
+              const SizedBox(height: 24),
+              if (_editPath(e, type) case final edit?) ...[
+                OutlinedButton.icon(
+                  key: const ValueKey('record-edit'),
+                  onPressed: () => context.push(edit),
+                  icon: const Icon(Icons.edit_outlined),
+                  label: Text(l.familyEdit),
+                ),
+                const SizedBox(height: 8),
+              ],
+              TextButton.icon(
+                key: const ValueKey('record-delete'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Severity.actSoon.foregroundOf(context),
+                ),
+                onPressed: () => _confirmDelete(context, ref),
+                icon: const Icon(Icons.delete_outline),
+                label: Text(l.recordDelete),
+              ),
             ],
           );
         },
       ),
     );
+  }
+
+  /// What the record is, with its main field when it has one.
+  static String _title(
+    BuildContext context,
+    MedicalEvent e,
+    RecordTypeDefinition? type,
+  ) {
+    final field = type?.titleField;
+    final value = field == null
+        ? null
+        : decodeRecordData(e.dataJson)[field.key];
+    return [
+      type?.labelOf(context) ?? e.type,
+      if (value != null) displayFieldValue(context, field!, value),
+    ].join(' · ');
+  }
+
+  /// A type with its own form says where; every other type uses the generic
+  /// form. Unknown types, from a newer version, can't be corrected here.
+  static String? _editPath(MedicalEvent e, RecordTypeDefinition? type) {
+    if (type == null) return null;
+    if (type.screens.editPath case final edit?) return edit(e.profileId, e.id);
+    if (type.screens.add != null) return null;
+    return '/family/${e.profileId}/record/${e.id}/edit/${e.type}';
   }
 
   /// Label and value of everything filled in, in the type's field order.
@@ -184,7 +233,9 @@ class RecordScreen extends ConsumerWidget {
       return;
     }
     await _prunePhotos(ref);
-    if (context.mounted) context.go('/family/$profileId');
+    if (!context.mounted) return;
+    // Back to the list it was opened from.
+    context.canPop() ? context.pop() : context.go('/family/$profileId');
   }
 }
 
@@ -232,7 +283,6 @@ Future<bool?> _confirm(
         ),
         FilledButton(
           key: ValueKey(key),
-          style: FilledButton.styleFrom(backgroundColor: dialog.usra.urgent),
           onPressed: () => Navigator.pop(dialog, true),
           child: Text(action),
         ),

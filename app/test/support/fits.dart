@@ -34,7 +34,16 @@ Future<void> walkScreen(
 }) async {
   expect(tester.takeException(), isNull);
   expectNoTinyText(tester, min: min);
-  final list = scrollable ?? find.byType(Scrollable).last;
+  // The page's own list, not a row of chips inside it.
+  final Finder list =
+      scrollable ??
+      find
+          .byWidgetPredicate(
+            (w) =>
+                w is Scrollable &&
+                axisDirectionToAxis(w.axisDirection) == Axis.vertical,
+          )
+          .last;
   if (list.evaluate().isEmpty) return;
   for (var i = 0; i < 30; i++) {
     final position = tester.state<ScrollableState>(list).position;

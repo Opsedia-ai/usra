@@ -950,7 +950,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordShare => 'ابعت';
 
   @override
-  String get recordDelete => 'امسح';
+  String get recordDelete => 'مسح';
+
+  @override
+  String get recordClearDate => 'شيل التاريخ';
 
   @override
   String get recordDeleteConfirm => 'نمسح السجل ده؟ صوره هتتمسح من الموبايل.';
@@ -4239,7 +4242,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'لسه مفيش سجلات. دوس إضافة وسجّل أول زيارة أو تحليل.';
 
   @override
-  String get recordsAdd => 'إضافة سجل';
+  String get recordsAdd => 'سجل جديد';
 
   @override
   String get moreFamily => 'العيلة';
