@@ -100,10 +100,12 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   cover (`coverUntilReady` / `uncover`). Covers every page;
   notification / widget deep links wait until unlocked. Loosening a setting
   needs the PIN. No reset that skips the PIN: wipe app data and restore a
-  backup with the recovery key. So without a backup, turning the lock on
-  says what a forgotten PIN means, offers a backup, and always makes the
-  recovery key first; the phone's own PIN isn't accepted as a way in, since
-  family members nearby often know it. Emergency cards on the lock screen are opt-in per person.
+  backup with the recovery key. So turning the lock on requires a backup
+  first, with no way round it, and making that backup makes the recovery key.
+  A lock turned on before this rule stays on, and its settings warn until
+  there's a backup. Home offers the lock once after the first backup. The
+  phone's own PIN isn't accepted as a way in, since family members nearby
+  often know it. Emergency cards on the lock screen are opt-in per person.
   `app/lib/core/security/`, `app/lib/features/app_lock/`.
 - **Records that won't open**: the screen shown when the database key can't
   be read or the file won't open (`app/lib/features/settings/key_unavailable.dart`,

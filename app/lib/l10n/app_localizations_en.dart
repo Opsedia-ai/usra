@@ -2593,17 +2593,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lockEmergencyFor => 'Show on Usra\'s lock screen';
 
   @override
-  String get lockBackupFirstTitle => 'Make a backup first?';
+  String get lockBackupFirstTitle => 'A backup comes first';
 
   @override
   String get lockBackupFirstBody =>
-      'If you forget your PIN, the only way back in is to remove Usra\'s data and restore a backup with its recovery key. You don\'t have a backup yet.';
+      'If the PIN is forgotten, the only way back in is to remove Usra\'s data and restore a backup with its recovery key. There\'s no backup yet, and without one the records are lost.\n\nOnce a backup is made, the lock can go on.';
 
   @override
   String get lockBackupFirstMake => 'Make a backup';
 
   @override
-  String get lockBackupFirstSkip => 'Continue without';
+  String get lockNothingYetTitle => 'Family first';
+
+  @override
+  String get lockNothingYetBody =>
+      'The lock needs a backup, and there\'s nothing to back up yet. Once someone is added to the family and a backup is made, the lock can go on.';
+
+  @override
+  String get lockOnNoBackupBody =>
+      'The lock is on, but there\'s no backup yet. If the PIN is forgotten, the records are lost.';
 
   @override
   String backupDonePhotosSkipped(int count) {
@@ -4123,16 +4131,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutYouDone => 'Let\'s go';
-
-  @override
-  String get lockKeyFirstTitle => 'Recovery key first';
-
-  @override
-  String get lockKeyFirstBody =>
-      'If the PIN is forgotten, nothing else opens Usra, not even us. The only way back is to remove Usra\'s data and restore a backup with its recovery key. Without a backup, the records are lost.\n\nBefore the PIN, we\'ll make the recovery key, to be written down somewhere safe.';
-
-  @override
-  String get lockKeyFirstContinue => 'Make the recovery key';
 
   @override
   String personAddFor(String name) {

@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 
-import '../preferences.dart';
 import 'pin_hasher.dart';
 import 'secure_storage_options.dart';
 
@@ -750,12 +749,5 @@ class _LockConfig {
 /// Overridden in `main.dart` with the saved lock. Tests get it off.
 final appLockProvider = Provider<AppLock>((ref) => AppLock.off());
 
-/// Where the first-run offer to turn the lock on lives.
-const appLockOfferPath = '/app-lock/offer';
-
 /// Where the lock's settings live.
 const appLockSettingsPath = '/settings/app-lock';
-
-/// The lock is offered once, after Simple Mode's first tour.
-bool appLockOfferPending(KeyValueStore store, AppLock lock) =>
-    !lock.enabled && store.getBool(PrefKeys.appLockOffered) != true;
