@@ -54,7 +54,7 @@ Last updated: 7 November 2026. Update this when a risk changes, closes or appear
 
 | ID | Risk | What could happen | Level | Where it stands | Owner |
 |---|---|---|---|---|---|
-| M1 | Medical content not reviewed | Wrong Fever wording, warning signs, vaccine schedule or pregnancy danger signs | High | The founder has a doctor; review not done | Founder |
+| M1 | Medical content not fully reviewed | Wrong Fever wording, warning signs, vaccine schedule or pregnancy danger signs | High | On 7 November the founder said the doctor accepted what was shared. Which text they saw isn't recorded, and the PRD asks for a paediatrician and an obstetrician. Stays open until that is written down | Founder |
 | M2 | Same-ingredient line and suggested hours between doses | Seen as dose advice, or wrong | High | Family types and accepts the hours. Needs review | Founder, doctor |
 | M3 | False reassurance | A status such as "fine" could calm a family when someone is sick | High | Home and Fever rebuilt; doctor sets the wording | Doctor |
 | M4 | Wrong person's dose or record | A dose is marked or a record saved under the wrong person | High | Person is shown in forms. Discreet Taken shows only when no other dose is due within an hour | Build |
@@ -82,7 +82,7 @@ Last updated: 7 November 2026. Update this when a risk changes, closes or appear
 | ID | Risk | What could happen | Level | Where it stands | Owner |
 |---|---|---|---|---|---|
 | P1 | Front end isn't finished | Only the main screens match the accepted design, and the rest looks different | Medium | Build order agreed | Build |
-| P2 | Canvas behind the app | 24 `B-` screens still show the old look, so reviews use a wrong picture | Medium | Decided: redraw, then build | Build |
+| P2 | App behind the canvas | The canvas now has every screen in the accepted style, but most aren't built, so the two differ | Medium | Drawn on 7 November; being built in order | Build |
 | P3 | Addressing the user by sex | Wrong grammar; about 224 Arabic strings flagged by a rough count | Medium | Decided; audit not done | Build |
 | P4 | Required sign-in loses people | People leave at the first save, or have no internet at that moment | Medium | Must keep what they typed; signed-in phones work offline | Build |
 | P5 | Family copy isn't live | The copy goes out of date, and doses don't show on the parent's phone until v2 sync | Medium | Proposal awaiting the founder | Founder |

@@ -247,6 +247,293 @@
       "w": 390,
       "h": 844,
       "title": "EN · Medicines today"
+    },
+    "E-Home.dc.html": {
+      "x": 0,
+      "y": -1500,
+      "w": 390,
+      "h": 844,
+      "title": "Enhanced · Home"
+    },
+    "E-Home-Neutral.dc.html": {
+      "x": 470,
+      "y": -1500,
+      "w": 390,
+      "h": 844,
+      "title": "Enhanced · Home · neutral colours"
+    },
+    "E-Home-Dark.dc.html": {
+      "x": 940,
+      "y": -1500,
+      "w": 390,
+      "h": 844,
+      "title": "Enhanced · Home · dark"
+    },
+    "E-Person.dc.html": {
+      "x": 1410,
+      "y": -1500,
+      "w": 390,
+      "h": 844,
+      "title": "Enhanced · Laila's page"
+    },
+    "E-Medicines.dc.html": {
+      "x": 1880,
+      "y": -1500,
+      "w": 390,
+      "h": 844,
+      "title": "Enhanced · Medicines"
+    },
+    "E-AddMedicine.dc.html": {
+      "x": 2350,
+      "y": -1500,
+      "w": 390,
+      "h": 844,
+      "title": "Enhanced · New medicine"
+    },
+    "E-Fever.dc.html": {
+      "x": 2820,
+      "y": -1500,
+      "w": 390,
+      "h": 844,
+      "title": "Enhanced · Sick day"
+    },
+    "E-Emergency.dc.html": {
+      "x": 3290,
+      "y": -1500,
+      "w": 390,
+      "h": 844,
+      "title": "Enhanced · Emergency card"
+    },
+    "E-Welcome.dc.html": {
+      "x": 3760,
+      "y": -1500,
+      "w": 390,
+      "h": 844,
+      "title": "Enhanced · Welcome"
+    },
+    "E-Home-9.dc.html": {
+      "x": 4230,
+      "y": -1500,
+      "w": 390,
+      "h": 844,
+      "title": "Enhanced · Home with 9 people"
+    },
+    "E-Family.dc.html": {
+      "x": 4700,
+      "y": -1500,
+      "w": 390,
+      "h": 844,
+      "title": "Enhanced · Whole family"
+    },
+    "E-Country.dc.html": {
+      "x": 0,
+      "y": -7500,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · Language and country"
+    },
+    "E-AboutYou.dc.html": {
+      "x": 470,
+      "y": -7500,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · About you"
+    },
+    "E-HomeNew.dc.html": {
+      "x": 940,
+      "y": -7500,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · New family home"
+    },
+    "E-SignIn.dc.html": {
+      "x": 1410,
+      "y": -7500,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · Sign in on first save"
+    },
+    "E-AddPerson.dc.html": {
+      "x": 1880,
+      "y": -7500,
+      "w": 390,
+      "h": 1000,
+      "title": "Accepted · Add a family member"
+    },
+    "E-PastVaccines.dc.html": {
+      "x": 2350,
+      "y": -7500,
+      "w": 390,
+      "h": 900,
+      "title": "Accepted · Vaccines already given"
+    },
+    "E-AddSheet.dc.html": {
+      "x": 0,
+      "y": -6100,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · Add anything"
+    },
+    "E-Records.dc.html": {
+      "x": 470,
+      "y": -6100,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · Records"
+    },
+    "E-RecordDetail.dc.html": {
+      "x": 940,
+      "y": -6100,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · Record detail"
+    },
+    "E-Vaccines.dc.html": {
+      "x": 1410,
+      "y": -6100,
+      "w": 390,
+      "h": 900,
+      "title": "Accepted · Vaccines"
+    },
+    "E-NewVaccine.dc.html": {
+      "x": 1880,
+      "y": -6100,
+      "w": 390,
+      "h": 900,
+      "title": "Accepted · New vaccine"
+    },
+    "E-Growth.dc.html": {
+      "x": 2350,
+      "y": -6100,
+      "w": 390,
+      "h": 900,
+      "title": "Accepted · Growth"
+    },
+    "E-Pregnancy.dc.html": {
+      "x": 2820,
+      "y": -6100,
+      "w": 390,
+      "h": 1000,
+      "title": "Accepted · Pregnancy"
+    },
+    "E-Labs.dc.html": {
+      "x": 3290,
+      "y": -6100,
+      "w": 390,
+      "h": 900,
+      "title": "Accepted · Lab results"
+    },
+    "E-FollowUps.dc.html": {
+      "x": 3760,
+      "y": -6100,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · Follow-ups"
+    },
+    "E-DoctorSummary.dc.html": {
+      "x": 4230,
+      "y": -6100,
+      "w": 390,
+      "h": 900,
+      "title": "Accepted · Doctor summary"
+    },
+    "E-MoveMedicine.dc.html": {
+      "x": 4700,
+      "y": -6100,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · Move to another person"
+    },
+    "E-Insurance.dc.html": {
+      "x": 0,
+      "y": -4700,
+      "w": 390,
+      "h": 950,
+      "title": "Accepted · Insurance cards"
+    },
+    "E-Doctors.dc.html": {
+      "x": 470,
+      "y": -4700,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · Doctors"
+    },
+    "E-Spending.dc.html": {
+      "x": 940,
+      "y": -4700,
+      "w": 390,
+      "h": 950,
+      "title": "Accepted · Spending"
+    },
+    "E-More.dc.html": {
+      "x": 1410,
+      "y": -4700,
+      "w": 390,
+      "h": 1270,
+      "title": "Accepted · More"
+    },
+    "E-Account.dc.html": {
+      "x": 1880,
+      "y": -4700,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · Account"
+    },
+    "E-Paywall.dc.html": {
+      "x": 2350,
+      "y": -4700,
+      "w": 390,
+      "h": 980,
+      "title": "Accepted · Pass and Lifetime"
+    },
+    "E-Simple.dc.html": {
+      "x": 2820,
+      "y": -4700,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · Simple Mode"
+    },
+    "E-Backup.dc.html": {
+      "x": 0,
+      "y": -3300,
+      "w": 390,
+      "h": 980,
+      "title": "Accepted · Backup"
+    },
+    "E-RecoveryKey.dc.html": {
+      "x": 470,
+      "y": -3300,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · Recovery key"
+    },
+    "E-Restore.dc.html": {
+      "x": 940,
+      "y": -3300,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · Restore"
+    },
+    "E-Lock.dc.html": {
+      "x": 1410,
+      "y": -3300,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · App lock"
+    },
+    "E-Unavailable.dc.html": {
+      "x": 1880,
+      "y": -3300,
+      "w": 390,
+      "h": 844,
+      "title": "Accepted · Damaged database"
+    },
+    "E-Privacy.dc.html": {
+      "x": 2350,
+      "y": -3300,
+      "w": 390,
+      "h": 1000,
+      "title": "Accepted · Privacy"
     }
   },
   "order": [
@@ -283,7 +570,48 @@
     "B-Paywall.dc.html",
     "B-Simple.dc.html",
     "EN-Home.dc.html",
-    "EN-Medicines.dc.html"
+    "EN-Medicines.dc.html",
+    "E-Home.dc.html",
+    "E-Home-Neutral.dc.html",
+    "E-Home-Dark.dc.html",
+    "E-Person.dc.html",
+    "E-Medicines.dc.html",
+    "E-AddMedicine.dc.html",
+    "E-Fever.dc.html",
+    "E-Emergency.dc.html",
+    "E-Welcome.dc.html",
+    "E-Home-9.dc.html",
+    "E-Family.dc.html",
+    "E-Country.dc.html",
+    "E-AboutYou.dc.html",
+    "E-HomeNew.dc.html",
+    "E-SignIn.dc.html",
+    "E-AddPerson.dc.html",
+    "E-PastVaccines.dc.html",
+    "E-AddSheet.dc.html",
+    "E-Records.dc.html",
+    "E-RecordDetail.dc.html",
+    "E-Vaccines.dc.html",
+    "E-NewVaccine.dc.html",
+    "E-Growth.dc.html",
+    "E-Pregnancy.dc.html",
+    "E-Labs.dc.html",
+    "E-FollowUps.dc.html",
+    "E-DoctorSummary.dc.html",
+    "E-MoveMedicine.dc.html",
+    "E-Insurance.dc.html",
+    "E-Doctors.dc.html",
+    "E-Spending.dc.html",
+    "E-More.dc.html",
+    "E-Account.dc.html",
+    "E-Paywall.dc.html",
+    "E-Simple.dc.html",
+    "E-Backup.dc.html",
+    "E-RecoveryKey.dc.html",
+    "E-Restore.dc.html",
+    "E-Lock.dc.html",
+    "E-Unavailable.dc.html",
+    "E-Privacy.dc.html"
   ],
   "notes": {
     "flow1": {
@@ -327,6 +655,41 @@
       "text": "English check",
       "kind": "title1",
       "maxW": 900
+    },
+    "flowE": {
+      "x": 0,
+      "y": -1800,
+      "text": "Enhanced sample (after the reviews)",
+      "kind": "title1",
+      "maxW": 5090
+    },
+    "flowE2": {
+      "x": 0,
+      "y": -7580,
+      "text": "Accepted style · First run",
+      "kind": "title1",
+      "maxW": 2740
+    },
+    "flowE3": {
+      "x": 0,
+      "y": -6180,
+      "text": "Accepted style · Every day",
+      "kind": "title1",
+      "maxW": 5090
+    },
+    "flowE4": {
+      "x": 0,
+      "y": -4780,
+      "text": "Accepted style · Family and settings",
+      "kind": "title1",
+      "maxW": 3210
+    },
+    "flowE5": {
+      "x": 0,
+      "y": -3380,
+      "text": "Accepted style · Safety",
+      "kind": "title1",
+      "maxW": 2740
     }
   },
   "designSystems": [
