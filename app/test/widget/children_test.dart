@@ -92,16 +92,23 @@ void main() {
 
     expect(find.byKey(const ValueKey('vaccine-summary')), findsOneWidget);
     expect(
-      chipText('growth-status-weight', 'في المدى المعتاد'),
+      chipText('growth-status-weight', 'جوه المعدل المرجعي'),
       findsOneWidget,
     );
+    await tester.tap(find.byKey(const ValueKey('growth-tab-height')));
+    await tester.pumpAndSettle();
     expect(
       chipText('growth-status-height', 'اتكلم مع دكتور الأطفال'),
       findsOneWidget,
     );
     // Head circumference is charted too (near the WHO median for girls at 6 months).
+    await tester.tap(find.byKey(const ValueKey('growth-tab-head')));
+    await tester.pumpAndSettle();
     expect(find.text('محيط الراس حسب السن'), findsOneWidget);
-    expect(chipText('growth-status-head', 'في المدى المعتاد'), findsOneWidget);
+    expect(
+      chipText('growth-status-head', 'جوه المعدل المرجعي'),
+      findsOneWidget,
+    );
     // No prematurity correction, and it says so.
     expect(find.byKey(const ValueKey('growth-head-note')), findsOneWidget);
     // Two of the 18 required doses are recorded.

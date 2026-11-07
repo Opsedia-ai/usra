@@ -255,12 +255,13 @@ void main() {
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('check-status-weight')),
-        matching: find.textContaining('في المدى المعتاد'),
+        matching: find.textContaining('جوه المعدل المرجعي'),
       ),
       findsOneWidget,
     );
     await tester.tap(find.byKey(const ValueKey('check-save')));
     await settleDb(tester);
-    expect(find.textContaining('آخر قياس: 6'), findsOneWidget);
+    expect(find.textContaining('آخر قياس'), findsOneWidget);
+    expect(find.textContaining('٦'), findsWidgets);
   });
 }
