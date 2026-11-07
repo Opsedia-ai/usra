@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../l10n/app_localizations.dart';
 import '../doctors/call_buttons.dart';
 import 'family_screen.dart';
@@ -36,10 +37,11 @@ class EmergencyCardScreen extends ConsumerWidget {
     final profile = ref.watch(profileProvider(profileId));
     final timeline = ref.watch(timelineProvider(profileId));
     return Scaffold(
-      backgroundColor: UsraColors.surface,
+      backgroundColor: context.usra.surface,
       appBar: AppBar(
-        backgroundColor: UsraColors.emergency,
-        foregroundColor: Colors.white,
+        backgroundColor: context.usra.urgent,
+        foregroundColor: context.usra.onUrgent,
+        titleTextStyle: UsraType.title.copyWith(color: context.usra.onUrgent),
         title: Text(l.emergencyTitle),
       ),
       body: profile.when(
@@ -102,7 +104,7 @@ class EmergencyCardScreen extends ConsumerWidget {
               FilledButton.icon(
                 key: const ValueKey('emergency-ambulance'),
                 style: FilledButton.styleFrom(
-                  backgroundColor: UsraColors.emergency,
+                  backgroundColor: context.usra.urgent,
                   minimumSize: const Size.fromHeight(64),
                   textStyle: Theme.of(context).textTheme.titleLarge,
                 ),
@@ -154,7 +156,7 @@ class _NameBlock extends StatelessWidget {
         if (age != null)
           Text(
             l.ageYears(age),
-            style: text.titleMedium?.copyWith(color: UsraColors.textMuted),
+            style: text.titleMedium?.copyWith(color: context.usra.inkMuted),
           ),
       ],
     );
@@ -183,12 +185,12 @@ class _Fact extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final missing = value == null;
-    final color = severity?.foreground ?? UsraColors.text;
+    final color = severity?.foregroundOf(context) ?? context.usra.ink;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: severity?.background ?? UsraColors.background,
+        color: severity?.backgroundOf(context) ?? context.usra.bg,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -199,7 +201,7 @@ class _Fact extends StatelessWidget {
           Text(
             value ?? emptyText,
             style: (big ? text.displaySmall : text.titleLarge)?.copyWith(
-              color: missing ? UsraColors.textMuted : color,
+              color: missing ? context.usra.inkMuted : color,
               fontWeight: missing ? FontWeight.normal : FontWeight.w600,
             ),
           ),

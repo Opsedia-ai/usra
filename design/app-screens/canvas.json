@@ -1,0 +1,341 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-06T21:40:00Z"
+  },
+  "title": "Usra App Screens",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "1 · Welcome"
+    },
+    "Country.dc.html": {
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "2 · Language and country"
+    },
+    "AboutYou.dc.html": {
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "3 · About you"
+    },
+    "AddPerson.dc.html": {
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "4 · Add a family member"
+    },
+    "ChildVaccines.dc.html": {
+      "x": 1880,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "5 · Vaccines already given"
+    },
+    "AppLock.dc.html": {
+      "x": 2350,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "6 · App lock"
+    },
+    "Notifications.dc.html": {
+      "x": 2820,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "7 · Reminders permission"
+    },
+    "Today.dc.html": {
+      "x": 3290,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "8 · Today"
+    },
+    "B-Welcome.dc.html": {
+      "x": 0,
+      "y": 1384,
+      "w": 390,
+      "h": 844,
+      "title": "B1 · Welcome"
+    },
+    "B-Home.dc.html": {
+      "x": 0,
+      "y": 2648,
+      "w": 390,
+      "h": 844,
+      "title": "B7 · Family home"
+    },
+    "B-Vaccines.dc.html": {
+      "x": 1880,
+      "y": 2648,
+      "w": 390,
+      "h": 844,
+      "title": "B11 · Laila's vaccines"
+    },
+    "B-NewVaccine.dc.html": {
+      "x": 1410,
+      "y": 2648,
+      "w": 390,
+      "h": 844,
+      "title": "B10 · New vaccine"
+    },
+    "B-Country.dc.html": {
+      "x": 470,
+      "y": 1384,
+      "w": 390,
+      "h": 844,
+      "title": "B2 · Language and country"
+    },
+    "B-AboutYou.dc.html": {
+      "x": 940,
+      "y": 1384,
+      "w": 390,
+      "h": 844,
+      "title": "B3 · About you"
+    },
+    "B-AddPerson.dc.html": {
+      "x": 1410,
+      "y": 1384,
+      "w": 390,
+      "h": 844,
+      "title": "B4 · Add a family member"
+    },
+    "B-PastVaccines.dc.html": {
+      "x": 1880,
+      "y": 1384,
+      "w": 390,
+      "h": 844,
+      "title": "B5 · Vaccines already given"
+    },
+    "B-Protect.dc.html": {
+      "x": 2350,
+      "y": 1384,
+      "w": 390,
+      "h": 844,
+      "title": "B6 · Lock and reminders"
+    },
+    "B-Person.dc.html": {
+      "x": 470,
+      "y": 2648,
+      "w": 390,
+      "h": 844,
+      "title": "B8 · Laila's page"
+    },
+    "B-AddSheet.dc.html": {
+      "x": 940,
+      "y": 2648,
+      "w": 390,
+      "h": 844,
+      "title": "B9 · Add anything"
+    },
+    "B-Medicines.dc.html": {
+      "x": 2350,
+      "y": 2648,
+      "w": 390,
+      "h": 844,
+      "title": "B12 · Medicines today"
+    },
+    "B-AddMedicine.dc.html": {
+      "x": 2820,
+      "y": 2648,
+      "w": 390,
+      "h": 844,
+      "title": "B13 · New medicine"
+    },
+    "B-Records.dc.html": {
+      "x": 3290,
+      "y": 2648,
+      "w": 390,
+      "h": 844,
+      "title": "B14 · Records"
+    },
+    "B-Growth.dc.html": {
+      "x": 3760,
+      "y": 2648,
+      "w": 390,
+      "h": 844,
+      "title": "B15 · Growth"
+    },
+    "B-Fever.dc.html": {
+      "x": 4230,
+      "y": 2648,
+      "w": 390,
+      "h": 844,
+      "title": "B16 · Sick day"
+    },
+    "B-Pregnancy.dc.html": {
+      "x": 0,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "B17 · Pregnancy"
+    },
+    "B-Insurance.dc.html": {
+      "x": 470,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "B18 · Insurance cards"
+    },
+    "B-Doctors.dc.html": {
+      "x": 940,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "B19 · Doctors"
+    },
+    "B-Spending.dc.html": {
+      "x": 1410,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "B20 · Spending"
+    },
+    "B-Emergency.dc.html": {
+      "x": 1880,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "B21 · Emergency card"
+    },
+    "B-More.dc.html": {
+      "x": 2350,
+      "y": 3912,
+      "w": 390,
+      "h": 1080,
+      "title": "B22 · More"
+    },
+    "B-Paywall.dc.html": {
+      "x": 2820,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "B23 · Pass and Lifetime"
+    },
+    "B-Simple.dc.html": {
+      "x": 3290,
+      "y": 3912,
+      "w": 390,
+      "h": 844,
+      "title": "B24 · Simple Mode"
+    },
+    "EN-Home.dc.html": {
+      "x": 0,
+      "y": 5412,
+      "w": 390,
+      "h": 844,
+      "title": "EN · Family home"
+    },
+    "EN-Medicines.dc.html": {
+      "x": 470,
+      "y": 5412,
+      "w": 390,
+      "h": 844,
+      "title": "EN · Medicines today"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Country.dc.html",
+    "AboutYou.dc.html",
+    "AddPerson.dc.html",
+    "ChildVaccines.dc.html",
+    "AppLock.dc.html",
+    "Notifications.dc.html",
+    "Today.dc.html",
+    "B-Welcome.dc.html",
+    "B-Home.dc.html",
+    "B-Vaccines.dc.html",
+    "B-NewVaccine.dc.html",
+    "B-Country.dc.html",
+    "B-AboutYou.dc.html",
+    "B-AddPerson.dc.html",
+    "B-PastVaccines.dc.html",
+    "B-Protect.dc.html",
+    "B-Person.dc.html",
+    "B-AddSheet.dc.html",
+    "B-Medicines.dc.html",
+    "B-AddMedicine.dc.html",
+    "B-Records.dc.html",
+    "B-Growth.dc.html",
+    "B-Fever.dc.html",
+    "B-Pregnancy.dc.html",
+    "B-Insurance.dc.html",
+    "B-Doctors.dc.html",
+    "B-Spending.dc.html",
+    "B-Emergency.dc.html",
+    "B-More.dc.html",
+    "B-Paywall.dc.html",
+    "B-Simple.dc.html",
+    "EN-Home.dc.html",
+    "EN-Medicines.dc.html"
+  ],
+  "notes": {
+    "flow1": {
+      "x": 0,
+      "y": -300,
+      "text": "Variation A · Cards and tabs (first run)",
+      "kind": "title1",
+      "maxW": 3680
+    },
+    "flowB": {
+      "x": 0,
+      "y": 1084,
+      "text": "Variation B · First run",
+      "kind": "title1",
+      "maxW": 2740
+    },
+    "genderCopyNote": {
+      "x": 2820,
+      "y": 1084,
+      "w": 420,
+      "text": "كل النصوص بتتغير حسب نوع المستخدم: الشاشات دي مثال لمستخدمة. النص عن فرد في العيلة بيتبع نوع الفرد ده.",
+      "fill": "blue"
+    },
+    "flowB2": {
+      "x": 0,
+      "y": 2348,
+      "text": "Variation B · Every day",
+      "kind": "title1",
+      "maxW": 4620
+    },
+    "flowB3": {
+      "x": 0,
+      "y": 3612,
+      "text": "Variation B · Family and settings",
+      "kind": "title1",
+      "maxW": 3680
+    },
+    "flowEN": {
+      "x": 0,
+      "y": 5112,
+      "text": "English check",
+      "kind": "title1",
+      "maxW": 900
+    }
+  },
+  "designSystems": [
+    {
+      "title": "Usra",
+      "namespace": "usra",
+      "artifact": "https://claude.ai/artifact/HWHP7P2rSuHS8Yh9iWZsJh",
+      "version": "1793999294-aa65",
+      "copiedAt": "2026-11-06T21:40:00Z"
+    }
+  ]
+}

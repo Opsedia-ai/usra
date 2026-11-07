@@ -628,7 +628,9 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
                     child: Text(
                       l.labConfirmNeeded,
                       key: const ValueKey('lab-confirm-needed'),
-                      style: TextStyle(color: Severity.headsUp.foreground),
+                      style: TextStyle(
+                        color: Severity.headsUp.foregroundOf(context),
+                      ),
                     ),
                   ),
                 FilledButton(
@@ -668,7 +670,7 @@ class _ScanCard extends StatelessWidget {
     final l = AppLocalizations.of(context);
     const tall = Size(0, 52);
     return Card(
-      color: UsraColors.primaryTint,
+      color: context.usra.primarySoft,
       elevation: 0,
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -940,7 +942,9 @@ class _TestCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       l.labPickRange,
-                      style: TextStyle(color: Severity.headsUp.foreground),
+                      style: TextStyle(
+                        color: Severity.headsUp.foregroundOf(context),
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Wrap(
@@ -1070,9 +1074,9 @@ class _Files extends StatelessWidget {
           ListTile(
             key: ValueKey('lab-pdf-$i'),
             contentPadding: EdgeInsets.zero,
-            leading: const Icon(
+            leading: Icon(
               Icons.picture_as_pdf_outlined,
-              color: UsraColors.primary,
+              color: context.usra.primary,
             ),
             title: Text(p.basename(path), overflow: TextOverflow.ellipsis),
             trailing: IconButton(
@@ -1139,15 +1143,20 @@ InputDecoration _unsureDecoration(
     hintText: hint,
     errorText: error,
     helperText: unsure ? l.labCheckThis : null,
-    helperStyle: unsure ? TextStyle(color: Severity.headsUp.foreground) : null,
+    helperStyle: unsure
+        ? TextStyle(color: Severity.headsUp.foregroundOf(context))
+        : null,
     filled: unsure,
-    fillColor: unsure ? Severity.headsUp.background : null,
+    fillColor: unsure ? Severity.headsUp.backgroundOf(context) : null,
     suffixIcon: unsure
         ? IconButton(
             key: ValueKey(checkKey),
             tooltip: l.labCheckedIt,
             onPressed: onChecked,
-            icon: Icon(Icons.task_alt, color: Severity.headsUp.foreground),
+            icon: Icon(
+              Icons.task_alt,
+              color: Severity.headsUp.foregroundOf(context),
+            ),
           )
         : null,
   );
@@ -1172,7 +1181,7 @@ class _ScanPhoto extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: ColoredBox(
-              color: Colors.black,
+              color: UsraFixedColors.photoBackdrop,
               child: SizedBox(
                 height: 260,
                 child: InteractiveViewer(
@@ -1196,10 +1205,10 @@ class _ScanPhoto extends StatelessWidget {
                 MaterialPageRoute<void>(
                   fullscreenDialog: true,
                   builder: (_) => Scaffold(
-                    backgroundColor: Colors.black,
+                    backgroundColor: UsraFixedColors.photoBackdrop,
                     appBar: AppBar(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
+                      backgroundColor: UsraFixedColors.photoBackdrop,
+                      foregroundColor: UsraFixedColors.onPhotoBackdrop,
                     ),
                     body: InteractiveViewer(
                       maxScale: 8,

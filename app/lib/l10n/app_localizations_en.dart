@@ -909,6 +909,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navCall => 'Call';
 
   @override
+  String get drUsraWelcome => 'Dr. Usra waving';
+
+  @override
+  String get drUsraExplaining => 'Dr. Usra explaining';
+
+  @override
+  String get drUsraEmptyState => 'Dr. Usra holding a plus';
+
+  @override
+  String get drUsraCelebrating => 'Dr. Usra celebrating';
+
+  @override
+  String get drUsraResting => 'Dr. Usra resting';
+
+  @override
+  String get settingsTheme => 'Appearance';
+
+  @override
+  String get settingsThemeSystem => 'Same as phone';
+
+  @override
+  String get settingsThemeLight => 'Light';
+
+  @override
+  String get settingsThemeDark => 'Dark';
+
+  @override
   String get settingsSimpleMode => 'Simple Mode';
 
   @override

@@ -165,7 +165,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           if (!autoOn || last != null) ...[
             Card(
               color: ref.watch(backupDueProvider)
-                  ? Severity.headsUp.background
+                  ? Severity.headsUp.backgroundOf(context)
                   : null,
               child: ListTile(
                 key: const ValueKey('backup-last'),
@@ -392,7 +392,7 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
               _error!,
               key: const ValueKey('restore-error'),
               style: text.bodyMedium?.copyWith(
-                color: Severity.actSoon.foreground,
+                color: Severity.actSoon.foregroundOf(context),
               ),
             ),
           ],
@@ -435,13 +435,13 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Severity.actSoon.background,
+                color: Severity.actSoon.backgroundOf(context),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
                 l.restoreReplaceWarning,
                 style: text.bodyMedium?.copyWith(
-                  color: Severity.actSoon.foreground,
+                  color: Severity.actSoon.foregroundOf(context),
                 ),
               ),
             ),

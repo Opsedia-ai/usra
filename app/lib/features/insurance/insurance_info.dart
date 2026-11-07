@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/util/dates.dart';
 import '../../l10n/app_localizations.dart';
@@ -53,7 +53,7 @@ class ExpiryChip extends StatelessWidget {
     final l = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final date = DateFormat.yMMMd(locale).format(expiryDay(expiresOn)!);
-    return SeverityChip(
+    return StatusChip(
       severity: severity,
       label: switch (severity) {
         Severity.urgent => l.insuranceExpired(date),
