@@ -2957,9 +2957,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get vaccineSetupNoneYet => 'لسه مفيش جرعات جه ميعادها.';
 
   @override
-  String get vaccineSetupSkip => 'بعدين';
-
-  @override
   String get vaccineSetupSaved => 'التطعيمات اتحفظت';
 
   @override

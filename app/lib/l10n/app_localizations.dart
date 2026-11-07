@@ -4790,12 +4790,6 @@ abstract class AppLocalizations {
   /// **'No doses are due yet.'**
   String get vaccineSetupNoneYet;
 
-  /// No description provided for @vaccineSetupSkip.
-  ///
-  /// In en, this message translates to:
-  /// **'Later'**
-  String get vaccineSetupSkip;
-
   /// No description provided for @vaccineSetupSaved.
   ///
   /// In en, this message translates to:

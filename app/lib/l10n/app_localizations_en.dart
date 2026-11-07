@@ -2945,9 +2945,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vaccineSetupNoneYet => 'No doses are due yet.';
 
   @override
-  String get vaccineSetupSkip => 'Later';
-
-  @override
   String get vaccineSetupSaved => 'Vaccinations saved';
 
   @override
