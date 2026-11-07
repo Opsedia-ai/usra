@@ -35,6 +35,8 @@ Last updated: 7 November 2026. Update this when a risk changes, closes or appear
 | S5 | Sign in with Apple and account deletion | Rejected if Google is offered without Apple, or an account can't be deleted in the app | Medium | Planned; check with required sign-in | Build |
 | S6 | Google Play's deletion web page doesn't exist | Play requires one for account deletion | Medium | Open in `docs/login-setup.md` | Build |
 | S7 | Apple offer codes and one-time purchases | Offer codes may not cover them, and code redemption may need iOS 16.3 against the app's iOS 15.5 target | Medium | Open in the PRD | Build |
+| S8 | Widget still holds a medicine ID when it shows Taken | No name, but the ID shows when the medicine was added and may reach device backup | Low | Removing it means dropping Taken or a token scheme; not decided | Founder |
+| S9 | Old widget snapshot on iOS | One with names stays until the app next opens, if no widget is placed | Low | Known; goes on first open | Build |
 
 ## Data loss
 
@@ -49,6 +51,8 @@ Last updated: 7 November 2026. Update this when a risk changes, closes or appear
 | D7 | Records-only restore has missing photos | Restore fails or looks broken | Medium | Planned | Build |
 | D8 | Records-only server backup misses photos | People assume photos are safe and lose them | Medium | The screen must say so | Build |
 | D9 | The VPS is lost or fails | No server copy until it's back. Hostinger's backups are weekly | Medium | Phones hold the main copy; the screen shows the last upload date | Build |
+| D10 | Damage deeper in the database file | The app opens but queries fail, and the Restore screen doesn't appear, because it only catches failure when the file opens | High | Known. A check at every start would catch it, with a start-up cost; not decided | Founder, Build |
+| D11 | Restore can save a new database key over an unreadable one | The one exception to the old rule, when someone chooses to replace everything. The key is saved only after the restored data opens | Medium | Merged; needs a real-phone test | Build |
 
 ## Medical safety
 
@@ -63,6 +67,7 @@ Last updated: 7 November 2026. Update this when a risk changes, closes or appear
 | M7 | Photo reading mistakes | A misread name or strength becomes a reminder. v1 reads printed Latin only | High | Person must confirm. PR 12 needs re-checking | Build |
 | M8 | Emergency card out of reach | A responder can't reach Usra's own screen on a locked phone | Medium | People should also use the phone's Medical ID | Build |
 | M9 | Ambulance number and schedules outside Egypt | A wrong number or schedule in an emergency | High | Saudi Arabia and Jordan disabled until wired | Build |
+| M10 | Moving a prescribed medicine | It leaves the prescription's list, and moving back doesn't restore that link or sick-day links | Medium | In PR 43. Moving a whole prescription may be better; not decided | Founder |
 
 ## Not yet tested
 
@@ -91,6 +96,9 @@ Last updated: 7 November 2026. Update this when a risk changes, closes or appear
 | P8 | Seat on deleted account | Unclear what happens to a seat when its account is deleted | Medium | Open in the PRD | Founder |
 | P9 | Paywall with no internet | Unclear how checks behave, which could wrongly block adding records | Medium | Open in the PRD | Founder, Build |
 | P10 | Dr. Usra card promises too much | Items imply medical advice, and most would send health data to an AI | Medium | Draft list awaiting the founder | Founder |
+| P11 | Simple Mode lock offer | It shows only after a backup, and Simple Mode never prompts for one, so most of these users won't see it | Medium | Known | Founder |
+| P12 | Relationship wording after a restore | Words like "بنتك" depend on who uses the phone, so another relative may see the wrong one | Low | Known | Founder |
+| P13 | Lock screen emergency number | People already chosen for the lock screen show a number added later without being asked again. The form says so | Medium | Lawyer to check, since it's a third person's number | Founder, lawyer |
 
 ## Cost and running the server
 
