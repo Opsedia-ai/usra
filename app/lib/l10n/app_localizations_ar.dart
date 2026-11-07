@@ -1714,6 +1714,23 @@ class AppLocalizationsAr extends AppLocalizations {
       'أسرة مقدرتش تفتح سجلاتك دلوقتي. سجلاتك لسه موجودة ومتمسحتش. اتأكد إن الموبايل فيه مساحة فاضية، وبعدين جرّب تاني أو اقفل الموبايل وافتحه. لو المشكلة فضلت، كلمنا قبل ما تمسح التطبيق.';
 
   @override
+  String get databaseSupportLabel => 'للمساعدة والدعم:';
+
+  @override
+  String get databaseSupportAddress => 'aya@opsedia.ai';
+
+  @override
+  String get databaseStartFresh => 'ابدأ من جديد';
+
+  @override
+  String get databaseStartFreshHint =>
+      'آخر حل، لو مفيش نسخة احتياطية والمشكلة مش بتروح. ده بيمسح كل حاجة أسرة شايلاها على الموبايل ده.';
+
+  @override
+  String get databaseStartFreshIntro =>
+      'سجلاتك مش بتتفتح، وممكن تكون لسه موجودة على الموبايل. لو عندك نسخة احتياطية، ارجع وجرّب استرجاعها الأول. لو كلّمتنا الأول ممكن نساعد.';
+
+  @override
   String get recoveryKeyCopyFailed =>
       'مقدرناش ننسخ المفتاح. اكتبه من على الشاشة بدل كده.';
 

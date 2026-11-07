@@ -104,6 +104,7 @@ class BackupService {
     this.kdf = BackupKdf.standard,
     this.chunkSize = BackupFileFormat.defaultChunkSize,
     this.excludeFromBackup,
+    this.replaceUnreadablePhotoKey = false,
   });
 
   /// The app's private folder, holding the database, [folders] and [files].
@@ -120,6 +121,11 @@ class BackupService {
   /// Where a new photo key is saved when a restore brings photos back to a
   /// phone whose key was lost (or never made).
   final PhotoKeyStore? photoKeyStore;
+
+  /// Restoring from the screen for a database that won't open, where the
+  /// person has been told everything here is replaced: a photo key that can't
+  /// be read doesn't stop it. Otherwise it does, since it may come back.
+  final bool replaceUnreadablePhotoKey;
 
   /// The key a staged restore encrypted its photos with, if it had to make
   /// one; saved by [commit].
@@ -238,7 +244,8 @@ class BackupService {
     _stagedKey = null;
     var cipher = photoKeys.cipher;
     if (cipher == null) {
-      if (photoKeys.problem == PhotoKeyProblem.unreadable ||
+      if (photoKeys.problem == PhotoKeyProblem.unreadable &&
+              !replaceUnreadablePhotoKey ||
           photoKeyStore == null) {
         throw PhotoKeyUnavailableException(photoKeys.problem!);
       }
@@ -280,7 +287,9 @@ class BackupService {
   /// Swaps the staged backup in for the database and photos. The database
   /// must be closed. What was there is kept in a side folder until
   /// [discardAside]; if anything fails it is put back and this rethrows.
-  Future<void> commit() async {
+  ///
+  /// With [hold], a restart still puts the old data back until [finishCommit].
+  Future<void> commit({bool hold = false}) async {
     if (!await File(p.join(_staging.path, databaseName)).exists()) {
       throw StateError('Nothing staged to restore');
     }
@@ -307,12 +316,17 @@ class BackupService {
       await _clearStaging();
       rethrow;
     }
-    await _marker.delete();
+    if (!hold) await _marker.delete();
     await _clearStaging();
     for (final folder in folders) {
       final dir = Directory(p.join(root.path, folder));
       if (await dir.exists()) await excludeFromBackup?.call(dir);
     }
+  }
+
+  /// A held [commit] is final: a restart no longer puts the old data back.
+  Future<void> finishCommit() async {
+    if (await _marker.exists()) await _marker.delete();
   }
 
   /// Drops a staged backup that won't be restored after all.

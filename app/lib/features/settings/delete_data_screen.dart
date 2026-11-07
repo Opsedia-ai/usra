@@ -17,7 +17,11 @@ const deleteDataPath = '/settings/delete-all';
 /// too when the app lock is on, so it can't happen by a slip or from a
 /// phone left unlocked for a moment.
 class DeleteDataScreen extends ConsumerStatefulWidget {
-  const DeleteDataScreen({super.key});
+  const DeleteDataScreen({super.key, this.startFresh = false});
+
+  /// Reached from the screen for records that can't be reached: says so, and
+  /// has no "make a backup first", since no backup can be made from here.
+  final bool startFresh;
 
   @override
   ConsumerState<DeleteDataScreen> createState() => _DeleteDataScreenState();
@@ -71,10 +75,20 @@ class _DeleteDataScreenState extends ConsumerState<DeleteDataScreen> {
     final text = Theme.of(context).textTheme;
     final danger = Severity.actSoon;
     return Scaffold(
-      appBar: AppBar(title: Text(l.wipeTitle)),
+      appBar: AppBar(
+        title: Text(widget.startFresh ? l.databaseStartFresh : l.wipeTitle),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          if (widget.startFresh) ...[
+            Text(
+              l.databaseStartFreshIntro,
+              key: const ValueKey('start-fresh-intro'),
+              style: text.bodyLarge,
+            ),
+            const SizedBox(height: 12),
+          ],
           Text(l.wipeIntro, style: text.bodyLarge),
           const SizedBox(height: 12),
           Text(l.wipeList, style: text.bodyLarge),
@@ -94,16 +108,18 @@ class _DeleteDataScreenState extends ConsumerState<DeleteDataScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: TextButton.icon(
-              key: const ValueKey('wipe-backup-first'),
-              onPressed: _working ? null : () => context.go(backupPath),
-              icon: const Icon(Icons.backup_outlined),
-              label: Text(l.wipeBackupFirst),
+          if (!widget.startFresh) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                key: const ValueKey('wipe-backup-first'),
+                onPressed: _working ? null : () => context.go(backupPath),
+                icon: const Icon(Icons.backup_outlined),
+                label: Text(l.wipeBackupFirst),
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 16),
           TextField(
             key: const ValueKey('wipe-confirm-word'),

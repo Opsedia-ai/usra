@@ -1707,6 +1707,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Usra can\'t open your records right now. Your records are still here and nothing was deleted. Check that your phone has free storage, then try again or restart your phone. If this keeps happening, contact us before deleting the app.';
 
   @override
+  String get databaseSupportLabel => 'Help and support:';
+
+  @override
+  String get databaseSupportAddress => 'aya@opsedia.ai';
+
+  @override
+  String get databaseStartFresh => 'Start fresh';
+
+  @override
+  String get databaseStartFreshHint =>
+      'A last resort, if there\'s no backup and this won\'t go away. It deletes everything Usra keeps on this phone.';
+
+  @override
+  String get databaseStartFreshIntro =>
+      'Your records won\'t open, but they may still be on this phone. If you have a backup, go back and try restoring it first. Writing to us first may help too.';
+
+  @override
   String get recoveryKeyCopyFailed =>
       'Couldn\'t copy the key. Write it down from the screen instead.';
 

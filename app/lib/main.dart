@@ -43,18 +43,136 @@ import 'features/medicines/reminders.dart';
 import 'features/reports/report.dart' show registerReportFontLicense;
 import 'l10n/app_localizations.dart';
 import 'core/security/secure_storage_options.dart';
-import 'features/settings/key_unavailable.dart';
+import 'features/settings/database_recovery.dart';
 
-/// Replaces the app with [screen]. Never makes a new key or a new database:
-/// the records are still there.
-void _showRecordsUnavailable(Widget screen) => runApp(
-  MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: Scaffold(
-      body: Center(child: SingleChildScrollView(child: screen)),
+/// Set just before [main] runs again, for the next screen to say how it went.
+RestoreOutcome? _pendingRestore;
+WipeOutcome? _pendingWipe;
+
+const _photoFolders = [
+  PhotoStore.cardsFolder,
+  PhotoStore.attachmentsFolder,
+  PhotoStore.medicinesFolder,
+];
+
+/// Replaces the app with the screen for records that can't be reached. Makes no
+/// new key or database by itself: the records may still be there. Only a
+/// restore or a fresh start the person chooses there changes anything.
+///
+/// [key] is the database key, or null when it can't be read.
+Future<void> _showRecordsUnavailable(
+  DatabaseProblem problem, {
+  required File file,
+  required Directory temporary,
+  required DataWiper wiper,
+  String? key,
+}) async {
+  final root = file.parent;
+  SharedPreferencesStore? preferences;
+  try {
+    preferences = await SharedPreferencesStore.open();
+  } catch (e) {
+    Log.error('Settings unavailable on the recovery screen', e);
+  }
+  AppLock? opened;
+  try {
+    opened = await AppLock.open(
+      store: SecureLockStore(),
+      biometrics: LocalAuthBiometrics(),
+      uptime: const PlatformUptime(),
+    );
+  } catch (e) {
+    Log.error('Lock unavailable on the recovery screen', e);
+  }
+  final lock = opened ?? AppLock.off();
+  final photoKeyStore = SecurePhotoKeyStore();
+  final recoveryKeys = SecureRecoveryKeyStore();
+  // The restored database is encrypted for this key. A new one is only saved
+  // once the restore has gone in and opened, see [replaceDamagedData].
+  final deviceKey = key ?? DatabaseKeyStore.generateKey();
+  final backup = BackupService(
+    root: root,
+    databaseName: p.basename(file.path),
+    deviceKey: deviceKey,
+    photoKeys: await photoKeyStore.load(
+      sealedPhotosExist: () => anySealedPhoto(root, _photoFolders),
     ),
-  ),
-);
+    photoKeyStore: photoKeyStore,
+    temporary: temporary,
+    folders: _photoFolders,
+    files: const [FileDismissalStore.fileName],
+    excludeFromBackup: PhotoStore.excludeFromBackup,
+    replaceUnreadablePhotoKey: true,
+  );
+  try {
+    // A restore stopped half way, before the old data goes aside for good.
+    await backup.recoverInterrupted();
+  } catch (e, s) {
+    FlutterError.reportError(
+      FlutterErrorDetails(exception: e, stack: s, library: 'backup'),
+    );
+  }
+  final failed = _pendingRestore == RestoreOutcome.failed;
+  _pendingRestore = null;
+  runApp(
+    DatabaseRecoveryApp(
+      // Each showing starts clean: nothing from the last try carries over.
+      key: UniqueKey(),
+      problem: problem,
+      onRetry: main,
+      backup: backup,
+      recoveryKeys: recoveryKeys,
+      lock: lock,
+      preferences: preferences,
+      restoreFailed: failed,
+      restore: (staged, recoveryKey) async {
+        try {
+          await replaceDamagedData(
+            backup: backup,
+            file: file,
+            deviceKey: deviceKey,
+            saveDeviceKey: key == null
+                ? () => DatabaseKeyStore().replace(deviceKey)
+                : null,
+            remember: () async {
+              if (preferences != null) {
+                await rememberRestore(preferences, staged.manifest.createdAt);
+              }
+              await recoveryKeys.write(recoveryKey);
+              final auto = await AutoBackupStore.open(root);
+              await auto.save(auto.current.afterRestore(DateTime.now()));
+            },
+          );
+          _pendingRestore = RestoreOutcome.restored;
+        } catch (e, s) {
+          _pendingRestore = RestoreOutcome.failed;
+          FlutterError.reportError(
+            FlutterErrorDetails(exception: e, stack: s, library: 'backup'),
+          );
+        }
+        await main();
+      },
+      startFresh: () async {
+        try {
+          final folder = (await AutoBackupStore.open(root)).current.folder;
+          if (folder != null) {
+            await const ChannelBackupFolderAccess().release(folder.id);
+          }
+        } catch (e) {
+          Log.error('Backup folder not released', e);
+        }
+        var complete = false;
+        try {
+          complete = await wiper.wipe();
+        } catch (e) {
+          Log.error('Start fresh failed', e);
+        }
+        _pendingWipe = complete ? WipeOutcome.done : WipeOutcome.incomplete;
+        await main();
+      },
+    ),
+  );
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,11 +184,7 @@ Future<void> main() async {
     PackageInfo.fromPlatform(),
   ).wait;
   final root = file.parent;
-  const photoFolders = [
-    PhotoStore.cardsFolder,
-    PhotoStore.attachmentsFolder,
-    PhotoStore.medicinesFolder,
-  ];
+  const photoFolders = _photoFolders;
   SharedPreferencesStore? openPreferences;
   final wiper = DataWiper(
     root: root,
@@ -135,13 +249,23 @@ Future<void> main() async {
     // The key is gone but the old file couldn't be moved: no new key yet, so
     // the next try still knows.
     Log.error('Database could not be moved', e);
-    _showRecordsUnavailable(DatabaseKeyUnavailable.openFailed(onRetry: main));
+    await _showRecordsUnavailable(
+      DatabaseProblem.openFailed,
+      file: file,
+      temporary: temporary,
+      wiper: wiper,
+    );
     return;
   } catch (e) {
     // Never make a new key over one that can't be read: the records are still
     // there. Show why, and let the person try again.
     Log.error('Database key unavailable', e);
-    _showRecordsUnavailable(DatabaseKeyUnavailable(onRetry: main));
+    await _showRecordsUnavailable(
+      DatabaseProblem.keyUnavailable,
+      file: file,
+      temporary: temporary,
+      wiper: wiper,
+    );
     return;
   }
   final photoKeyStore = SecurePhotoKeyStore();
@@ -195,7 +319,13 @@ Future<void> main() async {
     // The key is stored, so this says nothing against it (a full disk, a lock,
     // damage): the file stays where it is.
     Log.error('Database could not be opened', e);
-    _showRecordsUnavailable(DatabaseKeyUnavailable.openFailed(onRetry: main));
+    await _showRecordsUnavailable(
+      DatabaseProblem.openFailed,
+      file: file,
+      temporary: temporary,
+      wiper: wiper,
+      key: key,
+    );
     return;
   }
   var database = AppDatabase(openEncryptedDatabase(file, key));
@@ -461,7 +591,13 @@ Future<void> main() async {
       // The old connection is closed and the old providers are gone, so
       // starting again from main() is safe.
       Log.error('Database could not be reopened', e);
-      _showRecordsUnavailable(DatabaseKeyUnavailable.openFailed(onRetry: main));
+      await _showRecordsUnavailable(
+        DatabaseProblem.openFailed,
+        file: file,
+        temporary: temporary,
+        wiper: wiper,
+        key: key,
+      );
       return;
     }
     database = AppDatabase(openEncryptedDatabase(file, key));
@@ -578,7 +714,10 @@ Future<void> main() async {
   ).call;
   lock.onTooManyFailures = wipeAndRestart;
 
-  app.value = build();
+  final (shownRestore, shownWipe) = (_pendingRestore, _pendingWipe);
+  _pendingRestore = null;
+  _pendingWipe = null;
+  app.value = build(restore: shownRestore, wipe: shownWipe);
   reminders = newReminders();
   runApp(
     ValueListenableBuilder<ProviderContainer?>(

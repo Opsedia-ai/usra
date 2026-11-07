@@ -31,7 +31,11 @@ class AppDatabase extends _$AppDatabase {
   static const _uuid = Uuid();
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => currentSchema;
+
+  /// What this app's database is at, without needing one open: restoring on
+  /// the screen for a database that won't open checks backups against it.
+  static const currentSchema = 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(

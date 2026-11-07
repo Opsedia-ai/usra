@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/backup/backup_crypto.dart';
 import '../../core/backup/backup_service.dart';
 import '../../core/backup/recovery_key.dart';
+import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../core/screen_privacy.dart';
@@ -296,11 +297,7 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
     try {
       final staged = await ref
           .read(backupServiceProvider)
-          .stage(
-            File(_file!),
-            key,
-            currentSchema: ref.read(databaseProvider).schemaVersion,
-          );
+          .stage(File(_file!), key, currentSchema: AppDatabase.currentSchema);
       if (!mounted) return;
       setState(() {
         _staged = staged;
