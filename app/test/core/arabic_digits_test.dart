@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:usra/core/records/record_type.dart';
 import 'package:usra/core/util/localized_digits.dart';
 import 'package:usra/core/util/localized_numbers.dart';
+import 'package:usra/core/util/time_picker.dart';
 import 'package:usra/features/family/record_display.dart';
 import 'package:usra/l10n/app_localizations.dart';
 
@@ -16,7 +17,7 @@ final _latin = RegExp('[0-9]');
 /// [source] without what ICU reads rather than prints: plural and select
 /// keys such as `=1{` or `m2_social{`.
 String _printedText(String source) =>
-    source.replaceAll(RegExp(r'[=\w]*\d\w*\{'), '{');
+    source.replaceAll(RegExp(r'(?:=\d+|[A-Za-z_]\w*)\{'), '{');
 
 void main() {
   final ar = lookupAppLocalizations(const Locale('ar'));
@@ -90,16 +91,100 @@ void main() {
     });
   });
 
-  test('Each way into the app turns the digits on first', () {
-    for (final (file, opening) in [
-      ('lib/main.dart', 'useArabicIndicNumbers();'),
-      (
+  group('Each way into the app turns the digits on first', () {
+    String read(String file) => File(file).readAsStringSync();
+    const on = 'useArabicIndicNumbers();';
+
+    test('The app, before anything else', () {
+      final main = read('lib/main.dart');
+      expect(main.indexOf(on), greaterThan(-1));
+      expect(main.indexOf(on), lessThan(main.indexOf('ensureInitialized')));
+    });
+
+    test('The isolates that make text', () {
+      for (final (file, opening) in [
+        (
+          'lib/features/medicines/local_notification_scheduler.dart',
+          'onBackgroundDoseResponse(NotificationResponse response) async {\n'
+              '  $on',
+        ),
+        ('lib/features/reports/report.dart', 'Isolate.run(() {\n  $on'),
+      ]) {
+        expect(read(file), contains(opening), reason: file);
+      }
+    });
+
+    test('A new isolate has to say whether it makes text', () {
+      const noText = {
+        'lib/core/files/photo_worker.dart',
+        'lib/core/files/photo_store.dart',
+        'lib/core/security/pin_hasher.dart',
+        'lib/core/backup/backup_service.dart',
+      };
+      const makeText = {
         'lib/features/medicines/local_notification_scheduler.dart',
-        'useArabicIndicNumbers();',
-      ),
-    ]) {
-      expect(File(file).readAsStringSync(), contains(opening), reason: file);
-    }
+        'lib/features/reports/report.dart',
+      };
+      final spawns = RegExp(r'Isolate\.(run|spawn)|\bcompute\(|vm:entry-point');
+      final found = {
+        for (final f in Directory('lib').listSync(recursive: true))
+          if (f is File &&
+              f.path.endsWith('.dart') &&
+              !f.path.contains('.g.dart') &&
+              spawns.hasMatch(f.readAsStringSync()))
+            f.path,
+      };
+      expect(found, {...noText, ...makeText});
+    });
+  });
+
+  group('The time picker', () {
+    testWidgets('Typing mode can confirm a time in Arabic', (tester) async {
+      TimeOfDay? picked;
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ar'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async => picked = await pickTime(
+                context,
+                initialTime: const TimeOfDay(hour: 8, minute: 30),
+              ),
+              child: const Text('go'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.keyboard_outlined));
+      await tester.pumpAndSettle();
+      final material = MaterialLocalizations.of(
+        tester.element(find.byType(TimePickerDialog).first),
+      );
+      await tester.tap(find.text(material.okButtonLabel));
+      await tester.pumpAndSettle();
+      expect(picked, const TimeOfDay(hour: 8, minute: 30));
+    });
+
+    test('Nothing opens it another way', () {
+      final direct = [
+        for (final f in Directory('lib').listSync(recursive: true))
+          if (f is File &&
+              f.path.endsWith('.dart') &&
+              !f.path.endsWith('core/util/time_picker.dart') &&
+              f.readAsStringSync().contains('showTimePicker('))
+            f.path,
+      ];
+      expect(direct, isEmpty);
+    });
   });
 
   group('A record field', () {

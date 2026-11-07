@@ -9,6 +9,7 @@ import '../account/save_gate.dart';
 import '../medicines/medicines_providers.dart';
 import 'fever.dart';
 import '../medicines/min_hours.dart';
+import '../../core/util/time_picker.dart';
 
 /// A date and time row that opens the pickers.
 class _WhenField extends StatelessWidget {
@@ -75,8 +76,8 @@ class _WhenField extends StatelessWidget {
               child: OutlinedButton.icon(
                 key: ValueKey('$keyPrefix-time'),
                 onPressed: () async {
-                  final t = await showTimePicker(
-                    context: context,
+                  final t = await pickTime(
+                    context,
                     initialTime: TimeOfDay.fromDateTime(value),
                     helpText: l.readingTime,
                   );

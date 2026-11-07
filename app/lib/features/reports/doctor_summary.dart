@@ -285,7 +285,7 @@ Report doctorSummary({
           label,
           number(value),
           date(e.occurredAt),
-          digitsIn(locale, reading?.percentileLabel ?? ''),
+          digitsIn(locale.split('_').first, reading?.percentileLabel ?? ''),
         ]);
         break;
       }
