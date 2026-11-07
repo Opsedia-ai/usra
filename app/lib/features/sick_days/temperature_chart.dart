@@ -40,6 +40,7 @@ class TemperatureChart extends StatelessWidget {
                 aspectRatio: 1.6,
                 child: CustomPaint(
                   painter: TemperatureChartPainter(
+                    colors: context.usra,
                     readings: readings,
                     unit: unit,
                     unitLabel: unit == TemperatureUnit.fahrenheit
@@ -55,7 +56,7 @@ class TemperatureChart extends StatelessWidget {
             Text(
               l.sickDayChartNote,
               style: Theme.of(context).textTheme.bodySmall
-                  ?.copyWith(color: UsraColors.textMuted),
+                  ?.copyWith(color: context.usra.inkMuted),
             ),
           ],
         ),
@@ -66,12 +67,14 @@ class TemperatureChart extends StatelessWidget {
 
 class TemperatureChartPainter extends CustomPainter {
   TemperatureChartPainter({
+    required this.colors,
     required this.readings,
     required this.unit,
     required this.unitLabel,
     required this.timeLabel,
   });
 
+  final UsraColors colors;
   final List<TemperatureReading> readings;
   final String unit;
   final String unitLabel;
@@ -106,7 +109,7 @@ class TemperatureChartPainter extends CustomPainter {
     );
 
     final grid = Paint()
-      ..color = UsraColors.line
+      ..color = colors.line
       ..strokeWidth = 1;
     final step = (high - low) > 8 ? 2 : 1;
     for (var v = low; v <= high + 1e-9; v += step) {
@@ -119,7 +122,7 @@ class TemperatureChartPainter extends CustomPainter {
     // Where a fever starts, dashed.
     final fy = at(start, fever).dy;
     final dash = Paint()
-      ..color = Severity.urgent.foreground
+      ..color = Severity.urgent.foregroundIn(colors)
       ..strokeWidth = 1.5;
     for (var x = chart.left; x < chart.right; x += 8) {
       canvas.drawLine(
@@ -145,7 +148,7 @@ class TemperatureChartPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = UsraColors.primary,
+        ..color = colors.primary,
     );
     for (final (i, r) in readings.indexed) {
       canvas.drawCircle(
@@ -153,8 +156,8 @@ class TemperatureChartPainter extends CustomPainter {
         4,
         Paint()
           ..color = isFever(r)
-              ? Severity.urgent.foreground
-              : UsraColors.primary,
+              ? Severity.urgent.foregroundIn(colors)
+              : colors.primary,
       );
     }
   }
@@ -162,7 +165,7 @@ class TemperatureChartPainter extends CustomPainter {
   TextPainter _text(String s) => TextPainter(
     text: TextSpan(
       text: s,
-      style: const TextStyle(fontSize: 10, color: UsraColors.textMuted),
+      style: TextStyle(fontSize: 10, color: colors.inkMuted),
     ),
     textDirection: TextDirection.ltr,
   )..layout();
@@ -173,5 +176,5 @@ class TemperatureChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(TemperatureChartPainter old) =>
-      old.readings != readings || old.unit != unit;
+      old.colors != colors || old.readings != readings || old.unit != unit;
 }

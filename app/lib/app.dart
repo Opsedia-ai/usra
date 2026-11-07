@@ -28,6 +28,8 @@ class UsraApp extends ConsumerWidget {
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       theme: buildUsraTheme(simple: simple),
+      darkTheme: buildUsraTheme(simple: simple, brightness: Brightness.dark),
+      themeMode: ref.watch(themeModeProvider),
       locale: ref.watch(localeProvider),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,

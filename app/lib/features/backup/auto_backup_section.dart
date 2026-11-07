@@ -403,13 +403,13 @@ class _Message extends StatelessWidget {
     margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
-      color: severity.background,
+      color: severity.backgroundOf(context),
       borderRadius: BorderRadius.circular(12),
     ),
     child: Text(
       text,
       style: Theme.of(context).textTheme.bodyMedium
-          ?.copyWith(color: severity.foreground),
+          ?.copyWith(color: severity.foregroundOf(context)),
     ),
   );
 }

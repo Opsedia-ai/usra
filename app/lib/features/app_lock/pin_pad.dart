@@ -72,8 +72,8 @@ class _PinPadState extends ConsumerState<PinPad> {
           button: true,
           excludeSemantics: label != null,
           child: Material(
-            color: UsraColors.surface,
-            shape: const CircleBorder(side: BorderSide(color: UsraColors.line)),
+            color: context.usra.surface,
+            shape: CircleBorder(side: BorderSide(color: context.usra.line)),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               key: ValueKey('pin-$id'),
@@ -105,12 +105,12 @@ class _PinPadState extends ConsumerState<PinPad> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: i < _pin.length
-                        ? UsraColors.primary
+                        ? context.usra.primary
                         : Colors.transparent,
                     border: Border.all(
                       color: i < pinLength
-                          ? UsraColors.primary
-                          : UsraColors.line,
+                          ? context.usra.primary
+                          : context.usra.line,
                       width: 2,
                     ),
                   ),
@@ -122,7 +122,7 @@ class _PinPadState extends ConsumerState<PinPad> {
         Text(
           l.pinLengthHint,
           style: Theme.of(context).textTheme.bodySmall
-              ?.copyWith(color: UsraColors.textMuted),
+              ?.copyWith(color: context.usra.inkMuted),
         ),
         const SizedBox(height: 12),
         if (widget.busy)
@@ -163,8 +163,8 @@ class _PinPadState extends ConsumerState<PinPad> {
                     Icon(
                       Icons.check,
                       color: _pin.length >= pinLength
-                          ? UsraColors.primary
-                          : UsraColors.textMuted,
+                          ? context.usra.primary
+                          : context.usra.inkMuted,
                     ),
                     _submit,
                     label: l.pinOk,

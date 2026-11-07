@@ -101,7 +101,7 @@ class _PrivacyNote extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.phone_android, color: UsraColors.primary),
+            Icon(Icons.phone_android, color: context.usra.primary),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat, NumberFormat;
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/records/record_type.dart' show decodeRecordData;
 import '../../l10n/app_localizations.dart';
@@ -112,7 +112,7 @@ class _Body extends StatelessWidget {
           ],
           Text(
             l.growthSource,
-            style: text.bodySmall?.copyWith(color: UsraColors.textMuted),
+            style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
           ),
         ],
         const SizedBox(height: 28),
@@ -184,7 +184,7 @@ class _GrowthCard extends StatelessWidget {
               ),
               if (reading != null) ...[
                 const SizedBox(height: 6),
-                SeverityChip(
+                StatusChip(
                   key: ValueKey('growth-status-${indicator.name}'),
                   severity: reading.severity,
                   label: reading.withinUsualRange
@@ -201,6 +201,7 @@ class _GrowthCard extends StatelessWidget {
                 aspectRatio: 1.4,
                 child: CustomPaint(
                   painter: _ChartPainter(
+                    colors: context.usra,
                     indicator: indicator,
                     male: male,
                     maxMonths: maxMonths,
@@ -223,7 +224,7 @@ class _GrowthCard extends StatelessWidget {
                 l.growthNoPrematurity,
                 key: const ValueKey('growth-head-note'),
                 style: Theme.of(context).textTheme.bodySmall
-                    ?.copyWith(color: UsraColors.textMuted),
+                    ?.copyWith(color: context.usra.inkMuted),
               ),
             ],
           ],
@@ -235,6 +236,7 @@ class _GrowthCard extends StatelessWidget {
 
 class _ChartPainter extends CustomPainter {
   _ChartPainter({
+    required this.colors,
     required this.indicator,
     required this.male,
     required this.maxMonths,
@@ -242,6 +244,7 @@ class _ChartPainter extends CustomPainter {
     required this.unit,
   });
 
+  final UsraColors colors;
   final GrowthIndicator indicator;
   final bool male;
   final double maxMonths;
@@ -286,7 +289,7 @@ class _ChartPainter extends CustomPainter {
 
     // Grid and axis labels.
     final grid = Paint()
-      ..color = UsraColors.line
+      ..color = colors.line
       ..strokeWidth = 1;
     final xStep = maxMonths > 24 ? 12 : 3;
     for (var m = 0; m <= maxMonths; m += xStep) {
@@ -314,7 +317,10 @@ class _ChartPainter extends CustomPainter {
     for (final (m, v) in curves.last.reversed) {
       band.lineTo(at(m, v).dx, at(m, v).dy);
     }
-    canvas.drawPath(band..close(), Paint()..color = Severity.good.background);
+    canvas.drawPath(
+      band..close(),
+      Paint()..color = Severity.good.backgroundIn(colors),
+    );
     for (var i = 0; i < curves.length; i++) {
       final median = chartPercentiles[i].$1 == 50;
       final line = Path();
@@ -327,7 +333,9 @@ class _ChartPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = median ? 2 : 1
-          ..color = median ? Severity.good.foreground : UsraColors.textMuted,
+          ..color = median
+              ? Severity.good.foregroundIn(colors)
+              : colors.inkMuted,
       );
       final (end, endValue) = curves[i].last;
       _label(
@@ -348,18 +356,18 @@ class _ChartPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2
-          ..color = UsraColors.primary,
+          ..color = colors.primary,
       );
     }
     for (final o in shown) {
-      canvas.drawCircle(o, 4.5, Paint()..color = UsraColors.primary);
+      canvas.drawCircle(o, 4.5, Paint()..color = colors.primary);
       canvas.drawCircle(
         o,
         4.5,
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.5
-          ..color = UsraColors.surface,
+          ..color = colors.surface,
       );
     }
   }
@@ -374,16 +382,11 @@ class _ChartPainter extends CustomPainter {
   static String _number(double v) =>
       v == v.roundToDouble() ? '${v.round()}' : v.toStringAsFixed(1);
 
-  static void _label(
-    Canvas canvas,
-    String text,
-    Offset at, {
-    bool center = false,
-  }) {
+  void _label(Canvas canvas, String text, Offset at, {bool center = false}) {
     final painter = TextPainter(
       text: TextSpan(
         text: text,
-        style: const TextStyle(fontSize: 10, color: UsraColors.textMuted),
+        style: TextStyle(fontSize: 10, color: colors.inkMuted),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
@@ -393,6 +396,7 @@ class _ChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_ChartPainter old) =>
+      old.colors != colors ||
       !listEquals(old.points, points) ||
       old.maxMonths != maxMonths ||
       old.male != male ||
