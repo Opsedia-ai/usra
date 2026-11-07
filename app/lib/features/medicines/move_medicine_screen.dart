@@ -22,24 +22,32 @@ Future<void> moveMedicineToPerson({
   required String toProfileId,
 }) async {
   final shared = await db.medicinePhotosUsedElsewhere(medicine.id);
-  final kept = decodeMedicinePhotos(medicine.photosJson);
-  final copies = [
-    for (final path in kept)
-      shared.contains(path) ? await photos.duplicate(path) : path,
-  ];
+  final copies = <String>[];
   try {
+    final list = <String>[];
+    for (final path in decodeMedicinePhotos(medicine.photosJson)) {
+      // A file that's gone has nothing to copy, and mustn't stop the move.
+      if (shared.contains(path) && await photos.fileOf(path).exists()) {
+        final copy = await photos.duplicate(path);
+        copies.add(copy);
+        list.add(copy);
+      } else if (!shared.contains(path)) {
+        list.add(path);
+      }
+    }
     await db.moveMedicine(
       id: medicine.id,
       fromProfileId: medicine.profileId,
       toProfileId: toProfileId,
-      photos: shared.isEmpty ? null : copies,
+      photos: shared.isEmpty ? null : list,
     );
   } catch (_) {
-    if (shared.isNotEmpty) {
+    // Only its own copies: another form may hold a photo not saved yet.
+    for (final copy in copies) {
       try {
-        await photos.prune(await db.liveMedicinePhotos());
+        await photos.fileOf(copy).delete();
       } catch (e) {
-        Log.error('Unused medicine photos not cleared', e);
+        Log.error('Unused medicine photo not cleared', e);
       }
     }
     rethrow;
@@ -90,20 +98,23 @@ class _MoveMedicineScreenState extends ConsumerState<MoveMedicineScreen> {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     final medicine = ref.watch(medicineProvider(widget.medicineId));
-    final people = ref.watch(profilesProvider).value ?? const <Profile>[];
+    final family = ref.watch(profilesProvider);
+    final people = family.value ?? const <Profile>[];
     final m = medicine.value;
     final from = m == null
         ? null
         : people.where((p) => p.id == m.profileId).firstOrNull;
     return Scaffold(
       appBar: AppBar(title: Text(l.medicineMoveTitle)),
-      body: m == null || from == null
-          ? Center(
-              child: medicine.isLoading
-                  ? const CircularProgressIndicator()
-                  : Text(l.medicineNotFound),
-            )
-          : _body(context, l, text, m, from, people),
+      body: switch ((medicine, family)) {
+        (AsyncError(), _) ||
+        (_, AsyncError()) => Center(child: Text(l.saveFailed)),
+        _ when m == null || from == null =>
+          medicine.isLoading || family.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Center(child: Text(l.medicineNotFound)),
+        _ => _body(context, l, text, m, from, people),
+      },
     );
   }
 
@@ -120,10 +131,12 @@ class _MoveMedicineScreenState extends ConsumerState<MoveMedicineScreen> {
         if (p.id != from.id) p,
     ];
     final picked = others.where((p) => p.id == _to).firstOrNull;
-    final given = ref.watch(_givenCountProvider(m.id)).value ?? 0;
+    final givenRows = ref.watch(_givenProvider(m.id));
+    final given = givenRows.value ?? const <GivenMedicine>[];
     final stays = [
       if (m.prescriptionId != null) l.medicineMoveStaysPrescription,
-      if (given > 0) l.medicineMoveStaysSickDays,
+      if (given.isNotEmpty) l.medicineMoveStaysSickDays,
+      if (given.any((g) => g.remindNext)) l.medicineMoveStopsNextDose,
     ];
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -195,7 +208,10 @@ class _MoveMedicineScreenState extends ConsumerState<MoveMedicineScreen> {
         FilledButton(
           key: const ValueKey('move-confirm'),
           style: FilledButton.styleFrom(minimumSize: const Size(0, 56)),
-          onPressed: picked == null || _moving ? null : () => _move(m, picked),
+          // Not before it's known what stays, which the person must get to read.
+          onPressed: picked == null || _moving || !givenRows.hasValue
+              ? null
+              : () => _move(m, picked),
           child: Text(
             picked == null
                 ? l.medicineMoveChoose
@@ -215,7 +231,7 @@ class _MoveMedicineScreenState extends ConsumerState<MoveMedicineScreen> {
 }
 
 /// Doses of this medicine recorded in sick days, which stay where they were.
-final _givenCountProvider = StreamProvider.autoDispose.family<int, String>(
-  (ref, medicineId) =>
-      ref.watch(databaseProvider).watchGivenCountOf(medicineId),
-);
+final _givenProvider = StreamProvider.autoDispose
+    .family<List<GivenMedicine>, String>(
+      (ref, medicineId) => ref.watch(databaseProvider).watchGivenOf(medicineId),
+    );

@@ -2435,7 +2435,7 @@ abstract class AppLocalizations {
   /// No description provided for @medicineMoveStaysPrescription.
   ///
   /// In en, this message translates to:
-  /// **'The prescription. The medicine comes off it.'**
+  /// **'The prescription, with its date and photos. The medicine comes off its list.'**
   String get medicineMoveStaysPrescription;
 
   /// No description provided for @medicineMoveStaysSickDays.
@@ -2443,6 +2443,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Doses recorded in sick days, by the medicine\'s name.'**
   String get medicineMoveStaysSickDays;
+
+  /// No description provided for @medicineMoveStopsNextDose.
+  ///
+  /// In en, this message translates to:
+  /// **'The next-dose reminder in the sick day stops.'**
+  String get medicineMoveStopsNextDose;
 
   /// No description provided for @medicineMoveReminder.
   ///

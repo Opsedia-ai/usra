@@ -218,6 +218,85 @@ void main() {
       expect(photos.fileOf(own).existsSync(), isFalse);
     });
 
+    test('moving straight through the database can\'t share it', () async {
+      final shared = await photo('prescription');
+      await db.savePrescription(
+        profileId: sara,
+        prescribedOn: DateTime(2026, 11, 1),
+        photos: [shared],
+        items: const [PrescriptionItemInput(name: 'بنادول')],
+      );
+      final id = await medicine(photoPaths: [shared]);
+      await expectLater(
+        db.moveMedicine(id: id, fromProfileId: sara, toProfileId: omar),
+        throwsStateError,
+      );
+      expect((await db.watchMedicine(id).first)!.profileId, sara);
+    });
+
+    test('a shared photo whose file is gone doesn\'t stop the move', () async {
+      final shared = await photo('prescription');
+      await db.savePrescription(
+        profileId: sara,
+        prescribedOn: DateTime(2026, 11, 1),
+        photos: [shared],
+        items: const [PrescriptionItemInput(name: 'بنادول')],
+      );
+      final id = await medicine(photoPaths: [shared]);
+      photos.fileOf(shared).deleteSync();
+      await move(id);
+      final moved = (await db.watchMedicine(id).first)!;
+      expect(moved.profileId, omar);
+      expect(decodeMedicinePhotos(moved.photosJson), isEmpty);
+    });
+
+    test(
+      'a photo from before they were encrypted comes out encrypted',
+      () async {
+        final shared = await photo('prescription');
+        final plain = p.join(PhotoStore.medicinesFolder, 'old.jpg');
+        photos.fileOf(plain).writeAsStringSync('old photo');
+        await db.savePrescription(
+          profileId: sara,
+          prescribedOn: DateTime(2026, 11, 1),
+          photos: [shared, plain],
+          items: const [PrescriptionItemInput(name: 'بنادول')],
+        );
+        final id = await medicine(photoPaths: [plain]);
+        await move(id);
+        final copy = decodeMedicinePhotos(
+          (await db.watchMedicine(id).first)!.photosJson,
+        ).single;
+        expect(
+          PhotoCipher.isSealed(photos.fileOf(copy).readAsBytesSync()),
+          isTrue,
+        );
+      },
+    );
+
+    test('a failed move only clears its own copies', () async {
+      final shared = await photo('prescription');
+      await db.savePrescription(
+        profileId: sara,
+        prescribedOn: DateTime(2026, 11, 1),
+        photos: [shared],
+        items: const [PrescriptionItemInput(name: 'بنادول')],
+      );
+      final id = await medicine(photoPaths: [shared]);
+      // Another form's photo that isn't saved yet.
+      final unsaved = await photo('unsaved');
+      await expectLater(
+        moveMedicineToPerson(
+          db: db,
+          photos: photos,
+          medicine: (await db.watchMedicine(id).first)!,
+          toProfileId: 'nobody',
+        ),
+        throwsStateError,
+      );
+      expect(await photos.storedPaths(), {shared, unsaved});
+    });
+
     test('a move that fails leaves no copy behind', () async {
       final shared = await photo('prescription');
       await db.savePrescription(
@@ -313,12 +392,12 @@ void main() {
         remindNext: true,
       );
       expect(await db.watchNextDoseSources().first, hasLength(1));
-      expect(await db.watchGivenCountOf(id).first, 1);
+      expect(await db.watchGivenOf(id).first, hasLength(1));
 
       await move(id);
 
       expect(await db.watchNextDoseSources().first, isEmpty);
-      expect(await db.watchGivenCountOf(id).first, 0);
+      expect(await db.watchGivenOf(id).first, isEmpty);
       final given = (await db.select(db.givenMedicines).get()).single;
       expect(given.id, givenId);
       expect(given.episodeId, episode);

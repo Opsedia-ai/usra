@@ -1383,11 +1383,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get medicineMoveStaysPrescription =>
-      'The prescription. The medicine comes off it.';
+      'The prescription, with its date and photos. The medicine comes off its list.';
 
   @override
   String get medicineMoveStaysSickDays =>
       'Doses recorded in sick days, by the medicine\'s name.';
+
+  @override
+  String get medicineMoveStopsNextDose =>
+      'The next-dose reminder in the sick day stops.';
 
   @override
   String medicineMoveReminder(String to, String from) {

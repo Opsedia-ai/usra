@@ -1389,11 +1389,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get medicineMoveStaysPrescription => 'الروشتة. الدوا هيتشال منها.';
+  String get medicineMoveStaysPrescription =>
+      'الروشتة، بتاريخها وصورها. الدوا هيتشال من قايمتها.';
 
   @override
   String get medicineMoveStaysSickDays =>
       'الجرعات المتسجلة في أيام التعب، باسم الدوا.';
+
+  @override
+  String get medicineMoveStopsNextDose =>
+      'تذكير الجرعة الجاية في يوم التعب هيتوقف.';
 
   @override
   String medicineMoveReminder(String to, String from) {

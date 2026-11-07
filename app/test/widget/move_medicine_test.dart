@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart' show DatabaseConnection;
+import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -150,6 +150,37 @@ void main() {
     final m = (await tester.runAsync(() => db.watchMedicine(medicine).first))!;
     expect(m.profileId, sara);
     expect(key('medicine-move'), findsOneWidget);
+  });
+
+  testWidgets('it warns that a running next-dose reminder stops', (
+    tester,
+  ) async {
+    await start(tester);
+    await tester.runAsync(() async {
+      await db.saveMedicine(
+        id: medicine,
+        profileId: sara,
+        name: 'جلوكوفاج',
+        startOn: DateTime(2026, 11, 1),
+        minHoursBetweenDoses: const Value(6),
+      );
+      final episode = await db.saveEpisode(
+        profileId: sara,
+        startedAt: DateTime(2026, 11, 3),
+      );
+      await db.saveGivenMedicine(
+        episodeId: episode,
+        medicineId: medicine,
+        name: 'جلوكوفاج',
+        givenAt: DateTime(2026, 11, 3, 8),
+        remindNext: true,
+      );
+    });
+    await settle(tester);
+    await tester.tap(key('medicine-move'));
+    await settle(tester);
+    expect(find.textContaining('أيام التعب'), findsOneWidget);
+    expect(find.textContaining('تذكير الجرعة الجاية'), findsOneWidget);
   });
 
   testWidgets('it says what stays when it\'s on a prescription', (

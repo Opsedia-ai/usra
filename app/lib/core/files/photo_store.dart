@@ -152,16 +152,20 @@ class PhotoStore {
   }
 
   /// A new file with the same contents, for a record that's moving away from
-  /// one it shared this photo with. Copies the encrypted bytes as they are, so it
-  /// needs no key and nothing is decrypted. Throws if the photo can't be read.
+  /// one it shared this photo with. Copies the encrypted bytes as they are, with
+  /// nothing decrypted. A photo from before they were encrypted is encrypted as
+  /// it's copied. Throws if it can't be read.
   Future<String> duplicate(String relativePath) async {
     final relative = p.join(
       folder,
       '${_uuid.v7()}${p.extension(relativePath).toLowerCase()}',
     );
+    final bytes = await fileOf(relativePath).readAsBytes();
     await writeSealedFile(
       fileOf(relative),
-      await fileOf(relativePath).readAsBytes(),
+      PhotoCipher.isSealed(bytes)
+          ? bytes
+          : await PhotoWorker.instance.seal(keys.require, bytes),
     );
     return relative;
   }

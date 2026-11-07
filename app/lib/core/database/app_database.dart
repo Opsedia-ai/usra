@@ -913,14 +913,17 @@ class AppDatabase extends _$AppDatabase {
   ///
   /// What's recorded about the old person stays with them, without a link back:
   ///
-  /// - It comes off its prescription, which is theirs, and stays there as a
-  ///   record of what was written for them. The prescription's status updates.
+  /// - Its prescription stays theirs, with its date, diagnosis and photos, but
+  ///   the medicine comes off its list: prescriptions keep no copy of their
+  ///   medicines' names. With none left it shows as stopped. Its status updates.
   /// - Doses given in their sick days stay in those sick days by name. A
   ///   next-dose reminder for them stops, as this is no longer their medicine.
   ///
   /// [fromProfileId] must be the owner and [toProfileId] a live person, or this
   /// throws and nothing changes. [photos] replaces the medicine's list when
-  /// given: see `moveMedicineToPerson`, which copies any it shares.
+  /// given. So that a move can't put one photo on two people's records, it also
+  /// throws if a photo it ends up with is used by any other record: see
+  /// `moveMedicineToPerson`, which copies those first.
   Future<void> moveMedicine({
     required String id,
     required String fromProfileId,
@@ -949,6 +952,11 @@ class AppDatabase extends _$AppDatabase {
               ))
               .getSingleOrNull();
       if (medicine == null) throw StateError('Medicine $id not found');
+      final ending = photos ?? decodeMedicinePhotos(medicine.photosJson);
+      final others = await liveMedicinePhotos(exceptMedicine: id);
+      if (ending.any(others.contains)) {
+        throw StateError('A photo of medicine $id is used by another record');
+      }
       await (update(medicines)..where((m) => m.id.equals(id))).write(
         MedicinesCompanion(
           profileId: Value(toProfileId),
@@ -962,18 +970,24 @@ class AppDatabase extends _$AppDatabase {
         ),
       );
       await _queue('medicine', id, 'upsert');
-      final given = await (select(
-        givenMedicines,
-      )..where((g) => g.medicineId.equals(id) & g.deletedAt.isNull())).get();
-      for (final g in given) {
-        await (update(givenMedicines)..where((x) => x.id.equals(g.id))).write(
-          GivenMedicinesCompanion(
-            medicineId: const Value(null),
-            remindNext: const Value(false),
-            updatedAt: Value(now),
-          ),
-        );
-        await _queue('given_medicine', g.id, 'update');
+      final liveGiven =
+          givenMedicines.medicineId.equals(id) &
+          givenMedicines.deletedAt.isNull();
+      final givenIds =
+          await (selectOnly(givenMedicines)
+                ..addColumns([givenMedicines.id])
+                ..where(liveGiven))
+              .map((row) => row.read(givenMedicines.id)!)
+              .get();
+      await (update(givenMedicines)..where((_) => liveGiven)).write(
+        GivenMedicinesCompanion(
+          medicineId: const Value(null),
+          remindNext: const Value(false),
+          updatedAt: Value(now),
+        ),
+      );
+      for (final g in givenIds) {
+        await _queue('given_medicine', g, 'update');
       }
       if (medicine.prescriptionId case final prescription?) {
         await _refreshPrescription(prescription, now);
@@ -987,26 +1001,17 @@ class AppDatabase extends _$AppDatabase {
       medicines,
     )..where((m) => m.id.equals(id))).getSingleOrNull();
     if (medicine == null) return const {};
-    final mine = decodeMedicinePhotos(medicine.photosJson).toSet();
-    if (mine.isEmpty) return const {};
-    final others = await (select(
-      medicines,
-    )..where((m) => m.deletedAt.isNull() & m.id.equals(id).not())).get();
-    final prescribed = await (select(
-      prescriptions,
-    )..where((p) => p.deletedAt.isNull())).get();
-    return mine.intersection({
-      for (final m in others) ...decodeMedicinePhotos(m.photosJson),
-      for (final p in prescribed) ...decodeMedicinePhotos(p.photosJson),
-    });
+    return decodeMedicinePhotos(medicine.photosJson)
+        .toSet()
+        .intersection(await liveMedicinePhotos(exceptMedicine: id));
   }
 
-  /// How many doses of this medicine are recorded in sick days.
-  Stream<int> watchGivenCountOf(String medicineId) {
-    final query = select(givenMedicines)
-      ..where((g) => g.medicineId.equals(medicineId) & g.deletedAt.isNull());
-    return query.watch().map((rows) => rows.length);
-  }
+  /// The doses of this medicine recorded in sick days.
+  Stream<List<GivenMedicine>> watchGivenOf(String medicineId) =>
+      (select(givenMedicines)..where(
+            (g) => g.medicineId.equals(medicineId) & g.deletedAt.isNull(),
+          ))
+          .watch();
 
   /// Keeps one live schedule per medicine: updates it in place, adds it, or
   /// deletes it when [schedule] is null. Call in a transaction.
@@ -1144,11 +1149,16 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Files in the medicines photo store still used by a live medicine or
-  /// prescription.
-  Future<Set<String>> liveMedicinePhotos() async {
+  /// prescription, leaving out [exceptMedicine] when given.
+  Future<Set<String>> liveMedicinePhotos({String? exceptMedicine}) async {
     final query = selectOnly(medicines)
       ..addColumns([medicines.photosJson])
-      ..where(medicines.deletedAt.isNull());
+      ..where(
+        medicines.deletedAt.isNull() &
+            (exceptMedicine == null
+                ? const Constant(true)
+                : medicines.id.equals(exceptMedicine).not()),
+      );
     final rx = selectOnly(prescriptions)
       ..addColumns([prescriptions.photosJson])
       ..where(prescriptions.deletedAt.isNull());
