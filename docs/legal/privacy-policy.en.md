@@ -2,16 +2,15 @@
 
 > **DRAFT – needs legal review** before publishing: Egypt Personal Data Protection
 > Law No. 151 of 2020 and its Executive Regulations; Saudi Personal Data Protection
-> Law (SDAIA) and SFDA rules for health software; UAE Federal Decree-Law No. 45 of
-> 2021 (PDPL) and Federal Law No. 2 of 2019 on ICT in health fields. Placeholders are
-> in [square brackets].
+> Law (SDAIA) and SFDA rules for health software; Jordan's Personal Data Protection Law No. 24 of 2023. Placeholders are in
+> [square brackets].
 
 Version: draft 0.1 · Last updated: [date of publication]
 
 Usra (أسرة) is made by [Opsedia legal name], [registered address] ("Opsedia", "we").
 This policy explains what happens to information in the Usra app. The short version:
 **the family's health information stays on your phone: records in an encrypted
-database, photos in the app's private storage. We do not receive it, we have no
+database, photos encrypted in the app's private storage. We do not receive it, we have no
 account for you, and there are no ads or tracking.**
 
 ## 1. Information you put in Usra
@@ -24,10 +23,10 @@ and photos of cards, reports and medicine boxes.
 
 This is health information, which the law treats as sensitive. **It is stored only on
 your device.** Records are kept in a database encrypted with a key held in your
-phone's secure storage (Android Keystore / iOS Keychain). Photos are kept as files in
-the app's private storage, which other apps cannot open; they are never put in your
-gallery or in iCloud or Android device backups. Photos are not yet encrypted
-separately from the phone's own protection. Opsedia has no copy and cannot see any of it.
+phone's secure storage (Android Keystore / iOS Keychain). Photos are kept as encrypted
+files in the app's private storage, with their own key in that same secure storage;
+they are never put in your gallery or in iCloud or Android device backups. Opsedia has
+no copy and cannot see any of it.
 
 When you add information about another person (a child, a parent, your spouse), you
 confirm you are their parent or guardian, or that they agreed to it.
@@ -41,10 +40,10 @@ confirm you are their parent or guardian, or that they agreed to it.
   the text are not sent anywhere. A photo taken only to read a medicine's name is not
   kept; a photo you save with a medicine is kept with it.
 - **Reminders.** Medicine reminders are local notifications scheduled on the phone.
-  Their text, including the person's name as you entered it and the medicine name, can appear on
-  your lock screen, and today's doses (first names and medicine names) can appear on
-  the home-screen widget if you add it. You can change this in your phone's
-  notification settings or remove the widget.
+  By default, reminders and the home-screen widget use neutral text, without names. If
+  you turn discreet notifications off, the person's name as you entered it and the
+  medicine name can appear on your lock screen, and today's doses (first names and
+  medicine names) can appear on the widget if you add it.
 - **Suggestions.** Follow-up suggestions, growth charts and vaccine dates are worked
   out on the phone from what you recorded, using published guidelines named in the app.
 
@@ -110,8 +109,8 @@ you saved them until you delete them there.
 
 ## 7. Your rights
 
-Under the data-protection laws of Egypt, Saudi Arabia and the UAE you may have the
-right to know, access, correct, delete or move personal data and to withdraw consent.
+Under the data-protection laws of Egypt, Saudi Arabia and Jordan [legal review: confirm
+for Jordan] you may have the right to know, access, correct, delete or move personal data and to withdraw consent.
 In Usra you can do all of this yourself: view, edit and delete any record, and export
 everything as a backup file. For anything we hold (section 4), contact us below.
 
@@ -124,26 +123,26 @@ or guardian.
 ## 9. Security
 
 The database is encrypted with a random 256-bit key (SQLite3 Multiple Ciphers) kept
-in the phone's secure storage. Photos are kept in the app's private storage, protected
-by the phone's own storage encryption and app sandbox; encrypting them separately is
-planned. Backup files, photos included, are encrypted with XChaCha20-Poly1305 using a
-key derived from your recovery key (Argon2id). Neither key is ever sent to us. Protect
+in the phone's secure storage. Photos are encrypted with XChaCha20-Poly1305, using a
+random key also kept in that secure storage. Backup files, photos included, are encrypted
+with XChaCha20-Poly1305 using a key derived from your recovery key (Argon2id). None of
+these keys is ever sent to us. Protect
 your phone with a screen lock: anyone who can unlock your phone can open Usra.
 Usra checks, on the phone only, for signs that it is rooted or jailbroken and warns
 you once if so; nothing about it is sent anywhere. A recovery key you copy is cleared
 from the clipboard after a minute.
 
-## 10. Later optional cloud features (not in the current version)
+## 10. Later features (not in the current version)
 
 > This section describes features **planned** for a later version. They will be
-> **optional and off by default**, and this policy will be updated, and your consent
-> asked in the app, before any of them starts.
+> **off by default**, and this policy will be updated, and your consent asked in the
+> app, before any of them starts.
 
-- **Account with Google or Apple**: you would sign in with your Google or Apple
-  account. Google would send us your name, email address, profile photo link and an
+- **Account with Google or Apple**: you would need one only to subscribe or redeem a
+  code, and you would sign in with your Google or Apple account. Google would send us your name, email address, profile photo link and an
   account ID. Apple would send us your email address (or a relay address, if you
-  choose to hide yours) and an account ID. We would store these with your language and
-  device information to run the account. We would not get your Google or Apple
+  choose to hide yours) and an account ID. We would store these with your language,
+  country, device information, member number and subscription status to run the account. We would not get your Google or Apple
   password. You would be able to delete the account from inside the app, which also
   ends the Sign in with Apple link; you can remove Usra from your Google account in
   your Google account settings. The account screen would say this before you sign in,
@@ -153,13 +152,13 @@ from the clipboard after a minute.
   a family, its owner would see your email address so they can check it's you.
 - **AI Doctor**: if you choose to use it, a de-identified summary (no names, phone
   numbers, dates of birth, notes or photos), which you can preview first, would be
-  sent to an AI service to produce informational findings. Credits may be bought in
-  the app.
+  sent to an AI service to produce informational findings.
 - **Cloud text reading**: if on-phone reading fails (for example Arabic or
   handwriting), you could choose to send one photo for reading in the cloud. It would
   be deleted after reading.
-- **Purchases** of credits or a subscription through the app stores and a payment
-  service provider.
+- **Purchases** of a 1-year pass or Lifetime through Google Play or the App Store. The
+  store handles the payment; we would keep the purchase status with your account,
+  through RevenueCat.
 
 Where these services run, which providers process the data, and any transfer outside
 your country will be listed here before launch. [Legal review: cross-border transfer

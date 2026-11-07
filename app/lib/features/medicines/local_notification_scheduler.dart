@@ -15,16 +15,13 @@ const _channelId = 'doses';
 
 /// Vaccine visits ring on their own channel, so either can be silenced.
 const _vaccineChannelId = 'vaccines';
-const _category = 'dose';
-
-/// Discreet reminders: Snooze only (iOS fixes a category's buttons).
-const _discreetCategory = 'dose_discreet';
 const takenActionId = 'taken';
 const snoozeActionId = 'snooze';
+const skipActionId = 'skip';
 
 /// What a tap on a dose notification asks for: `status` is
-/// [DoseOutcome.taken] or [DoseOutcome.snoozed] for the action buttons, null
-/// when the notification itself was tapped.
+/// [DoseOutcome.taken], [DoseOutcome.snoozed] or [DoseOutcome.skipped] for
+/// the action buttons, null when the notification itself was tapped.
 typedef DoseResponse = ({ReminderRef dose, String? status});
 
 /// [ReminderScheduler] on the phone's notifications
@@ -49,12 +46,17 @@ class LocalNotificationScheduler implements ReminderScheduler {
     required String vaccineChannelName,
     required String takenLabel,
     required String snoozeLabel,
+    required String skipLabel,
     required String hiddenPreviewText,
     required void Function(DoseResponse response) onResponse,
   }) async {
     final plugin = FlutterLocalNotificationsPlugin();
     await plugin.initialize(
-      settings: _settings(takenLabel: takenLabel, snoozeLabel: snoozeLabel),
+      settings: _settings(
+        takenLabel: takenLabel,
+        snoozeLabel: snoozeLabel,
+        skipLabel: skipLabel,
+      ),
       onDidReceiveNotificationResponse: (r) {
         final response = _read(r);
         if (response != null) onResponse(response);
@@ -108,6 +110,7 @@ class LocalNotificationScheduler implements ReminderScheduler {
   static InitializationSettings _settings({
     required String takenLabel,
     required String snoozeLabel,
+    required String skipLabel,
   }) => InitializationSettings(
     android: const AndroidInitializationSettings('@drawable/ic_stat_usra'),
     iOS: DarwinInitializationSettings(
@@ -117,14 +120,34 @@ class LocalNotificationScheduler implements ReminderScheduler {
       requestSoundPermission: false,
       notificationCategories: [
         DarwinNotificationCategory(
-          _category,
+          namedCategory,
           actions: [
             DarwinNotificationAction.plain(takenActionId, takenLabel),
             DarwinNotificationAction.plain(snoozeActionId, snoozeLabel),
+            DarwinNotificationAction.plain(skipActionId, skipLabel),
+          ],
+        ),
+        // From the lock screen, a button with no name near it could be
+        // pressed by anyone: iOS asks to unlock the phone first, then runs
+        // it without opening the app. Snooze records nothing about the dose.
+        DarwinNotificationCategory(
+          discreetLoneCategory,
+          actions: [
+            DarwinNotificationAction.plain(
+              takenActionId,
+              takenLabel,
+              options: {DarwinNotificationActionOption.authenticationRequired},
+            ),
+            DarwinNotificationAction.plain(snoozeActionId, snoozeLabel),
+            DarwinNotificationAction.plain(
+              skipActionId,
+              skipLabel,
+              options: {DarwinNotificationActionOption.authenticationRequired},
+            ),
           ],
         ),
         DarwinNotificationCategory(
-          _discreetCategory,
+          discreetCategory,
           actions: [
             DarwinNotificationAction.plain(snoozeActionId, snoozeLabel),
           ],
@@ -142,6 +165,7 @@ class LocalNotificationScheduler implements ReminderScheduler {
   static String? _statusOf(String? actionId) => switch (actionId) {
     takenActionId => DoseOutcome.taken,
     snoozeActionId => DoseOutcome.snoozed,
+    skipActionId => DoseOutcome.skipped,
     _ => null,
   };
 
@@ -317,22 +341,20 @@ NotificationDetails _details(PlannedReminder r, {bool silent = false}) =>
             AndroidNotificationAction(takenActionId, taken),
           if (r.snoozeLabel case final snooze?)
             AndroidNotificationAction(snoozeActionId, snooze),
+          if (r.skipLabel case final skip?)
+            AndroidNotificationAction(skipActionId, skip),
         ],
       ),
       iOS: DarwinNotificationDetails(
         // Vaccine visits and next-dose reminders have no buttons: no
         // category.
-        categoryIdentifier: !r.hasButtons
-            ? null
-            : r.discreet
-            ? _discreetCategory
-            : _category,
+        categoryIdentifier: r.iosCategory,
         presentSound: silent ? false : null,
         presentBanner: silent ? false : null,
       ),
     );
 
-/// Taken / Snooze pressed while the app wasn't running, in a background
+/// Taken / Snooze / Skip pressed while the app wasn't running, in a background
 /// isolate that can't open the encrypted database: the action is left in
 /// the inbox for the app, and a snooze is scheduled right here.
 @pragma('vm:entry-point')
@@ -360,6 +382,7 @@ Future<void> onBackgroundDoseResponse(NotificationResponse response) async {
     settings: LocalNotificationScheduler._settings(
       takenLabel: l.doseTaken,
       snoozeLabel: l.doseSnooze,
+      skipLabel: l.doseSkip,
     ),
     onDidReceiveBackgroundNotificationResponse: onBackgroundDoseResponse,
   );

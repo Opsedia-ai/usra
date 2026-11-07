@@ -184,12 +184,13 @@ void main() {
 
     // Simple Mode on this phone: no spending link, a named greeting.
     final fatma = saved.single.id;
+    await tester.ensureVisible(find.byKey(const ValueKey('member-spending')));
     expect(find.byKey(const ValueKey('member-spending')), findsOneWidget);
-    await tester.tap(find.text('المزيد').last);
+    final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
+    router.go('/settings');
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('settings-simple-mode')));
     await tester.pumpAndSettle();
-    final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
     router.go('/family/$fatma');
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('member-spending')), findsNothing);

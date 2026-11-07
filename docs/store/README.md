@@ -1,6 +1,6 @@
 # Store listings
 
-Launch texts for Usra v1 (M5). Egypt first, so Arabic (Egyptian colloquial) is the
+Launch texts for Usra v1 (M5). The beta and first public launch are in Egypt only, so Arabic (Egyptian colloquial) is the
 primary listing; English is the second listing for both stores.
 
 | File | What |
@@ -48,8 +48,7 @@ Notes:
       (`releaseWebsiteCheck` in `app/lib/features/settings/about_privacy_screen.dart`),
       so the placeholder `https://usra.example` can't ship. The app opens
       `<domain>/ar/privacy`, `/en/privacy`, `/ar/terms`, `/en/terms`.
-- [ ] Photos: until S1 (photo encryption) lands, texts say only records are encrypted;
-      see the TODO in `data-safety.md`.
-- [ ] Gulf listing (KSA/UAE): swap "العيلة" for "الأسرة" and Egyptian phrasing for
-      Modern Standard / Gulf phrasing; drop "Egypt's vaccine schedule" until a Gulf
-      schedule ships.
+- [ ] Saudi Arabia and Jordan listings, after a local doctor has reviewed their
+      schedules: settle the dialect (still open in `docs/prd-v1.md`), then swap "العيلة"
+      and the Egyptian phrasing to match, and replace "Egypt's vaccine schedule" and
+      the 123 emergency number with that country's. UAE comes later.

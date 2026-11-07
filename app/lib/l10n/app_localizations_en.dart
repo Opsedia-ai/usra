@@ -107,7 +107,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutPrivacyOptionalAccount =>
-      'An account is optional, and there are no ads and no tracking. If you sign in, we keep your email (and your name with Google) to run the account, and we never receive your health records. We never sell or share anyone\'s data.';
+      'An account is optional, and there are no ads and no tracking. If you sign in, we keep your email, account ID, language and device information to run the account, plus your name and profile photo link if you use Google. We never receive your health records. We never sell or share anyone\'s data.';
 
   @override
   String get aboutPrivacyBackup =>
@@ -1315,7 +1315,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get doseReminderBody => 'Tap Taken once it\'s done';
+  String doseReminderBody(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'other': 'Tap Taken once it\'s done',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get doseChannelName => 'Medicine reminders';
@@ -1696,6 +1701,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get databaseKeyUnavailable =>
       'Usra can\'t open the key to your records right now. Your records are still here and nothing was deleted. Try again, or restart your phone. If this keeps happening, contact us before deleting the app.';
+
+  @override
+  String get databaseOpenFailed =>
+      'Usra can\'t open your records right now. Your records are still here and nothing was deleted. Check that your phone has free storage, then try again or restart your phone. If this keeps happening, contact us before deleting the app.';
 
   @override
   String get recoveryKeyCopyFailed =>
@@ -2344,7 +2353,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountSignInIntro =>
-      'An account is optional: the app works fully without one. Google shares your name and email with us; Apple shares your email.';
+      'An account is optional: the app works fully without one. Google shares your name, email, profile photo link and an account ID with us; Apple shares your email (or a replacement address if you hide yours) and an account ID. We store these with your language and device information to run the account.';
 
   @override
   String get accountSignInConsent =>
@@ -2543,11 +2552,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lockTimeoutFiveMinutes => '5 minutes';
 
   @override
-  String get lockSettingsEmergency => 'Emergency card on the lock screen';
+  String get lockSettingsEmergency => 'Emergency card on Usra\'s lock screen';
 
   @override
   String get lockSettingsEmergencyHint =>
-      'A paramedic can see the blood type, allergies and conditions of the people you choose here without the PIN. Anyone holding the phone can see them too.';
+      'The blood type, allergies, conditions, surgeries and current medicines of the people you choose here can be seen without the PIN by anyone holding the phone with Usra open. This is Usra\'s lock screen, not the phone\'s: for a locked phone, use the phone\'s own Medical ID.';
 
   @override
   String get lockVerifyTitle => 'Confirm it\'s you';
@@ -2564,7 +2573,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'That PIN is too easy to guess. Avoid repeated or sequential numbers.';
 
   @override
-  String get lockEmergencyFor => 'Show on the lock screen';
+  String get lockEmergencyFor => 'Show on Usra\'s lock screen';
 
   @override
   String get lockBackupFirstTitle => 'Make a backup first?';
@@ -2607,7 +2616,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Photos can\'t be opened on this phone. Restore your backup to get them back.';
 
   @override
-  String get doseReminderDiscreetTitle => 'Time for a medicine';
+  String get doseReminderDiscreetTitle => 'Your medicine time';
 
   @override
   String get widgetDiscreetDose => 'Dose due';
@@ -2617,7 +2626,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsDiscreetHint =>
-      'Reminders and the home-screen widget say \"Time for a medicine\", without the person\'s or the medicine\'s name.';
+      'Reminders and the home-screen widget say \"Your medicine time\", without the person\'s or the medicine\'s name. When several doses are close together, open Usra to mark them.';
 
   @override
   String get settingsBlockScreenshots => 'Block screenshots';
@@ -2628,6 +2637,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get doseReminderDiscreetBody => 'Open Usra to see which';
+
+  @override
+  String doseReminderDiscreetTimeBody(String time) {
+    return 'The $time dose';
+  }
+
+  @override
+  String get doseReminderDiscreetSeveralBody =>
+      'More than one dose is due around now. Open Usra to see which';
 
   @override
   String get memberVaccines => 'Vaccinations';
@@ -4098,4 +4116,205 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lockKeyFirstContinue => 'Make the recovery key';
+
+  @override
+  String personAddFor(String name) {
+    return 'Add for $name';
+  }
+
+  @override
+  String personVaccineWasDue(String date) {
+    return 'It was due on $date. Ask the doctor when to give it.';
+  }
+
+  @override
+  String get personDoctorSummary => 'Doctor summary';
+
+  @override
+  String get personInsuranceOpen => 'Open card';
+
+  @override
+  String get personVaccineLog => 'Given? Log it';
+
+  @override
+  String personVaccineSource(String route, String date) {
+    return 'Reference: Egypt\'s vaccine schedule, $route · checked $date';
+  }
+
+  @override
+  String personVaccineSourceOptional(String date) {
+    return 'Reference: pediatricians\' usual schedules in Egypt · checked $date';
+  }
+
+  @override
+  String personNextDose(String time) {
+    return 'Next dose · $time';
+  }
+
+  @override
+  String personDoseWasAt(String time) {
+    return 'Was due at $time';
+  }
+
+  @override
+  String get personRecordedTitle => 'Recorded by the family';
+
+  @override
+  String get personTimelineTitle => 'All records';
+
+  @override
+  String get personTileGrowth => 'Growth';
+
+  @override
+  String get personTileVisits => 'Visits and labs';
+
+  @override
+  String get personTileInsurance => 'Insurance';
+
+  @override
+  String get personTileDocuments => 'Documents and photos';
+
+  @override
+  String personVaccinesSummary(String done, String total) {
+    return '$done of $total · Egypt schedule';
+  }
+
+  @override
+  String personGrowthWeight(String value, String date) {
+    return '$value kg · $date';
+  }
+
+  @override
+  String personGrowthHeight(String value, String date) {
+    return '$value cm · $date';
+  }
+
+  @override
+  String personLatestOn(String date) {
+    return 'Latest $date';
+  }
+
+  @override
+  String personInsuranceCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown cards',
+      one: '1 card',
+      zero: 'None yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personMedicinesCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown current',
+      one: '1 current',
+      zero: 'None current',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personFollowUpsCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown follow-ups',
+      one: '1 follow-up',
+      zero: 'None for now',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personDocumentsCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown records with photos',
+      one: '1 record with photos',
+      zero: 'None yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get personVisitsEmpty => 'No visits or lab results recorded yet.';
+
+  @override
+  String get personDocumentsEmpty => 'No records with photos yet.';
+
+  @override
+  String personAgeYears(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown years',
+      one: '1 year',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personAgeMonths(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown months',
+      one: '1 month',
+      zero: 'Under 1 month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String emergencyAmbulanceShort(String number) {
+    return 'Ambulance $number';
+  }
+
+  @override
+  String get emergencyOtherLanguage => 'عربي';
+
+  @override
+  String get emergencyMedicines => 'Current medicines';
+
+  @override
+  String get emergencyAsTyped =>
+      'This is what the family recorded, as they typed it.';
+
+  @override
+  String get emergencyLockTitle => 'Show on Usra\'s lock screen';
+
+  @override
+  String get emergencyLockHint =>
+      'Anyone holding the phone can see it once Usra is open';
+
+  @override
+  String get emergencyMedicalIdHint =>
+      'Usra\'s lock screen only appears once the phone itself is unlocked. So a paramedic can read this on a locked phone, also add it to the phone\'s own Medical ID or emergency information, in the phone\'s settings.';
+
+  @override
+  String lockEmergencyConfirmTitle(String name) {
+    return 'Show $name\'s card on Usra\'s lock screen?';
+  }
+
+  @override
+  String get lockEmergencyConfirmBody =>
+      'Anyone holding the phone with Usra open will be able to see the blood type, allergies, conditions, surgeries and current medicines without the PIN. This is Usra\'s lock screen, not the phone\'s.';
+
+  @override
+  String get lockEmergencyConfirmYes => 'Yes, show it';
+
+  @override
+  String get insuranceCopyNumber => 'Copy member number';
+
+  @override
+  String get insuranceCopyFailed => 'Couldn\'t copy the number';
+
+  @override
+  String get insuranceNumberCopied => 'Member number copied';
 }

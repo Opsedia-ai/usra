@@ -17,7 +17,8 @@ targets claim the group in their `.entitlements`.
   Flutter's `Generated.xcconfig` through `DoseWidget.xcconfig`, so they
   always match the app's (App Store Connect rejects a mismatch).
 - `DoseWidget.entitlements`, `../Runner/Runner.entitlements`: the App Group.
-- No Pods: the widget only uses WidgetKit, SwiftUI and `UserDefaults`.
+- No Pods: the widget only uses WidgetKit, SwiftUI, App Intents and the App
+  Group's `UserDefaults` and folder.
 
 ## Before the first signed build
 
@@ -42,6 +43,14 @@ the app with (`usra://widget/medicines?homeWidget`).
   to open Usra.
 - Big text (`.title3`), right to left when the app is in Arabic, light and
   dark from the system.
-- No Taken button on iOS: an App Intent runs in the extension, which can't
-  reach the app's dose inbox (it lives in the app's private folder, not the
-  App Group). Tapping the widget opens the Medicines tab instead.
+- Taken button on iOS 17+, on a dose that's due and that the app allows
+  (`t` in the snapshot: with names always, in discreet mode only if no other
+  dose is still due within an hour). An App Intent runs in the extension, which
+  can't reach the app's private folder, so it writes the same line as the
+  notification's Taken to `dose_actions.jsonl` in the App Group, hides the
+  row (`dose_widget_taken` in the App Group's defaults) until a later snapshot,
+  and the app saves it when it next runs. Tapping anywhere else, and on iOS
+  15.5 to 16, opens the Medicines tab behind the app lock. StandBy and the iPad
+  Lock Screen can show the widget on a locked device, so the button asks to
+  unlock first (`authenticationPolicy`). A snoozed dose has no button: its
+  reminder is still coming, and Taken here can't cancel it.

@@ -2,6 +2,8 @@
 
 Nov 2, 2026 · @Aya Nasser
 
+> **Note, 7 Nov 2026:** this is the original proposal, kept as history. [`prd-v1.md`](prd-v1.md) and [`product-definition.md`](product-definition.md) override it wherever they differ. For example: only the first 5,000 founding members are free for life; v1 has no dose calculator, family linking, caregiver alerts or cloud OCR; and the launch order is Egypt, then Saudi Arabia and Jordan, with UAE later.
+
 ## Executive summary
 
 Build an offline-first mobile app that keeps one family's whole medical history in one place. It covers visits, doctors, insurance cards, medications, scans, vaccinations (تطعيمات) and surgeries, plus reminders and a spending dashboard. It launches **free**; revenue comes later from **partnerships with hospitals and clinics** that send verified records to their patients. Running cost stays near zero because data and OCR live on the phone by default.

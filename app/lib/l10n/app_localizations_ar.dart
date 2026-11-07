@@ -106,7 +106,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutPrivacyOptionalAccount =>
-      'الحساب اختياري، ومفيش إعلانات ولا تتبع. لو دخلت، بنحتفظ بإيميلك (واسمك مع Google) علشان الحساب يشتغل، ومش بنستلم سجلاتك الصحية. وعمرنا ما بنبيع ولا بنشارك بيانات حد.';
+      'الحساب اختياري، ومفيش إعلانات ولا تتبع. لو دخلت، بنحتفظ بإيميلك ورقم تعريف للحساب ومعاهم اللغة ومعلومات الجهاز علشان الحساب يشتغل، وكمان اسمك ولينك صورة حسابك لو دخلت بـ Google. ومش بنستلم سجلاتك الصحية. وعمرنا ما بنبيع ولا بنشارك بيانات حد.';
 
   @override
   String get aboutPrivacyBackup =>
@@ -693,7 +693,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shareFailed => 'مقدرناش نفتح المشاركة';
 
   @override
-  String get emergencyTitle => 'بطاقة الطوارئ';
+  String get emergencyTitle => 'كارت الطوارئ';
 
   @override
   String get emergencyUnknown => 'مش متسجلة';
@@ -1322,7 +1322,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get doseReminderBody => 'دوس اتاخد بعد ما ياخده';
+  String doseReminderBody(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'female': 'دوس اتاخد بعد ما تاخده',
+      'other': 'دوس اتاخد بعد ما ياخده',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get doseChannelName => 'مواعيد الأدوية';
@@ -1702,6 +1708,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get databaseKeyUnavailable =>
       'أسرة مقدرتش تفتح مفتاح سجلاتك دلوقتي. سجلاتك لسه موجودة ومتمسحتش. جرّب تاني، أو اقفل الموبايل وافتحه. لو المشكلة فضلت، كلمنا قبل ما تمسح التطبيق.';
+
+  @override
+  String get databaseOpenFailed =>
+      'أسرة مقدرتش تفتح سجلاتك دلوقتي. سجلاتك لسه موجودة ومتمسحتش. اتأكد إن الموبايل فيه مساحة فاضية، وبعدين جرّب تاني أو اقفل الموبايل وافتحه. لو المشكلة فضلت، كلمنا قبل ما تمسح التطبيق.';
 
   @override
   String get recoveryKeyCopyFailed =>
@@ -2355,7 +2365,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accountSignInIntro =>
-      'الحساب اختياري، والتطبيق بيشتغل كله من غيره. Google بيبعتلنا اسمك وإيميلك، وApple بتبعتلنا إيميلك.';
+      'الحساب اختياري، والتطبيق بيشتغل كله من غيره. Google بيبعتلنا اسمك وإيميلك ولينك صورة حسابك ورقم تعريف للحساب، وApple بتبعتلنا إيميلك (أو عنوان بديل لو اخترت تخبي إيميلك) ورقم تعريف للحساب. بنخزن ده مع اللغة ومعلومات الجهاز علشان الحساب يشتغل.';
 
   @override
   String get accountSignInConsent =>
@@ -2550,11 +2560,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get lockTimeoutFiveMinutes => '5 دقايق';
 
   @override
-  String get lockSettingsEmergency => 'كارت الطوارئ على شاشة القفل';
+  String get lockSettingsEmergency => 'كارت الطوارئ على قفل أسرة';
 
   @override
   String get lockSettingsEmergencyHint =>
-      'المسعف يقدر يشوف فصيلة الدم والحساسية والأمراض للناس اللي هتختارهم هنا من غير الرقم السري. وأي حد ماسك الموبايل يقدر يشوفهم برضه.';
+      'فصيلة الدم والحساسية والأمراض والعمليات والأدوية الحالية للناس اللي هتختارهم هنا، أي حد ماسك الموبايل وأسرة مفتوحة يقدر يشوفها من غير الرقم السري. ده قفل أسرة، مش قفل الموبايل: للموبايل المقفول استخدم Medical ID بتاع الموبايل نفسه.';
 
   @override
   String get lockVerifyTitle => 'أكّد إنه إنت';
@@ -2571,7 +2581,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'الرقم ده سهل يتخمّن. ابعد عن الأرقام المتكررة أو اللي ورا بعض.';
 
   @override
-  String get lockEmergencyFor => 'يظهر على شاشة القفل';
+  String get lockEmergencyFor => 'يظهر على قفل أسرة';
 
   @override
   String get lockBackupFirstTitle => 'تعمل نسخة احتياطية الأول؟';
@@ -2617,7 +2627,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'الصور مش بتتفتح على الموبايل ده. رجّع نسختك الاحتياطية عشان ترجعلك.';
 
   @override
-  String get doseReminderDiscreetTitle => 'ميعاد دوا';
+  String get doseReminderDiscreetTitle => 'ميعاد الدوا';
 
   @override
   String get widgetDiscreetDose => 'ميعاد جرعة';
@@ -2627,7 +2637,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settingsDiscreetHint =>
-      'التنبيهات وويدجت الشاشة الرئيسية بتقول \"ميعاد دوا\" بس، من غير اسم الشخص ولا اسم الدوا.';
+      'التنبيهات وويدجت الشاشة الرئيسية بتقول \"ميعاد الدوا\" بس، من غير اسم الشخص ولا اسم الدوا. لو كذا جرعة مواعيدهم قريبة من بعض، افتح أسرة عشان تعلّم عليهم.';
 
   @override
   String get settingsBlockScreenshots => 'امنع تصوير الشاشة';
@@ -2638,6 +2648,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get doseReminderDiscreetBody => 'افتح أسرة عشان تشوف أنهي دوا';
+
+  @override
+  String doseReminderDiscreetTimeBody(String time) {
+    return 'جرعة $time';
+  }
+
+  @override
+  String get doseReminderDiscreetSeveralBody =>
+      'فيه أكتر من جرعة ميعادها دلوقتي. افتح أسرة عشان تشوف أنهي دوا';
 
   @override
   String get memberVaccines => 'التطعيمات';
@@ -4123,4 +4142,215 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lockKeyFirstContinue => 'اعمل مفتاح الاسترجاع';
+
+  @override
+  String personAddFor(String name) {
+    return 'إضافة ل$name';
+  }
+
+  @override
+  String personVaccineWasDue(String date) {
+    return 'كان ميعادها $date. اسأل الدكتور إمتى تتاخد.';
+  }
+
+  @override
+  String get personDoctorSummary => 'ملخص للدكتور';
+
+  @override
+  String get personInsuranceOpen => 'افتح الكارت';
+
+  @override
+  String get personVaccineLog => 'اتاخدت؟ سجّلها';
+
+  @override
+  String personVaccineSource(String route, String date) {
+    return 'المرجع: جدول التطعيمات في مصر، $route · اتراجع $date';
+  }
+
+  @override
+  String personVaccineSourceOptional(String date) {
+    return 'المرجع: الجداول المعتادة عند دكاترة الأطفال في مصر · اتراجع $date';
+  }
+
+  @override
+  String personNextDose(String time) {
+    return 'الجرعة الجاية · $time';
+  }
+
+  @override
+  String personDoseWasAt(String time) {
+    return 'كان ميعادها $time';
+  }
+
+  @override
+  String get personRecordedTitle => 'اللي العيلة سجّلته';
+
+  @override
+  String get personTimelineTitle => 'كل السجلات';
+
+  @override
+  String get personTileGrowth => 'النمو';
+
+  @override
+  String get personTileVisits => 'الزيارات والتحاليل';
+
+  @override
+  String get personTileInsurance => 'التأمين';
+
+  @override
+  String get personTileDocuments => 'الورق والصور';
+
+  @override
+  String personVaccinesSummary(String done, String total) {
+    return '$done من $total · جدول مصر';
+  }
+
+  @override
+  String personGrowthWeight(String value, String date) {
+    return '$value كجم · $date';
+  }
+
+  @override
+  String personGrowthHeight(String value, String date) {
+    return '$value سم · $date';
+  }
+
+  @override
+  String personLatestOn(String date) {
+    return 'آخرها $date';
+  }
+
+  @override
+  String personInsuranceCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown كارت',
+      few: '$shown كروت',
+      two: 'كارتين',
+      one: 'كارت واحد',
+      zero: 'لسه مفيش',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personMedicinesCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown دوا',
+      few: '$shown أدوية',
+      two: 'دوايين',
+      one: 'دوا واحد',
+      zero: 'مفيش أدوية حالية',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personFollowUpsCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown متابعة',
+      few: '$shown متابعات',
+      two: 'متابعتين',
+      one: 'متابعة واحدة',
+      zero: 'مفيش دلوقتي',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personDocumentsCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown سجل فيه صور',
+      few: '$shown سجلات فيها صور',
+      two: 'سجلين فيهم صور',
+      one: 'سجل واحد فيه صور',
+      zero: 'لسه مفيش',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get personVisitsEmpty => 'لسه مفيش زيارات أو تحاليل متسجلة.';
+
+  @override
+  String get personDocumentsEmpty => 'لسه مفيش سجلات فيها صور.';
+
+  @override
+  String personAgeYears(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown سنة',
+      few: '$shown سنين',
+      two: 'سنتين',
+      one: 'سنة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personAgeMonths(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown شهر',
+      few: '$shown شهور',
+      two: 'شهرين',
+      one: 'شهر',
+      zero: 'أقل من شهر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String emergencyAmbulanceShort(String number) {
+    return 'الإسعاف $number';
+  }
+
+  @override
+  String get emergencyOtherLanguage => 'English';
+
+  @override
+  String get emergencyMedicines => 'أدوية حالية';
+
+  @override
+  String get emergencyAsTyped => 'ده اللي العيلة سجّلته، زي ما اتكتب.';
+
+  @override
+  String get emergencyLockTitle => 'إظهاره على قفل أسرة';
+
+  @override
+  String get emergencyLockHint => 'أي حد ماسك الموبايل وأسرة مفتوحة يقدر يشوفه';
+
+  @override
+  String get emergencyMedicalIdHint =>
+      'قفل أسرة بيظهر بس بعد ما الموبايل نفسه يتفتح. عشان المسعف يقدر يقرا المعلومات دي والموبايل مقفول، سجّلها كمان في Medical ID أو معلومات الطوارئ في إعدادات الموبايل.';
+
+  @override
+  String lockEmergencyConfirmTitle(String name) {
+    return 'يظهر كارت $name على قفل أسرة؟';
+  }
+
+  @override
+  String get lockEmergencyConfirmBody =>
+      'أي حد ماسك الموبايل وأسرة مفتوحة هيقدر يشوف فصيلة الدم والحساسية والأمراض والعمليات والأدوية الحالية من غير الرقم السري. ده قفل أسرة، مش قفل الموبايل.';
+
+  @override
+  String get lockEmergencyConfirmYes => 'أيوه، يظهر';
+
+  @override
+  String get insuranceCopyNumber => 'انسخ رقم العضوية';
+
+  @override
+  String get insuranceCopyFailed => 'مقدرناش ننسخ الرقم';
+
+  @override
+  String get insuranceNumberCopied => 'رقم العضوية اتنسخ';
 }

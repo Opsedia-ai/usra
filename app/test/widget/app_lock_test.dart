@@ -271,10 +271,12 @@ void main() {
     expect(find.text('منى'), findsNothing);
     await tester.tap(find.byKey(ValueKey('lock-emergency-$id')));
     await tester.pumpAndSettle();
-    expect(find.text('بطاقة الطوارئ'), findsWidgets);
+    expect(find.text('كارت الطوارئ'), findsWidgets);
     expect(find.byKey(const ValueKey('emergency-blood')), findsOneWidget);
     // Nothing on it leads into the app.
     expect(find.byKey(const ValueKey('emergency-complete')), findsNothing);
+    expect(find.byKey(const ValueKey('emergency-lock-switch')), findsNothing);
+    expect(find.byKey(const ValueKey('emergency-medical-id')), findsNothing);
 
     // Back goes to the lock screen, still locked.
     await tester.binding.handlePopRoute();
@@ -631,7 +633,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(lock.enabled, isTrue);
 
-    // Showing someone's card on the lock screen needs the PIN.
+    // Showing someone's card on Usra's lock screen says what shows and needs
+    // the PIN.
     final person = find.byKey(ValueKey('app-lock-emergency-$id'));
     await tester.scrollUntilVisible(
       person,
@@ -640,6 +643,13 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(person);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('emergency-lock-confirm')),
+      findsOneWidget,
+    );
+    expect(lock.emergencyProfiles, isEmpty);
+    await tester.tap(find.byKey(const ValueKey('emergency-lock-yes')));
     await tester.pumpAndSettle();
     expect(find.text('أكّد إنه إنت'), findsOneWidget);
     await typePin(tester, '730184');

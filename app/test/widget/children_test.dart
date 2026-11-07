@@ -85,6 +85,8 @@ void main() {
 
     router.go('/family/$kid');
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('member-growth')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('member-growth')));
     await tester.pumpAndSettle();
 

@@ -319,6 +319,13 @@ class BackupService {
   Future<void> discardStaged() => _clearStaging();
 
   /// Deletes what a successful restore replaced.
+  /// A restore that went in but won't open: puts the old data back, while
+  /// it's still aside. If this is stopped part way, the next start finishes it.
+  Future<void> undoCommit() async {
+    await _marker.create();
+    await recoverInterrupted();
+  }
+
   Future<void> discardAside() async {
     if (await _aside.exists()) await _aside.delete(recursive: true);
   }

@@ -474,6 +474,37 @@ void main() {
     );
   });
 
+  test('a restore that went in but will not open is undone', () async {
+    final backup = await backupOldPhone();
+    final fresh = newPhone.open();
+    await fresh.addProfile('Mine');
+    await fresh.close();
+    newPhone.writePhoto('medicines/m.jpg', [5]);
+    final bytes = newPhone.dbFile.readAsBytesSync();
+
+    await newPhone.service.stage(backup, recovery, currentSchema: 8);
+    await newPhone.service.commit();
+    expect(newPhone.dbFile.readAsBytesSync(), isNot(bytes));
+
+    await newPhone.service.undoCommit();
+
+    expect(newPhone.dbFile.readAsBytesSync(), bytes);
+    // Nothing is left to delete or roll back at the next start.
+    await newPhone.service.recoverInterrupted();
+    expect(newPhone.dbFile.readAsBytesSync(), bytes);
+    expect(
+      File(p.join(newPhone.root.path, 'medicines/m.jpg')).existsSync(),
+      isTrue,
+    );
+    expect(
+      Directory(p.join(newPhone.root.path, 'attachments')).existsSync(),
+      isFalse,
+    );
+    final db = newPhone.open();
+    addTearDown(db.close);
+    expect((await db.watchProfiles().first).single.displayName, 'Mine');
+  });
+
   test('a photo that no longer opens is left out, not the backup', () async {
     oldPhone.writePhoto('attachments/good.jpg', photo);
     oldPhone.writePhoto('attachments/bad.jpg', photo);

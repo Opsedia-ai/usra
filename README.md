@@ -2,13 +2,15 @@
 
 Usra keeps one family's whole medical history in one place: visits, doctors, medicines, scans, labs, vaccinations, surgeries, insurance cards and spending. It sends reminders and suggests follow-ups, and it is built for elderly users and their caregivers, children and pregnancy. It is offline-first: records stay encrypted on the phone.
 
-**Status:** design phase. No app code yet. The next step is milestone M0 (foundations) from the technical design.
+**Status:** building v1. Closed beta with 50 families on 31 December 2026. Product plan: [docs/prd-v1.md](docs/prd-v1.md) and [docs/product-definition.md](docs/product-definition.md).
 
 ## What is in this repo
 
 ```
 docs/
-  01-product-proposal.md      Full product proposal (features, pricing model, roadmap)
+  prd-v1.md                   What v1 is: scope, requirements, release plan, decisions
+  product-definition.md       Vision, users, brand, colours, business model
+  01-product-proposal.md      Original product proposal, kept as history (the PRD overrides it)
   decisions.md                Every decision made so far, in one table
   pdf/
     01-product-proposal.pdf   Proposal with charts and diagrams
@@ -32,11 +34,11 @@ The live documents are the most up to date. The files here are snapshots taken o
 
 ## Key decisions (short)
 
-- **First market:** Egypt. Arabic-first, then KSA and UAE.
-- **Business model:** free app. Revenue later from clinic partnerships and an optional AI Doctor (credits + "Usra Plus" subscription).
+- **First market:** Egypt only for the beta and first public launch. Arabic-first. Saudi Arabia and Jordan follow; UAE later.
+- **Business model:** the first 5,000 signed-in users to save a record are founding members, free for life; after that a 1-year pass or Lifetime, through the stores. Clinic partnerships later.
 - **Mobile:** Flutter, one codebase for Android and iOS.
-- **Backend:** Supabase (Auth, Postgres, Edge Functions). Health data stays on the phone in v1; end-to-end encrypted sync later.
-- **Design:** Nile blue brand colour, plus a 5-level severity scale (blue, green, yellow, orange, red).
+- **Backend:** Supabase (Auth, Postgres, Edge Functions), on Pro from the moment real member numbers exist; until then nothing runs. Health data stays on the phone in v1; end-to-end encrypted sync later.
+- **Design:** Twilight palette (navy and orchid), plus a 5-level severity scale (blue, green, yellow, orange, red).
 - **Character:** Dr. Usra (دكتور أسرة).
 
-See [docs/decisions.md](docs/decisions.md) for the full list.
+See [docs/prd-v1.md](docs/prd-v1.md) for the current decisions and [docs/decisions.md](docs/decisions.md) for the full history.

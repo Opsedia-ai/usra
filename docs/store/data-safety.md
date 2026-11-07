@@ -1,26 +1,32 @@
 # Data safety, privacy labels and health declarations
 
-Answers for Usra v1 (local-only), taken from the code as of this branch. Re-check
-this file whenever a permission, SDK or network call is added; the M6 cloud features
-(accounts, sync, AI Doctor, cloud OCR) will change most answers (see the last section).
+Answers for the Usra v1 build with no accounts, as the beta is unless the lawyer's answer
+arrives first, taken from the
+code as of this branch. Re-check this file whenever a permission, SDK or network call is
+added; accounts and the paywall, and later the v2 features, change most answers (see the
+last section).
 
 ## What the app actually does (source of the answers)
 
 | Capability | Where in the code | Data leaves the phone? |
 | --- | --- | --- |
 | Encrypted database (SQLite3 Multiple Ciphers), key in Keystore / Keychain | `core/database/`, `flutter_secure_storage` | No |
-| Photos of cards, reports, medicine boxes: **plain files** in the app's private storage (not encrypted yet, see S1 below) | `core/files/photo_store.dart` | No |
+| Photos of cards, reports, medicine boxes: **encrypted files** (XChaCha20-Poly1305, key in Keystore / Keychain) in the app's private storage | `core/files/photo_store.dart`, `core/files/photo_crypto.dart` | No |
 | Taking / picking those photos | `image_picker` | No |
 | Text recognition on photos (Latin script) | `core/ocr/`, `google_mlkit_text_recognition` (bundled model) | Photos and text: no. Google ML Kit may send its own diagnostics with a random per-installation ID, see below |
 | Medicine reminders, Taken / Snooze buttons | `features/medicines/`, `flutter_local_notifications` | No |
-| Home-screen widget with today's doses (first names and medicine names) | `features/medicines/dose_widget.dart`, `home_widget` | No (shown on the home screen) |
-| Reminder notifications (the person's name as entered and the medicine name, visible on the lock screen) | `features/medicines/local_notification_scheduler.dart` | No |
+| Home-screen widget with today's doses (neutral text by default; first names and medicine names if discreet mode is off) | `features/medicines/dose_widget.dart`, `home_widget` | No (shown on the home screen) |
+| Reminder notifications (neutral text by default; the person's name as entered and the medicine name can show on the lock screen if discreet mode is off) | `features/medicines/local_notification_scheduler.dart` | No |
 | Encrypted backup file, shared by the user to a place they choose | `core/backup/`, `share_plus`, `file_picker` | Only where the user sends it, encrypted; we never receive it |
 | Automatic encrypted backup to a folder the user picks once (optional, off by default; never iCloud Drive) | `core/backup/`, `features/backup/`, Storage Access Framework on Android, security-scoped bookmark on iOS; no new permissions | Only to that folder, encrypted, with no network call by Usra; we never receive it |
 | Vaccination record and doctor summary PDFs, made on the phone and shared by the user (not encrypted: readable by whoever receives them; a warning says so first) | `features/reports/`, `pdf`, `share_plus` | Only where the user sends it; we never receive it. The file is deleted from the phone after sharing |
 | Call / WhatsApp a doctor, open links | `features/doctors/`, `url_launcher` | Opens the other app; nothing sent by Usra |
 | App version shown in About | `package_info_plus` | No |
-| Accounts, analytics, crash reporting, ads, payments | none in v1, unless a build sets `SUPABASE_URL` (then accounts: see the last section) | – |
+| Analytics, crash reporting, ads | none in any v1 build | – |
+| Accounts, payments | none in a build with no accounts. Accounts only if a build sets `SUPABASE_URL`, and payments only once the paywall is on (see the last section) | – |
+
+> **TODO:** `aboutPrivacyOnPhone` (ARB en/ar) still says only that photos are in the app's
+> private storage. Update it to say they're encrypted, to match the privacy policy and store texts.
 
 Android OS backup and device-to-device transfer are switched off for all app data
 (`android:allowBackup="false"`, `res/xml/data_extraction_rules.xml`). On iOS the
@@ -28,11 +34,6 @@ database folder (`usra.sqlite`, its `-wal`/`-shm`, and the photo folders inside 
 marked `isExcludedFromBackup` at every start (`excludeDatabaseFromBackup` in
 `core/database/connection.dart`, called from `main.dart`), and each photo folder again
 when a photo is saved, so no health data goes to iCloud or iTunes backups (Apple 5.1.3).
-
-> **TODO when S1 lands** (`docs/security.md`, photo encryption): say photos are
-> encrypted in the privacy policy (§1, §9, en/ar), `aboutPrivacyOnPhone` (ARB en/ar),
-> `google-play.md` and `app-store.md`, and update the photos row above. Until then,
-> every text says only records are encrypted; photos are "in the app's private storage".
 
 ### Permissions
 
@@ -111,9 +112,9 @@ Not collected, with the reason (keep for the reviewer and for our own audits):
 | --- | --- |
 | Privacy policy | Hosted URL of `docs/legal/privacy-policy.en.md` (and `.ar.md`); must match `privacyPolicyUrl` in the app |
 | Ads | No ads |
-| App access | All functionality available without special access. With accounts: login is optional, and every feature works without it |
+| App access | All functionality available without special access. With accounts: no login is needed until the paywall (subscribing or redeeming a code) |
 | Target audience | 18 and over. The app is for adults managing their family's records; it is not designed for children, so it stays out of the Families programme |
-| Content rating (IARC) | Reference / medical information, no violence, no user-to-user interaction, no purchases. Expected: Everyone / PEGI 3 |
+| Content rating (IARC) | Reference / medical information, no violence, no user-to-user interaction, no purchases (with the paywall on: in-app purchases). Expected: Everyone / PEGI 3 |
 | Data safety | As above |
 | Government app | No |
 | Financial features | None |
@@ -134,7 +135,7 @@ Pick the features the app has (labels as they appear in the Console; confirm bef
 
 Statements to have ready (the Console may ask):
 
-- Usra is **not a medical device** and is not cleared by any regulator (EDA, SFDA, MOHAP, FDA, CE). It does not diagnose, treat, calculate doses or interpret results.
+- Usra is **not a medical device** and is not cleared by any regulator (EDA, SFDA, JFDA, FDA, CE). It does not diagnose, treat, calculate doses or interpret results.
 - Growth charts use WHO Child Growth Standards; vaccine schedule follows the Egyptian
   Ministry of Health schedule; follow-up suggestions cite their source in the app.
 - The in-app disclaimer is on the More tab, on the About & privacy screen and in the store description.
@@ -167,19 +168,24 @@ build, not in this change.
 | --- | --- |
 | 1.4.1 Physical harm, medical apps | No diagnosis or measurement claims; disclaimer in the app and description; sources shown for suggestions |
 | 1.4.2 Drug dosage calculators | None. OCR returns a name and strength only, never a dose |
-| 5.1.1 Data collection and storage | No account (with accounts: optional, with in-app deletion, see the last section); privacy policy linked in App Store Connect and in the app (More → About & privacy) |
+| 5.1.1 Data collection and storage | No account (with accounts: not needed until the paywall, with in-app deletion, see the last section); privacy policy linked in App Store Connect and in the app (More → About & privacy) |
 | 5.1.1(ix) Highly regulated field | Submitted by Opsedia as an organisation |
 | 5.1.3 Health and health research | No HealthKit; database and photo folders excluded from iCloud backup; automatic backup refuses iCloud Drive folders; no data used for ads or sold. For legal review: the manual share sheet is the system's and lets a person choose iCloud Drive for the encrypted file themselves |
 | Age rating questionnaire | "Medical or Treatment Information": **Infrequent/Mild**. Expected rating 9+ / 12+ depending on the new questionnaire |
 | Regulated medical device question (EU) | **No** |
 
-## When M6 cloud features ship
+## When accounts, the paywall and later features ship
 
-These change the answers above and need a new review before release:
+These change the answers above and need a new review before release.
 
-- **Google and Apple accounts (Supabase Auth, Google Sign-In SDK)**: optional. Only
-  builds with `SUPABASE_URL` and sign-in client IDs show them
-  ([`docs/login-setup.md`](../login-setup.md)).
+### Accounts and the paywall (v1, off in the beta)
+
+No real family signs in until an Egyptian lawyer has answered the questions in
+[`docs/login-setup.md`](../login-setup.md), step 6.
+
+- **Google and Apple accounts (Supabase Auth, Google Sign-In SDK)**: not needed until the
+  paywall. Only builds with `SUPABASE_URL` and sign-in client IDs show them. They also
+  hold a member number and subscription status (`docs/prd-v1.md`, F23), which aren't built yet.
   - Play: Personal info → Name, Email address, User IDs; Device or other IDs. Collected,
     not shared, for App functionality and Account management. Account creation method:
     OAuth.
@@ -197,13 +203,16 @@ These change the answers above and need a new review before release:
   - Android: `google_sign_in_android` adds the `INTERNET` permission to every release
     build, including builds with accounts off. It doesn't change what's sent, but don't
     answer that a build has no network permission.
+- **1-year pass and Lifetime (RevenueCat, store billing)**: Purchase history.
+
+### v2 and later
+
 - **Push notifications**: device push token (Device or other IDs).
 - **End-to-end encrypted sync**: ciphertext only; still declare "Health info" collected
   if any readable metadata leaves the phone; otherwise document why ciphertext is not
   collection.
-- **AI Doctor**: de-identified health snapshot sent to an AI provider after the user
+- **Dr. Usra AI** (shown as "coming soon" in v1, with no network call): de-identified health snapshot sent to an AI provider after the user
   previews it: Health info collected and shared with a processor, purpose App
   functionality; KSA gate (SFDA MDS-G27) and Egypt PDPL transfer licence.
-- **Cloud OCR fallback**: photo of a prescription sent with consent: Photos collected,
+- **Cloud photo reading**: photo of a prescription sent with consent: Photos collected,
   ephemeral.
-- **Credits / subscription (RevenueCat, store billing)**: Purchase history.

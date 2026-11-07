@@ -22,6 +22,13 @@ abstract final class Log {
     output('[usra] $event (${error.runtimeType})');
   }
 
+  /// What `checkPhotoIntegrity` found: numbers only, so no name or path can
+  /// get in. Silent in release builds, like [error].
+  static void photoCheck({required int missing, required int unused}) {
+    if (kReleaseMode || release) return;
+    output('[usra] Photo check (missing: $missing, unused: $unused)');
+  }
+
   /// Call first in `main()`. Flutter's default handlers print the
   /// exception text and stack trace, in release builds too: framework
   /// errors, [FlutterError.reportError] and uncaught async errors all go
