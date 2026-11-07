@@ -27,9 +27,15 @@ class DatabaseKeyStore {
   static const _keyName = 'usra.db.key.v1';
   final FlutterSecureStorage _storage;
 
-  Future<String> readOrCreate() async {
+  /// The stored key, or a new one if none is stored.
+  ///
+  /// [beforeCreating] runs first when there is none: it's the only moment we
+  /// know for certain that the key can't open a file already there. If it
+  /// throws, no key is written, so the next start still knows.
+  Future<String> readOrCreate({required void Function() beforeCreating}) async {
     final existing = await _storage.read(key: _keyName);
     if (existing != null) return existing;
+    beforeCreating();
     final key = generateKey();
     await _storage.write(key: _keyName, value: key);
     return key;
@@ -53,13 +59,9 @@ class EncryptionUnavailableError extends StateError {
       );
 }
 
-/// SQLite's primary result code for "this file is not a database": what a
-/// wrong key gives, and the only case that means the key can't open the file.
-const sqliteNotADatabase = 26;
-
-/// The database file couldn't be checked or moved, for a reason that says
-/// nothing about the key: a full disk, a read error, a lock. The file is left
-/// where it is, so trying again later may work.
+/// The database file couldn't be opened with the stored key, or couldn't be
+/// moved: a full disk, a read error, a lock, damage. The records stay where
+/// they are, so trying again later may work.
 ///
 /// Carries only the SQLite code. A [SqliteException]'s text can quote the
 /// `PRAGMA key` statement.
@@ -73,13 +75,13 @@ class DatabaseOpenException implements Exception {
   String toString() => 'DatabaseOpenException($code)';
 }
 
-/// What [prepareDatabaseFile] found.
+/// How the database file was found at start.
 enum DatabaseOpenOutcome {
   /// New or readable database.
   ready,
 
-  /// The key does not open the old file (for example the key was reset). It
-  /// was moved aside, never deleted, and a new one starts.
+  /// The key was gone, so the old file can't be opened. It was moved aside,
+  /// never deleted, and a new one starts.
   recoveredFromUnreadableFile,
 }
 
@@ -98,38 +100,50 @@ void unlockDatabase(Database db, String hexKey) {
 
 /// Makes sure [file] can be opened with [hexKey] before the app uses it.
 ///
-/// Moves the file aside only on [sqliteNotADatabase]. Any other failure throws
-/// [DatabaseOpenException] and leaves the file alone: a full disk must never
-/// look like a lost key, or a family opens an empty app.
-DatabaseOpenOutcome prepareDatabaseFile(
+/// Never moves or changes the file. Any failure throws
+/// [DatabaseOpenException], including SQLITE_NOTADB: a damaged first page or a
+/// cut-short file reports exactly what a wrong key reports, so that code can't
+/// prove the key is wrong. The only proof is an empty key store, see
+/// [setAsideAfterLostKey].
+void prepareDatabaseFile(
   File file,
   String hexKey, {
   @visibleForTesting void Function(Database, String) unlock = unlockDatabase,
 }) {
   _checkKey(hexKey);
-  if (!file.existsSync()) return DatabaseOpenOutcome.ready;
+  if (!file.existsSync()) return;
 
   try {
     final db = sqlite3.open(file.path);
     try {
       unlock(db, hexKey);
-      return DatabaseOpenOutcome.ready;
     } finally {
       db.close();
     }
   } on SqliteException catch (e) {
-    if (e.resultCode != sqliteNotADatabase) {
-      throw DatabaseOpenException(e.extendedResultCode);
-    }
+    throw DatabaseOpenException(e.extendedResultCode);
   }
+}
 
+/// The key store has no key, so nothing can open [file] any more: moves it
+/// aside, with its journal files, so a new database can start. Never deletes.
+/// Only for [DatabaseKeyStore.readOrCreate]'s `beforeCreating`.
+DatabaseOpenOutcome setAsideAfterLostKey(File file) {
   final stamp = DateTime.now().toUtc().millisecondsSinceEpoch;
+  var moved = false;
   try {
-    file.renameSync('${file.path}.unreadable-$stamp');
+    for (final suffix in ['', '-journal', '-wal', '-shm']) {
+      final part = File('${file.path}$suffix');
+      if (!part.existsSync()) continue;
+      part.renameSync('${file.path}$suffix.unreadable-$stamp');
+      moved = true;
+    }
   } on FileSystemException {
     throw const DatabaseOpenException();
   }
-  return DatabaseOpenOutcome.recoveredFromUnreadableFile;
+  return moved
+      ? DatabaseOpenOutcome.recoveredFromUnreadableFile
+      : DatabaseOpenOutcome.ready;
 }
 
 Future<File> defaultDatabaseFile() async {

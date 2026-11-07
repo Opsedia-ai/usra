@@ -113,8 +113,17 @@ Future<void> main() async {
     );
   }
   String key;
+  var outcome = DatabaseOpenOutcome.ready;
   try {
-    key = await DatabaseKeyStore().readOrCreate();
+    key = await DatabaseKeyStore().readOrCreate(
+      beforeCreating: () => outcome = setAsideAfterLostKey(file),
+    );
+  } on DatabaseOpenException catch (e) {
+    // The key is gone but the old file couldn't be moved: no new key yet, so
+    // the next try still knows.
+    Log.error('Database could not be moved', e);
+    _showRecordsUnavailable(DatabaseKeyUnavailable.openFailed(onRetry: main));
+    return;
   } catch (e) {
     // Never make a new key over one that can't be read: the records are still
     // there. Show why, and let the person try again.
@@ -165,11 +174,11 @@ Future<void> main() async {
   }
   // iOS Data Protection (S9). Not awaited: the app opens meanwhile.
   var protection = protectAppFiles(root, photoFolders);
-  DatabaseOpenOutcome outcome;
   try {
-    outcome = prepareDatabaseFile(file, key);
+    prepareDatabaseFile(file, key);
   } on DatabaseOpenException catch (e) {
-    // Not a wrong key (a full disk, a lock): the file stays where it is.
+    // The key is stored, so this says nothing against it (a full disk, a lock,
+    // damage): the file stays where it is.
     Log.error('Database could not be opened', e);
     _showRecordsUnavailable(DatabaseKeyUnavailable.openFailed(onRetry: main));
     return;
@@ -386,8 +395,9 @@ Future<void> main() async {
         );
       }
     }
+    outcome = DatabaseOpenOutcome.ready;
     try {
-      outcome = prepareDatabaseFile(file, key);
+      prepareDatabaseFile(file, key);
     } on DatabaseOpenException catch (e) {
       // The old connection is closed and the old providers are gone, so
       // starting again from main() is safe.
@@ -476,7 +486,10 @@ Future<void> main() async {
       }
     },
     reopen: (result) async {
-      key = await DatabaseKeyStore().readOrCreate();
+      outcome = DatabaseOpenOutcome.ready;
+      key = await DatabaseKeyStore().readOrCreate(
+        beforeCreating: () => outcome = setAsideAfterLostKey(file),
+      );
       final fresh = await photoKeyStore.load(
         sealedPhotosExist: () async => false,
       );
@@ -490,7 +503,7 @@ Future<void> main() async {
       backup = newBackup();
       autoBackupStore = await AutoBackupStore.open(root);
       backupGate.open();
-      outcome = prepareDatabaseFile(file, key);
+      prepareDatabaseFile(file, key);
       database = AppDatabase(openEncryptedDatabase(file, key));
       dismissals = await FileDismissalStore.open();
       try {
