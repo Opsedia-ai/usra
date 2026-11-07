@@ -449,6 +449,8 @@ class _ScrollingFamily extends StatelessWidget {
               child: GridView.builder(
                 key: const ValueKey('home-family-scroller'),
                 scrollDirection: Axis.horizontal,
+                // Keeps the pebbles' shadows; the page clips at the screen.
+                clipBehavior: Clip.none,
                 padding: const EdgeInsetsDirectional.only(
                   end: _pageGutter,
                   bottom: 14,
