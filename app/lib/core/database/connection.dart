@@ -45,6 +45,21 @@ class DatabaseKeyStore {
     return key;
   }
 
+  /// Saves [hexKey] over whatever is stored, readable or not. This gives up
+  /// the old key for good, so it's only for a restore the person chose, once
+  /// the restored file has been shown to open with [hexKey]. Everywhere else,
+  /// a key that can't be read is left alone: it may come back.
+  ///
+  /// Reads it back, so a store that takes the key but won't return it fails
+  /// here, while the restore can still be undone.
+  Future<void> replace(String hexKey) async {
+    _checkKey(hexKey);
+    await _storage.write(key: _keyName, value: hexKey);
+    if (await _storage.read(key: _keyName) != hexKey) {
+      throw StateError('The database key was not saved');
+    }
+  }
+
   /// 256 random bits as hex (only 0-9a-f, so safe inside the PRAGMA).
   static String generateKey([Random? random]) {
     final rng = random ?? Random.secure();

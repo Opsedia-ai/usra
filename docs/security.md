@@ -107,6 +107,18 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   phone's own PIN isn't accepted as a way in, since family members nearby
   often know it. Emergency cards on the lock screen are opt-in per person.
   `app/lib/core/security/`, `app/lib/features/app_lock/`.
+- **Records that won't open**: the screen shown when the database key can't
+  be read or the file won't open (`app/lib/features/settings/key_unavailable.dart`,
+  `database_recovery.dart`) never changes anything by itself. It offers Try
+  again, Restore from backup, the support address, and Start fresh (the "Delete
+  all my data" warning, typed word and PIN). A lock that's on and readable asks
+  for the PIN before Restore or Start fresh; one that can't be read is skipped,
+  since it can't check anything and the phone's settings can clear the app
+  anyway. A restore goes in with the old data kept aside and a marker on disk,
+  must open, and only then saves new keys if there were none to read. A restart
+  before that puts the old data back; a restart after it keeps the restore.
+  Damage past the pages read at start (`prepareDatabaseFile`) doesn't reach this
+  screen: the app opens and those queries fail.
 - **Notifications**: payloads hold only the medicine id, dose time and
   language; the text is rebuilt from the current settings each time a
   reminder is scheduled. Discreet notifications (default on, S4): "Your
