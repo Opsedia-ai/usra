@@ -110,6 +110,12 @@ private func markTaken(medicineId: String, at: Int64) -> Bool {
       try handle.write(contentsOf: line)
     } else {
       try line.write(to: url, options: .atomic)
+      // App Group files are in iCloud device backup by default; nothing about
+      // anyone's doses goes there (Apple 5.1.3).
+      var excluded = url
+      var values = URLResourceValues()
+      values.isExcludedFromBackup = true
+      try? excluded.setResourceValues(values)
     }
   } catch {
     return false

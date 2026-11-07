@@ -167,7 +167,7 @@ void main() {
     final dose = (jsonDecode(json)['doses'] as List).first as Map;
     expect(
       dose.keys,
-      unorderedEquals(['at', 'until', 'time', 'person', 'medicine', 'm']),
+      unorderedEquals(['at', 'until', 'time', 'person', 'medicine', 'm', 't']),
     );
   });
 
@@ -208,7 +208,7 @@ void main() {
     );
     // Identical notifications: a Taken on one could log the other's dose.
     expect(planned, hasLength(2));
-    expect(planned.map((r) => r.title).toSet(), {'ميعاد دوا'});
+    expect(planned.map((r) => r.title).toSet(), {'ميعاد الدوا'});
     expect(planned.every((r) => r.takenLabel == null), isTrue);
     expect(planned.every((r) => r.snoozeLabel == ar.doseSnooze), isTrue);
     final widget = await snapshotAt(now, discreet: true);
@@ -217,6 +217,7 @@ void main() {
       {'٨:٠٠ ص · ميعاد جرعة'},
     );
     expect(widget.discreet, isTrue);
+    expect(widget.doses.take(2).every((d) => !d.canMark), isTrue);
 
     // With names they can be told apart, and Taken stays.
     final named = planReminders(
@@ -337,8 +338,8 @@ void main() {
     expect(again.at.isAtSameMomentAs(DateTime(2026, 11, 3, 7, 5)), isTrue);
     expect(changes.repost.single.id, 77);
     for (final r in [...changes.schedule, ...changes.repost]) {
-      expect(r.title, 'ميعاد دوا');
-      expect(r.takenLabel, isNull);
+      expect(r.title, 'ميعاد الدوا');
+      expect(r.discreet, isTrue);
       expect(r.toPayload(), isNot(contains('عمر')));
     }
 
@@ -373,7 +374,7 @@ void main() {
       rebuild: scheduler.rebuild,
       now: now,
     );
-    expect(old.schedule.single.title, 'ميعاد دوا');
+    expect(old.schedule.single.title, 'ميعاد الدوا');
     expect(old.schedule.single.at, now.add(snoozeDuration));
   });
 
@@ -403,8 +404,10 @@ void main() {
       DoseOutcome.snoozed,
     );
     final s = scheduler.snoozes.single;
-    expect(s.title, 'ميعاد دوا');
-    expect(s.takenLabel, isNull);
+    expect(s.title, 'ميعاد الدوا');
+    expect(s.discreet, isTrue);
+    // No other dose near it, so Taken can only mean this one.
+    expect(s.takenLabel, ar.doseTaken);
     expect(s.at, now.add(snoozeDuration));
   });
 
@@ -480,5 +483,244 @@ void main() {
       scheduler.doneSnoozes,
       contains(snoozeIdFor(id, DateTime(2026, 11, 3, 8).toUtc())),
     );
+  });
+
+  group('discreet Taken', () {
+    Future<List<PlannedReminder>> plan(
+      DateTime now, {
+      AppLocalizations? l,
+      List<DoseLog> logs = const [],
+    }) async => planReminders(
+      await db.watchRegimens().first,
+      logs,
+      now: now,
+      texts: ReminderTexts(l ?? ar, discreet: true),
+      window: const Duration(days: 1),
+    );
+
+    final now = DateTime(2026, 11, 3, 7);
+
+    test('a dose on its own has Taken and Skip, and gives the time', () async {
+      await medicine(omar, 'باراسيتامول', ['08:00']);
+      final r = (await plan(now)).first;
+      expect(r.title, 'ميعاد الدوا');
+      expect(r.body, 'جرعة ٨:٠٠ ص');
+      expect(r.takenLabel, ar.doseTaken);
+      expect(r.skipLabel, ar.doseSkip);
+      expect(r.snoozeLabel, ar.doseSnooze);
+      expect(r.iosCategory, discreetLoneCategory);
+    });
+
+    test('never a name, whatever the buttons', () async {
+      // Alone at 14:00, two close together at 08:00.
+      await medicine(omar, 'باراسيتامول', ['08:00', '14:00']);
+      await medicine(mona, 'Augmentin', ['08:30']);
+      for (final l in [ar, en]) {
+        final planned = await plan(now, l: l);
+        expect({for (final r in planned) r.takenLabel != null}, {true, false});
+        for (final r in planned) {
+          for (final secret in [
+            'عمر',
+            'منى',
+            'باراسيتامول',
+            'Augmentin',
+            '500',
+            'قرص',
+            'الأكل',
+          ]) {
+            expect('${r.title} ${r.body}', isNot(contains(secret)));
+          }
+        }
+      }
+    });
+
+    test('another dose within the hour takes the buttons from both', () async {
+      await medicine(omar, 'باراسيتامول', ['08:00']);
+      await medicine(mona, 'Augmentin', ['09:00']);
+      final planned = await plan(now);
+      for (final r in planned.where((r) => r.at.day == 3)) {
+        expect(r.takenLabel, isNull);
+        expect(r.skipLabel, isNull);
+        expect(r.snoozeLabel, ar.doseSnooze);
+        expect(r.iosCategory, discreetCategory);
+        expect(r.body, ar.doseReminderDiscreetSeveralBody);
+      }
+    });
+
+    test('one person\'s two medicines close together count too', () async {
+      await medicine(omar, 'باراسيتامول', ['08:00']);
+      await medicine(omar, 'Augmentin', ['08:00']);
+      expect((await plan(now)).first.takenLabel, isNull);
+    });
+
+    test('over an hour apart, each keeps its buttons', () async {
+      await medicine(omar, 'باراسيتامول', ['08:00']);
+      await medicine(mona, 'Augmentin', ['09:01']);
+      final planned = (await plan(now)).where((r) => r.at.day == 3);
+      expect(planned, hasLength(2));
+      expect(planned.every((r) => r.takenLabel == ar.doseTaken), isTrue);
+    });
+
+    test('a dose already marked leaves the other on its own', () async {
+      final first = await medicine(omar, 'باراسيتامول', ['08:00']);
+      await medicine(mona, 'Augmentin', ['08:30']);
+      final at = DateTime(2026, 11, 3, 8);
+      await db.logDose(first, at.toUtc(), DoseOutcome.taken);
+      final logs = await db
+          .watchDoseLogs(
+            from: now.subtract(const Duration(days: 1)),
+            to: now.add(const Duration(days: 8)),
+          )
+          .first;
+      final r = (await plan(now, logs: logs)).first;
+      expect(r.at, DateTime(2026, 11, 3, 8, 30));
+      expect(r.takenLabel, ar.doseTaken);
+    });
+
+    test('a snoozed dose counts at the time it rings again', () async {
+      final first = await medicine(omar, 'باراسيتامول', ['06:00']);
+      await medicine(mona, 'Augmentin', ['08:00']);
+      // Snoozed at 07:45, it rings at 07:55, near Mona's 08:00.
+      await db.logDose(
+        first,
+        DateTime(2026, 11, 3, 6).toUtc(),
+        DoseOutcome.snoozed,
+        at: DateTime(2026, 11, 3, 7, 45).toUtc(),
+      );
+      final logs = await db
+          .watchDoseLogs(
+            from: now.subtract(const Duration(days: 1)),
+            to: now.add(const Duration(days: 8)),
+          )
+          .first;
+      final r = (await plan(
+        DateTime(2026, 11, 3, 7, 50),
+        logs: logs,
+      )).firstWhere((r) => r.at == DateTime(2026, 11, 3, 8));
+      expect(r.takenLabel, isNull);
+    });
+
+    test('the widget offers Taken under the same rule', () async {
+      await medicine(omar, 'باراسيتامول', ['08:00', '14:00']);
+      await medicine(mona, 'Augmentin', ['08:30']);
+      final s = await snapshotAt(now, discreet: true);
+      final today = s.doses.where((d) => d.at.day == 3).toList();
+      expect([for (final d in today) d.canMark], [false, false, true]);
+      expect(today.every((d) => d.person.isEmpty), isTrue);
+      expect(today.every((d) => d.medicine == ar.widgetDiscreetDose), isTrue);
+      // With names, every row can be told apart.
+      final named = await snapshotAt(now);
+      expect(named.doses.every((d) => d.canMark), isTrue);
+    });
+
+    test('with names, the three buttons and the named category', () async {
+      await medicine(omar, 'باراسيتامول', ['08:00']);
+      await medicine(mona, 'Augmentin', ['08:00']);
+      final r = planReminders(
+        await db.watchRegimens().first,
+        const [],
+        now: now,
+        texts: ReminderTexts(ar, discreet: false),
+        window: const Duration(days: 1),
+      ).first;
+      expect(r.discreet, isFalse);
+      expect(r.takenLabel, ar.doseTaken);
+      expect(r.skipLabel, ar.doseSkip);
+      expect(r.iosCategory, namedCategory);
+    });
+
+    test('a neighbour added later rewrites the notification', () async {
+      await medicine(omar, 'باراسيتامول', ['08:00']);
+      final before = (await plan(now)).first;
+      await medicine(mona, 'Augmentin', ['08:30']);
+      final after = (await plan(now)).firstWhere((r) => r.at == before.at);
+      // Text is all the phone can compare, so a change of buttons must show.
+      expect(after.body, isNot(before.body));
+      expect(after.takenLabel, isNull);
+    });
+  });
+
+  test('the Arabic reminder addresses the person by their sex', () {
+    expect(ar.doseReminderBody('female'), contains('تاخده'));
+    expect(ar.doseReminderBody('male'), contains('ياخده'));
+    expect(ar.doseReminderBody('other'), contains('ياخده'));
+    expect(en.doseReminderBody('female'), en.doseReminderBody('male'));
+  });
+
+  group('Taken from the iOS widget', () {
+    late Directory dir;
+    setUp(() => dir = Directory.systemTemp.createTempSync('usra_inbox'));
+    tearDown(() => dir.deleteSync(recursive: true));
+
+    test('a line the widget writes is read, and saved like any other', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final id = await medicine(omar, 'باراسيتامول', ['08:00']);
+      final at = DateTime(2026, 11, 3, 8).toUtc();
+      final inbox = File('${dir.path}/group.jsonl');
+      // What `markTaken` in DoseWidget.swift writes.
+      inbox.writeAsStringSync(
+        '${jsonEncode({'m': id, 's': at.millisecondsSinceEpoch, 'st': 'taken', 'at': at.millisecondsSinceEpoch})}\n',
+      );
+      final sync = ReminderSync(
+        db: db,
+        scheduler: FakeReminderScheduler(),
+        inbox: DoseActionInbox(File('${dir.path}/app.jsonl')),
+        widgetInbox: DoseActionInbox(inbox),
+        texts: () => ReminderTexts(ar, discreet: true),
+        clock: () => DateTime(2026, 11, 3, 8, 5),
+      );
+      await sync.saveInbox();
+      final logs = await db
+          .watchDoseLogs(
+            from: at.subtract(const Duration(hours: 1)),
+            to: at.add(const Duration(hours: 1)),
+          )
+          .first;
+      expect(logs.single.status, DoseOutcome.taken);
+      expect(logs.single.medicineId, id);
+      expect(inbox.existsSync(), isFalse);
+    });
+
+    test('Skip from a notification is saved as skipped', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final id = await medicine(omar, 'باراسيتامول', ['08:00']);
+      final at = DateTime(2026, 11, 3, 8).toUtc();
+      final scheduler = FakeReminderScheduler();
+      final sync = ReminderSync(
+        db: db,
+        scheduler: scheduler,
+        inbox: DoseActionInbox(File('${dir.path}/app.jsonl')),
+        texts: () => ReminderTexts(ar, discreet: true),
+        clock: () => DateTime(2026, 11, 3, 8, 5),
+      );
+      await sync.handleAction(
+        ReminderRef(medicineId: id, scheduledAt: at, locale: 'ar'),
+        DoseOutcome.skipped,
+      );
+      final logs = await db
+          .watchDoseLogs(
+            from: at.subtract(const Duration(hours: 1)),
+            to: at.add(const Duration(hours: 1)),
+          )
+          .first;
+      expect(logs.single.status, DoseOutcome.skipped);
+      expect(scheduler.snoozes, isEmpty);
+    });
+
+    test('clear forgets everything waiting', () {
+      final file = File('${dir.path}/group.jsonl')..writeAsStringSync('x\n');
+      final taking = File('${file.path}.taking')..writeAsStringSync('y\n');
+      DoseActionInbox(file).clear();
+      expect(file.existsSync(), isFalse);
+      expect(taking.existsSync(), isFalse);
+      // Nothing waiting is fine too.
+      DoseActionInbox(file).clear();
+    });
+
+    test('elsewhere there is no widget inbox', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      if (Platform.isIOS) return;
+      expect(await DoseActionInbox.openWidgetInbox('group.test'), isNull);
+    });
   });
 }

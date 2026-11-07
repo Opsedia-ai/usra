@@ -299,16 +299,21 @@ void main() {
     final ar = lookupAppLocalizations(const Locale('ar'));
     final texts = ReminderTexts(ar, discreet: false);
 
+    setUpAll(() async {
+      await ensureDoseTimeFormatting('ar');
+      await ensureDoseTimeFormatting('en');
+    });
+
     test('discreet: no person, medicine or instructions', () async {
       final id = await paracetamol();
       final regimens = await db.watchRegimens().first;
       final now = DateTime(2026, 11, 3, 9);
       for (final (l, title, body) in [
-        (ar, 'ميعاد دوا', 'افتح أسرة عشان تشوف أنهي دوا'),
+        (ar, 'ميعاد الدوا', 'جرعة ٨:٠٠ م'),
         (
           lookupAppLocalizations(const Locale('en')),
-          'Time for a medicine',
-          'Open Usra to see which',
+          'Your medicine time',
+          'The 8:00\u202fPM dose',
         ),
       ]) {
         final planned = planReminders(
@@ -320,7 +325,8 @@ void main() {
         );
         expect(planned.first.title, title);
         expect(planned.first.body, body);
-        expect(planned.first.takenLabel, isNull);
+        expect(planned.first.takenLabel, l.doseTaken);
+        expect(planned.first.discreet, isTrue);
         // Without the random id, which can contain "500".
         final payload = planned.first.toPayload().replaceAll(id, '');
         for (final secret in ['عمر', 'باراسيتامول', '500', 'قرص', 'الأكل']) {
@@ -435,8 +441,11 @@ void main() {
         locale: 'en',
       );
       final s = ReminderTexts.generic(ref, at: DateTime(2026, 11, 4, 8, 10));
-      expect(s.title, 'Time for a medicine');
+      expect(s.title, 'Your medicine time');
+      expect(s.discreet, isTrue);
+      // Whether another dose is due can't be known without the database.
       expect(s.takenLabel, isNull);
+      expect(s.iosCategory, discreetCategory);
       expect(s.snoozeLabel, 'Snooze 10 min');
       expect(s.id, snoozeIdFor('m1', ref.scheduledAt));
     });

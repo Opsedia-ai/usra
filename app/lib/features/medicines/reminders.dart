@@ -38,6 +38,11 @@ const discreetCategory = 'dose_discreet';
 /// who has just given one could press the other's button.
 const doseClashWindow = Duration(hours: 1);
 
+/// How far back to look for a dose that could still ring: one planned earlier
+/// and snoozed can ring next to one due now. Inside the day of logs the app
+/// reads, by [doseClashWindow].
+const doseCompanyLookback = Duration(hours: 23);
+
 /// Whether a dose's neutral notification can be told from other doses'.
 enum DoseCompany {
   /// No other dose still due within [doseClashWindow]: its button can only
@@ -81,14 +86,16 @@ Map<String, DoseCompany> doseCompanyOf(
     if (d.log?.status == DoseOutcome.snoozed)
       d.log!.at.toLocal().add(snoozeDuration),
   ];
-  bool close(PlannedDose a, PlannedDose b) => rings(a).any(
-    (x) => rings(b).any((y) => x.difference(y).abs() <= doseClashWindow),
-  );
+  bool close(PlannedDose a, PlannedDose b) => rings(
+    a,
+  ).any((x) => rings(b).any((y) => x.difference(y).abs() <= doseClashWindow));
   return {
     for (final d in due)
       if (!d.at.isBefore(from) && d.at.isBefore(to))
-        doseKey(d.regimen.medicine.id, d.at):
-            due.any((o) => !identical(o, d) && close(o, d))
+        doseKey(
+          d.regimen.medicine.id,
+          d.at,
+        ): due.any((o) => !identical(o, d) && close(o, d))
             ? DoseCompany.several
             : DoseCompany.alone,
   };
@@ -424,7 +431,12 @@ List<PlannedReminder> planReminders(
 }) {
   final to = now.add(window);
   final doses = plannedDoses(regimens, logs, from: now, to: to);
-  final company = doseCompanyOf(regimens, logs, from: now, to: to);
+  final company = doseCompanyOf(
+    regimens,
+    logs,
+    from: now.subtract(doseCompanyLookback),
+    to: to,
+  );
   final out = <PlannedReminder>[];
   for (final d in doses) {
     // A snoozed dose already has its own one-off reminder.

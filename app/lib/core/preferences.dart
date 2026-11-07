@@ -173,8 +173,8 @@ class ThemeModeController extends Notifier<ThemeMode> {
   }
 }
 
-/// Discreet notifications: reminders and the home-screen widget say "Time
-/// for a medicine" without anyone's or any medicine's name, since both show
+/// Discreet notifications: reminders and the home-screen widget say "Your
+/// medicine time" without anyone's or any medicine's name, since both show
 /// on a phone others can see. On unless switched off.
 final discreetNotificationsProvider = NotifierProvider<BoolPreference, bool>(
   () => BoolPreference(PrefKeys.discreetNotifications, fallback: true),

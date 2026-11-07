@@ -237,7 +237,7 @@ class ReminderSync with WidgetsBindingObserver {
   ) => doseCompanyOf(
     regimens,
     logs,
-    from: now.subtract(const Duration(hours: 23)),
+    from: now.subtract(doseCompanyLookback),
     to: now.add(const Duration(days: 7)),
   );
 

@@ -143,7 +143,8 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   in discreet mode "Dose due" with the time and no name, and Taken only under
   the notification rule above (otherwise a tap opens the app, behind the lock).
   iOS 17+ only; its Taken goes through an inbox in the App Group, holding
-  medicine id and time, cleared by "Delete all my data".
+  medicine id and time, excluded from iCloud device backup and cleared by
+  "Delete all my data".
 - **Screen privacy (S3)**: recent-apps card is blank on Android 13+
   (`setRecentsScreenshotEnabled(false)`) and shows the launch screen
   below 13 (a cover added on pause, skipped in split screen) and on iOS
