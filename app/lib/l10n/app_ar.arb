@@ -952,7 +952,7 @@
   "reportColDue": "الميعاد",
   "reportOverdue": "متأخرة",
   "reportSummaryTitle": "ملخص صحي للدكتور",
-  "reportSummaryDisclaimer": "ملخص عملته العيلة بتطبيق أسرة من سجلاتها. للمعلومات بس: راجعوه على الروشتات والتقارير الأصلية.",
+  "reportSummaryDisclaimer": "ده ملخص من اللي العيلة سجلته بتطبيق أسرة، مش رأي طبي. راجعوه على الروشتات والتقارير الأصلية.",
   "reportAge": "السن",
   "reportSectionBasics": "السن وفصيلة الدم",
   "reportSectionMedicines": "الأدوية الحالية",
@@ -1382,5 +1382,9 @@
   "pregnancyPastTitle": "اللي فات",
   "pregnancySupplementsTitle": "الأدوية والمكمّلات النهارده",
   "pregnancySupplementsEmpty": "مفيش حاجة متسجلة للنهارده.",
-  "pregnancySupplementsAdd": "ضيفي دوا أو مكمّل"
+  "pregnancySupplementsAdd": "ضيفي دوا أو مكمّل",
+  "reportSummaryNotOpinion": "ده ملخص من اللي العيلة سجلته، مش رأي طبي.",
+  "followUpsThisWeek": "النهارده والأسبوع ده",
+  "followUpsLater": "بعد كده",
+  "followUpsAll": "كل المتابعات"
 }

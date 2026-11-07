@@ -3319,7 +3319,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportSummaryDisclaimer =>
-      'A summary made by the family in the Usra app from their own records. Informational only: check against the original prescriptions and reports.';
+      'This summary is what the family recorded with the Usra app, not a medical opinion. Check it against the original prescriptions and reports.';
 
   @override
   String get reportAge => 'Age';
@@ -4841,4 +4841,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pregnancySupplementsAdd => 'Add a medicine or supplement';
+
+  @override
+  String get reportSummaryNotOpinion =>
+      'This summary is what the family recorded, not a medical opinion.';
+
+  @override
+  String get followUpsThisWeek => 'Today and this week';
+
+  @override
+  String get followUpsLater => 'Later';
+
+  @override
+  String get followUpsAll => 'All follow-ups';
 }
