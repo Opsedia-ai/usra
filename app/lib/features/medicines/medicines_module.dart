@@ -6,6 +6,7 @@ import '../../l10n/app_localizations.dart';
 import 'medicine_form_screen.dart';
 import 'medicine_list_screen.dart';
 import 'medicine_screen.dart';
+import 'move_medicine_screen.dart';
 import 'prescription_form_screen.dart';
 import 'prescription_screen.dart';
 import 'today_screen.dart';
@@ -62,6 +63,13 @@ class MedicinesModule extends FeatureModule {
                 key: ValueKey(s.uri.path),
                 profileId: s.pathParameters['id']!,
                 medicineId: s.pathParameters['medicineId'],
+              ),
+            ),
+            GoRoute(
+              path: 'move',
+              builder: (_, s) => MoveMedicineScreen(
+                key: ValueKey(s.uri.path),
+                medicineId: s.pathParameters['medicineId']!,
               ),
             ),
           ],

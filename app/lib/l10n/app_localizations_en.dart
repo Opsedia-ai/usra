@@ -1426,6 +1426,66 @@ class AppLocalizationsEn extends AppLocalizations {
   String get medicineEdit => 'Edit medicine';
 
   @override
+  String get medicineMoveAction => 'Move to another person';
+
+  @override
+  String get medicineMoveTitle => 'Move medicine';
+
+  @override
+  String medicineMoveNow(String name) {
+    return 'Now with $name';
+  }
+
+  @override
+  String get medicineMoveTo => 'Move it to who?';
+
+  @override
+  String get medicineMoveWhatTitle => 'Moves with the medicine';
+
+  @override
+  String get medicineMoveWhat => 'Times, reminders, recorded doses and photos.';
+
+  @override
+  String medicineMoveStaysTitle(String name) {
+    return 'Stays with $name';
+  }
+
+  @override
+  String get medicineMoveStaysPrescription =>
+      'The prescription, with its date and photos. The medicine comes off its list.';
+
+  @override
+  String get medicineMoveStaysSickDays =>
+      'Doses recorded in sick days, by the medicine\'s name.';
+
+  @override
+  String get medicineMoveStopsNextDose =>
+      'The next-dose reminder in the sick day stops.';
+
+  @override
+  String medicineMoveReminder(String to, String from) {
+    return 'After the move, reminders are for $to, not $from.';
+  }
+
+  @override
+  String get medicineMoveChoose => 'Choose a person first';
+
+  @override
+  String medicineMoveConfirm(String name) {
+    return 'Move to $name';
+  }
+
+  @override
+  String medicineMoveKeep(String name) {
+    return 'Keep with $name';
+  }
+
+  @override
+  String medicineMoveDone(String name) {
+    return 'Medicine moved to $name.';
+  }
+
+  @override
   String get medicineName => 'Medicine name';
 
   @override

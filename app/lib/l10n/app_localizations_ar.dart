@@ -1432,6 +1432,66 @@ class AppLocalizationsAr extends AppLocalizations {
   String get medicineEdit => 'تعديل الدوا';
 
   @override
+  String get medicineMoveAction => 'نقل لشخص تاني';
+
+  @override
+  String get medicineMoveTitle => 'نقل الدوا';
+
+  @override
+  String medicineMoveNow(String name) {
+    return 'دلوقتي عند $name';
+  }
+
+  @override
+  String get medicineMoveTo => 'ينتقل لمين؟';
+
+  @override
+  String get medicineMoveWhatTitle => 'هينقل مع الدوا';
+
+  @override
+  String get medicineMoveWhat => 'المواعيد والتذكير والجرعات المسجلة والصور.';
+
+  @override
+  String medicineMoveStaysTitle(String name) {
+    return 'هيفضل عند $name';
+  }
+
+  @override
+  String get medicineMoveStaysPrescription =>
+      'الروشتة، بتاريخها وصورها. الدوا هيتشال من قايمتها.';
+
+  @override
+  String get medicineMoveStaysSickDays =>
+      'الجرعات المتسجلة في أيام التعب، باسم الدوا.';
+
+  @override
+  String get medicineMoveStopsNextDose =>
+      'تذكير الجرعة الجاية في يوم التعب هيتوقف.';
+
+  @override
+  String medicineMoveReminder(String to, String from) {
+    return 'بعد النقل التذكير هيبقى ل$to، مش ل$from.';
+  }
+
+  @override
+  String get medicineMoveChoose => 'اختار الشخص الأول';
+
+  @override
+  String medicineMoveConfirm(String name) {
+    return 'نقل ل$name';
+  }
+
+  @override
+  String medicineMoveKeep(String name) {
+    return 'يفضل عند $name';
+  }
+
+  @override
+  String medicineMoveDone(String name) {
+    return 'الدوا اتنقل ل$name.';
+  }
+
+  @override
   String get medicineName => 'اسم الدوا';
 
   @override
