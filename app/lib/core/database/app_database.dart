@@ -721,8 +721,6 @@ class AppDatabase extends _$AppDatabase {
         .watchSingleOrNull();
   }
 
-  /// Creates a card for [profileId], or updates [id] when given.
-  /// Returns the card's id.
   /// The row is live and belongs to [profileId]. A save never moves a record
   /// to another person, so a wrong id can't put one person's photos on another.
   Expression<bool> _liveFor(
@@ -731,6 +729,8 @@ class AppDatabase extends _$AppDatabase {
     String profileId,
   ) => owner.equals(profileId) & deletedAt.isNull();
 
+  /// Creates a card for [profileId], or updates [id] when given.
+  /// Returns the card's id.
   Future<String> saveInsuranceCard({
     String? id,
     required String profileId,

@@ -22,12 +22,11 @@ abstract final class Log {
     output('[usra] $event (${error.runtimeType})');
   }
 
-  /// A fixed [event] with numbers: typed as ints, so no name or path can
+  /// What `checkPhotoIntegrity` found: numbers only, so no name or path can
   /// get in. Silent in release builds, like [error].
-  static void counts(String event, Map<String, int> counts) {
+  static void photoCheck({required int missing, required int unused}) {
     if (kReleaseMode || release) return;
-    final parts = [for (final e in counts.entries) '${e.key}: ${e.value}'];
-    output('[usra] $event (${parts.join(', ')})');
+    output('[usra] Photo check (missing: $missing, unused: $unused)');
   }
 
   /// Call first in `main()`. Flutter's default handlers print the

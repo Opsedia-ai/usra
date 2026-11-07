@@ -183,7 +183,8 @@ class PhotoStore {
   Future<void> prune(Set<String> keep) async {
     if (!await _dir.exists()) return;
     await for (final entity in _dir.list()) {
-      if (entity is! File) continue;
+      // Hidden files aren't photos: one may be another import being written.
+      if (entity is! File || p.basename(entity.path).startsWith('.')) continue;
       final relative = p.relative(entity.path, from: root.path);
       if (!keep.contains(relative)) {
         try {

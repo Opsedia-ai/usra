@@ -549,6 +549,14 @@ void main() {
   // is on a screen the form has already left: test/widget/photo_forms_test.dart
   // pins that order. Importing as soon as a photo is picked, or pruning in
   // the background, would turn this into lost photos.
+  test('prune leaves hidden files, like one being written, alone', () async {
+    final path = await phone.cards.import(pick('saved'));
+    final part = phone.file('${PhotoStore.cardsFolder}/.x.jpg.sealing')
+      ..writeAsBytesSync([1]);
+    await phone.cards.prune({path});
+    expect(part.existsSync(), isTrue);
+  });
+
   test('prune deletes a photo whose row is not saved yet', () async {
     final path = await phone.medicines.import(pick('not saved yet'));
     await phone.medicines.prune(await db.liveMedicinePhotos());

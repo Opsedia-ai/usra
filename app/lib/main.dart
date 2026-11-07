@@ -194,19 +194,26 @@ Future<void> main() async {
         for (final store in [cardPhotos, attachments, medicinePhotos])
           store.sealPlainFiles(),
       ].wait;
-      // Only reads, and logs counts only; logs are silent in release.
-      if (!kReleaseMode) {
+    } catch (e, s) {
+      FlutterError.reportError(
+        FlutterErrorDetails(exception: e, stack: s, library: 'photos'),
+      );
+    }
+    // Only reads, and logs counts only; logs are silent in release. Needs no
+    // photo key, so it runs even if sealing couldn't.
+    if (!kReleaseMode) {
+      try {
         await checkPhotoIntegrity(
           database,
           cards: cardPhotos,
           attachments: attachments,
           medicines: medicinePhotos,
         );
+      } catch (e, s) {
+        FlutterError.reportError(
+          FlutterErrorDetails(exception: e, stack: s, library: 'photos'),
+        );
       }
-    } catch (e, s) {
-      FlutterError.reportError(
-        FlutterErrorDetails(exception: e, stack: s, library: 'photos'),
-      );
     }
   }();
   try {

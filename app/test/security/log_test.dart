@@ -98,8 +98,8 @@ void main() {
           .where((f) => f.path.endsWith('.dart'))
           .where((f) => !f.path.endsWith('.g.dart'));
 
-  test('Log events are fixed text, never built from data', () {
-    final call = RegExp(r'Log\.(error|counts)\(\s*');
+  test('Log.error events are fixed text, never built from data', () {
+    final call = RegExp(r'Log\.error\(\s*');
     final fixedText = RegExp(r"^'[^'$\n]*'\s*,");
     final offenders = <String>[];
     for (final file in libFiles()) {

@@ -212,4 +212,25 @@ void main() {
       expect(find.byKey(ValueKey(preview)), findsNothing);
     });
   }
+
+  test('every route to a photo form, new or edit, is keyed by its path', () {
+    final route = RegExp(
+      r'builder: \(_, s\) =>\s*'
+      r'(?:Insurance|Medicine|Prescription|Record|LabReport)FormScreen\(\s*'
+      r'(key: ValueKey\(s\.uri\.path\),)?',
+    );
+    var found = 0;
+    for (final file in [
+      'lib/features/family/family_module.dart',
+      'lib/features/medicines/medicines_module.dart',
+      'lib/features/labs/labs_module.dart',
+    ]) {
+      for (final match in route.allMatches(File(file).readAsStringSync())) {
+        found++;
+        expect(match.group(1), isNotNull, reason: '${match.group(0)} in $file');
+      }
+    }
+    // Insurance 2, medicine 2, prescription 2, record 1, lab edit 1.
+    expect(found, 8);
+  });
 }

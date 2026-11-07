@@ -39,6 +39,6 @@ Future<PhotoIntegrity> checkPhotoIntegrity(
     missing += live.difference(files).length;
     unused += files.difference(live).length;
   }
-  Log.counts('Photo check', {'missing': missing, 'unused': unused});
+  Log.photoCheck(missing: missing, unused: unused);
   return PhotoIntegrity(missing: missing, unused: unused);
 }
