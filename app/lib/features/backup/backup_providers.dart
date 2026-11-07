@@ -89,6 +89,15 @@ class LastBackupController extends Notifier<DateTime?> {
   }
 }
 
+/// A backup of this family exists somewhere: sent somewhere, restored from, or
+/// made in the automatic backup folder. The app lock needs one, since without
+/// one a forgotten PIN loses everything.
+final hasBackupProvider = Provider<bool>(
+  (ref) =>
+      ref.watch(lastBackupProvider) != null ||
+      ref.watch(autoBackupProvider.select((a) => a.settings.lastAt)) != null,
+);
+
 /// A backup is due once the family has someone in it and the last backup
 /// is missing or more than [backupReminderDays] old. Only a copy known to be
 /// off this phone counts, because that's what the reminder is for: with

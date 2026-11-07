@@ -92,7 +92,8 @@ abstract final class PrefKeys {
   static const elderTutorialSeen = 'tutorial_elder_seen';
   static const lastBackupAt = 'last_backup_at';
 
-  /// The first-run offer to turn on the app lock was answered.
+  /// Home's offer of the app lock was dismissed, or (older versions) the
+  /// first-run offer was answered.
   static const appLockOffered = 'app_lock_offered';
 
   /// Set on first start. Missing means a fresh install, so a lock left in
@@ -219,6 +220,12 @@ final discreetNotificationsProvider = NotifierProvider<BoolPreference, bool>(
 /// always blocked.
 final blockScreenshotsProvider = NotifierProvider<BoolPreference, bool>(
   () => BoolPreference(PrefKeys.blockScreenshots, fallback: false),
+);
+
+/// Home's offer of the app lock was dismissed, so it stays away. The lock is
+/// still in More.
+final appLockOfferAnsweredProvider = NotifierProvider<BoolPreference, bool>(
+  () => BoolPreference(PrefKeys.appLockOffered, fallback: false),
 );
 
 /// Vaccine visit reminders, a week before and on the day. On unless

@@ -7,7 +7,6 @@ import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
-import '../../core/security/app_lock.dart';
 import '../../l10n/app_localizations.dart';
 import '../home/home_module.dart' show severityLabel;
 
@@ -114,26 +113,11 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
         ];
 
   Future<void> _finish() async {
-    final firstRun = !ref.read(tutorialProvider.notifier).reopened;
     await ref.read(tutorialProvider.notifier).finish();
     if (!mounted) return;
     final from = widget.from;
     final next = from == null || from.startsWith(tutorialPath) ? '/home' : from;
-    // The elder tour ends with the offer to turn the app lock on.
-    final offer =
-        firstRun &&
-        appLockOfferPending(
-          ref.read(keyValueStoreProvider),
-          ref.read(appLockProvider),
-        );
-    context.go(
-      offer
-          ? Uri(
-              path: appLockOfferPath,
-              queryParameters: {'from': next},
-            ).toString()
-          : next,
-    );
+    context.go(next);
   }
 
   void _goTo(int index) => _pages.animateToPage(

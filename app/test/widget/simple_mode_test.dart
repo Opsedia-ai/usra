@@ -60,14 +60,6 @@ void main() {
     }
     await tester.tap(find.byKey(const ValueKey('tutorial-next')));
     await tester.pumpAndSettle();
-    // The first-run tour ends with the offer to lock the app.
-    if (find.byKey(const ValueKey('app-lock-offer')).evaluate().isNotEmpty) {
-      final skip = find.byKey(const ValueKey('app-lock-offer-skip'));
-      await tester.ensureVisible(skip);
-      await tester.pumpAndSettle();
-      await tester.tap(skip);
-      await tester.pumpAndSettle();
-    }
   }
 
   testWidgets('the regular tour no longer opens the app, and reopens from '
