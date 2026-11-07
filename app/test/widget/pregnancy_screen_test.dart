@@ -104,14 +104,22 @@ void main() {
     await h.open(tester, '/family/$id/pregnancy');
     expect(find.textContaining('Folic acid'), findsOneWidget);
     expect(find.textContaining('Ferrous'), findsOneWidget);
-    final ticks = find.descendant(
+    // Due just after midnight, so past and open whatever time this runs.
+    final taken = find.descendant(
       of: key('pregnancy-supplements'),
-      matching: find.byType(OutlinedButton),
+      matching: find.text('اتاخد'),
     );
-    expect(ticks, findsNWidgets(2));
-    await tester.tap(ticks.first);
+    expect(taken, findsNWidgets(2));
+    await tester.tap(taken.first);
     await h.settle(tester);
-    expect(ticks, findsOneWidget);
+    expect(key('pregnancy-supplements-empty'), findsNothing);
+    expect(
+      find.descendant(
+        of: key('pregnancy-supplements'),
+        matching: find.textContaining('Folic acid'),
+      ),
+      findsOneWidget,
+    );
     final logs = (await tester.runAsync(
       () => h.db.select(h.db.doseLogs).get(),
     ))!;

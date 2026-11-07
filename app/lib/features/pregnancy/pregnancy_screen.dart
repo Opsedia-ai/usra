@@ -15,11 +15,10 @@ import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../add/add_sheet.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
+import '../family/person_status.dart' show TodayRefresh;
 import '../follow_ups/follow_ups_providers.dart' show todayProvider;
-import '../medicines/dose_schedule.dart' show PlannedDose;
-import '../medicines/medicine_text.dart' show formatDoseTime, medicineTitle;
 import '../medicines/medicines_providers.dart' show todayDosesProvider;
-import '../family/person_status.dart' show logDoseTaken;
+import '../medicines/today_screen.dart' show DoseCard;
 import 'antenatal_schedule.dart';
 import 'pregnancy.dart';
 import 'pregnancy_widgets.dart';
@@ -149,13 +148,14 @@ class _BodyState extends State<_Body> {
     final readings = pregnancyReadings(records, pregnancy);
     final left = pregnancy.daysLeft(today);
     final anc = ancStatuses(pregnancy, records, today);
+    // A missed check stays in view: Home may be pointing at it.
     final open = [
       for (final s in anc)
-        if (s.state == AncState.open) s,
+        if (s.state != AncState.done) s,
     ];
     final past = [
       for (final s in anc)
-        if (s.state != AncState.open) s,
+        if (s.state == AncState.done) s,
     ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
@@ -397,99 +397,82 @@ class _AncTile extends StatelessWidget {
   }
 }
 
-/// Today's doses for this person, each ticked on its own. They're whatever the
-/// family added as a medicine: the app names no supplement and suggests none.
-class _SupplementsCard extends ConsumerWidget {
+/// Today's doses for this person, each ticked on its own, with the same rules
+/// and Undo as the Medicines tab. They're whatever the family added as a
+/// medicine: the app names no supplement and suggests none.
+class _SupplementsCard extends ConsumerStatefulWidget {
   const _SupplementsCard({required this.person});
 
   final Profile person;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_SupplementsCard> createState() => _SupplementsCardState();
+}
+
+class _SupplementsCardState extends ConsumerState<_SupplementsCard>
+    with TodayRefresh<_SupplementsCard> {
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final c = context.usra;
-    final doses = [
-      for (final d
-          in ref.watch(todayDosesProvider).value ?? const <PlannedDose>[])
-        if (d.regimen.person.id == person.id) d,
-    ];
-    return Card(
-      key: const ValueKey('pregnancy-supplements'),
-      child: Padding(
-        padding: const EdgeInsets.all(UsraSpacing.s4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              l.pregnancySupplementsTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            if (doses.isEmpty) ...[
-              const SizedBox(height: UsraSpacing.s1),
-              Text(
-                l.pregnancySupplementsEmpty,
-                key: const ValueKey('pregnancy-supplements-empty'),
-                style: UsraType.body.copyWith(color: c.inkMuted),
-              ),
-              const SizedBox(height: UsraSpacing.s1),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: TextButton(
-                  key: const ValueKey('pregnancy-supplements-add'),
-                  onPressed: () =>
-                      context.push('/family/${person.id}/medicines/new'),
-                  child: Text(l.pregnancySupplementsAdd),
-                ),
-              ),
-            ],
-            for (final d in doses)
-              Padding(
+    final person = widget.person;
+    final doses = ref.watch(todayDosesProvider);
+    final List<Widget> rows = switch (doses) {
+      AsyncError() => [
+        Text(
+          l.homeLoadError,
+          key: const ValueKey('pregnancy-supplements-error'),
+          style: UsraType.body.copyWith(color: c.inkMuted),
+        ),
+      ],
+      AsyncValue(value: final all?) => () {
+        final mine = [
+          for (final d in all)
+            if (d.regimen.person.id == person.id) d,
+        ];
+        if (mine.isNotEmpty) {
+          return <Widget>[
+            for (final d in mine)
+              DoseCard(
                 key: ValueKey(
                   'pregnancy-dose-${d.regimen.medicine.id}-'
                   '${d.at.millisecondsSinceEpoch}',
                 ),
-                padding: const EdgeInsets.only(top: UsraSpacing.s2),
-                child: Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: UsraSpacing.s2,
-                  runSpacing: UsraSpacing.s1,
-                  children: [
-                    Text(
-                      '${medicineTitle(d.regimen.medicine)} · '
-                      '${formatDoseTime(context, d.at)}',
-                      style: UsraType.body.copyWith(
-                        color: c.ink,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (d.isDone)
-                      // A skipped dose must never read as taken.
-                      d.log!.status == DoseOutcome.taken
-                          ? StatusChip(
-                              severity: Severity.good,
-                              label: l.doseTaken,
-                            )
-                          : StatusChip(
-                              severity: Severity.info,
-                              icon: Icons.remove,
-                              label: l.doseSkipped,
-                            )
-                    else
-                      OutlinedButton(
-                        key: ValueKey(
-                          'pregnancy-tick-${d.regimen.medicine.id}-'
-                          '${d.at.millisecondsSinceEpoch}',
-                        ),
-                        onPressed: () => logDoseTaken(context, ref, d),
-                        child: Text(l.doseTaken),
-                      ),
-                  ],
-                ),
+                dose: d,
               ),
-          ],
+          ];
+        }
+        return <Widget>[
+          Text(
+            l.pregnancySupplementsEmpty,
+            key: const ValueKey('pregnancy-supplements-empty'),
+            style: UsraType.body.copyWith(color: c.inkMuted),
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              key: const ValueKey('pregnancy-supplements-add'),
+              onPressed: () =>
+                  context.push('/family/${person.id}/medicines/new'),
+              child: Text(l.pregnancySupplementsAdd),
+            ),
+          ),
+        ];
+      }(),
+      // Says nothing until it knows: "nothing recorded" has to be true.
+      _ => const [],
+    };
+    return Column(
+      key: const ValueKey('pregnancy-supplements'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: UsraSpacing.s1,
+      children: [
+        Text(
+          l.pregnancySupplementsTitle,
+          style: Theme.of(context).textTheme.titleLarge,
         ),
-      ),
+        ...rows,
+      ],
     );
   }
 }
