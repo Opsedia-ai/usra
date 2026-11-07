@@ -4130,6 +4130,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutYouSexHint => 'For growth charts and pregnancy.';
 
   @override
+  String get aboutYouBirthDateHint => 'For suggestions that depend on age.';
+
+  @override
+  String get aboutYouBirthDateFuture =>
+      'A date of birth can\'t be in the future.';
+
+  @override
   String get aboutYouDone => 'Let\'s go';
 
   @override
