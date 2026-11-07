@@ -40,6 +40,23 @@ class RecordFormStrings {
   /// Label of the "pick from your doctors" menu on types with a doctor field.
   final String chooseDoctor;
 
+  RecordFormStrings copyWith({String? save, String? photos}) =>
+      RecordFormStrings(
+        clearDate: clearDate,
+        date: date,
+        cost: cost,
+        currency: currency,
+        save: save ?? this.save,
+        required: required,
+        invalid: invalid,
+        pickDate: pickDate,
+        chooseDoctor: chooseDoctor,
+        photos: photos ?? this.photos,
+        photoCamera: photoCamera,
+        photoGallery: photoGallery,
+        photoRemove: photoRemove,
+      );
+
   /// The "Add photos" row, shown when the form is given a photo picker.
   final String photos;
   final String photoCamera;
@@ -111,7 +128,14 @@ class RecordForm extends StatefulWidget {
     this.hiddenFields = const {},
     this.presetData = const {},
     this.photosFirst = false,
+    this.firstOccurredAt,
+    this.lastOccurredAt,
   });
+
+  /// The earliest and latest days the record's own date can be picked; a date
+  /// already saved outside them stays pickable. Null: the usual wide range.
+  final DateTime? firstOccurredAt;
+  final DateTime? lastOccurredAt;
 
   /// Shown above everything else: whose record it is, a choice from a list.
   final Widget? header;
@@ -438,7 +462,22 @@ class _RecordFormState extends State<RecordForm> {
         InkWell(
           key: const ValueKey('field-occurredAt'),
           onTap: () async {
-            final picked = await _pickDate(_occurredAt);
+            final first = widget.firstOccurredAt;
+            final last = widget.lastOccurredAt;
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: _occurredAt,
+              firstDate: first == null
+                  ? DateTime(1900)
+                  : first.isBefore(_occurredAt)
+                  ? first
+                  : _occurredAt,
+              lastDate: last == null
+                  ? DateTime(DateTime.now().year + 5, 12, 31)
+                  : last.isAfter(_occurredAt)
+                  ? last
+                  : _occurredAt,
+            );
             if (picked != null) setState(() => _occurredAt = picked);
           },
           child: InputDecorator(

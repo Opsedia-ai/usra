@@ -490,7 +490,8 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
           ),
         if (doneDoses.isNotEmpty) ...[
           _DoneGroup(
-            ages: {for (final s in doneDoses) doseAge(l, s.dose)}.join('، '),
+            ages: {for (final s in doneDoses) doseAge(l, s.dose)}
+                .join(_listComma(l)),
             last: doneDoses
                 .map((s) => s.givenOn)
                 .nonNulls
@@ -525,6 +526,9 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
     );
   }
 }
+
+String _listComma(AppLocalizations l) =>
+    l.localeName.startsWith('ar') ? '، ' : ', ';
 
 /// How far along, as a bar, and which schedule that's counted against.
 class _ProgressCard extends StatelessWidget {
@@ -580,15 +584,18 @@ class _ProgressCard extends StatelessWidget {
                   severity: p.requiredDone == p.requiredTotal
                       ? Severity.good
                       : Severity.info,
-                  label: l.vaccineRequiredDone(p.requiredDone, p.requiredTotal),
+                  label: localizedDigitsIn(
+                    context,
+                    l.vaccineRequiredDone(p.requiredDone, p.requiredTotal),
+                  ),
                 ),
                 if (p.optionalTotal > 0)
                   StatusChip(
                     key: ValueKey('vaccine-optional-${child.profile.id}'),
                     severity: Severity.info,
-                    label: l.vaccineOptionalDone(
-                      p.optionalDone,
-                      p.optionalTotal,
+                    label: localizedDigitsIn(
+                      context,
+                      l.vaccineOptionalDone(p.optionalDone, p.optionalTotal),
                     ),
                   ),
               ],
@@ -689,7 +696,7 @@ class _NextCard extends StatelessWidget {
               const SizedBox(height: UsraSpacing.s1),
               Text(
                 '${doseAge(l, child.next.doses.first)}: '
-                '${child.next.doses.map((d) => doseName(l, d)).join('، ')}',
+                '${child.next.doses.map((d) => doseName(l, d)).join(_listComma(l))}',
                 style: UsraType.body.copyWith(color: c.ink),
               ),
             ],
@@ -698,7 +705,11 @@ class _NextCard extends StatelessWidget {
               key: ValueKey('vaccine-next-${child.profile.id}'),
               severity: next?.$2 ?? Severity.info,
               label:
-                  next?.$1 ?? l.vaccineOverdueCount(child.next.overdue.length),
+                  next?.$1 ??
+                  localizedDigitsIn(
+                    context,
+                    l.vaccineOverdueCount(child.next.overdue.length),
+                  ),
             ),
           ],
         ),

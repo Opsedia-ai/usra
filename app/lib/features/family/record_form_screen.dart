@@ -83,6 +83,8 @@ class RecordFormScreen extends ConsumerWidget {
         initialDoctorId: saved?.doctorId,
         doctors: doctors,
         strings: recordFormStrings(l),
+        // A vaccine record says what was given: it can't be in the future.
+        lastOccurredAt: typeKey == 'vaccine' ? DateTime.now() : null,
         pickPhotos: (source) => pickRecordPhotos(context, ref, source),
         onSubmit: (result) async {
           if (!editing && !await ref.read(saveGateProvider).allow()) return;

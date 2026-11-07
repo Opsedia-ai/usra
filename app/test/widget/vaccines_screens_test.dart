@@ -124,7 +124,9 @@ void main() {
     expect(data['vaccine'], isNotEmpty);
     expect(data['dose'], isA<int>());
     expect(data['place'], 'مكتب الصحة');
-    expect(data['note'], 'سخونية خفيفة بعدها');
+    // The note goes where the schedule shows it.
+    expect(data.containsKey('note'), isFalse);
+    expect(vaccinePlanOf(events).notes.values, contains('سخونية خفيفة بعدها'));
     expect(data.containsKey(checklistSourceKey), isFalse);
     expect(userVaccineRecordIds(events), {saved.id});
     // It counts: that dose isn't overdue any more.
@@ -166,6 +168,36 @@ void main() {
     expect(saved.single.type, 'vaccine');
     final hers = (await tester.runAsync(() => h.db.watchTimeline(id).first))!;
     expect(hers, isEmpty);
+  });
+
+  testWidgets('never starts on a dose that isn\'t due yet', (tester) async {
+    h.tall(tester);
+    // Just born and already logged: the next visit is two months off.
+    final id = await seed(tester, months: 0);
+    await h.open(tester, '/family/$id/vaccines/setup');
+    await h.tapKey(tester, 'setup-all-0');
+    await h.tapKey(tester, 'vaccine-setup-save');
+    await h.go(tester, '/family/$id/add/vaccine');
+    expect(key('field-vaccine'), findsOneWidget);
+    expect(key('new-vaccine-other'), findsOneWidget);
+    expect(key('new-vaccine-penta-1'), findsOneWidget);
+  });
+
+  testWidgets('a saved vaccine can still be corrected', (tester) async {
+    h.tall(tester);
+    final id = await seed(tester);
+    final event = (await tester.runAsync(
+      () => h.db.addEvent(
+        profileId: id,
+        type: 'vaccine',
+        occurredAt: DateTime(2026, 10, 1),
+        dataJson: jsonEncode({'vaccine': 'الإنفلونزا'}),
+      ),
+    ))!;
+    await h.open(tester, '/family/$id/record/$event');
+    await h.tapKey(tester, 'record-edit');
+    expect(key('field-vaccine'), findsOneWidget);
+    expect(key('new-vaccine-other'), findsNothing);
   });
 
   group('fits 320 px at double text', () {

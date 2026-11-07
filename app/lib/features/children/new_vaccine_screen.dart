@@ -19,6 +19,7 @@ import '../family/record_form_screen.dart';
 import '../follow_ups/follow_ups_providers.dart' show todayProvider;
 import 'child_vaccines.dart';
 import 'egypt_vaccines.dart';
+import 'growth.dart' show isUnderFive;
 
 /// Logs one vaccine: whose it is, which (a dose the schedule is waiting for, or
 /// anything else), when and where. A dose from the list counts towards the
@@ -53,14 +54,28 @@ class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
     final child = person == null || events == null
         ? null
         : childVaccines(person, events, ref.watch(todayProvider));
+    // Overdue and due now, then the next visit in case it's being given early.
     final waiting = child == null
         ? const <DoseStatus>[]
         : [
-            ...child.next.overdue,
             for (final s in child.statuses)
-              if (child.next.doses.contains(s.dose)) s,
+              if (child.next.overdue.contains(s) ||
+                  s.state == DoseState.due ||
+                  child.next.doses.contains(s.dose))
+                s,
           ];
-    final choice = _choice ?? waiting.firstOrNull?.dose.key ?? _other;
+    // Never starts on a dose that isn't due yet: someone logging a travel or
+    // private vaccine could save it as that dose without noticing.
+    final choice =
+        _choice ??
+        waiting
+            .where(
+              (s) => s.state == DoseState.overdue || s.state == DoseState.due,
+            )
+            .firstOrNull
+            ?.dose
+            .key ??
+        _other;
     final chosen = waiting.where((s) => s.dose.key == choice).firstOrNull;
     final name = person?.displayName ?? '';
     final strings = recordFormStrings(l);
@@ -68,20 +83,12 @@ class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
       appBar: AppBar(title: Text(l.vaccineNewTitle)),
       body: RecordForm(
         type: type,
-        strings: RecordFormStrings(
-          clearDate: strings.clearDate,
-          date: strings.date,
-          cost: strings.cost,
-          currency: strings.currency,
-          save: name.isEmpty ? strings.save : l.medicineSaveFor(name),
-          required: strings.required,
-          invalid: strings.invalid,
-          pickDate: strings.pickDate,
+        strings: strings.copyWith(
+          save: name.isEmpty ? null : l.medicineSaveFor(name),
           photos: l.vaccineCardPhoto,
-          photoCamera: strings.photoCamera,
-          photoGallery: strings.photoGallery,
-          photoRemove: strings.photoRemove,
         ),
+        lastOccurredAt: DateTime.now(),
+        firstOccurredAt: person?.birthDate,
         photosFirst: true,
         hiddenFields: chosen == null
             ? const {}
@@ -155,12 +162,17 @@ class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
           ],
         ),
         pickPhotos: (source) => pickRecordPhotos(context, ref, source),
-        onSubmit: (result) => _save(result, name),
+        onSubmit: (result) => _save(result, name, child, chosen),
       ),
     );
   }
 
-  Future<void> _save(RecordFormResult result, String name) async {
+  Future<void> _save(
+    RecordFormResult result,
+    String name,
+    ChildVaccines? child,
+    DoseStatus? chosen,
+  ) async {
     if (!await ref.read(saveGateProvider).allow()) return;
     if (!mounted) return;
     final l = AppLocalizations.of(context);
@@ -172,6 +184,19 @@ class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
         : ref.read(attachmentStoreProvider);
     final person = _person;
     final today = ref.read(todayProvider);
+    final young = isUnderFive(
+      ref
+          .read(profilesProvider)
+          .value
+          ?.where((p) => p.id == person)
+          .firstOrNull
+          ?.birthDate,
+      today,
+    );
+    // A scheduled dose's note lives on the plan, where the schedule shows it.
+    final note = chosen == null ? null : result.data['note'] as String?;
+    final data = {...result.data};
+    if (note != null) data.remove('note');
     try {
       // Copied in first; the form deletes the picked originals.
       final photos = <String>[
@@ -181,11 +206,18 @@ class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
         profileId: person,
         type: 'vaccine',
         occurredAt: result.occurredAt,
-        dataJson: jsonEncode(result.data),
+        dataJson: jsonEncode(data),
         costMinor: result.costMinor,
         currency: result.costMinor == null ? null : 'EGP',
         photos: photos,
       );
+      if (note != null && chosen != null && child != null) {
+        await db.saveSingletonEvent(
+          profileId: person,
+          type: VaccinePlanFields.type,
+          dataJson: child.plan.withNote(chosen.dose.key, note).toJson(),
+        );
+      }
     } catch (_) {
       try {
         await store?.prune(await db.liveAttachmentPaths());
@@ -203,12 +235,7 @@ class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
         ),
       ),
     );
-    final p = ref
-        .read(profilesProvider)
-        .value
-        ?.where((p) => p.id == person)
-        .firstOrNull;
-    final young = p != null && childVaccines(p, const [], today) != null;
+    if (!mounted) return;
     router.go(young ? '/family/$person/vaccines' : '/family/$person');
   }
 }

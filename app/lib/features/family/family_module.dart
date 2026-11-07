@@ -229,6 +229,8 @@ class FamilyModule extends FeatureModule {
       ],
       screens: RecordTypeScreens(
         add: (profileId) => NewVaccineScreen(profileId: profileId),
+        editPath: (profileId, eventId) =>
+            '/family/$profileId/record/$eventId/edit/vaccine',
       ),
     ),
     RecordTypeDefinition(
