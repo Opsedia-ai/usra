@@ -45,6 +45,17 @@ import 'l10n/app_localizations.dart';
 import 'core/security/secure_storage_options.dart';
 import 'features/settings/key_unavailable.dart';
 
+/// Replaces the app with [screen]. Never makes a new key or a new database:
+/// the records are still there.
+void _showRecordsUnavailable(Widget screen) => runApp(
+  MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: Scaffold(
+      body: Center(child: SingleChildScrollView(child: screen)),
+    ),
+  ),
+);
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Log.installErrorHandlers();
@@ -111,24 +122,26 @@ Future<void> main() async {
     );
   }
   String key;
+  var outcome = DatabaseOpenOutcome.ready;
+  var keyWasLost = false;
   try {
-    key = await DatabaseKeyStore().readOrCreate();
+    key = await DatabaseKeyStore().readOrCreate(
+      beforeCreating: () {
+        keyWasLost = true;
+        outcome = setAsideAfterLostKey(file);
+      },
+    );
+  } on DatabaseOpenException catch (e) {
+    // The key is gone but the old file couldn't be moved: no new key yet, so
+    // the next try still knows.
+    Log.error('Database could not be moved', e);
+    _showRecordsUnavailable(DatabaseKeyUnavailable.openFailed(onRetry: main));
+    return;
   } catch (e) {
     // Never make a new key over one that can't be read: the records are still
     // there. Show why, and let the person try again.
     Log.error('Database key unavailable', e);
-    runApp(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          body: Center(
-            child: SingleChildScrollView(
-              child: DatabaseKeyUnavailable(onRetry: () => main()),
-            ),
-          ),
-        ),
-      ),
-    );
+    _showRecordsUnavailable(DatabaseKeyUnavailable(onRetry: main));
     return;
   }
   final photoKeyStore = SecurePhotoKeyStore();
@@ -174,7 +187,17 @@ Future<void> main() async {
   }
   // iOS Data Protection (S9). Not awaited: the app opens meanwhile.
   var protection = protectAppFiles(root, photoFolders);
-  var outcome = prepareDatabaseFile(file, key);
+  try {
+    // Rolling back a stopped restore can bring back a file the lost key opened.
+    if (keyWasLost && file.existsSync()) outcome = setAsideAfterLostKey(file);
+    prepareDatabaseFile(file, key);
+  } on DatabaseOpenException catch (e) {
+    // The key is stored, so this says nothing against it (a full disk, a lock,
+    // damage): the file stays where it is.
+    Log.error('Database could not be opened', e);
+    _showRecordsUnavailable(DatabaseKeyUnavailable.openFailed(onRetry: main));
+    return;
+  }
   var database = AppDatabase(openEncryptedDatabase(file, key));
   final (
     preferences,
@@ -416,7 +439,31 @@ Future<void> main() async {
         );
       }
     }
-    outcome = prepareDatabaseFile(file, key);
+    outcome = DatabaseOpenOutcome.ready;
+    try {
+      try {
+        prepareDatabaseFile(file, key);
+      } on DatabaseOpenException {
+        if (!restored) rethrow;
+        // What came in won't open. The old data is only deleted below, so it
+        // goes back rather than being lost on the next start.
+        restored = false;
+        try {
+          await backup.undoCommit();
+        } catch (e, s) {
+          FlutterError.reportError(
+            FlutterErrorDetails(exception: e, stack: s, library: 'backup'),
+          );
+        }
+        prepareDatabaseFile(file, key);
+      }
+    } on DatabaseOpenException catch (e) {
+      // The old connection is closed and the old providers are gone, so
+      // starting again from main() is safe.
+      Log.error('Database could not be reopened', e);
+      _showRecordsUnavailable(DatabaseKeyUnavailable.openFailed(onRetry: main));
+      return;
+    }
     database = AppDatabase(openEncryptedDatabase(file, key));
     dismissals = await FileDismissalStore.open();
     autoBackupStore = await AutoBackupStore.open(root);
@@ -496,7 +543,10 @@ Future<void> main() async {
       }
     },
     reopen: (result) async {
-      key = await DatabaseKeyStore().readOrCreate();
+      outcome = DatabaseOpenOutcome.ready;
+      key = await DatabaseKeyStore().readOrCreate(
+        beforeCreating: () => outcome = setAsideAfterLostKey(file),
+      );
       final fresh = await photoKeyStore.load(
         sealedPhotosExist: () async => false,
       );
@@ -510,7 +560,7 @@ Future<void> main() async {
       backup = newBackup();
       autoBackupStore = await AutoBackupStore.open(root);
       backupGate.open();
-      outcome = prepareDatabaseFile(file, key);
+      prepareDatabaseFile(file, key);
       database = AppDatabase(openEncryptedDatabase(file, key));
       dismissals = await FileDismissalStore.open();
       try {

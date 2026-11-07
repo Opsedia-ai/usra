@@ -19,8 +19,8 @@ enum FileProtection {
   /// small files next to it: a reminder's Taken or Snooze can run while the
   /// phone is locked (it writes the dose inbox file, and the database if
   /// the app is still running), and iOS can start the app in the
-  /// background for it. A database that can't be opened at start-up would
-  /// look damaged and be moved aside.
+  /// background for it. A database that can't be opened at start-up shows
+  /// the unavailable screen instead of the app.
   untilFirstUnlock,
 }
 

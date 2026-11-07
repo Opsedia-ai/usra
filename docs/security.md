@@ -72,6 +72,16 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   can't be read, the app says so and offers to try again; it never makes a new key
   over it. Only an unreadable account session is deleted, since signing in again
   replaces it.
+- **Database open errors**: a database that won't open is never moved or
+  changed. A full disk, a lock, damage and SQLITE_NOTADB all show the
+  unavailable screen with the file in place: a damaged first page reports the
+  same NOTADB as a wrong key, so that code proves nothing. The file moves aside
+  (never deleted) only when the key store has no key at all, which is the one
+  proof that the key is gone. It moves before the new key is saved, so a crash
+  or a failed move can't leave a new key next to the old records.
+  A restore that went in but won't open is undone while the old data is still
+  aside, so a retry can't delete it. A stored key that's malformed shows the
+  screen too, and is never replaced.
 - **App lock** (S2): optional 6-digit PIN (trivial ones refused), stored
   only as a salted Argon2id hash (19 MiB, 2 passes) in Keystore / Keychain
   this-device-only, checked in constant time. A Keystore error keeps the app
