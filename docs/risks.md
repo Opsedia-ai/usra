@@ -51,7 +51,7 @@ Last updated: 7 November 2026. Update this when a risk changes, closes or appear
 | D7 | Records-only restore has missing photos | Restore fails or looks broken | Medium | Planned | Build |
 | D8 | Records-only server backup misses photos | People assume photos are safe and lose them | Medium | The screen must say so | Build |
 | D9 | The VPS is lost or fails | No server copy until it's back. Hostinger's backups are weekly | Medium | Phones hold the main copy; the screen shows the last upload date | Build |
-| D10 | Damage deeper in the database file | The app opens but queries fail, and the Restore screen doesn't appear, because it only catches failure when the file opens | High | Known. A check at every start would catch it, with a start-up cost; not decided | Founder, Build |
+| D10 | Damage deeper in the database file | The app opens but its data fails to load, and the Restore screen doesn't appear, because it only catches failure when the file opens | Medium | Founder's decision, 7 November: no check at every start, to keep starts fast. Accepted risk; look again if it shows up in the beta | Founder |
 | D11 | Restore can save a new database key over an unreadable one | The one exception to the old rule, when someone chooses to replace everything. The key is saved only after the restored data opens | Medium | Merged; needs a real-phone test | Build |
 
 ## Medical safety
