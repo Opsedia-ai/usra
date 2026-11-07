@@ -11,6 +11,7 @@ import '../children/vaccines_screen.dart' show watchChildVaccines;
 import '../medicines/dose_schedule.dart';
 import '../medicines/medicine_text.dart';
 import '../medicines/medicines_providers.dart';
+import '../medicines/reminders.dart' show snoozeDuration;
 import '../sick_days/sick_days_providers.dart';
 
 /// The one thing to show for a person on Home and the family list.
@@ -34,11 +35,20 @@ class PersonStatus {
 /// a dose was missed while they're about to give it.
 const doseMissedAfter = Duration(hours: 1);
 
-/// Past due by more than [doseMissedAfter], and neither marked nor snoozed.
-bool isDoseMissed(PlannedDose dose, DateTime now) =>
-    !dose.isDone &&
-    dose.log == null &&
-    now.isAfter(dose.at.add(doseMissedAfter));
+/// When a snoozed [dose]'s reminder rings: ten minutes after it was snoozed,
+/// or after its time if it was snoozed a little before that.
+DateTime doseSnoozedUntil(PlannedDose dose) {
+  final snoozedAt = dose.log!.at.toLocal();
+  return (snoozedAt.isAfter(dose.at) ? snoozedAt : dose.at).add(snoozeDuration);
+}
+
+/// Not marked, and past due by more than [doseMissedAfter]. A snooze only puts
+/// that off: the hour counts from when its reminder rang.
+bool isDoseMissed(PlannedDose dose, DateTime now) {
+  if (dose.isDone) return false;
+  final due = dose.log == null ? dose.at : doseSnoozedUntil(dose);
+  return now.isAfter(due.add(doseMissedAfter));
+}
 
 /// The person's status; null while something it depends on is loading or
 /// failed, so "nothing needed" is only ever said after checking everything.
@@ -144,11 +154,25 @@ class PersonStatusLabel extends StatelessWidget {
   }
 }
 
-/// A small person's pebble with a short name, for dose rows.
+/// A longer name would shrink below readable inside [MiniPersonPebble], which
+/// doesn't grow with the phone's text size either, so write it out beside the
+/// pebble instead.
+bool nameGoesBesidePebble(BuildContext context, Profile person) =>
+    person.displayName.characters.length > 4 ||
+    MediaQuery.textScalerOf(context).scale(1) > 1;
+
+/// A small person's pebble with a short name, for dose rows. [initialOnly]
+/// shows just the first letter, for when the full name is written beside it
+/// because it would shrink too far to read in here.
 class MiniPersonPebble extends StatelessWidget {
-  const MiniPersonPebble({super.key, required this.person});
+  const MiniPersonPebble({
+    super.key,
+    required this.person,
+    this.initialOnly = false,
+  });
 
   final Profile person;
+  final bool initialOnly;
 
   @override
   Widget build(BuildContext context) => Pebble(
@@ -162,8 +186,11 @@ class MiniPersonPebble extends StatelessWidget {
       child: FittedBox(
         fit: BoxFit.scaleDown,
         child: Text(
-          person.displayName,
+          initialOnly
+              ? person.displayName.characters.first
+              : person.displayName,
           maxLines: 1,
+          semanticsLabel: person.displayName,
           style: Theme.of(context).textTheme.labelLarge
               ?.copyWith(fontWeight: FontWeight.w700),
         ),

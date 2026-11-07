@@ -1090,7 +1090,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get scanMedicineName => 'اسم الدوا';
 
   @override
-  String get scanMedicineStrength => 'التركيز (اختياري)، زي 500mg';
+  String get scanMedicineStrength => 'التركيز (اختياري)';
 
   @override
   String get scanMedicineCheck => 'راجع الاسم على العلبة قبل ما تستخدمه.';
@@ -1297,19 +1297,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get doseTaken => 'اتاخد';
 
   @override
-  String get doseSkip => 'فوّته';
+  String get doseSkip => 'ماتاخدش';
 
   @override
-  String get doseSkipped => 'اتفوّت';
+  String get doseSkipped => 'ماتاخدش';
 
   @override
   String get doseSnoozed => 'متأجل';
 
   @override
-  String get doseSnooze => 'أجّل 10 دقايق';
+  String get doseSnooze => 'أجّل ١٠ دقايق';
 
   @override
-  String get doseUndo => 'رجوع';
+  String get doseUndo => 'تراجع';
 
   @override
   String doseMarkedAt(String status, String time) {
@@ -1432,7 +1432,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get medicineAmount => 'الكمية كل مرة';
 
   @override
-  String get medicineAmountHint => 'زي ما الدكتور كتب، مثلاً: قرص واحد';
+  String get medicineAmountHint => 'زي ما الدكتور كتب';
 
   @override
   String get medicineRepeat => 'كل قد إيه';
@@ -1450,7 +1450,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get medicineEveryN => 'كل كام يوم';
 
   @override
-  String get medicineEveryNInvalid => 'اكتب رقم من 2 لـ 60';
+  String get medicineEveryNInvalid => 'اكتب رقم من ٢ لـ ٦٠';
 
   @override
   String get medicineWeekdaysEmpty => 'اختار يوم واحد على الأقل';
@@ -2925,7 +2925,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get prescriptionDose => 'الجرعة زي ما الدكتور كتبها';
 
   @override
-  String get prescriptionDoseHint => 'مثلاً ٥ مل بعد الأكل';
+  String get prescriptionDoseHint => 'زي ما مكتوبة في الروشتة بالظبط';
 
   @override
   String get prescriptionTimesPerDay =>
@@ -3016,7 +3016,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String courseDayOf(int day, int total) {
-    return 'اليوم $day من $total';
+    final intl.NumberFormat dayNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String dayString = dayNumberFormat.format(day);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return 'اليوم $dayString من $totalString';
   }
 
   @override
@@ -3062,8 +3070,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get prescriptionTimesHint =>
-      'اتأكد إن المواعيد زي ما الدكتور كتب، مثلاً كل ٨ ساعات.';
+  String get prescriptionTimesHint => 'اتأكد إن المواعيد زي ما الدكتور كتب.';
 
   @override
   String get growthNoPrematurity =>
@@ -3934,4 +3941,148 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get homeLoadError =>
       'مش قادرين نقرا البيانات دلوقتي. اقفل التطبيق وافتحه تاني.';
+
+  @override
+  String get doseGroupMissed => 'فاتت';
+
+  @override
+  String get doseGroupNow => 'دلوقتي';
+
+  @override
+  String get doseGroupDone => 'اتسجلت';
+
+  @override
+  String get dayPartMorning => 'الصبح';
+
+  @override
+  String get dayPartNoon => 'الضهر';
+
+  @override
+  String get dayPartAfternoon => 'العصر';
+
+  @override
+  String get dayPartNight => 'بالليل';
+
+  @override
+  String get doseSnoozeShort => 'بعد ١٠ دقايق';
+
+  @override
+  String get doseTakenEarly => 'اتاخد بدري';
+
+  @override
+  String doseSnoozedUntil(String time) {
+    return 'متأجل لحد $time';
+  }
+
+  @override
+  String doseLoggedEarly(String medicine, String person) {
+    return 'اتسجل بدري: $medicine لـ$person';
+  }
+
+  @override
+  String doseLoggedNotTaken(String medicine, String person) {
+    return 'اتسجل إنه ماتاخدش: $medicine لـ$person';
+  }
+
+  @override
+  String doseLoggedSnoozed(String medicine, String person) {
+    return 'هنفكّرك بعد ١٠ دقايق: $medicine لـ$person';
+  }
+
+  @override
+  String get medicinesAll => 'كل الأدوية';
+
+  @override
+  String get medicinesFilterAll => 'الكل';
+
+  @override
+  String medicinesTodayEmptyFor(String name) {
+    return 'مفيش أدوية لـ$name النهارده.';
+  }
+
+  @override
+  String medicineFor(String name) {
+    return 'الدوا ده ل$name';
+  }
+
+  @override
+  String get medicineForChange => 'غيّر';
+
+  @override
+  String get medicineForPick => 'الدوا ده لمين؟';
+
+  @override
+  String medicineSaveFor(String name) {
+    return 'احفظ ل$name';
+  }
+
+  @override
+  String medicineSaveForRemind(String name) {
+    return 'احفظ ل$name وفكّرني';
+  }
+
+  @override
+  String medicineSavedFor(String medicine, String name) {
+    return 'اتحفظ: $medicine لـ$name';
+  }
+
+  @override
+  String get medicineScanOption => 'اقرا الاسم من صورة العلبة';
+
+  @override
+  String get medicineScanOptionBody => 'هتراجع الاسم والتركيز قبل الحفظ';
+
+  @override
+  String get medicineScanRead => 'اتقرا من صورة العلبة';
+
+  @override
+  String get medicineScanReview => 'راجع البيانات على العلبة قبل الحفظ';
+
+  @override
+  String get medicineScanConfirm => 'راجعت الاسم والتركيز على العلبة';
+
+  @override
+  String get medicineScanConfirmNeeded =>
+      'علّم هنا بعد ما تراجع الاسم والتركيز';
+
+  @override
+  String get medicineUnsureValue => 'مش متأكدين من القراية، راجعها على العلبة';
+
+  @override
+  String get medicineFreqOnce => 'مرة في اليوم';
+
+  @override
+  String get medicineFreqTwice => 'مرتين';
+
+  @override
+  String get medicineFreqThrice => '٣ مرات';
+
+  @override
+  String get medicineFreqAsNeeded => 'لما يحتاج';
+
+  @override
+  String get medicineAddAnotherTime => 'ميعاد تاني';
+
+  @override
+  String medicineChangeTime(String time) {
+    return 'غيّر $time';
+  }
+
+  @override
+  String get medicineOngoing => 'على طول';
+
+  @override
+  String get medicineUntilDate => 'لحد يوم معين';
+
+  @override
+  String get medicineLastDay => 'آخر يوم';
+
+  @override
+  String get medicineMoreDetails => 'تفاصيل أكتر';
+
+  @override
+  String get medicineLessDetails => 'تفاصيل أقل';
+
+  @override
+  String get medicineClose => 'اقفل';
 }

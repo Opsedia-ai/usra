@@ -50,6 +50,10 @@ GoRouter buildRouter(ModuleRegistry registry, {GoRouterRedirect? redirect}) {
   );
 }
 
+/// The medicine form fills the screen, with its Save at the bottom: a tab tapped
+/// by mistake there would lose what was typed.
+final _medicineForm = RegExp(r'^/family/[^/]+/medicines/(new|[^/]+/edit)$');
+
 /// Bottom navigation built from the modules' tabs; fewer and bigger in
 /// Simple Mode.
 class AppShell extends ConsumerWidget {
@@ -75,7 +79,7 @@ class AppShell extends ConsumerWidget {
     );
     return Scaffold(
       body: SafeArea(child: child),
-      bottomNavigationBar: tabs.length < 2
+      bottomNavigationBar: tabs.length < 2 || _medicineForm.hasMatch(location)
           ? null
           : !simple
           ? UsraBottomBar(tabs: tabs, selected: index < 0 ? 0 : index)

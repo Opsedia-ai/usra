@@ -1090,7 +1090,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanMedicineName => 'Medicine name';
 
   @override
-  String get scanMedicineStrength => 'Strength (optional), e.g. 500mg';
+  String get scanMedicineStrength => 'Strength (optional)';
 
   @override
   String get scanMedicineCheck =>
@@ -1290,10 +1290,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get doseTaken => 'Taken';
 
   @override
-  String get doseSkip => 'Skip';
+  String get doseSkip => 'Not taken';
 
   @override
-  String get doseSkipped => 'Skipped';
+  String get doseSkipped => 'Not taken';
 
   @override
   String get doseSnoozed => 'Snoozed';
@@ -1427,7 +1427,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get medicineAmount => 'Amount each time';
 
   @override
-  String get medicineAmountHint => 'As the doctor wrote it, e.g. 1 tablet';
+  String get medicineAmountHint => 'As the doctor wrote it';
 
   @override
   String get medicineRepeat => 'How often';
@@ -2908,7 +2908,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get prescriptionDose => 'Dose, as the doctor wrote it';
 
   @override
-  String get prescriptionDoseHint => 'e.g. 5 ml after meals';
+  String get prescriptionDoseHint => 'Exactly as written on the prescription';
 
   @override
   String get prescriptionTimesPerDay =>
@@ -2994,7 +2994,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String courseDayOf(int day, int total) {
-    return 'Day $day of $total';
+    final intl.NumberFormat dayNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String dayString = dayNumberFormat.format(day);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return 'Day $dayString of $totalString';
   }
 
   @override
@@ -3039,7 +3047,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prescriptionTimesHint =>
-      'Check the times match what the doctor wrote, e.g. every 8 hours.';
+      'Check the times match what the doctor wrote.';
 
   @override
   String get growthNoPrematurity =>
@@ -3910,4 +3918,151 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get homeLoadError =>
       'Can\'t read your data right now. Close the app and open it again.';
+
+  @override
+  String get doseGroupMissed => 'Missed';
+
+  @override
+  String get doseGroupNow => 'Now';
+
+  @override
+  String get doseGroupDone => 'Logged';
+
+  @override
+  String get dayPartMorning => 'Morning';
+
+  @override
+  String get dayPartNoon => 'Noon';
+
+  @override
+  String get dayPartAfternoon => 'Afternoon';
+
+  @override
+  String get dayPartNight => 'Night';
+
+  @override
+  String get doseSnoozeShort => 'In 10 min';
+
+  @override
+  String get doseTakenEarly => 'Taken early';
+
+  @override
+  String doseSnoozedUntil(String time) {
+    return 'Snoozed until $time';
+  }
+
+  @override
+  String doseLoggedEarly(String medicine, String person) {
+    return 'Logged early: $medicine for $person';
+  }
+
+  @override
+  String doseLoggedNotTaken(String medicine, String person) {
+    return 'Logged as not taken: $medicine for $person';
+  }
+
+  @override
+  String doseLoggedSnoozed(String medicine, String person) {
+    return 'Reminder in 10 minutes: $medicine for $person';
+  }
+
+  @override
+  String get medicinesAll => 'All medicines';
+
+  @override
+  String get medicinesFilterAll => 'All';
+
+  @override
+  String medicinesTodayEmptyFor(String name) {
+    return 'No medicines for $name today.';
+  }
+
+  @override
+  String medicineFor(String name) {
+    return 'This medicine is for $name';
+  }
+
+  @override
+  String get medicineForChange => 'Change';
+
+  @override
+  String get medicineForPick => 'Who is this medicine for?';
+
+  @override
+  String medicineSaveFor(String name) {
+    return 'Save for $name';
+  }
+
+  @override
+  String medicineSaveForRemind(String name) {
+    return 'Save for $name and remind me';
+  }
+
+  @override
+  String medicineSavedFor(String medicine, String name) {
+    return 'Saved: $medicine for $name';
+  }
+
+  @override
+  String get medicineScanOption => 'Read the name from a box photo';
+
+  @override
+  String get medicineScanOptionBody =>
+      'You\'ll check the name and strength before saving';
+
+  @override
+  String get medicineScanRead => 'Read from the box photo';
+
+  @override
+  String get medicineScanReview => 'Check the details on the box before saving';
+
+  @override
+  String get medicineScanConfirm =>
+      'I checked the name and strength on the box';
+
+  @override
+  String get medicineScanConfirmNeeded =>
+      'Tick this once you\'ve checked the name and strength';
+
+  @override
+  String get medicineUnsureValue =>
+      'We\'re not sure of this reading. Check it on the box';
+
+  @override
+  String get medicineFreqOnce => 'Once a day';
+
+  @override
+  String get medicineFreqTwice => 'Twice';
+
+  @override
+  String get medicineFreqThrice => '3 times';
+
+  @override
+  String get medicineFreqAsNeeded => 'When needed';
+
+  @override
+  String get medicineAddAnotherTime => 'Another time';
+
+  @override
+  String medicineChangeTime(String time) {
+    return 'Change $time';
+  }
+
+  @override
+  String get medicineOngoing => 'Ongoing';
+
+  @override
+  String get medicineUntilDate => 'Until a date';
+
+  @override
+  String get medicineLastDay => 'Last day';
+
+  @override
+  String get medicineMoreDetails => 'More details';
+
+  @override
+  String get medicineLessDetails => 'Fewer details';
+
+  @override
+  String get medicineClose => 'Close';
 }

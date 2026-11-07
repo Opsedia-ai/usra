@@ -30,7 +30,13 @@ class MedicinesModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-    GoRoute(path: '/medicines', builder: (_, _) => const TodayScreen()),
+    GoRoute(
+      path: '/medicines',
+      builder: (_, _) => const TodayScreen(),
+      routes: [
+        GoRoute(path: 'all', builder: (_, _) => const AllMedicinesScreen()),
+      ],
+    ),
     // A person's medicines, opened from their page, under the family tab.
     GoRoute(
       path: '/family/:id/medicines',

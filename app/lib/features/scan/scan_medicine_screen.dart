@@ -111,10 +111,19 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
       return;
     }
     final strength = _strength.text.trim();
+    // How sure the reading is goes along with it, so the form can highlight
+    // it. What the person typed themselves isn't in doubt.
+    final readName = _suggestions.where(
+      (s) => s.name.toLowerCase() == name.toLowerCase(),
+    );
+    final readStrength = _suggestions.where((s) => s.strength == strength);
     context.pop(
       MedicineSuggestion(
         name: name,
         strength: strength.isEmpty ? null : strength,
+        nameSure: readName.every((s) => s.nameSure),
+        strengthSure:
+            strength.isNotEmpty && readStrength.every((s) => s.strengthSure),
       ),
     );
   }
@@ -239,7 +248,6 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
           TextField(
             key: const ValueKey('scan-name'),
             controller: _name,
-            textDirection: TextDirection.ltr,
             textCapitalization: TextCapitalization.words,
             onChanged: (_) => setState(() {
               _nameMissing = false;
@@ -254,7 +262,6 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
           TextField(
             key: const ValueKey('scan-strength'),
             controller: _strength,
-            textDirection: TextDirection.ltr,
             onChanged: (_) => setState(() => _filledIn = false),
             decoration: InputDecoration(labelText: l.scanMedicineStrength),
           ),
