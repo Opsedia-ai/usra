@@ -1,6 +1,6 @@
 # Medical wording changed after the doctor's review
 
-The founder reports that the doctor accepted the app's full wording on 7 November 2026. This list is the medical text added or changed afterwards, for the doctor to check. It covers PRs 51 to 57.
+The founder reports that the doctor accepted the app's full wording on 7 November 2026. This list is the medical text added or changed afterwards, for the doctor to check. It covers PRs 51 to 61.
 
 ## Changed wording
 
@@ -11,6 +11,11 @@ The founder reports that the doctor accepted the app's full wording on 7 Novembe
 | Pregnancy, danger sign | ورم في الوش أو الإيدين | تورّم في الوش أو الإيدين |
 | Doctor summary, closing line | ملخص عملته العيلة بتطبيق أسرة من سجلاتها. للمعلومات بس: راجعوه على الروشتات والتقارير الأصلية. | ده ملخص من اللي العيلة سجلته بتطبيق أسرة، مش رأي طبي. راجعوه على الروشتات والتقارير الأصلية. |
 | Doctor summary, English | A summary made by the family in the Usra app from their own records. Informational only: check against the original prescriptions and reports. | This summary is what the family recorded with the Usra app, not a medical opinion. Check it against the original prescriptions and reports. |
+
+| Pregnancy, week count in English | Showed the Arabic text by mistake | {weeks} weeks, {days} days (under a week: Less than a week, {days} days) |
+| Pregnancy, week count in Arabic | =0{0 يوم} | =0{٠ يوم} (digit only) |
+| Egypt hexavalent vaccine hint | عند شهرين و4 و6 شهور | عند شهرين و٤ و٦ شهور (digit only) |
+| Pregnancy, weight line | kg | كجم |
 
 ## New wording
 
@@ -39,6 +44,8 @@ The founder reports that the doctor accepted the app's full wording on 7 Novembe
 3. Pregnancy shows an ambulance button inside danger signs. The drawing and PRD (F10) also ask for "call my doctor", which isn't built. Is the ambulance button right for all the listed signs?
 4. Same-ingredient line and the suggested hours between doses (`docs/risks.md`, M2): please confirm these two by name.
 5. Please give your name, specialty and review date. The PRD asks for both a paediatrician and an obstetrician.
+
+6. The Arabic doctor report now shows weights, percentiles and page numbers in Arabic-Indic digits, while lab values stay Latin to match the lab's paper. Is that acceptable for a doctor reading it?
 
 ## Changes to the rules, not the wording
 

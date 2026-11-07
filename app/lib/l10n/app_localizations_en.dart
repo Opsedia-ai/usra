@@ -2187,22 +2187,18 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       weeks,
       locale: localeName,
-      other: '$weeksString أسبوع',
-      few: '$weeksString أسابيع',
-      two: 'أسبوعين',
-      one: 'أسبوع',
-      zero: 'أقل من أسبوع',
+      other: '$weeksString weeks',
+      one: '1 week',
+      zero: 'Less than a week',
     );
     String _temp1 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$daysString يوم',
-      few: '$daysString أيام',
-      two: 'يومين',
-      one: 'يوم',
-      zero: '0 يوم',
+      other: '$daysString days',
+      one: '1 day',
+      zero: '0 days',
     );
-    return '$_temp0 و$_temp1';
+    return '$_temp0, $_temp1';
   }
 
   @override
