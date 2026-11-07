@@ -35,6 +35,17 @@ class SyncPhotoStore extends PhotoStore {
       keys.require.open(fileOf(relativePath).readAsBytesSync());
 
   @override
+  Future<Set<String>> storedPaths() async {
+    final dir = Directory('${root.path}/$folder');
+    if (!dir.existsSync()) return {};
+    return {
+      for (final f in dir.listSync().whereType<File>())
+        if (!f.uri.pathSegments.last.startsWith('.'))
+          '$folder/${f.uri.pathSegments.last}',
+    };
+  }
+
+  @override
   Future<void> prune(Set<String> keep) async {
     final dir = Directory('${root.path}/$folder');
     if (!dir.existsSync()) return;

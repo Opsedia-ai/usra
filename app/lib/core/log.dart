@@ -22,6 +22,14 @@ abstract final class Log {
     output('[usra] $event (${error.runtimeType})');
   }
 
+  /// A fixed [event] with numbers: typed as ints, so no name or path can
+  /// get in. Silent in release builds, like [error].
+  static void counts(String event, Map<String, int> counts) {
+    if (kReleaseMode || release) return;
+    final parts = [for (final e in counts.entries) '${e.key}: ${e.value}'];
+    output('[usra] $event (${parts.join(', ')})');
+  }
+
   /// Call first in `main()`. Flutter's default handlers print the
   /// exception text and stack trace, in release builds too: framework
   /// errors, [FlutterError.reportError] and uncaught async errors all go

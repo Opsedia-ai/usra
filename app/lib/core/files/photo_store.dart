@@ -166,8 +166,20 @@ class PhotoStore {
   ImageProvider image(String relativePath) =>
       StoredPhotoImage(this, relativePath);
 
+  /// The paths of the photos in [folder], as saved in the database. Hidden
+  /// files aren't photos: temporary ones being written, or the system's.
+  Future<Set<String>> storedPaths() async {
+    if (!await _dir.exists()) return {};
+    return {
+      await for (final entity in _dir.list())
+        if (entity is File && !p.basename(entity.path).startsWith('.'))
+          p.relative(entity.path, from: root.path),
+    };
+  }
+
   /// Deletes every photo in [folder] not in [keep] (replaced, or what it
-  /// belonged to was deleted).
+  /// belonged to was deleted). A photo imported but not saved yet is not in
+  /// [keep], so save its row before pruning.
   Future<void> prune(Set<String> keep) async {
     if (!await _dir.exists()) return;
     await for (final entity in _dir.list()) {
