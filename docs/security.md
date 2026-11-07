@@ -153,9 +153,12 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   Fever warning signs are informational, cited and say to contact a
   doctor or call 123
   (`docs/research/fever-warning-signs.md`, needs medical review).
-- **Widget**: first name and medicine name only, no strength or condition;
-  in discreet mode "Dose due" with the time and no name, and Taken only under
-  the notification rule above (otherwise a tap opens the app, behind the lock).
+- **Widget**: no names of people or medicines in any mode, only times and how
+  many doses (Apple 5.1.3: the snapshot may reach iCloud device backup). The
+  medicine id is a random id. A snapshot from an older version held names: the
+  widgets refuse and delete it when they next draw, and the app overwrites it
+  when it next runs. Taken only under the notification rule above (otherwise a
+  tap opens the app, behind the lock).
   A snoozed dose has no Taken here, as its reminder is still coming. iOS 17+
   only; its Taken asks to unlock first (StandBy shows widgets on a locked phone)
   and goes through an inbox in the App Group, holding medicine id and time,

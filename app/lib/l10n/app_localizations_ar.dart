@@ -118,7 +118,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutPrivacyReminders =>
-      'التذكير بيتظبط على الموبايل ده. أسامي الأشخاص وأسامي الأدوية ممكن تظهر على شاشة القفل (الاسم زي ما كتبته) وفي الويدجت (الاسم الأول).';
+      'التذكير بيتظبط على الموبايل ده. أسامي الأشخاص وأسامي الأدوية ممكن تظهر على شاشة القفل (الاسم زي ما كتبته). الويدجت مفيهوش أسامي، مواعيد وعدد جرعات بس.';
 
   @override
   String get aboutPrivacyDelete =>
@@ -2641,11 +2641,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get widgetDiscreetDose => 'ميعاد جرعة';
 
   @override
+  String widgetDoseCount(int count, String digits) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$digits جرعة',
+      few: '$digits جرعات',
+      two: 'جرعتين',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settingsDiscreet => 'تنبيهات من غير أسامي';
 
   @override
   String get settingsDiscreetHint =>
-      'التنبيهات وويدجت الشاشة الرئيسية بتقول \"ميعاد الدوا\" بس، من غير اسم الشخص ولا اسم الدوا. لو كذا جرعة مواعيدهم قريبة من بعض، افتح أسرة عشان تعلّم عليهم.';
+      'التنبيهات بتقول \"ميعاد الدوا\" بس، من غير اسم الشخص ولا اسم الدوا. لو كذا جرعة قريبين من بعض، افتح أسرة عشان تعلّم عليهم.';
 
   @override
   String get settingsBlockScreenshots => 'امنع تصوير الشاشة';

@@ -21,7 +21,7 @@ import org.json.JSONObject
  * Home-screen widget: the next three doses today across the family.
  *
  * The database is encrypted, so the widget never reads it: the app hands
- * it a small snapshot (first names, medicine names, times; see
+ * it a small snapshot (times and how many doses, no names; see
  * `dose_widget.dart`) of the doses due today and tomorrow. The widget
  * picks the next three as time passes, re-drawing itself when a dose
  * comes due or drops off, at midnight, after a reboot and when the clock
@@ -72,6 +72,9 @@ class DoseWidgetProvider : HomeWidgetProvider() {
         /** Written by the app; see `HomeWidgetSnapshotPublisher.dataKey`. */
         private const val DATA_KEY = "dose_widget_snapshot"
 
+        /** See `WidgetSnapshot.version`. Older ones held names, and are deleted. */
+        private const val SNAPSHOT_VERSION = 2
+
         /** Read by `DoseActionInbox` in the app. */
         private const val INBOX_FILE = "dose_actions.jsonl"
 
@@ -90,10 +93,9 @@ class DoseWidgetProvider : HomeWidgetProvider() {
             val at: Long,
             val until: Long,
             val time: String,
-            val person: String,
-            val medicine: String,
+            val label: String,
             val medicineId: String,
-            /** Has Taken once due; never on a neutral row others could match. */
+            /** Has Taken once due; never on a row others could match. */
             val canMark: Boolean,
         )
 
@@ -123,7 +125,13 @@ class DoseWidgetProvider : HomeWidgetProvider() {
         ) {
             if (ids.isEmpty()) return
             val now = System.currentTimeMillis()
-            val snapshot = read(widgetData.getString(DATA_KEY, null))
+            val raw = widgetData.getString(DATA_KEY, null)
+            val snapshot = read(raw)
+            // One with names from before an update, gone even if the app isn't
+            // opened: it says to open the app until a new one comes.
+            if (raw != null && snapshot == null) {
+                widgetData.edit().remove(DATA_KEY).apply()
+            }
             val taken = pendingTaken(context, snapshot)
             val views = RemoteViews(context.packageName, R.layout.dose_widget)
 
@@ -165,12 +173,7 @@ class DoseWidgetProvider : HomeWidgetProvider() {
                     continue
                 }
                 views.setViewVisibility(rows[i], View.VISIBLE)
-                // Discreet mode sends no person and a generic medicine.
-                views.setTextViewText(
-                    texts[i],
-                    listOf(dose.time, dose.person, dose.medicine)
-                        .filter { it.isNotEmpty() }.joinToString(" · "),
-                )
+                views.setTextViewText(texts[i], "${dose.time} · ${dose.label}")
                 // Only doses already due: a later one still has its
                 // reminder coming, which Taken here can't cancel.
                 if (dose.at <= now && dose.canMark) {
@@ -291,10 +294,8 @@ class DoseWidgetProvider : HomeWidgetProvider() {
             if (raw == null) return null
             return try {
                 val j = JSONObject(raw)
-                if (j.optInt("v") != 1) return null
+                if (j.optInt("v") != SNAPSHOT_VERSION) return null
                 val list = j.getJSONArray("doses")
-                // A snapshot from before "t" keeps the buttons it had.
-                val discreet = j.optBoolean("discreet", false)
                 Snapshot(
                     generatedAt = j.getLong("generatedAt"),
                     validUntil = j.getLong("validUntil"),
@@ -309,10 +310,9 @@ class DoseWidgetProvider : HomeWidgetProvider() {
                             at = d.getLong("at"),
                             until = d.getLong("until"),
                             time = d.getString("time"),
-                            person = d.getString("person"),
-                            medicine = d.getString("medicine"),
+                            label = d.getString("label"),
                             medicineId = d.getString("m"),
-                            canMark = d.optBoolean("t", !discreet),
+                            canMark = d.optBoolean("t", false),
                         )
                     },
                 )
