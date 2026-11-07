@@ -64,6 +64,9 @@ void main() {
 
   testWidgets('the regular tour no longer opens the app, and reopens from '
       'More', (tester) async {
+    tester.view.physicalSize = const Size(1170, 6000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
     store = MemoryKeyValueStore({PrefKeys.tutorialSeen: true});
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
@@ -106,6 +109,12 @@ void main() {
 
     await tester.tap(find.text('المزيد').last);
     await tester.pumpAndSettle();
+    await tester.dragUntilVisible(
+      find.byKey(const ValueKey('settings-simple-mode')),
+      find.byType(ListView).first,
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('settings-simple-mode')));
     await tester.pumpAndSettle();
 
@@ -145,6 +154,12 @@ void main() {
 
     // Turning it off brings everything back.
     await openMoreFromSimpleHome(tester);
+    await tester.dragUntilVisible(
+      find.byKey(const ValueKey('settings-simple-mode')),
+      find.byType(ListView).first,
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('settings-simple-mode')));
     await tester.pumpAndSettle();
     expect(regularBar(), findsOneWidget);
@@ -182,6 +197,12 @@ void main() {
     expect(find.byKey(const ValueKey('member-spending')), findsOneWidget);
     final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
     router.go('/settings');
+    await tester.pumpAndSettle();
+    await tester.dragUntilVisible(
+      find.byKey(const ValueKey('settings-simple-mode')),
+      find.byType(ListView).first,
+      const Offset(0, -200),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('settings-simple-mode')));
     await tester.pumpAndSettle();
@@ -255,7 +276,7 @@ void main() {
     await tester.tap(find.text('الرئيسية').last);
     await tester.pumpAndSettle();
     await openMoreFromSimpleHome(tester);
-    expect(find.byKey(const ValueKey('settings-simple-mode')), findsOneWidget);
+    expect(find.byKey(const ValueKey('settings-backup')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

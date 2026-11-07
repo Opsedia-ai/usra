@@ -351,7 +351,9 @@ class _PinEntryState extends ConsumerState<PinEntry> {
               : Text(
                   message,
                   key: const ValueKey('pin-message'),
-                  style: text.bodyMedium?.copyWith(color: context.usra.urgent),
+                  style: text.bodyMedium?.copyWith(
+                    color: Severity.actSoon.foregroundOf(context),
+                  ),
                   textAlign: TextAlign.center,
                 ),
         ),

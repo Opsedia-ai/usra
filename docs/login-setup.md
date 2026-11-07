@@ -182,7 +182,7 @@ No real family signs in until these are answered. Take separate advice before op
 
 - [ ] Add the `APPLE_*` secrets (step 3).
 - [ ] Run the checks in step 5.
-- [ ] With `SUPABASE_URL` set, check that More > About & privacy says saving records needs a sign-in, in both languages.
+- [ ] With `SUPABASE_URL` set, check that More > Privacy and terms says saving records needs a sign-in, in both languages.
 - [ ] Check that looking around and reading the guides work with no account, and that saving the first record asks for sign-in without losing what was typed. Sign-in became required on 7 November; see `docs/decisions.md`.
 
 ## Good to know

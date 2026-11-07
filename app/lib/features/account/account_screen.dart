@@ -33,18 +33,13 @@ class AccountSettingsTile extends ConsumerWidget {
       return const SizedBox.shrink();
     }
     final l = AppLocalizations.of(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ListTile(
-          key: const ValueKey('settings-account'),
-          leading: const Icon(Icons.account_circle_outlined),
-          title: Text(l.accountTitle),
-          subtitle: Text(l.accountSettingsHint),
-          onTap: () => context.go(accountPath),
-        ),
-        const Divider(height: 1),
-      ],
+    return ListTile(
+      key: const ValueKey('settings-account'),
+      leading: const Icon(Icons.account_circle_outlined),
+      title: Text(l.accountTitle),
+      subtitle: Text(l.accountSettingsHint),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => context.go(accountPath),
     );
   }
 }
@@ -272,6 +267,24 @@ class _SignedInState extends ConsumerState<_SignedIn> with _Busy<_SignedIn> {
                   textAlign: TextAlign.start,
                 ),
         ),
+        const SizedBox(height: 8),
+        Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l.accountKeepsQuestion,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(l.accountKeeps, key: const ValueKey('account-keeps')),
+              ],
+            ),
+          ),
+        ),
         const SizedBox(height: 16),
         OutlinedButton(
           key: const ValueKey('account-sign-out'),
@@ -282,10 +295,16 @@ class _SignedInState extends ConsumerState<_SignedIn> with _Busy<_SignedIn> {
         TextButton(
           key: const ValueKey('account-delete'),
           style: TextButton.styleFrom(
-            foregroundColor: Theme.of(context).colorScheme.error,
+            foregroundColor: Severity.actSoon.foregroundOf(context),
           ),
           onPressed: busy ? null : _delete,
           child: Text(l.accountDelete),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l.accountDeleteNote,
+          key: const ValueKey('account-delete-note'),
+          style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
     );

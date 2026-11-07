@@ -134,10 +134,7 @@ class _DeleteDataScreenState extends ConsumerState<DeleteDataScreen> {
           const SizedBox(height: 20),
           FilledButton.icon(
             key: const ValueKey('wipe-confirm'),
-            style: FilledButton.styleFrom(
-              backgroundColor: context.usra.urgent,
-              minimumSize: const Size(0, 56),
-            ),
+            style: FilledButton.styleFrom(minimumSize: const Size(0, 56)),
             onPressed: _working || !_confirmed(l) ? null : _wipe,
             icon: _working
                 ? const SizedBox.square(

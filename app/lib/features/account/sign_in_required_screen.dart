@@ -156,7 +156,8 @@ class _SignInRequiredScreenState extends ConsumerState<SignInRequiredScreen> {
                     ? null
                     : () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) => const AboutPrivacyScreen(),
+                          builder: (_) =>
+                              const AboutPrivacyScreen(canDelete: false),
                         ),
                       ),
                 child: Text(l.accountReadPrivacy),
