@@ -8,6 +8,7 @@ import 'package:usra/core/files/photo_crypto.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/screen_privacy.dart';
 import 'package:usra/core/security/app_lock.dart';
+import 'package:usra/core/security/data_wipe.dart';
 import 'package:usra/features/settings/database_recovery.dart';
 
 import '../support/fake_lock.dart';
@@ -91,6 +92,7 @@ void main() {
     DatabaseProblem problem = DatabaseProblem.openFailed,
     bool failed = false,
     MemoryKeyValueStore? prefs,
+    WipeOutcome? wipe,
   }) async {
     tester.view.physicalSize = const Size(1170, 4200);
     tester.view.devicePixelRatio = 3;
@@ -104,6 +106,7 @@ void main() {
         lock: lock ?? AppLock.off(),
         preferences: prefs ?? MemoryKeyValueStore(),
         restoreFailed: failed,
+        wipeOutcome: wipe,
         restore: (staged, key) async => restored++,
         startFresh: () async => wiped++,
       ),
@@ -150,6 +153,15 @@ void main() {
     await show(tester, failed: true);
     expect(key('database-restore-failed'), findsOneWidget);
     expect(find.textContaining('مقدرناش نرجّع النسخة'), findsOneWidget);
+  });
+
+  testWidgets('after starting fresh it doesn\'t claim nothing was deleted', (
+    tester,
+  ) async {
+    await show(tester, wipe: WipeOutcome.incomplete);
+    expect(find.byKey(const ValueKey('database-wipe-outcome')), findsOneWidget);
+    expect(find.textContaining('nothing was deleted'), findsNothing);
+    expect(find.textContaining('متمسحتش'), findsNothing);
   });
 
   testWidgets('restoring works with no router or database open', (

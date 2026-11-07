@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/security/data_wipe.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Shown instead of the app when the records can't be reached: the database
@@ -18,6 +19,7 @@ class DatabaseKeyUnavailable extends StatefulWidget {
     this.onRestore,
     this.onStartFresh,
     this.restoreFailed = false,
+    this.wipeOutcome,
   }) : _message = _keyMessage;
 
   const DatabaseKeyUnavailable.openFailed({
@@ -26,6 +28,7 @@ class DatabaseKeyUnavailable extends StatefulWidget {
     this.onRestore,
     this.onStartFresh,
     this.restoreFailed = false,
+    this.wipeOutcome,
   }) : _message = _openFailedMessage;
 
   /// Starts the app again. The button stays off until this finishes, so a
@@ -40,6 +43,10 @@ class DatabaseKeyUnavailable extends StatefulWidget {
 
   /// The last try to restore didn't go in.
   final bool restoreFailed;
+
+  /// Starting fresh ran and the records still can't be reached, so "nothing was
+  /// deleted" would be wrong.
+  final WipeOutcome? wipeOutcome;
 
   final String Function(AppLocalizations) _message;
 
@@ -116,7 +123,17 @@ class _DatabaseKeyUnavailableState extends State<DatabaseKeyUnavailable> {
               key: const ValueKey('database-restore-failed'),
               style: TextStyle(color: danger, fontWeight: FontWeight.w600),
             ),
-          _inBoth(widget._message),
+          switch (widget.wipeOutcome) {
+            null => _inBoth(widget._message),
+            WipeOutcome.done => _inBoth(
+              (l) => l.wipeDoneNotice,
+              key: const ValueKey('database-wipe-outcome'),
+            ),
+            WipeOutcome.incomplete => _inBoth(
+              (l) => l.wipeIncompleteNotice,
+              key: const ValueKey('database-wipe-outcome'),
+            ),
+          },
           FilledButton(
             key: const ValueKey('database-key-retry'),
             onPressed: _retrying ? null : () => unawaited(_retry()),

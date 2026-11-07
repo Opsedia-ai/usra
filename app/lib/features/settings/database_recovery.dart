@@ -24,11 +24,13 @@ enum DatabaseProblem { keyUnavailable, openFailed }
 /// opens before anything old is given up:
 ///
 /// 1. The backup goes in, with the old data kept aside. A marker stays on disk,
-///    so a restart at any point up to step 3 puts the old data back.
+///    so a restart puts the old data back.
 /// 2. The new database must open with [deviceKey].
-/// 3. If [saveDeviceKey] is given, the new key is saved. Only now, because
-///    saving it is what gives up the old key.
-/// 4. The old data goes. [remember] can't undo the restore if it fails.
+/// 3. New keys are saved: the photo key if one had to be made, then
+///    [saveDeviceKey] if given. Only now, because saving them gives up the old
+///    ones. From here the restore can't be undone: a restart keeps it too, since
+///    the new database now opens.
+/// 4. The old data goes. [remember] and tidying up can't fail the restore.
 ///
 /// Throws if the backup couldn't go in, with the old data back in place.
 Future<void> replaceDamagedData({
@@ -43,16 +45,25 @@ Future<void> replaceDamagedData({
   await backup.commit(hold: true);
   try {
     checkOpens(file, deviceKey);
+    await backup.saveStagedPhotoKey();
     await saveDeviceKey?.call();
-    await backup.finishCommit();
   } catch (_) {
     await backup.undoCommit();
     rethrow;
   }
+  void report(Object e, StackTrace s) => FlutterError.reportError(
+    FlutterErrorDetails(exception: e, stack: s, library: 'backup'),
+  );
+  try {
+    await backup.finishCommit();
+    await backup.discardAside();
+  } catch (e, s) {
+    report(e, s);
+  }
   try {
     await remember?.call();
-  } finally {
-    await backup.discardAside();
+  } catch (e, s) {
+    report(e, s);
   }
 }
 
@@ -71,6 +82,7 @@ class DatabaseRecoveryApp extends StatelessWidget {
     required this.startFresh,
     this.preferences,
     this.restoreFailed = false,
+    this.wipeOutcome,
     @visibleForTesting this.pickBackup,
   });
 
@@ -92,6 +104,9 @@ class DatabaseRecoveryApp extends StatelessWidget {
 
   /// The last try to restore didn't go in.
   final bool restoreFailed;
+
+  /// Starting fresh ran and the records still can't be reached.
+  final WipeOutcome? wipeOutcome;
 
   final Future<String?> Function()? pickBackup;
 
@@ -122,6 +137,7 @@ class DatabaseRecoveryApp extends StatelessWidget {
           problem: problem,
           onRetry: onRetry,
           restoreFailed: restoreFailed,
+          wipeOutcome: wipeOutcome,
         ),
       ),
     );
@@ -133,11 +149,13 @@ class _RecoveryHome extends ConsumerWidget {
     required this.problem,
     required this.onRetry,
     required this.restoreFailed,
+    required this.wipeOutcome,
   });
 
   final DatabaseProblem problem;
   final Future<void> Function() onRetry;
   final bool restoreFailed;
+  final WipeOutcome? wipeOutcome;
 
   Future<void> _restore(BuildContext context, WidgetRef ref) async {
     if (ref.read(appLockProvider).enabled && !await confirmItsYou(context)) {
@@ -166,12 +184,14 @@ class _RecoveryHome extends ConsumerWidget {
               onRestore: () => _restore(context, ref),
               onStartFresh: () => _startFresh(context),
               restoreFailed: restoreFailed,
+              wipeOutcome: wipeOutcome,
             ),
             DatabaseProblem.openFailed => DatabaseKeyUnavailable.openFailed(
               onRetry: onRetry,
               onRestore: () => _restore(context, ref),
               onStartFresh: () => _startFresh(context),
               restoreFailed: restoreFailed,
+              wipeOutcome: wipeOutcome,
             ),
           },
         ),

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart' show driftRuntimeOptions;
+import 'package:flutter/foundation.dart' show FlutterError;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:usra/core/backup/backup_crypto.dart';
@@ -202,7 +203,30 @@ void main() {
     expectOldDataBack();
   });
 
-  test('a bad remember step doesn\'t undo the restore', () async {
+  test(
+    'killed after the new key was saved: the next start keeps the restore',
+    () async {
+      final backup = await makeBackup();
+      final service = serviceFor(newKey);
+      await service.stage(
+        backup,
+        recovery,
+        currentSchema: AppDatabase.currentSchema,
+      );
+      await service.commit(hold: true);
+      // The key is saved and the app is killed. The next start reads that key.
+      await serviceFor(newKey).recoverInterrupted();
+      expect(await people(newKey), ['فاطمة']);
+      expect(photo.existsSync(), isFalse);
+      expect(
+        Directory(p.join(root.path, 'restore-aside')).existsSync(),
+        isFalse,
+      );
+    },
+  );
+
+  test('a failed tidy-up after the key is saved isn\'t a failed restore, and '
+      'never undoes it', () async {
     final backup = await makeBackup();
     final service = serviceFor(oldKey);
     await service.stage(
@@ -210,17 +234,70 @@ void main() {
       recovery,
       currentSchema: AppDatabase.currentSchema,
     );
-    await expectLater(
-      replaceDamagedData(
-        backup: service,
-        file: dbFile,
-        deviceKey: oldKey,
-        remember: () async => throw StateError('prefs'),
-      ),
-      throwsStateError,
+    final reported = <Object>[];
+    final before = FlutterError.onError;
+    FlutterError.onError = (d) => reported.add(d.exception);
+    addTearDown(() => FlutterError.onError = before);
+    await replaceDamagedData(
+      backup: service,
+      file: dbFile,
+      deviceKey: oldKey,
+      remember: () async => throw StateError('prefs'),
     );
+    expect(reported.single, isStateError);
     expect(await people(oldKey), ['فاطمة']);
   });
+
+  test('a restore stopped and not undone is never overwritten', () async {
+    final backup = await makeBackup();
+    final service = serviceFor(newKey);
+    await service.stage(
+      backup,
+      recovery,
+      currentSchema: AppDatabase.currentSchema,
+    );
+    await service.commit(hold: true);
+    final again = serviceFor(newKey);
+    await again.stage(
+      backup,
+      recovery,
+      currentSchema: AppDatabase.currentSchema,
+    );
+    await expectLater(again.commit(hold: true), throwsStateError);
+    // The old data is still aside, and comes back.
+    await again.undoCommit();
+    expectOldDataBack();
+  });
+
+  test(
+    'a photo key made for the restore isn\'t saved until it has opened',
+    () async {
+      final backup = await makeBackup();
+      final store = MemoryPhotoKeyStore();
+      final service = serviceFor(
+        newKey,
+        photoKeys: PhotoKeys.unavailable(PhotoKeyProblem.unreadable),
+        store: store,
+        replaceUnreadablePhotoKey: true,
+      );
+      await service.stage(
+        backup,
+        recovery,
+        currentSchema: AppDatabase.currentSchema,
+      );
+      await expectLater(
+        replaceDamagedData(
+          backup: service,
+          file: dbFile,
+          deviceKey: newKey,
+          checkOpens: (_, _) => throw const DatabaseOpenException(),
+        ),
+        throwsA(isA<DatabaseOpenException>()),
+      );
+      expect(await store.readRaw(), isNull);
+      expectOldDataBack();
+    },
+  );
 
   group('a photo key that can\'t be read', () {
     PhotoKeys unreadable() => PhotoKeys.unavailable(PhotoKeyProblem.unreadable);

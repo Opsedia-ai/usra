@@ -49,6 +49,9 @@ import 'features/settings/database_recovery.dart';
 RestoreOutcome? _pendingRestore;
 WipeOutcome? _pendingWipe;
 
+/// A key store that doesn't answer mustn't keep the recovery screen away.
+const _recoverySetupTimeout = Duration(seconds: 10);
+
 const _photoFolders = [
   PhotoStore.cardsFolder,
   PhotoStore.attachmentsFolder,
@@ -80,13 +83,23 @@ Future<void> _showRecordsUnavailable(
       store: SecureLockStore(),
       biometrics: LocalAuthBiometrics(),
       uptime: const PlatformUptime(),
-    );
+    ).timeout(_recoverySetupTimeout);
   } catch (e) {
     Log.error('Lock unavailable on the recovery screen', e);
   }
   final lock = opened ?? AppLock.off();
   final photoKeyStore = SecurePhotoKeyStore();
   final recoveryKeys = SecureRecoveryKeyStore();
+  // Whatever's wrong with the key store, this screen must still appear.
+  PhotoKeys photoKeys;
+  try {
+    photoKeys = await photoKeyStore
+        .load(sealedPhotosExist: () => anySealedPhoto(root, _photoFolders))
+        .timeout(_recoverySetupTimeout);
+  } catch (e) {
+    Log.error('Photo key unavailable on the recovery screen', e);
+    photoKeys = PhotoKeys.unavailable(PhotoKeyProblem.unreadable);
+  }
   // The restored database is encrypted for this key. A new one is only saved
   // once the restore has gone in and opened, see [replaceDamagedData].
   final deviceKey = key ?? DatabaseKeyStore.generateKey();
@@ -94,9 +107,7 @@ Future<void> _showRecordsUnavailable(
     root: root,
     databaseName: p.basename(file.path),
     deviceKey: deviceKey,
-    photoKeys: await photoKeyStore.load(
-      sealedPhotosExist: () => anySealedPhoto(root, _photoFolders),
-    ),
+    photoKeys: photoKeys,
     photoKeyStore: photoKeyStore,
     temporary: temporary,
     folders: _photoFolders,
@@ -112,6 +123,45 @@ Future<void> _showRecordsUnavailable(
       FlutterErrorDetails(exception: e, stack: s, library: 'backup'),
     );
   }
+  // Back to the start. If that fails, here again rather than a stuck screen.
+  Future<void> restart() async {
+    try {
+      await main();
+    } catch (e, s) {
+      FlutterError.reportError(
+        FlutterErrorDetails(exception: e, stack: s, library: 'database'),
+      );
+      await _showRecordsUnavailable(
+        problem,
+        file: file,
+        temporary: temporary,
+        wiper: wiper,
+        key: key,
+      );
+    }
+  }
+
+  Future<void> startFresh() async {
+    try {
+      final folder = (await AutoBackupStore.open(root)).current.folder;
+      if (folder != null) {
+        await const ChannelBackupFolderAccess().release(folder.id);
+      }
+    } catch (e) {
+      Log.error('Backup folder not released', e);
+    }
+    var complete = false;
+    try {
+      complete = await wiper.wipe();
+    } catch (e) {
+      Log.error('Start fresh failed', e);
+    }
+    _pendingWipe = complete ? WipeOutcome.done : WipeOutcome.incomplete;
+    await restart();
+  }
+
+  // Erase after too many wrong PINs holds here too.
+  lock.onTooManyFailures = startFresh;
   final failed = _pendingRestore == RestoreOutcome.failed;
   _pendingRestore = null;
   runApp(
@@ -125,6 +175,7 @@ Future<void> _showRecordsUnavailable(
       lock: lock,
       preferences: preferences,
       restoreFailed: failed,
+      wipeOutcome: _pendingWipe,
       restore: (staged, recoveryKey) async {
         try {
           await replaceDamagedData(
@@ -138,9 +189,12 @@ Future<void> _showRecordsUnavailable(
               if (preferences != null) {
                 await rememberRestore(preferences, staged.manifest.createdAt);
               }
-              await recoveryKeys.write(recoveryKey);
-              final auto = await AutoBackupStore.open(root);
-              await auto.save(auto.current.afterRestore(DateTime.now()));
+              try {
+                await recoveryKeys.write(recoveryKey);
+              } finally {
+                final auto = await AutoBackupStore.open(root);
+                await auto.save(auto.current.afterRestore(DateTime.now()));
+              }
             },
           );
           _pendingRestore = RestoreOutcome.restored;
@@ -150,26 +204,9 @@ Future<void> _showRecordsUnavailable(
             FlutterErrorDetails(exception: e, stack: s, library: 'backup'),
           );
         }
-        await main();
+        await restart();
       },
-      startFresh: () async {
-        try {
-          final folder = (await AutoBackupStore.open(root)).current.folder;
-          if (folder != null) {
-            await const ChannelBackupFolderAccess().release(folder.id);
-          }
-        } catch (e) {
-          Log.error('Backup folder not released', e);
-        }
-        var complete = false;
-        try {
-          complete = await wiper.wipe();
-        } catch (e) {
-          Log.error('Start fresh failed', e);
-        }
-        _pendingWipe = complete ? WipeOutcome.done : WipeOutcome.incomplete;
-        await main();
-      },
+      startFresh: startFresh,
     ),
   );
 }

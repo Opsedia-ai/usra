@@ -115,8 +115,10 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   for the PIN before Restore or Start fresh; one that can't be read is skipped,
   since it can't check anything and the phone's settings can clear the app
   anyway. A restore goes in with the old data kept aside and a marker on disk,
-  must open, and only then saves a new database key if there was none to read.
-  A restart before that puts the old data back.
+  must open, and only then saves new keys if there were none to read. A restart
+  before that puts the old data back; a restart after it keeps the restore.
+  Damage past the pages read at start (`prepareDatabaseFile`) doesn't reach this
+  screen: the app opens and those queries fail.
 - **Notifications**: payloads hold only the medicine id, dose time and
   language; the text is rebuilt from the current settings each time a
   reminder is scheduled. Discreet notifications (default on, S4): "Your
