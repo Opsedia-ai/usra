@@ -4167,6 +4167,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get aboutYouSexHint => 'علشان منحنيات النمو والحمل.';
 
   @override
+  String get aboutYouBirthDateHint => 'علشان الاقتراحات اللي بتعتمد على السن.';
+
+  @override
+  String get aboutYouBirthDateFuture =>
+      'تاريخ الميلاد مينفعش يكون في المستقبل.';
+
+  @override
   String get aboutYouDone => 'يلا بينا';
 
   @override

@@ -6649,6 +6649,18 @@ abstract class AppLocalizations {
   /// **'For growth charts and pregnancy.'**
   String get aboutYouSexHint;
 
+  /// No description provided for @aboutYouBirthDateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For suggestions that depend on age.'**
+  String get aboutYouBirthDateHint;
+
+  /// No description provided for @aboutYouBirthDateFuture.
+  ///
+  /// In en, this message translates to:
+  /// **'A date of birth can\'t be in the future.'**
+  String get aboutYouBirthDateFuture;
+
   /// No description provided for @aboutYouDone.
   ///
   /// In en, this message translates to:

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/design/buttons.dart';
 import '../../core/preferences.dart';
@@ -8,9 +9,10 @@ import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import 'onboarding_chrome.dart';
 
-/// Name and sex, which make the first family member and remember them as
-/// "me". The wording here stays neutral: the app doesn't know how to address
-/// this person until they answer.
+/// Name, date of birth and sex, which make the first family member and remember
+/// them as "me". All three are required: age-based suggestions need the date. The
+/// wording here stays neutral: the app doesn't know how to address this person
+/// until they answer.
 class AboutYouScreen extends ConsumerStatefulWidget {
   const AboutYouScreen({super.key});
 
@@ -20,8 +22,11 @@ class AboutYouScreen extends ConsumerStatefulWidget {
 
 class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
   final _name = TextEditingController();
+  DateTime? _birthDate;
   String? _sex;
   bool _nameMissing = false;
+  bool _birthDateMissing = false;
+  bool _birthDateFuture = false;
   bool _sexMissing = false;
   bool _saving = false;
 
@@ -43,6 +48,7 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
     if (me == null || !mounted) return;
     setState(() {
       _name.text = me.displayName;
+      _birthDate = me.birthDate;
       _sex = me.sex;
     });
   }
@@ -53,14 +59,43 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
     super.dispose();
   }
 
+  /// Today's end is the limit: no date of birth is in the future, including
+  /// one saved earlier (a phone's clock can be wrong).
+  bool _isFuture(DateTime date) =>
+      DateUtils.dateOnly(date).isAfter(DateUtils.dateOnly(DateTime.now()));
+
+  Future<void> _pickBirthDate() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final now = DateTime.now();
+    final current = _birthDate;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: current == null || _isFuture(current)
+          ? DateTime(1990)
+          : current,
+      firstDate: DateTime(1900),
+      lastDate: now,
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _birthDate = picked;
+      _birthDateMissing = false;
+      _birthDateFuture = false;
+    });
+  }
+
   Future<void> _done() async {
     final name = _name.text.trim();
+    final birthDate = _birthDate;
     final sex = _sex;
+    final future = birthDate != null && _isFuture(birthDate);
     setState(() {
       _nameMissing = name.isEmpty;
+      _birthDateMissing = birthDate == null;
+      _birthDateFuture = future;
       _sexMissing = sex == null;
     });
-    if (name.isEmpty || sex == null) return;
+    if (name.isEmpty || birthDate == null || future || sex == null) return;
     setState(() => _saving = true);
     final db = ref.read(databaseProvider);
     final me = ref.read(meProfileIdProvider.notifier);
@@ -69,14 +104,14 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
       final id = _madeId ?? ref.read(meProfileIdProvider);
       final existing = id == null ? null : await db.watchProfile(id).first;
       if (existing == null) {
-        _madeId = await db.addProfile(name, sex: sex);
+        _madeId = await db.addProfile(name, sex: sex, birthDate: birthDate);
       } else {
         // Saving replaces the whole profile: everything else stays as it is.
         await db.updateProfile(
           existing.id,
           displayName: name,
           sex: sex,
-          birthDate: existing.birthDate,
+          birthDate: birthDate,
           bloodType: existing.bloodType,
           allergies: existing.allergies,
           conditions: existing.conditions,
@@ -101,6 +136,8 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     final c = Theme.of(context).colorScheme;
+    final locale = Localizations.localeOf(context).toString();
+    final birthDate = _birthDate;
     return OnboardingPage(
       step: 2,
       title: l.aboutYouTitle,
@@ -119,6 +156,29 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
           decoration: InputDecoration(
             labelText: l.familyNameLabel,
             errorText: _nameMissing ? l.fieldRequired : null,
+          ),
+        ),
+        const SizedBox(height: 20),
+        InkWell(
+          key: const ValueKey('about-birthDate'),
+          onTap: _pickBirthDate,
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: l.profileBirthDate,
+              helperText: l.aboutYouBirthDateHint,
+              helperMaxLines: 2,
+              errorText: _birthDateMissing
+                  ? l.fieldRequired
+                  : _birthDateFuture
+                  ? l.aboutYouBirthDateFuture
+                  : null,
+              errorMaxLines: 2,
+            ),
+            child: Text(
+              birthDate == null
+                  ? l.pickDate
+                  : DateFormat.yMMMd(locale).format(birthDate),
+            ),
           ),
         ),
         const SizedBox(height: 20),

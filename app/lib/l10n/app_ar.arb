@@ -1211,6 +1211,8 @@
   "aboutYouHint": "ده ملفك، وممكن يتعدّل بعدين.",
   "aboutYouSex": "النوع",
   "aboutYouSexHint": "علشان منحنيات النمو والحمل.",
+  "aboutYouBirthDateHint": "علشان الاقتراحات اللي بتعتمد على السن.",
+  "aboutYouBirthDateFuture": "تاريخ الميلاد مينفعش يكون في المستقبل.",
   "aboutYouDone": "يلا بينا",
   "personAddFor": "إضافة ل{name}",
   "personVaccineWasDue": "كان ميعادها {date}. اسأل الدكتور إمتى تتاخد.",
