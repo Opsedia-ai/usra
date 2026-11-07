@@ -153,6 +153,15 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   left out; a restore encrypts them for the new phone as it unpacks.
   Rolling the app back past this needs a forward fix (photos stay
   encrypted), so it ships with a staged rollout. `app/lib/core/files/`.
+- **A photo stays with its person**: photos are found only through their row, by
+  path, and every path is a new UUID. A save can't move a card, medicine or
+  prescription to another person: it fails and nothing changes. A prune keeps
+  every path a live row uses, so forms save the row first and then prune
+  (`test/widget/photo_forms_test.dart`). Photo forms are keyed by their full
+  path, so one opened for another person starts empty. Debug builds log counts of
+  missing and unused photo files at start, never a path or name
+  (`photo_integrity.dart`). `test/core/photo_safety_test.dart` covers two people
+  with a photo of every kind, through delete, replace, backup and restore.
 - **Clipboard and sharing (S7)**: the recovery key can only be copied
   with its own button (the digits aren't selectable). Android marks the
   clip sensitive (`EXTRA_IS_SENSITIVE`: hidden from the Android 13+

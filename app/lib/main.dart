@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart' show TableUpdateQuery;
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +19,7 @@ import 'core/backup/backup_service.dart';
 import 'core/backup/recovery_key.dart';
 import 'core/database/app_database.dart';
 import 'core/database/connection.dart';
+import 'core/files/photo_integrity.dart';
 import 'core/files/photo_store.dart';
 import 'core/log.dart';
 import 'core/preferences.dart';
@@ -196,6 +198,22 @@ Future<void> main() async {
       FlutterError.reportError(
         FlutterErrorDetails(exception: e, stack: s, library: 'photos'),
       );
+    }
+    // Only reads, and logs counts only; logs are silent in release. Needs no
+    // photo key, so it runs even if sealing couldn't.
+    if (!kReleaseMode) {
+      try {
+        await checkPhotoIntegrity(
+          database,
+          cards: cardPhotos,
+          attachments: attachments,
+          medicines: medicinePhotos,
+        );
+      } catch (e, s) {
+        FlutterError.reportError(
+          FlutterErrorDetails(exception: e, stack: s, library: 'photos'),
+        );
+      }
     }
   }();
   try {
