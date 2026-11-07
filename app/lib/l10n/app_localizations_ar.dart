@@ -4710,4 +4710,61 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get medicineClose => 'اقفل';
+
+  @override
+  String vaccinesTitleOf(String name) {
+    return 'تطعيمات $name';
+  }
+
+  @override
+  String vaccineProgressLine(int done, int total) {
+    return '$done من $total جرعة اتاخدت';
+  }
+
+  @override
+  String get vaccineNewTitle => 'تطعيم جديد';
+
+  @override
+  String get vaccineDoneGroup => 'اللي خلص';
+
+  @override
+  String vaccineDoneGroupLast(String date) {
+    return 'اتاخدت كلها · آخرها $date';
+  }
+
+  @override
+  String vaccineGroupCount(int done, int total) {
+    return '$done من $total';
+  }
+
+  @override
+  String get vaccineTickAll => 'تحديد الكل';
+
+  @override
+  String get vaccineSetupSkipNow => 'تخطي التطعيمات دلوقتي';
+
+  @override
+  String get fieldVaccinePlace => 'فين؟';
+
+  @override
+  String get vaccineCardPhoto => 'صورة كارت التطعيم';
+
+  @override
+  String get vaccineWhich => 'أنهي تطعيم؟';
+
+  @override
+  String get vaccineOtherChoice => 'تطعيم تاني';
+
+  @override
+  String get vaccineWhoFor => 'لمين؟';
+
+  @override
+  String vaccineSavedFor(String vaccine, String name) {
+    return 'اتحفظ: $vaccine لـ$name';
+  }
+
+  @override
+  String vaccineChoiceOverdue(String dose) {
+    return '$dose · متأخر';
+  }
 }

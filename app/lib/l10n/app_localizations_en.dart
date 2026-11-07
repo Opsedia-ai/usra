@@ -4677,4 +4677,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get medicineClose => 'Close';
+
+  @override
+  String vaccinesTitleOf(String name) {
+    return '$name\'s vaccines';
+  }
+
+  @override
+  String vaccineProgressLine(int done, int total) {
+    return '$done of $total doses given';
+  }
+
+  @override
+  String get vaccineNewTitle => 'New vaccine';
+
+  @override
+  String get vaccineDoneGroup => 'Done';
+
+  @override
+  String vaccineDoneGroupLast(String date) {
+    return 'All given · the last on $date';
+  }
+
+  @override
+  String vaccineGroupCount(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get vaccineTickAll => 'Tick all';
+
+  @override
+  String get vaccineSetupSkipNow => 'Skip vaccines for now';
+
+  @override
+  String get fieldVaccinePlace => 'Where?';
+
+  @override
+  String get vaccineCardPhoto => 'Photo of the vaccine card';
+
+  @override
+  String get vaccineWhich => 'Which vaccine?';
+
+  @override
+  String get vaccineOtherChoice => 'Another vaccine';
+
+  @override
+  String get vaccineWhoFor => 'For whom?';
+
+  @override
+  String vaccineSavedFor(String vaccine, String name) {
+    return 'Saved: $vaccine for $name';
+  }
+
+  @override
+  String vaccineChoiceOverdue(String dose) {
+    return '$dose · overdue';
+  }
 }

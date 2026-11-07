@@ -5,6 +5,7 @@ import '../../core/modules/feature_module.dart';
 import '../../core/records/record_type.dart';
 import '../../core/routing/app_router.dart' show noTabBarRoute;
 import '../../l10n/app_localizations.dart';
+import '../children/new_vaccine_screen.dart';
 import '../insurance/insurance_card_screen.dart';
 import '../insurance/insurance_form_screen.dart';
 import 'emergency_card_screen.dart';
@@ -215,7 +216,20 @@ class FamilyModule extends FeatureModule {
           kind: FieldKind.date,
           label: (c) => _l(c).fieldNextDue,
         ),
+        FieldSpec(
+          key: 'place',
+          kind: FieldKind.text,
+          label: (c) => _l(c).fieldVaccinePlace,
+        ),
+        FieldSpec(
+          key: 'note',
+          kind: FieldKind.text,
+          label: (c) => _l(c).vaccineDoseNote,
+        ),
       ],
+      screens: RecordTypeScreens(
+        add: (profileId) => NewVaccineScreen(profileId: profileId),
+      ),
     ),
     RecordTypeDefinition(
       key: 'surgery',

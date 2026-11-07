@@ -4,10 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/database/app_database.dart';
+import '../../core/design/pill_chip.dart';
 import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/preferences.dart';
 import '../../core/providers.dart';
+import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
 import '../family/family_screen.dart' show profilesProvider;
@@ -344,7 +347,11 @@ class VaccinesScreen extends ConsumerStatefulWidget {
 }
 
 class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
+  static const _overdueCards = 3;
+
   var _filter = VaccineFilter.all;
+  var _doneOpen = false;
+  var _allOverdue = false;
 
   @override
   Widget build(BuildContext context) {
@@ -353,7 +360,10 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
     final id = widget.profileId;
     return Scaffold(
       appBar: AppBar(
-        title: Text(l.vaccinesTitle),
+        title: Text(switch (profile.value) {
+          final p? => l.vaccinesTitleOf(p.displayName),
+          null => l.vaccinesTitle,
+        }),
         leading: BackButton(onPressed: () => context.go('/family/$id')),
         actions: [
           // Its own context, so an iPad's share sheet points at the button.
@@ -367,6 +377,20 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
           ),
         ],
       ),
+      bottomNavigationBar: switch (profile.value) {
+        final p? when watchChildVaccines(ref, p) != null => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+            child: FilledButton.icon(
+              key: const ValueKey('vaccine-new'),
+              onPressed: () => context.push('/family/$id/add/vaccine'),
+              icon: const Icon(Icons.add),
+              label: Text(l.vaccineNewTitle),
+            ),
+          ),
+        ),
+        _ => null,
+      },
       body: switch (profile) {
         AsyncError(:final error) => Center(child: Text('$error')),
         AsyncValue(value: final p?) => switch (watchChildVaccines(ref, p)) {
@@ -386,64 +410,364 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
     final text = Theme.of(context).textTheme;
     final today = ref.watch(todayProvider);
     final shown = filterDoses(c.statuses, _filter);
+    // Whole ages already given fold away; only under "All", where nothing
+    // else would hide them.
+    final byAge = <int, List<DoseStatus>>{};
+    for (final s in shown) {
+      (byAge[s.dose.ageMonths] ??= []).add(s);
+    }
+    final doneAges = _filter == VaccineFilter.all
+        ? [
+            for (final e in byAge.entries)
+              if (e.value.every((s) => s.done)) e.key,
+          ]
+        : const <int>[];
+    final doneDoses = [for (final a in doneAges) ...byAge[a]!];
+    final rest = [
+      for (final s in shown)
+        if (!doneAges.contains(s.dose.ageMonths)) s,
+    ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
-        Text(c.profile.displayName, style: text.titleLarge),
-        const SizedBox(height: 4),
-        Text(
-          c.plan.route == VaccineRoute.government
-              ? l.vaccineRouteGovernment
-              : l.vaccineRouteHexavalent,
-          style: text.bodyMedium?.copyWith(color: context.usra.inkMuted),
-        ),
-        const SizedBox(height: 12),
-        VaccineProgressSummary(child: c, today: today),
-        const SizedBox(height: 12),
+        _ProgressCard(child: c),
+        // A few cards, so a child with no records yet doesn't push everything
+        // else away; the rest open from the count under them.
+        for (final s
+            in _allOverdue
+                ? c.next.overdue
+                : c.next.overdue.take(_overdueCards)) ...[
+          const SizedBox(height: UsraSpacing.s3),
+          _OverdueCard(
+            status: s,
+            onLog: () => showDoseSheet(context, ref, c, s, given: true),
+          ),
+        ],
+        if (!_allOverdue && c.next.overdue.length > _overdueCards)
+          TextButton(
+            key: const ValueKey('vaccine-overdue-all'),
+            onPressed: () => setState(() => _allOverdue = true),
+            child: Text(
+              localizedDigitsIn(
+                context,
+                l.vaccineOverdueCount(c.next.overdue.length),
+              ),
+            ),
+          ),
+        const SizedBox(height: UsraSpacing.s3),
+        _NextCard(child: c, today: today),
+        const SizedBox(height: UsraSpacing.s3),
         OutlinedButton.icon(
           key: const ValueKey('vaccine-setup-open'),
           onPressed: () => context.go('/family/${c.profile.id}/vaccines/setup'),
           icon: const Icon(Icons.checklist),
           label: Text(l.vaccineSetupOpen),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: UsraSpacing.s4),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: UsraSpacing.s2,
+          runSpacing: UsraSpacing.s2,
           children: [
             for (final f in VaccineFilter.values)
-              ChoiceChip(
+              UsraPill(
                 key: ValueKey('vaccine-filter-${f.name}'),
                 selected: _filter == f,
-                onSelected: (_) => setState(() => _filter = f),
-                label: Text(switch (f) {
+                onTap: () => setState(() => _filter = f),
+                label: switch (f) {
                   VaccineFilter.all => l.vaccineFilterAll,
                   VaccineFilter.required => l.vaccineFilterRequired,
                   VaccineFilter.optional => l.vaccineFilterOptional,
                   VaccineFilter.overdue => l.vaccineFilterOverdue,
-                }),
+                },
               ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: UsraSpacing.s2),
         if (shown.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Text(l.vaccineFilterEmpty, textAlign: TextAlign.center),
           ),
-        for (final s in shown)
+        if (doneDoses.isNotEmpty) ...[
+          _DoneGroup(
+            ages: {for (final s in doneDoses) doseAge(l, s.dose)}.join('، '),
+            last: doneDoses
+                .map((s) => s.givenOn)
+                .nonNulls
+                .fold<DateTime?>(
+                  null,
+                  (a, b) => a == null || b.isAfter(a) ? b : a,
+                ),
+            open: _doneOpen,
+            onTap: () => setState(() => _doneOpen = !_doneOpen),
+          ),
+          if (_doneOpen)
+            for (final s in doneDoses)
+              DoseTile(
+                status: s,
+                note: c.plan.notes[s.dose.key],
+                onTap: () => showDoseSheet(context, ref, c, s),
+              ),
+        ],
+        for (final s in rest)
           DoseTile(
             status: s,
             note: c.plan.notes[s.dose.key],
             onTap: () => showDoseSheet(context, ref, c, s),
           ),
-        const SizedBox(height: 16),
+        const SizedBox(height: UsraSpacing.s4),
         Text(
           l.vaccinesDisclaimer(egyptScheduleCheckedOn),
           style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
         ),
         const _Sources(),
       ],
+    );
+  }
+}
+
+/// How far along, as a bar, and which schedule that's counted against.
+class _ProgressCard extends StatelessWidget {
+  const _ProgressCard({required this.child});
+
+  final ChildVaccines child;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.usra;
+    final p = child.progress;
+    final done = p.requiredDone + p.optionalDone;
+    final total = p.requiredTotal + p.optionalTotal;
+    final line = localizedDigitsIn(context, l.vaccineProgressLine(done, total));
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final checked = DateFormat.yMMMd(locale)
+        .format(DateTime.parse(egyptScheduleCheckedOn));
+    return Card(
+      key: const ValueKey('vaccine-progress'),
+      child: Padding(
+        padding: const EdgeInsets.all(UsraSpacing.s4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              line,
+              key: const ValueKey('vaccine-progress-line'),
+              style: UsraType.body.copyWith(
+                color: c.ink,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: UsraSpacing.s2),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(UsraRadius.pill),
+              child: LinearProgressIndicator(
+                key: const ValueKey('vaccine-progress-bar'),
+                minHeight: 10,
+                value: total == 0 ? 0 : done / total,
+                color: c.primary,
+                backgroundColor: c.surfaceSoft,
+                semanticsLabel: line,
+              ),
+            ),
+            const SizedBox(height: UsraSpacing.s2),
+            Wrap(
+              spacing: UsraSpacing.s2,
+              runSpacing: UsraSpacing.s1,
+              children: [
+                StatusChip(
+                  key: ValueKey('vaccine-required-${child.profile.id}'),
+                  severity: p.requiredDone == p.requiredTotal
+                      ? Severity.good
+                      : Severity.info,
+                  label: l.vaccineRequiredDone(p.requiredDone, p.requiredTotal),
+                ),
+                if (p.optionalTotal > 0)
+                  StatusChip(
+                    key: ValueKey('vaccine-optional-${child.profile.id}'),
+                    severity: Severity.info,
+                    label: l.vaccineOptionalDone(
+                      p.optionalDone,
+                      p.optionalTotal,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: UsraSpacing.s2),
+            Text(
+              l.personVaccineSource(
+                child.plan.route == VaccineRoute.government
+                    ? l.vaccineRouteGovernment
+                    : l.vaccineRouteHexavalent,
+                checked,
+              ),
+              key: const ValueKey('vaccine-schedule-source'),
+              style: UsraType.label.copyWith(color: c.inkMuted),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A dose past its date, and the way to say it was given after all.
+class _OverdueCard extends StatelessWidget {
+  const _OverdueCard({required this.status, required this.onLog});
+
+  final DoseStatus status;
+  final VoidCallback onLog;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.usra;
+    return Card(
+      key: ValueKey('vaccine-overdue-card-${status.dose.key}'),
+      child: Padding(
+        padding: const EdgeInsets.all(UsraSpacing.s4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            StatusChip(
+              severity: Severity.actSoon,
+              label: l.statusVaccineOverdue,
+            ),
+            const SizedBox(height: UsraSpacing.s2),
+            Text(
+              doseName(l, status.dose),
+              style: UsraType.body.copyWith(
+                color: c.ink,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              l.personVaccineWasDue(_fmt(context, status.dueOn)),
+              style: UsraType.body.copyWith(color: c.inkMuted),
+            ),
+            const SizedBox(height: UsraSpacing.s2),
+            FilledButton(
+              key: ValueKey('vaccine-log-${status.dose.key}'),
+              onPressed: onLog,
+              child: Text(l.personVaccineLog),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The next visit: when, and which doses.
+class _NextCard extends StatelessWidget {
+  const _NextCard({required this.child, required this.today});
+
+  final ChildVaccines child;
+  final DateTime today;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.usra;
+    final next = nextVisitChip(context, child, today);
+    return Card(
+      key: const ValueKey('vaccine-next-card'),
+      child: Padding(
+        padding: const EdgeInsets.all(UsraSpacing.s4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l.vaccineNextVisit,
+              style: UsraType.body.copyWith(
+                color: c.ink,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (child.next.doses.isNotEmpty) ...[
+              const SizedBox(height: UsraSpacing.s1),
+              Text(
+                '${doseAge(l, child.next.doses.first)}: '
+                '${child.next.doses.map((d) => doseName(l, d)).join('، ')}',
+                style: UsraType.body.copyWith(color: c.ink),
+              ),
+            ],
+            const SizedBox(height: UsraSpacing.s2),
+            StatusChip(
+              key: ValueKey('vaccine-next-${child.profile.id}'),
+              severity: next?.$2 ?? Severity.info,
+              label:
+                  next?.$1 ?? l.vaccineOverdueCount(child.next.overdue.length),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The ages already given, folded into one line.
+class _DoneGroup extends StatelessWidget {
+  const _DoneGroup({
+    required this.ages,
+    required this.last,
+    required this.open,
+    required this.onTap,
+  });
+
+  final String ages;
+  final DateTime? last;
+  final bool open;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.usra;
+    return Semantics(
+      button: true,
+      expanded: open,
+      child: InkWell(
+        key: const ValueKey('vaccine-done-group'),
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: UsraSizes.touchTarget),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: UsraSpacing.s2),
+            child: Row(
+              children: [
+                Icon(Icons.check, color: c.good),
+                const SizedBox(width: UsraSpacing.s2),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l.vaccineDoneGroup,
+                        style: UsraType.body.copyWith(
+                          color: c.ink,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(ages, style: UsraType.body.copyWith(color: c.ink)),
+                      if (last != null)
+                        Text(
+                          l.vaccineDoneGroupLast(_fmt(context, last!)),
+                          style: UsraType.label.copyWith(color: c.inkMuted),
+                        ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  open ? Icons.expand_less : Icons.expand_more,
+                  color: c.inkMuted,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -496,24 +820,34 @@ class DoseTile extends StatelessWidget {
       DoseState.tooLate => l.vaccineTooLate,
       DoseState.notNeeded => l.vaccineNotNeeded,
     };
-    final muted = Theme.of(context).textTheme.bodySmall
-        ?.copyWith(color: context.usra.inkMuted);
-    return ListTile(
+    final c = context.usra;
+    return InkWell(
       key: ValueKey('dose-${dose.kind.name}-${dose.dose}'),
-      contentPadding: EdgeInsets.zero,
       onTap: onTap,
-      title: Text(doseName(l, dose)),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '${doseAge(l, dose)} · '
-            '${dose.required ? l.vaccineRequired : l.vaccineOptional}',
-          ),
-          if (note != null) Text(note!, style: muted),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: UsraSpacing.s2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              doseName(l, dose),
+              style: UsraType.body.copyWith(
+                color: c.ink,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              '${doseAge(l, dose)} · '
+              '${dose.required ? l.vaccineRequired : l.vaccineOptional}',
+              style: UsraType.label.copyWith(color: c.inkMuted),
+            ),
+            if (note != null)
+              Text(note!, style: UsraType.label.copyWith(color: c.inkMuted)),
+            const SizedBox(height: UsraSpacing.s1),
+            StatusChip(severity: status.state.severity, label: label),
+          ],
+        ),
       ),
-      trailing: StatusChip(severity: status.state.severity, label: label),
     );
   }
 }
@@ -629,58 +963,60 @@ class _DoseSheetState extends ConsumerState<_DoseSheet> {
         20,
         20 + MediaQuery.viewInsetsOf(context).bottom,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(doseName(l, s.dose), style: text.titleLarge),
-          const SizedBox(height: 4),
-          Text(
-            '${widget.child.profile.displayName} · ${doseAge(l, s.dose)} · '
-            '${l.vaccineDueOn(_fmtc(s.dueOn))}',
-            style: text.bodyMedium?.copyWith(color: context.usra.inkMuted),
-          ),
-          const SizedBox(height: 8),
-          SwitchListTile(
-            key: const ValueKey('dose-given'),
-            contentPadding: EdgeInsets.zero,
-            value: _given,
-            onChanged: (v) => setState(() => _given = v),
-            title: Text(l.vaccineDoseGiven),
-          ),
-          if (_given)
-            ListTile(
-              key: const ValueKey('dose-date'),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(doseName(l, s.dose), style: text.titleLarge),
+            const SizedBox(height: 4),
+            Text(
+              '${widget.child.profile.displayName} · ${doseAge(l, s.dose)} · '
+              '${l.vaccineDueOn(_fmtc(s.dueOn))}',
+              style: text.bodyMedium?.copyWith(color: context.usra.inkMuted),
+            ),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              key: const ValueKey('dose-given'),
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.event),
-              title: Text(l.vaccineDoseDate),
-              subtitle: Text(_fmtc(_date)),
-              onTap: () async {
-                final picked = await pickGivenDate(
-                  context,
-                  initial: _date,
-                  birthDate: widget.child.profile.birthDate!,
-                );
-                if (picked != null) setState(() => _date = picked);
-              },
+              value: _given,
+              onChanged: (v) => setState(() => _given = v),
+              title: Text(l.vaccineDoseGiven),
             ),
-          TextField(
-            key: const ValueKey('dose-note'),
-            controller: _note,
-            maxLines: 3,
-            minLines: 1,
-            decoration: InputDecoration(
-              labelText: l.vaccineDoseNote,
-              hintText: l.vaccineDoseNoteHint,
+            if (_given)
+              ListTile(
+                key: const ValueKey('dose-date'),
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.event),
+                title: Text(l.vaccineDoseDate),
+                subtitle: Text(_fmtc(_date)),
+                onTap: () async {
+                  final picked = await pickGivenDate(
+                    context,
+                    initial: _date,
+                    birthDate: widget.child.profile.birthDate!,
+                  );
+                  if (picked != null) setState(() => _date = picked);
+                },
+              ),
+            TextField(
+              key: const ValueKey('dose-note'),
+              controller: _note,
+              maxLines: 3,
+              minLines: 1,
+              decoration: InputDecoration(
+                labelText: l.vaccineDoseNote,
+                hintText: l.vaccineDoseNoteHint,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          FilledButton(
-            key: const ValueKey('dose-save'),
-            onPressed: _saving ? null : _save,
-            child: Text(l.familySave),
-          ),
-        ],
+            const SizedBox(height: 16),
+            FilledButton(
+              key: const ValueKey('dose-save'),
+              onPressed: _saving ? null : _save,
+              child: Text(l.familySave),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -747,14 +1083,6 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
       appBar: AppBar(
         title: Text(l.vaccineSetupTitle),
         leading: BackButton(onPressed: () => context.go(_back)),
-        actions: [
-          if (widget.first)
-            TextButton(
-              key: const ValueKey('vaccine-setup-skip'),
-              onPressed: () => context.go(_back),
-              child: Text(l.vaccineSetupSkip),
-            ),
-        ],
       ),
       body: body,
     );
@@ -809,6 +1137,17 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
             ],
           ),
         ),
+        Text(
+          l.personVaccineSource(
+            plan.route == VaccineRoute.government
+                ? l.vaccineRouteGovernment
+                : l.vaccineRouteHexavalent,
+            DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag())
+                .format(DateTime.parse(egyptScheduleCheckedOn)),
+          ),
+          key: const ValueKey('vaccine-setup-source'),
+          style: muted,
+        ),
         const SizedBox(height: 16),
         Text(l.vaccineOptionalTitle, style: text.titleMedium),
         const SizedBox(height: 4),
@@ -842,38 +1181,74 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Text(l.vaccineSetupNoneYet),
           ),
-        for (final s in checklist)
-          CheckboxListTile(
-            key: ValueKey('setup-${s.dose.key}'),
-            contentPadding: EdgeInsets.zero,
-            controlAffinity: ListTileControlAffinity.leading,
-            value: ticked(s),
-            onChanged: (on) =>
-                setState(() => _toggled[s.dose.key] = on == true),
-            title: Text(doseName(l, s.dose)),
-            subtitle: Text(
-              '${doseAge(l, s.dose)} · '
-              '${s.dose.required ? l.vaccineRequired : l.vaccineOptional}'
-              '${ticked(s) ? ' · ${_fmt(context, _dateOf(s))}' : ''}',
-            ),
-            secondary: ticked(s) && !s.done
-                ? IconButton(
-                    key: ValueKey('setup-date-${s.dose.key}'),
-                    tooltip: l.vaccineChangeDate,
-                    icon: const Icon(Icons.edit_calendar_outlined),
-                    onPressed: () async {
-                      final picked = await pickGivenDate(
-                        context,
-                        initial: _dateOf(s),
-                        birthDate: profile.birthDate!,
-                      );
-                      if (picked != null) {
-                        setState(() => _dates[s.dose.key] = picked);
-                      }
-                    },
-                  )
-                : null,
-          ),
+        for (final age in {for (final s in checklist) s.dose.ageMonths}) ...[
+          () {
+            final group = [
+              for (final s in checklist)
+                if (s.dose.ageMonths == age) s,
+            ];
+            final done = group.where(ticked).length;
+            return Padding(
+              padding: const EdgeInsets.only(top: UsraSpacing.s3),
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: UsraSpacing.s2,
+                children: [
+                  Text(
+                    '${doseAge(l, group.first.dose)} · '
+                    '${localizedDigitsIn(context, l.vaccineGroupCount(done, group.length))}',
+                    key: ValueKey('setup-group-$age'),
+                    style: text.titleMedium,
+                  ),
+                  if (done < group.length)
+                    TextButton(
+                      key: ValueKey('setup-all-$age'),
+                      onPressed: () => setState(() {
+                        for (final s in group) {
+                          _toggled[s.dose.key] = true;
+                        }
+                      }),
+                      child: Text(l.vaccineTickAll),
+                    ),
+                ],
+              ),
+            );
+          }(),
+          for (final s in checklist)
+            if (s.dose.ageMonths == age)
+              CheckboxListTile(
+                key: ValueKey('setup-${s.dose.key}'),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                value: ticked(s),
+                onChanged: (on) =>
+                    setState(() => _toggled[s.dose.key] = on == true),
+                title: Text(doseName(l, s.dose)),
+                subtitle: Text(
+                  '${doseAge(l, s.dose)} · '
+                  '${s.dose.required ? l.vaccineRequired : l.vaccineOptional}'
+                  '${ticked(s) ? ' · ${_fmt(context, _dateOf(s))}' : ''}',
+                ),
+                secondary: ticked(s) && !s.done
+                    ? IconButton(
+                        key: ValueKey('setup-date-${s.dose.key}'),
+                        tooltip: l.vaccineChangeDate,
+                        icon: const Icon(Icons.edit_calendar_outlined),
+                        onPressed: () async {
+                          final picked = await pickGivenDate(
+                            context,
+                            initial: _dateOf(s),
+                            birthDate: profile.birthDate!,
+                          );
+                          if (picked != null) {
+                            setState(() => _dates[s.dose.key] = picked);
+                          }
+                        },
+                      )
+                    : null,
+              ),
+        ],
         const SizedBox(height: 24),
         FilledButton(
           key: const ValueKey('vaccine-setup-save'),
@@ -883,6 +1258,14 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
               : () => _save(profile, plan, statuses, checklist),
           child: Text(l.familySave),
         ),
+        if (widget.first) ...[
+          const SizedBox(height: UsraSpacing.s2),
+          TextButton(
+            key: const ValueKey('vaccine-setup-skip'),
+            onPressed: () => context.go(_back),
+            child: Text(l.vaccineSetupSkipNow),
+          ),
+        ],
       ],
     );
   }

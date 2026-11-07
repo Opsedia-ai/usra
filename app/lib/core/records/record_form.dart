@@ -107,7 +107,25 @@ class RecordForm extends StatefulWidget {
     this.initialDoctorId,
     this.doctors = const [],
     this.pickPhotos,
+    this.header,
+    this.hiddenFields = const {},
+    this.presetData = const {},
+    this.photosFirst = false,
   });
+
+  /// Shown above everything else: whose record it is, a choice from a list.
+  final Widget? header;
+
+  /// Fields of the type this form doesn't ask for, because [presetData] answers
+  /// them. May change while the form is open: nothing typed elsewhere is lost.
+  final Set<String> hiddenFields;
+
+  /// Saved as they are, along with what was typed.
+  final Map<String, Object?> presetData;
+
+  /// Photos under the header rather than last, where the photo is the quick
+  /// way to fill the record in.
+  final bool photosFirst;
 
   final RecordTypeDefinition type;
   final RecordFormStrings strings;
@@ -258,7 +276,10 @@ class _RecordFormState extends State<RecordForm> {
 
   Future<void> _submit() async {
     if (_submitting) return;
-    final data = _collect();
+    final data = {
+      ..._collect()..removeWhere((k, _) => widget.hiddenFields.contains(k)),
+      ...widget.presetData,
+    };
     final problems = widget.type.validate(data).toSet();
 
     int? costMinor;
@@ -395,9 +416,25 @@ class _RecordFormState extends State<RecordForm> {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toLanguageTag();
+    final photos = widget.pickPhotos == null
+        ? null
+        : _PhotosRow(
+            strings: widget.strings,
+            photos: _photos,
+            onAdd: _submitting ? null : _addPhotos,
+            onRemove: _submitting ? null : _removePhoto,
+          );
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
+        if (widget.header case final header?) ...[
+          header,
+          const SizedBox(height: 16),
+        ],
+        if (widget.photosFirst && photos != null) ...[
+          photos,
+          const SizedBox(height: 16),
+        ],
         InkWell(
           key: const ValueKey('field-occurredAt'),
           onTap: () async {
@@ -409,34 +446,35 @@ class _RecordFormState extends State<RecordForm> {
             child: Text(DateFormat.yMMMd(locale).format(_occurredAt)),
           ),
         ),
-        for (final f in widget.type.fields) ...[
-          const SizedBox(height: 16),
-          if (f.key == widget.type.doctorField &&
-              widget.doctors.isNotEmpty) ...[
-            DropdownButtonFormField<DoctorChoice>(
-              key: const ValueKey('field-doctorPick'),
-              initialValue: _doctor,
-              isExpanded: true,
-              decoration: InputDecoration(
-                labelText: widget.strings.chooseDoctor,
-                prefixIcon: const Icon(Icons.contacts_outlined),
-              ),
-              items: [
-                for (final d in widget.doctors)
-                  DropdownMenuItem(
-                    value: d,
-                    child: Text(
-                      [d.name, ?d.specialty].join(' · '),
-                      overflow: TextOverflow.ellipsis,
+        for (final f in widget.type.fields)
+          if (!widget.hiddenFields.contains(f.key)) ...[
+            const SizedBox(height: 16),
+            if (f.key == widget.type.doctorField &&
+                widget.doctors.isNotEmpty) ...[
+              DropdownButtonFormField<DoctorChoice>(
+                key: const ValueKey('field-doctorPick'),
+                initialValue: _doctor,
+                isExpanded: true,
+                decoration: InputDecoration(
+                  labelText: widget.strings.chooseDoctor,
+                  prefixIcon: const Icon(Icons.contacts_outlined),
+                ),
+                items: [
+                  for (final d in widget.doctors)
+                    DropdownMenuItem(
+                      value: d,
+                      child: Text(
+                        [d.name, ?d.specialty].join(' · '),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-              ],
-              onChanged: _pickDoctor,
-            ),
-            const SizedBox(height: 12),
+                ],
+                onChanged: _pickDoctor,
+              ),
+              const SizedBox(height: 12),
+            ],
+            _field(f),
           ],
-          _field(f),
-        ],
         if (widget.type.hasCost) ...[
           const SizedBox(height: 16),
           TextFormField(
@@ -450,14 +488,9 @@ class _RecordFormState extends State<RecordForm> {
             ),
           ),
         ],
-        if (widget.pickPhotos != null) ...[
+        if (!widget.photosFirst && photos != null) ...[
           const SizedBox(height: 20),
-          _PhotosRow(
-            strings: widget.strings,
-            photos: _photos,
-            onAdd: _submitting ? null : _addPhotos,
-            onRemove: _submitting ? null : _removePhoto,
-          ),
+          photos,
         ],
         const SizedBox(height: 28),
         FilledButton(

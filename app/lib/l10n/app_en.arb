@@ -1514,7 +1514,6 @@
   "vaccineSetupGiven": "Doses already given",
   "vaccineSetupGivenHint": "Tick what's on the child's card. The date is the due date unless you change it.",
   "vaccineSetupNoneYet": "No doses are due yet.",
-  "vaccineSetupSkip": "Later",
   "vaccineSetupSaved": "Vaccinations saved",
   "vaccineChangeDate": "Change date",
   "vaccineDoseGiven": "Given",
@@ -2646,5 +2645,71 @@
   "medicineLastDay": "Last day",
   "medicineMoreDetails": "More details",
   "medicineLessDetails": "Fewer details",
-  "medicineClose": "Close"
+  "medicineClose": "Close",
+  "vaccinesTitleOf": "{name}'s vaccines",
+  "@vaccinesTitleOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineProgressLine": "{done} of {total} doses given",
+  "@vaccineProgressLine": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "vaccineNewTitle": "New vaccine",
+  "vaccineDoneGroup": "Done",
+  "vaccineDoneGroupLast": "All given · the last on {date}",
+  "@vaccineDoneGroupLast": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineGroupCount": "{done} of {total}",
+  "@vaccineGroupCount": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "vaccineTickAll": "Tick all",
+  "vaccineSetupSkipNow": "Skip vaccines for now",
+  "fieldVaccinePlace": "Where?",
+  "vaccineCardPhoto": "Photo of the vaccine card",
+  "vaccineWhich": "Which vaccine?",
+  "vaccineOtherChoice": "Another vaccine",
+  "vaccineWhoFor": "For whom?",
+  "vaccineSavedFor": "Saved: {vaccine} for {name}",
+  "@vaccineSavedFor": {
+    "placeholders": {
+      "vaccine": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineChoiceOverdue": "{dose} · overdue",
+  "@vaccineChoiceOverdue": {
+    "placeholders": {
+      "dose": {
+        "type": "String"
+      }
+    }
+  }
 }
