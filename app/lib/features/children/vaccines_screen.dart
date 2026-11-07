@@ -9,6 +9,7 @@ import '../../core/design/tokens.dart';
 import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import '../family/family_screen.dart' show profilesProvider;
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import '../follow_ups/follow_ups_providers.dart' show todayProvider;
@@ -581,8 +582,14 @@ class _DoseSheetState extends ConsumerState<_DoseSheet> {
     }
     if (!mounted) return;
     setState(() => _saving = true);
+    final plan = child.plan.withNote(s.dose.key, _note.text);
+    // Taking a tick off or changing a date corrects what's there.
+    if ((plan != child.plan || changes.add.isNotEmpty) &&
+        !await ref.read(saveGateProvider).allow()) {
+      if (mounted) setState(() => _saving = false);
+      return;
+    }
     try {
-      final plan = child.plan.withNote(s.dose.key, _note.text);
       if (plan != child.plan) {
         await db.saveSingletonEvent(
           profileId: child.profile.id,
@@ -899,6 +906,10 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
     }
     if (!mounted) return;
     setState(() => _saving = true);
+    if (!await ref.read(saveGateProvider).allow()) {
+      if (mounted) setState(() => _saving = false);
+      return;
+    }
     try {
       await db.saveSingletonEvent(
         profileId: profile.id,

@@ -104,7 +104,12 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
       final id = _madeId ?? ref.read(meProfileIdProvider);
       final existing = id == null ? null : await db.watchProfile(id).first;
       if (existing == null) {
-        _madeId = await db.addProfile(name, sex: sex, birthDate: birthDate);
+        _madeId = await db.addProfile(
+          name,
+          sex: sex,
+          birthDate: birthDate,
+          firstRun: true,
+        );
       } else {
         // Saving replaces the whole profile: everything else stays as it is.
         await db.updateProfile(

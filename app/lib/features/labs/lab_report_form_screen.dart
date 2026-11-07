@@ -17,6 +17,7 @@ import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import '../doctors/doctors_providers.dart';
 import '../family/member_screen.dart' show eventProvider;
 import 'lab_providers.dart';
@@ -405,6 +406,10 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
       tests: tests.cast<LabTest>(),
     );
     setState(() => _submitting = true);
+    if (!_editing && !await ref.read(saveGateProvider).allow()) {
+      if (mounted) setState(() => _submitting = false);
+      return;
+    }
     final db = ref.read(databaseProvider);
     final store = _photos.isEmpty && _pdfs.isEmpty
         ? null

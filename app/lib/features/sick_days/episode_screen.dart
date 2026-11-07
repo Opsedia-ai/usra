@@ -11,6 +11,7 @@ import '../../core/providers.dart';
 import '../../core/util/dates.dart';
 import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import '../children/egypt_vaccines.dart' show fullMonths;
 import '../family/member_screen.dart' show profileProvider;
 import '../medicines/medicines_providers.dart';
@@ -570,10 +571,13 @@ class _Details extends ConsumerWidget {
                       key: ValueKey('symptom-$s'),
                       label: Text(l.symptomName(s)),
                       selected: ticked.contains(s),
-                      onSelected: (on) => db.setEpisodeSymptoms(episode.id, [
-                        for (final k in Symptom.all)
-                          if (k == s ? on : ticked.contains(k)) k,
-                      ]),
+                      onSelected: (on) async {
+                        if (!await ref.read(saveGateProvider).allow()) return;
+                        await db.setEpisodeSymptoms(episode.id, [
+                          for (final k in Symptom.all)
+                            if (k == s ? on : ticked.contains(k)) k,
+                        ]);
+                      },
                     ),
                 ],
               ),
@@ -686,6 +690,7 @@ class _NotesState extends ConsumerState<_Notes> {
     final e = widget.episode;
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    if (!await ref.read(saveGateProvider).allow()) return;
     await ref
         .read(databaseProvider)
         .saveEpisode(

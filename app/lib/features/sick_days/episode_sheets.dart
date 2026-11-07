@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/database/app_database.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import '../medicines/medicines_providers.dart';
 import 'fever.dart';
 import '../medicines/min_hours.dart';
@@ -149,6 +150,10 @@ class _ReadingSheetState extends ConsumerState<_ReadingSheet> {
     if (needsConfirm(v, _unit) && !await _confirm(v)) return;
     if (!mounted) return;
     setState(() => _saving = true);
+    if (!await ref.read(saveGateProvider).allow()) {
+      if (mounted) setState(() => _saving = false);
+      return;
+    }
     await ref
         .read(databaseProvider)
         .saveReading(
@@ -353,6 +358,10 @@ class _GivenSheetState extends ConsumerState<_GivenSheet> {
     }
     final hours = medicine?.minHoursBetweenDoses;
     setState(() => _saving = true);
+    if (!await ref.read(saveGateProvider).allow()) {
+      if (mounted) setState(() => _saving = false);
+      return;
+    }
     await ref
         .read(databaseProvider)
         .saveGivenMedicine(

@@ -11,6 +11,7 @@ import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../core/util/dates.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import 'growth.dart';
 import 'milestones.dart';
@@ -242,6 +243,7 @@ class _MilestoneTile extends ConsumerWidget {
         helpText: AppLocalizations.of(context).devWhenSeen,
       );
       if (picked == null) return;
+      if (!await ref.read(saveGateProvider).allow()) return;
       await db.addEvent(
         profileId: profile.id,
         type: milestoneType,

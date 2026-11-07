@@ -168,6 +168,8 @@ class _SignInOptionsState extends ConsumerState<_SignInOptions>
       children: [
         Text(l.accountSignInIntro),
         const SizedBox(height: 8),
+        Text(l.accountSignInData),
+        const SizedBox(height: 8),
         Text(
           l.accountSignInConsent,
           key: const ValueKey('account-sign-in-consent'),

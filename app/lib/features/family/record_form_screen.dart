@@ -9,6 +9,7 @@ import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../core/records/record_form.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import '../doctors/doctors_providers.dart';
 
 /// Adds a record of [typeKey] for one person, using the generic [RecordForm].
@@ -65,6 +66,7 @@ class RecordFormScreen extends ConsumerWidget {
         ),
         pickPhotos: (source) => _pickPhotos(context, ref, source),
         onSubmit: (result) async {
+          if (!await ref.read(saveGateProvider).allow()) return;
           final db = ref.read(databaseProvider);
           final store = result.photos.isEmpty
               ? null

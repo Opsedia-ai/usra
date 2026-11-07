@@ -281,7 +281,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutPrivacyOptionalAccount.
   ///
   /// In en, this message translates to:
-  /// **'An account is optional, and there are no ads and no tracking. If you sign in, we keep your email, account ID, language and device information to run the account, plus your name and profile photo link if you use Google. We never receive your health records. We never sell or share anyone\'s data.'**
+  /// **'Saving records needs a sign-in, and there are no ads and no tracking. We keep your email, account ID, language and device information to run the account, plus your name and profile photo link if you use Google. We never receive your health records. We never sell or share anyone\'s data.'**
   String get aboutPrivacyOptionalAccount;
 
   /// No description provided for @aboutPrivacyBackup.
@@ -4025,7 +4025,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountSettingsHint.
   ///
   /// In en, this message translates to:
-  /// **'Optional. Your records stay on this phone'**
+  /// **'Your records stay on this phone'**
   String get accountSettingsHint;
 
   /// No description provided for @accountPrivacy.
@@ -4037,7 +4037,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountSignInIntro.
   ///
   /// In en, this message translates to:
-  /// **'An account is optional: the app works fully without one. Google shares your name, email, profile photo link and an account ID with us; Apple shares your email (or a replacement address if you hide yours) and an account ID. We store these with your language and device information to run the account.'**
+  /// **'You can look around and read the guides with no account. Saving records, adding family and backing up need a sign-in.'**
   String get accountSignInIntro;
 
   /// No description provided for @accountSignInConsent.
@@ -4045,6 +4045,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'By signing in, you agree that we keep this to run your account, as the privacy policy says.'**
   String get accountSignInConsent;
+
+  /// No description provided for @accountSignInData.
+  ///
+  /// In en, this message translates to:
+  /// **'Google shares your name, email, profile photo link and an account ID with us; Apple shares your email (or a replacement address if you hide yours) and an account ID. We store these with your language and device information to run the account.'**
+  String get accountSignInData;
+
+  /// No description provided for @accountGateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save your records'**
+  String get accountGateTitle;
+
+  /// No description provided for @accountGateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving your first record needs a sign-in. What was typed won\'t be lost.'**
+  String get accountGateBody;
+
+  /// No description provided for @accountGateBackupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Backing up needs a sign-in.'**
+  String get accountGateBackupBody;
+
+  /// No description provided for @accountGateKeepsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The account keeps'**
+  String get accountGateKeepsTitle;
+
+  /// No description provided for @accountGateRecordsStay.
+  ///
+  /// In en, this message translates to:
+  /// **'Records and photos stay on your phone, encrypted.'**
+  String get accountGateRecordsStay;
 
   /// No description provided for @accountReadPrivacy.
   ///

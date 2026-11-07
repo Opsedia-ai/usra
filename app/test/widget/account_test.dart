@@ -480,10 +480,7 @@ void main() {
 
   test('account privacy text lists what the privacy policy lists', () {
     final en = lookupAppLocalizations(const Locale('en'));
-    for (final text in [
-      en.aboutPrivacyOptionalAccount,
-      en.accountSignInIntro,
-    ]) {
+    for (final text in [en.aboutPrivacyOptionalAccount, en.accountSignInData]) {
       for (final item in [
         'email',
         'name',
@@ -496,10 +493,7 @@ void main() {
       }
     }
     final ar = lookupAppLocalizations(const Locale('ar'));
-    for (final text in [
-      ar.aboutPrivacyOptionalAccount,
-      ar.accountSignInIntro,
-    ]) {
+    for (final text in [ar.aboutPrivacyOptionalAccount, ar.accountSignInData]) {
       for (final item in [
         'إيميلك',
         'اسمك',

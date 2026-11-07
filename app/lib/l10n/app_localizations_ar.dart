@@ -106,7 +106,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutPrivacyOptionalAccount =>
-      'الحساب اختياري، ومفيش إعلانات ولا تتبع. لو دخلت، بنحتفظ بإيميلك ورقم تعريف للحساب ومعاهم اللغة ومعلومات الجهاز علشان الحساب يشتغل، وكمان اسمك ولينك صورة حسابك لو دخلت بـ Google. ومش بنستلم سجلاتك الصحية. وعمرنا ما بنبيع ولا بنشارك بيانات حد.';
+      'حفظ السجلات محتاج تسجيل دخول، ومفيش إعلانات ولا تتبع. بنحتفظ بإيميلك ورقم تعريف للحساب ومعاهم اللغة ومعلومات الجهاز علشان الحساب يشتغل، وكمان اسمك ولينك صورة حسابك لو الدخول بـ Google. ومش بنستلم سجلاتك الصحية. وعمرنا ما بنبيع ولا بنشارك بيانات حد.';
 
   @override
   String get aboutPrivacyBackup =>
@@ -2502,7 +2502,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountTitle => 'الحساب';
 
   @override
-  String get accountSettingsHint => 'اختياري. سجلاتك فاضلة على الموبايل ده';
+  String get accountSettingsHint => 'سجلاتك فاضلة على الموبايل ده';
 
   @override
   String get accountPrivacy =>
@@ -2510,11 +2510,32 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accountSignInIntro =>
-      'الحساب اختياري، والتطبيق بيشتغل كله من غيره. Google بيبعتلنا اسمك وإيميلك ولينك صورة حسابك ورقم تعريف للحساب، وApple بتبعتلنا إيميلك (أو عنوان بديل لو اخترت تخبي إيميلك) ورقم تعريف للحساب. بنخزن ده مع اللغة ومعلومات الجهاز علشان الحساب يشتغل.';
+      'تقدر تتفرج وتقرا الأدلة من غير حساب. حفظ السجلات وإضافة العيلة والنسخ الاحتياطي محتاجين تسجيل دخول.';
 
   @override
   String get accountSignInConsent =>
-      'لما تدخل، إنت موافق إننا نحتفظ بالبيانات دي علشان الحساب يشتغل، زي ما سياسة الخصوصية بتقول.';
+      'تسجيل الدخول معناه موافقة إننا نحتفظ بالبيانات دي علشان الحساب يشتغل، زي ما سياسة الخصوصية بتقول.';
+
+  @override
+  String get accountSignInData =>
+      'Google بيبعتلنا اسمك وإيميلك ولينك صورة حسابك ورقم تعريف للحساب، وApple بتبعتلنا إيميلك (أو عنوان بديل لو الإيميل متخبي) ورقم تعريف للحساب. بنخزن ده مع اللغة ومعلومات الجهاز علشان الحساب يشتغل.';
+
+  @override
+  String get accountGateTitle => 'حفظ سجلاتك';
+
+  @override
+  String get accountGateBody =>
+      'حفظ أول سجل محتاج تسجيل دخول. اللي اتكتب مش هيضيع.';
+
+  @override
+  String get accountGateBackupBody => 'النسخة الاحتياطية محتاجة تسجيل دخول.';
+
+  @override
+  String get accountGateKeepsTitle => 'الحساب بيحتفظ بـ';
+
+  @override
+  String get accountGateRecordsStay =>
+      'السجلات والصور بتفضل على موبايلك ومتشفرة.';
 
   @override
   String get accountReadPrivacy => 'اقرا عن الخصوصية';
