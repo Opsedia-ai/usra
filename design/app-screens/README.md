@@ -2,7 +2,8 @@
 
 Copied from the design canvas "Usra App Screens" (https://claude.ai/artifact/NjK7S24ioB5m91StgyT8C3) on 7 Nov 2026. The canvas is the live version.
 
-- `variation-b/`: the chosen direction, 24 screens
+- `enhanced-sample/`: the accepted design, and the one to build from. `E-` screens win over `variation-b/`
+- `variation-b/`: the earlier direction, 24 screens
 - `variation-a/`: the earlier direction, 8 screens
 - `english/`: 2 English checks
 - `canvas.json`: screen titles and order
