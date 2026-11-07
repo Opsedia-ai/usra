@@ -361,10 +361,13 @@ void main() {
         .whereType<TemperatureChartPainter>()
         .single;
     expect(painter.unit, 'f');
-    expect(painter.unitLabel, '°ف');
+    expect(painter.feverLabel, '١٠٠٫٤°');
+    // The latest reading, large, in the unit it was read in.
+    expect(find.text('٩٩٫١ °ف'), findsOneWidget);
     // Listed as read, in °F; only 101.2 is a fever (38.4 °C).
-    expect(find.text('101.2 °ف · سخونية'), findsOneWidget);
-    expect(find.text('99.1 °ف'), findsOneWidget);
+    await tapKey(tester, 'sick-day-readings');
+    expect(find.text('١٠١٫٢ °ف · سخونية'), findsOneWidget);
+    expect(find.text('٩٩٫١ °ف'), findsNWidgets(2));
   });
 
   testWidgets('symptoms are ticked, and in Simple Mode too', (tester) async {
@@ -384,6 +387,7 @@ void main() {
     await settle(tester);
     // An adult's card has no baby signs.
     expect(find.byKey(const ValueKey('warning-under3Months')), findsNothing);
+    await tapKey(tester, 'sick-day-symptoms');
     await tapKey(tester, 'symptom-breathing');
     final saved = (await tester.runAsync(
       () => db.watchEpisode(episode).first,

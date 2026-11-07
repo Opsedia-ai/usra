@@ -3336,6 +3336,107 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sickDayNotesSaved => 'Notes saved';
 
   @override
+  String sickDayPersonUnwell(String sex, String name) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'male': '$name is unwell',
+      'female': '$name is unwell',
+      'other': '$name is unwell',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayPersonWasUnwell(String sex, String name) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'male': '$name was unwell',
+      'female': '$name was unwell',
+      'other': '$name was unwell',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sickDaySinceToday(String time) {
+    return 'Since today $time';
+  }
+
+  @override
+  String sickDaySinceYesterday(String time) {
+    return 'Since yesterday $time';
+  }
+
+  @override
+  String get sickDayLatestReading => 'Latest reading';
+
+  @override
+  String sickDayFeverLogged(String duration) {
+    return 'Fever logged: $duration';
+  }
+
+  @override
+  String get sickDayFeverUnderHour => 'under an hour';
+
+  @override
+  String sickDayFeverHours(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayFeverDays(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayRecordedGiven(String what, String time) {
+    return 'Recorded: $what · $time';
+  }
+
+  @override
+  String sickDayChartSemantics(
+    String start,
+    String end,
+    String values,
+    String fever,
+  ) {
+    return 'Readings from $start to $end: $values. The dashed line is at $fever, where a fever starts.';
+  }
+
+  @override
+  String get sickDayChartThen => ', then ';
+
+  @override
+  String get sickDayAddReadingShort => 'Add reading';
+
+  @override
+  String get sickDayGivenShort => 'Medicine given';
+
+  @override
+  String get sickDayAllReadings => 'All readings';
+
+  @override
+  String get sickDayNoSymptoms => 'No symptoms logged yet.';
+
+  @override
+  String sickDayCallDoctorNamed(String name) {
+    return 'Call $name';
+  }
+
+  @override
+  String get sickDayBack => 'Back';
+
+  @override
   String get readingValue => 'Temperature';
 
   @override
