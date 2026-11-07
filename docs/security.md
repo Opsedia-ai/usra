@@ -2,8 +2,8 @@
 
 Usra holds a family's health records: diagnoses, medicines, pregnancy, children,
 insurance cards and photos of prescriptions. A leak can hurt people (stigma,
-insurance, family conflict), and in Egypt, KSA and the UAE health data is
-sensitive personal data with stricter rules. This plan says what we protect,
+insurance, family conflict), and in Egypt and KSA health data is sensitive
+personal data with stricter rules (Jordan's Law 24 of 2023 also applies to accounts). This plan says what we protect,
 what is already in the code, what is missing, and when each gap must be
 closed.
 
@@ -378,9 +378,9 @@ with the cloud features (M6).
 | S20 | **Security tests** | P0 | Tests that fail if: the DB opens without a key, a photo is written unencrypted, notifications show names in discreet mode, release manifest allows backup/cleartext. |
 | S21 | **Repo and account hygiene** | P0 | 2FA required in the GitHub org, branch protection on main (PR + green CI), signed tags for releases, Play App Signing, upload key kept offline with a backup. |
 | S22 | **Pre-launch review** | P1 | OWASP MASVS L1 (L2 for storage and crypto) self-assessment, then an external mobile pen test before public launch. |
-| S23 | **Incident response** | P1 | Written runbook: who decides, how to rotate keys, how to notify users and regulators. Egypt PDPL requires notifying the Data Protection Center of a breach quickly (72 hours is the commonly cited limit; confirm in legal review); KSA PDPL and UAE PDPL have similar duties. |
+| S23 | **Incident response** | P1 | Written runbook: who decides, how to rotate keys, how to notify users and regulators. Egypt PDPL requires notifying the Data Protection Center of a breach quickly (72 hours is the commonly cited limit; confirm in legal review); KSA PDPL has similar duties; check Jordan's. |
 | S24 | **Vulnerability disclosure** | P1 | `SECURITY.md` with a contact address and response times. |
-| S25 | **Legal and compliance** | P1 | Egypt PDPL (health data is sensitive; licence/permit from the Data Protection Center may be needed), KSA PDPL and data residency, UAE PDPL and health data law (ICT Health Law). Founder task with a lawyer; links to the store/legal drafts. |
+| S25 | **Legal and compliance** | P1 | Egypt PDPL (health data is sensitive; licence/permit from the Data Protection Center may be needed), KSA PDPL and data residency, Jordan's Law 24 of 2023. UAE is off the list for launch. Founder task with a lawyer; links to the store/legal drafts. |
 
 ## 5. Rules for every PR
 

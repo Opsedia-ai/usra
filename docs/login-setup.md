@@ -2,17 +2,19 @@
 
 Usra's optional account signs in with Google or Apple, using the phone's own sign-in sheet. There's no SMS and no password. This page lists what the founder has to do. Until it's done the app has no account entry at all and works fully without one.
 
+**No real family signs in until an Egyptian lawyer has answered the questions in step 6.** The beta runs without login unless that answer arrives first.
+
 ## What it costs
 
 | Step | Cost |
 | --- | --- |
 | Google Cloud project and OAuth client IDs | Free. No billing account needed |
 | Sign in with Apple and its key | Included in the Apple Developer Program, which the App Store already needs ($99 a year, fixed, not per user) |
-| Supabase Auth | Free up to 50,000 monthly active users |
+| Supabase Pro | About $25 a month, approved by the founder, from the moment real member numbers exist (they can't be recreated, and Free has no backups). Until then nothing runs. Includes Auth for the users we expect |
 | Google Play account, needed for its signing fingerprint | $25 once, already planned |
 | Calls to Google and Apple when someone signs in or deletes their account | Free |
 
-Nothing here charges per user. See the cost check in the pull request that added this page.
+Nothing here charges per user at the numbers we expect. See the cost check in the pull request that added this page.
 
 ## What you'll end up with
 
@@ -62,7 +64,7 @@ The key has one job: when someone deletes their account, the `delete-account` fu
 
 **Every signed iOS build needs this capability,** including builds with accounts off, because `Runner.entitlements` asks for it in all of them. Turn it on before the first signed build, even if accounts come later. Free Apple accounts can't use it, so build with the Opsedia team. Simulator builds and CI's unsigned builds aren't affected.
 
-## 3. Supabase (free)
+## 3. Supabase (Pro, about $25 a month)
 
 Create the project in **Frankfurt**. Supabase has no region in the Middle East, and the founder's backend research recommends Frankfurt over the other nearby regions. Confirm this with the lawyer (see step 6), because moving a project later is work.
 
@@ -152,7 +154,7 @@ Today's store listings, policy and legal text describe an app with no accounts. 
 - [ ] Does tapping a sign-in button count as "explicit written" consent? The app currently treats signing in as agreeing, with a notice and a link on the account screen.
 - [ ] Is Frankfurt the right region for the Supabase project?
 
-Take separate advice before opening accounts in Saudi Arabia or the UAE.
+No real family signs in until these are answered. Take separate advice before opening accounts in Saudi Arabia or Jordan. UAE is off the list for launch.
 
 **Privacy policy** (`docs/legal/privacy-policy.en.md` and `.ar.md`):
 
@@ -172,7 +174,7 @@ Take separate advice before opening accounts in Saudi Arabia or the UAE.
 
 **Store forms** (`docs/store/data-safety.md`):
 
-- [ ] Google Play Data safety and Apple App Privacy: use the answers under "When M6 cloud features ship".
+- [ ] Google Play Data safety and Apple App Privacy: use the answers under "When accounts, the paywall and later features ship".
 - [ ] Play's deletion question, and its required web page for deletion requests, which doesn't exist yet.
 - [ ] Play's app access declaration and Apple's guideline 5.1.1 row.
 
@@ -181,11 +183,11 @@ Take separate advice before opening accounts in Saudi Arabia or the UAE.
 - [ ] Add the `APPLE_*` secrets (step 3).
 - [ ] Run the checks in step 5.
 - [ ] With `SUPABASE_URL` set, check that More > About & privacy says an account is optional, in both languages.
-- [ ] Check that every feature still works with no account. Login must stay optional.
+- [ ] Check that everything still works with no account until the paywall. Login must stay optional until then.
 
 ## Good to know
 
 - **One email, one account.** Google and Apple sign-ins with the same verified email become one Usra account. Someone who chooses **Hide My Email** with Apple gets a relay address, so that becomes a separate account.
 - **Recovering an account is Google's or Apple's job.** We have no other way to sign someone in. Records stay on the phone either way.
 - **Removing Usra from a Google account:** deleting a Usra account doesn't do this for them. They can do it at <https://myaccount.google.com/connections>.
-- **Free plan limits:** a free Supabase project pauses after a week without activity, and it has no automatic backups. An account can be recreated by signing in again, and health records aren't stored there.
+- **Why Pro:** a free Supabase project pauses after a week without activity, and it has no automatic backups. An account can be recreated by signing in again, but a member number can't, so real member numbers go on Pro from the start. Health records aren't stored there.

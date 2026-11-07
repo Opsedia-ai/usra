@@ -3,15 +3,22 @@
 Supabase project for the Usra app: Auth (Google and Apple sign-in, no SMS),
 Postgres with row-level security, and Edge Functions (Deno / TypeScript).
 
-**What the cloud holds:** accounts, devices and push tokens, entitlements, AI
-credits, usage counters, and (from v2 sync) end-to-end-encrypted ciphertext.
-**What it never holds:** readable health data. Health records live on the
-phone (SQLCipher) in v1. The AI Doctor snapshot and OCR images exist only in
-memory for one request and are never stored or logged.
+**What the cloud holds in v1 (`docs/prd-v1.md`):** accounts, member numbers,
+subscription status and remote config. Member numbers, remote config and the
+1-year pass and Lifetime aren't built yet. The tables for devices, push tokens,
+AI credits, usage counters and v2 sync ciphertext stay in the schema from earlier
+work. **What it never holds:** readable health data. Health records live on the
+phone (SQLCipher) in v1. If they're ever turned on, the AI Doctor snapshot and OCR
+images exist only in memory for one request and are never stored or logged.
+
+**Plan:** Supabase Pro (about $25 a month) from the moment real member numbers
+exist, because they can't be recreated and Free has no backups. Until then no
+hosted project runs. No real family signs in until an Egyptian lawyer has answered
+the questions in [`docs/login-setup.md`](../docs/login-setup.md), step 6.
 
 Supabase Cloud has no Middle East region. Nothing here depends on Supabase
 Cloud features, so the same migrations and functions can run on a self-hosted
-Supabase in Egypt, KSA or the UAE later.
+Supabase in the region later.
 
 ## Layout
 
@@ -22,9 +29,11 @@ supabase/
   functions/
     _shared/                  CORS/JSON errors, env, auth, Supabase stores, LLM provider,
                               JSON-schema validator, rate limiter
-    ai-doctor/                Dr. Usra AI: credits + LLM + schema-checked findings
-    ocr-fallback/             cloud reading of medicine photos (Arabic, handwriting)
-    revenuecat-webhook/       purchases -> credits_ledger / entitlements
+    ai-doctor/                not in v1. Dr. Usra AI: credits + LLM + schema-checked findings
+    ocr-fallback/             not in v1. Cloud reading of medicine photos (Arabic, handwriting)
+    revenuecat-webhook/       with the paywall. Purchases -> credits_ledger / entitlements;
+                              still written for credits and Usra Plus, so it has to change
+                              for the 1-year pass and Lifetime
     delete-account/           in-app "Delete account": removes the auth user, everything cascades
     bind-device/              sync: bind an Auth session to a phone that proves its key
     approve-device/           sync: an approved phone approves a new one (QR or comparison code)
@@ -380,13 +389,22 @@ curl -X POST http://127.0.0.1:54321/functions/v1/ai-doctor \
 supabase link --project-ref <ref>
 supabase db push
 supabase secrets set --env-file ./functions/.env
-supabase functions deploy ai-doctor ocr-fallback delete-account
-supabase functions deploy bind-device approve-device recover-device append-family-log publish-head
-supabase functions deploy revenuecat-webhook --no-verify-jwt
+supabase functions deploy delete-account
 ```
 
-Then follow [`docs/login-setup.md`](../docs/login-setup.md) for Google and Apple,
-and in RevenueCat set the webhook URL and the Authorization header to
+The rest are not part of v1. Deploy them only when their feature is turned on:
+
+```bash
+# With the paywall, after it's changed for the 1-year pass and Lifetime:
+supabase functions deploy revenuecat-webhook --no-verify-jwt
+# v2 sync:
+supabase functions deploy bind-device approve-device recover-device append-family-log publish-head
+# Not in v1 (they spend money per call, so they need the founder's yes):
+supabase functions deploy ai-doctor ocr-fallback
+```
+
+Then follow [`docs/login-setup.md`](../docs/login-setup.md) for Google and Apple.
+With the paywall, in RevenueCat set the webhook URL and the Authorization header to
 `REVENUECAT_WEBHOOK_SECRET`.
 
 ## The app
