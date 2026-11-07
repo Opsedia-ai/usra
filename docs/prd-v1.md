@@ -87,7 +87,7 @@ More also holds Account and subscription, Redeem code, and a Dr. Usra AI card ma
 
 ### First run
 
-1. Welcome with Dr. Usra and the promise: "Your family's health stays on this phone."
+1. Welcome with Dr. Usra and the promise: "Your family's health stays on this phone." A restore entry for a family that already has a backup.
 2. Language (Arabic or English), then country: Egypt at beta and first public launch, with Saudi Arabia and Jordan added after. The country sets the vaccine schedule, emergency number and currency.
 3. About you: name, sex and date of birth. The sex chosen here sets all text addressed to the user. No sign-in needed yet.
 4. Land on Home.
@@ -98,6 +98,7 @@ The rest moved out of the first run to shorten it, and is offered from Home as o
 - For a child: tick vaccines already given, grouped by age, with Tick all per group; in Egypt, choose the government or private (hexavalent) route.
 - App lock: PIN or fingerprint.
 - Notifications permission, then Android battery-saver guide on brands that kill alarms.
+- Backup, and the emergency card.
 - Once login is on, "Save your free-for-life spot": sign in with Google or Apple (fills your name); a founding-member number is assigned when you then save your first record, while spots last.
 
 ### Add a record
@@ -128,7 +129,7 @@ The rest moved out of the first run to shorten it, and is offered from Home as o
 | --- | --- | --- |
 | F1 | Profiles | Name, sex (male/female, required), date of birth, relationship, blood type, allergies, conditions, avatar coloured by sex. Unlimited free profiles. |
 | F2 | Navigation | Bottom bar: Home, Medicines, Add, Records, More. One tap on a person on Home opens their page; "Add person" is on Home. |
-| F3 | Home and person page | Home shows the family, with last backup. One person on their own page: due doses, next vaccine with countdown, open follow-ups, active sick day. |
+| F3 | Home and person page | Home shows the family and what needs doing today: due doses with one-tap Taken, open follow-ups, active sick day, last backup. One person on their own page: due doses, next vaccine with countdown, open follow-ups, active sick day. |
 | F4 | Records | One timeline per person, filter by type, doctor, year; search across names, diagnoses and text read from photos. |
 | F5 | Record types | Visit, medicine, prescription, vaccine, lab (several tests, printed range, High/Low), scan, surgery (hospital, filmed yes/no, cost), admission, vitals, allergy, condition. Each can hold photos, doctor, place, cost. |
 | F6 | Medicines | Dose text saved word for word; times, every N hours, as needed; course length; stock and refill reminder. Never suggests or computes a dose. |
@@ -277,4 +278,7 @@ Still open:
 - [ ] Lifetime price ratio in JOD: 3.45x the 1-year pass, against 2.5x in EGP and SAR
 - [ ] RevenueCat and iOS 16.3 for one-time code redemption, against the app's target of iOS 15.5
 - [ ] What happens to a seat when an account is deleted
+- [ ] When someone who saved records first and signs in later takes their seat, since they've already saved their first record
+- [ ] What shows the paywall, and starts the 14-day trial, for someone who never signs in once seats run out
+- [ ] Whether F23's list of what an account stores should match the privacy draft, which also lists language, device information, profile photo link and account ID
 - [ ] How paywall checks behave with no internet

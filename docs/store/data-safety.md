@@ -1,6 +1,7 @@
 # Data safety, privacy labels and health declarations
 
-Answers for the Usra v1 build with no accounts, which includes the beta, taken from the
+Answers for the Usra v1 build with no accounts, as the beta is unless the lawyer's answer
+arrives first, taken from the
 code as of this branch. Re-check this file whenever a permission, SDK or network call is
 added; accounts and the paywall, and later the v2 features, change most answers (see the
 last section).
@@ -22,7 +23,10 @@ last section).
 | Call / WhatsApp a doctor, open links | `features/doctors/`, `url_launcher` | Opens the other app; nothing sent by Usra |
 | App version shown in About | `package_info_plus` | No |
 | Analytics, crash reporting, ads | none in any v1 build | – |
-| Accounts, payments | none in the beta build. Accounts only if a build sets `SUPABASE_URL`, and payments only once the paywall is on (see the last section) | – |
+| Accounts, payments | none in a build with no accounts. Accounts only if a build sets `SUPABASE_URL`, and payments only once the paywall is on (see the last section) | – |
+
+> **TODO:** `aboutPrivacyOnPhone` (ARB en/ar) still says only that photos are in the app's
+> private storage. Update it to say they're encrypted, to match the privacy policy and store texts.
 
 Android OS backup and device-to-device transfer are switched off for all app data
 (`android:allowBackup="false"`, `res/xml/data_extraction_rules.xml`). On iOS the
@@ -131,7 +135,7 @@ Pick the features the app has (labels as they appear in the Console; confirm bef
 
 Statements to have ready (the Console may ask):
 
-- Usra is **not a medical device** and is not cleared by any regulator (EDA, SFDA, MOHAP, FDA, CE). It does not diagnose, treat, calculate doses or interpret results.
+- Usra is **not a medical device** and is not cleared by any regulator (EDA, SFDA, JFDA, FDA, CE). It does not diagnose, treat, calculate doses or interpret results.
 - Growth charts use WHO Child Growth Standards; vaccine schedule follows the Egyptian
   Ministry of Health schedule; follow-up suggestions cite their source in the app.
 - The in-app disclaimer is on the More tab, on the About & privacy screen and in the store description.

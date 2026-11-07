@@ -75,7 +75,7 @@ These terms are governed by the laws of [Arab Republic of Egypt], and disputes g
 the courts of [Cairo], unless the law of your country of residence gives you the
 right to use its courts. [Legal review: KSA and Jordan users.]
 
-## 9. Later optional cloud features (not in the current version)
+## 9. Later features (not in the current version)
 
 > Planned for a later version. These terms will be updated before they
 > start, and you will be asked to agree in the app.

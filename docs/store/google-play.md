@@ -2,7 +2,7 @@
 
 Default language: **Arabic (ar)**. Second language: **English (en-US)**.
 Category: **Medical**. Tags (pick in Console): Medical records, Medicine reminders, Family.
-Contains ads: **No**. In-app purchases: **No** in a build with no accounts, which includes the beta. With the paywall on: **Yes** (1-year pass and Lifetime).
+Contains ads: **No**. In-app purchases: **No** in a build with no accounts, as the beta is unless the lawyer's answer arrives first. With the paywall on: **Yes** (1-year pass and Lifetime).
 
 Counts are `characters / limit`; check with `python3 tools/store/check_lengths.py`.
 

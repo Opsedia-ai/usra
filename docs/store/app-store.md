@@ -3,7 +3,7 @@
 Primary language: **Arabic**. Second localization: **English (U.S.)**.
 Primary category: **Medical**. Secondary: **Health & Fitness**.
 Seller: **Opsedia** (organisation account, see `docs/decisions.md`).
-Price: **Free**. In-app purchases: **None** in a build with no accounts, which includes the beta. With the paywall on: **1-year pass and Lifetime**.
+Price: **Free**. In-app purchases: **None** in a build with no accounts, as the beta is unless the lawyer's answer arrives first. With the paywall on: **1-year pass and Lifetime**.
 
 Counts are `characters / limit` (keywords: `bytes / limit`); check with
 `python3 tools/store/check_lengths.py`.

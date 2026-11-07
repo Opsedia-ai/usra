@@ -132,7 +132,7 @@ Usra checks, on the phone only, for signs that it is rooted or jailbroken and wa
 you once if so; nothing about it is sent anywhere. A recovery key you copy is cleared
 from the clipboard after a minute.
 
-## 10. Later optional cloud features (not in the current version)
+## 10. Later features (not in the current version)
 
 > This section describes features **planned** for a later version. They will be
 > **off by default**, and this policy will be updated, and your consent asked in the
