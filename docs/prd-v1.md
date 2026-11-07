@@ -89,17 +89,17 @@ More also holds Account and subscription, Redeem code, and a Dr. Usra AI card ma
 
 1. Welcome with Dr. Usra and the promise: "Your family's health stays on this phone." A restore entry for a family that already has a backup.
 2. Language (Arabic or English), then country: Egypt at beta and first public launch, with Saudi Arabia and Jordan added after. The country sets the vaccine schedule, emergency number and currency.
-3. About you: name, sex and date of birth. The sex chosen here sets all text addressed to the user. No sign-in needed yet.
+3. About you: name, sex and date of birth, all required. The sex chosen here sets all text addressed to the user. No sign-in needed yet.
 4. Land on Home.
 
 The rest moved out of the first run to shorten it, and is offered from Home as optional cards, each asking for its permission when it's needed:
 
 - One family member: name, sex, date of birth, relationship.
 - For a child: tick vaccines already given, grouped by age, with Tick all per group; in Egypt, choose the government or private (hexavalent) route.
-- App lock: PIN or fingerprint.
+- App lock: PIN or fingerprint, offered after the first backup; turning on the PIN requires a backup.
 - Notifications permission, then Android battery-saver guide on brands that kill alarms.
 - Backup, and the emergency card.
-- Once login is on, "Save your free-for-life spot": sign in with Google or Apple (fills your name); a founding-member number is assigned when you then save your first record, while spots last.
+- Once login is on, saving the first record asks for sign-in with Google or Apple (fills your name) without losing what was typed. A founding-member number is assigned when that first record is saved, while spots last.
 
 ### Add a record
 
@@ -149,7 +149,7 @@ The rest moved out of the first run to shorten it, and is offered from Home as o
 | F20 | Security | App lock (PIN, biometrics), discreet mode (default on: neutral text plus Taken), screen privacy, delete all my data, root/jailbreak warning. |
 | F21 | Simple Mode | Three big buttons: My medicines today, Call my caregiver/doctor, Scan. Suggested when an owner profile is 65+; the user decides and can switch any time. |
 | F22 | Language | Egyptian Arabic (default) and English; Arabic or Latin digits; Hijri and Gregorian dates. Text addressed to the user follows the sex given in "About you"; text about a family member follows that member's sex. |
-| F23 | Account | No real family signs in until an Egyptian lawyer has answered (see Compliance). Then: optional sign-in with Google or Apple through Supabase Auth (Frankfurt region) (Sign in with Apple required on iOS when Google is offered). Stores only name, email, country, member number and subscription status; no health data. Delete account in the app. Offered by a "Save your free-for-life spot" card after the first person is added; required only to subscribe or redeem a code. |
+| F23 | Account | No real family signs in until an Egyptian lawyer has answered (see Compliance). Then: required sign-in with Google or Apple through Supabase Auth (Frankfurt region) (Sign in with Apple required on iOS when Google is offered). Stores only name, email, country, member number and subscription status; no health data. Delete account in the app. Required to save the first record, add family, back up, take a seat, subscribe or redeem a code. Looking around and reading the guides need no account, and a signed-in phone keeps working offline. |
 | F24 | Founding members and subscription | A signed-in user gets a member number when they save their first record, not at sign-up. Numbers 1 to 5,000, one pool across all countries, are founding members, free for life. From number 5,001 adding new records needs a 1-year pass (499 EGP, 99.99 SAR, 11 JOD; pay once, no auto-renewal) or Lifetime (1,249 EGP, 249.99 SAR, 37.99 JOD; pay once), sold through Google Play Billing and Apple in-app purchase via RevenueCat, after a 14-day free trial. When a trial or pass ends, people can still read, export, back up and delete their records and use the emergency card, and medicine reminders keep ringing; only adding new records stops. The trial and the pass end date are tracked on the account in Supabase; on iOS the trial is a free in-app item, as Apple asks for non-subscription apps. The limit and an on/off switch live in a remote config table, changeable without an app update. |
 | F25 | Promo codes | Google Play promo codes and Apple offer codes (check that Apple offers them for one-time purchases) for the 1-year pass and Lifetime, created in the store consoles and tracked in RevenueCat; free time can also be granted to a signed-in account from the RevenueCat dashboard. A "Redeem code" row in More. |
 | F26 | Dr. Usra AI | Off in v1. A "Coming soon" card in More with Dr. Usra; no network call, no purchase. |
@@ -210,7 +210,7 @@ Usra is not a medical device: it records, reminds and cites, and every medical s
 
 Accounts in v1 change three things:
 
-- **Sign-in review risk.** Apple asks apps without significant account-based features to work without a login. Usra's account carries the founding membership and subscription across Android and iPhone, promo codes and the profile name. So sign-in stays optional until the paywall, where it ties the subscription to the account.
+- **Sign-in review risk.** Apple asks apps without significant account-based features to work without a login. Usra's account carries the founding membership and subscription across Android and iPhone, promo codes and the profile name. Sign-in is required from the first saved record (founder's decision, 7 November). App Review may still question this, so the review notes must explain what the account does and give a demo account. The fallback is optional sign-in until the paywall.
 - **Sign in with Apple** must be offered on iOS whenever Google sign-in is, and the account must be deletable inside the app.
 - **Privacy texts** (policy, Play Data safety, Apple privacy label) must add name, email and user ID, collected for the account only.
 
@@ -249,7 +249,7 @@ Decided on 6 November 2026:
 
 | Topic | Decision |
 | --- | --- |
-| Login | Optional; a "Save your free-for-life spot" card after the first person; required to subscribe or redeem a code |
+| Login | Required from the first saved record, once login is on. Changed on 7 November |
 | Founding members | First 5,000 accounts, one pool across all countries, free for life. How a seat is taken changed on 7 November |
 | Plans | 1-year pass (no auto-renewal) and Lifetime, both one payment; 14-day free trial; no monthly plan; store billing only (no card, Fawry or Paymob for unlocking the app) |
 | Prices | 1-year pass 499 EGP · 99.99 SAR · 11 JOD; Lifetime 1,249 EGP · 249.99 SAR · 37.99 JOD |
@@ -278,7 +278,7 @@ Still open:
 - [ ] Lifetime price ratio in JOD: 3.45x the 1-year pass, against 2.5x in EGP and SAR
 - [ ] RevenueCat and iOS 16.3 for one-time code redemption, against the app's target of iOS 15.5
 - [ ] What happens to a seat when an account is deleted
-- [ ] When someone who saved records first and signs in later takes their seat, since they've already saved their first record
-- [ ] What shows the paywall, and starts the 14-day trial, for someone who never signs in once seats run out
+- [ ] Family link: give a family member their own copy on their phone, proposal awaiting the founder
+- [ ] Dr. Usra "Coming soon" card list, draft with the founder
 - [ ] Whether F23's list of what an account stores should match the privacy draft, which also lists language, device information, profile photo link and account ID
 - [ ] How paywall checks behave with no internet

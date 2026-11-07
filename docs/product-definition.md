@@ -110,7 +110,7 @@ The first 5,000 signed-in users to save a record are founding members and use Us
 
 | Phase | Revenue | Rule |
 | --- | --- | --- |
-| 1 · Founding members | None. Member numbers 1–5,000 free for life | One pool across all countries, counted by member number in Supabase; a seat is taken when a signed-in user saves their first record; sign-in optional and offered as "Save your free-for-life spot", once an Egyptian lawyer has answered; limit changeable without an app update |
+| 1 · Founding members | None. Member numbers 1–5,000 free for life | One pool across all countries, counted by member number in Supabase; a seat is taken when a signed-in user saves their first record; sign-in required from the first saved record, once an Egyptian lawyer has answered; limit changeable without an app update |
 | 2 · Subscription | 1-year pass (499 EGP, 99.99 SAR, 11 JOD) or Lifetime (1,249 EGP, 249.99 SAR, 37.99 JOD), each a single payment, after a 14-day free trial, from member number 5,001 | Store billing only, through RevenueCat (no card, Fawry or Paymob for unlocking the app); promo codes via Apple offer codes and Google Play promo codes |
 | 3 · Dr. Usra AI | Included in the subscription or as credits (to decide) | Shown as "coming soon" in v1; behind regulatory gates (SFDA MDS-G27 in KSA, Egypt PDPL transfer licence) |
 | 4 · Partners | Clinic partnerships: labelled sponsored listings, appointment reminders | Matched by city and specialty only, never by health data (Apple 5.1.3, Google Play user data policy) |
@@ -125,6 +125,6 @@ The first 5,000 signed-in users to save a record are founding members and use Us
 
 - **Not a medical device.** It does not diagnose, treat or calculate doses (Apple 1.4.2). It records what the doctor wrote.
 - **Not a doctor.** Warning signs and follow-ups are cited information that end with "contact a doctor" or "call 123".
-- **Not a cloud service in v1.** Optional sign-in with Google or Apple holds only name, email and membership; no server copy of health data, photos or backups.
+- **Not a cloud service in v1.** Sign-in with Google or Apple holds only name, email and membership; no server copy of health data, photos or backups.
 - **Not an ad platform.** No ads SDKs, no tracking, no data sales.
 - **Not a booking or telemedicine app.** Clinic booking comes only through partners in a later phase.
