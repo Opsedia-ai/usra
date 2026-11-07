@@ -305,20 +305,30 @@ class _PersonPebble extends StatelessWidget {
       onTap: () => context.push('/family/${person.id}'),
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              person.displayName,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: UsraType.heading.copyWith(
-                color: context.usra.ink,
-                fontWeight: FontWeight.w700,
+        // Long words at large text sizes wrap, then shrink to stay inside the
+        // pebble rather than get cut off.
+        child: LayoutBuilder(
+          builder: (context, box) => FittedBox(
+            fit: BoxFit.scaleDown,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: box.maxWidth),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    person.displayName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: UsraType.heading.copyWith(
+                      color: context.usra.ink,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (current != null) PersonStatusLabel(status: current),
+                ],
               ),
             ),
-            if (current != null) PersonStatusLabel(status: current),
-          ],
+          ),
         ),
       ),
     );
@@ -498,6 +508,33 @@ class _DoseRow extends ConsumerWidget {
     final time = formatDoseTime(context, dose.at);
     final amount = r.schedule.amount;
     final id = '${r.medicine.id}-${dose.at.millisecondsSinceEpoch}';
+    final details = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          medicineTitle(r.medicine),
+          style: UsraType.body.copyWith(
+            color: context.usra.ink,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        Text(
+          amount == null ? time : '$time · $amount',
+          style: UsraType.body.copyWith(color: context.usra.inkMuted),
+        ),
+      ],
+    );
+    final taken = FilledButton.icon(
+      key: ValueKey('home-dose-taken-$id'),
+      style: FilledButton.styleFrom(
+        minimumSize: const Size(0, UsraSizes.touchTarget),
+      ),
+      onPressed: () => logDoseTaken(context, ref, dose),
+      icon: const Icon(Icons.check),
+      label: Text(l.doseTaken),
+    );
+    // Beside the name normally; underneath at large text, where it won't fit.
+    final stacked = MediaQuery.textScalerOf(context).scale(1) > 1.3;
     return Card(
       key: ValueKey('home-dose-$id'),
       child: InkWell(
@@ -505,41 +542,23 @@ class _DoseRow extends ConsumerWidget {
             context.push('/family/${r.person.id}/medicines/${r.medicine.id}'),
         child: Padding(
           padding: const EdgeInsets.all(UsraSpacing.s3),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              MiniPersonPebble(person: r.person),
-              const SizedBox(width: UsraSpacing.s3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      medicineTitle(r.medicine),
-                      style: UsraType.body.copyWith(
-                        color: context.usra.ink,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      amount == null ? time : '$time · $amount',
-                      style: UsraType.body.copyWith(
-                        color: context.usra.inkMuted,
-                      ),
-                    ),
+              Row(
+                children: [
+                  MiniPersonPebble(person: r.person),
+                  const SizedBox(width: UsraSpacing.s3),
+                  Expanded(child: details),
+                  if (canMark && !stacked) ...[
+                    const SizedBox(width: UsraSpacing.s2),
+                    taken,
                   ],
-                ),
+                ],
               ),
-              if (canMark) ...[
-                const SizedBox(width: UsraSpacing.s2),
-                FilledButton.icon(
-                  key: ValueKey('home-dose-taken-$id'),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(0, UsraSizes.touchTarget),
-                  ),
-                  onPressed: () => logDoseTaken(context, ref, dose),
-                  icon: const Icon(Icons.check),
-                  label: Text(l.doseTaken),
-                ),
+              if (canMark && stacked) ...[
+                const SizedBox(height: UsraSpacing.s2),
+                taken,
               ],
             ],
           ),

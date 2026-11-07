@@ -281,13 +281,30 @@ void main() {
     expect(find.textContaining('د. هاني'), findsNothing);
   });
 
-  for (final (width, scale) in [(320.0, 1.0), (360.0, 2.0), (430.0, 1.3)]) {
+  for (final (width, scale) in [
+    (320.0, 1.0),
+    (320.0, 2.0),
+    (360.0, 2.0),
+    (430.0, 1.3),
+  ]) {
     for (final count in [2, 9]) {
       testWidgets('Home fits $count people at $width px and $scale text', (
         tester,
       ) async {
         phone(tester, width: width, height: 700);
-        await people(tester, [for (var i = 1; i <= count; i++) 'خالتو $i']);
+        final ids = await people(tester, [
+          for (var i = 1; i <= count; i++) 'خالتو $i',
+        ]);
+        // The widest content: a status chip and a dose with its button.
+        await tester.runAsync(() async {
+          await db.saveEpisode(profileId: ids[0], startedAt: now);
+          await db.saveMedicine(
+            profileId: ids[1],
+            name: 'باراسيتامول شراب للأطفال',
+            startOn: DateTime(2026, 11, 1),
+            schedule: const DoseScheduleInput(times: ['15:00']),
+          );
+        });
         await tester.pumpWidget(
           MediaQuery(
             data: MediaQueryData(
