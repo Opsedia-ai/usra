@@ -138,7 +138,7 @@ Statements to have ready (the Console may ask):
 - Usra is **not a medical device** and is not cleared by any regulator (EDA, SFDA, JFDA, FDA, CE). It does not diagnose, treat, calculate doses or interpret results.
 - Growth charts use WHO Child Growth Standards; vaccine schedule follows the Egyptian
   Ministry of Health schedule; follow-up suggestions cite their source in the app.
-- The in-app disclaimer is on the More tab, on the About & privacy screen and in the store description.
+- The in-app disclaimer is on the More tab, on the Privacy and terms screen and in the store description.
 
 ## Apple: App Privacy ("nutrition label")
 

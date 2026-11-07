@@ -344,6 +344,36 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Why turning this on was allowed, and what it rests on.
+                    if (_step == _Step.choose &&
+                        !_lock.enabled &&
+                        ref.watch(hasBackupProvider)) ...[
+                      Card(
+                        key: const ValueKey('setup-backup-ready'),
+                        color: Severity.good.backgroundOf(context),
+                        margin: EdgeInsets.zero,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.check,
+                                color: Severity.good.foregroundOf(context),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  l.lockSetupBackupReady,
+                                  style: text.bodyMedium,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     Text(
                       _step == _Step.choose
                           ? l.lockSetupNewPin
@@ -351,8 +381,8 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
                       key: const ValueKey('setup-step'),
                       style: text.titleLarge,
                     ),
-                    SizedBox(
-                      height: 40,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 40),
                       child: _mismatch || _trivial
                           ? Text(
                               _mismatch
@@ -362,7 +392,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
                                 _mismatch ? 'setup-mismatch' : 'setup-trivial',
                               ),
                               style: text.bodyMedium?.copyWith(
-                                color: context.usra.urgent,
+                                color: Severity.actSoon.foregroundOf(context),
                               ),
                               textAlign: TextAlign.center,
                             )
@@ -562,7 +592,10 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
       final yes = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          icon: Icon(Icons.delete_forever_outlined, color: context.usra.urgent),
+          icon: Icon(
+            Icons.delete_forever_outlined,
+            color: Severity.actSoon.foregroundOf(context),
+          ),
           title: Text(l.lockWipeConfirmTitle),
           content: SingleChildScrollView(child: Text(l.lockWipeConfirmBody)),
           actions: [
@@ -572,9 +605,6 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
             ),
             FilledButton(
               key: const ValueKey('app-lock-wipe-yes'),
-              style: FilledButton.styleFrom(
-                backgroundColor: context.usra.urgent,
-              ),
               onPressed: () => Navigator.of(context).pop(true),
               child: Text(l.lockWipeConfirmYes),
             ),
@@ -686,7 +716,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
                       ListTile(
                         leading: Icon(
                           Icons.emergency_outlined,
-                          color: context.usra.urgent,
+                          color: Severity.actSoon.foregroundOf(context),
                         ),
                         title: Text(l.lockSettingsEmergency),
                         subtitle: Text(l.lockSettingsEmergencyHint),
@@ -711,7 +741,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
                     onChanged: _setWipe,
                     secondary: Icon(
                       Icons.delete_forever_outlined,
-                      color: context.usra.urgent,
+                      color: Severity.actSoon.foregroundOf(context),
                     ),
                     title: Text(l.lockSettingsWipe),
                     subtitle: Text(l.lockSettingsWipeHint),

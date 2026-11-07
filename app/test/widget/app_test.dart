@@ -38,6 +38,9 @@ void main() {
   });
 
   testWidgets('switching to English changes the language', (tester) async {
+    tester.view.physicalSize = const Size(1170, 6000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 

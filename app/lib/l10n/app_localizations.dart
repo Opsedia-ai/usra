@@ -230,12 +230,6 @@ abstract class AppLocalizations {
   /// **'English'**
   String get languageEnglish;
 
-  /// No description provided for @settingsPrivacy.
-  ///
-  /// In en, this message translates to:
-  /// **'Your data stays on this phone, encrypted.'**
-  String get settingsPrivacy;
-
   /// No description provided for @recoveryNotice.
   ///
   /// In en, this message translates to:
@@ -251,7 +245,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutTitle.
   ///
   /// In en, this message translates to:
-  /// **'About & privacy'**
+  /// **'Privacy and terms'**
   String get aboutTitle;
 
   /// No description provided for @aboutHint.
@@ -299,7 +293,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutPrivacyReminders.
   ///
   /// In en, this message translates to:
-  /// **'Reminders are set on this phone. People\'s names and medicine names can show on the lock screen (the name as you typed it). The home-screen widget has no names, only times and how many doses.'**
+  /// **'Reminders are set on this phone. From the start they show general text with no names. If \"Discreet notifications\" is turned off, people\'s names and medicine names can show on the lock screen. The home-screen widget has no names, only times and how many doses.'**
   String get aboutPrivacyReminders;
 
   /// No description provided for @aboutPrivacyDelete.
@@ -2888,12 +2882,6 @@ abstract class AppLocalizations {
   /// **'Backup'**
   String get backupTitle;
 
-  /// No description provided for @settingsBackupHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep a copy of the family\'s records off this phone'**
-  String get settingsBackupHint;
-
   /// No description provided for @backupIntro.
   ///
   /// In en, this message translates to:
@@ -4055,7 +4043,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountPrivacy.
   ///
   /// In en, this message translates to:
-  /// **'Your family\'s health records stay on this phone. An account doesn\'t upload them: it only gets things ready for syncing between your family\'s phones and for AI features later, and you\'ll choose before anything is shared.'**
+  /// **'Your family\'s health records stay on this phone. An account doesn\'t upload them.'**
   String get accountPrivacy;
 
   /// No description provided for @accountSignInIntro.
@@ -6742,8 +6730,110 @@ abstract class AppLocalizations {
   /// No description provided for @moreFamily.
   ///
   /// In en, this message translates to:
-  /// **'Family'**
+  /// **'All family'**
   String get moreFamily;
+
+  /// No description provided for @moreGroupFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get moreGroupFamily;
+
+  /// No description provided for @moreGroupSafety.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety'**
+  String get moreGroupSafety;
+
+  /// No description provided for @moreGroupApp.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get moreGroupApp;
+
+  /// No description provided for @accountKeepsQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What does the account keep?'**
+  String get accountKeepsQuestion;
+
+  /// No description provided for @accountKeeps.
+  ///
+  /// In en, this message translates to:
+  /// **'Your email, an account ID, language and device information, plus your name and profile photo link if you use Google. Records and photos are not on it.'**
+  String get accountKeeps;
+
+  /// No description provided for @accountDeleteNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting the account doesn\'t delete the records on this phone. You can delete those from Privacy.'**
+  String get accountDeleteNote;
+
+  /// No description provided for @privacyEncryptedQ.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s encrypted?'**
+  String get privacyEncryptedQ;
+
+  /// No description provided for @privacyEncryptedA.
+  ///
+  /// In en, this message translates to:
+  /// **'The database, the photos and the backups.'**
+  String get privacyEncryptedA;
+
+  /// No description provided for @privacyCanSeeQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Can we see your records?'**
+  String get privacyCanSeeQ;
+
+  /// No description provided for @privacyCanSeeA.
+  ///
+  /// In en, this message translates to:
+  /// **'No. Records and photos stay on your phone.'**
+  String get privacyCanSeeA;
+
+  /// No description provided for @privacyBackupQ.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s in a backup?'**
+  String get privacyBackupQ;
+
+  /// No description provided for @privacyBackupA.
+  ///
+  /// In en, this message translates to:
+  /// **'Your records and photos, encrypted with your recovery key.'**
+  String get privacyBackupA;
+
+  /// No description provided for @privacyPinQ.
+  ///
+  /// In en, this message translates to:
+  /// **'What if the PIN is forgotten?'**
+  String get privacyPinQ;
+
+  /// No description provided for @privacyPinA.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing gets past it, not even us. Usra\'s data on the phone is erased, then restored from a backup with the recovery key. With no backup, the records are lost.'**
+  String get privacyPinA;
+
+  /// No description provided for @privacyDeleteQ.
+  ///
+  /// In en, this message translates to:
+  /// **'What if the data is deleted?'**
+  String get privacyDeleteQ;
+
+  /// No description provided for @privacyDeleteA.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s erased from the phone. Backups saved in a folder or on WhatsApp stay until they\'re deleted there.'**
+  String get privacyDeleteA;
+
+  /// No description provided for @lockSetupBackupReady.
+  ///
+  /// In en, this message translates to:
+  /// **'A PIN needs a backup first. There is one, so you can go ahead.'**
+  String get lockSetupBackupReady;
 
   /// No description provided for @statusSickFemale.
   ///

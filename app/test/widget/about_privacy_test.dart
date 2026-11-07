@@ -53,7 +53,7 @@ void main() {
   );
 
   Future<void> openAbout(WidgetTester tester, {bool english = false}) async {
-    tester.view.physicalSize = const Size(1170, 3000);
+    tester.view.physicalSize = const Size(1170, 6000);
     tester.view.devicePixelRatio = 1.5;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(app());
@@ -73,7 +73,7 @@ void main() {
     (tester) async {
       await openAbout(tester);
 
-      expect(find.text('عن أسرة والخصوصية'), findsOneWidget);
+      expect(find.text('الخصوصية والشروط'), findsOneWidget);
       expect(find.text('خصوصيتك، بكلام بسيط'), findsOneWidget);
       expect(find.textContaining('قاعدة بيانات متشفرة'), findsOneWidget);
       expect(find.textContaining('مفيش حساب'), findsOneWidget);
@@ -172,7 +172,7 @@ void main() {
   testWidgets('in English', (tester) async {
     await openAbout(tester, english: true);
 
-    expect(find.text('About & privacy'), findsOneWidget);
+    expect(find.text('Privacy and terms'), findsOneWidget);
     expect(find.text('Medical disclaimer'), findsOneWidget);
     expect(find.text('Version 0.1.0+1'), findsOneWidget);
 

@@ -77,9 +77,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
-  String get settingsPrivacy => 'بياناتك بتفضل على الموبايل ده ومتشفرة.';
-
-  @override
   String get recoveryNotice =>
       'مقدرناش نفتح سجلاتك القديمة على الموبايل ده، فحفظناها على جنب بأمان وبدأنا من جديد. تقدر ترجعها من النسخة الاحتياطية في المزيد.';
 
@@ -88,10 +85,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'أسرة مش جهاز طبي. اسأل دكتورك دايماً قبل أي قرار طبي.';
 
   @override
-  String get aboutTitle => 'عن أسرة والخصوصية';
+  String get aboutTitle => 'الخصوصية والشروط';
 
   @override
-  String get aboutHint => 'بياناتك بتتحفظ إزاي، ونسخة التطبيق';
+  String get aboutHint => 'البيانات بتتحفظ إزاي، ونسخة التطبيق';
 
   @override
   String get aboutPrivacyHeading => 'خصوصيتك، بكلام بسيط';
@@ -118,7 +115,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutPrivacyReminders =>
-      'التذكير بيتظبط على الموبايل ده. أسامي الأشخاص وأسامي الأدوية ممكن تظهر على شاشة القفل (الاسم زي ما كتبته). الويدجت مفيهوش أسامي، مواعيد وعدد جرعات بس.';
+      'التذكير بيتظبط على الموبايل ده. من الأول بيظهر فيه كلام عام من غير أسامي. ولو \"تنبيهات من غير أسامي\" اتقفلت، أسامي الأشخاص وأسامي الأدوية ممكن تظهر على شاشة القفل. الويدجت مفيهوش أسامي، مواعيد وعدد جرعات بس.';
 
   @override
   String get aboutPrivacyDelete =>
@@ -1687,10 +1684,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backupTitle => 'النسخة الاحتياطية';
 
   @override
-  String get settingsBackupHint =>
-      'احتفظ بنسخة من سجلات العيلة برّه الموبايل ده';
-
-  @override
   String get backupIntro =>
       'النسخة الاحتياطية ملف واحد متشفّر فيه كل سجلات العيلة وصورها، وبيتحفظ على Google Drive أو في الملفات أو على واتساب. فتحه على موبايل جديد محتاج مفتاح الاسترجاع.';
 
@@ -2519,7 +2512,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accountPrivacy =>
-      'سجلات العيلة الصحية فاضلة على الموبايل ده. الحساب مش بيرفعها: هو بس بيجهّز لمزامنة موبايلات العيلة ولخدمات الذكاء الاصطناعي بعدين، وإنت اللي هتختار قبل ما أي حاجة تتبعت.';
+      'سجلات العيلة الصحية فاضلة على الموبايل ده. الحساب مش بيرفعها.';
 
   @override
   String get accountSignInIntro =>
@@ -2551,7 +2544,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'السجلات والصور بتفضل على موبايلك ومتشفرة.';
 
   @override
-  String get accountReadPrivacy => 'اقرا عن الخصوصية';
+  String get accountReadPrivacy => 'عن الخصوصية';
 
   @override
   String get accountSignInWithGoogle => 'تسجيل الدخول باستخدام Google';
@@ -2564,21 +2557,21 @@ class AppLocalizationsAr extends AppLocalizations {
       'الدخول مش متاح في النسخة دي من التطبيق.';
 
   @override
-  String get accountSignedIn => 'إنت داخل على حسابك';
+  String get accountSignedIn => 'الدخول على الحساب شغّال';
 
   @override
-  String get accountSignOut => 'اخرج من الحساب';
+  String get accountSignOut => 'خروج من الحساب';
 
   @override
   String get accountSignOutConfirm =>
-      'تخرج من الحساب؟ سجلاتك فاضلة على الموبايل.';
+      'خروج من الحساب؟ السجلات فاضلة على الموبايل.';
 
   @override
-  String get accountDelete => 'امسح الحساب';
+  String get accountDelete => 'مسح الحساب';
 
   @override
   String get accountDeleteConfirm =>
-      'تمسح حسابك؟ الحساب والأجهزة والرصيد هيتمسحوا من السيرفرات بتاعتنا. السجلات اللي على الموبايل ده هتفضل زي ما هي.';
+      'مسح الحساب؟ الحساب والأجهزة والرصيد هيتمسحوا من السيرفرات بتاعتنا. السجلات اللي على الموبايل ده هتفضل زي ما هي.';
 
   @override
   String get accountDeleteAppleNote =>
@@ -4263,7 +4256,63 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordsAdd => 'سجل جديد';
 
   @override
-  String get moreFamily => 'العيلة';
+  String get moreFamily => 'كل العيلة';
+
+  @override
+  String get moreGroupFamily => 'العيلة';
+
+  @override
+  String get moreGroupSafety => 'الأمان';
+
+  @override
+  String get moreGroupApp => 'التطبيق';
+
+  @override
+  String get accountKeepsQuestion => 'الحساب بيحتفظ بإيه؟';
+
+  @override
+  String get accountKeeps =>
+      'الإيميل ورقم تعريف للحساب واللغة ومعلومات الجهاز، وكمان الاسم ولينك صورة الحساب لو الدخول بـ Google. السجلات والصور مش عليه.';
+
+  @override
+  String get accountDeleteNote =>
+      'مسح الحساب مش بيمسح السجلات اللي على الموبايل. مسحها من الخصوصية.';
+
+  @override
+  String get privacyEncryptedQ => 'إيه اللي متشفر؟';
+
+  @override
+  String get privacyEncryptedA => 'قاعدة البيانات والصور والنسخ الاحتياطية.';
+
+  @override
+  String get privacyCanSeeQ => 'نقدر نشوف سجلاتك؟';
+
+  @override
+  String get privacyCanSeeA => 'لأ. السجلات والصور بتفضل على موبايلك.';
+
+  @override
+  String get privacyBackupQ => 'النسخة الاحتياطية فيها إيه؟';
+
+  @override
+  String get privacyBackupA => 'السجلات والصور، متشفرة بمفتاح الاسترجاع.';
+
+  @override
+  String get privacyPinQ => 'لو الرقم السري اتنسي؟';
+
+  @override
+  String get privacyPinA =>
+      'مفيش حاجة تعدّيه، ولا حتى إحنا. بيانات أسرة على الموبايل بتتمسح، وبترجع من النسخة الاحتياطية بمفتاح الاسترجاع. من غير نسخة، السجلات بتضيع.';
+
+  @override
+  String get privacyDeleteQ => 'لو البيانات اتمسحت؟';
+
+  @override
+  String get privacyDeleteA =>
+      'بتتمسح من الموبايل. النسخ اللي اتحفظت في فولدر أو على واتساب بتفضل لحد ما تتمسح من هناك.';
+
+  @override
+  String get lockSetupBackupReady =>
+      'الرقم السري محتاج نسخة احتياطية الأول، وفيه نسخة، فجاهز.';
 
   @override
   String get statusSickFemale => 'تعبانة';

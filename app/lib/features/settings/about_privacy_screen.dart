@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/design/tokens.dart';
 import '../../l10n/app_localizations.dart';
 import '../backup/backup_providers.dart';
 import '../account/account_providers.dart';
+import 'delete_data_screen.dart';
 
 const aboutPath = '/settings/about';
 
@@ -66,7 +68,10 @@ Future<void> openLink(BuildContext context, WidgetRef ref, Uri uri) async {
 /// What happens to the family's data, the medical disclaimer, the version,
 /// and links to the full policy and terms.
 class AboutPrivacyScreen extends ConsumerWidget {
-  const AboutPrivacyScreen({super.key});
+  const AboutPrivacyScreen({super.key, this.canDelete = true});
+
+  /// Left out where leaving for another page would lose a waiting form.
+  final bool canDelete;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -81,6 +86,40 @@ class AboutPrivacyScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          Card(
+            key: const ValueKey('privacy-answers'),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final (i, (question, answer)) in [
+                    (l.privacyEncryptedQ, l.privacyEncryptedA),
+                    (
+                      l.privacyCanSeeQ,
+                      ref.watch(supabaseConfigProvider).isConfigured
+                          ? '${l.privacyCanSeeA} ${l.accountKeeps}'
+                          : l.privacyCanSeeA,
+                    ),
+                    (l.privacyBackupQ, l.privacyBackupA),
+                    (l.privacyPinQ, l.privacyPinA),
+                    (l.privacyDeleteQ, l.privacyDeleteA),
+                  ].indexed) ...[
+                    if (i > 0) const SizedBox(height: 16),
+                    Text(
+                      question,
+                      style: text.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(answer, style: text.bodyMedium),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
           Text(l.aboutPrivacyHeading, style: text.titleMedium),
           const SizedBox(height: 8),
           Card(
@@ -145,6 +184,14 @@ class AboutPrivacyScreen extends ConsumerWidget {
               ],
             ),
           ),
+          if (canDelete) ...[
+            const SizedBox(height: 16),
+            OutlinedButton(
+              key: const ValueKey('privacy-delete-all'),
+              onPressed: () => context.go(deleteDataPath),
+              child: Text(l.settingsDeleteAll),
+            ),
+          ],
           const SizedBox(height: 24),
           Center(
             child: Text(
