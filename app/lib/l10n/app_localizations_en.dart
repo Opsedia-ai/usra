@@ -164,6 +164,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSex => 'Sex';
 
   @override
+  String get profileRelationship => 'Relationship';
+
+  @override
+  String relationshipMine(String relationship) {
+    String _temp0 = intl.Intl.selectLogic(relationship, {
+      'son': 'My son',
+      'daughter': 'My daughter',
+      'husband': 'My husband',
+      'wife': 'My wife',
+      'father': 'My father',
+      'mother': 'My mother',
+      'brother': 'My brother',
+      'sister': 'My sister',
+      'grandfather': 'My grandfather',
+      'grandmother': 'My grandmother',
+      'other': 'Someone else',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String relationshipYours(String relationship) {
+    String _temp0 = intl.Intl.selectLogic(relationship, {
+      'son': 'Your son',
+      'daughter': 'Your daughter',
+      'husband': 'Your husband',
+      'wife': 'Your wife',
+      'father': 'Your father',
+      'mother': 'Your mother',
+      'brother': 'Your brother',
+      'sister': 'Your sister',
+      'grandfather': 'Your grandfather',
+      'grandmother': 'Your grandmother',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get profileEmergencyPhone => 'Emergency number';
+
+  @override
+  String get profileEmergencyPhoneHint =>
+      'Optional. Shown on the emergency card, and on Usra\'s lock screen if the card is available there.';
+
+  @override
+  String get profileEmergencyInvalid => 'That isn\'t a phone number.';
+
+  @override
+  String get profileEmergencyName => 'Whose number';
+
+  @override
+  String get profileEmergencyNameHint =>
+      'Optional. For example: Aya, his mother.';
+
+  @override
+  String get emergencyContactNoName => 'Emergency number';
+
+  @override
+  String emergencyCallNumber(String phone) {
+    return 'Call the emergency number: $phone';
+  }
+
+  @override
+  String emergencyCallContact(String name, String phone) {
+    return 'Call $name: $phone';
+  }
+
+  @override
   String get sexFemale => 'Female';
 
   @override
@@ -2633,7 +2702,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lockSettingsEmergencyHint =>
-      'The blood type, allergies, conditions, surgeries and current medicines of the people you choose here can be seen without the PIN by anyone holding the phone with Usra open. This is Usra\'s lock screen, not the phone\'s: for a locked phone, use the phone\'s own Medical ID.';
+      'The blood type, allergies, conditions, surgeries, current medicines and emergency number and whose it is of the people you choose here can be seen without the PIN by anyone holding the phone with Usra open. This is Usra\'s lock screen, not the phone\'s: for a locked phone, use the phone\'s own Medical ID.';
 
   @override
   String get lockVerifyTitle => 'Confirm it\'s you';
@@ -4396,7 +4465,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lockEmergencyConfirmBody =>
-      'Anyone holding the phone with Usra open will be able to see the blood type, allergies, conditions, surgeries and current medicines without the PIN. This is Usra\'s lock screen, not the phone\'s.';
+      'Anyone holding the phone with Usra open will be able to see the blood type, allergies, conditions, surgeries, current medicines and emergency number and whose it is without the PIN. This is Usra\'s lock screen, not the phone\'s.';
 
   @override
   String get lockEmergencyConfirmYes => 'Yes, show it';

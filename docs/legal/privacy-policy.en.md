@@ -16,7 +16,7 @@ account for you, and there are no ads or tracking.**
 ## 1. Information you put in Usra
 
 You can record, for yourself and for family members you look after: names, dates of
-birth, sex, blood type, allergies and conditions; visits, tests, scans, surgeries and
+birth, sex, relationship, blood type, allergies and conditions, and an emergency number and whose it is; visits, tests, scans, surgeries and
 vaccines; medicines and their times; children's growth, milestones and baby log;
 pregnancy details; doctors and their phone numbers; insurance cards; health spending;
 and photos of cards, reports and medicine boxes.

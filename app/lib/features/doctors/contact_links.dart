@@ -1,12 +1,24 @@
 import '../../core/util/localized_numbers.dart';
 
-/// Digits (and a leading +) only, in western script; null if no digits.
+/// Digits (and a leading +) only, in western script; null if no digits. Anything
+/// before the + (a bracket, the invisible marks a paste from Contacts brings)
+/// doesn't lose it.
 String? cleanPhone(String? raw) {
   if (raw == null) return null;
-  final western = toWesternDigits(raw.trim());
-  final digits = western.replaceAll(RegExp(r'[^0-9]'), '');
+  final kept = toWesternDigits(raw).replaceAll(RegExp(r'[^0-9+]'), '');
+  final digits = kept.replaceAll('+', '');
   if (digits.isEmpty) return null;
-  return western.startsWith('+') ? '+$digits' : digits;
+  return kept.startsWith('+') ? '+$digits' : digits;
+}
+
+/// Could be dialled: only what a phone number is written with, and enough digits
+/// for the shortest (123). Not "ماما 1", whose only digit would be dialled.
+bool isCallablePhone(String raw) {
+  final western = toWesternDigits(raw).trim();
+  if (RegExp(r'[^0-9+\-() \u200e\u200f\u202a-\u202e]').hasMatch(western)) {
+    return false;
+  }
+  return (cleanPhone(western)?.replaceAll('+', '').length ?? 0) >= 3;
 }
 
 /// A `tel:` link that opens the dialer with [phone].
