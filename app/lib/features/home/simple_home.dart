@@ -15,8 +15,9 @@ import '../../core/preferences.dart' show simpleModeProvider;
 import '../../core/security/app_lock.dart' show appLockProvider;
 import '../family/person_status.dart' show TodayRefresh;
 import '../medicines/medicine_text.dart' show formatDoseTime, medicineTitle;
-import '../medicines/medicines_providers.dart' show todayDosesProvider;
-import '../medicines/today_screen.dart' show DoseCard;
+import '../medicines/medicines_providers.dart'
+    show clockProvider, todayDosesProvider;
+import '../medicines/today_screen.dart' show DoseCard, DoseGroup, doseGroupOf;
 
 /// Home in Simple Mode: a greeting, the next vaccine visit of any young
 /// child, and four big buttons.
@@ -245,12 +246,21 @@ class _SimpleDosesState extends ConsumerState<_SimpleDoses>
         style: text.titleLarge,
       );
     }
-    final first = open.first.at;
-    final now = [
+    // What's missed or due now, each with its own button. Only when there's
+    // none does the next time come forward. A dose missed this morning can't
+    // hide the one that's due.
+    final clock = ref.watch(clockProvider)();
+    final due = [
       for (final d in open)
-        if (d.at == first) d,
+        if (doseGroupOf(d, clock) != DoseGroup.later) d,
     ];
-    final then = open.where((d) => d.at != first).firstOrNull;
+    final now = due.isNotEmpty
+        ? due
+        : [
+            for (final d in open)
+              if (d.at == open.first.at) d,
+          ];
+    final then = open.where((d) => !now.contains(d)).firstOrNull;
     return Column(
       key: const ValueKey('simple-doses'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -267,10 +277,16 @@ class _SimpleDosesState extends ConsumerState<_SimpleDoses>
           ),
         if (then != null)
           Text(
-            l.simpleThenDose(
-              medicineTitle(then.regimen.medicine),
-              formatDoseTime(context, then.at),
-            ),
+            person == null
+                ? l.simpleThenDoseFor(
+                    medicineTitle(then.regimen.medicine),
+                    then.regimen.person.displayName,
+                    formatDoseTime(context, then.at),
+                  )
+                : l.simpleThenDose(
+                    medicineTitle(then.regimen.medicine),
+                    formatDoseTime(context, then.at),
+                  ),
             key: const ValueKey('simple-then'),
             style: text.titleMedium,
           ),

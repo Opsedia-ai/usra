@@ -4915,13 +4915,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeSetupRemindersHint => 'Permission is only asked for then';
 
   @override
-  String get homeSetupBackup => 'A backup';
-
-  @override
-  String get homeSetupBackupHint =>
-      'So your records aren\'t lost with the phone';
-
-  @override
   String get homeSetupEmergency => 'Emergency card';
 
   @override
@@ -4934,4 +4927,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeSetupHide => 'Hide';
+
+  @override
+  String simpleThenDoseFor(String medicine, String name, String time) {
+    return 'Then: $medicine for $name at $time';
+  }
 }

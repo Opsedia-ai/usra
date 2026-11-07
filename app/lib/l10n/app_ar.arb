@@ -1404,10 +1404,9 @@
   "homeSetupFamilyHint": "الاسم والنوع وتاريخ الميلاد وصلة القرابة",
   "homeSetupReminders": "التذكير بالدوا والتطعيمات",
   "homeSetupRemindersHint": "الإذن بيتطلب وقتها بس",
-  "homeSetupBackup": "نسخة احتياطية",
-  "homeSetupBackupHint": "علشان السجلات ماتضيعش لو الموبايل راح",
   "homeSetupEmergency": "كارت الطوارئ",
   "homeSetupEmergencyHint": "فصيلة الدم والحساسية ورقم للطوارئ",
   "homeSetupLockNote": "بعد أول نسخة احتياطية هنقترح قفل أسرة برقم سري.",
-  "homeSetupHide": "إخفاء"
+  "homeSetupHide": "إخفاء",
+  "simpleThenDoseFor": "وبعده: {medicine} لـ{name} الساعة {time}"
 }

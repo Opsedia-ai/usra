@@ -4946,12 +4946,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeSetupRemindersHint => 'الإذن بيتطلب وقتها بس';
 
   @override
-  String get homeSetupBackup => 'نسخة احتياطية';
-
-  @override
-  String get homeSetupBackupHint => 'علشان السجلات ماتضيعش لو الموبايل راح';
-
-  @override
   String get homeSetupEmergency => 'كارت الطوارئ';
 
   @override
@@ -4963,4 +4957,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeSetupHide => 'إخفاء';
+
+  @override
+  String simpleThenDoseFor(String medicine, String name, String time) {
+    return 'وبعده: $medicine لـ$name الساعة $time';
+  }
 }

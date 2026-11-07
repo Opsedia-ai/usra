@@ -81,6 +81,29 @@ void main() {
       expect(find.textContaining('وبعده: Late'), findsOneWidget);
     });
 
+    testWidgets('a dose missed earlier doesn\'t hide the one that\'s due', (
+      tester,
+    ) async {
+      h.tall(tester);
+      final hour = DateTime.now().hour;
+      // Only meaningful with room for a missed dose before now.
+      if (hour < 4) return;
+      String at(int h) => '${h.toString().padLeft(2, '0')}:00';
+      await seedSimple(
+        tester,
+        medicines: [('Old', at(hour - 3)), ('Current', at(hour))],
+      );
+      await h.open(tester, '/home');
+      expect(
+        find.descendant(
+          of: key('simple-doses'),
+          matching: find.textContaining('Current'),
+        ),
+        findsWidgets,
+      );
+      expect(find.textContaining('وبعده: Current'), findsNothing);
+    });
+
     testWidgets('leaving asks first; staying changes nothing', (tester) async {
       h.tall(tester);
       await seedSimple(tester);

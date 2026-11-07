@@ -2807,10 +2807,22 @@
   "homeSetupFamilyHint": "Name, sex, date of birth and relationship",
   "homeSetupReminders": "Medicine and vaccine reminders",
   "homeSetupRemindersHint": "Permission is only asked for then",
-  "homeSetupBackup": "A backup",
-  "homeSetupBackupHint": "So your records aren't lost with the phone",
   "homeSetupEmergency": "Emergency card",
   "homeSetupEmergencyHint": "Blood type, allergies and an emergency number",
   "homeSetupLockNote": "After the first backup we'll suggest locking Usra with a PIN.",
-  "homeSetupHide": "Hide"
+  "homeSetupHide": "Hide",
+  "simpleThenDoseFor": "Then: {medicine} for {name} at {time}",
+  "@simpleThenDoseFor": {
+    "placeholders": {
+      "medicine": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

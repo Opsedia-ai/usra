@@ -7807,18 +7807,6 @@ abstract class AppLocalizations {
   /// **'Permission is only asked for then'**
   String get homeSetupRemindersHint;
 
-  /// No description provided for @homeSetupBackup.
-  ///
-  /// In en, this message translates to:
-  /// **'A backup'**
-  String get homeSetupBackup;
-
-  /// No description provided for @homeSetupBackupHint.
-  ///
-  /// In en, this message translates to:
-  /// **'So your records aren\'t lost with the phone'**
-  String get homeSetupBackupHint;
-
   /// No description provided for @homeSetupEmergency.
   ///
   /// In en, this message translates to:
@@ -7842,6 +7830,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hide'**
   String get homeSetupHide;
+
+  /// No description provided for @simpleThenDoseFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Then: {medicine} for {name} at {time}'**
+  String simpleThenDoseFor(String medicine, String name, String time);
 }
 
 class _AppLocalizationsDelegate

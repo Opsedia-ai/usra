@@ -7,9 +7,7 @@ import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/preferences.dart';
 import '../../l10n/app_localizations.dart';
-import '../backup/backup_screen.dart' show backupPath;
-import '../backup/backup_providers.dart'
-    show backupDueProvider, lastBackupProvider;
+import '../backup/backup_providers.dart' show lastBackupProvider;
 import '../medicines/medicines_providers.dart'
     show reminderAccessProvider, reminderSchedulerProvider;
 
@@ -31,15 +29,37 @@ class _HomeSetupCardsState extends ConsumerState<HomeSetupCards> {
   late var _hidden =
       ref.read(keyValueStoreProvider).getBool(homeSetupHiddenKey) ?? false;
 
+  /// Coming back from the phone's settings, the answer may have changed.
+  late final _lifecycle = AppLifecycleListener(
+    onResume: () => ref.invalidate(reminderAccessProvider),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle;
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
   Future<void> _askForReminders() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final denied = AppLocalizations.of(context).reminderOffBody;
+    final scheduler = ref.read(reminderSchedulerProvider);
     try {
-      await ref
-          .read(reminderSchedulerProvider)
-          .requestAccess(exactAlarms: false);
+      await scheduler.requestAccess(exactAlarms: false);
+      // A phone that won't ask again shows nothing: say why nothing happened.
+      if (!(await scheduler.access()).notifications) {
+        messenger.showSnackBar(SnackBar(content: Text(denied)));
+      }
     } catch (_) {
       // No notifications on this phone: the card stays.
     }
-    ref.invalidate(reminderAccessProvider);
+    if (mounted) ref.invalidate(reminderAccessProvider);
   }
 
   @override
@@ -49,9 +69,6 @@ class _HomeSetupCardsState extends ConsumerState<HomeSetupCards> {
     final owner = widget.people.first;
     final noReminders =
         ref.watch(reminderAccessProvider).value?.notifications == false;
-    // Home's own notice asks for the backup once it's due: not twice.
-    final noBackup =
-        ref.watch(lastBackupProvider) == null && !ref.watch(backupDueProvider);
     final noEmergency =
         owner.bloodType == null &&
         owner.allergies == null &&
@@ -72,14 +89,6 @@ class _HomeSetupCardsState extends ConsumerState<HomeSetupCards> {
           title: l.homeSetupReminders,
           hint: l.homeSetupRemindersHint,
           onTap: _askForReminders,
-        ),
-      if (noBackup)
-        _SetupCard(
-          key: const ValueKey('setup-backup'),
-          icon: Icons.cloud_done_outlined,
-          title: l.homeSetupBackup,
-          hint: l.homeSetupBackupHint,
-          onTap: () => context.push(backupPath),
         ),
       if (noEmergency)
         _SetupCard(
