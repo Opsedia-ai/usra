@@ -9,6 +9,7 @@ import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../backup/backup_notices.dart';
 import '../settings/about_privacy_screen.dart';
 import 'onboarding_module.dart';
 
@@ -17,18 +18,6 @@ import 'onboarding_module.dart';
 /// when this build has no sign-in set up.
 class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});
-
-  Future<void> _open(BuildContext context, WidgetRef ref, Uri uri) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final failed = AppLocalizations.of(context).aboutLinkFailed;
-    var ok = false;
-    try {
-      ok = await ref.read(openLinkProvider)(uri);
-    } catch (_) {
-      ok = false;
-    }
-    if (!ok) messenger.showSnackBar(SnackBar(content: Text(failed)));
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,6 +51,7 @@ class WelcomeScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
+                    const BackupNotices(outcomesOnly: true),
                     Center(
                       child: _Art(
                         // Smaller on short screens or with very large text.
@@ -89,12 +79,12 @@ class WelcomeScreen extends ConsumerWidget {
                     UsraPillButton(
                       key: const ValueKey('welcome-start'),
                       label: l.welcomeStart,
-                      onPressed: () => context.push(welcomeCountryPath),
+                      onPressed: () => context.go(welcomeCountryPath),
                     ),
                     const SizedBox(height: 10),
                     OutlinedButton(
                       key: const ValueKey('welcome-restore'),
-                      onPressed: () => context.push(welcomeRestorePath),
+                      onPressed: () => context.go(welcomeRestorePath),
                       child: Text(l.welcomeHaveBackup),
                     ),
                     const SizedBox(height: 12),
@@ -111,15 +101,18 @@ class WelcomeScreen extends ConsumerWidget {
                         TextButton(
                           key: const ValueKey('welcome-privacy'),
                           style: link,
-                          onPressed: () =>
-                              _open(context, ref, privacyPolicyUrl(language)),
+                          onPressed: () => openLink(
+                            context,
+                            ref,
+                            privacyPolicyUrl(language),
+                          ),
                           child: Text(l.welcomePrivacy),
                         ),
                         TextButton(
                           key: const ValueKey('welcome-terms'),
                           style: link,
                           onPressed: () =>
-                              _open(context, ref, termsUrl(language)),
+                              openLink(context, ref, termsUrl(language)),
                           child: Text(l.welcomeTerms),
                         ),
                       ],

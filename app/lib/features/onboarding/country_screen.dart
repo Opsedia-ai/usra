@@ -22,7 +22,8 @@ class CountryScreen extends ConsumerWidget {
       // Egypt is what a missing value means anyway.
       Log.error('Country save failed', e);
     }
-    if (context.mounted) await context.push(welcomeAboutPath);
+    // `go`, so a second tap lands on the same page instead of stacking one.
+    if (context.mounted) context.go(welcomeAboutPath);
   }
 
   @override

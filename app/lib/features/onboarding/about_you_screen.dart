@@ -25,6 +25,9 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
   bool _sexMissing = false;
   bool _saving = false;
 
+  /// Made on an earlier try that then failed: a retry mustn't make another.
+  String? _madeId;
+
   @override
   void initState() {
     super.initState();
@@ -63,13 +66,24 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
     final me = ref.read(meProfileIdProvider.notifier);
     final onboarding = ref.read(onboardingProvider.notifier);
     try {
-      final existing = ref.read(meProfileIdProvider);
-      final known = existing != null && await _stillThere(existing);
-      if (known) {
-        await db.updateProfile(existing, displayName: name, sex: sex);
+      final id = _madeId ?? ref.read(meProfileIdProvider);
+      final existing = id == null ? null : await db.watchProfile(id).first;
+      if (existing == null) {
+        _madeId = await db.addProfile(name, sex: sex);
       } else {
-        await me.set(await db.addProfile(name, sex: sex));
+        // Saving replaces the whole profile: everything else stays as it is.
+        await db.updateProfile(
+          existing.id,
+          displayName: name,
+          sex: sex,
+          birthDate: existing.birthDate,
+          bloodType: existing.bloodType,
+          allergies: existing.allergies,
+          conditions: existing.conditions,
+        );
+        _madeId = existing.id;
       }
+      await me.set(_madeId!);
       await onboarding.finish();
     } catch (_) {
       if (!mounted) return;
@@ -81,9 +95,6 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
     }
     if (mounted) context.go('/home');
   }
-
-  Future<bool> _stillThere(String id) async =>
-      await ref.read(databaseProvider).watchProfile(id).first != null;
 
   @override
   Widget build(BuildContext context) {
@@ -125,10 +136,13 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
                   key: ValueKey('about-sex-$value'),
                   title: label,
                   selected: _sex == value,
-                  onTap: () => setState(() {
-                    _sex = value;
-                    _sexMissing = false;
-                  }),
+                  onTap: () {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    setState(() {
+                      _sex = value;
+                      _sexMissing = false;
+                    });
+                  },
                 ),
               ),
             ],

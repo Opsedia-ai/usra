@@ -140,18 +140,26 @@ void main() {
     phone(tester);
     // The app stopped after saving the person, before the first run finished.
     final id = (await tester.runAsync(
-      () => db.addProfile('آية', sex: 'female'),
+      () => db.addProfile(
+        'آية',
+        sex: 'female',
+        birthDate: DateTime(1994, 3, 12),
+        allergies: 'بنسلين',
+      ),
     ))!;
     await store.setString(PrefKeys.meProfileId, id);
     await tester.pumpWidget(app());
     await settle(tester);
-    go(tester, '/welcome/about');
+    go(tester, '/welcome/country/about');
     await settle(tester);
     expect(find.text('آية'), findsOneWidget);
     await tester.enterText(key('about-name'), 'آية ناصر');
     await tapKey(tester, 'about-done');
     final people = (await tester.runAsync(() => db.watchProfiles().first))!;
     expect(people.single.displayName, 'آية ناصر');
+    // Nothing else recorded about them is lost.
+    expect(people.single.birthDate, DateTime(1994, 3, 12));
+    expect(people.single.allergies, 'بنسلين');
     expect(find.text('مساء الخير يا آية ناصر'), findsOneWidget);
   });
 
@@ -181,6 +189,36 @@ void main() {
     expect(find.byType(UsraBottomBar), findsOneWidget);
     // Backups don't carry "me", so the greeting just has no name.
     expect(find.text('مساء الخير'), findsOneWidget);
+  });
+
+  testWidgets('a failed restore says so on Welcome', (tester) async {
+    phone(tester);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          keyValueStoreProvider.overrideWithValue(store),
+          restoreOutcomeProvider.overrideWithValue(RestoreOutcome.failed),
+        ],
+        child: const UsraApp(),
+      ),
+    );
+    await settle(tester);
+    expect(key('welcome-headline'), findsOneWidget);
+    expect(key('restore-outcome'), findsOneWidget);
+    expect(key('backup-due'), findsNothing);
+  });
+
+  testWidgets('a double tap doesn\'t stack a step twice', (tester) async {
+    phone(tester);
+    await tester.pumpWidget(app());
+    await settle(tester);
+    // No frame between them, as with two quick taps.
+    await tester.tap(key('welcome-start'));
+    await tester.tap(key('welcome-start'));
+    await settle(tester);
+    await tapKey(tester, 'onboarding-back');
+    expect(key('welcome-headline'), findsOneWidget);
   });
 
   testWidgets('the language pill switches and is remembered', (tester) async {

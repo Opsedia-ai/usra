@@ -96,7 +96,13 @@ Future<bool> turnOnLock(BuildContext context, WidgetRef ref) async {
       context: context,
       builder: (context) => AlertDialog(
         key: const ValueKey('lock-no-backup'),
-        title: Text(hasKey ? l.lockBackupFirstTitle : l.lockKeyFirstTitle),
+        title: Text(
+          !hasKey
+              ? l.lockKeyFirstTitle
+              : hasRecords
+              ? l.lockBackupFirstTitle
+              : l.lockForgotTitle,
+        ),
         content: SingleChildScrollView(
           child: Text(hasKey ? l.lockBackupFirstBody : l.lockKeyFirstBody),
         ),

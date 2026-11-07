@@ -22,8 +22,13 @@ class OnboardingModule extends FeatureModule {
       path: welcomePath,
       builder: (_, _) => const WelcomeScreen(),
       routes: [
-        GoRoute(path: 'country', builder: (_, _) => const CountryScreen()),
-        GoRoute(path: 'about', builder: (_, _) => const AboutYouScreen()),
+        GoRoute(
+          path: 'country',
+          builder: (_, _) => const CountryScreen(),
+          routes: [
+            GoRoute(path: 'about', builder: (_, _) => const AboutYouScreen()),
+          ],
+        ),
         // The same restore as in Backup; the router would send its usual
         // address back here while the first run is pending.
         GoRoute(path: 'restore', builder: (_, _) => const RestoreScreen()),
@@ -33,5 +38,5 @@ class OnboardingModule extends FeatureModule {
 }
 
 const welcomeCountryPath = '$welcomePath/country';
-const welcomeAboutPath = '$welcomePath/about';
+const welcomeAboutPath = '$welcomeCountryPath/about';
 const welcomeRestorePath = '$welcomePath/restore';

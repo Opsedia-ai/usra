@@ -34,68 +34,75 @@ class OnboardingPage extends StatelessWidget {
     final c = context.usra;
     final text = Theme.of(context).textTheme;
     return Scaffold(
+      // In the body, not the bottom bar, so the keyboard lifts the button too.
       body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  UsraRoundIconButton(
-                    key: const ValueKey('onboarding-back'),
-                    // Mirrors itself, so it points the way back in both languages.
-                    icon: Icons.arrow_back,
-                    semanticLabel: l.onboardingBack,
-                    onPressed: () => context.pop(),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Semantics(
-                      label: l.onboardingStep(
-                        localizedDigits(context, step),
-                        localizedDigits(context, onboardingSteps),
-                      ),
-                      excludeSemantics: true,
-                      child: Row(
-                        children: [
-                          for (var i = 1; i <= onboardingSteps; i++) ...[
-                            if (i > 1) const SizedBox(width: 6),
-                            Expanded(
-                              child: Container(
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: i <= step ? c.primary : c.line,
-                                  borderRadius: BorderRadius.circular(3),
-                                ),
-                              ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        UsraRoundIconButton(
+                          key: const ValueKey('onboarding-back'),
+                          // Mirrors itself, so it points the way back in both languages.
+                          icon: Icons.arrow_back,
+                          semanticLabel: l.onboardingBack,
+                          onPressed: () => context.pop(),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Semantics(
+                            label: l.onboardingStep(
+                              localizedDigits(context, step),
+                              localizedDigits(context, onboardingSteps),
                             ),
-                          ],
-                        ],
-                      ),
+                            excludeSemantics: true,
+                            child: Row(
+                              children: [
+                                for (var i = 1; i <= onboardingSteps; i++) ...[
+                                  if (i > 1) const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Container(
+                                      height: 6,
+                                      decoration: BoxDecoration(
+                                        color: i <= step ? c.primary : c.line,
+                                        borderRadius: BorderRadius.circular(3),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    Semantics(
+                      header: true,
+                      child: Text(title, style: text.headlineMedium),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      hint,
+                      style: text.bodyLarge?.copyWith(color: c.inkMuted),
+                    ),
+                    const SizedBox(height: 20),
+                    ...children,
+                  ],
+                ),
               ),
-              const SizedBox(height: 24),
-              Semantics(
-                header: true,
-                child: Text(title, style: text.headlineMedium),
-              ),
-              const SizedBox(height: 4),
-              Text(hint, style: text.bodyLarge?.copyWith(color: c.inkMuted)),
-              const SizedBox(height: 20),
-              ...children,
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-          child: button,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+              child: button,
+            ),
+          ],
         ),
       ),
     );

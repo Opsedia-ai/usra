@@ -50,6 +50,19 @@ final openLinkProvider = Provider<Future<bool> Function(Uri)>(
       (uri) => launchUrl(uri, mode: LaunchMode.externalApplication),
 );
 
+/// Opens [uri] in the browser, with a message if it can't.
+Future<void> openLink(BuildContext context, WidgetRef ref, Uri uri) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final failed = AppLocalizations.of(context).aboutLinkFailed;
+  var ok = false;
+  try {
+    ok = await ref.read(openLinkProvider)(uri);
+  } catch (_) {
+    ok = false;
+  }
+  if (!ok) messenger.showSnackBar(SnackBar(content: Text(failed)));
+}
+
 /// What happens to the family's data, the medical disclaimer, the version,
 /// and links to the full policy and terms.
 class AboutPrivacyScreen extends ConsumerWidget {
@@ -61,18 +74,7 @@ class AboutPrivacyScreen extends ConsumerWidget {
     final text = Theme.of(context).textTheme;
     final language = Localizations.localeOf(context).languageCode;
 
-    Future<void> open(Uri uri) async {
-      final messenger = ScaffoldMessenger.of(context);
-      var ok = false;
-      try {
-        ok = await ref.read(openLinkProvider)(uri);
-      } catch (_) {
-        ok = false;
-      }
-      if (!ok) {
-        messenger.showSnackBar(SnackBar(content: Text(l.aboutLinkFailed)));
-      }
-    }
+    Future<void> open(Uri uri) => openLink(context, ref, uri);
 
     return Scaffold(
       appBar: AppBar(title: Text(l.aboutTitle)),

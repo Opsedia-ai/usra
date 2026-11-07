@@ -522,13 +522,25 @@ void main() {
     testWidgets('with a key but no backup it warns, then asks for the PIN', (
       tester,
     ) async {
-      await tester.runAsync(() => keys.write(RecoveryKey.generate()));
+      await tester.runAsync(() async {
+        await keys.write(RecoveryKey.generate());
+        await db.addProfile('جدو');
+      });
       await toSwitch(tester);
       expect(find.text('تعمل نسخة احتياطية الأول؟'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('lock-backup-skip')));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('recovery-key-written')), findsNothing);
       expect(find.byKey(const ValueKey('pin-1')), findsOneWidget);
+    });
+
+    testWidgets('with a key and no records it warns without asking for a '
+        'backup it can\'t offer', (tester) async {
+      await tester.runAsync(() => keys.write(RecoveryKey.generate()));
+      await toSwitch(tester);
+      expect(find.text('تعمل نسخة احتياطية الأول؟'), findsNothing);
+      expect(find.text('لو نسيت الرقم السري'), findsWidgets);
+      expect(find.byKey(const ValueKey('lock-backup-make')), findsNothing);
     });
 
     testWidgets('with a backup it goes straight to choosing a PIN', (

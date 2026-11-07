@@ -286,9 +286,10 @@ class OnboardingController extends Notifier<bool> {
         true;
   }
 
+  /// Saved first: if that fails the first run stays pending and says so.
   Future<void> finish() async {
-    state = false;
     await ref.read(keyValueStoreProvider).setBool(PrefKeys.tutorialSeen, true);
+    state = false;
   }
 }
 
