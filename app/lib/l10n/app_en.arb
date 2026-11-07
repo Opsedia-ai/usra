@@ -2759,5 +2759,11 @@
       }
     }
   },
-  "growthTabOutside": "Outside the usual range"
+  "growthTabOutside": "Outside the usual range",
+  "pregnancyAddRecord": "Add a visit or test",
+  "pregnancyNextTitle": "Coming up",
+  "pregnancyPastTitle": "Earlier",
+  "pregnancySupplementsTitle": "Medicines and supplements today",
+  "pregnancySupplementsEmpty": "Nothing recorded for today.",
+  "pregnancySupplementsAdd": "Add a medicine or supplement"
 }

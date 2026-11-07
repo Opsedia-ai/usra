@@ -2205,7 +2205,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'fever': 'سخونية',
       'water': 'نزول مية من المهبل',
       'movement': 'حركة البيبي قلّت عن العادي أو وقفت',
-      'swelling': 'ورم في الوش أو الإيدين',
+      'swelling': 'تورّم في الوش أو الإيدين',
       'breathing': 'صعوبة في التنفس',
       'other': '',
     });
@@ -4855,4 +4855,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get growthTabOutside => 'برّه المدى المعتاد';
+
+  @override
+  String get pregnancyAddRecord => 'سجّلي زيارة أو تحليل';
+
+  @override
+  String get pregnancyNextTitle => 'الجاي';
+
+  @override
+  String get pregnancyPastTitle => 'اللي فات';
+
+  @override
+  String get pregnancySupplementsTitle => 'الأدوية والمكمّلات النهارده';
+
+  @override
+  String get pregnancySupplementsEmpty => 'مفيش حاجة متسجلة للنهارده.';
+
+  @override
+  String get pregnancySupplementsAdd => 'ضيفي دوا أو مكمّل';
 }
