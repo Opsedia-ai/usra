@@ -6103,6 +6103,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'If you turn on automatic backup, Usra saves that file by itself to a folder you pick. It sends us nothing, and it won\'t use iCloud Drive.'**
   String get aboutPrivacyBackupAuto;
+
+  /// No description provided for @navRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get navRecords;
+
+  /// No description provided for @navAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get navAdd;
+
+  /// No description provided for @homeMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get homeMorning;
+
+  /// No description provided for @homeEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get homeEvening;
+
+  /// No description provided for @homeNothingNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing needed'**
+  String get homeNothingNeeded;
+
+  /// No description provided for @homeNeedsAttentionOne.
+  ///
+  /// In en, this message translates to:
+  /// **'needs your attention'**
+  String get homeNeedsAttentionOne;
+
+  /// No description provided for @homeNeedsAttentionMany.
+  ///
+  /// In en, this message translates to:
+  /// **'need your attention'**
+  String get homeNeedsAttentionMany;
+
+  /// No description provided for @homeNamesJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'and'**
+  String get homeNamesJoin;
+
+  /// No description provided for @homeFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get homeFamily;
+
+  /// No description provided for @homeAllFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'All family ({count})'**
+  String homeAllFamily(String count);
+
+  /// No description provided for @homeUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Next today'**
+  String get homeUpcoming;
+
+  /// No description provided for @homeNewPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'New person'**
+  String get homeNewPerson;
+
+  /// No description provided for @homeEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency'**
+  String get homeEmergency;
+
+  /// No description provided for @homeBackupAgoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{Last backup today} =1{Last backup 1 day ago} other{Last backup {shown} days ago}}'**
+  String homeBackupAgoDays(int days, String shown);
+
+  /// No description provided for @homeDoseLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged: {medicine} for {person}'**
+  String homeDoseLogged(String medicine, String person);
+
+  /// No description provided for @statusSick.
+  ///
+  /// In en, this message translates to:
+  /// **'Unwell'**
+  String get statusSick;
+
+  /// No description provided for @statusVaccineOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine overdue'**
+  String get statusVaccineOverdue;
+
+  /// No description provided for @statusDoseMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose missed'**
+  String get statusDoseMissed;
+
+  /// No description provided for @statusDoseNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose {time}'**
+  String statusDoseNext(String time);
+
+  /// No description provided for @familyAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All family'**
+  String get familyAllTitle;
+
+  /// No description provided for @familyCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 person} other{{shown} people}}'**
+  String familyCount(int count, String shown);
+
+  /// No description provided for @addSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What would you like to add?'**
+  String get addSheetTitle;
+
+  /// No description provided for @addSheetFor.
+  ///
+  /// In en, this message translates to:
+  /// **'For'**
+  String get addSheetFor;
+
+  /// No description provided for @addSheetPickPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a person first'**
+  String get addSheetPickPerson;
+
+  /// No description provided for @addSheetNoPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a family member first'**
+  String get addSheetNoPeople;
+
+  /// No description provided for @addMedicine.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine'**
+  String get addMedicine;
+
+  /// No description provided for @addVaccine.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine'**
+  String get addVaccine;
+
+  /// No description provided for @addVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit'**
+  String get addVisit;
+
+  /// No description provided for @addLab.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab test'**
+  String get addLab;
+
+  /// No description provided for @addScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get addScan;
+
+  /// No description provided for @addFever.
+  ///
+  /// In en, this message translates to:
+  /// **'Fever'**
+  String get addFever;
+
+  /// No description provided for @addGrowth.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight and height'**
+  String get addGrowth;
+
+  /// No description provided for @addInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance card'**
+  String get addInsurance;
+
+  /// No description provided for @recordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get recordsTitle;
+
+  /// No description provided for @recordsAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get recordsAll;
+
+  /// No description provided for @recordsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No records yet. Tap Add to log a first visit or test.'**
+  String get recordsEmpty;
+
+  /// No description provided for @recordsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a record'**
+  String get recordsAdd;
+
+  /// No description provided for @moreFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get moreFamily;
+
+  /// No description provided for @statusSickFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Unwell'**
+  String get statusSickFemale;
+
+  /// No description provided for @emergencyPickPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Whose card?'**
+  String get emergencyPickPerson;
+
+  /// No description provided for @homeLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t read your data right now. Close the app and open it again.'**
+  String get homeLoadError;
 }
 
 class _AppLocalizationsDelegate

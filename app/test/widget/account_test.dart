@@ -371,7 +371,7 @@ void main() {
     await tester.pumpWidget(app(configured: false));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    for (final tab in ['العيلة', 'الأدوية', 'الدكاترة', 'الفلوس', 'المزيد']) {
+    for (final tab in ['الرئيسية', 'الأدوية', 'السجلات', 'المزيد']) {
       await tester.tap(find.text(tab).last);
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: tab);
