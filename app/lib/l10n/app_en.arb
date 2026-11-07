@@ -463,6 +463,7 @@
   "recordNotFound": "This record was deleted",
   "recordShare": "Send",
   "recordDelete": "Delete",
+  "recordClearDate": "Remove the date",
   "recordDeleteConfirm": "Delete this record? Its photos will be removed from this phone.",
   "photoShare": "Send photo",
   "photoDelete": "Delete photo",

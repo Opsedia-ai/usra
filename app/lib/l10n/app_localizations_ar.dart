@@ -953,6 +953,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordDelete => 'مسح';
 
   @override
+  String get recordClearDate => 'شيل التاريخ';
+
+  @override
   String get recordDeleteConfirm => 'نمسح السجل ده؟ صوره هتتمسح من الموبايل.';
 
   @override

@@ -76,7 +76,8 @@ class RecordScreen extends ConsumerWidget {
                 style: UsraType.body.copyWith(color: context.usra.inkMuted),
               ),
               const SizedBox(height: 12),
-              for (final (label, value) in _lines(context, e, type))
+              // The date is in the line above; sharing keeps it with the rest.
+              for (final (label, value) in _lines(context, e, type).skip(1))
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: _Line(label: label, value: value),
@@ -232,7 +233,9 @@ class RecordScreen extends ConsumerWidget {
       return;
     }
     await _prunePhotos(ref);
-    if (context.mounted) context.go('/family/$profileId');
+    if (!context.mounted) return;
+    // Back to the list it was opened from.
+    context.canPop() ? context.pop() : context.go('/family/$profileId');
   }
 }
 

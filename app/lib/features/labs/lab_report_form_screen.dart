@@ -459,6 +459,10 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
       return;
     }
     if (!mounted) return;
+    if (_editing && context.canPop()) {
+      context.pop();
+      return;
+    }
     context.go(
       _editing
           ? '/family/${widget.profileId}/record/${widget.eventId}'

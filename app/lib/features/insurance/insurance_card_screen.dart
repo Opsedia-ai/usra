@@ -120,7 +120,6 @@ class InsuranceCardScreen extends ConsumerWidget {
           ),
           FilledButton(
             key: const ValueKey('insurance-delete-confirm'),
-            style: FilledButton.styleFrom(backgroundColor: dialog.usra.urgent),
             onPressed: () => Navigator.pop(dialog, true),
             child: Text(l.insuranceDelete),
           ),

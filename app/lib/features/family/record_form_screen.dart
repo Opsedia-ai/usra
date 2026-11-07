@@ -13,6 +13,7 @@ import '../../core/records/record_type.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
+import '../children/child_vaccines.dart' show checklistSourceKey;
 import '../doctors/doctors_providers.dart';
 import 'member_screen.dart';
 
@@ -45,7 +46,7 @@ class RecordFormScreen extends ConsumerWidget {
     if (editing) {
       final event = ref.watch(eventProvider(eventId!));
       saved = event.value;
-      if (saved == null) {
+      if (saved == null || saved.type != typeKey) {
         return Scaffold(
           appBar: AppBar(),
           body: event.isLoading
@@ -83,6 +84,7 @@ class RecordFormScreen extends ConsumerWidget {
         doctors: doctors,
         strings: RecordFormStrings(
           date: l.recordDate,
+          clearDate: l.recordClearDate,
           cost: l.recordCost,
           currency: l.currencyEgp,
           save: l.familySave,
@@ -110,14 +112,19 @@ class RecordFormScreen extends ConsumerWidget {
             ];
             if (saved != null) {
               // Anything the form doesn't show stays as it was.
-              final kept = decodeRecordData(saved.dataJson)
-                ..removeWhere((key, _) => type.fields.any((f) => f.key == key));
+              final kept = {...decodeRecordData(saved.dataJson)}
+                ..removeWhere((key, _) => type.fields.any((f) => f.key == key))
+                // Corrected by hand, it's the family's own record now, and
+                // unticking the dose warns before removing it.
+                ..remove(checklistSourceKey);
               await db.updateEvent(
                 saved.id,
                 occurredAt: result.occurredAt,
                 dataJson: jsonEncode({...kept, ...result.data}),
-                costMinor: result.costMinor,
-                currency: result.costMinor == null
+                costMinor: type.hasCost ? result.costMinor : saved.costMinor,
+                currency: !type.hasCost
+                    ? saved.currency
+                    : result.costMinor == null
                     ? null
                     : saved.currency ?? 'EGP',
                 doctorId: result.doctorId,

@@ -951,6 +951,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordDelete => 'Delete';
 
   @override
+  String get recordClearDate => 'Remove the date';
+
+  @override
   String get recordDeleteConfirm =>
       'Delete this record? Its photos will be removed from this phone.';
 

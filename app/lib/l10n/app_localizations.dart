@@ -1664,6 +1664,12 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get recordDelete;
 
+  /// No description provided for @recordClearDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the date'**
+  String get recordClearDate;
+
   /// No description provided for @recordDeleteConfirm.
   ///
   /// In en, this message translates to:

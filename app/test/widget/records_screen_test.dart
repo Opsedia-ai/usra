@@ -205,6 +205,79 @@ void main() {
     expect(find.text('متابعة'), findsOneWidget);
   });
 
+  testWidgets('a wrong next-visit date can be removed when correcting', (
+    tester,
+  ) async {
+    tall(tester);
+    final (laila, _, _, _) = await seed(tester);
+    final id = await tester.runAsync(
+      () => db.addEvent(
+        profileId: laila,
+        type: 'visit',
+        occurredAt: DateTime(2026, 10, 1),
+        dataJson: jsonEncode({'doctorName': 'سارة', 'nextVisit': '2026-12-01'}),
+      ),
+    );
+    await open(tester, '/family/$laila/record/$id/edit/visit');
+    await tester.tap(key('field-nextVisit-clear'));
+    await settle(tester);
+    expect(key('field-nextVisit-clear'), findsNothing);
+    await tester.ensureVisible(find.byType(FilledButton).last);
+    await settle(tester);
+    await tester.tap(find.byType(FilledButton).last);
+    await settle(tester);
+    final saved = await tester.runAsync(() => db.watchEvent(id!).first);
+    expect(jsonDecode(saved!.dataJson), {'doctorName': 'سارة'});
+  });
+
+  testWidgets('a corrected checklist dose becomes the family\'s own record, '
+      'and a type with no cost field keeps its cost', (tester) async {
+    tall(tester);
+    final (laila, _, _, _) = await seed(tester);
+    final id = await tester.runAsync(
+      () => db.addEvent(
+        profileId: laila,
+        type: 'growth',
+        occurredAt: DateTime(2026, 10, 1),
+        dataJson: jsonEncode({'weightKg': 10, 'source': 'checklist'}),
+        costMinor: 500,
+        currency: 'EGP',
+      ),
+    );
+    await open(tester, '/family/$laila/record/$id/edit/growth');
+    await tester.ensureVisible(find.byType(FilledButton).last);
+    await settle(tester);
+    await tester.tap(find.byType(FilledButton).last);
+    await settle(tester);
+    final saved = await tester.runAsync(() => db.watchEvent(id!).first);
+    expect(saved!.costMinor, 500);
+    expect(saved.currency, 'EGP');
+    final data = jsonDecode(saved.dataJson) as Map<String, dynamic>;
+    expect(data.containsKey('source'), isFalse);
+  });
+
+  testWidgets('a broken or odd saved record still opens and saves', (
+    tester,
+  ) async {
+    tall(tester);
+    final (laila, _, _, _) = await seed(tester);
+    final id = await tester.runAsync(
+      () => db.addEvent(
+        profileId: laila,
+        type: 'scan',
+        occurredAt: DateTime(2026, 10, 1),
+        dataJson: '[1,2]',
+      ),
+    );
+    await open(tester, '/family/$laila/record/$id/edit/scan');
+    expect(tester.takeException(), isNull);
+    // Opened under the wrong type's address, it isn't shown as that type.
+    GoRouter.of(tester.element(find.byType(Scaffold).first))
+        .go('/family/$laila/record/$id/edit/visit');
+    await settle(tester);
+    expect(key('field-doctorName'), findsNothing);
+  });
+
   testWidgets('a record can be deleted after confirming', (tester) async {
     tall(tester);
     final (_, _, visit, _) = await seed(tester);
