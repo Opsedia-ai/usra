@@ -26,11 +26,17 @@ class LabResultsScreen extends ConsumerWidget {
     final events = ref.watch(timelineProvider(profileId));
     return Scaffold(
       appBar: AppBar(title: Text([l.memberLabs, ?name].join(' · '))),
-      floatingActionButton: FloatingActionButton.extended(
-        key: const ValueKey('lab-add-report'),
-        onPressed: () => context.go('/family/$profileId/add/${LabFields.type}'),
-        icon: const Icon(Icons.add),
-        label: Text(l.labAddReport),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+          child: FilledButton.icon(
+            key: const ValueKey('lab-add-report'),
+            onPressed: () =>
+                context.go('/family/$profileId/add/${LabFields.type}'),
+            icon: const Icon(Icons.add),
+            label: Text(l.labAddReport),
+          ),
+        ),
       ),
       body: events.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -50,7 +56,7 @@ class LabResultsScreen extends ConsumerWidget {
             );
           }
           return ListView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
               const LabInfoNote(),
               const SizedBox(height: 12),

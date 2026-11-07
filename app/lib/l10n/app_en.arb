@@ -1738,7 +1738,7 @@
   "reportColDue": "Due",
   "reportOverdue": "Overdue",
   "reportSummaryTitle": "Health summary for the doctor",
-  "reportSummaryDisclaimer": "A summary made by the family in the Usra app from their own records. Informational only: check against the original prescriptions and reports.",
+  "reportSummaryDisclaimer": "This summary is what the family recorded with the Usra app, not a medical opinion. Check it against the original prescriptions and reports.",
   "reportAge": "Age",
   "reportSectionBasics": "Age and blood type",
   "reportSectionMedicines": "Current medicines",
@@ -2766,6 +2766,10 @@
   "pregnancySupplementsTitle": "Medicines and supplements today",
   "pregnancySupplementsEmpty": "Nothing recorded for today.",
   "pregnancySupplementsAdd": "Add a medicine or supplement",
+  "reportSummaryNotOpinion": "This summary is what the family recorded, not a medical opinion.",
+  "followUpsThisWeek": "Today and this week",
+  "followUpsLater": "Later",
+  "followUpsAll": "All follow-ups",
   "insuranceWatermark": "{name} · {date}",
   "@insuranceWatermark": {
     "placeholders": {

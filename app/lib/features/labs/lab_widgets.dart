@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/database/app_database.dart';
 import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../l10n/app_localizations.dart';
 import 'lab_report.dart';
 import 'lab_tests.dart';
@@ -118,25 +119,42 @@ class LabReportDetails extends StatelessWidget {
         for (final (i, t) in report.tests.indexed)
           Card(
             key: ValueKey('lab-result-$i'),
-            child: ListTile(
+            child: InkWell(
               onTap: t.value == null
                   ? null
                   : () => context.go(labTrendPath(event.profileId, t.name)),
-              title: Text(t.name),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 2),
-                  Text(labValueText(t), style: text.titleMedium),
-                  if (!t.range.isEmpty)
-                    Text(l.labRangeLine('\u2066${t.range.format()}\u2069')),
-                  const SizedBox(height: 6),
-                  LabFlagChip(flag: t.flag),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(UsraSpacing.s3),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(t.name, style: text.titleMedium),
+                          Text(
+                            labValueText(t),
+                            style: UsraType.numeral.copyWith(
+                              color: context.usra.ink,
+                            ),
+                          ),
+                          if (!t.range.isEmpty)
+                            Text(
+                              l.labRangeLine('\u2066${t.range.format()}\u2069'),
+                              style: UsraType.label.copyWith(
+                                color: context.usra.inkMuted,
+                              ),
+                            ),
+                          const SizedBox(height: UsraSpacing.s1),
+                          LabFlagChip(flag: t.flag),
+                        ],
+                      ),
+                    ),
+                    if (t.value != null)
+                      Icon(Icons.show_chart, color: context.usra.primary),
+                  ],
+                ),
               ),
-              trailing: t.value == null
-                  ? null
-                  : Icon(Icons.show_chart, color: context.usra.primary),
             ),
           ),
       ],
