@@ -911,6 +911,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navCall => 'اتصال';
 
   @override
+  String get drUsraWelcome => 'دكتور أسرة بيسلّم عليك';
+
+  @override
+  String get drUsraExplaining => 'دكتور أسرة بيشرح';
+
+  @override
+  String get drUsraEmptyState => 'دكتور أسرة ماسك علامة زائد';
+
+  @override
+  String get drUsraCelebrating => 'دكتور أسرة فرحان';
+
+  @override
+  String get drUsraResting => 'دكتور أسرة بيرتاح';
+
+  @override
+  String get settingsTheme => 'شكل التطبيق';
+
+  @override
+  String get settingsThemeSystem => 'زي الموبايل';
+
+  @override
+  String get settingsThemeLight => 'فاتح';
+
+  @override
+  String get settingsThemeDark => 'غامق';
+
+  @override
   String get settingsSimpleMode => 'الوضع البسيط';
 
   @override

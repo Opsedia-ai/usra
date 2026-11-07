@@ -103,7 +103,7 @@ class AboutPrivacyScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           Card(
             key: const ValueKey('about-medical'),
-            color: Severity.headsUp.background,
+            color: Severity.headsUp.backgroundOf(context),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -112,7 +112,7 @@ class AboutPrivacyScreen extends ConsumerWidget {
                   Text(
                     l.aboutMedicalHeading,
                     style: text.titleMedium?.copyWith(
-                      color: Severity.headsUp.foreground,
+                      color: Severity.headsUp.foregroundOf(context),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -165,7 +165,7 @@ class _Point extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListTile(
-    leading: Icon(icon, color: UsraColors.primary),
+    leading: Icon(icon, color: context.usra.primary),
     title: Text(text),
   );
 }

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design/dr_usra.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
@@ -60,7 +60,7 @@ class HomeScreen extends ConsumerWidget {
         const SizedBox(height: 8),
         Text(
           l.homeIntro,
-          style: text.bodyLarge?.copyWith(color: UsraColors.textMuted),
+          style: text.bodyLarge?.copyWith(color: context.usra.inkMuted),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 24),
@@ -81,7 +81,7 @@ class HomeScreen extends ConsumerWidget {
                   runSpacing: 8,
                   children: [
                     for (final s in Severity.values)
-                      SeverityChip(severity: s, label: severityLabel(l, s)),
+                      StatusChip(severity: s, label: severityLabel(l, s)),
                   ],
                 ),
               ],
@@ -113,7 +113,7 @@ class _EmergencyCards extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Card(
-        color: Severity.urgent.background,
+        color: Severity.urgent.backgroundOf(context),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -121,15 +121,12 @@ class _EmergencyCards extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  const Icon(
-                    Icons.emergency_outlined,
-                    color: UsraColors.emergency,
-                  ),
+                  Icon(Icons.emergency_outlined, color: context.usra.urgent),
                   const SizedBox(width: 8),
                   Text(
                     l.homeEmergencyTitle,
                     style: text.titleMedium?.copyWith(
-                      color: Severity.urgent.foreground,
+                      color: Severity.urgent.foregroundOf(context),
                     ),
                   ),
                 ],

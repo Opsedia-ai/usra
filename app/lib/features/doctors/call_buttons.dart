@@ -51,7 +51,7 @@ class CallButtons extends StatelessWidget {
               key: const ValueKey('doctor-whatsapp'),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(0, 56),
-                foregroundColor: Severity.good.foreground,
+                foregroundColor: Severity.good.foregroundOf(context),
               ),
               onPressed: () => openContact(context, whatsapp),
               icon: const Icon(Icons.chat_outlined),

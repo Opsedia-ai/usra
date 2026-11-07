@@ -145,7 +145,7 @@ class _Body extends ConsumerWidget {
         const SizedBox(height: 16),
         Text(
           l.logDisclaimer,
-          style: text.bodySmall?.copyWith(color: UsraColors.textMuted),
+          style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
         ),
       ],
     );
@@ -315,7 +315,7 @@ class _EntryTile extends ConsumerWidget {
     return ListTile(
       key: ValueKey('log-entry-${event.id}'),
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: UsraColors.primary),
+      leading: Icon(icon, color: context.usra.primary),
       title: Text(label),
       subtitle: Text(DateFormat.jm(locale).format(event.occurredAt.toLocal())),
       trailing: IconButton(

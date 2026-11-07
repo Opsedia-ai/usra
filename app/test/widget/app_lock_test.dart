@@ -205,6 +205,8 @@ void main() {
     await tester.pumpWidget(app(lock));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.byKey(const ValueKey('lock-forgot')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('lock-forgot')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('lock-forgot-body')), findsOneWidget);
@@ -351,7 +353,7 @@ void main() {
   testWidgets('turn the lock on from Settings, then off with the PIN', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.physicalSize = const Size(1170, 3600);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
     final lock = await openLock(tester);
