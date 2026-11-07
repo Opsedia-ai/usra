@@ -162,6 +162,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('settings-simple-mode')));
     await tester.pumpAndSettle();
+    // Going out asks first.
+    await tester.tap(find.byKey(const ValueKey('simple-exit-go')));
+    await tester.pumpAndSettle();
     expect(regularBar(), findsOneWidget);
     expect(tabs(), findsNothing);
     expect(scale(), 1.0);

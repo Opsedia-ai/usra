@@ -8,6 +8,10 @@ import '../../core/preferences.dart';
 import '../../l10n/app_localizations.dart';
 import 'onboarding_chrome.dart';
 import 'onboarding_module.dart';
+import '../../core/design/pill_chip.dart';
+import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
+import '../../core/providers.dart';
 
 /// Only Egypt can be chosen today. The vaccine schedule, the ambulance number
 /// on every screen, and the warning wording are all Egypt's, so offering
@@ -39,6 +43,24 @@ class CountryScreen extends ConsumerWidget {
         onPressed: () => _next(context, ref),
       ),
       children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final (code, label) in [
+              ('ar', l.languageArabic),
+              ('en', l.languageEnglish),
+            ])
+              UsraPill(
+                key: ValueKey('country-lang-$code'),
+                label: label,
+                selected: Localizations.localeOf(context).languageCode == code,
+                onTap: () =>
+                    ref.read(localeProvider.notifier).change(Locale(code)),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
         ChoiceCard(
           key: const ValueKey('country-egypt'),
           title: l.countryEgypt,
@@ -61,6 +83,12 @@ class CountryScreen extends ConsumerWidget {
           detail: l.countrySoon,
           selected: false,
           onTap: null,
+        ),
+        const SizedBox(height: 10),
+        Text(
+          l.countrySoonNote,
+          key: const ValueKey('country-soon-note'),
+          style: UsraType.label.copyWith(color: context.usra.inkMuted),
         ),
       ],
     );

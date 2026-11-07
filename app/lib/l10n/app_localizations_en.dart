@@ -4867,4 +4867,69 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get insuranceShareWarningNoPhoto =>
       'Before you send it: the member number is personal, and whoever gets it could pass it on.';
+
+  @override
+  String get simpleNextDose => 'Next medicine';
+
+  @override
+  String simpleThenDose(String medicine, String time) {
+    return 'Then: $medicine at $time';
+  }
+
+  @override
+  String get simpleNoDoses => 'No doses left today.';
+
+  @override
+  String get simpleExit => 'Leave Simple Mode';
+
+  @override
+  String get simpleExitWithPin => 'Leave Simple Mode (with the PIN)';
+
+  @override
+  String get simpleExitConfirm => 'Leave Simple Mode?';
+
+  @override
+  String get simpleExitStay => 'Stay';
+
+  @override
+  String get simpleExitGo => 'Leave';
+
+  @override
+  String get countrySoonNote =>
+      'Saudi Arabia and Jordan will open once their schedules and ambulance numbers are checked.';
+
+  @override
+  String get homeSetupIntro =>
+      'Some places to start. None of them is required.';
+
+  @override
+  String get homeSetupFamily => 'A family member';
+
+  @override
+  String get homeSetupFamilyHint => 'Name, sex, date of birth and relationship';
+
+  @override
+  String get homeSetupReminders => 'Medicine and vaccine reminders';
+
+  @override
+  String get homeSetupRemindersHint => 'Permission is only asked for then';
+
+  @override
+  String get homeSetupEmergency => 'Emergency card';
+
+  @override
+  String get homeSetupEmergencyHint =>
+      'Blood type, allergies and an emergency number';
+
+  @override
+  String get homeSetupLockNote =>
+      'After the first backup we\'ll suggest locking Usra with a PIN.';
+
+  @override
+  String get homeSetupHide => 'Hide';
+
+  @override
+  String simpleThenDoseFor(String medicine, String name, String time) {
+    return 'Then: $medicine for $name at $time';
+  }
 }

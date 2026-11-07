@@ -2782,5 +2782,47 @@
     }
   },
   "insuranceShareWarning": "Before you send it: the card holds personal details, and whoever gets it could pass it on. We'll write the date and the insurer's name, if saved, across the picture.",
-  "insuranceShareWarningNoPhoto": "Before you send it: the member number is personal, and whoever gets it could pass it on."
+  "insuranceShareWarningNoPhoto": "Before you send it: the member number is personal, and whoever gets it could pass it on.",
+  "simpleNextDose": "Next medicine",
+  "simpleThenDose": "Then: {medicine} at {time}",
+  "@simpleThenDose": {
+    "placeholders": {
+      "medicine": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "simpleNoDoses": "No doses left today.",
+  "simpleExit": "Leave Simple Mode",
+  "simpleExitWithPin": "Leave Simple Mode (with the PIN)",
+  "simpleExitConfirm": "Leave Simple Mode?",
+  "simpleExitStay": "Stay",
+  "simpleExitGo": "Leave",
+  "countrySoonNote": "Saudi Arabia and Jordan will open once their schedules and ambulance numbers are checked.",
+  "homeSetupIntro": "Some places to start. None of them is required.",
+  "homeSetupFamily": "A family member",
+  "homeSetupFamilyHint": "Name, sex, date of birth and relationship",
+  "homeSetupReminders": "Medicine and vaccine reminders",
+  "homeSetupRemindersHint": "Permission is only asked for then",
+  "homeSetupEmergency": "Emergency card",
+  "homeSetupEmergencyHint": "Blood type, allergies and an emergency number",
+  "homeSetupLockNote": "After the first backup we'll suggest locking Usra with a PIN.",
+  "homeSetupHide": "Hide",
+  "simpleThenDoseFor": "Then: {medicine} for {name} at {time}",
+  "@simpleThenDoseFor": {
+    "placeholders": {
+      "medicine": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

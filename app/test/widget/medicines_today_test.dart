@@ -553,7 +553,13 @@ void main() {
       await tester.pumpWidget(app(simple: true));
       await tester.pump();
       await settleDb(tester);
-      await tester.ensureVisible(key('simple-medicines'));
+      // Below the day's doses at this size.
+      await tester.dragUntilVisible(
+        key('simple-medicines'),
+        find.byType(ListView).first,
+        const Offset(0, -300),
+      );
+      await tester.pumpAndSettle();
       await tester.tap(key('simple-medicines'));
       await settleDb(tester);
       await tester.pumpAndSettle();

@@ -7722,6 +7722,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Before you send it: the member number is personal, and whoever gets it could pass it on.'**
   String get insuranceShareWarningNoPhoto;
+
+  /// No description provided for @simpleNextDose.
+  ///
+  /// In en, this message translates to:
+  /// **'Next medicine'**
+  String get simpleNextDose;
+
+  /// No description provided for @simpleThenDose.
+  ///
+  /// In en, this message translates to:
+  /// **'Then: {medicine} at {time}'**
+  String simpleThenDose(String medicine, String time);
+
+  /// No description provided for @simpleNoDoses.
+  ///
+  /// In en, this message translates to:
+  /// **'No doses left today.'**
+  String get simpleNoDoses;
+
+  /// No description provided for @simpleExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave Simple Mode'**
+  String get simpleExit;
+
+  /// No description provided for @simpleExitWithPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave Simple Mode (with the PIN)'**
+  String get simpleExitWithPin;
+
+  /// No description provided for @simpleExitConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave Simple Mode?'**
+  String get simpleExitConfirm;
+
+  /// No description provided for @simpleExitStay.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay'**
+  String get simpleExitStay;
+
+  /// No description provided for @simpleExitGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get simpleExitGo;
+
+  /// No description provided for @countrySoonNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Saudi Arabia and Jordan will open once their schedules and ambulance numbers are checked.'**
+  String get countrySoonNote;
+
+  /// No description provided for @homeSetupIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Some places to start. None of them is required.'**
+  String get homeSetupIntro;
+
+  /// No description provided for @homeSetupFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'A family member'**
+  String get homeSetupFamily;
+
+  /// No description provided for @homeSetupFamilyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, sex, date of birth and relationship'**
+  String get homeSetupFamilyHint;
+
+  /// No description provided for @homeSetupReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine and vaccine reminders'**
+  String get homeSetupReminders;
+
+  /// No description provided for @homeSetupRemindersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission is only asked for then'**
+  String get homeSetupRemindersHint;
+
+  /// No description provided for @homeSetupEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency card'**
+  String get homeSetupEmergency;
+
+  /// No description provided for @homeSetupEmergencyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood type, allergies and an emergency number'**
+  String get homeSetupEmergencyHint;
+
+  /// No description provided for @homeSetupLockNote.
+  ///
+  /// In en, this message translates to:
+  /// **'After the first backup we\'ll suggest locking Usra with a PIN.'**
+  String get homeSetupLockNote;
+
+  /// No description provided for @homeSetupHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get homeSetupHide;
+
+  /// No description provided for @simpleThenDoseFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Then: {medicine} for {name} at {time}'**
+  String simpleThenDoseFor(String medicine, String name, String time);
 }
 
 class _AppLocalizationsDelegate

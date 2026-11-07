@@ -161,7 +161,7 @@ class _Section extends StatelessWidget {
           children: [
             Icon(Icons.event_repeat_outlined, color: context.usra.primary),
             const SizedBox(width: 8),
-            Text(l.followUpsTitle, style: text.titleLarge),
+            Expanded(child: Text(l.followUpsTitle, style: text.titleLarge)),
           ],
         ),
         const SizedBox(height: 8),
