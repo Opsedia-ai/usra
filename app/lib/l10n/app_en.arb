@@ -1593,12 +1593,10 @@
   "@courseDayOf": {
     "placeholders": {
       "day": {
-        "type": "int",
-        "format": "decimalPattern"
+        "type": "int"
       },
       "total": {
-        "type": "int",
-        "format": "decimalPattern"
+        "type": "int"
       }
     }
   },

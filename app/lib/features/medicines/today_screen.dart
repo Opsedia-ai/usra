@@ -10,6 +10,7 @@ import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/providers.dart';
+import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/family_screen.dart' show profilesProvider;
 import '../family/person_status.dart';
@@ -555,7 +556,10 @@ class _Summary extends StatelessWidget {
                         ),
                       if (course case final course?)
                         Text(
-                          l.courseDayOf(course.day, course.total),
+                          localizedDigitsIn(
+                            context,
+                            l.courseDayOf(course.day, course.total),
+                          ),
                           key: ValueKey('dose-course-$id'),
                           style: UsraType.label.copyWith(color: c.primary),
                         ),

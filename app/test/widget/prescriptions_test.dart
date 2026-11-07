@@ -185,14 +185,14 @@ void main() {
     expect(find.textContaining('روشتة'), findsWidgets);
     expect(find.text('د. هالة'), findsOneWidget);
     expect(
-      inside('rx-course-${meds.first.id}', 'اليوم ١ من ٧'),
+      inside('rx-course-${meds.first.id}', 'اليوم 1 من 7'),
       findsOneWidget,
     );
 
     // On the medicine's page, with a way back to the prescription.
     await tapKey(tester, 'rx-medicine-${meds.first.id}');
     expect(find.byKey(const ValueKey('medicine-course')), findsOneWidget);
-    expect(find.text('اليوم ١ من ٧'), findsOneWidget);
+    expect(find.text('اليوم 1 من 7'), findsOneWidget);
     await tapKey(tester, 'medicine-prescription');
     expect(find.byKey(const ValueKey('rx-toggle-active')), findsOneWidget);
 
@@ -237,7 +237,7 @@ void main() {
     // Listed on the person's medicines, with its medicines' courses.
     expect(find.byKey(ValueKey('prescription-${ids.rx}')), findsOneWidget);
     expect(find.textContaining('دوايين'), findsOneWidget);
-    expect(find.text('اليوم ٣ من ٥'), findsOneWidget);
+    expect(find.text('اليوم 3 من 5'), findsOneWidget);
 
     await tapKey(tester, 'prescription-${ids.rx}');
     await tester.tap(find.byKey(const ValueKey('rx-edit')));
@@ -262,7 +262,7 @@ void main() {
     expect(meds.single.endOn!.toUtc(), DateTime.utc(2026, 11, 7));
     await tester.pumpAndSettle();
     expect(
-      inside('rx-course-${meds.single.id}', 'اليوم ٣ من ٧'),
+      inside('rx-course-${meds.single.id}', 'اليوم 3 من 7'),
       findsOneWidget,
     );
 

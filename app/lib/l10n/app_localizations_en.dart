@@ -2994,15 +2994,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String courseDayOf(int day, int total) {
-    final intl.NumberFormat dayNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String dayString = dayNumberFormat.format(day);
-    final intl.NumberFormat totalNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String totalString = totalNumberFormat.format(total);
-
-    return 'Day $dayString of $totalString';
+    return 'Day $day of $total';
   }
 
   @override
