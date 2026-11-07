@@ -134,6 +134,9 @@ struct MarkDoseTakenIntent: AppIntent {
   // Only for the widget's button: not offered in Shortcuts or search.
   static var isDiscoverable = false
   static var openAppWhenRun = false
+  // StandBy and the iPad Lock Screen show widgets on a locked device: like the
+  // notification's Taken, this asks to unlock first.
+  static var authenticationPolicy: IntentAuthenticationPolicy = .requiresAuthentication
 
   @Parameter(title: "widget.takenIntent") var medicineId: String
   @Parameter(title: "widget.takenIntent") var at: Int

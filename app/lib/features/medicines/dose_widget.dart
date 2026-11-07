@@ -12,6 +12,7 @@ import 'medicines_providers.dart' show todayOf;
 import 'reminders.dart'
     show
         DoseCompany,
+        doseCompanyLookback,
         doseCompanyOf,
         doseKey,
         doseTimeText,
@@ -148,7 +149,12 @@ WidgetSnapshot buildWidgetSnapshot(
 }) {
   final today = todayOf(now).from;
   final validUntil = DateTime(today.year, today.month, today.day + 2);
-  final company = doseCompanyOf(regimens, logs, from: today, to: validUntil);
+  final company = doseCompanyOf(
+    regimens,
+    logs,
+    from: now.subtract(doseCompanyLookback),
+    to: validUntil,
+  );
   final doses = <WidgetDose>[];
   for (final d in plannedDoses(regimens, logs, from: today, to: validUntil)) {
     if (d.isDone) continue;
@@ -169,9 +175,13 @@ WidgetSnapshot buildWidgetSnapshot(
         person: discreet ? '' : firstName(d.regimen.person.displayName),
         medicine: discreet ? l.widgetDiscreetDose : d.regimen.medicine.name,
         medicineId: d.regimen.medicine.id,
+        // A snoozed dose still has its reminder coming, which Taken here
+        // can't cancel: it would ring for a dose already given.
         canMark:
-            !discreet ||
-            company[doseKey(d.regimen.medicine.id, d.at)] == DoseCompany.alone,
+            log?.status != DoseOutcome.snoozed &&
+            (!discreet ||
+                company[doseKey(d.regimen.medicine.id, d.at)] ==
+                    DoseCompany.alone),
       ),
     );
   }

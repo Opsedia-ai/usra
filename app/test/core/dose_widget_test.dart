@@ -613,6 +613,65 @@ void main() {
       expect(named.doses.every((d) => d.canMark), isTrue);
     });
 
+    test('a marked dose leaves the screen instead of reading as due', () async {
+      final id = await medicine(omar, 'باراسيتامول', ['08:00']);
+      final at = DateTime(2026, 11, 3, 8).toUtc();
+      final ref = ReminderRef(medicineId: id, scheduledAt: at, locale: 'ar');
+      final changes = diffReminders(
+        pending: const [],
+        shown: [
+          (
+            id: 5,
+            title: 'ميعاد الدوا',
+            body: 'جرعة ٨:٠٠ ص',
+            payload: ref.toPayload(),
+          ),
+        ],
+        wanted: const [],
+        doneSnoozes: {snoozeIdFor(id, at)},
+        rebuild: (id, ref, at) => fail('should not be rewritten'),
+        now: DateTime(2026, 11, 3, 8, 5),
+      );
+      expect(changes.cancel, {5});
+      expect(changes.repost, isEmpty);
+    });
+
+    test(
+      'a snoozed dose has no Taken on the widget, even with names',
+      () async {
+        final id = await medicine(omar, 'باراسيتامول', ['08:00']);
+        await db.logDose(
+          id,
+          DateTime(2026, 11, 3, 8).toUtc(),
+          DoseOutcome.snoozed,
+          at: DateTime(2026, 11, 3, 8, 5).toUtc(),
+        );
+        final at = DateTime(2026, 11, 3, 8, 7);
+        for (final discreet in [true, false]) {
+          final s = await snapshotAt(at, discreet: discreet);
+          expect(s.doses.first.at, DateTime(2026, 11, 3, 8));
+          expect(s.doses.first.canMark, isFalse);
+        }
+      },
+    );
+
+    test('the widget sees a snooze from before midnight too', () async {
+      final late = await medicine(omar, 'باراسيتامول', ['22:00']);
+      await medicine(mona, 'Augmentin', ['00:30']);
+      // Snoozed at 23:58, it rings at 00:08, near Mona's 00:30.
+      await db.logDose(
+        late,
+        DateTime(2026, 11, 2, 22).toUtc(),
+        DoseOutcome.snoozed,
+        at: DateTime(2026, 11, 2, 23, 58).toUtc(),
+      );
+      final s = await snapshotAt(DateTime(2026, 11, 3, 0, 1), discreet: true);
+      final dose = s.doses.firstWhere(
+        (d) => d.at == DateTime(2026, 11, 3, 0, 30),
+      );
+      expect(dose.canMark, isFalse);
+    });
+
     test('with names, the three buttons and the named category', () async {
       await medicine(omar, 'باراسيتامول', ['08:00']);
       await medicine(mona, 'Augmentin', ['08:00']);

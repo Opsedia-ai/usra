@@ -81,21 +81,29 @@ Map<String, DoseCompany> doseCompanyOf(
     ))
       if (!d.isDone) d,
   ];
-  List<DateTime> rings(PlannedDose d) => [
-    d.at,
-    if (d.log?.status == DoseOutcome.snoozed)
-      d.log!.at.toLocal().add(snoozeDuration),
-  ];
-  bool close(PlannedDose a, PlannedDose b) => rings(
-    a,
-  ).any((x) => rings(b).any((y) => x.difference(y).abs() <= doseClashWindow));
+  // Every time a dose rings, in order, so only neighbours need comparing.
+  final rings = [
+    for (final (i, d) in due.indexed) ...[
+      (at: d.at, dose: i),
+      if (d.log?.status == DoseOutcome.snoozed)
+        (at: d.log!.at.toLocal().add(snoozeDuration), dose: i),
+    ],
+  ]..sort((a, b) => a.at.compareTo(b.at));
+  final close = <int>{};
+  for (var a = 0; a < rings.length; a++) {
+    for (var b = a + 1; b < rings.length; b++) {
+      if (rings[b].at.difference(rings[a].at) > doseClashWindow) break;
+      if (rings[a].dose != rings[b].dose) {
+        close
+          ..add(rings[a].dose)
+          ..add(rings[b].dose);
+      }
+    }
+  }
   return {
-    for (final d in due)
+    for (final (i, d) in due.indexed)
       if (!d.at.isBefore(from) && d.at.isBefore(to))
-        doseKey(
-          d.regimen.medicine.id,
-          d.at,
-        ): due.any((o) => !identical(o, d) && close(o, d))
+        doseKey(d.regimen.medicine.id, d.at): close.contains(i)
             ? DoseCompany.several
             : DoseCompany.alone,
   };
@@ -587,6 +595,15 @@ ReminderChanges diffReminders({
   final repost = <PlannedReminder>[];
   for (final s in shown) {
     final ref = ReminderRef.fromPayload(s.payload);
+    // Already marked, in the app or on the widget: it leaves the screen, so a
+    // dose that was given can't still read as due.
+    if (ref != null &&
+        !ref.isVaccine &&
+        !ref.isNextDose &&
+        doneSnoozes.contains(snoozeIdFor(ref.medicineId, ref.scheduledAt))) {
+      cancel.add(s.id);
+      continue;
+    }
     final r = ref == null ? null : rebuild?.call(s.id, ref, ref.at ?? now);
     // A next-dose notification whose entry is gone (deleted, superseded by
     // a later dose, sick day over) leaves the screen too.

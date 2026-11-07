@@ -140,7 +140,6 @@ class ReminderSync with WidgetsBindingObserver {
     final List<DoseLog> logs;
     final t = texts();
     try {
-      await ensureDoseTimeFormatting(t.l.localeName);
       await saveInbox();
       regimens = await db.watchRegimens().first;
       logs = await _logsAround(now);
@@ -149,7 +148,13 @@ class ReminderSync with WidgetsBindingObserver {
       return;
     }
     // Each on its own: a broken widget never stops reminders.
-    final company = _companyAround(regimens, logs, now);
+    var company = const <String, DoseCompany>{};
+    try {
+      await ensureDoseTimeFormatting(t.l.localeName);
+      company = _companyAround(regimens, logs, now);
+    } catch (e, s) {
+      _report(e, s);
+    }
     var vaccineReminders = const <PlannedReminder>[];
     try {
       vaccineReminders = await vaccines?.call(now) ?? const [];

@@ -50,5 +50,7 @@ the app with (`usra://widget/medicines?homeWidget`).
   notification's Taken to `dose_actions.jsonl` in the App Group, hides the
   row (`dose_widget_taken` in the App Group's defaults) until a later snapshot,
   and the app saves it when it next runs. Tapping anywhere else, and on iOS
-  15.5 to 16, opens the Medicines tab behind the app lock. The widget is only on
-  the home screen, so the phone is already unlocked.
+  15.5 to 16, opens the Medicines tab behind the app lock. StandBy and the iPad
+  Lock Screen can show the widget on a locked device, so the button asks to
+  unlock first (`authenticationPolicy`). A snoozed dose has no button: its
+  reminder is still coming, and Taken here can't cancel it.
