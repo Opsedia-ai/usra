@@ -3254,12 +3254,6 @@ abstract class AppLocalizations {
   /// **'Group {groups} doesn\'t match. Check your paper.'**
   String recoveryKeyMismatch(String groups);
 
-  /// No description provided for @recoveryKeyShow.
-  ///
-  /// In en, this message translates to:
-  /// **'Show recovery key'**
-  String get recoveryKeyShow;
-
   /// No description provided for @restoreTitle.
   ///
   /// In en, this message translates to:

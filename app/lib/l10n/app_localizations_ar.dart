@@ -1911,9 +1911,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get recoveryKeyShow => 'عرض مفتاح الاسترجاع';
-
-  @override
   String get restoreTitle => 'استرجاع من نسخة احتياطية';
 
   @override

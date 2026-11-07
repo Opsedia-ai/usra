@@ -602,7 +602,6 @@
   "lockWipeCancel": "إلغاء",
   "lockTriesBeforeWipe": "{count, plural, =1{رقم سري غلط كمان واحد يمسح كل حاجة} other{{count} أرقام سرية غلط كمان تمسح كل حاجة}}",
   "recoveryKeyMismatch": "المجموعة {groups} مش مطابقة. راجع الورقة.",
-  "recoveryKeyShow": "عرض مفتاح الاسترجاع",
   "restoreTitle": "استرجاع من نسخة احتياطية",
   "restoreHint": "كل اللي على الموبايل ده هيتبدل",
   "recoveryKeyRowHint": "مكتوب على الورقة",

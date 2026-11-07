@@ -1905,9 +1905,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get recoveryKeyShow => 'Show recovery key';
-
-  @override
   String get restoreTitle => 'Restore from a backup';
 
   @override

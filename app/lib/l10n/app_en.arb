@@ -992,7 +992,6 @@
       }
     }
   },
-  "recoveryKeyShow": "Show recovery key",
   "restoreTitle": "Restore from a backup",
   "restoreHint": "Replaces everything on this phone",
   "recoveryKeyRowHint": "Written on your paper",
