@@ -70,11 +70,6 @@ class EmergencyCardScreen extends ConsumerWidget {
             const SizedBox(height: UsraSpacing.s3),
             const _AmbulanceButton(),
             const SizedBox(height: UsraSpacing.s3),
-            if (profile.value case final p?
-                when callUri(p.emergencyPhone) != null) ...[
-              _EmergencyContact(person: p),
-              const SizedBox(height: UsraSpacing.s3),
-            ],
             // Never a choice on the lock screen, which lists its own people.
             if (editable && people.length > 1) ...[
               Semantics(
@@ -97,6 +92,14 @@ class EmergencyCardScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: UsraSpacing.s3),
+            ],
+            // Under the people, so it's clear whose it is and they don't move
+            // as it comes and goes.
+            if (profile.value case final p?) ...[
+              if (callUri(p.emergencyPhone) case final call?) ...[
+                _EmergencyContact(person: p, call: call),
+                const SizedBox(height: UsraSpacing.s3),
+              ],
             ],
             ...profile.when(
               loading: () => [const Center(child: CircularProgressIndicator())],
@@ -231,22 +234,50 @@ class _AmbulanceButton extends StatelessWidget {
 
 /// The number to call for this person, and whose it is. The phone's own dialer
 /// asks before calling. Reachable from the lock screen too: finding someone to
-/// call is what the card is for there.
-class _EmergencyContact extends StatelessWidget {
-  const _EmergencyContact({required this.person});
+/// call is what the card is for there. Follows the card's language.
+class _EmergencyContact extends ConsumerWidget {
+  const _EmergencyContact({required this.person, required this.call});
 
   final Profile person;
+  final Uri call;
 
   @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final other = ref.watch(_otherLanguageProvider);
+    final appLanguage = Localizations.localeOf(context).languageCode;
+    final l = lookupAppLocalizations(
+      Locale(
+        !other
+            ? appLanguage
+            : appLanguage == 'ar'
+            ? 'en'
+            : 'ar',
+      ),
+    );
     final c = context.usra;
     final phone = person.emergencyPhone!;
-    final name = person.emergencyContactName ?? l.emergencyContactNoName;
+    final holder = person.emergencyContactName;
+    final name = holder ?? l.emergencyContactNoName;
     const shape = StadiumBorder();
+    final nameText = Text(
+      name,
+      style: UsraType.body.copyWith(color: c.ink, fontWeight: FontWeight.w600),
+    );
+    final phoneText = Text(
+      phone,
+      key: const ValueKey('emergency-contact-phone'),
+      textDirection: TextDirection.ltr,
+      style: UsraType.body.copyWith(color: c.ink),
+    );
+    // A number must never break across lines, so with big text it gets its own.
+    final stacked = MediaQuery.textScalerOf(context).scale(100) >= 130;
+    void dial() => openContact(context, call);
     return Semantics(
       button: true,
-      label: l.emergencyCallContact(name),
+      label: holder == null
+          ? l.emergencyCallNumber(phone)
+          : l.emergencyCallContact(holder, phone),
+      onTap: dial,
       excludeSemantics: true,
       child: Material(
         color: c.surface,
@@ -256,7 +287,7 @@ class _EmergencyContact extends StatelessWidget {
         child: InkWell(
           key: const ValueKey('emergency-contact'),
           customBorder: shape,
-          onTap: () => openContact(context, callUri(phone)!),
+          onTap: dial,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 64),
             child: Padding(
@@ -273,23 +304,17 @@ class _EmergencyContact extends StatelessWidget {
                     ),
                     child: Icon(Icons.call, color: c.good, size: 22),
                   ),
-                  Expanded(
-                    child: Text(
-                      name,
-                      style: UsraType.body.copyWith(
-                        color: c.ink,
-                        fontWeight: FontWeight.w600,
+                  if (stacked)
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [nameText, phoneText],
                       ),
-                    ),
-                  ),
-                  Flexible(
-                    child: Text(
-                      phone,
-                      key: const ValueKey('emergency-contact-phone'),
-                      textDirection: TextDirection.ltr,
-                      style: UsraType.body.copyWith(color: c.ink),
-                    ),
-                  ),
+                    )
+                  else ...[
+                    Expanded(child: nameText),
+                    phoneText,
+                  ],
                 ],
               ),
             ),

@@ -8,7 +8,7 @@ import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../children/growth.dart' show isUnderFive;
-import '../doctors/contact_links.dart' show cleanPhone;
+import '../doctors/contact_links.dart' show isCallablePhone;
 
 const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -96,7 +96,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
   Future<void> _save() async {
     final phone = _emergencyPhone.text.trim();
     // A number that can't be called is worse than none on an emergency card.
-    final phoneInvalid = phone.isNotEmpty && cleanPhone(phone) == null;
+    final phoneInvalid = phone.isNotEmpty && !isCallablePhone(phone);
     setState(() {
       _nameMissing = _name.text.trim().isEmpty;
       _phoneInvalid = phoneInvalid;

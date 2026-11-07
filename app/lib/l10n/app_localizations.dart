@@ -401,7 +401,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileEmergencyPhoneHint.
   ///
   /// In en, this message translates to:
-  /// **'Optional. Shown on the emergency card.'**
+  /// **'Optional. Shown on the emergency card, and on Usra\'s lock screen if the card is available there.'**
   String get profileEmergencyPhoneHint;
 
   /// No description provided for @profileEmergencyInvalid.
@@ -428,11 +428,17 @@ abstract class AppLocalizations {
   /// **'Emergency number'**
   String get emergencyContactNoName;
 
+  /// No description provided for @emergencyCallNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Call the emergency number: {phone}'**
+  String emergencyCallNumber(String phone);
+
   /// No description provided for @emergencyCallContact.
   ///
   /// In en, this message translates to:
-  /// **'Call {name}'**
-  String emergencyCallContact(String name);
+  /// **'Call {name}: {phone}'**
+  String emergencyCallContact(String name, String phone);
 
   /// No description provided for @sexFemale.
   ///
@@ -4307,7 +4313,7 @@ abstract class AppLocalizations {
   /// No description provided for @lockSettingsEmergencyHint.
   ///
   /// In en, this message translates to:
-  /// **'The blood type, allergies, conditions, surgeries, current medicines and emergency number of the people you choose here can be seen without the PIN by anyone holding the phone with Usra open. This is Usra\'s lock screen, not the phone\'s: for a locked phone, use the phone\'s own Medical ID.'**
+  /// **'The blood type, allergies, conditions, surgeries, current medicines and emergency number and whose it is of the people you choose here can be seen without the PIN by anyone holding the phone with Usra open. This is Usra\'s lock screen, not the phone\'s: for a locked phone, use the phone\'s own Medical ID.'**
   String get lockSettingsEmergencyHint;
 
   /// No description provided for @lockVerifyTitle.
@@ -6940,7 +6946,7 @@ abstract class AppLocalizations {
   /// No description provided for @lockEmergencyConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'Anyone holding the phone with Usra open will be able to see the blood type, allergies, conditions, surgeries, current medicines and emergency number without the PIN. This is Usra\'s lock screen, not the phone\'s.'**
+  /// **'Anyone holding the phone with Usra open will be able to see the blood type, allergies, conditions, surgeries, current medicines and emergency number and whose it is without the PIN. This is Usra\'s lock screen, not the phone\'s.'**
   String get lockEmergencyConfirmBody;
 
   /// No description provided for @lockEmergencyConfirmYes.

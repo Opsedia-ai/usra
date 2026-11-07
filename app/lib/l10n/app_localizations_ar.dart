@@ -204,7 +204,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileEmergencyPhone => 'رقم للطوارئ';
 
   @override
-  String get profileEmergencyPhoneHint => 'اختياري. بيظهر في كارت الطوارئ.';
+  String get profileEmergencyPhoneHint =>
+      'اختياري. بيظهر في كارت الطوارئ، وعلى قفل أسرة لو الكارت متاح هناك.';
 
   @override
   String get profileEmergencyInvalid => 'ده مش رقم تليفون.';
@@ -219,8 +220,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get emergencyContactNoName => 'رقم للطوارئ';
 
   @override
-  String emergencyCallContact(String name) {
-    return 'اتصل بـ $name';
+  String emergencyCallNumber(String phone) {
+    return 'اتصل برقم الطوارئ: $phone';
+  }
+
+  @override
+  String emergencyCallContact(String name, String phone) {
+    return 'اتصل بـ $name: $phone';
   }
 
   @override
@@ -2643,7 +2649,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lockSettingsEmergencyHint =>
-      'فصيلة الدم والحساسية والأمراض والعمليات والأدوية الحالية ورقم الطوارئ للناس اللي هتختارهم هنا، أي حد ماسك الموبايل وأسرة مفتوحة يقدر يشوفها من غير الرقم السري. ده قفل أسرة، مش قفل الموبايل: للموبايل المقفول استخدم Medical ID بتاع الموبايل نفسه.';
+      'فصيلة الدم والحساسية والأمراض والعمليات والأدوية الحالية ورقم الطوارئ وصاحبه للناس اللي هتختارهم هنا، أي حد ماسك الموبايل وأسرة مفتوحة يقدر يشوفها من غير الرقم السري. ده قفل أسرة، مش قفل الموبايل: للموبايل المقفول استخدم Medical ID بتاع الموبايل نفسه.';
 
   @override
   String get lockVerifyTitle => 'أكّد إنه إنت';
@@ -4435,7 +4441,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lockEmergencyConfirmBody =>
-      'أي حد ماسك الموبايل وأسرة مفتوحة هيقدر يشوف فصيلة الدم والحساسية والأمراض والعمليات والأدوية الحالية ورقم الطوارئ من غير الرقم السري. ده قفل أسرة، مش قفل الموبايل.';
+      'أي حد ماسك الموبايل وأسرة مفتوحة هيقدر يشوف فصيلة الدم والحساسية والأمراض والعمليات والأدوية الحالية ورقم الطوارئ وصاحبه من غير الرقم السري. ده قفل أسرة، مش قفل الموبايل.';
 
   @override
   String get lockEmergencyConfirmYes => 'أيوه، يظهر';

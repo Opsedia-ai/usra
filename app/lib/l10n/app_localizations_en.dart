@@ -207,7 +207,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileEmergencyPhoneHint =>
-      'Optional. Shown on the emergency card.';
+      'Optional. Shown on the emergency card, and on Usra\'s lock screen if the card is available there.';
 
   @override
   String get profileEmergencyInvalid => 'That isn\'t a phone number.';
@@ -223,8 +223,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emergencyContactNoName => 'Emergency number';
 
   @override
-  String emergencyCallContact(String name) {
-    return 'Call $name';
+  String emergencyCallNumber(String phone) {
+    return 'Call the emergency number: $phone';
+  }
+
+  @override
+  String emergencyCallContact(String name, String phone) {
+    return 'Call $name: $phone';
   }
 
   @override
@@ -2637,7 +2642,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lockSettingsEmergencyHint =>
-      'The blood type, allergies, conditions, surgeries, current medicines and emergency number of the people you choose here can be seen without the PIN by anyone holding the phone with Usra open. This is Usra\'s lock screen, not the phone\'s: for a locked phone, use the phone\'s own Medical ID.';
+      'The blood type, allergies, conditions, surgeries, current medicines and emergency number and whose it is of the people you choose here can be seen without the PIN by anyone holding the phone with Usra open. This is Usra\'s lock screen, not the phone\'s: for a locked phone, use the phone\'s own Medical ID.';
 
   @override
   String get lockVerifyTitle => 'Confirm it\'s you';
@@ -4400,7 +4405,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lockEmergencyConfirmBody =>
-      'Anyone holding the phone with Usra open will be able to see the blood type, allergies, conditions, surgeries, current medicines and emergency number without the PIN. This is Usra\'s lock screen, not the phone\'s.';
+      'Anyone holding the phone with Usra open will be able to see the blood type, allergies, conditions, surgeries, current medicines and emergency number and whose it is without the PIN. This is Usra\'s lock screen, not the phone\'s.';
 
   @override
   String get lockEmergencyConfirmYes => 'Yes, show it';

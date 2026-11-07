@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -11,7 +12,7 @@ import 'package:usra/core/design/dr_usra.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/core/security/app_lock.dart';
-import 'package:usra/features/doctors/contact_links.dart' show callUri;
+import 'package:usra/features/doctors/contact_links.dart';
 import 'package:usra/features/family/profile_form_screen.dart'
     show relationships;
 import 'package:usra/features/medicines/medicines_providers.dart';
@@ -22,6 +23,7 @@ import '../support/fake_lock.dart';
 void main() {
   late AppDatabase db;
   final now = DateTime(2026, 11, 3, 13);
+  final ar = lookupAppLocalizations(const Locale('ar'));
 
   setUp(() {
     db = AppDatabase(
@@ -223,7 +225,7 @@ void main() {
         await settleDb(tester);
         await open(tester, '/family/$id');
 
-        expect(find.byKey(const ValueKey('member-age')), findsNothing);
+        expect(find.byKey(const ValueKey('member-details')), findsNothing);
         expect(find.byKey(const ValueKey('member-vaccines')), findsNothing);
         expect(find.byKey(const ValueKey('member-growth')), findsNothing);
         expect(find.byKey(const ValueKey('member-baby-log')), findsNothing);
@@ -562,6 +564,27 @@ void main() {
       },
     );
 
+    test('what counts as a number that can be called', () {
+      for (final good in [
+        '123',
+        '16000',
+        '010 1234 5678',
+        '٠١٠-١٢٣٤-٥٦٧٨',
+        '+20 10 1234 5678',
+        '(02) 2345 6789',
+        '\u202a+20 10 1234\u202c',
+      ]) {
+        expect(isCallablePhone(good), isTrue, reason: good);
+      }
+      for (final bad in ['ماما', 'ماما 1', 'فودافون 2', '5', '12', '']) {
+        expect(isCallablePhone(bad), isFalse, reason: bad);
+      }
+      // A + pasted behind an invisible mark or a bracket isn't lost.
+      expect(cleanPhone('\u202a+20 10 1234'), '+20101234');
+      expect(cleanPhone('(+20) 10 1234'), '+20101234');
+      expect(cleanPhone('0020 10'), '002010');
+    });
+
     testWidgets('a number with no digits isn\'t saved', (tester) async {
       phone(tester, height: 2000);
       final id = (await tester.runAsync(() => db.addProfile('ليلى')))!;
@@ -628,7 +651,7 @@ void main() {
       await open(tester, '/family/$id/emergency');
       expect(find.text('آية، مامتها'), findsOneWidget);
       expect(find.text('٠١٠ ١٢٣٤ ٥٦٧٨'), findsOneWidget);
-      // It's above the facts, in the same place on the lock screen's card.
+      // Above the facts.
       expect(
         tester.getTopLeft(find.byKey(const ValueKey('emergency-contact'))).dy,
         lessThan(
@@ -636,6 +659,20 @@ void main() {
         ),
       );
       expect(callUri('٠١٠ ١٢٣٤ ٥٦٧٨').toString(), 'tel:01012345678');
+      // A screen reader hears who and the number, and can act on it.
+      final handle = tester.ensureSemantics();
+      final node = tester.getSemantics(
+        find.byKey(const ValueKey('emergency-contact')),
+      );
+      expect(node.label, contains('آية، مامتها'));
+      expect(node.label, contains('٠١٠ ١٢٣٤ ٥٦٧٨'));
+      expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+      handle.dispose();
+
+      // A tap goes to the dialer; none here, so it says so.
+      await tester.tap(find.byKey(const ValueKey('emergency-contact')));
+      await settleDb(tester);
+      expect(find.text(ar.contactFailed), findsOneWidget);
     });
 
     testWidgets('a number with no name still shows; no number shows nothing', (
@@ -652,6 +689,12 @@ void main() {
       await settleDb(tester);
       await open(tester, '/family/$withNumber/emergency');
       expect(find.text('رقم للطوارئ'), findsOneWidget);
+      // It follows the card when it's handed to someone in the other language.
+      await tester.tap(find.byKey(const ValueKey('emergency-language')));
+      await settleDb(tester);
+      expect(find.text('Emergency number'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('emergency-language')));
+      await settleDb(tester);
       await open(tester, '/family/$without/emergency');
       expect(find.byKey(const ValueKey('emergency-contact')), findsNothing);
     });

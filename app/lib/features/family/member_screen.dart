@@ -244,8 +244,8 @@ class _TopPill extends StatelessWidget {
   }
 }
 
-/// The avatar pebble, the name once, and the age when it's known. There is
-/// no relationship to show until the data has one.
+/// The avatar pebble, the name once, and the age and relationship when they're
+/// known.
 class _Identity extends ConsumerWidget {
   const _Identity({required this.person});
 
@@ -293,7 +293,7 @@ class _Identity extends ConsumerWidget {
               if (details.isNotEmpty)
                 Text(
                   details,
-                  key: const ValueKey('member-age'),
+                  key: const ValueKey('member-details'),
                   style: UsraType.body.copyWith(color: context.usra.inkMuted),
                 ),
             ],
