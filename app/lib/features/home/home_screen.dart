@@ -79,7 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         const SizedBox(height: UsraSpacing.s4),
         const _UpcomingDoses(),
         const BackupNotices(),
-        const AppLockOfferCard(),
+        const AppLockHomeNotice(),
         const HomePregnancies(),
         const HomeVaccines(),
         const HomeFollowUps(),

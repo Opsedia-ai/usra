@@ -38,7 +38,7 @@ class BackupNotices extends ConsumerWidget {
     final failure = autoBackupNoticeFailure(auto);
     final outcomes = [
       if (outcome != null)
-        _Notice(
+        BackupNotice(
           key: const ValueKey('restore-outcome'),
           severity: outcome == RestoreOutcome.restored
               ? Severity.good
@@ -49,7 +49,7 @@ class BackupNotices extends ConsumerWidget {
           simple: simple,
         ),
       if (wipe != null)
-        _Notice(
+        BackupNotice(
           key: const ValueKey('wipe-outcome'),
           severity: wipe == WipeOutcome.done ? Severity.good : Severity.actSoon,
           body: wipe == WipeOutcome.done
@@ -69,7 +69,7 @@ class BackupNotices extends ConsumerWidget {
       children: [
         ...outcomes,
         if (ref.watch(databaseRecoveredProvider))
-          _Notice(
+          BackupNotice(
             key: const ValueKey('recovery-notice'),
             severity: Severity.actSoon,
             body: l.recoveryNotice,
@@ -94,7 +94,7 @@ class BackupNotices extends ConsumerWidget {
             ),
           ),
         if (failure != null)
-          _Notice(
+          BackupNotice(
             key: const ValueKey('auto-backup-failed'),
             severity: Severity.actSoon,
             icon: Icons.backup_outlined,
@@ -107,7 +107,7 @@ class BackupNotices extends ConsumerWidget {
             simple: simple,
           ),
         if (auto.unreadable && !auto.settings.enabled)
-          _Notice(
+          BackupNotice(
             key: const ValueKey('auto-backup-unreadable'),
             severity: Severity.headsUp,
             icon: Icons.backup_outlined,
@@ -118,7 +118,7 @@ class BackupNotices extends ConsumerWidget {
             simple: simple,
           ),
         if (auto.settings.contentDropped && !auto.running)
-          _Notice(
+          BackupNotice(
             key: const ValueKey('auto-backup-content-dropped'),
             severity: Severity.actSoon,
             icon: Icons.backup_outlined,
@@ -129,7 +129,7 @@ class BackupNotices extends ConsumerWidget {
             simple: simple,
           ),
         if (!simple && ref.watch(backupDueProvider))
-          _Notice(
+          BackupNotice(
             key: const ValueKey('backup-due'),
             severity: Severity.headsUp,
             icon: Icons.backup_outlined,
@@ -148,8 +148,9 @@ class BackupNotices extends ConsumerWidget {
   }
 }
 
-class _Notice extends StatelessWidget {
-  const _Notice({
+/// A coloured notice on Home or in settings, with an optional button.
+class BackupNotice extends StatelessWidget {
+  const BackupNotice({
     super.key,
     required this.severity,
     required this.body,

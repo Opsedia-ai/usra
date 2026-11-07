@@ -30,7 +30,7 @@ class SimpleHome extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
       children: [
         const BackupNotices(simple: true),
-        const AppLockOfferCard(),
+        const AppLockHomeNotice(),
         Row(
           children: [
             DrUsra(size: 72, semanticLabel: l.homeGreeting),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:usra/app.dart';
+import 'package:usra/core/backup/auto_backup.dart';
 import 'package:usra/core/backup/recovery_key.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/preferences.dart';
@@ -370,6 +371,7 @@ void main() {
     tester.view.physicalSize = const Size(1170, 3600);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
+    await tester.runAsync(() => db.addProfile('جدو'));
     final lock = await openLock(tester);
     await tester.pumpWidget(app(lock, prefs: backedUp()));
     await tester.pumpAndSettle();
@@ -504,9 +506,35 @@ void main() {
     testWidgets('with a backup it goes straight to choosing a PIN', (
       tester,
     ) async {
+      await tester.runAsync(() => db.addProfile('جدو'));
       await toSwitch(tester, prefs: backedUp());
       expect(find.byKey(const ValueKey('lock-no-backup')), findsNothing);
       expect(find.byKey(const ValueKey('pin-1')), findsOneWidget);
+    });
+
+    testWidgets('a backup made before anyone was added doesn\'t count while '
+        'the family is empty', (tester) async {
+      final lock = await toSwitch(tester, prefs: backedUp());
+      expect(find.text('العيلة الأول'), findsOneWidget);
+      expect(find.byKey(const ValueKey('pin-1')), findsNothing);
+      expect(lock.enabled, isFalse);
+    });
+
+    testWidgets('choosing to back up brings Home\'s offer back, even after '
+        '"Not now"', (tester) async {
+      await tester.runAsync(() => db.addProfile('جدو'));
+      final prefs = MemoryKeyValueStore({
+        PrefKeys.tutorialSeen: true,
+        PrefKeys.appLockOffered: true,
+      });
+      await toSwitch(tester, prefs: prefs);
+      await tester.tap(find.byKey(const ValueKey('lock-backup-make')));
+      await tester.pump();
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pumpAndSettle();
+      expect(prefs.getBool(PrefKeys.appLockOffered), isFalse);
     });
 
     testWidgets('someone whose lock was on before the rule keeps it, is '
@@ -643,6 +671,54 @@ void main() {
       expect(offer, findsNothing);
     });
 
+    testWidgets('it doesn\'t come back after the lock is turned on and later '
+        'off', (tester) async {
+      final prefs = backedUp();
+      final lock = await toHome(tester, prefs);
+      await tester.tap(find.byKey(const ValueKey('app-lock-offer-yes')));
+      await tester.pumpAndSettle();
+      await typePin(tester, '730184');
+      await typePin(tester, '730184');
+      await tester.tap(find.byKey(const ValueKey('setup-biometrics-no')));
+      await tester.pump();
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await tester.pumpAndSettle();
+      expect(lock.enabled, isTrue);
+      expect(prefs.getBool(PrefKeys.appLockOffered), isTrue);
+      await tester.runAsync(lock.disable);
+      await tester.pumpAndSettle();
+      expect(offer, findsNothing);
+    });
+
+    testWidgets(
+      'Simple Mode warns on Home when the lock is on with no backup',
+      (tester) async {
+        tester.view.physicalSize = const Size(1170, 4200);
+        tester.view.devicePixelRatio = 3;
+        addTearDown(tester.view.reset);
+        final lock = await lockedWith(tester, '258046');
+        await tester.pumpWidget(
+          app(
+            lock,
+            prefs: MemoryKeyValueStore({
+              PrefKeys.tutorialSeen: true,
+              PrefKeys.simpleMode: true,
+              PrefKeys.elderTutorialSeen: true,
+            }),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await typePin(tester, '258046');
+        expect(
+          find.byKey(const ValueKey('app-lock-no-backup-warning')),
+          findsOneWidget,
+        );
+        expect(offer, findsNothing);
+      },
+    );
+
     testWidgets('Simple Mode gets it on its Home too', (tester) async {
       await toHome(
         tester,
@@ -652,6 +728,80 @@ void main() {
       );
       expect(offer, findsOneWidget);
       expect(find.byKey(const ValueKey('simple-greeting')), findsOneWidget);
+    });
+  });
+
+  testWidgets('a card on the lock screen says what shows and needs the PIN', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final id = (await tester.runAsync(() => db.addProfile('جدو')))!;
+    final lock = await lockedWith(tester, '730184');
+    await tester.pumpWidget(app(lock, prefs: backedUp()));
+    await tester.pumpAndSettle();
+    await typePin(tester, '730184');
+    await tester.tap(find.text('المزيد').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('settings-app-lock')));
+    await tester.pumpAndSettle();
+
+    final person = find.byKey(ValueKey('app-lock-emergency-$id'));
+    await tester.scrollUntilVisible(
+      person,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(person);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('emergency-lock-confirm')),
+      findsOneWidget,
+    );
+    expect(lock.emergencyProfiles, isEmpty);
+    await tester.tap(find.byKey(const ValueKey('emergency-lock-yes')));
+    await tester.pumpAndSettle();
+    expect(find.text('أكّد إنه إنت'), findsOneWidget);
+    await typePin(tester, '730184');
+    expect(lock.emergencyProfiles, {id});
+  });
+
+  group('what counts as a backup', () {
+    bool hasBackup(AutoBackupSettings settings, [KeyValueStore? prefs]) {
+      final container = ProviderContainer(
+        overrides: [
+          autoBackupStoreProvider.overrideWithValue(
+            AutoBackupStore.memory(settings),
+          ),
+          if (prefs != null) keyValueStoreProvider.overrideWithValue(prefs),
+        ],
+      );
+      addTearDown(container.dispose);
+      return container.read(hasBackupProvider);
+    }
+
+    test('one sent somewhere, or restored from', () {
+      expect(hasBackup(const AutoBackupSettings(), backedUp()), isTrue);
+    });
+
+    test('one that landed in the automatic folder', () {
+      expect(hasBackup(AutoBackupSettings(lastAt: DateTime(2026))), isTrue);
+    });
+
+    test('not a failed automatic attempt, or just having it switched on', () {
+      expect(
+        hasBackup(
+          AutoBackupSettings(
+            enabled: true,
+            enabledAt: DateTime(2026),
+            lastAttemptAt: DateTime(2026),
+            failure: AutoBackupFailure.folderMissing,
+          ),
+        ),
+        isFalse,
+      );
     });
   });
 

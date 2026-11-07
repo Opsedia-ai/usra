@@ -8,6 +8,7 @@ import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
 import '../../core/security/app_lock.dart';
 import '../../l10n/app_localizations.dart';
+import '../backup/backup_notices.dart';
 import '../backup/backup_providers.dart';
 import '../backup/backup_screen.dart';
 import '../family/family_screen.dart';
@@ -90,7 +91,6 @@ Future<bool> setUpPin(BuildContext context) async =>
 ///
 /// True when the lock was turned on.
 Future<bool> turnOnLock(BuildContext context, WidgetRef ref) async {
-  if (ref.read(hasBackupProvider)) return setUpPin(context);
   final l = AppLocalizations.of(context);
   bool hasRecords;
   try {
@@ -100,6 +100,11 @@ Future<bool> turnOnLock(BuildContext context, WidgetRef ref) async {
     hasRecords = true;
   }
   if (!context.mounted) return false;
+  if (hasRecords && ref.read(hasBackupProvider)) {
+    final on = await setUpPin(context);
+    if (on) await _setOfferAnswered(ref, true);
+    return on;
+  }
   final backUp = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -123,8 +128,20 @@ Future<bool> turnOnLock(BuildContext context, WidgetRef ref) async {
       ],
     ),
   );
-  if (backUp == true && context.mounted) context.go(backupPath);
+  if (backUp == true && context.mounted) {
+    // They asked for the lock: Home offers it again once the backup is made.
+    await _setOfferAnswered(ref, false);
+    if (context.mounted) context.go(backupPath);
+  }
   return false;
+}
+
+Future<void> _setOfferAnswered(WidgetRef ref, bool answered) async {
+  try {
+    await ref.read(appLockOfferAnsweredProvider.notifier).set(answered);
+  } catch (_) {
+    // Only means Home's offer shows, or doesn't, differently next time.
+  }
 }
 
 class _VerifyScreen extends ConsumerStatefulWidget {
@@ -372,23 +389,30 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
   }
 }
 
-/// Home's optional offer of the lock, in every mode, once there's a backup to
-/// make a forgotten PIN survivable. Nothing is on until a PIN is chosen. "Not
-/// now" hides it for good; the lock stays in More › App lock.
-class AppLockOfferCard extends ConsumerWidget {
-  const AppLockOfferCard({super.key});
+/// What Home says about the lock. Its optional offer, in every mode, once
+/// there's a backup to make a forgotten PIN survivable: nothing is on until a
+/// PIN is chosen, "Not now" hides it for good, and the lock stays in More.
+///
+/// And in Simple Mode, the warning for a lock that's on with no backup, since
+/// Simple Home has no backup reminder and its users rarely open settings.
+class AppLockHomeNotice extends ConsumerWidget {
+  const AppLockHomeNotice({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lock = ref.watch(appLockProvider);
-    final eligible =
-        ref.watch(hasBackupProvider) &&
-        !ref.watch(appLockOfferAnsweredProvider);
+    final hasBackup = ref.watch(hasBackupProvider);
+    final answered = ref.watch(appLockOfferAnsweredProvider);
     final simple = ref.watch(simpleModeProvider);
     return ListenableBuilder(
       listenable: lock,
       builder: (context, _) {
-        if (lock.enabled || !eligible) return const SizedBox.shrink();
+        if (lock.enabled) {
+          return simple && !hasBackup
+              ? const _NoBackupWarning(simple: true)
+              : const SizedBox.shrink();
+        }
+        if (!hasBackup || answered) return const SizedBox.shrink();
         final l = AppLocalizations.of(context);
         final text = Theme.of(context).textTheme;
         return Padding(
@@ -429,7 +453,7 @@ class AppLockOfferCard extends ConsumerWidget {
                     children: [
                       TextButton(
                         key: const ValueKey('app-lock-offer-skip'),
-                        onPressed: () => _notNow(ref),
+                        onPressed: () => _setOfferAnswered(ref, true),
                         child: Text(l.lockOfferSkip),
                       ),
                       FilledButton.tonal(
@@ -447,53 +471,26 @@ class AppLockOfferCard extends ConsumerWidget {
       },
     );
   }
-
-  Future<void> _notNow(WidgetRef ref) async {
-    try {
-      await ref.read(appLockOfferAnsweredProvider.notifier).set(true);
-    } catch (_) {
-      // Only means it's offered again next time.
-    }
-  }
 }
 
 /// The lock was turned on before it needed a backup, and there still isn't
 /// one. The lock stays on: this says what a forgotten PIN would mean and how
 /// to fix it.
 class _NoBackupWarning extends StatelessWidget {
-  const _NoBackupWarning();
+  const _NoBackupWarning({this.simple = false});
+
+  final bool simple;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final text = Theme.of(context).textTheme;
-    const severity = Severity.actSoon;
-    final color = severity.foregroundOf(context);
-    return Container(
+    return BackupNotice(
       key: const ValueKey('app-lock-no-backup-warning'),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: severity.backgroundOf(context),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l.lockOnNoBackupBody,
-            style: text.bodyMedium?.copyWith(color: color),
-          ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: FilledButton.tonal(
-              key: const ValueKey('app-lock-no-backup-make'),
-              onPressed: () => context.go(backupPath),
-              child: Text(l.lockBackupFirstMake),
-            ),
-          ),
-        ],
-      ),
+      severity: Severity.actSoon,
+      body: l.lockOnNoBackupBody,
+      action: l.lockBackupFirstMake,
+      onAction: () => context.go(backupPath),
+      simple: simple,
     );
   }
 }
@@ -611,10 +608,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
           body: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              if (on && !ref.watch(hasBackupProvider)) ...[
-                const _NoBackupWarning(),
-                const SizedBox(height: 20),
-              ],
+              if (on && !ref.watch(hasBackupProvider)) const _NoBackupWarning(),
               Card(
                 child: Column(
                   children: [
