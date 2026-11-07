@@ -266,7 +266,7 @@ Decided on 6 November 2026:
 
 Still open:
 
-- [ ] Names of the pediatrician and obstetrician, and review dates before 31 December
+- [ ] Names of the pediatrician and obstetrician, and review dates before 31 December. The founder reports one doctor accepted the app's full wording on 7 November; name and specialty to be added
 - [ ] Terms of use of the EDA, SFDA and JFDA drug lists
 - [ ] Trademark search results
 - [ ] Legal check that storing name and email in Frankfurt is fine under Egypt's PDPL

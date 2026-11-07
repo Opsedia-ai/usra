@@ -54,7 +54,7 @@ Last updated: 7 November 2026. Update this when a risk changes, closes or appear
 
 | ID | Risk | What could happen | Level | Where it stands | Owner |
 |---|---|---|---|---|---|
-| M1 | Medical content not fully reviewed | Wrong Fever wording, warning signs, vaccine schedule or pregnancy danger signs | High | On 7 November the founder said the doctor accepted what was shared. Which text they saw isn't recorded, and the PRD asks for a paediatrician and an obstetrician. Stays open until that is written down | Founder |
+| M1 | Medical wording changes after review, or a specialty is missed | Text added after the review goes out unchecked. The PRD asks for a paediatrician and an obstetrician | Medium | On 7 November the founder said the doctor accepted the app's full wording. Their name, specialty and review date still need recording. New or changed medical text, including the 30 screens drawn that day, goes back to them | Founder |
 | M2 | Same-ingredient line and suggested hours between doses | Seen as dose advice, or wrong | High | Family types and accepts the hours. Needs review | Founder, doctor |
 | M3 | False reassurance | A status such as "fine" could calm a family when someone is sick | High | Home and Fever rebuilt; doctor sets the wording | Doctor |
 | M4 | Wrong person's dose or record | A dose is marked or a record saved under the wrong person | High | Person is shown in forms. Discreet Taken shows only when no other dose is due within an hour | Build |

@@ -75,6 +75,7 @@ These replace older rows above. `docs/prd-v1.md` holds them too, under "Decided 
 | Person colours | By sex, as the Product Definition says | Founder's choice over the review's neutral option |
 | Canvas | Redraw the `B-` screens in the accepted style, then build them | The canvas should show the final design |
 | Server backups | Planned: opt-in, records only, encrypted on the phone, on a Hostinger KVM 2 VPS. Not live until the gates in `docs/server-backup-plan.md` pass | **Will change the PRD** once live. A lost phone shouldn't lose a family's records. Accounts and seats stay on Supabase Pro |
+| Medical wording | The founder reports that the doctor accepted the app's full wording (7 November). Later changes to medical text go back to them | Name, specialty and date to be added |
 
 ## Open questions
 
