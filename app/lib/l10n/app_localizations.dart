@@ -4790,12 +4790,6 @@ abstract class AppLocalizations {
   /// **'No doses are due yet.'**
   String get vaccineSetupNoneYet;
 
-  /// No description provided for @vaccineSetupSkip.
-  ///
-  /// In en, this message translates to:
-  /// **'Later'**
-  String get vaccineSetupSkip;
-
   /// No description provided for @vaccineSetupSaved.
   ///
   /// In en, this message translates to:
@@ -7488,6 +7482,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get medicineClose;
+
+  /// No description provided for @vaccinesTitleOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s vaccines'**
+  String vaccinesTitleOf(String name);
+
+  /// No description provided for @vaccineProgressLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} doses given'**
+  String vaccineProgressLine(int done, int total);
+
+  /// No description provided for @vaccineNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New vaccine'**
+  String get vaccineNewTitle;
+
+  /// No description provided for @vaccineDoneGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get vaccineDoneGroup;
+
+  /// No description provided for @vaccineDoneGroupLast.
+  ///
+  /// In en, this message translates to:
+  /// **'All given · the last on {date}'**
+  String vaccineDoneGroupLast(String date);
+
+  /// No description provided for @vaccineGroupCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String vaccineGroupCount(int done, int total);
+
+  /// No description provided for @vaccineTickAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick all'**
+  String get vaccineTickAll;
+
+  /// No description provided for @vaccineSetupSkipNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip vaccines for now'**
+  String get vaccineSetupSkipNow;
+
+  /// No description provided for @fieldVaccinePlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Where?'**
+  String get fieldVaccinePlace;
+
+  /// No description provided for @vaccineCardPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo of the vaccine card'**
+  String get vaccineCardPhoto;
+
+  /// No description provided for @vaccineWhich.
+  ///
+  /// In en, this message translates to:
+  /// **'Which vaccine?'**
+  String get vaccineWhich;
+
+  /// No description provided for @vaccineOtherChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Another vaccine'**
+  String get vaccineOtherChoice;
+
+  /// No description provided for @vaccineWhoFor.
+  ///
+  /// In en, this message translates to:
+  /// **'For whom?'**
+  String get vaccineWhoFor;
+
+  /// No description provided for @vaccineSavedFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved: {vaccine} for {name}'**
+  String vaccineSavedFor(String vaccine, String name);
+
+  /// No description provided for @vaccineChoiceOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'{dose} · overdue'**
+  String vaccineChoiceOverdue(String dose);
 
   /// No description provided for @growthTitleOf.
   ///
