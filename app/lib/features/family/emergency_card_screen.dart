@@ -36,6 +36,7 @@ class EmergencyCardScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final profile = ref.watch(profileProvider(profileId));
     final timeline = ref.watch(timelineProvider(profileId));
+    final people = ref.watch(profilesProvider).value ?? const <Profile>[];
     return Scaffold(
       backgroundColor: context.usra.surface,
       appBar: AppBar(
@@ -56,6 +57,33 @@ class EmergencyCardScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
+              // Never a choice on the lock screen, which lists its own people.
+              if (editable && people.length > 1) ...[
+                Semantics(
+                  label: l.emergencyPickPerson,
+                  container: true,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        for (final other in people)
+                          Padding(
+                            padding: const EdgeInsetsDirectional.only(end: 8),
+                            child: ChoiceChip(
+                              key: ValueKey('emergency-person-${other.id}'),
+                              label: Text(other.displayName),
+                              selected: other.id == p.id,
+                              onSelected: (_) => context.replace(
+                                '/family/${other.id}/emergency',
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
               _NameBlock(profile: p),
               const SizedBox(height: 20),
               _Fact(

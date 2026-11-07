@@ -3900,4 +3900,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moreFamily => 'Family';
+
+  @override
+  String get statusSickFemale => 'Unwell';
+
+  @override
+  String get emergencyPickPerson => 'Whose card?';
+
+  @override
+  String get homeLoadError =>
+      'Can\'t read your data right now. Close the app and open it again.';
 }

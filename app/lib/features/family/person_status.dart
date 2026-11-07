@@ -6,6 +6,7 @@ import '../../core/design/pebble.dart';
 import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../l10n/app_localizations.dart';
+import '../children/growth.dart' show isUnderFive;
 import '../children/vaccines_screen.dart' show watchChildVaccines;
 import '../medicines/dose_schedule.dart';
 import '../medicines/medicine_text.dart';
@@ -29,6 +30,16 @@ class PersonStatus {
   final bool needsAttention;
 }
 
+/// How long after its time a dose still counts as just due, so nobody is told
+/// a dose was missed while they're about to give it.
+const doseMissedAfter = Duration(hours: 1);
+
+/// Past due by more than [doseMissedAfter], and neither marked nor snoozed.
+bool isDoseMissed(PlannedDose dose, DateTime now) =>
+    !dose.isDone &&
+    dose.log == null &&
+    now.isAfter(dose.at.add(doseMissedAfter));
+
 /// The person's status; null while something it depends on is loading or
 /// failed, so "nothing needed" is only ever said after checking everything.
 /// [none] is returned when everything was checked and nothing is due.
@@ -47,7 +58,7 @@ PersonStatus? watchPersonStatus(
   if (episodes.any((e) => e.endedAt == null)) {
     return PersonStatus(
       severity: Severity.headsUp,
-      label: l.statusSick,
+      label: person.sex == 'female' ? l.statusSickFemale : l.statusSick,
       icon: Icons.thermostat,
       needsAttention: true,
     );
@@ -57,7 +68,7 @@ PersonStatus? watchPersonStatus(
     for (final d in doses)
       if (d.regimen.person.id == person.id && !d.isDone) d,
   ];
-  if (open.any((d) => d.at.isBefore(now) && d.log == null)) {
+  if (open.any((d) => isDoseMissed(d, now))) {
     return PersonStatus(
       severity: Severity.actSoon,
       label: l.statusDoseMissed,
@@ -66,7 +77,10 @@ PersonStatus? watchPersonStatus(
     );
   }
 
+  // Null for over-fives, and for a child while their records load: only say
+  // "nothing needed" once those are in.
   final vaccines = watchChildVaccines(ref, person);
+  if (vaccines == null && isUnderFive(person.birthDate, now)) return null;
   if (vaccines?.next.overdue.isNotEmpty ?? false) {
     return PersonStatus(
       severity: Severity.actSoon,
@@ -76,14 +90,13 @@ PersonStatus? watchPersonStatus(
     );
   }
 
-  for (final d in open) {
-    if (!d.at.isBefore(now)) {
-      return PersonStatus(
-        severity: Severity.info,
-        label: l.statusDoseNext(formatDoseTime(context, d.at)),
-        icon: Icons.schedule,
-      );
-    }
+  // Anything still open and not missed: coming up, just due, or snoozed.
+  if (open.isNotEmpty) {
+    return PersonStatus(
+      severity: Severity.info,
+      label: l.statusDoseNext(formatDoseTime(context, open.first.at)),
+      icon: Icons.schedule,
+    );
   }
   return none;
 }

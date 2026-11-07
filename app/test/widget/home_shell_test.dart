@@ -148,6 +148,67 @@ void main() {
     expect(find.text('دوا فات'), findsOneWidget);
   });
 
+  testWidgets('a dose stays "next" for an hour, and snoozing keeps it open', (
+    tester,
+  ) async {
+    phone(tester);
+    final ids = await people(tester, ['جدو']);
+    final medicine = await tester.runAsync(
+      () => db.saveMedicine(
+        profileId: ids[0],
+        name: 'جلوكوفاج',
+        startOn: DateTime(2026, 11, 1),
+        // 12:30 is half an hour ago at the test's 13:00.
+        schedule: const DoseScheduleInput(times: ['12:30']),
+      ),
+    );
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    expect(find.text('دوا فات'), findsNothing);
+    expect(find.text('مفيش حاجة مطلوبة'), findsNothing);
+    expect(find.textContaining('دوا ١٢:٣٠'), findsOneWidget);
+
+    await tester.runAsync(
+      () => db.logDose(
+        medicine!,
+        DateTime(2026, 11, 3, 12, 30).toUtc(),
+        DoseOutcome.snoozed,
+        at: now,
+      ),
+    );
+    await settleDb(tester);
+    expect(find.text('مفيش حاجة مطلوبة'), findsNothing);
+  });
+
+  testWidgets('a sick woman is تعبانة', (tester) async {
+    phone(tester);
+    final id = (await tester.runAsync(
+      () => db.addProfile('ليلى', sex: 'female'),
+    ))!;
+    await tester.runAsync(() => db.saveEpisode(profileId: id, startedAt: now));
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    expect(find.text('تعبانة'), findsOneWidget);
+  });
+
+  testWidgets('Emergency can switch to anyone in the family', (tester) async {
+    phone(tester);
+    final ids = (await tester.runAsync(() async {
+      return [
+        await db.addProfile('ليلى'),
+        await db.addProfile('جدو', allergies: 'بنسلين'),
+      ];
+    }))!;
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-emergency')));
+    await tester.pumpAndSettle();
+    expect(find.text('بنسلين'), findsNothing);
+    await tester.tap(find.byKey(ValueKey('emergency-person-${ids[1]}')));
+    await tester.pumpAndSettle();
+    expect(find.text('بنسلين'), findsOneWidget);
+  });
+
   testWidgets('Add makes you choose a person when there are several', (
     tester,
   ) async {

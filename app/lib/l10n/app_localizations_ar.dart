@@ -3874,16 +3874,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get addSheetTitle => 'تضيفي إيه؟';
+  String get addSheetTitle => 'تضيف إيه؟';
 
   @override
   String get addSheetFor => 'لمين؟';
 
   @override
-  String get addSheetPickPerson => 'اختاري الشخص الأول';
+  String get addSheetPickPerson => 'اختار الشخص الأول';
 
   @override
-  String get addSheetNoPeople => 'ضيفي فرد من العيلة الأول';
+  String get addSheetNoPeople => 'ضيف فرد من العيلة الأول';
 
   @override
   String get addMedicine => 'دوا';
@@ -3917,11 +3917,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recordsEmpty =>
-      'لسه مفيش سجلات. اضغطي إضافة وسجّلي أول زيارة أو تحليل.';
+      'لسه مفيش سجلات. دوس إضافة وسجّل أول زيارة أو تحليل.';
 
   @override
   String get recordsAdd => 'إضافة سجل';
 
   @override
   String get moreFamily => 'العيلة';
+
+  @override
+  String get statusSickFemale => 'تعبانة';
+
+  @override
+  String get emergencyPickPerson => 'كارت مين؟';
+
+  @override
+  String get homeLoadError =>
+      'مش قادرين نقرا البيانات دلوقتي. اقفل التطبيق وافتحه تاني.';
 }

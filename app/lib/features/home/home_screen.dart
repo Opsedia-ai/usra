@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -26,13 +28,68 @@ import 'simple_home.dart';
 /// Up to this many people, everyone fits on Home without swiping.
 const _flowingLimit = 4;
 
-class HomeScreen extends ConsumerWidget {
+const _pageGutter = 20.0;
+
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  late final AppLifecycleListener _lifecycle;
+  late final Timer _minute;
+  late DateTime _day = _today();
+
+  DateTime _today() {
+    final now = ref.read(clockProvider)();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  /// Statuses depend on the time, so they move on while the app stays open,
+  /// and today's doses change at midnight.
+  void _refresh() {
+    final today = _today();
+    if (today != _day) {
+      _day = today;
+      ref.invalidate(todayLogsProvider);
+      ref.invalidate(todayDosesProvider);
+    }
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(onResume: _refresh);
+    _minute = Timer.periodic(const Duration(minutes: 1), (_) => _refresh());
+  }
+
+  @override
+  void dispose() {
+    _minute.cancel();
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     if (ref.watch(simpleModeProvider)) return const SimpleHome();
-    final people = ref.watch(profilesProvider).value;
+    final profiles = ref.watch(profilesProvider);
+    if (profiles.hasError && !profiles.hasValue) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Text(
+            AppLocalizations.of(context).homeLoadError,
+            key: const ValueKey('home-load-error'),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+    final people = profiles.value;
     if (people == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -47,7 +104,7 @@ class HomeScreen extends ConsumerWidget {
         p.id: watchPersonStatus(context, ref, p, none: none),
     };
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      padding: const EdgeInsets.fromLTRB(_pageGutter, 16, _pageGutter, 24),
       children: [
         _Header(people: people, statuses: statuses),
         const SizedBox(height: 12),
@@ -380,29 +437,33 @@ class _ScrollingFamily extends StatelessWidget {
           ],
         ),
         const SizedBox(height: UsraSpacing.s2),
-        // Reaches the screen's edge, so the next pebble is cut there.
-        Transform.translate(
-          offset: Offset(
-            Directionality.of(context) == TextDirection.rtl ? -20 : 20,
-            0,
-          ),
-          child: SizedBox(
-            height: height * 2 + UsraSpacing.s3 + 14,
-            child: GridView.builder(
-              key: const ValueKey('home-family-scroller'),
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsetsDirectional.only(end: 40, bottom: 14),
-              clipBehavior: Clip.none,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: UsraSpacing.s3,
-                crossAxisSpacing: UsraSpacing.s3,
-                mainAxisExtent: width,
-              ),
-              itemCount: people.length,
-              itemBuilder: (_, i) => _PersonPebble(
-                person: people[i],
-                status: statuses[people[i].id],
+        // Starts on the page margin and runs out to the screen's edge, so the
+        // next pebble is cut there.
+        SizedBox(
+          height: height * 2 + UsraSpacing.s3 + 14,
+          child: LayoutBuilder(
+            builder: (context, box) => OverflowBox(
+              alignment: AlignmentDirectional.centerStart,
+              minWidth: box.maxWidth + _pageGutter,
+              maxWidth: box.maxWidth + _pageGutter,
+              child: GridView.builder(
+                key: const ValueKey('home-family-scroller'),
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsetsDirectional.only(
+                  end: _pageGutter,
+                  bottom: 14,
+                ),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: UsraSpacing.s3,
+                  crossAxisSpacing: UsraSpacing.s3,
+                  mainAxisExtent: width,
+                ),
+                itemCount: people.length,
+                itemBuilder: (_, i) => _PersonPebble(
+                  person: people[i],
+                  status: statuses[people[i].id],
+                ),
               ),
             ),
           ),

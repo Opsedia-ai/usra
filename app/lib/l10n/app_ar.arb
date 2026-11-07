@@ -1140,10 +1140,10 @@
       }
     }
   },
-  "addSheetTitle": "تضيفي إيه؟",
+  "addSheetTitle": "تضيف إيه؟",
   "addSheetFor": "لمين؟",
-  "addSheetPickPerson": "اختاري الشخص الأول",
-  "addSheetNoPeople": "ضيفي فرد من العيلة الأول",
+  "addSheetPickPerson": "اختار الشخص الأول",
+  "addSheetNoPeople": "ضيف فرد من العيلة الأول",
   "addMedicine": "دوا",
   "addVaccine": "تطعيم",
   "addVisit": "زيارة",
@@ -1154,7 +1154,10 @@
   "addInsurance": "كارت تأمين",
   "recordsTitle": "السجلات",
   "recordsAll": "الكل",
-  "recordsEmpty": "لسه مفيش سجلات. اضغطي إضافة وسجّلي أول زيارة أو تحليل.",
+  "recordsEmpty": "لسه مفيش سجلات. دوس إضافة وسجّل أول زيارة أو تحليل.",
   "recordsAdd": "إضافة سجل",
-  "moreFamily": "العيلة"
+  "moreFamily": "العيلة",
+  "statusSickFemale": "تعبانة",
+  "emergencyPickPerson": "كارت مين؟",
+  "homeLoadError": "مش قادرين نقرا البيانات دلوقتي. اقفل التطبيق وافتحه تاني."
 }

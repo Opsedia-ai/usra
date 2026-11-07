@@ -2089,5 +2089,8 @@
   "recordsAll": "All",
   "recordsEmpty": "No records yet. Tap Add to log a first visit or test.",
   "recordsAdd": "Add a record",
-  "moreFamily": "Family"
+  "moreFamily": "Family",
+  "statusSickFemale": "Unwell",
+  "emergencyPickPerson": "Whose card?",
+  "homeLoadError": "Can't read your data right now. Close the app and open it again."
 }

@@ -6319,6 +6319,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Family'**
   String get moreFamily;
+
+  /// No description provided for @statusSickFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Unwell'**
+  String get statusSickFemale;
+
+  /// No description provided for @emergencyPickPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Whose card?'**
+  String get emergencyPickPerson;
+
+  /// No description provided for @homeLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t read your data right now. Close the app and open it again.'**
+  String get homeLoadError;
 }
 
 class _AppLocalizationsDelegate

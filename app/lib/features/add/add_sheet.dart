@@ -47,7 +47,11 @@ class _AddSheetState extends ConsumerState<AddSheet> {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     final people = ref.watch(profilesProvider).value ?? const <Profile>[];
-    final person = people.length == 1 ? people.single.id : _person;
+    final person = people.length == 1
+        ? people.single.id
+        : people.any((p) => p.id == _person)
+        ? _person
+        : null;
     final items = <(String, IconData, String)>[
       ('medicines/new', Icons.medication_outlined, l.addMedicine),
       ('add/vaccine', Icons.vaccines_outlined, l.addVaccine),
