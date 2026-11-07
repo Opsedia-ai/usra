@@ -98,10 +98,11 @@ void main() {
     expect(scheduler.lastRequestedExactAlarms, isFalse);
 
     // The vaccine page, with the counter.
-    expect(find.text('التطعيمات'), findsWidgets);
-    expect(inKey('vaccine-required-$kid', '4/15'), findsOneWidget);
-    expect(inKey('vaccine-optional-$kid', '1/4'), findsOneWidget);
+    expect(find.text('تطعيمات ليلى'), findsWidgets);
+    expect(inKey('vaccine-required-$kid', '٤/١٥'), findsOneWidget);
+    expect(inKey('vaccine-optional-$kid', '١/٤'), findsOneWidget);
     expect(inKey('dose-hexa-1', 'اتاخد'), findsOneWidget);
+    await tapKey(tester, 'vaccine-done-group');
     expect(inKey('dose-bcg-1', 'اتاخد'), findsOneWidget);
     // Saved as ordinary vaccine records, with the due date as the date.
     final events = (await tester.runAsync(() => db.watchTimeline(kid).first))!;
@@ -145,7 +146,7 @@ void main() {
     await tapKey(tester, 'dose-save');
     expect(inKey('dose-hexa-2', 'اتأجلت عشان دور برد'), findsOneWidget);
     expect(inKey('dose-hexa-2', 'اتاخد'), findsOneWidget);
-    expect(inKey('vaccine-required-$kid', '5/15'), findsOneWidget);
+    expect(inKey('vaccine-required-$kid', '٥/١٥'), findsOneWidget);
 
     // Home: the child's next visit and what's overdue.
     router.go('/home');

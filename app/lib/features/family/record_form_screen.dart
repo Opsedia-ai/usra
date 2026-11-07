@@ -82,22 +82,10 @@ class RecordFormScreen extends ConsumerWidget {
             : formatMoneyInput(saved!.costMinor!),
         initialDoctorId: saved?.doctorId,
         doctors: doctors,
-        strings: RecordFormStrings(
-          date: l.recordDate,
-          clearDate: l.recordClearDate,
-          cost: l.recordCost,
-          currency: l.currencyEgp,
-          save: l.familySave,
-          required: l.fieldRequired,
-          invalid: l.fieldInvalid,
-          pickDate: l.pickDate,
-          chooseDoctor: l.chooseDoctor,
-          photos: l.recordPhotos,
-          photoCamera: l.photoCamera,
-          photoGallery: l.photoGallery,
-          photoRemove: l.photoRemove,
-        ),
-        pickPhotos: (source) => _pickPhotos(context, ref, source),
+        strings: recordFormStrings(l),
+        // A vaccine record says what was given: it can't be in the future.
+        lastOccurredAt: typeKey == 'vaccine' ? DateTime.now() : null,
+        pickPhotos: (source) => pickRecordPhotos(context, ref, source),
         onSubmit: (result) async {
           if (!editing && !await ref.read(saveGateProvider).allow()) return;
           if (!context.mounted) return;
@@ -161,23 +149,40 @@ class RecordFormScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Future<List<String>> _pickPhotos(
-    BuildContext context,
-    WidgetRef ref,
-    ImageSource source,
-  ) async {
-    final failed = AppLocalizations.of(context).photoFailed;
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      if (source == ImageSource.gallery) {
-        return await ref.read(multiPhotoPickerProvider)();
-      }
-      final path = await ref.read(photoPickerProvider)(source);
-      return [?path];
-    } catch (_) {
-      messenger.showSnackBar(SnackBar(content: Text(failed)));
-      return const [];
+/// The words of [RecordForm], in the app's language.
+RecordFormStrings recordFormStrings(AppLocalizations l) => RecordFormStrings(
+  date: l.recordDate,
+  clearDate: l.recordClearDate,
+  cost: l.recordCost,
+  currency: l.currencyEgp,
+  save: l.familySave,
+  required: l.fieldRequired,
+  invalid: l.fieldInvalid,
+  pickDate: l.pickDate,
+  chooseDoctor: l.chooseDoctor,
+  photos: l.recordPhotos,
+  photoCamera: l.photoCamera,
+  photoGallery: l.photoGallery,
+  photoRemove: l.photoRemove,
+);
+
+Future<List<String>> pickRecordPhotos(
+  BuildContext context,
+  WidgetRef ref,
+  ImageSource source,
+) async {
+  final failed = AppLocalizations.of(context).photoFailed;
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    if (source == ImageSource.gallery) {
+      return await ref.read(multiPhotoPickerProvider)();
     }
+    final path = await ref.read(photoPickerProvider)(source);
+    return [?path];
+  } catch (_) {
+    messenger.showSnackBar(SnackBar(content: Text(failed)));
+    return const [];
   }
 }
