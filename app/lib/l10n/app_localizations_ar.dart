@@ -150,7 +150,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get aboutLinkFailed => 'مقدرناش نفتح الصفحة. اتأكد من النت.';
 
   @override
-  String get familyNew => 'شخص جديد';
+  String get familyNew => 'فرد جديد';
 
   @override
   String get familyEdit => 'تعديل';
@@ -4196,16 +4196,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get addSheetTitle => 'تضيف إيه؟';
+  String get addSheetTitle => 'هنضيف إيه؟';
 
   @override
   String get addSheetFor => 'لمين؟';
 
   @override
-  String get addSheetPickPerson => 'اختار الشخص الأول';
+  String get addSheetPickPerson => 'اختيار الشخص الأول';
 
   @override
-  String get addSheetNoPeople => 'ضيف فرد من العيلة الأول';
+  String get addSheetNoPeople => 'أول حاجة: فرد من العيلة';
 
   @override
   String get addMedicine => 'دوا';
@@ -4230,6 +4230,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get addInsurance => 'كارت تأمين';
+
+  @override
+  String get addSurgery => 'عملية';
+
+  @override
+  String get addPhotoTitle => 'صورة علبة دوا';
+
+  @override
+  String get addPhotoHint =>
+      'بنقرا على الموبايل الكلام المطبوع بالإنجليزي بس، والاسم والتركيز لازم يتأكدوا.';
+
+  @override
+  String get profileMoreDetails => 'تفاصيل أكتر';
+
+  @override
+  String profileSaveNamed(String name) {
+    return 'حفظ $name';
+  }
 
   @override
   String get recordsTitle => 'السجلات';
