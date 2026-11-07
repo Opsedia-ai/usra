@@ -233,7 +233,10 @@ void main() {
     tester,
   ) async {
     final (id, other) = (await tester.runAsync(
-      () async => (await db.addProfile('جدو'), await db.addProfile('منى')),
+      () async => (
+        await db.addProfile('جدو', emergencyPhone: '010 1234'),
+        await db.addProfile('منى'),
+      ),
     ))!;
     final lock = await lockedWith(tester, '258046', emergency: id);
     await tester.pumpWidget(app(lock));
@@ -250,6 +253,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('كارت الطوارئ'), findsWidgets);
     expect(find.byKey(const ValueKey('emergency-blood')), findsOneWidget);
+    // Someone to call is what the card is for here.
+    expect(find.byKey(const ValueKey('emergency-contact')), findsOneWidget);
     // Nothing on it leads into the app.
     expect(find.byKey(const ValueKey('emergency-complete')), findsNothing);
     expect(find.byKey(const ValueKey('emergency-lock-switch')), findsNothing);

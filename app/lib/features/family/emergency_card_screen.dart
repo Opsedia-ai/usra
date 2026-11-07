@@ -12,6 +12,7 @@ import '../../core/security/app_lock.dart';
 import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../app_lock/app_lock_module.dart' show confirmEmergencyOnLock;
+import '../doctors/contact_links.dart' show callUri;
 import '../doctors/call_buttons.dart';
 import '../medicines/medicine_text.dart';
 import '../medicines/medicines_providers.dart';
@@ -91,6 +92,14 @@ class EmergencyCardScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: UsraSpacing.s3),
+            ],
+            // Under the people, so it's clear whose it is and they don't move
+            // as it comes and goes.
+            if (profile.value case final p?) ...[
+              if (callUri(p.emergencyPhone) case final call?) ...[
+                _EmergencyContact(person: p, call: call),
+                const SizedBox(height: UsraSpacing.s3),
+              ],
             ],
             ...profile.when(
               loading: () => [const Center(child: CircularProgressIndicator())],
@@ -217,6 +226,99 @@ class _AmbulanceButton extends StatelessWidget {
             localizedDigits(context, int.parse(ambulanceNumber)),
           ),
           semanticsLabel: l.emergencyCallAmbulance(ambulanceNumber),
+        ),
+      ),
+    );
+  }
+}
+
+/// The number to call for this person, and whose it is. The phone's own dialer
+/// asks before calling. Reachable from the lock screen too: finding someone to
+/// call is what the card is for there. Follows the card's language.
+class _EmergencyContact extends ConsumerWidget {
+  const _EmergencyContact({required this.person, required this.call});
+
+  final Profile person;
+  final Uri call;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final other = ref.watch(_otherLanguageProvider);
+    final appLanguage = Localizations.localeOf(context).languageCode;
+    final l = lookupAppLocalizations(
+      Locale(
+        !other
+            ? appLanguage
+            : appLanguage == 'ar'
+            ? 'en'
+            : 'ar',
+      ),
+    );
+    final c = context.usra;
+    final phone = person.emergencyPhone!;
+    final holder = person.emergencyContactName;
+    final name = holder ?? l.emergencyContactNoName;
+    const shape = StadiumBorder();
+    final nameText = Text(
+      name,
+      style: UsraType.body.copyWith(color: c.ink, fontWeight: FontWeight.w600),
+    );
+    final phoneText = Text(
+      phone,
+      key: const ValueKey('emergency-contact-phone'),
+      textDirection: TextDirection.ltr,
+      style: UsraType.body.copyWith(color: c.ink),
+    );
+    // A number must never break across lines, so with big text it gets its own.
+    final stacked = MediaQuery.textScalerOf(context).scale(100) >= 130;
+    void dial() => openContact(context, call);
+    return Semantics(
+      button: true,
+      label: holder == null
+          ? l.emergencyCallNumber(phone)
+          : l.emergencyCallContact(holder, phone),
+      onTap: dial,
+      excludeSemantics: true,
+      child: Material(
+        color: c.surface,
+        shape: shape,
+        elevation: 1,
+        shadowColor: c.ink.withValues(alpha: 0.2),
+        child: InkWell(
+          key: const ValueKey('emergency-contact'),
+          customBorder: shape,
+          onTap: dial,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 64),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              child: Row(
+                spacing: 12,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: c.goodSoft,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.call, color: c.good, size: 22),
+                  ),
+                  if (stacked)
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [nameText, phoneText],
+                      ),
+                    )
+                  else ...[
+                    Expanded(child: nameText),
+                    phoneText,
+                  ],
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

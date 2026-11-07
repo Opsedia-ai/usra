@@ -1,13 +1,31 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
+import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../children/growth.dart' show isUnderFive;
+import '../doctors/contact_links.dart' show isCallablePhone;
 
 const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+/// How a person is related to the one using the app, as saved.
+const relationships = [
+  'son',
+  'daughter',
+  'husband',
+  'wife',
+  'father',
+  'mother',
+  'brother',
+  'sister',
+  'grandfather',
+  'grandmother',
+  'other',
+];
 
 /// Adds a person, or edits one when [profileId] is given.
 class ProfileFormScreen extends ConsumerStatefulWidget {
@@ -23,9 +41,13 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
   final _name = TextEditingController();
   final _allergies = TextEditingController();
   final _conditions = TextEditingController();
+  final _emergencyPhone = TextEditingController();
+  final _emergencyContact = TextEditingController();
   DateTime? _birthDate;
   String? _sex;
   String? _bloodType;
+  String? _relationship;
+  bool _phoneInvalid = false;
   bool _simpleMode = false;
   bool _loaded = false;
   bool _nameMissing = false;
@@ -53,6 +75,9 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
         _sex = p.sex;
         _bloodType = p.bloodType;
         _simpleMode = p.simpleMode;
+        _relationship = p.relationship;
+        _emergencyPhone.text = p.emergencyPhone ?? '';
+        _emergencyContact.text = p.emergencyContactName ?? '';
       }
       _loaded = true;
     });
@@ -63,14 +88,20 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
     _name.dispose();
     _allergies.dispose();
     _conditions.dispose();
+    _emergencyPhone.dispose();
+    _emergencyContact.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
-    if (_name.text.trim().isEmpty) {
-      setState(() => _nameMissing = true);
-      return;
-    }
+    final phone = _emergencyPhone.text.trim();
+    // A number that can't be called is worse than none on an emergency card.
+    final phoneInvalid = phone.isNotEmpty && !isCallablePhone(phone);
+    setState(() {
+      _nameMissing = _name.text.trim().isEmpty;
+      _phoneInvalid = phoneInvalid;
+    });
+    if (_nameMissing || phoneInvalid) return;
     setState(() => _saving = true);
     final db = ref.read(databaseProvider);
     final id = widget.profileId;
@@ -85,6 +116,9 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
           allergies: _allergies.text,
           conditions: _conditions.text,
           simpleMode: _simpleMode,
+          relationship: _relationship,
+          emergencyPhone: phone,
+          emergencyContactName: _emergencyContact.text,
         );
       } else {
         await db.updateProfile(
@@ -96,6 +130,9 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
           allergies: _allergies.text,
           conditions: _conditions.text,
           simpleMode: _simpleMode,
+          relationship: Value(_relationship),
+          emergencyPhone: Value(phone),
+          emergencyContactName: Value(_emergencyContact.text),
         );
         savedId = id;
       }
@@ -123,6 +160,10 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
+    // Related to whom? Not asked about the person using the app.
+    final isMe =
+        widget.profileId != null &&
+        widget.profileId == ref.watch(meProfileIdProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.profileId == null ? l.familyNew : l.familyEdit),
@@ -140,6 +181,28 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                     errorText: _nameMissing ? l.fieldRequired : null,
                   ),
                 ),
+                if (!isMe) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    l.profileRelationship,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final r in relationships)
+                        ChoiceChip(
+                          key: ValueKey('profile-relationship-$r'),
+                          label: Text(l.relationshipMine(r)),
+                          selected: _relationship == r,
+                          onSelected: (on) =>
+                              setState(() => _relationship = on ? r : null),
+                        ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 16),
                 InkWell(
                   key: const ValueKey('profile-birthDate'),
@@ -196,6 +259,29 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                 TextField(
                   controller: _conditions,
                   decoration: InputDecoration(labelText: l.profileConditions),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  key: const ValueKey('profile-emergency-phone'),
+                  controller: _emergencyPhone,
+                  keyboardType: TextInputType.phone,
+                  textDirection: TextDirection.ltr,
+                  decoration: InputDecoration(
+                    labelText: l.profileEmergencyPhone,
+                    helperText: l.profileEmergencyPhoneHint,
+                    helperMaxLines: 2,
+                    errorText: _phoneInvalid ? l.profileEmergencyInvalid : null,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  key: const ValueKey('profile-emergency-name'),
+                  controller: _emergencyContact,
+                  decoration: InputDecoration(
+                    labelText: l.profileEmergencyName,
+                    helperText: l.profileEmergencyNameHint,
+                    helperMaxLines: 2,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 SwitchListTile(

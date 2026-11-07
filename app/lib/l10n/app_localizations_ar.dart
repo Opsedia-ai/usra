@@ -162,6 +162,74 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileSex => 'النوع';
 
   @override
+  String get profileRelationship => 'صلة القرابة';
+
+  @override
+  String relationshipMine(String relationship) {
+    String _temp0 = intl.Intl.selectLogic(relationship, {
+      'son': 'ابني',
+      'daughter': 'بنتي',
+      'husband': 'جوزي',
+      'wife': 'مراتي',
+      'father': 'بابا',
+      'mother': 'ماما',
+      'brother': 'أخويا',
+      'sister': 'أختي',
+      'grandfather': 'جدو',
+      'grandmother': 'تيتة',
+      'other': 'حد تاني',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String relationshipYours(String relationship) {
+    String _temp0 = intl.Intl.selectLogic(relationship, {
+      'son': 'ابنك',
+      'daughter': 'بنتك',
+      'husband': 'جوزك',
+      'wife': 'مراتك',
+      'father': 'باباك',
+      'mother': 'مامتك',
+      'brother': 'أخوك',
+      'sister': 'أختك',
+      'grandfather': 'جدك',
+      'grandmother': 'تيتتك',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get profileEmergencyPhone => 'رقم للطوارئ';
+
+  @override
+  String get profileEmergencyPhoneHint =>
+      'اختياري. بيظهر في كارت الطوارئ، وعلى قفل أسرة لو الكارت متاح هناك.';
+
+  @override
+  String get profileEmergencyInvalid => 'ده مش رقم تليفون.';
+
+  @override
+  String get profileEmergencyName => 'صاحب الرقم';
+
+  @override
+  String get profileEmergencyNameHint => 'اختياري. مثلًا: آية، مامته.';
+
+  @override
+  String get emergencyContactNoName => 'رقم للطوارئ';
+
+  @override
+  String emergencyCallNumber(String phone) {
+    return 'اتصل برقم الطوارئ: $phone';
+  }
+
+  @override
+  String emergencyCallContact(String name, String phone) {
+    return 'اتصل بـ $name: $phone';
+  }
+
+  @override
   String get sexFemale => 'أنثى';
 
   @override
@@ -2581,7 +2649,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lockSettingsEmergencyHint =>
-      'فصيلة الدم والحساسية والأمراض والعمليات والأدوية الحالية للناس اللي هتختارهم هنا، أي حد ماسك الموبايل وأسرة مفتوحة يقدر يشوفها من غير الرقم السري. ده قفل أسرة، مش قفل الموبايل: للموبايل المقفول استخدم Medical ID بتاع الموبايل نفسه.';
+      'فصيلة الدم والحساسية والأمراض والعمليات والأدوية الحالية ورقم الطوارئ وصاحبه للناس اللي هتختارهم هنا، أي حد ماسك الموبايل وأسرة مفتوحة يقدر يشوفها من غير الرقم السري. ده قفل أسرة، مش قفل الموبايل: للموبايل المقفول استخدم Medical ID بتاع الموبايل نفسه.';
 
   @override
   String get lockVerifyTitle => 'أكّد إنه إنت';
@@ -4373,7 +4441,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lockEmergencyConfirmBody =>
-      'أي حد ماسك الموبايل وأسرة مفتوحة هيقدر يشوف فصيلة الدم والحساسية والأمراض والعمليات والأدوية الحالية من غير الرقم السري. ده قفل أسرة، مش قفل الموبايل.';
+      'أي حد ماسك الموبايل وأسرة مفتوحة هيقدر يشوف فصيلة الدم والحساسية والأمراض والعمليات والأدوية الحالية ورقم الطوارئ وصاحبه من غير الرقم السري. ده قفل أسرة، مش قفل الموبايل.';
 
   @override
   String get lockEmergencyConfirmYes => 'أيوه، يظهر';

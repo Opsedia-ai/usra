@@ -35,7 +35,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// What this app's database is at, without needing one open: restoring on
   /// the screen for a database that won't open checks backups against it.
-  static const currentSchema = 8;
+  static const currentSchema = 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -85,6 +85,12 @@ class AppDatabase extends _$AppDatabase {
           );
         }
       }
+      if (from < 9) {
+        // Safe to run twice, for the reason above.
+        await _addColumnIfMissing(m, profiles, profiles.relationship);
+        await _addColumnIfMissing(m, profiles, profiles.emergencyPhone);
+        await _addColumnIfMissing(m, profiles, profiles.emergencyContactName);
+      }
     },
     // A database from a newer build (from > to): opened as it is; the
     // newer tables and columns are kept for when the app is updated again.
@@ -121,6 +127,10 @@ class AppDatabase extends _$AppDatabase {
     String? allergies,
     String? conditions,
     bool? simpleMode,
+    // Left out, they stay as they are: only the person form changes them.
+    Value<String?> relationship = const Value.absent(),
+    Value<String?> emergencyPhone = const Value.absent(),
+    Value<String?> emergencyContactName = const Value.absent(),
   }) async {
     final name = displayName.trim();
     if (name.isEmpty) {
@@ -130,6 +140,8 @@ class AppDatabase extends _$AppDatabase {
         'must not be empty',
       );
     }
+    Value<String?> cleaned(Value<String?> v) =>
+        v.present ? Value(_clean(v.value)) : v;
     await transaction(() async {
       await (update(profiles)..where((p) => p.id.equals(id))).write(
         ProfilesCompanion(
@@ -139,6 +151,9 @@ class AppDatabase extends _$AppDatabase {
           bloodType: Value(_clean(bloodType)),
           allergies: Value(_clean(allergies)),
           conditions: Value(_clean(conditions)),
+          relationship: cleaned(relationship),
+          emergencyPhone: cleaned(emergencyPhone),
+          emergencyContactName: cleaned(emergencyContactName),
           simpleMode: Value.absentIfNull(simpleMode),
           updatedAt: Value(DateTime.now().toUtc()),
         ),
@@ -165,6 +180,9 @@ class AppDatabase extends _$AppDatabase {
     String? allergies,
     String? conditions,
     bool? simpleMode,
+    String? relationship,
+    String? emergencyPhone,
+    String? emergencyContactName,
   }) async {
     final name = displayName.trim();
     if (name.isEmpty) {
@@ -185,6 +203,9 @@ class AppDatabase extends _$AppDatabase {
           bloodType: Value(_clean(bloodType)),
           allergies: Value(_clean(allergies)),
           conditions: Value(_clean(conditions)),
+          relationship: Value(_clean(relationship)),
+          emergencyPhone: Value(_clean(emergencyPhone)),
+          emergencyContactName: Value(_clean(emergencyContactName)),
           simpleMode: Value.absentIfNull(simpleMode),
           updatedAt: DateTime.now().toUtc(),
         ),
