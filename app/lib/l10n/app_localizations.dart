@@ -7645,6 +7645,42 @@ abstract class AppLocalizations {
   /// **'Outside the usual range'**
   String get growthTabOutside;
 
+  /// No description provided for @pregnancyAddRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a visit or test'**
+  String get pregnancyAddRecord;
+
+  /// No description provided for @pregnancyNextTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming up'**
+  String get pregnancyNextTitle;
+
+  /// No description provided for @pregnancyPastTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get pregnancyPastTitle;
+
+  /// No description provided for @pregnancySupplementsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicines and supplements today'**
+  String get pregnancySupplementsTitle;
+
+  /// No description provided for @pregnancySupplementsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing recorded for today.'**
+  String get pregnancySupplementsEmpty;
+
+  /// No description provided for @pregnancySupplementsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a medicine or supplement'**
+  String get pregnancySupplementsAdd;
+
   /// No description provided for @reportSummaryNotOpinion.
   ///
   /// In en, this message translates to:
