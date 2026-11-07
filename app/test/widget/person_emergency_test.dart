@@ -333,7 +333,7 @@ void main() {
       expect(await logs(), hasLength(1));
       expect(doseCard, findsNothing);
 
-      await tester.tap(find.text('رجوع'));
+      await tester.tap(find.text('تراجع'));
       await settleDb(tester);
       expect(await logs(), isEmpty);
       expect(doseCard, findsOneWidget);

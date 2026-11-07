@@ -135,6 +135,7 @@ void main() {
   ) async {
     final sara = await open(tester, (id) => '/family/$id/medicines/new');
     await type(tester, 'medicine-name', 'دواء');
+    await tapKey(tester, 'medicine-more');
     await tapKey(tester, 'medicine-photo-camera');
     await tapKey(tester, 'medicine-save');
 
@@ -202,13 +203,17 @@ void main() {
     ) async {
       await open(tester, (id) => '/family/$id/$path');
       final omar = (await tester.runAsync(() => db.addProfile('عمر')))!;
+      // The medicine form keeps its photos under "more details".
+      if (name == 'medicine') await tapKey(tester, 'medicine-more');
       await tapKey(tester, pickKey);
       expect(find.byKey(ValueKey(preview)), findsOneWidget);
 
       GoRouter.of(tester.element(find.byType(Scaffold).first))
           .go('/family/$omar/$path');
       await tester.pumpAndSettle();
+      if (name == 'medicine') await tapKey(tester, 'medicine-more');
 
+      expect(find.byKey(ValueKey(pickKey)), findsOneWidget);
       expect(find.byKey(ValueKey(preview)), findsNothing);
     });
   }

@@ -240,6 +240,7 @@ void main() {
     go(tester, '/family/$p/medicines/new');
     await settle(tester);
     await tester.enterText(find.byKey(const ValueKey('medicine-name')), 'Adol');
+    await tapKey(tester, 'medicine-more');
     await tester.enterText(
       find.byKey(const ValueKey('medicine-instructions')),
       'كل ٤-٦ ساعات',

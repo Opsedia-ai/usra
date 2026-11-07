@@ -544,7 +544,7 @@
   "scanMedicineNoneFound": "Couldn't find a medicine name. Type it in, or try another photo.",
   "scanMedicineFailed": "Couldn't read this photo. Try another one, or type the name in.",
   "scanMedicineName": "Medicine name",
-  "scanMedicineStrength": "Strength (optional), e.g. 500mg",
+  "scanMedicineStrength": "Strength (optional)",
   "scanMedicineCheck": "Check the name against the box before you use it.",
   "scanMedicineUse": "Use this",
   "scanMedicineRetake": "Another photo",
@@ -706,8 +706,8 @@
   "medicinesTodayTitle": "Today's medicines",
   "medicinesTodayEmpty": "No doses due today. Add a medicine from a person's page in Family.",
   "doseTaken": "Taken",
-  "doseSkip": "Skip",
-  "doseSkipped": "Skipped",
+  "doseSkip": "Not taken",
+  "doseSkipped": "Not taken",
   "doseSnoozed": "Snoozed",
   "doseSnooze": "Snooze 10 min",
   "doseUndo": "Undo",
@@ -789,7 +789,7 @@
   },
   "medicineNoTimes": "No times means no reminders (as needed).",
   "medicineAmount": "Amount each time",
-  "medicineAmountHint": "As the doctor wrote it, e.g. 1 tablet",
+  "medicineAmountHint": "As the doctor wrote it",
   "medicineRepeat": "How often",
   "repeatDaily": "Every day",
   "repeatWeekdays": "Some days",
@@ -1560,7 +1560,7 @@
   },
   "prescriptionRemoveMedicine": "Remove this medicine",
   "prescriptionDose": "Dose, as the doctor wrote it",
-  "prescriptionDoseHint": "e.g. 5 ml after meals",
+  "prescriptionDoseHint": "Exactly as written on the prescription",
   "prescriptionTimesPerDay": "Times a day (you can change the times)",
   "prescriptionTimesN": "{count, plural, =1{Once} =2{Twice} other{{count} times}}",
   "@prescriptionTimesN": {
@@ -1647,7 +1647,7 @@
       }
     }
   },
-  "prescriptionTimesHint": "Check the times match what the doctor wrote, e.g. every 8 hours.",
+  "prescriptionTimesHint": "Check the times match what the doctor wrote.",
   "growthNoPrematurity": "Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart.",
   "reportAppLine": "Made with Usra (أسرة), a family health app",
   "reportGenerated": "Generated on {date}",
@@ -2463,5 +2463,128 @@
   "lockEmergencyConfirmYes": "Yes, show it",
   "insuranceCopyNumber": "Copy member number",
   "insuranceCopyFailed": "Couldn't copy the number",
-  "insuranceNumberCopied": "Member number copied"
+  "insuranceNumberCopied": "Member number copied",
+  "doseGroupMissed": "Missed",
+  "doseGroupNow": "Now",
+  "doseGroupDone": "Logged",
+  "dayPartMorning": "Morning",
+  "dayPartNoon": "Noon",
+  "dayPartAfternoon": "Afternoon",
+  "dayPartNight": "Night",
+  "doseSnoozeShort": "In 10 min",
+  "doseTakenEarly": "Taken early",
+  "doseSnoozedUntil": "Snoozed until {time}",
+  "@doseSnoozedUntil": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "doseLoggedEarly": "Logged early: {medicine} for {person}",
+  "@doseLoggedEarly": {
+    "placeholders": {
+      "medicine": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "doseLoggedNotTaken": "Logged as not taken: {medicine} for {person}",
+  "@doseLoggedNotTaken": {
+    "placeholders": {
+      "medicine": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "doseLoggedSnoozed": "Reminder in 10 minutes: {medicine} for {person}",
+  "@doseLoggedSnoozed": {
+    "placeholders": {
+      "medicine": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "medicinesAll": "All medicines",
+  "medicinesFilterAll": "All",
+  "medicinesTodayEmptyFor": "No medicines for {name} today.",
+  "@medicinesTodayEmptyFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "medicineFor": "This medicine is for {name}",
+  "@medicineFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "medicineForChange": "Change",
+  "medicineForPick": "Who is this medicine for?",
+  "medicineSaveFor": "Save for {name}",
+  "@medicineSaveFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "medicineSaveForRemind": "Save for {name} and remind me",
+  "@medicineSaveForRemind": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "medicineSavedFor": "Saved: {medicine} for {name}",
+  "@medicineSavedFor": {
+    "placeholders": {
+      "medicine": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "medicineScanOption": "Read the name from a box photo",
+  "medicineScanOptionBody": "You'll check the name and strength before saving",
+  "medicineScanRead": "Read from the box photo",
+  "medicineScanReview": "Check the details on the box before saving",
+  "medicineScanConfirm": "I checked the name and strength on the box",
+  "medicineScanConfirmNeeded": "Tick this once you've checked the name and strength",
+  "medicineUnsureValue": "We're not sure of this reading. Check it on the box",
+  "medicineFreqOnce": "Once a day",
+  "medicineFreqTwice": "Twice",
+  "medicineFreqThrice": "3 times",
+  "medicineFreqAsNeeded": "When needed",
+  "medicineAddAnotherTime": "Another time",
+  "medicineChangeTime": "Change {time}",
+  "@medicineChangeTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "medicineOngoing": "Ongoing",
+  "medicineUntilDate": "Until a date",
+  "medicineLastDay": "Last day",
+  "medicineMoreDetails": "More details",
+  "medicineLessDetails": "Fewer details",
+  "medicineClose": "Close"
 }
