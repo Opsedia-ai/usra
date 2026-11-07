@@ -1075,5 +1075,90 @@
   "backupContentDroppedBody": "فيها أشخاص أو سجلات أو صور أقل، أو فيه صور ناقصة، فسيبنا النسخ القديمة زي ما هي. لو إنت مسحتهم بنفسك، أكّد ده. لو لأ، رجّع نسخة أقدم.",
   "backupContentDroppedAccept": "أنا اللي مسحتهم",
   "backupAutoFolderTop": "الفولدر الرئيسي للمكان اللي اخترته",
-  "aboutPrivacyBackupAuto": "لو شغّلت النسخ التلقائي، أسرة بتحفظ الملف ده لوحدها في فولدر تختاره. مش بتبعتلنا حاجة، ومش هتستخدم iCloud Drive."
+  "aboutPrivacyBackupAuto": "لو شغّلت النسخ التلقائي، أسرة بتحفظ الملف ده لوحدها في فولدر تختاره. مش بتبعتلنا حاجة، ومش هتستخدم iCloud Drive.",
+  "navRecords": "السجلات",
+  "navAdd": "إضافة",
+  "homeMorning": "صباح الخير",
+  "homeEvening": "مساء الخير",
+  "homeNothingNeeded": "مفيش حاجة مطلوبة",
+  "homeNeedsAttentionOne": "محتاج انتباهك",
+  "homeNeedsAttentionMany": "محتاجين انتباهك",
+  "homeNamesJoin": "و",
+  "homeFamily": "العيلة",
+  "homeAllFamily": "كل العيلة ({count})",
+  "@homeAllFamily": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "homeUpcoming": "الجاي النهارده",
+  "homeNewPerson": "فرد جديد",
+  "homeEmergency": "طوارئ",
+  "homeBackupAgoDays": "{days, plural, =0{آخر نسخة احتياطية النهارده} =1{آخر نسخة احتياطية من يوم} =2{آخر نسخة احتياطية من يومين} few{آخر نسخة احتياطية من {shown} أيام} many{آخر نسخة احتياطية من {shown} يوم} other{آخر نسخة احتياطية من {shown} يوم}}",
+  "@homeBackupAgoDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "homeDoseLogged": "اتسجل: {medicine} لـ{person}",
+  "@homeDoseLogged": {
+    "placeholders": {
+      "medicine": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "statusSick": "تعبان",
+  "statusVaccineOverdue": "تطعيم متأخر",
+  "statusDoseMissed": "دوا فات",
+  "statusDoseNext": "دوا {time}",
+  "@statusDoseNext": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "familyAllTitle": "كل العيلة",
+  "familyCount": "{count, plural, =1{فرد واحد} =2{فردين} few{{shown} أفراد} other{{shown} فرد}}",
+  "@familyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "addSheetTitle": "تضيف إيه؟",
+  "addSheetFor": "لمين؟",
+  "addSheetPickPerson": "اختار الشخص الأول",
+  "addSheetNoPeople": "ضيف فرد من العيلة الأول",
+  "addMedicine": "دوا",
+  "addVaccine": "تطعيم",
+  "addVisit": "زيارة",
+  "addLab": "تحليل",
+  "addScan": "أشعة",
+  "addFever": "سخونية",
+  "addGrowth": "وزن وطول",
+  "addInsurance": "كارت تأمين",
+  "recordsTitle": "السجلات",
+  "recordsAll": "الكل",
+  "recordsEmpty": "لسه مفيش سجلات. دوس إضافة وسجّل أول زيارة أو تحليل.",
+  "recordsAdd": "إضافة سجل",
+  "moreFamily": "العيلة",
+  "statusSickFemale": "تعبانة",
+  "emergencyPickPerson": "كارت مين؟",
+  "homeLoadError": "مش قادرين نقرا البيانات دلوقتي. اقفل التطبيق وافتحه تاني."
 }

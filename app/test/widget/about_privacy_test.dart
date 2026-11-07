@@ -58,7 +58,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.more_horiz).last);
+    await tester.tap(find.byIcon(Icons.menu).last);
     await tester.pumpAndSettle();
     if (english) {
       await tester.tap(find.text('English'));
@@ -97,7 +97,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.more_horiz).last);
+    await tester.tap(find.byIcon(Icons.menu).last);
     await tester.pumpAndSettle();
     await tester.tap(find.text('English'));
     await tester.pumpAndSettle();

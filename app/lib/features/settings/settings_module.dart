@@ -26,9 +26,10 @@ class SettingsModule extends FeatureModule {
   List<ModuleTab> get tabs => [
     ModuleTab(
       path: '/settings',
-      icon: Icons.more_horiz,
+      icon: Icons.menu,
       label: (c) => AppLocalizations.of(c).navSettings,
       order: 100,
+      alsoFor: const ['/doctors', '/money'],
     ),
   ];
 
@@ -52,6 +53,39 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          // Simple Mode keeps Family and Doctors as tabs, and leaves Money out.
+          if (!ref.watch(simpleModeProvider)) ...[
+            Card(
+              child: Column(
+                children: [
+                  ListTile(
+                    key: const ValueKey('more-family'),
+                    leading: const Icon(Icons.groups_outlined),
+                    title: Text(l.moreFamily),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.go('/family'),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    key: const ValueKey('more-doctors'),
+                    leading: const Icon(Icons.medical_services_outlined),
+                    title: Text(l.navDoctors),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.go('/doctors'),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    key: const ValueKey('more-money'),
+                    leading: const Icon(Icons.account_balance_wallet_outlined),
+                    title: Text(l.navMoney),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.go('/money'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           Text(
             l.settingsLanguage,
             style: Theme.of(context).textTheme.titleMedium,
