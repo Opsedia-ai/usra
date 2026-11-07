@@ -168,7 +168,7 @@ build, not in this change.
 | --- | --- |
 | 1.4.1 Physical harm, medical apps | No diagnosis or measurement claims; disclaimer in the app and description; sources shown for suggestions |
 | 1.4.2 Drug dosage calculators | None. OCR returns a name and strength only, never a dose |
-| 5.1.1 Data collection and storage | No account (with accounts: not needed until the paywall, with in-app deletion, see the last section); privacy policy linked in App Store Connect and in the app (More → About & privacy) |
+| 5.1.1 Data collection and storage | No account (with accounts: required from the first saved record, with in-app deletion, see the last section); privacy policy linked in App Store Connect and in the app (More → About & privacy) |
 | 5.1.1(ix) Highly regulated field | Submitted by Opsedia as an organisation |
 | 5.1.3 Health and health research | No HealthKit; database and photo folders excluded from iCloud backup; automatic backup refuses iCloud Drive folders; no data used for ads or sold. For legal review: the manual share sheet is the system's and lets a person choose iCloud Drive for the encrypted file themselves |
 | Age rating questionnaire | "Medical or Treatment Information": **Infrequent/Mild**. Expected rating 9+ / 12+ depending on the new questionnaire |
