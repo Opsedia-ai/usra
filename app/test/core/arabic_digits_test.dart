@@ -33,6 +33,38 @@ void main() {
     expect(en.pregnancyDaysLeft(124), contains('124'));
   });
 
+  test('English pregnancy weeks are in English', () {
+    expect(en.pregnancyWeek(0, 3), 'Less than a week, 3 days');
+    expect(en.pregnancyWeek(1, 1), '1 week, 1 day');
+    expect(en.pregnancyWeek(22, 0), '22 weeks, 0 days');
+    expect(en.pregnancyWeek(22, 2), '22 weeks, 2 days');
+  });
+
+  test(
+    'English strings hold no Arabic, except names of the language and app',
+    () {
+      final strings = jsonDecode(
+        File('lib/l10n/app_en.arb').readAsStringSync(),
+      ) as Map<String, dynamic>;
+      const allowed = {
+        'languageArabic',
+        'welcomeLanguageOther',
+        'emergencyOtherLanguage',
+        'reportAppLine',
+      };
+      final arabic = RegExp(r'[\u0600-\u06FF]');
+      final found = [
+        for (final e in strings.entries)
+          if (!e.key.startsWith('@') &&
+              !allowed.contains(e.key) &&
+              e.value is String &&
+              arabic.hasMatch(e.value as String))
+            e.key,
+      ];
+      expect(found, isEmpty);
+    },
+  );
+
   test('Plural forms are still chosen from the number', () {
     expect(ar.prescriptionEveryNHours(2), 'كل ساعتين');
     expect(ar.prescriptionEveryNHours(11), 'كل ١١ ساعة');

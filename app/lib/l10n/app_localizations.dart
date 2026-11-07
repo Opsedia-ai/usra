@@ -3503,7 +3503,7 @@ abstract class AppLocalizations {
   /// No description provided for @pregnancyWeek.
   ///
   /// In en, this message translates to:
-  /// **'{weeks, plural, =0{أقل من أسبوع} =1{أسبوع} =2{أسبوعين} few{{weeks} أسابيع} other{{weeks} أسبوع}} و{days, plural, =0{0 يوم} =1{يوم} =2{يومين} few{{days} أيام} other{{days} يوم}}'**
+  /// **'{weeks, plural, =0{Less than a week} =1{1 week} other{{weeks} weeks}}, {days, plural, =0{0 days} =1{1 day} other{{days} days}}'**
   String pregnancyWeek(int weeks, int days);
 
   /// No description provided for @pregnancyTrimester.
