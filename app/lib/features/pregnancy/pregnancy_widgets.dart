@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/follow_ups/follow_up.dart';
 import '../../l10n/app_localizations.dart';
@@ -48,7 +48,7 @@ class PregnancySummaryCard extends StatelessWidget {
     final left = pregnancy.daysLeft(today);
     return Card(
       key: ValueKey('pregnancy-summary-${profile.id}'),
-      color: UsraColors.sand,
+      color: context.usra.orchidSoft,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () => context.go('/family/${profile.id}/pregnancy'),
@@ -56,11 +56,7 @@ class PregnancySummaryCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              const Icon(
-                Icons.pregnant_woman,
-                size: 36,
-                color: UsraColors.primary,
-              ),
+              Icon(Icons.pregnant_woman, size: 36, color: context.usra.primary),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -77,13 +73,13 @@ class PregnancySummaryCard extends StatelessWidget {
                       spacing: 8,
                       runSpacing: 6,
                       children: [
-                        SeverityChip(
+                        StatusChip(
                           severity: Severity.info,
                           label: l.pregnancyTrimester(
                             pregnancy.trimesterOn(today),
                           ),
                         ),
-                        SeverityChip(
+                        StatusChip(
                           severity: left < 0 ? Severity.headsUp : Severity.info,
                           label: l.pregnancyDue(
                             DateFormat.yMMMd(locale).format(pregnancy.dueDate),
@@ -94,7 +90,7 @@ class PregnancySummaryCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: UsraColors.textMuted),
+              Icon(Icons.chevron_right, color: context.usra.inkMuted),
             ],
           ),
         ),
@@ -170,10 +166,10 @@ class DangerSignsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    final color = Severity.urgent.foreground;
+    final color = Severity.urgent.foregroundOf(context);
     return Card(
       key: const ValueKey('pregnancy-danger-signs'),
-      color: Severity.urgent.background,
+      color: Severity.urgent.backgroundOf(context),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -181,10 +177,7 @@ class DangerSignsCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(
-                  Icons.warning_amber_rounded,
-                  color: UsraColors.emergency,
-                ),
+                Icon(Icons.warning_amber_rounded, color: context.usra.urgent),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -212,7 +205,7 @@ class DangerSignsCard extends StatelessWidget {
             FilledButton.icon(
               key: const ValueKey('pregnancy-ambulance'),
               style: FilledButton.styleFrom(
-                backgroundColor: UsraColors.emergency,
+                backgroundColor: context.usra.urgent,
                 minimumSize: const Size.fromHeight(56),
                 textStyle: text.titleMedium,
               ),
@@ -226,7 +219,7 @@ class DangerSignsCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               l.pregDangerSource,
-              style: text.bodySmall?.copyWith(color: UsraColors.textMuted),
+              style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
             ),
           ],
         ),

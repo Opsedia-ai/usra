@@ -9,7 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
-import 'package:usra/core/design/severity_chip.dart';
+import 'package:usra/core/design/status_chip.dart';
 import 'package:usra/core/design/tokens.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/features/follow_ups/dismissals.dart';
@@ -89,8 +89,8 @@ void main() {
       ),
       findsOneWidget,
     );
-    final chip = tester.widget<SeverityChip>(
-      find.descendant(of: first, matching: find.byType(SeverityChip)),
+    final chip = tester.widget<StatusChip>(
+      find.descendant(of: first, matching: find.byType(StatusChip)),
     );
     expect(chip.severity, Severity.actSoon);
     expect(chip.label, startsWith('كان معاده'));

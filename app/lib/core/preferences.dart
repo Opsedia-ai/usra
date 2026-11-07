@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -65,6 +66,9 @@ class SharedPreferencesStore implements KeyValueStore {
 
 abstract final class PrefKeys {
   static const simpleMode = 'simple_mode';
+
+  /// Light or dark look; missing follows the phone. See [ThemeModeController].
+  static const themeMode = 'theme_mode';
   static const tutorialSeen = 'tutorial_seen';
   static const elderTutorialSeen = 'tutorial_elder_seen';
   static const lastBackupAt = 'last_backup_at';
@@ -95,6 +99,7 @@ abstract final class PrefKeys {
   static const all = {
     accountInstalled,
     simpleMode,
+    themeMode,
     tutorialSeen,
     elderTutorialSeen,
     lastBackupAt,
@@ -133,6 +138,38 @@ class SimpleModeController extends Notifier<bool> {
   Future<void> set(bool on) async {
     state = on;
     await ref.read(keyValueStoreProvider).setBool(PrefKeys.simpleMode, on);
+  }
+}
+
+/// Follow the phone (default), or always light or dark.
+final themeModeProvider = NotifierProvider<ThemeModeController, ThemeMode>(
+  ThemeModeController.new,
+);
+
+class ThemeModeController extends Notifier<ThemeMode> {
+  // Saved as fixed numbers, so reordering the enum can't change a choice.
+  static const _saved = {
+    ThemeMode.system: 0,
+    ThemeMode.light: 1,
+    ThemeMode.dark: 2,
+  };
+
+  @override
+  ThemeMode build() {
+    final saved = ref.watch(keyValueStoreProvider).getInt(PrefKeys.themeMode);
+    return _saved.entries
+        .firstWhere(
+          (e) => e.value == saved,
+          orElse: () => const MapEntry(ThemeMode.system, 0),
+        )
+        .key;
+  }
+
+  Future<void> set(ThemeMode mode) async {
+    state = mode;
+    await ref
+        .read(keyValueStoreProvider)
+        .setInt(PrefKeys.themeMode, _saved[mode]!);
   }
 }
 

@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/preferences.dart';
 import '../../core/providers.dart';
@@ -150,18 +150,18 @@ class VaccineProgressSummary extends StatelessWidget {
       spacing: 8,
       runSpacing: 6,
       children: [
-        SeverityChip(
+        StatusChip(
           key: ValueKey('vaccine-next-${child.profile.id}'),
           severity: next?.$2 ?? Severity.info,
           label: next?.$1 ?? l.vaccineNextVisit,
         ),
         if (child.next.overdue.isNotEmpty)
-          SeverityChip(
+          StatusChip(
             key: ValueKey('vaccine-overdue-${child.profile.id}'),
             severity: Severity.actSoon,
             label: l.vaccineOverdueCount(child.next.overdue.length),
           ),
-        SeverityChip(
+        StatusChip(
           key: ValueKey('vaccine-required-${child.profile.id}'),
           severity: p.requiredDone == p.requiredTotal
               ? Severity.good
@@ -169,7 +169,7 @@ class VaccineProgressSummary extends StatelessWidget {
           label: l.vaccineRequiredDone(p.requiredDone, p.requiredTotal),
         ),
         if (p.optionalTotal > 0)
-          SeverityChip(
+          StatusChip(
             key: ValueKey('vaccine-optional-${child.profile.id}'),
             severity: Severity.info,
             label: l.vaccineOptionalDone(p.optionalDone, p.optionalTotal),
@@ -249,10 +249,7 @@ class HomeVaccines extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.vaccines_outlined,
-                      color: UsraColors.primary,
-                    ),
+                    Icon(Icons.vaccines_outlined, color: context.usra.primary),
                     const SizedBox(width: 8),
                     Text(l.homeVaccinesTitle, style: text.titleMedium),
                   ],
@@ -266,9 +263,9 @@ class HomeVaccines extends ConsumerWidget {
                     padding: const EdgeInsets.only(top: 6),
                     child: _HomeChips(child: c, today: today),
                   ),
-                  trailing: const Icon(
+                  trailing: Icon(
                     Icons.chevron_right,
-                    color: UsraColors.textMuted,
+                    color: context.usra.inkMuted,
                   ),
                   onTap: () => context.go('/family/${c.profile.id}/vaccines'),
                 ),
@@ -295,13 +292,13 @@ class _HomeChips extends StatelessWidget {
       runSpacing: 6,
       children: [
         if (next != null)
-          SeverityChip(
+          StatusChip(
             key: ValueKey('vaccine-next-${child.profile.id}'),
             severity: next.$2,
             label: next.$1,
           ),
         if (child.next.overdue.isNotEmpty)
-          SeverityChip(
+          StatusChip(
             key: ValueKey('vaccine-overdue-${child.profile.id}'),
             severity: Severity.actSoon,
             label: l.vaccineOverdueCount(child.next.overdue.length),
@@ -390,7 +387,7 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
           c.plan.route == VaccineRoute.government
               ? l.vaccineRouteGovernment
               : l.vaccineRouteHexavalent,
-          style: text.bodyMedium?.copyWith(color: UsraColors.textMuted),
+          style: text.bodyMedium?.copyWith(color: context.usra.inkMuted),
         ),
         const SizedBox(height: 12),
         VaccineProgressSummary(child: c, today: today),
@@ -435,7 +432,7 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
         const SizedBox(height: 16),
         Text(
           l.vaccinesDisclaimer(egyptScheduleCheckedOn),
-          style: text.bodySmall?.copyWith(color: UsraColors.textMuted),
+          style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
         ),
         const _Sources(),
       ],
@@ -449,7 +446,7 @@ class _Sources extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final small = Theme.of(context).textTheme.bodySmall
-        ?.copyWith(color: UsraColors.textMuted);
+        ?.copyWith(color: context.usra.inkMuted);
     return ExpansionTile(
       key: const ValueKey('vaccine-sources'),
       tilePadding: EdgeInsets.zero,
@@ -492,7 +489,7 @@ class DoseTile extends StatelessWidget {
       DoseState.notNeeded => l.vaccineNotNeeded,
     };
     final muted = Theme.of(context).textTheme.bodySmall
-        ?.copyWith(color: UsraColors.textMuted);
+        ?.copyWith(color: context.usra.inkMuted);
     return ListTile(
       key: ValueKey('dose-${dose.kind.name}-${dose.dose}'),
       contentPadding: EdgeInsets.zero,
@@ -508,7 +505,7 @@ class DoseTile extends StatelessWidget {
           if (note != null) Text(note!, style: muted),
         ],
       ),
-      trailing: SeverityChip(severity: status.state.severity, label: label),
+      trailing: StatusChip(severity: status.state.severity, label: label),
     );
   }
 }
@@ -612,7 +609,7 @@ class _DoseSheetState extends ConsumerState<_DoseSheet> {
           const SizedBox(height: 4),
           Text(
             '${doseAge(l, s.dose)} · ${l.vaccineDueOn(_fmtc(s.dueOn))}',
-            style: text.bodyMedium?.copyWith(color: UsraColors.textMuted),
+            style: text.bodyMedium?.copyWith(color: context.usra.inkMuted),
           ),
           const SizedBox(height: 8),
           SwitchListTile(
@@ -743,7 +740,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
   ) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    final muted = text.bodyMedium?.copyWith(color: UsraColors.textMuted);
+    final muted = text.bodyMedium?.copyWith(color: context.usra.inkMuted);
     final soon = today.add(const Duration(days: dueSoonDays));
     final checklist = [
       for (final s in statuses)

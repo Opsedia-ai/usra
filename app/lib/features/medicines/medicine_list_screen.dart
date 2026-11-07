@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider;
@@ -98,9 +98,9 @@ class _PrescriptionTile extends ConsumerWidget {
       child: ListTile(
         key: ValueKey('prescription-${p.id}'),
         onTap: () => context.go('/family/$profileId/prescriptions/${p.id}'),
-        leading: const CircleAvatar(
-          backgroundColor: UsraColors.primaryTint,
-          child: Icon(Icons.receipt_long_outlined, color: UsraColors.primary),
+        leading: CircleAvatar(
+          backgroundColor: context.usra.primarySoft,
+          child: Icon(Icons.receipt_long_outlined, color: context.usra.primary),
         ),
         title: Text(prescriptionTitle(context, p)),
         subtitle: Text(
@@ -132,10 +132,10 @@ class _MedicineTile extends ConsumerWidget {
         key: ValueKey('medicine-${medicine.id}'),
         onTap: () => context.go('/family/$profileId/medicines/${medicine.id}'),
         leading: CircleAvatar(
-          backgroundColor: UsraColors.primaryTint,
+          backgroundColor: context.usra.primarySoft,
           child: Icon(
             medicineFormIcon(medicine.form),
-            color: UsraColors.primary,
+            color: context.usra.primary,
           ),
         ),
         title: Text(medicineTitle(medicine)),
@@ -150,7 +150,7 @@ class _MedicineTile extends ConsumerWidget {
             if (!medicine.active || ended)
               Padding(
                 padding: const EdgeInsets.only(top: 6),
-                child: SeverityChip(
+                child: StatusChip(
                   severity: Severity.info,
                   label: medicine.active ? l.medicineEnded : l.medicineStopped,
                 ),
@@ -158,7 +158,7 @@ class _MedicineTile extends ConsumerWidget {
             else if (courseProgress(medicine, now) case final c?)
               Padding(
                 padding: const EdgeInsets.only(top: 6),
-                child: SeverityChip(
+                child: StatusChip(
                   key: ValueKey('medicine-course-${medicine.id}'),
                   severity: Severity.good,
                   label: l.courseDayOf(c.day, c.total),

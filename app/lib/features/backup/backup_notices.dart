@@ -156,13 +156,13 @@ class _Notice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final color = severity.foreground;
+    final color = severity.foregroundOf(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: severity.background,
+          color: severity.backgroundOf(context),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(

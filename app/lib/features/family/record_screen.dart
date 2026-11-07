@@ -103,9 +103,9 @@ class RecordScreen extends ConsumerWidget {
                     builder: (tile) => ListTile(
                       key: ValueKey('record-pdf-$i'),
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(
+                      leading: Icon(
                         Icons.picture_as_pdf_outlined,
-                        color: UsraColors.primary,
+                        color: context.usra.primary,
                       ),
                       title: Text(l.recordPdf(i + 1)),
                       trailing: const Icon(Icons.share_outlined),
@@ -231,7 +231,7 @@ Future<bool?> _confirm(
         ),
         FilledButton(
           key: ValueKey(key),
-          style: FilledButton.styleFrom(backgroundColor: UsraColors.emergency),
+          style: FilledButton.styleFrom(backgroundColor: dialog.usra.urgent),
           onPressed: () => Navigator.pop(dialog, true),
           child: Text(action),
         ),
@@ -271,7 +271,7 @@ class _Line extends StatelessWidget {
       children: [
         Text(
           label,
-          style: text.labelLarge?.copyWith(color: UsraColors.textMuted),
+          style: text.labelLarge?.copyWith(color: context.usra.inkMuted),
         ),
         SelectableText(value, style: text.titleMedium),
       ],
@@ -373,10 +373,10 @@ class _PhotoViewerState extends ConsumerState<_PhotoViewer> {
     final store = ref.watch(attachmentStoreProvider);
     final index = photos.isEmpty ? 0 : _index.clamp(0, photos.length - 1);
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: UsraFixedColors.photoBackdrop,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: UsraFixedColors.photoBackdrop,
+        foregroundColor: UsraFixedColors.onPhotoBackdrop,
         title: photos.isEmpty
             ? null
             : Text(l.photoPosition(index + 1, photos.length)),

@@ -50,8 +50,8 @@ class FamilyScreen extends ConsumerWidget {
                     child: ListTile(
                       onTap: () => context.go('/family/${p.id}'),
                       leading: CircleAvatar(
-                        backgroundColor: UsraColors.primaryTint,
-                        foregroundColor: UsraColors.primary,
+                        backgroundColor: context.usra.primarySoft,
+                        foregroundColor: context.usra.primary,
                         child: Text(initialOf(p.displayName)),
                       ),
                       title: Text(p.displayName),

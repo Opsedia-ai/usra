@@ -270,10 +270,10 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
               ? Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.fingerprint,
                       size: 72,
-                      color: UsraColors.primary,
+                      color: context.usra.primary,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -325,7 +325,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
                                 _mismatch ? 'setup-mismatch' : 'setup-trivial',
                               ),
                               style: text.bodyMedium?.copyWith(
-                                color: UsraColors.emergency,
+                                color: context.usra.urgent,
                               ),
                               textAlign: TextAlign.center,
                             )
@@ -340,7 +340,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
                     Text(
                       l.lockSetupWriteDown,
                       style: text.bodySmall?.copyWith(
-                        color: UsraColors.textMuted,
+                        color: context.usra.inkMuted,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -392,7 +392,7 @@ class AppLockOfferScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     DrUsra(
-                      pose: DrUsraPose.caring,
+                      pose: DrUsraPose.explaining,
                       size: (box.maxHeight * 0.3).clamp(96.0, 180.0),
                     ),
                     const SizedBox(height: 20),
@@ -440,7 +440,7 @@ class AppLockOfferScreen extends ConsumerWidget {
                     Text(
                       l.lockOfferLater,
                       style: text.bodySmall?.copyWith(
-                        color: UsraColors.textMuted,
+                        color: context.usra.inkMuted,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -522,10 +522,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
       final yes = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          icon: const Icon(
-            Icons.delete_forever_outlined,
-            color: UsraColors.emergency,
-          ),
+          icon: Icon(Icons.delete_forever_outlined, color: context.usra.urgent),
           title: Text(l.lockWipeConfirmTitle),
           content: SingleChildScrollView(child: Text(l.lockWipeConfirmBody)),
           actions: [
@@ -536,7 +533,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
             FilledButton(
               key: const ValueKey('app-lock-wipe-yes'),
               style: FilledButton.styleFrom(
-                backgroundColor: UsraColors.emergency,
+                backgroundColor: context.usra.urgent,
               ),
               onPressed: () => Navigator.of(context).pop(true),
               child: Text(l.lockWipeConfirmYes),
@@ -644,9 +641,9 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
                   child: Column(
                     children: [
                       ListTile(
-                        leading: const Icon(
+                        leading: Icon(
                           Icons.emergency_outlined,
-                          color: UsraColors.emergency,
+                          color: context.usra.urgent,
                         ),
                         title: Text(l.lockSettingsEmergency),
                         subtitle: Text(l.lockSettingsEmergencyHint),
@@ -669,9 +666,9 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
                     key: const ValueKey('app-lock-wipe'),
                     value: _lock.wipeOnFailures,
                     onChanged: _setWipe,
-                    secondary: const Icon(
+                    secondary: Icon(
                       Icons.delete_forever_outlined,
-                      color: UsraColors.emergency,
+                      color: context.usra.urgent,
                     ),
                     title: Text(l.lockSettingsWipe),
                     subtitle: Text(l.lockSettingsWipeHint),
@@ -683,7 +680,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
               const SizedBox(height: 8),
               Text(
                 l.lockForgotBody,
-                style: text.bodyMedium?.copyWith(color: UsraColors.textMuted),
+                style: text.bodyMedium?.copyWith(color: context.usra.inkMuted),
               ),
             ],
           ),

@@ -1646,6 +1646,60 @@ abstract class AppLocalizations {
   /// **'Call'**
   String get navCall;
 
+  /// No description provided for @drUsraWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Dr. Usra waving'**
+  String get drUsraWelcome;
+
+  /// No description provided for @drUsraExplaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Dr. Usra explaining'**
+  String get drUsraExplaining;
+
+  /// No description provided for @drUsraEmptyState.
+  ///
+  /// In en, this message translates to:
+  /// **'Dr. Usra holding a plus'**
+  String get drUsraEmptyState;
+
+  /// No description provided for @drUsraCelebrating.
+  ///
+  /// In en, this message translates to:
+  /// **'Dr. Usra celebrating'**
+  String get drUsraCelebrating;
+
+  /// No description provided for @drUsraResting.
+  ///
+  /// In en, this message translates to:
+  /// **'Dr. Usra resting'**
+  String get drUsraResting;
+
+  /// No description provided for @settingsTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get settingsTheme;
+
+  /// No description provided for @settingsThemeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as phone'**
+  String get settingsThemeSystem;
+
+  /// No description provided for @settingsThemeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsThemeLight;
+
+  /// No description provided for @settingsThemeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsThemeDark;
+
   /// No description provided for @settingsSimpleMode.
   ///
   /// In en, this message translates to:

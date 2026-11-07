@@ -164,14 +164,14 @@ class _BigButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (background, foreground) = switch (style) {
-      _Look.primary => (UsraColors.primary, Colors.white),
-      _Look.emergency => (UsraColors.emergency, Colors.white),
-      _Look.outlined => (UsraColors.surface, UsraColors.primary),
+      _Look.primary => (context.usra.primary, context.usra.onPrimary),
+      _Look.emergency => (context.usra.urgent, context.usra.onUrgent),
+      _Look.outlined => (context.usra.surface, context.usra.primary),
     };
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(22),
       side: style == _Look.outlined
-          ? const BorderSide(color: UsraColors.primary, width: 2)
+          ? BorderSide(color: context.usra.primary, width: 2)
           : BorderSide.none,
     );
     final text = Theme.of(context).textTheme;

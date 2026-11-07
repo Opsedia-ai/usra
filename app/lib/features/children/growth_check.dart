@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/providers.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
@@ -86,7 +86,7 @@ class _GrowthCheckCardState extends ConsumerState<GrowthCheckCard> {
                     padding: const EdgeInsets.only(top: 6),
                     child: Align(
                       alignment: AlignmentDirectional.centerStart,
-                      child: SeverityChip(
+                      child: StatusChip(
                         key: ValueKey('check-status-${i.name}'),
                         severity: reading.severity,
                         label: reading.withinUsualRange
