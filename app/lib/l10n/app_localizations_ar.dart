@@ -3343,7 +3343,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportSummaryDisclaimer =>
-      'ملخص عملته العيلة بتطبيق أسرة من سجلاتها. للمعلومات بس: راجعوه على الروشتات والتقارير الأصلية.';
+      'ده ملخص من اللي العيلة سجلته بتطبيق أسرة، مش رأي طبي. راجعوه على الروشتات والتقارير الأصلية.';
 
   @override
   String get reportAge => 'السن';
@@ -4855,4 +4855,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get growthTabOutside => 'برّه المدى المعتاد';
+
+  @override
+  String get reportSummaryNotOpinion =>
+      'ده ملخص من اللي العيلة سجلته، مش رأي طبي.';
+
+  @override
+  String get followUpsThisWeek => 'النهارده والأسبوع ده';
+
+  @override
+  String get followUpsLater => 'بعد كده';
+
+  @override
+  String get followUpsAll => 'كل المتابعات';
 }

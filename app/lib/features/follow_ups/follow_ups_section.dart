@@ -38,7 +38,78 @@ class HomeFollowUps extends ConsumerWidget {
             .take(homeFollowUpCount)
             .toList(),
         showNames: true,
+        allLink: items.length > homeFollowUpCount,
       ),
+    );
+  }
+}
+
+/// Every follow-up in the family: this week first, then later.
+class FollowUpsScreen extends ConsumerWidget {
+  const FollowUpsScreen({super.key});
+
+  /// How far "this week" looks ahead.
+  static const weekDays = 7;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final text = Theme.of(context).textTheme;
+    final today = ref.watch(todayProvider);
+    final items = ref.watch(familyFollowUpsProvider);
+    final soon = today.add(const Duration(days: weekDays));
+    return Scaffold(
+      appBar: AppBar(title: Text(l.followUpsTitle)),
+      body: switch (items) {
+        AsyncError(:final error) => Center(child: Text('$error')),
+        AsyncValue(value: final list?) => ListView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          children: [
+            if (list.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Text(
+                  l.followUpsEmpty,
+                  key: const ValueKey('follow-ups-empty'),
+                  textAlign: TextAlign.center,
+                  style: text.bodyLarge,
+                ),
+              ),
+            for (final (title, group) in [
+              (
+                l.followUpsThisWeek,
+                [
+                  for (final i in list)
+                    if (!i.followUp.dueOn.isAfter(soon)) i,
+                ],
+              ),
+              (
+                l.followUpsLater,
+                [
+                  for (final i in list)
+                    if (i.followUp.dueOn.isAfter(soon)) i,
+                ],
+              ),
+            ])
+              if (group.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(title, style: text.titleLarge),
+                ),
+                for (final item in group) ...[
+                  FollowUpTile(item: item, showName: true),
+                  const SizedBox(height: 8),
+                ],
+              ],
+            const SizedBox(height: 8),
+            Text(
+              l.followUpsDisclaimer,
+              style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
+            ),
+          ],
+        ),
+        _ => const Center(child: CircularProgressIndicator()),
+      },
     );
   }
 }
@@ -62,10 +133,18 @@ class MemberFollowUps extends ConsumerWidget {
 }
 
 class _Section extends StatelessWidget {
-  const _Section({super.key, required this.items, required this.showNames});
+  const _Section({
+    super.key,
+    required this.items,
+    required this.showNames,
+    this.allLink = false,
+  });
 
   final List<PersonFollowUp> items;
   final bool showNames;
+
+  /// There are more than shown here: a way to the whole list.
+  final bool allLink;
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +171,15 @@ class _Section extends StatelessWidget {
             FollowUpTile(item: item, showName: showNames),
             const SizedBox(height: 8),
           ],
+        if (allLink)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              key: const ValueKey('follow-ups-all'),
+              onPressed: () => context.push('/follow-ups'),
+              child: Text(l.followUpsAll),
+            ),
+          ),
         Text(
           l.followUpsDisclaimer,
           style: text.bodySmall?.copyWith(color: context.usra.inkMuted),

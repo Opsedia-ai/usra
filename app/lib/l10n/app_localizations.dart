@@ -5357,7 +5357,7 @@ abstract class AppLocalizations {
   /// No description provided for @reportSummaryDisclaimer.
   ///
   /// In en, this message translates to:
-  /// **'A summary made by the family in the Usra app from their own records. Informational only: check against the original prescriptions and reports.'**
+  /// **'This summary is what the family recorded with the Usra app, not a medical opinion. Check it against the original prescriptions and reports.'**
   String get reportSummaryDisclaimer;
 
   /// No description provided for @reportAge.
@@ -7644,6 +7644,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Outside the usual range'**
   String get growthTabOutside;
+
+  /// No description provided for @reportSummaryNotOpinion.
+  ///
+  /// In en, this message translates to:
+  /// **'This summary is what the family recorded, not a medical opinion.'**
+  String get reportSummaryNotOpinion;
+
+  /// No description provided for @followUpsThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Today and this week'**
+  String get followUpsThisWeek;
+
+  /// No description provided for @followUpsLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get followUpsLater;
+
+  /// No description provided for @followUpsAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All follow-ups'**
+  String get followUpsAll;
 }
 
 class _AppLocalizationsDelegate

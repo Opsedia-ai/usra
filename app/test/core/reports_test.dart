@@ -315,7 +315,7 @@ void main() {
       expect(labs.rows.first[3], '4 - 5.6');
       expect(labs.rows[1][2], 'Clear');
       expect(labs.rows[2][2], '140 mg/dL');
-      expect(r.disclaimer, contains('Informational only'));
+      expect(r.disclaimer, contains('not a medical opinion'));
     });
 
     test('only the sections picked', () {
