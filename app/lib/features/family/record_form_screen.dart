@@ -25,7 +25,13 @@ class RecordFormScreen extends ConsumerWidget {
     required this.profileId,
     required this.typeKey,
     this.eventId,
+    this.returnTo,
   });
+
+  /// The person's page to come back to after adding (`growth` for
+  /// `/family/<id>/growth`), so the new record is seen in place. Null: their
+  /// main page.
+  final String? returnTo;
 
   final String profileId;
   final String typeKey;
@@ -144,7 +150,13 @@ class RecordFormScreen extends ConsumerWidget {
             }
             return;
           }
-          if (context.mounted) context.go('/family/$profileId');
+          if (context.mounted) {
+            context.go(
+              returnTo == 'growth'
+                  ? '/family/$profileId/growth'
+                  : '/family/$profileId',
+            );
+          }
         },
       ),
     );

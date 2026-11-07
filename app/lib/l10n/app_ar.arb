@@ -283,7 +283,7 @@
   "growthNoSex": "ضيف نوع الطفل (ولد ولا بنت) في بياناته عشان تشوف منحنيات النمو.",
   "growthNoData": "مفيش قياسات لسه.",
   "growthLatest": "آخر قياس: {value} يوم {date}",
-  "growthWithinRange": "المئين {percentile}: في المدى المعتاد للسن ده.",
+  "growthWithinRange": "جوه المعدل المرجعي للسن ده (المئين {percentile}).",
   "growthOutsideRange": "المئين {percentile}: برّه المدى المعتاد. اتكلم مع دكتور الأطفال.",
   "growthSource": "المنحنيات من معايير نمو الطفل بتاعة منظمة الصحة العالمية (المئين ٣ و١٥ و٥٠ و٨٥ و٩٧). للمعلومة بس؛ دكتور الأطفال هو اللي يقيّم نمو طفلك.",
   "vaccinesTitle": "التطعيمات",
@@ -1364,5 +1364,17 @@
   "vaccineOtherChoice": "تطعيم تاني",
   "vaccineWhoFor": "لمين؟",
   "vaccineSavedFor": "اتحفظ: {vaccine} لـ{name}",
-  "vaccineChoiceOverdue": "{dose} · متأخر"
+  "vaccineChoiceOverdue": "{dose} · متأخر",
+  "growthTitleOf": "نمو {name}",
+  "growthNew": "قياس جديد",
+  "growthTabWeight": "الوزن",
+  "growthTabHeight": "الطول",
+  "growthTabHead": "محيط الراس",
+  "growthUnitKg": "كجم",
+  "growthUnitCm": "سم",
+  "growthHistoryTitle": "القياسات",
+  "growthLegendOwn": "قياسات {name}",
+  "growthLegendReference": "المعدل المرجعي",
+  "growthLastOn": "آخر قياس {date}",
+  "growthTabOutside": "برّه المدى المعتاد"
 }

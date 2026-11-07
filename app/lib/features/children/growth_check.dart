@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/app_database.dart';
 import '../../core/design/status_chip.dart';
 import '../../core/providers.dart';
+import '../../core/util/localized_digits.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
@@ -91,8 +92,18 @@ class _GrowthCheckCardState extends ConsumerState<GrowthCheckCard> {
                         key: ValueKey('check-status-${i.name}'),
                         severity: reading.severity,
                         label: reading.withinUsualRange
-                            ? l.growthWithinRange(reading.percentileLabel)
-                            : l.growthOutsideRange(reading.percentileLabel),
+                            ? l.growthWithinRange(
+                                localizedDigitsIn(
+                                  context,
+                                  reading.percentileLabel,
+                                ),
+                              )
+                            : l.growthOutsideRange(
+                                localizedDigitsIn(
+                                  context,
+                                  reading.percentileLabel,
+                                ),
+                              ),
                       ),
                     ),
                   ),
