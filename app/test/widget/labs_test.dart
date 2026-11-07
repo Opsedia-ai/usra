@@ -125,7 +125,7 @@ void main() {
     await tapKey(tester, 'lab-scan-camera');
     expect(ocr.read, [picked.first.path]);
     expect(find.byKey(const ValueKey('lab-scan-result')), findsOneWidget);
-    expect(find.textContaining('لقينا 4 نتيجة'), findsOneWidget);
+    expect(find.textContaining('لقينا ٤ نتيجة'), findsOneWidget);
     // Filled in, not saved, with the photo beside the rows to check.
     expect(field(tester, 'lab-name'), 'ALFA LABORATORIES');
     expect(field(tester, 'lab-doctor'), 'Dr. Hany Saleh');

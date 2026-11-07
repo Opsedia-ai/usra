@@ -27,6 +27,7 @@ class FieldSpec {
     this.choices = const [],
     this.label,
     this.choiceLabel,
+    this.keepsLatinDigits = false,
   });
 
   final String key;
@@ -35,6 +36,10 @@ class FieldSpec {
   final List<String> choices;
   final LabelBuilder? label;
   final ChoiceLabelBuilder? choiceLabel;
+
+  /// A number shown as it was written, whatever the app's language: a lab
+  /// value is compared with the paper from the lab.
+  final bool keepsLatinDigits;
 
   String labelOf(BuildContext context) => label?.call(context) ?? key;
   String choiceLabelOf(BuildContext context, String choice) =>

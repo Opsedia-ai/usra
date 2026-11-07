@@ -325,7 +325,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('restore-open')));
     await tester.pumpAndSettle();
     expect(service.opened.single.$2, key);
-    expect(find.text('3 أشخاص، 12 سجل، دوايين، صورة واحدة'), findsOneWidget);
+    expect(find.text('٣ أشخاص، ١٢ سجل، دوايين، صورة واحدة'), findsOneWidget);
     expect(restarted, isEmpty);
     expect(find.byKey(const ValueKey('restore-cancel')), findsOneWidget);
 

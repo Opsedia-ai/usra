@@ -158,7 +158,7 @@ void main() {
     for (var i = 0; i < 5; i++) {
       await typePin(tester, '000000');
     }
-    expect(find.text('محاولات غلط كتير. جرّب تاني بعد 0:30.'), findsOneWidget);
+    expect(find.text('محاولات غلط كتير. جرّب تاني بعد ٠:٣٠.'), findsOneWidget);
     // Keys do nothing while waiting.
     await typePin(tester, '258046');
     expect(find.byKey(const ValueKey('lock-screen')), findsOneWidget);
@@ -418,13 +418,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(lock.timeout, LockTimeout.immediately);
     // …loosening needs the PIN.
-    await tester.tap(find.text('5 دقايق'));
+    await tester.tap(find.text('٥ دقايق'));
     await tester.pumpAndSettle();
     expect(find.text('أكّد إنه إنت'), findsOneWidget);
     await tester.tap(find.byType(CloseButton));
     await tester.pumpAndSettle();
     expect(lock.timeout, LockTimeout.immediately);
-    await tester.tap(find.text('5 دقايق'));
+    await tester.tap(find.text('٥ دقايق'));
     await tester.pumpAndSettle();
     await typePin(tester, '135792');
     expect(lock.timeout, LockTimeout.fiveMinutes);

@@ -272,7 +272,10 @@ class _AttentionLine extends StatelessWidget {
           ),
         ],
         if (people.length > shown.length)
-          Text('+${people.length - shown.length}', style: muted),
+          Text(
+            '+${localizedDigits(context, people.length - shown.length)}',
+            style: muted,
+          ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Text(

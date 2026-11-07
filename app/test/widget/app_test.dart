@@ -101,7 +101,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('زيارة دكتور · د. هاني'), findsOneWidget);
-    expect(find.textContaining('600'), findsOneWidget);
+    expect(find.textContaining('٦٠٠'), findsOneWidget);
   });
 
   testWidgets('a saved doctor fills the visit and lists it on their page', (
@@ -216,7 +216,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('more-money')));
     await tester.pumpAndSettle();
-    expect(total(), contains('550.50'));
+    expect(total(), contains('٥٥٠٫٥٠'));
     expect(find.byKey(const ValueKey('spending-by-type')), findsOneWidget);
     expect(find.byKey(const ValueKey('spending-by-person')), findsOneWidget);
     expect(find.text('د. هاني'), findsOneWidget);
@@ -224,21 +224,21 @@ void main() {
     // Only Omar.
     await tester.tap(find.byKey(ValueKey('spending-person-$omar')));
     await tester.pumpAndSettle();
-    expect(total(), contains('450'));
+    expect(total(), contains('٤٥٠'));
     expect(find.byKey(const ValueKey('spending-by-person')), findsNothing);
 
     // The year holds this month's spending; the years around it are empty.
     await tester.tap(find.text('سنة'));
     await tester.pumpAndSettle();
-    expect(total(), contains('450'));
+    expect(total(), contains('٤٥٠'));
     await tester.tap(find.byKey(const ValueKey('spending-previous')));
     await tester.pumpAndSettle();
-    expect(total(), startsWith('0'));
+    expect(total(), startsWith('٠'));
     expect(find.textContaining('مفيش مصاريف'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('spending-next')));
     await tester.tap(find.byKey(const ValueKey('spending-next')));
     await tester.pumpAndSettle();
-    expect(total(), startsWith('0'));
+    expect(total(), startsWith('٠'));
 
     // A person's page links to their spending.
     final router = tester.element(find.byType(Scaffold).first);
@@ -248,7 +248,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('member-spending')));
     await tester.pumpAndSettle();
-    expect(total(), contains('450'));
+    expect(total(), contains('٤٥٠'));
     expect(
       tester
           .widget<ChoiceChip>(find.byKey(ValueKey('spending-person-$omar')))

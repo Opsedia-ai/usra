@@ -43,6 +43,7 @@ import 'features/medicines/reminders.dart';
 import 'features/reports/report.dart' show registerReportFontLicense;
 import 'l10n/app_localizations.dart';
 import 'core/security/secure_storage_options.dart';
+import 'core/util/localized_digits.dart';
 import 'features/settings/database_recovery.dart';
 
 /// Set just before [main] runs again, for the next screen to say how it went.
@@ -212,6 +213,7 @@ Future<void> _showRecordsUnavailable(
 }
 
 Future<void> main() async {
+  useArabicIndicNumbers();
   WidgetsFlutterBinding.ensureInitialized();
   Log.installErrorHandlers();
   registerReportFontLicense();
