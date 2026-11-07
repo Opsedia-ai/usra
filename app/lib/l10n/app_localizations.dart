@@ -5498,6 +5498,119 @@ abstract class AppLocalizations {
   /// **'Notes saved'**
   String get sickDayNotesSaved;
 
+  /// No description provided for @sickDayPersonUnwell.
+  ///
+  /// In en, this message translates to:
+  /// **'{sex, select, male{{name} is unwell} female{{name} is unwell} other{{name} is unwell}}'**
+  String sickDayPersonUnwell(String sex, String name);
+
+  /// No description provided for @sickDayPersonWasUnwell.
+  ///
+  /// In en, this message translates to:
+  /// **'{sex, select, male{{name} was unwell} female{{name} was unwell} other{{name} was unwell}}'**
+  String sickDayPersonWasUnwell(String sex, String name);
+
+  /// No description provided for @sickDaySinceToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Since today {time}'**
+  String sickDaySinceToday(String time);
+
+  /// No description provided for @sickDaySinceYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Since yesterday {time}'**
+  String sickDaySinceYesterday(String time);
+
+  /// No description provided for @sickDayLatestReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest reading'**
+  String get sickDayLatestReading;
+
+  /// No description provided for @sickDayFeverLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Fever logged: {duration}'**
+  String sickDayFeverLogged(String duration);
+
+  /// No description provided for @sickDayFeverUnderHour.
+  ///
+  /// In en, this message translates to:
+  /// **'under an hour'**
+  String get sickDayFeverUnderHour;
+
+  /// No description provided for @sickDayFeverHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour} other{{shown} hours}}'**
+  String sickDayFeverHours(int count, String shown);
+
+  /// No description provided for @sickDayFeverDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{shown} days}}'**
+  String sickDayFeverDays(int count, String shown);
+
+  /// No description provided for @sickDayRecordedGiven.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded: {what} · {time}'**
+  String sickDayRecordedGiven(String what, String time);
+
+  /// No description provided for @sickDayChartSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings from {start} to {end}: {values}. The dashed line is at {fever}, where a fever starts.'**
+  String sickDayChartSemantics(
+    String start,
+    String end,
+    String values,
+    String fever,
+  );
+
+  /// No description provided for @sickDayChartThen.
+  ///
+  /// In en, this message translates to:
+  /// **', then '**
+  String get sickDayChartThen;
+
+  /// No description provided for @sickDayAddReadingShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Add reading'**
+  String get sickDayAddReadingShort;
+
+  /// No description provided for @sickDayGivenShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine given'**
+  String get sickDayGivenShort;
+
+  /// No description provided for @sickDayAllReadings.
+  ///
+  /// In en, this message translates to:
+  /// **'All readings'**
+  String get sickDayAllReadings;
+
+  /// No description provided for @sickDayNoSymptoms.
+  ///
+  /// In en, this message translates to:
+  /// **'No symptoms logged yet.'**
+  String get sickDayNoSymptoms;
+
+  /// No description provided for @sickDayCallDoctorNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Call {name}'**
+  String sickDayCallDoctorNamed(String name);
+
+  /// No description provided for @sickDayBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get sickDayBack;
+
   /// No description provided for @readingValue.
   ///
   /// In en, this message translates to:

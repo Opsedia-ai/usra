@@ -3358,6 +3358,111 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sickDayNotesSaved => 'الملاحظات اتحفظت';
 
   @override
+  String sickDayPersonUnwell(String sex, String name) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'male': '$name تعبان',
+      'female': '$name تعبانة',
+      'other': '$name: يوم تعب',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayPersonWasUnwell(String sex, String name) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'male': '$name كان تعبان',
+      'female': '$name كانت تعبانة',
+      'other': '$name: يوم تعب',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sickDaySinceToday(String time) {
+    return 'من النهارده $time';
+  }
+
+  @override
+  String sickDaySinceYesterday(String time) {
+    return 'من امبارح $time';
+  }
+
+  @override
+  String get sickDayLatestReading => 'آخر قراءة';
+
+  @override
+  String sickDayFeverLogged(String duration) {
+    return 'سخونية متسجلة: $duration';
+  }
+
+  @override
+  String get sickDayFeverUnderHour => 'أقل من ساعة';
+
+  @override
+  String sickDayFeverHours(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown ساعة',
+      few: '$shown ساعات',
+      two: 'ساعتين',
+      one: 'ساعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayFeverDays(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown يوم',
+      few: '$shown أيام',
+      two: 'يومين',
+      one: 'يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayRecordedGiven(String what, String time) {
+    return 'مسجل: $what · $time';
+  }
+
+  @override
+  String sickDayChartSemantics(
+    String start,
+    String end,
+    String values,
+    String fever,
+  ) {
+    return 'القراءات من $start لحد $end: $values. الخط المتقطع عند $fever، من عندها تبقى سخونية.';
+  }
+
+  @override
+  String get sickDayChartThen => ' ثم ';
+
+  @override
+  String get sickDayAddReadingShort => 'قراءة حرارة';
+
+  @override
+  String get sickDayGivenShort => 'دوا اتاخد';
+
+  @override
+  String get sickDayAllReadings => 'كل القراءات';
+
+  @override
+  String get sickDayNoSymptoms => 'لسه مفيش أعراض متسجلة.';
+
+  @override
+  String sickDayCallDoctorNamed(String name) {
+    return 'كلّم $name';
+  }
+
+  @override
+  String get sickDayBack => 'رجوع';
+
+  @override
   String get readingValue => 'الحرارة';
 
   @override

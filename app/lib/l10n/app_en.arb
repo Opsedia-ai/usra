@@ -1778,6 +1778,118 @@
   "sickDayNoMedicines": "No medicines logged.",
   "sickDayNotes": "Notes",
   "sickDayNotesSaved": "Notes saved",
+  "sickDayPersonUnwell": "{sex, select, male{{name} is unwell} female{{name} is unwell} other{{name} is unwell}}",
+  "@sickDayPersonUnwell": {
+    "placeholders": {
+      "sex": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayPersonWasUnwell": "{sex, select, male{{name} was unwell} female{{name} was unwell} other{{name} was unwell}}",
+  "@sickDayPersonWasUnwell": {
+    "placeholders": {
+      "sex": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDaySinceToday": "Since today {time}",
+  "@sickDaySinceToday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDaySinceYesterday": "Since yesterday {time}",
+  "@sickDaySinceYesterday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayLatestReading": "Latest reading",
+  "sickDayFeverLogged": "Fever logged: {duration}",
+  "@sickDayFeverLogged": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayFeverUnderHour": "under an hour",
+  "sickDayFeverHours": "{count, plural, =1{1 hour} other{{shown} hours}}",
+  "@sickDayFeverHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayFeverDays": "{count, plural, =1{1 day} other{{shown} days}}",
+  "@sickDayFeverDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayRecordedGiven": "Recorded: {what} · {time}",
+  "@sickDayRecordedGiven": {
+    "placeholders": {
+      "what": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayChartSemantics": "Readings from {start} to {end}: {values}. The dashed line is at {fever}, where a fever starts.",
+  "@sickDayChartSemantics": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      },
+      "values": {
+        "type": "String"
+      },
+      "fever": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayChartThen": ", then ",
+  "sickDayAddReadingShort": "Add reading",
+  "sickDayGivenShort": "Medicine given",
+  "sickDayAllReadings": "All readings",
+  "sickDayNoSymptoms": "No symptoms logged yet.",
+  "sickDayCallDoctorNamed": "Call {name}",
+  "@sickDayCallDoctorNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sickDayBack": "Back",
   "readingValue": "Temperature",
   "readingCelsius": "°C",
   "readingFahrenheit": "°F",
