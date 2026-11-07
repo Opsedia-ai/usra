@@ -43,9 +43,12 @@ the app with (`usra://widget/medicines?homeWidget`).
   to open Usra.
 - Big text (`.title3`), right to left when the app is in Arabic, light and
   dark from the system.
+- No names of people or medicines, in any mode: only times and how many doses
+  (Apple 5.1.3, since the App Group's data may reach iCloud device backup).
+  A snapshot from an older version held names, and is deleted when read.
 - Taken button on iOS 17+, on a dose that's due and that the app allows
-  (`t` in the snapshot: with names always, in discreet mode only if no other
-  dose is still due within an hour). An App Intent runs in the extension, which
+  (`t` in the snapshot: only if no other dose is still due within an hour).
+  An App Intent runs in the extension, which
   can't reach the app's private folder, so it writes the same line as the
   notification's Taken to `dose_actions.jsonl` in the App Group, hides the
   row (`dose_widget_taken` in the App Group's defaults) until a later snapshot,

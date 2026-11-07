@@ -3,7 +3,7 @@
 // The `DoseWidget` app extension target in Runner.xcodeproj (see README.md).
 //
 // The database is encrypted, so the widget never reads it: the app saves a
-// small snapshot (first names, medicine names, times; see
+// small snapshot (times and how many doses, no names; see
 // `lib/features/medicines/dose_widget.dart`) in the App Group, and the
 // widget picks the next three doses as time passes, rolling over at
 // midnight without the app. Tapping it opens the Medicines tab. On iOS 17+ a
@@ -23,6 +23,8 @@ private let pendingKey = "dose_widget_taken"
 private let inboxFile = "dose_actions.jsonl"
 private let openURL = URL(string: "usra://widget/medicines?homeWidget")!
 private let shown = 3
+/// See `WidgetSnapshot.version`. Older ones held names, and are deleted.
+private let snapshotVersion = 2
 
 /// Gallery and fallback text in the phone's language (ar.lproj / en.lproj).
 /// Once the app has published a snapshot, its own title and texts win.
@@ -33,19 +35,17 @@ struct WidgetDose: Decodable {
   let at: Int64
   let until: Int64
   let time: String
-  let person: String
-  let medicine: String
+  let label: String
   let m: String
-  /// May have Taken once due: the app decides (never on a neutral row that
-  /// could be someone else's dose). Missing in older snapshots.
-  let t: Bool?
+  /// May have Taken once due: the app decides (never on a row that could be
+  /// someone else's dose).
+  let t: Bool
 
   var key: String { "\(m)@\(at)" }
   var date: Date { Date(timeIntervalSince1970: TimeInterval(at) / 1000) }
   /// When it leaves the widget: an hour after it's due or its snooze ends.
   var untilDate: Date { Date(timeIntervalSince1970: TimeInterval(until) / 1000) }
-  /// Discreet mode sends no person and a generic medicine.
-  var line: String { [time, person, medicine].filter { !$0.isEmpty }.joined(separator: " · ") }
+  var line: String { "\(time) · \(label)" }
 }
 
 struct WidgetSnapshot: Decodable {
@@ -62,11 +62,21 @@ struct WidgetSnapshot: Decodable {
   var validUntilDate: Date { Date(timeIntervalSince1970: TimeInterval(validUntil) / 1000) }
 
   static func load() -> WidgetSnapshot? {
-    guard let raw = UserDefaults(suiteName: appGroup)?.string(forKey: dataKey),
-      let data = raw.data(using: .utf8),
-      let snapshot = try? JSONDecoder().decode(WidgetSnapshot.self, from: data),
-      snapshot.v == 1
+    guard let defaults = UserDefaults(suiteName: appGroup),
+      let raw = defaults.string(forKey: dataKey)
     else { return nil }
+    guard let data = raw.data(using: .utf8),
+      let snapshot = try? JSONDecoder().decode(WidgetSnapshot.self, from: data),
+      snapshot.v == snapshotVersion
+    else {
+      // One with names from before an update, gone even if the app isn't
+      // opened: it says to open the app until a new one comes. Only if it's
+      // still the one read: the app may have just written a new one.
+      if defaults.string(forKey: dataKey) == raw {
+        defaults.removeObject(forKey: dataKey)
+      }
+      return nil
+    }
     return snapshot
   }
 }
@@ -219,7 +229,7 @@ struct DoseProvider: TimelineProvider {
       rows: due.prefix(shown).map { d in
         // Only doses already due: a later one still has its reminder
         // coming, which Taken here can't cancel.
-        DoseRow(line: d.line, dose: d.t == true && d.date <= date ? d : nil)
+        DoseRow(line: d.line, dose: d.t && d.date <= date ? d : nil)
       },
       taken: s.taken ?? "", message: s.empty)
   }

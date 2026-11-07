@@ -299,7 +299,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutPrivacyReminders.
   ///
   /// In en, this message translates to:
-  /// **'Reminders are set on this phone. People\'s names and medicine names can show on the lock screen (the name as you typed it) and on the home-screen widget (first names).'**
+  /// **'Reminders are set on this phone. People\'s names and medicine names can show on the lock screen (the name as you typed it). The home-screen widget has no names, only times and how many doses.'**
   String get aboutPrivacyReminders;
 
   /// No description provided for @aboutPrivacyDelete.
@@ -4340,11 +4340,17 @@ abstract class AppLocalizations {
   /// **'Your medicine time'**
   String get doseReminderDiscreetTitle;
 
-  /// No description provided for @widgetDiscreetDose.
+  /// No description provided for @widgetDoseDue.
   ///
   /// In en, this message translates to:
   /// **'Dose due'**
-  String get widgetDiscreetDose;
+  String get widgetDoseDue;
+
+  /// No description provided for @widgetDoseCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{{digits} doses due}}'**
+  String widgetDoseCount(int count, String digits);
 
   /// No description provided for @settingsDiscreet.
   ///
@@ -4355,7 +4361,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDiscreetHint.
   ///
   /// In en, this message translates to:
-  /// **'Reminders and the home-screen widget say \"Your medicine time\", without the person\'s or the medicine\'s name. When several doses are close together, open Usra to mark them.'**
+  /// **'Reminders say \"Your medicine time\", without the person\'s or the medicine\'s name. When several doses are close together, open Usra to mark them.'**
   String get settingsDiscreetHint;
 
   /// No description provided for @settingsBlockScreenshots.

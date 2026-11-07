@@ -30,7 +30,7 @@ Last updated: 7 November 2026. Update this when a risk changes, closes or appear
 |---|---|---|---|---|---|
 | S1 | Required sign-in (Apple 5.1.1(v)) | Apple may reject a login wall if it doesn't see significant account-based features | Medium | Decided. Review notes and a demo account are needed; fallback is optional sign-in until the paywall | Build |
 | S2 | A code that unlocks paid features (Apple 3.1.1) | Treated like a licence key and rejected | Medium | The family copy's code must only open a file | Build |
-| S3 | Health data reaches iCloud (Apple 5.1.3) | Widget snapshot with names could reach iCloud device backup | High | Decided: no names. Being built | Build |
+| S3 | Health data reaches iCloud (Apple 5.1.3) | Widget snapshot with names could reach iCloud device backup | High | Done: no names in any mode, and older snapshots are refused and deleted | Build |
 | S4 | Dose advice (Apple 1.4.2) | Dose calculators or checks cause rejection and harm | High | Not in v1. The Dr. Usra card must not promise them | Build |
 | S5 | Sign in with Apple and account deletion | Rejected if Google is offered without Apple, or an account can't be deleted in the app | Medium | Planned; check with required sign-in | Build |
 | S6 | Google Play's deletion web page doesn't exist | Play requires one for account deletion | Medium | Open in `docs/login-setup.md` | Build |
