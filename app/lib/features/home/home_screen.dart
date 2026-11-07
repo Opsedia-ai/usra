@@ -21,6 +21,7 @@ import '../medicines/dose_schedule.dart';
 import '../medicines/medicine_text.dart';
 import '../medicines/medicines_providers.dart';
 import '../pregnancy/pregnancy_widgets.dart';
+import 'home_setup_cards.dart';
 import 'simple_home.dart';
 
 /// Up to this many people, everyone fits on Home without swiping.
@@ -83,6 +84,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         const HomePregnancies(),
         const HomeVaccines(),
         const HomeFollowUps(),
+        HomeSetupCards(people: people),
         const _LastBackupLine(),
       ],
     );

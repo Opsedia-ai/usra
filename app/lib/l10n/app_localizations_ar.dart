@@ -4886,4 +4886,68 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get followUpsAll => 'كل المتابعات';
+
+  @override
+  String get simpleNextDose => 'الدوا الجاي';
+
+  @override
+  String simpleThenDose(String medicine, String time) {
+    return 'وبعده: $medicine الساعة $time';
+  }
+
+  @override
+  String get simpleNoDoses => 'مفيش جرعات فاضلة النهارده.';
+
+  @override
+  String get simpleExit => 'خروج من الوضع البسيط';
+
+  @override
+  String get simpleExitWithPin => 'خروج من الوضع البسيط (بالرقم السري)';
+
+  @override
+  String get simpleExitConfirm => 'تخرج من الوضع البسيط؟';
+
+  @override
+  String get simpleExitStay => 'خليك فيه';
+
+  @override
+  String get simpleExitGo => 'اخرج';
+
+  @override
+  String get countrySoonNote =>
+      'السعودية والأردن هيفتحوا لما جداولهم وأرقام الإسعاف يتراجعوا.';
+
+  @override
+  String get homeSetupIntro => 'خطوات ممكن تبدأ بيها. مفيش حاجة منهم إجبارية.';
+
+  @override
+  String get homeSetupFamily => 'فرد من العيلة';
+
+  @override
+  String get homeSetupFamilyHint => 'الاسم والنوع وتاريخ الميلاد وصلة القرابة';
+
+  @override
+  String get homeSetupReminders => 'التذكير بالدوا والتطعيمات';
+
+  @override
+  String get homeSetupRemindersHint => 'الإذن بيتطلب وقتها بس';
+
+  @override
+  String get homeSetupBackup => 'نسخة احتياطية';
+
+  @override
+  String get homeSetupBackupHint => 'علشان السجلات ماتضيعش لو الموبايل راح';
+
+  @override
+  String get homeSetupEmergency => 'كارت الطوارئ';
+
+  @override
+  String get homeSetupEmergencyHint => 'فصيلة الدم والحساسية ورقم للطوارئ';
+
+  @override
+  String get homeSetupLockNote =>
+      'بعد أول نسخة احتياطية هنقترح قفل أسرة برقم سري.';
+
+  @override
+  String get homeSetupHide => 'إخفاء';
 }

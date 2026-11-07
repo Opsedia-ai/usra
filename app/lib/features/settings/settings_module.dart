@@ -17,6 +17,7 @@ import '../backup/backup_screen.dart';
 import '../children/vaccines_screen.dart' show askForReminderAccess;
 import 'about_privacy_screen.dart';
 import 'delete_data_screen.dart';
+import '../home/simple_home.dart' show leaveSimpleMode;
 
 class SettingsModule extends FeatureModule {
   const SettingsModule();
@@ -144,6 +145,11 @@ class SettingsScreen extends ConsumerWidget {
                 key: const ValueKey('settings-simple-mode'),
                 value: ref.watch(simpleModeProvider),
                 onChanged: (on) async {
+                  // Going out asks first, here as on its own page.
+                  if (!on) {
+                    await leaveSimpleMode(context, ref);
+                    return;
+                  }
                   try {
                     await ref.read(simpleModeProvider.notifier).set(on);
                   } catch (_) {

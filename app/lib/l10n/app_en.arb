@@ -2769,5 +2769,35 @@
   "reportSummaryNotOpinion": "This summary is what the family recorded, not a medical opinion.",
   "followUpsThisWeek": "Today and this week",
   "followUpsLater": "Later",
-  "followUpsAll": "All follow-ups"
+  "followUpsAll": "All follow-ups",
+  "simpleNextDose": "Next medicine",
+  "simpleThenDose": "Then: {medicine} at {time}",
+  "@simpleThenDose": {
+    "placeholders": {
+      "medicine": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "simpleNoDoses": "No doses left today.",
+  "simpleExit": "Leave Simple Mode",
+  "simpleExitWithPin": "Leave Simple Mode (with the PIN)",
+  "simpleExitConfirm": "Leave Simple Mode?",
+  "simpleExitStay": "Stay",
+  "simpleExitGo": "Leave",
+  "countrySoonNote": "Saudi Arabia and Jordan will open once their schedules and ambulance numbers are checked.",
+  "homeSetupIntro": "Some places to start. None of them is required.",
+  "homeSetupFamily": "A family member",
+  "homeSetupFamilyHint": "Name, sex, date of birth and relationship",
+  "homeSetupReminders": "Medicine and vaccine reminders",
+  "homeSetupRemindersHint": "Permission is only asked for then",
+  "homeSetupBackup": "A backup",
+  "homeSetupBackupHint": "So your records aren't lost with the phone",
+  "homeSetupEmergency": "Emergency card",
+  "homeSetupEmergencyHint": "Blood type, allergies and an emergency number",
+  "homeSetupLockNote": "After the first backup we'll suggest locking Usra with a PIN.",
+  "homeSetupHide": "Hide"
 }

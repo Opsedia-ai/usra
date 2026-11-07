@@ -190,6 +190,10 @@ ThemeData buildUsraTheme({
       surfaceTintColor: Colors.transparent,
       indicatorColor: c.primarySoft,
       height: simple ? 88 : null,
+      // The default is 12, under the 14 every text has to reach.
+      labelTextStyle: WidgetStatePropertyAll(
+        UsraType.label.copyWith(fontSize: simple ? 16 : 14),
+      ),
       iconTheme: simple
           ? const WidgetStatePropertyAll(IconThemeData(size: 32))
           : null,
