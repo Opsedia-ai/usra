@@ -313,10 +313,10 @@ void main() {
 
         expect(phone.file(replaced).existsSync(), isFalse);
         expect(await phone.photosOf(db, omar.id), omar.photos);
-        expect(await phone.photosOf(db, sara.id), {
-          ...sara.photos,
-          added: _bytes('Sara new'),
-        }..remove(replaced));
+        expect(
+          await phone.photosOf(db, sara.id),
+          {...sara.photos, added: _bytes('Sara new')}..remove(replaced),
+        );
         await expectClean(phone, db);
       }
 
@@ -436,6 +436,33 @@ void main() {
       });
     });
 
+    test('two photos never share a place in the image cache', () {
+      final a = phone.medicines.image(sara.medicinePhoto);
+      expect(a, phone.medicines.image(sara.medicinePhoto));
+      expect(a, isNot(phone.medicines.image(omar.medicinePhoto)));
+      expect(a, isNot(phone.medicines.image(sara.prescriptionPhoto)));
+    });
+
+    test('a photo two rows use stays until the last of them goes', () async {
+      await db.saveMedicine(
+        id: sara.medicineId,
+        profileId: sara.id,
+        name: 'medicine',
+        startOn: DateTime(2026, 11, 1),
+        photos: [sara.prescriptionPhoto],
+      );
+      await phone.pruneAll(db);
+      expect(phone.file(sara.prescriptionPhoto).existsSync(), isTrue);
+
+      await db.softDeleteMedicine(sara.medicineId);
+      await phone.pruneAll(db);
+      expect(phone.file(sara.prescriptionPhoto).existsSync(), isTrue);
+
+      await db.softDeletePrescription(sara.prescriptionId);
+      await phone.pruneAll(db);
+      expect(phone.file(sara.prescriptionPhoto).existsSync(), isFalse);
+    });
+
     group('the photo check', () {
       test('finds nothing wrong when nothing is', () async {
         await expectClean(phone, db);
@@ -468,10 +495,7 @@ void main() {
 
       test('ignores hidden files, and copes with a folder gone', () async {
         phone.file('${PhotoStore.cardsFolder}/.DS_Store').writeAsBytesSync([1]);
-        phone
-            .file(sara.medicinePhoto)
-            .parent
-            .deleteSync(recursive: true);
+        phone.file(sara.medicinePhoto).parent.deleteSync(recursive: true);
 
         final check = await phone.check(db);
         // Both people's medicine and prescription photos, nothing else.

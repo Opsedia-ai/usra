@@ -55,7 +55,11 @@ class FamilyModule extends FeatureModule {
             ),
             GoRoute(
               path: 'add/:type',
+              // Keyed by path, as go_router keeps a screen's State when only the
+              // path's values change: a photo picked for one person must not
+              // stay in the form when it opens for another. So are the others.
               builder: (_, s) => RecordFormScreen(
+                key: ValueKey(s.uri.path),
                 profileId: s.pathParameters['id']!,
                 typeKey: s.pathParameters['type']!,
               ),
@@ -69,8 +73,10 @@ class FamilyModule extends FeatureModule {
             ),
             GoRoute(
               path: 'insurance/new',
-              builder: (_, s) =>
-                  InsuranceFormScreen(profileId: s.pathParameters['id']!),
+              builder: (_, s) => InsuranceFormScreen(
+                key: ValueKey(s.uri.path),
+                profileId: s.pathParameters['id']!,
+              ),
             ),
             GoRoute(
               path: 'insurance/:cardId',
@@ -82,6 +88,7 @@ class FamilyModule extends FeatureModule {
                 GoRoute(
                   path: 'edit',
                   builder: (_, s) => InsuranceFormScreen(
+                    key: ValueKey(s.uri.path),
                     profileId: s.pathParameters['id']!,
                     cardId: s.pathParameters['cardId'],
                   ),
