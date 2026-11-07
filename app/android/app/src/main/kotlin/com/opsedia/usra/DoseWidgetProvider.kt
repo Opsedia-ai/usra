@@ -93,6 +93,8 @@ class DoseWidgetProvider : HomeWidgetProvider() {
             val person: String,
             val medicine: String,
             val medicineId: String,
+            /** Has Taken once due; never on a neutral row others could match. */
+            val canMark: Boolean,
         )
 
         private class Snapshot(
@@ -103,8 +105,6 @@ class DoseWidgetProvider : HomeWidgetProvider() {
             val empty: String?,
             val stale: String?,
             val taken: String?,
-            /** No names, so no Taken: identical rows could be anyone's. */
-            val discreet: Boolean,
             val doses: List<Dose>,
         )
 
@@ -173,7 +173,7 @@ class DoseWidgetProvider : HomeWidgetProvider() {
                 )
                 // Only doses already due: a later one still has its
                 // reminder coming, which Taken here can't cancel.
-                if (dose.at <= now && !snapshot!!.discreet) {
+                if (dose.at <= now && dose.canMark) {
                     views.setViewVisibility(buttons[i], View.VISIBLE)
                     views.setTextViewText(
                         buttons[i],
@@ -293,6 +293,8 @@ class DoseWidgetProvider : HomeWidgetProvider() {
                 val j = JSONObject(raw)
                 if (j.optInt("v") != 1) return null
                 val list = j.getJSONArray("doses")
+                // A snapshot from before "t" keeps the buttons it had.
+                val discreet = j.optBoolean("discreet", false)
                 Snapshot(
                     generatedAt = j.getLong("generatedAt"),
                     validUntil = j.getLong("validUntil"),
@@ -301,7 +303,6 @@ class DoseWidgetProvider : HomeWidgetProvider() {
                     empty = j.optString("empty").ifEmpty { null },
                     stale = j.optString("stale").ifEmpty { null },
                     taken = j.optString("taken").ifEmpty { null },
-                    discreet = j.optBoolean("discreet", false),
                     doses = (0 until list.length()).map {
                         val d = list.getJSONObject(it)
                         Dose(
@@ -311,6 +312,7 @@ class DoseWidgetProvider : HomeWidgetProvider() {
                             person = d.getString("person"),
                             medicine = d.getString("medicine"),
                             medicineId = d.getString("m"),
+                            canMark = d.optBoolean("t", !discreet),
                         )
                     },
                 )

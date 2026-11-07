@@ -86,6 +86,13 @@ Future<void> main() async {
         HomeWidgetSnapshotPublisher.dataKey,
         null,
       );
+      await HomeWidget.saveWidgetData<String>(
+        HomeWidgetSnapshotPublisher.iosPendingKey,
+        null,
+      );
+      (await DoseActionInbox.openWidgetInbox(
+        HomeWidgetSnapshotPublisher.appGroup,
+      ))?.clear();
       await HomeWidget.updateWidget(
         qualifiedAndroidName: HomeWidgetSnapshotPublisher.androidProvider,
         iOSName: HomeWidgetSnapshotPublisher.iOSKind,
@@ -253,7 +260,8 @@ Future<void> main() async {
             ),
       );
     } else {
-      // Taken / Snooze only saves the dose and shows nothing: no unlock.
+      // Taken / Snooze / Skip only saves the dose and shows nothing: no
+      // unlock.
       reminders.handleAction(r.dose, status);
     }
   }
@@ -267,6 +275,7 @@ Future<void> main() async {
       vaccineChannelName: startup.vaccineChannelName,
       takenLabel: startup.doseTaken,
       snoozeLabel: startup.doseSnooze,
+      skipLabel: startup.doseSkip,
       hiddenPreviewText: startup.reminderHiddenPreview,
       onResponse: onDoseResponse,
     );
@@ -308,10 +317,19 @@ Future<void> main() async {
           wipeOutcomeProvider.overrideWithValue(wipe),
         ],
       );
+  DoseActionInbox? widgetInbox;
+  try {
+    widgetInbox = await DoseActionInbox.openWidgetInbox(
+      HomeWidgetSnapshotPublisher.appGroup,
+    );
+  } catch (_) {
+    // No App Group: the widget's Taken isn't saved, reminders still work.
+  }
   ReminderSync newReminders() => ReminderSync(
     db: database,
     scheduler: scheduler,
     inbox: inbox,
+    widgetInbox: widgetInbox,
     texts: () => reminderTextsOf(container()),
     widget: const HomeWidgetSnapshotPublisher(),
     vaccineChanges: database.watchEventChanges(vaccineRecordTypes),

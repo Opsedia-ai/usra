@@ -2,8 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' show Locale;
 
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:path_provider_foundation/path_provider_foundation.dart';
 
 import '../../core/database/app_database.dart';
 import '../../l10n/app_localizations.dart';
@@ -15,6 +18,95 @@ const snoozeDuration = Duration(minutes: 10);
 /// Reminder ids at or above this are snoozes, which outlive a re-plan;
 /// planned reminders use the ids below it.
 const snoozeIdBase = 1000000;
+
+/// iOS fixes a category's buttons, so each set of buttons is its own
+/// category, and a notification keeps the one it was scheduled with.
+///
+/// With names: Taken, Snooze and Skip.
+const namedCategory = 'dose';
+
+/// Neutral text, and this dose can be told from any other: Taken, Snooze
+/// and Skip, the first and last only on an unlocked phone.
+const discreetLoneCategory = 'dose_discreet_lone';
+
+/// Neutral text that could be another dose's: Snooze only. Reminders
+/// scheduled by older versions have this one too.
+const discreetCategory = 'dose_discreet';
+
+/// In discreet mode, doses this close together get no Taken or Skip: their
+/// notifications and widget rows say nothing about who or what, so someone
+/// who has just given one could press the other's button.
+const doseClashWindow = Duration(hours: 1);
+
+/// Whether a dose's neutral notification can be told from other doses'.
+enum DoseCompany {
+  /// No other dose still due within [doseClashWindow]: its button can only
+  /// mean this dose, and its text gives the planned time.
+  alone,
+
+  /// Another dose is still due within [doseClashWindow].
+  several,
+
+  /// Not known here (already marked, or outside what was read), so it's
+  /// treated as if it could be another dose's.
+  unknown,
+}
+
+/// The key for a dose in [doseCompanyOf].
+String doseKey(String medicineId, DateTime scheduledAt) =>
+    '$medicineId@${scheduledAt.millisecondsSinceEpoch}';
+
+/// The company each dose still due from [from] to [to] keeps, by [doseKey];
+/// a dose that isn't there is [DoseCompany.unknown]. A snoozed dose counts
+/// both at its planned time and when its snooze rings. [logs] must reach
+/// [doseClashWindow] beyond both ends: a dose whose log isn't read counts as
+/// still due, which only ever takes buttons away.
+Map<String, DoseCompany> doseCompanyOf(
+  List<Regimen> regimens,
+  List<DoseLog> logs, {
+  required DateTime from,
+  required DateTime to,
+}) {
+  final due = [
+    for (final d in plannedDoses(
+      regimens,
+      logs,
+      from: from.subtract(doseClashWindow),
+      to: to.add(doseClashWindow),
+    ))
+      if (!d.isDone) d,
+  ];
+  List<DateTime> rings(PlannedDose d) => [
+    d.at,
+    if (d.log?.status == DoseOutcome.snoozed)
+      d.log!.at.toLocal().add(snoozeDuration),
+  ];
+  bool close(PlannedDose a, PlannedDose b) => rings(a).any(
+    (x) => rings(b).any((y) => x.difference(y).abs() <= doseClashWindow),
+  );
+  return {
+    for (final d in due)
+      if (!d.at.isBefore(from) && d.at.isBefore(to))
+        doseKey(d.regimen.medicine.id, d.at):
+            due.any((o) => !identical(o, d) && close(o, d))
+            ? DoseCompany.several
+            : DoseCompany.alone,
+  };
+}
+
+/// [at] as "٨:٠٠ م" in [localeName]: Egyptian Arabic, whose times are big
+/// and familiar; plain `ar` uses Western digits. Call
+/// [ensureDoseTimeFormatting] first.
+String doseTimeText(DateTime at, String localeName) =>
+    DateFormat.jm(_timeLocale(localeName)).format(at.toLocal());
+
+String _timeLocale(String localeName) =>
+    localeName == 'ar' ? 'ar_EG' : localeName;
+
+/// Date formats for [localeName]; reminders may be planned before the app's
+/// localizations have loaded them.
+Future<void> ensureDoseTimeFormatting(String localeName) =>
+    initializeDateFormatting(_timeLocale(localeName));
 
 /// Which dose a notification is for, and nothing else: what its payload
 /// holds. The text is never saved there; it's rebuilt from the current
@@ -112,6 +204,8 @@ class PlannedReminder {
     required this.body,
     required this.takenLabel,
     required this.snoozeLabel,
+    this.skipLabel,
+    this.discreet = false,
     this.locale = 'ar',
     this.profileId,
   }) : episodeId = null;
@@ -130,7 +224,9 @@ class PlannedReminder {
        scheduledAt = dueOn,
        episodeId = null,
        takenLabel = null,
-       snoozeLabel = null;
+       snoozeLabel = null,
+       skipLabel = null,
+       discreet = false;
 
   /// "The next dose is allowed" for a medicine given in a sick day, with
   /// no buttons in either mode (see `sick_days/next_dose.dart`).
@@ -146,7 +242,9 @@ class PlannedReminder {
   }) : medicineId = '',
        scheduledAt = at,
        takenLabel = null,
-       snoozeLabel = null;
+       snoozeLabel = null,
+       skipLabel = null,
+       discreet = false;
 
   final int id;
 
@@ -159,13 +257,19 @@ class PlannedReminder {
   final String title;
   final String body;
 
-  /// The Taken button; none in discreet mode, where two identical
-  /// notifications could each mark someone else's dose, nor on a vaccine
-  /// visit.
+  /// The Taken button. None on a neutral notification that could be another
+  /// dose's (see [DoseCompany]), where it could mark someone else's dose,
+  /// nor on a vaccine visit.
   final String? takenLabel;
 
   /// None on a vaccine visit: a week's notice needs no snooze.
   final String? snoozeLabel;
+
+  /// The Skip button; none wherever there is no Taken, for the same reason.
+  final String? skipLabel;
+
+  /// Neutral text, with no person's or medicine's name.
+  final bool discreet;
   final String locale;
 
   /// The child, for a vaccine visit; the person, for a next-dose reminder.
@@ -178,10 +282,17 @@ class PlannedReminder {
 
   bool get isNextDose => episodeId != null;
 
-  bool get discreet => takenLabel == null;
-
   /// Taken or Snooze; vaccine and next-dose reminders have none.
   bool get hasButtons => takenLabel != null || snoozeLabel != null;
+
+  /// The iOS category with this reminder's buttons; none without buttons.
+  String? get iosCategory => !hasButtons
+      ? null
+      : takenLabel == null
+      ? discreetCategory
+      : discreet
+      ? discreetLoneCategory
+      : namedCategory;
 
   ReminderRef get ref => ReminderRef(
     medicineId: medicineId,
@@ -217,8 +328,9 @@ class ReminderTexts {
   final AppLocalizations l;
 
   /// "Discreet notifications": no person's or medicine's name, here or on
-  /// the home-screen widget, since both show on a phone others can see,
-  /// and no Taken button, since the doses can't be told apart.
+  /// the home-screen widget, since both show on a phone others can see. A
+  /// Taken button only where the dose can be told from others: see
+  /// [DoseCompany].
   final bool discreet;
 
   String title(Regimen r) => discreet
@@ -229,33 +341,59 @@ class ReminderTexts {
         );
 
   /// The amount and the doctor's words, as written; nothing added.
-  /// Discreet: just where to see which, as the words can name a condition.
-  String body(Regimen r) {
-    if (discreet) return l.doseReminderDiscreetBody;
+  /// Discreet: the planned time when that tells the dose apart, otherwise
+  /// where to see which, as the doctor's words can name a condition. Each
+  /// [DoseCompany] reads differently, as text is all [diffReminders] can see
+  /// of a reminder the phone holds.
+  String body(
+    Regimen r, {
+    required DateTime scheduledAt,
+    DoseCompany company = DoseCompany.unknown,
+  }) {
+    if (discreet) {
+      return switch (company) {
+        DoseCompany.alone => l.doseReminderDiscreetTimeBody(
+          doseTimeText(scheduledAt, l.localeName),
+        ),
+        DoseCompany.several => l.doseReminderDiscreetSeveralBody,
+        DoseCompany.unknown => l.doseReminderDiscreetBody,
+      };
+    }
     final parts = [?r.schedule.amount, ?r.medicine.instructions];
-    return parts.isEmpty ? l.doseReminderBody : parts.join(' · ');
+    return parts.isEmpty
+        ? l.doseReminderBody(r.person.sex ?? 'other')
+        : parts.join(' · ');
   }
 
   /// The reminder for [r]'s dose planned at [scheduledAt], ringing [at].
+  /// Without [company], a discreet one gets no Taken.
   PlannedReminder reminder(
     Regimen r, {
     required int id,
     required DateTime at,
     required DateTime scheduledAt,
-  }) => PlannedReminder(
-    id: id,
-    at: at,
-    medicineId: r.medicine.id,
-    scheduledAt: scheduledAt,
-    title: title(r),
-    body: body(r),
-    takenLabel: discreet ? null : l.doseTaken,
-    snoozeLabel: l.doseSnooze,
-    locale: l.localeName,
-  );
+    DoseCompany company = DoseCompany.unknown,
+  }) {
+    final canMark = !discreet || company == DoseCompany.alone;
+    return PlannedReminder(
+      id: id,
+      at: at,
+      medicineId: r.medicine.id,
+      scheduledAt: scheduledAt,
+      title: title(r),
+      body: body(r, scheduledAt: scheduledAt, company: company),
+      takenLabel: canMark ? l.doseTaken : null,
+      snoozeLabel: l.doseSnooze,
+      skipLabel: canMark ? l.doseSkip : null,
+      discreet: discreet,
+      locale: l.localeName,
+    );
+  }
 
-  /// [ref]'s dose without reading the database: always discreet. For a
-  /// snooze pressed while the app isn't running.
+  /// [ref]'s dose without reading the database: always discreet, and with
+  /// no Taken, as whether others are due can't be known here. For a snooze
+  /// pressed while the app isn't running; the app adds what's missing when
+  /// it next runs.
   static PlannedReminder generic(ReminderRef ref, {required DateTime at}) {
     final l = lookupAppLocalizations(Locale(ref.locale));
     return PlannedReminder(
@@ -267,6 +405,7 @@ class ReminderTexts {
       body: l.doseReminderDiscreetBody,
       takenLabel: null,
       snoozeLabel: l.doseSnooze,
+      discreet: true,
       locale: l.localeName,
     );
   }
@@ -283,7 +422,9 @@ List<PlannedReminder> planReminders(
   Duration window = const Duration(days: 7),
   int max = 60,
 }) {
-  final doses = plannedDoses(regimens, logs, from: now, to: now.add(window));
+  final to = now.add(window);
+  final doses = plannedDoses(regimens, logs, from: now, to: to);
+  final company = doseCompanyOf(regimens, logs, from: now, to: to);
   final out = <PlannedReminder>[];
   for (final d in doses) {
     // A snoozed dose already has its own one-off reminder.
@@ -295,6 +436,9 @@ List<PlannedReminder> planReminders(
         id: out.length + 1,
         at: d.at,
         scheduledAt: d.scheduledAt,
+        company:
+            company[doseKey(d.regimen.medicine.id, d.at)] ??
+            DoseCompany.unknown,
       ),
     );
   }
@@ -383,7 +527,8 @@ class ReminderChanges {
 /// exactly [wanted] (unchanged ones left alone, so one about to ring is
 /// never lost), snoozes in [doneSnoozes] are cancelled, and other snoozes
 /// and notifications on screen whose text is out of date (the language or
-/// discreet setting changed) are rewritten with [rebuild].
+/// discreet setting changed, or another dose now shares its time) are
+/// rewritten with [rebuild].
 ReminderChanges diffReminders({
   required List<PhoneReminder> pending,
   List<PhoneReminder> shown = const [],
@@ -550,6 +695,19 @@ class DoseActionInbox {
 
   static const fileName = 'dose_actions.jsonl';
 
+  /// The inbox for Taken on the iOS widget, in the App Group folder (an
+  /// extension can't reach the app's private folder); null on other
+  /// platforms or if the folder can't be found.
+  static Future<DoseActionInbox?> openWidgetInbox(String appGroup) async {
+    if (!Platform.isIOS) return null;
+    final folder = await PathProviderFoundation().getContainerPath(
+      appGroupIdentifier: appGroup,
+    );
+    return folder == null
+        ? null
+        : DoseActionInbox(File(p.join(folder, fileName)));
+  }
+
   /// The inbox in the app's private folder. Looked up each time rather
   /// than saved in notifications: the iOS container path can change when
   /// the app is updated.
@@ -596,6 +754,13 @@ class DoseActionInbox {
   void done() {
     final taken = File('${file.path}.taking');
     if (taken.existsSync()) taken.deleteSync();
+  }
+
+  /// Forgets everything waiting, for "Delete all my data".
+  void clear() {
+    for (final f in [file, File('${file.path}.taking')]) {
+      if (f.existsSync()) f.deleteSync();
+    }
   }
 }
 

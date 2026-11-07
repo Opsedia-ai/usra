@@ -1295,7 +1295,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get doseReminderBody => 'دوس اتاخد بعد ما ياخده';
+  String doseReminderBody(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'female': 'دوس اتاخد بعد ما تاخده',
+      'other': 'دوس اتاخد بعد ما ياخده',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get doseChannelName => 'مواعيد الأدوية';
@@ -2590,7 +2596,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'الصور مش بتتفتح على الموبايل ده. رجّع نسختك الاحتياطية عشان ترجعلك.';
 
   @override
-  String get doseReminderDiscreetTitle => 'ميعاد دوا';
+  String get doseReminderDiscreetTitle => 'ميعاد الدوا';
 
   @override
   String get widgetDiscreetDose => 'ميعاد جرعة';
@@ -2600,7 +2606,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settingsDiscreetHint =>
-      'التنبيهات وويدجت الشاشة الرئيسية بتقول \"ميعاد دوا\" بس، من غير اسم الشخص ولا اسم الدوا.';
+      'التنبيهات وويدجت الشاشة الرئيسية بتقول \"ميعاد الدوا\" بس، من غير اسم الشخص ولا اسم الدوا. لو كذا جرعة مواعيدهم قريبة من بعض، افتح أسرة عشان تعلّم عليهم.';
 
   @override
   String get settingsBlockScreenshots => 'امنع تصوير الشاشة';
@@ -2611,6 +2617,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get doseReminderDiscreetBody => 'افتح أسرة عشان تشوف أنهي دوا';
+
+  @override
+  String doseReminderDiscreetTimeBody(String time) {
+    return 'جرعة $time';
+  }
+
+  @override
+  String get doseReminderDiscreetSeveralBody =>
+      'فيه أكتر من جرعة ميعادها دلوقتي. افتح أسرة عشان تشوف أنهي دوا';
 
   @override
   String get memberVaccines => 'التطعيمات';

@@ -21,6 +21,7 @@ class ReminderSync with WidgetsBindingObserver {
     required this.inbox,
     required this.texts,
     this.widget,
+    this.widgetInbox,
     this.vaccines,
     this.vaccineChanges,
     this.nextDoses,
@@ -38,6 +39,10 @@ class ReminderSync with WidgetsBindingObserver {
 
   /// The home-screen widget; none in tests that don't need it.
   final WidgetSnapshotPublisher? widget;
+
+  /// Taken pressed on the iOS widget, whose extension can't reach [inbox];
+  /// none elsewhere (Android's widget writes to [inbox]).
+  final DoseActionInbox? widgetInbox;
 
   /// Vaccine visit reminders to schedule alongside the doses (see
   /// `children/vaccine_reminders.dart`); none when null.
@@ -83,7 +88,11 @@ class ReminderSync with WidgetsBindingObserver {
     // background too).
     var ticks = 0;
     _periodic = Timer.periodic(const Duration(minutes: 1), (_) {
-      if (++ticks % 360 == 0 || inbox.hasActions) resync();
+      if (++ticks % 360 == 0 ||
+          inbox.hasActions ||
+          (widgetInbox?.hasActions ?? false)) {
+        resync();
+      }
     });
     await resync();
   }
@@ -129,21 +138,18 @@ class ReminderSync with WidgetsBindingObserver {
     final now = _clock();
     final List<Regimen> regimens;
     final List<DoseLog> logs;
+    final t = texts();
     try {
+      await ensureDoseTimeFormatting(t.l.localeName);
       await saveInbox();
       regimens = await db.watchRegimens().first;
-      logs = await db
-          .watchDoseLogs(
-            from: now.subtract(const Duration(days: 1)),
-            to: now.add(const Duration(days: 8)),
-          )
-          .first;
+      logs = await _logsAround(now);
     } catch (e, s) {
       _report(e, s);
       return;
     }
     // Each on its own: a broken widget never stops reminders.
-    final t = texts();
+    final company = _companyAround(regimens, logs, now);
     var vaccineReminders = const <PlannedReminder>[];
     try {
       vaccineReminders = await vaccines?.call(now) ?? const [];
@@ -178,7 +184,15 @@ class ReminderSync with WidgetsBindingObserver {
           final r = _regimenOf(regimens, ref.medicineId);
           return r == null
               ? null
-              : t.reminder(r, id: id, at: at, scheduledAt: ref.scheduledAt);
+              : t.reminder(
+                  r,
+                  id: id,
+                  at: at,
+                  scheduledAt: ref.scheduledAt,
+                  company:
+                      company[doseKey(ref.medicineId, ref.scheduledAt)] ??
+                      DoseCompany.unknown,
+                );
         },
       );
     } catch (e, s) {
@@ -187,7 +201,6 @@ class ReminderSync with WidgetsBindingObserver {
     final widget = this.widget;
     if (widget == null) return;
     try {
-      await ensureWidgetDateFormatting(t.l.localeName);
       await widget.publish(
         buildWidgetSnapshot(
           regimens,
@@ -207,8 +220,35 @@ class ReminderSync with WidgetsBindingObserver {
     FlutterErrorDetails(exception: e, stack: s, library: 'reminders'),
   );
 
-  /// Moves doses marked from notifications into the database.
+  /// Logs wide enough for [_companyAround].
+  Future<List<DoseLog>> _logsAround(DateTime now) => db
+      .watchDoseLogs(
+        from: now.subtract(const Duration(days: 1)),
+        to: now.add(const Duration(days: 8)),
+      )
+      .first;
+
+  /// Which doses can be told apart; older snoozes count as not known.
+  /// Inside [_logsAround] by [doseClashWindow] at both ends.
+  Map<String, DoseCompany> _companyAround(
+    List<Regimen> regimens,
+    List<DoseLog> logs,
+    DateTime now,
+  ) => doseCompanyOf(
+    regimens,
+    logs,
+    from: now.subtract(const Duration(hours: 23)),
+    to: now.add(const Duration(days: 7)),
+  );
+
+  /// Moves doses marked from notifications and the widget into the database.
   Future<void> saveInbox() async {
+    await _saveFrom(inbox);
+    final widgetInbox = this.widgetInbox;
+    if (widgetInbox != null) await _saveFrom(widgetInbox);
+  }
+
+  Future<void> _saveFrom(DoseActionInbox inbox) async {
     // Twice: an earlier, interrupted run may have left a batch behind.
     for (var i = 0; i < 2; i++) {
       final actions = inbox.take();
@@ -220,21 +260,28 @@ class ReminderSync with WidgetsBindingObserver {
     }
   }
 
-  /// A Taken or Snooze action handled while the app is running.
+  /// A Taken, Snooze or Skip action handled while the app is running.
   Future<void> handleAction(ReminderRef dose, String status) async {
     // Vaccine visits and next-dose reminders have no buttons.
     if (dose.isVaccine || dose.isNextDose) return;
     final now = _clock();
     final saved = await _save(dose.medicineId, dose.scheduledAt, status, now);
     if (!saved || status != DoseOutcome.snoozed) return;
-    final r = _regimenOf(await db.watchRegimens().first, dose.medicineId);
+    final regimens = await db.watchRegimens().first;
+    final r = _regimenOf(regimens, dose.medicineId);
     if (r == null) return;
+    final t = texts();
+    await ensureDoseTimeFormatting(t.l.localeName);
+    final company = _companyAround(regimens, await _logsAround(now), now);
     await scheduler.add(
-      texts().reminder(
+      t.reminder(
         r,
         id: snoozeIdFor(dose.medicineId, dose.scheduledAt),
         at: now.add(snoozeDuration),
         scheduledAt: dose.scheduledAt,
+        company:
+            company[doseKey(dose.medicineId, dose.scheduledAt)] ??
+            DoseCompany.unknown,
       ),
     );
   }

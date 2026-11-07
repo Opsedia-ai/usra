@@ -724,7 +724,14 @@
       }
     }
   },
-  "doseReminderBody": "Tap Taken once it's done",
+  "doseReminderBody": "{sex, select, other{Tap Taken once it's done}}",
+  "@doseReminderBody": {
+    "placeholders": {
+      "sex": {
+        "type": "String"
+      }
+    }
+  },
   "doseChannelName": "Medicine reminders",
   "doseChannelDescription": "Reminders at the times the doctor prescribed",
   "widgetEmpty": "No medicines today",
@@ -1360,13 +1367,22 @@
     }
   },
   "photosLocked": "Photos can't be opened on this phone. Restore your backup to get them back.",
-  "doseReminderDiscreetTitle": "Time for a medicine",
+  "doseReminderDiscreetTitle": "Your medicine time",
   "widgetDiscreetDose": "Dose due",
   "settingsDiscreet": "Discreet notifications",
-  "settingsDiscreetHint": "Reminders and the home-screen widget say \"Time for a medicine\", without the person's or the medicine's name.",
+  "settingsDiscreetHint": "Reminders and the home-screen widget say \"Your medicine time\", without the person's or the medicine's name. When several doses are close together, open Usra to mark them.",
   "settingsBlockScreenshots": "Block screenshots",
   "settingsBlockScreenshotsHint": "No screenshots or screen recording anywhere in the app. The recovery key is always protected. Leave off to screenshot the emergency card.",
   "doseReminderDiscreetBody": "Open Usra to see which",
+  "doseReminderDiscreetTimeBody": "The {time} dose",
+  "@doseReminderDiscreetTimeBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "doseReminderDiscreetSeveralBody": "More than one dose is due around now. Open Usra to see which",
   "@vaccinesDisclaimer": {
     "placeholders": {
       "date": {

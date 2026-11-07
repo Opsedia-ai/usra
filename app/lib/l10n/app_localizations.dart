@@ -2273,8 +2273,8 @@ abstract class AppLocalizations {
   /// No description provided for @doseReminderBody.
   ///
   /// In en, this message translates to:
-  /// **'Tap Taken once it\'s done'**
-  String get doseReminderBody;
+  /// **'{sex, select, other{Tap Taken once it\'s done}}'**
+  String doseReminderBody(String sex);
 
   /// No description provided for @doseChannelName.
   ///
@@ -4235,7 +4235,7 @@ abstract class AppLocalizations {
   /// No description provided for @doseReminderDiscreetTitle.
   ///
   /// In en, this message translates to:
-  /// **'Time for a medicine'**
+  /// **'Your medicine time'**
   String get doseReminderDiscreetTitle;
 
   /// No description provided for @widgetDiscreetDose.
@@ -4253,7 +4253,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDiscreetHint.
   ///
   /// In en, this message translates to:
-  /// **'Reminders and the home-screen widget say \"Time for a medicine\", without the person\'s or the medicine\'s name.'**
+  /// **'Reminders and the home-screen widget say \"Your medicine time\", without the person\'s or the medicine\'s name. When several doses are close together, open Usra to mark them.'**
   String get settingsDiscreetHint;
 
   /// No description provided for @settingsBlockScreenshots.
@@ -4273,6 +4273,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open Usra to see which'**
   String get doseReminderDiscreetBody;
+
+  /// No description provided for @doseReminderDiscreetTimeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The {time} dose'**
+  String doseReminderDiscreetTimeBody(String time);
+
+  /// No description provided for @doseReminderDiscreetSeveralBody.
+  ///
+  /// In en, this message translates to:
+  /// **'More than one dose is due around now. Open Usra to see which'**
+  String get doseReminderDiscreetSeveralBody;
 
   /// No description provided for @memberVaccines.
   ///

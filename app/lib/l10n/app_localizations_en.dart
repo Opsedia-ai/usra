@@ -1288,7 +1288,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get doseReminderBody => 'Tap Taken once it\'s done';
+  String doseReminderBody(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'other': 'Tap Taken once it\'s done',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get doseChannelName => 'Medicine reminders';
@@ -2580,7 +2585,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Photos can\'t be opened on this phone. Restore your backup to get them back.';
 
   @override
-  String get doseReminderDiscreetTitle => 'Time for a medicine';
+  String get doseReminderDiscreetTitle => 'Your medicine time';
 
   @override
   String get widgetDiscreetDose => 'Dose due';
@@ -2590,7 +2595,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsDiscreetHint =>
-      'Reminders and the home-screen widget say \"Time for a medicine\", without the person\'s or the medicine\'s name.';
+      'Reminders and the home-screen widget say \"Your medicine time\", without the person\'s or the medicine\'s name. When several doses are close together, open Usra to mark them.';
 
   @override
   String get settingsBlockScreenshots => 'Block screenshots';
@@ -2601,6 +2606,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get doseReminderDiscreetBody => 'Open Usra to see which';
+
+  @override
+  String doseReminderDiscreetTimeBody(String time) {
+    return 'The $time dose';
+  }
+
+  @override
+  String get doseReminderDiscreetSeveralBody =>
+      'More than one dose is due around now. Open Usra to see which';
 
   @override
   String get memberVaccines => 'Vaccinations';
