@@ -36,7 +36,7 @@ class WarningSignsCard extends StatelessWidget {
       birthDate: person.birthDate,
       now: now,
     );
-    final color = Severity.urgent.foreground;
+    final color = Severity.urgent.foregroundOf(context);
     Widget bullet(WarningSign s, {bool strong = false}) => Padding(
       key: ValueKey('warning-${strong ? 'matched-' : ''}${s.key}'),
       padding: const EdgeInsets.symmetric(vertical: 3),
@@ -59,7 +59,7 @@ class WarningSignsCard extends StatelessWidget {
       ..sort((a, b) => a.index.compareTo(b.index));
     return Card(
       key: const ValueKey('sick-day-warnings'),
-      color: Severity.urgent.background,
+      color: Severity.urgent.backgroundOf(context),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -67,10 +67,7 @@ class WarningSignsCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(
-                  Icons.warning_amber_rounded,
-                  color: UsraColors.emergency,
-                ),
+                Icon(Icons.warning_amber_rounded, color: context.usra.urgent),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -99,8 +96,8 @@ class WarningSignsCard extends StatelessWidget {
                 key: const ValueKey('warning-matched'),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: UsraColors.surface,
-                  border: Border.all(color: UsraColors.emergency, width: 2),
+                  color: context.usra.surface,
+                  border: Border.all(color: context.usra.urgent, width: 2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -139,7 +136,7 @@ class WarningSignsCard extends StatelessWidget {
             FilledButton.icon(
               key: const ValueKey('sick-day-ambulance'),
               style: FilledButton.styleFrom(
-                backgroundColor: UsraColors.emergency,
+                backgroundColor: context.usra.urgent,
                 minimumSize: const Size.fromHeight(56),
                 textStyle: text.titleMedium,
               ),
@@ -165,7 +162,7 @@ class WarningSignsCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               l.warnSources,
-              style: text.bodySmall?.copyWith(color: UsraColors.textMuted),
+              style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
             ),
             for (final s in sources)
               TextButton(

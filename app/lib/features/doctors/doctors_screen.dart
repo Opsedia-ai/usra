@@ -47,11 +47,11 @@ class DoctorsScreen extends ConsumerWidget {
                   return Card(
                     child: ListTile(
                       onTap: () => context.go('/doctors/${d.id}'),
-                      leading: const CircleAvatar(
-                        backgroundColor: UsraColors.primaryTint,
+                      leading: CircleAvatar(
+                        backgroundColor: context.usra.primarySoft,
                         child: Icon(
                           Icons.medical_services_outlined,
-                          color: UsraColors.primary,
+                          color: context.usra.primary,
                         ),
                       ),
                       title: Text(d.name),

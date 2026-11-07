@@ -132,10 +132,10 @@ class DoseCard extends ConsumerWidget {
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: UsraColors.primaryTint,
+                    backgroundColor: context.usra.primarySoft,
                     child: Icon(
                       medicineFormIcon(r.medicine.form),
-                      color: UsraColors.primary,
+                      color: context.usra.primary,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -157,7 +157,7 @@ class DoseCard extends ConsumerWidget {
                             l.courseDayOf(c.day, c.total),
                             key: ValueKey('dose-course-$id'),
                             style: text.labelLarge?.copyWith(
-                              color: UsraColors.primary,
+                              color: context.usra.primary,
                             ),
                           ),
                       ],
@@ -175,8 +175,8 @@ class DoseCard extends ConsumerWidget {
                         ? Icons.check_circle
                         : Icons.remove_circle_outline,
                     color: log.status == DoseOutcome.taken
-                        ? Severity.good.foreground
-                        : UsraColors.textMuted,
+                        ? Severity.good.foregroundOf(context)
+                        : context.usra.inkMuted,
                   ),
                   const SizedBox(width: 8),
                   Expanded(

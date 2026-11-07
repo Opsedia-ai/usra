@@ -911,6 +911,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navCall => 'اتصال';
 
   @override
+  String get drUsraWelcome => 'دكتور أسرة بيسلّم عليك';
+
+  @override
+  String get drUsraExplaining => 'دكتور أسرة بيشرح';
+
+  @override
+  String get drUsraEmptyState => 'دكتور أسرة ماسك علامة زائد';
+
+  @override
+  String get drUsraCelebrating => 'دكتور أسرة فرحان';
+
+  @override
+  String get drUsraResting => 'دكتور أسرة بيرتاح';
+
+  @override
+  String get settingsTheme => 'شكل التطبيق';
+
+  @override
+  String get settingsThemeSystem => 'زي الموبايل';
+
+  @override
+  String get settingsThemeLight => 'فاتح';
+
+  @override
+  String get settingsThemeDark => 'غامق';
+
+  @override
   String get settingsSimpleMode => 'الوضع البسيط';
 
   @override
@@ -3754,4 +3781,157 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get aboutPrivacyBackupAuto =>
       'لو شغّلت النسخ التلقائي، أسرة بتحفظ الملف ده لوحدها في فولدر تختاره. مش بتبعتلنا حاجة، ومش هتستخدم iCloud Drive.';
+
+  @override
+  String get navRecords => 'السجلات';
+
+  @override
+  String get navAdd => 'إضافة';
+
+  @override
+  String get homeMorning => 'صباح الخير';
+
+  @override
+  String get homeEvening => 'مساء الخير';
+
+  @override
+  String get homeNothingNeeded => 'مفيش حاجة مطلوبة';
+
+  @override
+  String get homeNeedsAttentionOne => 'محتاج انتباهك';
+
+  @override
+  String get homeNeedsAttentionMany => 'محتاجين انتباهك';
+
+  @override
+  String get homeNamesJoin => 'و';
+
+  @override
+  String get homeFamily => 'العيلة';
+
+  @override
+  String homeAllFamily(String count) {
+    return 'كل العيلة ($count)';
+  }
+
+  @override
+  String get homeUpcoming => 'الجاي النهارده';
+
+  @override
+  String get homeNewPerson => 'فرد جديد';
+
+  @override
+  String get homeEmergency => 'طوارئ';
+
+  @override
+  String homeBackupAgoDays(int days, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'آخر نسخة احتياطية من $shown يوم',
+      many: 'آخر نسخة احتياطية من $shown يوم',
+      few: 'آخر نسخة احتياطية من $shown أيام',
+      two: 'آخر نسخة احتياطية من يومين',
+      one: 'آخر نسخة احتياطية من يوم',
+      zero: 'آخر نسخة احتياطية النهارده',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeDoseLogged(String medicine, String person) {
+    return 'اتسجل: $medicine لـ$person';
+  }
+
+  @override
+  String get statusSick => 'تعبان';
+
+  @override
+  String get statusVaccineOverdue => 'تطعيم متأخر';
+
+  @override
+  String get statusDoseMissed => 'دوا فات';
+
+  @override
+  String statusDoseNext(String time) {
+    return 'دوا $time';
+  }
+
+  @override
+  String get familyAllTitle => 'كل العيلة';
+
+  @override
+  String familyCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown فرد',
+      few: '$shown أفراد',
+      two: 'فردين',
+      one: 'فرد واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addSheetTitle => 'تضيف إيه؟';
+
+  @override
+  String get addSheetFor => 'لمين؟';
+
+  @override
+  String get addSheetPickPerson => 'اختار الشخص الأول';
+
+  @override
+  String get addSheetNoPeople => 'ضيف فرد من العيلة الأول';
+
+  @override
+  String get addMedicine => 'دوا';
+
+  @override
+  String get addVaccine => 'تطعيم';
+
+  @override
+  String get addVisit => 'زيارة';
+
+  @override
+  String get addLab => 'تحليل';
+
+  @override
+  String get addScan => 'أشعة';
+
+  @override
+  String get addFever => 'سخونية';
+
+  @override
+  String get addGrowth => 'وزن وطول';
+
+  @override
+  String get addInsurance => 'كارت تأمين';
+
+  @override
+  String get recordsTitle => 'السجلات';
+
+  @override
+  String get recordsAll => 'الكل';
+
+  @override
+  String get recordsEmpty =>
+      'لسه مفيش سجلات. دوس إضافة وسجّل أول زيارة أو تحليل.';
+
+  @override
+  String get recordsAdd => 'إضافة سجل';
+
+  @override
+  String get moreFamily => 'العيلة';
+
+  @override
+  String get statusSickFemale => 'تعبانة';
+
+  @override
+  String get emergencyPickPerson => 'كارت مين؟';
+
+  @override
+  String get homeLoadError =>
+      'مش قادرين نقرا البيانات دلوقتي. اقفل التطبيق وافتحه تاني.';
 }

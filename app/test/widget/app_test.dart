@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:usra/core/design/tokens.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/design/dr_usra.dart';
@@ -63,9 +64,7 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('العيلة'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('ضيف شخص'));
+    await tester.tap(find.byKey(const ValueKey('home-add-first')));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byKey(const ValueKey('profile-name')), 'فاطمة');
@@ -116,7 +115,9 @@ void main() {
     await tester.pumpAndSettle();
 
     // Add the doctor.
-    await tester.tap(find.text('الدكاترة'));
+    await tester.tap(find.text('المزيد').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('more-doctors')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('doctor-add')));
     await tester.pumpAndSettle();
@@ -207,7 +208,9 @@ void main() {
     String total() =>
         tester.widget<Text>(find.byKey(const ValueKey('spending-total'))).data!;
 
-    await tester.tap(find.text('الفلوس'));
+    await tester.tap(find.text('المزيد').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('more-money')));
     await tester.pumpAndSettle();
     expect(total(), contains('550.50'));
     expect(find.byKey(const ValueKey('spending-by-type')), findsOneWidget);
@@ -268,7 +271,7 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(ValueKey('home-emergency-$id')));
+    await tester.tap(find.byKey(const ValueKey('home-emergency')));
     await tester.pumpAndSettle();
 
     expect(find.text('بطاقة الطوارئ'), findsOneWidget);
@@ -279,6 +282,18 @@ void main() {
     expect(find.text('مفيش حاجة متسجلة'), findsOneWidget);
     expect(find.byKey(const ValueKey('emergency-ambulance')), findsOneWidget);
     expect(find.byKey(const ValueKey('emergency-complete')), findsNothing);
+    // The theme's title colour must not override the red bar's own.
+    final title = find.descendant(
+      of: find.byType(AppBar),
+      matching: find.byType(RichText),
+    );
+    final titleColor = tester
+        .widgetList<RichText>(title)
+        .last
+        .text
+        .style
+        ?.color;
+    expect(titleColor, UsraColors.light.onUrgent);
   });
 
   testWidgets('every Dr. Usra pose paints without errors', (tester) async {

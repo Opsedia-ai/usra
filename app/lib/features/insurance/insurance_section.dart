@@ -57,9 +57,9 @@ class _CardTile extends StatelessWidget {
       child: ListTile(
         key: ValueKey('insurance-${card.id}'),
         onTap: () => context.go('/family/$profileId/insurance/${card.id}'),
-        leading: const CircleAvatar(
-          backgroundColor: UsraColors.primaryTint,
-          child: Icon(Icons.credit_card, color: UsraColors.primary),
+        leading: CircleAvatar(
+          backgroundColor: context.usra.primarySoft,
+          child: Icon(Icons.credit_card, color: context.usra.primary),
         ),
         title: Text(card.label),
         subtitle: Column(

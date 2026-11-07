@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/preferences.dart';
 import '../../core/providers.dart';
@@ -65,7 +65,7 @@ class MemberScreen extends ConsumerWidget {
           IconButton(
             key: const ValueKey('open-emergency'),
             tooltip: l.emergencyTitle,
-            color: UsraColors.emergency,
+            color: context.usra.urgent,
             icon: const Icon(Icons.emergency_outlined),
             onPressed: () => context.go('/family/$profileId/emergency'),
           ),
@@ -204,7 +204,7 @@ class MemberScreen extends ConsumerWidget {
                           ]
                         : [
                             for (final e in events) ...[
-                              _EventCard(
+                              EventCard(
                                 event: e,
                                 type: types[e.type],
                                 photos: photoCounts[e.id] ?? 0,
@@ -245,7 +245,7 @@ class MemberScreen extends ConsumerWidget {
               if (profile == null || t.offeredFor(profile, today))
                 ListTile(
                   key: ValueKey('type-${t.key}'),
-                  leading: Icon(t.icon, color: UsraColors.primary),
+                  leading: Icon(t.icon, color: sheet.usra.primary),
                   title: Text(t.labelOf(context)),
                   onTap: () {
                     Navigator.pop(sheet);
@@ -273,8 +273,8 @@ class _Header extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 28,
-          backgroundColor: UsraColors.primaryTint,
-          foregroundColor: UsraColors.primary,
+          backgroundColor: context.usra.primarySoft,
+          foregroundColor: context.usra.primary,
           child: Text(
             initialOf(profile.displayName),
             style: const TextStyle(fontSize: 22),
@@ -287,22 +287,19 @@ class _Header extends StatelessWidget {
             runSpacing: 8,
             children: [
               if (age != null)
-                SeverityChip(severity: Severity.info, label: l.ageYears(age)),
+                StatusChip(severity: Severity.info, label: l.ageYears(age)),
               if (profile.bloodType != null)
-                SeverityChip(
+                StatusChip(
                   severity: Severity.info,
                   label: '${l.profileBloodType}: ${profile.bloodType}',
                 ),
               if (profile.allergies != null)
-                SeverityChip(
+                StatusChip(
                   severity: Severity.urgent,
                   label: '${l.profileAllergies}: ${profile.allergies}',
                 ),
               if (profile.conditions != null)
-                SeverityChip(
-                  severity: Severity.info,
-                  label: profile.conditions!,
-                ),
+                StatusChip(severity: Severity.info, label: profile.conditions!),
             ],
           ),
         ),
@@ -311,16 +308,21 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _EventCard extends StatelessWidget {
-  const _EventCard({
+class EventCard extends StatelessWidget {
+  const EventCard({
+    super.key,
     required this.event,
     required this.type,
     required this.photos,
+    this.personName,
   });
 
   final MedicalEvent event;
   final RecordTypeDefinition? type;
   final int photos;
+
+  /// Shown first, where records of several people are listed together.
+  final String? personName;
 
   @override
   Widget build(BuildContext context) {
@@ -346,10 +348,10 @@ class _EventCard extends StatelessWidget {
         onTap: () =>
             context.go('/family/${event.profileId}/record/${event.id}'),
         leading: CircleAvatar(
-          backgroundColor: UsraColors.primaryTint,
+          backgroundColor: context.usra.primarySoft,
           child: Icon(
             type?.icon ?? Icons.description_outlined,
-            color: UsraColors.primary,
+            color: context.usra.primary,
           ),
         ),
         title: Text(
@@ -360,6 +362,7 @@ class _EventCard extends StatelessWidget {
         ),
         subtitle: Text(
           [
+            ?personName,
             DateFormat.yMMMd(locale).format(event.occurredAt),
             ?money,
           ].join(' · '),
@@ -372,10 +375,10 @@ class _EventCard extends StatelessWidget {
                 child: Badge(
                   key: ValueKey('event-photos-${event.id}'),
                   label: Text('$photos'),
-                  backgroundColor: UsraColors.primary,
-                  child: const Icon(
+                  backgroundColor: context.usra.primary,
+                  child: Icon(
                     Icons.photo_outlined,
-                    color: UsraColors.primary,
+                    color: context.usra.primary,
                   ),
                 ),
               ),

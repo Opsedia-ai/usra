@@ -201,8 +201,8 @@ class _Body extends ConsumerWidget {
               leading: Icon(
                 Icons.thermostat,
                 color: isFever(r)
-                    ? Severity.urgent.foreground
-                    : UsraColors.textMuted,
+                    ? Severity.urgent.foregroundOf(context)
+                    : context.usra.inkMuted,
               ),
               title: Text(
                 '${NumberFormat('0.0', locale).format(r.value)} '

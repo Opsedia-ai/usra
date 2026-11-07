@@ -428,7 +428,7 @@ class _PrescriptionFormScreenState
               padding: const EdgeInsets.all(20),
               children: [
                 Card(
-                  color: UsraColors.primaryTint,
+                  color: context.usra.primarySoft,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text(

@@ -75,9 +75,9 @@ class LabResultsScreen extends ConsumerWidget {
                         LabFlagChip(flag: s.latest.flag),
                       ],
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.show_chart,
-                      color: UsraColors.primary,
+                      color: context.usra.primary,
                     ),
                   ),
                 ),
@@ -171,6 +171,7 @@ class _SeriesCard extends StatelessWidget {
                 child: CustomPaint(
                   key: const ValueKey('lab-chart'),
                   painter: LabChartPainter(
+                    colors: context.usra,
                     points: series.points,
                     locale: locale,
                   ),
@@ -190,7 +191,7 @@ class _SeriesCard extends StatelessWidget {
                     context.go('/family/$profileId/record/${p.eventId}'),
                 leading: Icon(
                   labFlagIcon(p.flag),
-                  color: labFlagSeverity(p.flag).foreground,
+                  color: labFlagSeverity(p.flag).foregroundOf(context),
                 ),
                 title: Text(
                   '\u2066${[formatLabNumber(p.value), ?unit].join(' ')}\u2069',
@@ -216,8 +217,13 @@ class _SeriesCard extends StatelessWidget {
 /// (triangle up: above, down: below, circle: within or no range), so the
 /// chart doesn't rely on colour alone.
 class LabChartPainter extends CustomPainter {
-  LabChartPainter({required this.points, required this.locale});
+  LabChartPainter({
+    required this.colors,
+    required this.points,
+    required this.locale,
+  });
 
+  final UsraColors colors;
   final List<LabPoint> points;
   final String locale;
 
@@ -269,12 +275,12 @@ class LabChartPainter extends CustomPainter {
       final bottom = y(range.low ?? low);
       canvas.drawRect(
         Rect.fromLTRB(chart.left, top, chart.right, bottom),
-        Paint()..color = Severity.good.background,
+        Paint()..color = Severity.good.backgroundIn(colors),
       );
     }
 
     final grid = Paint()
-      ..color = UsraColors.line
+      ..color = colors.line
       ..strokeWidth = 1;
     final step = _niceStep((high - low) / 4);
     for (var v = (low / step).ceil() * step; v <= high; v += step) {
@@ -307,15 +313,15 @@ class LabChartPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2
-          ..color = UsraColors.primary,
+          ..color = colors.primary,
       );
     }
     for (final (i, o) in offsets.indexed) {
       final flag = points[i].flag;
       final fill = Paint()
         ..color = flag == LabFlag.high || flag == LabFlag.low
-            ? Severity.headsUp.foreground
-            : UsraColors.primary;
+            ? Severity.headsUp.foregroundIn(colors)
+            : colors.primary;
       switch (flag) {
         case LabFlag.high:
           canvas.drawPath(_triangle(o, up: true), fill);
@@ -348,16 +354,11 @@ class LabChartPainter extends CustomPainter {
     return (10 * magnitude).toDouble();
   }
 
-  static void _label(
-    Canvas canvas,
-    String text,
-    Offset at, {
-    bool end = false,
-  }) {
+  void _label(Canvas canvas, String text, Offset at, {bool end = false}) {
     final painter = TextPainter(
       text: TextSpan(
         text: text,
-        style: const TextStyle(fontSize: 10, color: UsraColors.textMuted),
+        style: TextStyle(fontSize: 10, color: colors.inkMuted),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
@@ -367,5 +368,7 @@ class LabChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(LabChartPainter old) =>
-      old.locale != locale || !listEquals(old.points, points);
+      old.colors != colors ||
+      old.locale != locale ||
+      !listEquals(old.points, points);
 }

@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -89,9 +89,7 @@ class DoctorScreen extends ConsumerWidget {
           ),
           FilledButton(
             key: const ValueKey('doctor-delete-confirm'),
-            style: FilledButton.styleFrom(
-              backgroundColor: UsraColors.emergency,
-            ),
+            style: FilledButton.styleFrom(backgroundColor: dialog.usra.urgent),
             onPressed: () => Navigator.pop(dialog, true),
             child: Text(l.doctorDelete),
           ),
@@ -127,9 +125,9 @@ class _Details extends StatelessWidget {
           runSpacing: 8,
           children: [
             if (d.specialty != null)
-              SeverityChip(severity: Severity.info, label: d.specialty!),
+              StatusChip(severity: Severity.info, label: d.specialty!),
             if (d.feeMinor != null)
-              SeverityChip(
+              StatusChip(
                 severity: Severity.info,
                 label:
                     '${l.doctorFee}: ${_money(context, d.feeMinor!, l.currencyEgp)}',
@@ -147,7 +145,7 @@ class _Details extends StatelessWidget {
               padding: const EdgeInsets.only(top: 12),
               child: Row(
                 children: [
-                  Icon(icon, color: UsraColors.textMuted),
+                  Icon(icon, color: context.usra.inkMuted),
                   const SizedBox(width: 10),
                   Expanded(child: Text(value, style: text.bodyLarge)),
                 ],

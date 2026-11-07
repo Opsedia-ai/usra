@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat, NumberFormat;
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/follow_ups/follow_up.dart';
 import '../../l10n/app_localizations.dart';
@@ -85,7 +85,7 @@ class _Body extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    final muted = text.bodySmall?.copyWith(color: UsraColors.textMuted);
+    final muted = text.bodySmall?.copyWith(color: context.usra.inkMuted);
     final pregnancy = activePregnancy(records, today);
     final id = profile.id;
 
@@ -93,7 +93,7 @@ class _Body extends StatelessWidget {
       return ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Icon(Icons.pregnant_woman, size: 72, color: UsraColors.primary),
+          Icon(Icons.pregnant_woman, size: 72, color: context.usra.primary),
           const SizedBox(height: 12),
           Text(l.pregnancyStartIntro, style: text.bodyLarge),
           const SizedBox(height: 20),
@@ -233,7 +233,7 @@ class _Body extends StatelessWidget {
       children: [
         _latest(context, '${r.systolic ?? '–'}/${r.diastolic ?? '–'}', r.date),
         const SizedBox(height: 6),
-        SeverityChip(
+        StatusChip(
           key: const ValueKey('pregnancy-bp-status'),
           severity: level.severity,
           label: switch (level) {
@@ -278,10 +278,10 @@ class _AncTile extends StatelessWidget {
         AncKind.contact => Icons.medical_services_outlined,
         AncKind.scan => Icons.image_outlined,
         AncKind.lab => Icons.science_outlined,
-      }, color: UsraColors.primary),
+      }, color: context.usra.primary),
       title: Text(ancTitle(l, item)),
       subtitle: Text(ancReason(l, item)),
-      trailing: SeverityChip(severity: severity, label: label),
+      trailing: StatusChip(severity: severity, label: label),
     );
   }
 }
@@ -321,7 +321,11 @@ class _ReadingsCard extends StatelessWidget {
                 child: AspectRatio(
                   aspectRatio: 1.8,
                   child: CustomPaint(
-                    painter: _LinePainter(series: series, unit: unit),
+                    painter: _LinePainter(
+                      colors: context.usra,
+                      series: series,
+                      unit: unit,
+                    ),
                   ),
                 ),
               ),
@@ -340,15 +344,20 @@ class _ReadingsCard extends StatelessWidget {
 }
 
 class _LinePainter extends CustomPainter {
-  _LinePainter({required this.series, required this.unit});
+  _LinePainter({
+    required this.colors,
+    required this.series,
+    required this.unit,
+  });
 
+  final UsraColors colors;
   final List<List<(double, double)>> series;
   final String unit;
 
   static const _maxWeek = 42.0;
   static const _left = 36.0;
   static const _bottom = 20.0;
-  static const _colors = [UsraColors.primary, UsraColors.cheek];
+  List<Color> get _colors => [colors.primary, colors.orchidInk];
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -370,7 +379,7 @@ class _LinePainter extends CustomPainter {
     );
 
     final grid = Paint()
-      ..color = UsraColors.line
+      ..color = colors.line
       ..strokeWidth = 1;
     for (var w = 0; w <= _maxWeek; w += 6) {
       final x = at(w.toDouble(), low).dx;
@@ -402,16 +411,11 @@ class _LinePainter extends CustomPainter {
     }
   }
 
-  static void _label(
-    Canvas canvas,
-    String text,
-    Offset at, {
-    bool center = false,
-  }) {
+  void _label(Canvas canvas, String text, Offset at, {bool center = false}) {
     final painter = TextPainter(
       text: TextSpan(
         text: text,
-        style: const TextStyle(fontSize: 10, color: UsraColors.textMuted),
+        style: TextStyle(fontSize: 10, color: colors.inkMuted),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
@@ -421,6 +425,7 @@ class _LinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_LinePainter old) =>
+      old.colors != colors ||
       old.unit != unit ||
       old.series.length != series.length ||
       [

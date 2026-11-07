@@ -473,6 +473,15 @@
   "fieldYes": "Yes",
   "fieldNo": "No",
   "navCall": "Call",
+  "drUsraWelcome": "Dr. Usra waving",
+  "drUsraExplaining": "Dr. Usra explaining",
+  "drUsraEmptyState": "Dr. Usra holding a plus",
+  "drUsraCelebrating": "Dr. Usra celebrating",
+  "drUsraResting": "Dr. Usra resting",
+  "settingsTheme": "Appearance",
+  "settingsThemeSystem": "Same as phone",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
   "settingsSimpleMode": "Simple Mode",
   "settingsSimpleModeHint": "Bigger text and buttons, fewer tabs. Good for grandparents using the phone on their own.",
   "settingsAiTitle": "Dr. Usra AI",
@@ -1998,5 +2007,90 @@
   "backupContentDroppedBody": "It has fewer people, records or photos, or some photos are missing, so we kept your older backups. If you deleted these on purpose, confirm it. If not, restore an older backup.",
   "backupContentDroppedAccept": "I deleted them on purpose",
   "backupAutoFolderTop": "The main folder of the place you chose",
-  "aboutPrivacyBackupAuto": "If you turn on automatic backup, Usra saves that file by itself to a folder you pick. It sends us nothing, and it won't use iCloud Drive."
+  "aboutPrivacyBackupAuto": "If you turn on automatic backup, Usra saves that file by itself to a folder you pick. It sends us nothing, and it won't use iCloud Drive.",
+  "navRecords": "Records",
+  "navAdd": "Add",
+  "homeMorning": "Good morning",
+  "homeEvening": "Good evening",
+  "homeNothingNeeded": "Nothing needed",
+  "homeNeedsAttentionOne": "needs your attention",
+  "homeNeedsAttentionMany": "need your attention",
+  "homeNamesJoin": "and",
+  "homeFamily": "Family",
+  "homeAllFamily": "All family ({count})",
+  "@homeAllFamily": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "homeUpcoming": "Next today",
+  "homeNewPerson": "New person",
+  "homeEmergency": "Emergency",
+  "homeBackupAgoDays": "{days, plural, =0{Last backup today} =1{Last backup 1 day ago} other{Last backup {shown} days ago}}",
+  "@homeBackupAgoDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "homeDoseLogged": "Logged: {medicine} for {person}",
+  "@homeDoseLogged": {
+    "placeholders": {
+      "medicine": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "statusSick": "Unwell",
+  "statusVaccineOverdue": "Vaccine overdue",
+  "statusDoseMissed": "Dose missed",
+  "statusDoseNext": "Dose {time}",
+  "@statusDoseNext": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "familyAllTitle": "All family",
+  "familyCount": "{count, plural, =1{1 person} other{{shown} people}}",
+  "@familyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "String"
+      }
+    }
+  },
+  "addSheetTitle": "What would you like to add?",
+  "addSheetFor": "For",
+  "addSheetPickPerson": "Choose a person first",
+  "addSheetNoPeople": "Add a family member first",
+  "addMedicine": "Medicine",
+  "addVaccine": "Vaccine",
+  "addVisit": "Visit",
+  "addLab": "Lab test",
+  "addScan": "Scan",
+  "addFever": "Fever",
+  "addGrowth": "Weight and height",
+  "addInsurance": "Insurance card",
+  "recordsTitle": "Records",
+  "recordsAll": "All",
+  "recordsEmpty": "No records yet. Tap Add to log a first visit or test.",
+  "recordsAdd": "Add a record",
+  "moreFamily": "Family",
+  "statusSickFemale": "Unwell",
+  "emergencyPickPerson": "Whose card?",
+  "homeLoadError": "Can't read your data right now. Close the app and open it again."
 }

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../l10n/app_localizations.dart';
 import '../doctors/call_buttons.dart';
 import 'family_screen.dart';
@@ -35,11 +36,13 @@ class EmergencyCardScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final profile = ref.watch(profileProvider(profileId));
     final timeline = ref.watch(timelineProvider(profileId));
+    final people = ref.watch(profilesProvider).value ?? const <Profile>[];
     return Scaffold(
-      backgroundColor: UsraColors.surface,
+      backgroundColor: context.usra.surface,
       appBar: AppBar(
-        backgroundColor: UsraColors.emergency,
-        foregroundColor: Colors.white,
+        backgroundColor: context.usra.urgent,
+        foregroundColor: context.usra.onUrgent,
+        titleTextStyle: UsraType.title.copyWith(color: context.usra.onUrgent),
         title: Text(l.emergencyTitle),
       ),
       body: profile.when(
@@ -54,6 +57,33 @@ class EmergencyCardScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
+              // Never a choice on the lock screen, which lists its own people.
+              if (editable && people.length > 1) ...[
+                Semantics(
+                  label: l.emergencyPickPerson,
+                  container: true,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        for (final other in people)
+                          Padding(
+                            padding: const EdgeInsetsDirectional.only(end: 8),
+                            child: ChoiceChip(
+                              key: ValueKey('emergency-person-${other.id}'),
+                              label: Text(other.displayName),
+                              selected: other.id == p.id,
+                              onSelected: (_) => context.replace(
+                                '/family/${other.id}/emergency',
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
               _NameBlock(profile: p),
               const SizedBox(height: 20),
               _Fact(
@@ -102,7 +132,7 @@ class EmergencyCardScreen extends ConsumerWidget {
               FilledButton.icon(
                 key: const ValueKey('emergency-ambulance'),
                 style: FilledButton.styleFrom(
-                  backgroundColor: UsraColors.emergency,
+                  backgroundColor: context.usra.urgent,
                   minimumSize: const Size.fromHeight(64),
                   textStyle: Theme.of(context).textTheme.titleLarge,
                 ),
@@ -154,7 +184,7 @@ class _NameBlock extends StatelessWidget {
         if (age != null)
           Text(
             l.ageYears(age),
-            style: text.titleMedium?.copyWith(color: UsraColors.textMuted),
+            style: text.titleMedium?.copyWith(color: context.usra.inkMuted),
           ),
       ],
     );
@@ -183,12 +213,12 @@ class _Fact extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final missing = value == null;
-    final color = severity?.foreground ?? UsraColors.text;
+    final color = severity?.foregroundOf(context) ?? context.usra.ink;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: severity?.background ?? UsraColors.background,
+        color: severity?.backgroundOf(context) ?? context.usra.bg,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -199,7 +229,7 @@ class _Fact extends StatelessWidget {
           Text(
             value ?? emptyText,
             style: (big ? text.displaySmall : text.titleLarge)?.copyWith(
-              color: missing ? UsraColors.textMuted : color,
+              color: missing ? context.usra.inkMuted : color,
               fontWeight: missing ? FontWeight.normal : FontWeight.w600,
             ),
           ),

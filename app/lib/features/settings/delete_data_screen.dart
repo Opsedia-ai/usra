@@ -84,12 +84,14 @@ class _DeleteDataScreenState extends ConsumerState<DeleteDataScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: danger.background,
+              color: danger.backgroundOf(context),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
               l.wipeNoUndo,
-              style: text.bodyMedium?.copyWith(color: danger.foreground),
+              style: text.bodyMedium?.copyWith(
+                color: danger.foregroundOf(context),
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -117,7 +119,7 @@ class _DeleteDataScreenState extends ConsumerState<DeleteDataScreen> {
           FilledButton.icon(
             key: const ValueKey('wipe-confirm'),
             style: FilledButton.styleFrom(
-              backgroundColor: UsraColors.emergency,
+              backgroundColor: context.usra.urgent,
               minimumSize: const Size(0, 56),
             ),
             onPressed: _working || !_confirmed(l) ? null : _wipe,

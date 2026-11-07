@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../design/bottom_bar.dart';
 import '../modules/module_registry.dart';
 import '../preferences.dart';
 import '../providers.dart';
@@ -67,11 +68,17 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final simple = ref.watch(simpleModeProvider);
     final tabs = simple ? registry.simpleTabs : registry.tabs;
-    final index = tabs.indexWhere((t) => location.startsWith(t.path));
+    final index = tabs.indexWhere(
+      (t) =>
+          t.action == null &&
+          [t.path, ...t.alsoFor].any((p) => location.startsWith(p)),
+    );
     return Scaffold(
       body: SafeArea(child: child),
       bottomNavigationBar: tabs.length < 2
           ? null
+          : !simple
+          ? UsraBottomBar(tabs: tabs, selected: index < 0 ? 0 : index)
           : NavigationBar(
               selectedIndex: index < 0 ? 0 : index,
               onDestinationSelected: (i) => context.go(tabs[i].path),

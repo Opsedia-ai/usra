@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../core/util/dates.dart';
@@ -94,13 +94,13 @@ class _Body extends StatelessWidget {
             key: const ValueKey('dev-late-banner'),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Severity.actSoon.background,
+              color: Severity.actSoon.backgroundOf(context),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
               l.devLateBanner(milestoneAgeLabel(l, late.first.months)),
               style: text.bodyMedium?.copyWith(
-                color: Severity.actSoon.foreground,
+                color: Severity.actSoon.foregroundOf(context),
               ),
             ),
           ),
@@ -139,7 +139,7 @@ class _Body extends StatelessWidget {
         const SizedBox(height: 16),
         Text(
           l.devSource,
-          style: text.bodySmall?.copyWith(color: UsraColors.textMuted),
+          style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
         ),
       ],
     );
@@ -194,7 +194,7 @@ class _MilestoneTile extends ConsumerWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(milestoneAreaLabel(l, milestone.area)),
-            SeverityChip(severity: state.severity, label: label),
+            StatusChip(severity: state.severity, label: label),
           ],
         ),
       ),

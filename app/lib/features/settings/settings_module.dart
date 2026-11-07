@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
@@ -26,9 +26,10 @@ class SettingsModule extends FeatureModule {
   List<ModuleTab> get tabs => [
     ModuleTab(
       path: '/settings',
-      icon: Icons.more_horiz,
+      icon: Icons.menu,
       label: (c) => AppLocalizations.of(c).navSettings,
       order: 100,
+      alsoFor: const ['/doctors', '/money'],
     ),
   ];
 
@@ -52,6 +53,39 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          // Simple Mode keeps Family and Doctors as tabs, and leaves Money out.
+          if (!ref.watch(simpleModeProvider)) ...[
+            Card(
+              child: Column(
+                children: [
+                  ListTile(
+                    key: const ValueKey('more-family'),
+                    leading: const Icon(Icons.groups_outlined),
+                    title: Text(l.moreFamily),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.go('/family'),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    key: const ValueKey('more-doctors'),
+                    leading: const Icon(Icons.medical_services_outlined),
+                    title: Text(l.navDoctors),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.go('/doctors'),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    key: const ValueKey('more-money'),
+                    leading: const Icon(Icons.account_balance_wallet_outlined),
+                    title: Text(l.navMoney),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.go('/money'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           Text(
             l.settingsLanguage,
             style: Theme.of(context).textTheme.titleMedium,
@@ -86,6 +120,8 @@ class SettingsScreen extends ConsumerWidget {
                   title: Text(l.settingsSimpleMode),
                   subtitle: Text(l.settingsSimpleModeHint),
                 ),
+                const Divider(height: 1),
+                const _ThemeModeTile(),
                 const Divider(height: 1),
                 ListenableBuilder(
                   listenable: ref.watch(appLockProvider),
@@ -162,13 +198,13 @@ class SettingsScreen extends ConsumerWidget {
           Card(
             child: ListTile(
               key: const ValueKey('settings-delete-all'),
-              leading: const Icon(
+              leading: Icon(
                 Icons.delete_forever_outlined,
-                color: UsraColors.emergency,
+                color: context.usra.urgent,
               ),
               title: Text(
                 l.settingsDeleteAll,
-                style: const TextStyle(color: UsraColors.emergency),
+                style: TextStyle(color: context.usra.urgent),
               ),
               subtitle: Text(l.settingsDeleteAllHint),
               onTap: () => context.go(deleteDataPath),
@@ -177,7 +213,7 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           Align(
             alignment: AlignmentDirectional.centerStart,
-            child: SeverityChip(
+            child: StatusChip(
               severity: Severity.good,
               label: l.settingsPrivacy,
             ),
@@ -189,6 +225,65 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+String _themeModeName(AppLocalizations l, ThemeMode mode) => switch (mode) {
+  ThemeMode.system => l.settingsThemeSystem,
+  ThemeMode.light => l.settingsThemeLight,
+  ThemeMode.dark => l.settingsThemeDark,
+};
+
+/// Shows the current look; tapping offers system, light and dark.
+class _ThemeModeTile extends ConsumerWidget {
+  const _ThemeModeTile();
+
+  Future<void> _choose(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
+    final current = ref.read(themeModeProvider);
+    final picked = await showModalBottomSheet<ThemeMode>(
+      context: context,
+      // Over the tab bar, which is the same colour as the sheet.
+      useRootNavigator: true,
+      builder: (context) => SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final mode in ThemeMode.values)
+                ListTile(
+                  key: ValueKey('settings-theme-${mode.name}'),
+                  selected: mode == current,
+                  selectedColor: context.usra.primary,
+                  title: Text(_themeModeName(l, mode)),
+                  trailing: mode == current ? const Icon(Icons.check) : null,
+                  onTap: () => Navigator.of(context).pop(mode),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (picked == null) return;
+    try {
+      await ref.read(themeModeProvider.notifier).set(picked);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l.saveFailed)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    return ListTile(
+      key: const ValueKey('settings-theme'),
+      leading: const Icon(Icons.contrast),
+      title: Text(l.settingsTheme),
+      subtitle: Text(_themeModeName(l, ref.watch(themeModeProvider))),
+      onTap: () => _choose(context, ref),
     );
   }
 }
