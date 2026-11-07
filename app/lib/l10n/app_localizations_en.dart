@@ -4856,6 +4856,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get followUpsAll => 'All follow-ups';
 
   @override
+  String insuranceWatermark(String name, String date) {
+    return '$name · $date';
+  }
+
+  @override
+  String get insuranceShareWarning =>
+      'Before you send it: the card holds personal details, and whoever gets it could pass it on. We\'ll write the date and the insurer\'s name, if saved, across the picture.';
+
+  @override
+  String get insuranceShareWarningNoPhoto =>
+      'Before you send it: the member number is personal, and whoever gets it could pass it on.';
+
+  @override
   String get simpleNextDose => 'Next medicine';
 
   @override

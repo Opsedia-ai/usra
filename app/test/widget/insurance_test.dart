@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:drift/native.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:usra/features/insurance/watermark.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/providers.dart';
@@ -51,6 +53,9 @@ void main() {
       cardPhotoStoreProvider.overrideWithValue(photos),
       photoPickerProvider.overrideWithValue((_) async => picked.path),
       sharedPhotoCacheProvider.overrideWithValue(shareCache),
+      photoWatermarkerProvider.overrideWithValue(
+        (photo, _) async => Uint8List.fromList([9, ...photo]),
+      ),
       shareProvider.overrideWithValue((p) async {
         shared.add(p);
         for (final f in p.files ?? <XFile>[]) {
@@ -119,17 +124,21 @@ void main() {
 
     // First a warning that it leaves the app's protection (S7).
     await tapKey(tester, 'insurance-share');
-    expect(find.byKey(const ValueKey('share-warning')), findsOneWidget);
-    await tapKey(tester, 'share-warning-cancel');
+    expect(
+      find.byKey(const ValueKey('insurance-share-warning')),
+      findsOneWidget,
+    );
+    await tapKey(tester, 'insurance-share-cancel');
     expect(shared, isEmpty);
     expect(shareCache.dir.existsSync(), isFalse);
     await tapKey(tester, 'insurance-share');
-    await tapKey(tester, 'share-warning-go');
+    await tapKey(tester, 'insurance-share-go');
     final sent = shared.single;
     expect(sent.text, contains('كارت التأمين بتاع فاطمة'));
     expect(sent.text, contains('رقم العضوية: 998877'));
     expect(sent.files, hasLength(1));
-    expect(sharedBytes.single, [0, 1, 2]);
+    // Through the watermark, never as it was.
+    expect(sharedBytes.single, [9, 0, 1, 2]);
     expect(shareCache.dir.existsSync(), isFalse);
 
     await tapKey(tester, 'insurance-delete');

@@ -17,28 +17,40 @@ class DoctorsScreen extends ConsumerWidget {
     final doctors = ref.watch(doctorsProvider);
     return Scaffold(
       appBar: AppBar(title: Text(l.doctorsTitle)),
-      floatingActionButton: FloatingActionButton.extended(
-        key: const ValueKey('doctor-add'),
-        onPressed: () => context.go('/doctors/new'),
-        icon: const Icon(Icons.person_add_alt_1),
-        label: Text(l.doctorsAdd),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+          child: FilledButton.icon(
+            key: const ValueKey('doctor-add'),
+            onPressed: () => context.go('/doctors/new'),
+            icon: const Icon(Icons.person_add_alt_1),
+            label: Text(l.doctorsAdd),
+          ),
+        ),
       ),
       body: doctors.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
         data: (list) => list.isEmpty
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Text(
+            ? ListView(
+                key: const ValueKey('doctors-empty'),
+                padding: const EdgeInsets.all(32),
+                children: [
+                  Icon(
+                    Icons.medical_services_outlined,
+                    size: 48,
+                    color: context.usra.primary,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
                     l.doctorsEmpty,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
-                ),
+                ],
               )
             : ListView.separated(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
                 itemCount: list.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (_, i) {
