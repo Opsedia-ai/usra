@@ -2390,6 +2390,90 @@ abstract class AppLocalizations {
   /// **'Edit medicine'**
   String get medicineEdit;
 
+  /// No description provided for @medicineMoveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to another person'**
+  String get medicineMoveAction;
+
+  /// No description provided for @medicineMoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move medicine'**
+  String get medicineMoveTitle;
+
+  /// No description provided for @medicineMoveNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Now with {name}'**
+  String medicineMoveNow(String name);
+
+  /// No description provided for @medicineMoveTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Move it to who?'**
+  String get medicineMoveTo;
+
+  /// No description provided for @medicineMoveWhatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves with the medicine'**
+  String get medicineMoveWhatTitle;
+
+  /// No description provided for @medicineMoveWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'Times, reminders, recorded doses and photos.'**
+  String get medicineMoveWhat;
+
+  /// No description provided for @medicineMoveStaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stays with {name}'**
+  String medicineMoveStaysTitle(String name);
+
+  /// No description provided for @medicineMoveStaysPrescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The prescription. The medicine comes off it.'**
+  String get medicineMoveStaysPrescription;
+
+  /// No description provided for @medicineMoveStaysSickDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Doses recorded in sick days, by the medicine\'s name.'**
+  String get medicineMoveStaysSickDays;
+
+  /// No description provided for @medicineMoveReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'After the move, reminders are for {to}, not {from}.'**
+  String medicineMoveReminder(String to, String from);
+
+  /// No description provided for @medicineMoveChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a person first'**
+  String get medicineMoveChoose;
+
+  /// No description provided for @medicineMoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to {name}'**
+  String medicineMoveConfirm(String name);
+
+  /// No description provided for @medicineMoveKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep with {name}'**
+  String medicineMoveKeep(String name);
+
+  /// No description provided for @medicineMoveDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine moved to {name}.'**
+  String medicineMoveDone(String name);
+
   /// No description provided for @medicineName.
   ///
   /// In en, this message translates to:

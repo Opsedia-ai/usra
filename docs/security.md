@@ -202,7 +202,12 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   encrypted), so it ships with a staged rollout. `app/lib/core/files/`.
 - **A photo stays with its person**: photos are found only through their row, by
   path, and every path is a new UUID. A save can't move a card, medicine or
-  prescription to another person: it fails and nothing changes. A prune keeps
+  prescription to another person: it fails and nothing changes. The one way a
+  medicine changes owner is the deliberate move (`AppDatabase.moveMedicine`,
+  from a screen that names both people). Its schedule, doses and photos go with
+  it; a photo it shared with another record gets its own copy first. It comes
+  off the old person's prescription, and doses in their sick days stay by name,
+  with no link back. A prune keeps
   every path a live row uses, so forms save the row first and then prune
   (`test/widget/photo_forms_test.dart`). Photo forms are keyed by their full
   path, so one opened for another person starts empty. Debug builds log counts of

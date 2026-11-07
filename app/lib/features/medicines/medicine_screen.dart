@@ -9,6 +9,7 @@ import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../doctors/doctors_providers.dart';
+import '../family/family_screen.dart';
 import 'dose_schedule.dart';
 import 'medicine_text.dart';
 import 'min_hours.dart';
@@ -44,6 +45,16 @@ class MedicineScreen extends ConsumerWidget {
               onPressed: () =>
                   context.go('/family/$profileId/medicines/$medicineId/edit'),
             ),
+            // Only with someone to move it to.
+            if ((ref.watch(profilesProvider).value?.length ?? 0) > 1)
+              IconButton(
+                key: const ValueKey('medicine-move'),
+                tooltip: l.medicineMoveAction,
+                icon: const Icon(Icons.swap_horiz),
+                onPressed: () => context.push(
+                  '/family/$profileId/medicines/$medicineId/move',
+                ),
+              ),
             IconButton(
               key: const ValueKey('medicine-delete'),
               tooltip: l.medicineDelete,

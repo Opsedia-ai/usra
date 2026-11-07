@@ -151,6 +151,21 @@ class PhotoStore {
     return relative;
   }
 
+  /// A new file with the same contents, for a record that's moving away from
+  /// one it shared this photo with. Copies the encrypted bytes as they are, so it
+  /// needs no key and nothing is decrypted. Throws if the photo can't be read.
+  Future<String> duplicate(String relativePath) async {
+    final relative = p.join(
+      folder,
+      '${_uuid.v7()}${p.extension(relativePath).toLowerCase()}',
+    );
+    await writeSealedFile(
+      fileOf(relative),
+      await fileOf(relativePath).readAsBytes(),
+    );
+    return relative;
+  }
+
   /// The photo's bytes, decrypted in memory. Throws
   /// [PhotoUnreadableException] if the file was changed or can't be opened,
   /// and [PhotoKeyUnavailableException] if there is no key to open it.

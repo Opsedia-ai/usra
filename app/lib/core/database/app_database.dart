@@ -906,6 +906,108 @@ class AppDatabase extends _$AppDatabase {
     return medicineId;
   }
 
+  /// Moves a saved medicine to another person, on purpose. The one way a medicine
+  /// changes owner: [saveMedicine] refuses, so a wrong id can't do it by accident.
+  /// Its schedule and dose log hang off the medicine, so they go with it, and so
+  /// do reminders, which are worked out from the medicine's owner.
+  ///
+  /// What's recorded about the old person stays with them, without a link back:
+  ///
+  /// - It comes off its prescription, which is theirs, and stays there as a
+  ///   record of what was written for them. The prescription's status updates.
+  /// - Doses given in their sick days stay in those sick days by name. A
+  ///   next-dose reminder for them stops, as this is no longer their medicine.
+  ///
+  /// [fromProfileId] must be the owner and [toProfileId] a live person, or this
+  /// throws and nothing changes. [photos] replaces the medicine's list when
+  /// given: see `moveMedicineToPerson`, which copies any it shares.
+  Future<void> moveMedicine({
+    required String id,
+    required String fromProfileId,
+    required String toProfileId,
+    List<String>? photos,
+  }) async {
+    if (fromProfileId == toProfileId) {
+      throw ArgumentError.value(
+        toProfileId,
+        'toProfileId',
+        'is the same person',
+      );
+    }
+    final now = DateTime.now().toUtc();
+    await transaction(() async {
+      final target =
+          await (select(profiles)
+                ..where((p) => p.id.equals(toProfileId) & p.deletedAt.isNull()))
+              .getSingleOrNull();
+      if (target == null) throw StateError('Person $toProfileId not found');
+      final medicine =
+          await (select(medicines)..where(
+                (m) =>
+                    m.id.equals(id) &
+                    _liveFor(m.profileId, m.deletedAt, fromProfileId),
+              ))
+              .getSingleOrNull();
+      if (medicine == null) throw StateError('Medicine $id not found');
+      await (update(medicines)..where((m) => m.id.equals(id))).write(
+        MedicinesCompanion(
+          profileId: Value(toProfileId),
+          prescriptionId: const Value(null),
+          position: const Value(null),
+          stoppedWithPrescription: const Value(false),
+          photosJson: photos == null
+              ? const Value.absent()
+              : Value(jsonEncode(photos)),
+          updatedAt: Value(now),
+        ),
+      );
+      await _queue('medicine', id, 'upsert');
+      final given = await (select(
+        givenMedicines,
+      )..where((g) => g.medicineId.equals(id) & g.deletedAt.isNull())).get();
+      for (final g in given) {
+        await (update(givenMedicines)..where((x) => x.id.equals(g.id))).write(
+          GivenMedicinesCompanion(
+            medicineId: const Value(null),
+            remindNext: const Value(false),
+            updatedAt: Value(now),
+          ),
+        );
+        await _queue('given_medicine', g.id, 'update');
+      }
+      if (medicine.prescriptionId case final prescription?) {
+        await _refreshPrescription(prescription, now);
+      }
+    });
+  }
+
+  /// The medicine's photos that another live medicine or prescription also uses.
+  Future<Set<String>> medicinePhotosUsedElsewhere(String id) async {
+    final medicine = await (select(
+      medicines,
+    )..where((m) => m.id.equals(id))).getSingleOrNull();
+    if (medicine == null) return const {};
+    final mine = decodeMedicinePhotos(medicine.photosJson).toSet();
+    if (mine.isEmpty) return const {};
+    final others = await (select(
+      medicines,
+    )..where((m) => m.deletedAt.isNull() & m.id.equals(id).not())).get();
+    final prescribed = await (select(
+      prescriptions,
+    )..where((p) => p.deletedAt.isNull())).get();
+    return mine.intersection({
+      for (final m in others) ...decodeMedicinePhotos(m.photosJson),
+      for (final p in prescribed) ...decodeMedicinePhotos(p.photosJson),
+    });
+  }
+
+  /// How many doses of this medicine are recorded in sick days.
+  Stream<int> watchGivenCountOf(String medicineId) {
+    final query = select(givenMedicines)
+      ..where((g) => g.medicineId.equals(medicineId) & g.deletedAt.isNull());
+    return query.watch().map((rows) => rows.length);
+  }
+
   /// Keeps one live schedule per medicine: updates it in place, adds it, or
   /// deletes it when [schedule] is null. Call in a transaction.
   Future<void> _replaceSchedule(
