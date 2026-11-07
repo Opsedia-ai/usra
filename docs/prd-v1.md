@@ -271,7 +271,8 @@ Still open:
 - [ ] Trademark search results
 - [ ] Legal check that storing name and email in Frankfurt is fine under Egypt's PDPL
 - [ ] Dr. Usra artwork, 5 poses
-- [ ] The Egyptian lawyer's answers on login (`docs/login-setup.md`, step 6)
+- [ ] The Egyptian lawyer's answers on login (`docs/login-setup.md`, step 6): the founder has them, the text needs adding
+- [ ] Server backups: the gates in `docs/server-backup-plan.md`
 - [ ] Dialect for Saudi Arabia and Jordan
 - [ ] Who reviews the Saudi and Jordan vaccine schedules
 - [ ] Whether Simple Mode keeps an emergency button
