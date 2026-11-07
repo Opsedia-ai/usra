@@ -3,14 +3,21 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:home_widget/home_widget.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
 import '../../l10n/app_localizations.dart';
 import 'dose_schedule.dart';
 import 'medicines_providers.dart' show todayOf;
-import 'reminders.dart' show snoozeDuration;
+import 'reminders.dart'
+    show
+        DoseCompany,
+        doseCompanyLookback,
+        doseCompanyOf,
+        doseKey,
+        doseTimeText,
+        ensureDoseTimeFormatting,
+        snoozeDuration;
 
 /// A dose due (or snoozed until) up to this long ago still shows on the
 /// widget, with Taken.
@@ -30,6 +37,7 @@ class WidgetDose {
     required this.person,
     required this.medicine,
     required this.medicineId,
+    required this.canMark,
   });
 
   /// Local planned time.
@@ -50,6 +58,10 @@ class WidgetDose {
   final String medicine;
   final String medicineId;
 
+  /// Has a Taken button once due. In discreet mode, only if this row can be
+  /// told from others' ([DoseCompany.alone]); a tap opens the app otherwise.
+  final bool canMark;
+
   Map<String, Object> toJson() => {
     'at': at.toUtc().millisecondsSinceEpoch,
     'until': until.toUtc().millisecondsSinceEpoch,
@@ -57,6 +69,7 @@ class WidgetDose {
     'person': person,
     'medicine': medicine,
     'm': medicineId,
+    't': canMark,
   };
 }
 
@@ -94,8 +107,8 @@ class WidgetSnapshot {
   /// Not yet taken or skipped, soonest first.
   final List<WidgetDose> doses;
 
-  /// No names, and so no Taken button: rows that look alike could each
-  /// mark someone else's dose. A tap opens the app instead.
+  /// No names. Rows that look alike could each mark someone else's dose, so
+  /// each says for itself whether it has Taken: see [WidgetDose.canMark].
   final bool discreet;
 
   static const version = 1;
@@ -136,7 +149,12 @@ WidgetSnapshot buildWidgetSnapshot(
 }) {
   final today = todayOf(now).from;
   final validUntil = DateTime(today.year, today.month, today.day + 2);
-  final time = DateFormat.jm(_timeLocale(l.localeName));
+  final company = doseCompanyOf(
+    regimens,
+    logs,
+    from: now.subtract(doseCompanyLookback),
+    to: validUntil,
+  );
   final doses = <WidgetDose>[];
   for (final d in plannedDoses(regimens, logs, from: today, to: validUntil)) {
     if (d.isDone) continue;
@@ -153,10 +171,17 @@ WidgetSnapshot buildWidgetSnapshot(
       WidgetDose(
         at: d.at,
         until: until,
-        time: time.format(d.at),
+        time: doseTimeText(d.at, l.localeName),
         person: discreet ? '' : firstName(d.regimen.person.displayName),
         medicine: discreet ? l.widgetDiscreetDose : d.regimen.medicine.name,
         medicineId: d.regimen.medicine.id,
+        // A snoozed dose still has its reminder coming, which Taken here
+        // can't cancel: it would ring for a dose already given.
+        canMark:
+            log?.status != DoseOutcome.snoozed &&
+            (!discreet ||
+                company[doseKey(d.regimen.medicine.id, d.at)] ==
+                    DoseCompany.alone),
       ),
     );
   }
@@ -173,15 +198,10 @@ WidgetSnapshot buildWidgetSnapshot(
   );
 }
 
-/// Egyptian Arabic, whose times read "٨:٠٠ م", big and familiar on the
-/// widget; plain `ar` uses Western digits.
-String _timeLocale(String localeName) =>
-    localeName == 'ar' ? 'ar_EG' : localeName;
-
 /// Date formats for [locale]; the snapshot may be built before the app's
 /// localizations have loaded them.
 Future<void> ensureWidgetDateFormatting(String locale) =>
-    initializeDateFormatting(_timeLocale(locale));
+    ensureDoseTimeFormatting(locale);
 
 /// Hands the snapshot to the home-screen widget. Tests use a fake.
 abstract interface class WidgetSnapshotPublisher {
@@ -198,6 +218,10 @@ class HomeWidgetSnapshotPublisher implements WidgetSnapshotPublisher {
   static const dataKey = 'dose_widget_snapshot';
   static const androidProvider = 'com.opsedia.usra.DoseWidgetProvider';
   static const iOSKind = 'DoseWidget';
+
+  /// Doses marked Taken on the iOS widget and not yet in a snapshot; only
+  /// the widget reads it.
+  static const iosPendingKey = 'dose_widget_taken';
 
   static Future<void> init() => HomeWidget.setAppGroupId(appGroup);
 

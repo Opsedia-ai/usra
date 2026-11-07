@@ -4,3 +4,5 @@
 "widget.stale" = "Open Usra to refresh medicines";
 /* Sample line in the widget gallery only. */
 "widget.sample" = "8:00 PM · Omar · Paracetamol";
+/* The widget's Taken button, to the system; never shown in Shortcuts. */
+"widget.takenIntent" = "Mark the dose taken";

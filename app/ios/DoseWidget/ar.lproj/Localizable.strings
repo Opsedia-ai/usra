@@ -4,3 +4,5 @@
 "widget.stale" = "افتح أسرة عشان نحدّث الأدوية";
 /* Sample line in the widget gallery only. */
 "widget.sample" = "٨:٠٠ م · عمر · باراسيتامول";
+/* The widget's Taken button, to the system; never shown in Shortcuts. */
+"widget.takenIntent" = "علّم إن الجرعة اتاخدت";
