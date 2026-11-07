@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/database/app_database.dart';
 import '../../core/design/dr_usra.dart';
 import '../../core/design/tokens.dart';
 import '../../core/modules/feature_module.dart';
@@ -50,6 +51,35 @@ Future<bool> confirmItsYou(BuildContext context) async =>
       ),
     ) ??
     false;
+
+/// Before someone's emergency card opens without the PIN: says what shows and
+/// to whom, then asks for the PIN. True to go ahead.
+Future<bool> confirmEmergencyOnLock(BuildContext context, String name) async {
+  final l = AppLocalizations.of(context);
+  final yes = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      key: const ValueKey('emergency-lock-confirm'),
+      icon: Icon(Icons.emergency_outlined, color: context.usra.urgent),
+      title: Text(l.lockEmergencyConfirmTitle(name)),
+      content: SingleChildScrollView(child: Text(l.lockEmergencyConfirmBody)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(l.lockWipeCancel),
+        ),
+        FilledButton(
+          key: const ValueKey('emergency-lock-yes'),
+          style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(l.lockEmergencyConfirmYes),
+        ),
+      ],
+    ),
+  );
+  if (yes != true || !context.mounted) return false;
+  return confirmItsYou(context);
+}
 
 /// Choosing a new PIN (twice), then fingerprint or face. True when saved.
 Future<bool> setUpPin(BuildContext context) async =>
@@ -548,9 +578,11 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
     await _guard(() => _lock.setWipeOnFailures(on));
   }
 
-  Future<void> _setEmergency(String profileId, bool on) async {
-    if (on && !await _loosen()) return;
-    await _guard(() => _lock.setEmergencyProfile(profileId, on));
+  Future<void> _setEmergency(Profile person, bool on) async {
+    if (on && !await confirmEmergencyOnLock(context, person.displayName)) {
+      return;
+    }
+    await _guard(() => _lock.setEmergencyProfile(person.id, on));
   }
 
   @override
@@ -653,7 +685,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
                         CheckboxListTile(
                           key: ValueKey('app-lock-emergency-${p.id}'),
                           value: _lock.emergencyProfiles.contains(p.id),
-                          onChanged: (v) => _setEmergency(p.id, v ?? false),
+                          onChanged: (v) => _setEmergency(p, v ?? false),
                           title: Text(p.displayName),
                           subtitle: Text(l.lockEmergencyFor),
                         ),

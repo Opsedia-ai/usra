@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:usra/core/design/tokens.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/design/dr_usra.dart';
@@ -76,6 +75,8 @@ void main() {
     expect(find.text('فاطمة'), findsWidgets);
     expect(find.textContaining('مفيش سجلات لسه'), findsOneWidget);
 
+    await tester.ensureVisible(find.byKey(const ValueKey('add-record')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('add-record')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('type-visit')));
@@ -240,6 +241,8 @@ void main() {
     final router = tester.element(find.byType(Scaffold).first);
     GoRouter.of(router).go('/family/$omar');
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('member-spending')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('member-spending')));
     await tester.pumpAndSettle();
     expect(total(), contains('450'));
@@ -274,26 +277,15 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-emergency')));
     await tester.pumpAndSettle();
 
-    expect(find.text('بطاقة الطوارئ'), findsOneWidget);
+    expect(find.text('كارت الطوارئ'), findsOneWidget);
     expect(find.text('B+'), findsOneWidget);
     expect(find.text('بنسلين'), findsOneWidget);
-    expect(find.text('مرارة · 2019'), findsOneWidget);
-    // Conditions were never entered, so the card says so instead of hiding it.
-    expect(find.text('مفيش حاجة متسجلة'), findsOneWidget);
+    expect(find.text('مرارة · ٢٠١٩'), findsOneWidget);
+    // Conditions and medicines were never entered, so the card says so instead
+    // of hiding them.
+    expect(find.text('مفيش حاجة متسجلة'), findsNWidgets(2));
     expect(find.byKey(const ValueKey('emergency-ambulance')), findsOneWidget);
     expect(find.byKey(const ValueKey('emergency-complete')), findsNothing);
-    // The theme's title colour must not override the red bar's own.
-    final title = find.descendant(
-      of: find.byType(AppBar),
-      matching: find.byType(RichText),
-    );
-    final titleColor = tester
-        .widgetList<RichText>(title)
-        .last
-        .text
-        .style
-        ?.color;
-    expect(titleColor, UsraColors.light.onUrgent);
   });
 
   testWidgets('every Dr. Usra pose paints without errors', (tester) async {

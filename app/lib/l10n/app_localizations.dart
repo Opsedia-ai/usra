@@ -4205,13 +4205,13 @@ abstract class AppLocalizations {
   /// No description provided for @lockSettingsEmergency.
   ///
   /// In en, this message translates to:
-  /// **'Emergency card on the lock screen'**
+  /// **'Emergency card on Usra\'s lock screen'**
   String get lockSettingsEmergency;
 
   /// No description provided for @lockSettingsEmergencyHint.
   ///
   /// In en, this message translates to:
-  /// **'A paramedic can see the blood type, allergies and conditions of the people you choose here without the PIN. Anyone holding the phone can see them too.'**
+  /// **'The blood type, allergies, conditions, surgeries and current medicines of the people you choose here can be seen without the PIN by anyone holding the phone with Usra open. This is Usra\'s lock screen, not the phone\'s: for a locked phone, use the phone\'s own Medical ID.'**
   String get lockSettingsEmergencyHint;
 
   /// No description provided for @lockVerifyTitle.
@@ -4241,7 +4241,7 @@ abstract class AppLocalizations {
   /// No description provided for @lockEmergencyFor.
   ///
   /// In en, this message translates to:
-  /// **'Show on the lock screen'**
+  /// **'Show on Usra\'s lock screen'**
   String get lockEmergencyFor;
 
   /// No description provided for @lockBackupFirstTitle.
@@ -6337,6 +6337,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Can\'t read your data right now. Close the app and open it again.'**
   String get homeLoadError;
+
+  /// No description provided for @personAddFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Add for {name}'**
+  String personAddFor(String name);
+
+  /// No description provided for @personVaccineWasDue.
+  ///
+  /// In en, this message translates to:
+  /// **'It was due on {date}. Ask the doctor when to give it.'**
+  String personVaccineWasDue(String date);
+
+  /// No description provided for @personDoctorSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor summary'**
+  String get personDoctorSummary;
+
+  /// No description provided for @personVaccineLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Given? Log it'**
+  String get personVaccineLog;
+
+  /// No description provided for @personVaccineSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference: Egypt\'s vaccine schedule, {route} · checked {date}'**
+  String personVaccineSource(String route, String date);
+
+  /// No description provided for @personVaccineSourceOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference: pediatricians\' usual schedules in Egypt · checked {date}'**
+  String personVaccineSourceOptional(String date);
+
+  /// No description provided for @personNextDose.
+  ///
+  /// In en, this message translates to:
+  /// **'Next dose · {time}'**
+  String personNextDose(String time);
+
+  /// No description provided for @personDoseWasAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Was due at {time}'**
+  String personDoseWasAt(String time);
+
+  /// No description provided for @personRecordedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded by the family'**
+  String get personRecordedTitle;
+
+  /// No description provided for @personTimelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All records'**
+  String get personTimelineTitle;
+
+  /// No description provided for @personTileGrowth.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth'**
+  String get personTileGrowth;
+
+  /// No description provided for @personTileVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Visits and labs'**
+  String get personTileVisits;
+
+  /// No description provided for @personTileInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get personTileInsurance;
+
+  /// No description provided for @personTileDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents and photos'**
+  String get personTileDocuments;
+
+  /// No description provided for @personVaccinesSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} · Egypt schedule'**
+  String personVaccinesSummary(String done, String total);
+
+  /// No description provided for @personGrowthWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} kg · {date}'**
+  String personGrowthWeight(String value, String date);
+
+  /// No description provided for @personGrowthHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} cm · {date}'**
+  String personGrowthHeight(String value, String date);
+
+  /// No description provided for @personLatestOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest {date}'**
+  String personLatestOn(String date);
+
+  /// No description provided for @personInsuranceCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{None yet} =1{1 card} other{{shown} cards}}'**
+  String personInsuranceCount(int count, String shown);
+
+  /// No description provided for @personMedicinesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{None recorded} =1{1 current} other{{shown} current}}'**
+  String personMedicinesCount(int count, String shown);
+
+  /// No description provided for @personFollowUpsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{None for now} =1{1 follow-up} other{{shown} follow-ups}}'**
+  String personFollowUpsCount(int count, String shown);
+
+  /// No description provided for @personDocumentsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{None yet} =1{1 record with photos} other{{shown} records with photos}}'**
+  String personDocumentsCount(int count, String shown);
+
+  /// No description provided for @personVisitsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No visits or lab results recorded yet.'**
+  String get personVisitsEmpty;
+
+  /// No description provided for @personDocumentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No records with photos yet.'**
+  String get personDocumentsEmpty;
+
+  /// No description provided for @personAgeYears.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 year} other{{shown} years}}'**
+  String personAgeYears(int count, String shown);
+
+  /// No description provided for @personAgeMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Under 1 month} =1{1 month} other{{shown} months}}'**
+  String personAgeMonths(int count, String shown);
+
+  /// No description provided for @emergencyAmbulanceShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Ambulance {number}'**
+  String emergencyAmbulanceShort(String number);
+
+  /// No description provided for @emergencyOtherLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'عربي'**
+  String get emergencyOtherLanguage;
+
+  /// No description provided for @emergencyMedicines.
+  ///
+  /// In en, this message translates to:
+  /// **'Current medicines'**
+  String get emergencyMedicines;
+
+  /// No description provided for @emergencyAsTyped.
+  ///
+  /// In en, this message translates to:
+  /// **'This is what the family recorded, as they typed it.'**
+  String get emergencyAsTyped;
+
+  /// No description provided for @emergencyLockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on Usra\'s lock screen'**
+  String get emergencyLockTitle;
+
+  /// No description provided for @emergencyLockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone holding the phone can see it once Usra is open'**
+  String get emergencyLockHint;
+
+  /// No description provided for @emergencyMedicalIdHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra\'s lock screen only appears once the phone itself is unlocked. So a paramedic can read this on a locked phone, also add it to the phone\'s own Medical ID or emergency information, in the phone\'s settings.'**
+  String get emergencyMedicalIdHint;
+
+  /// No description provided for @lockEmergencyConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show {name}\'s card on Usra\'s lock screen?'**
+  String lockEmergencyConfirmTitle(String name);
+
+  /// No description provided for @lockEmergencyConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone holding the phone with Usra open will be able to see the blood type, allergies, conditions, surgeries and current medicines without the PIN. This is Usra\'s lock screen, not the phone\'s.'**
+  String get lockEmergencyConfirmBody;
+
+  /// No description provided for @lockEmergencyConfirmYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, show it'**
+  String get lockEmergencyConfirmYes;
+
+  /// No description provided for @insuranceCopyNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy member number'**
+  String get insuranceCopyNumber;
+
+  /// No description provided for @insuranceNumberCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Member number copied'**
+  String get insuranceNumberCopied;
 }
 
 class _AppLocalizationsDelegate

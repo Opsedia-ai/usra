@@ -251,7 +251,9 @@ class HomeVaccines extends ConsumerWidget {
                   children: [
                     Icon(Icons.vaccines_outlined, color: context.usra.primary),
                     const SizedBox(width: 8),
-                    Text(l.homeVaccinesTitle, style: text.titleMedium),
+                    Expanded(
+                      child: Text(l.homeVaccinesTitle, style: text.titleMedium),
+                    ),
                   ],
                 ),
               ),
@@ -515,26 +517,34 @@ Future<void> showDoseSheet(
   BuildContext context,
   WidgetRef ref,
   ChildVaccines child,
-  DoseStatus status,
-) => showModalBottomSheet<void>(
+  DoseStatus status, {
+  bool given = false,
+}) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
   showDragHandle: true,
-  builder: (_) => _DoseSheet(child: child, status: status),
+  builder: (_) => _DoseSheet(child: child, status: status, given: given),
 );
 
 class _DoseSheet extends ConsumerStatefulWidget {
-  const _DoseSheet({required this.child, required this.status});
+  const _DoseSheet({
+    required this.child,
+    required this.status,
+    required this.given,
+  });
 
   final ChildVaccines child;
   final DoseStatus status;
+
+  /// Opened to log the dose, so "given" starts on.
+  final bool given;
 
   @override
   ConsumerState<_DoseSheet> createState() => _DoseSheetState();
 }
 
 class _DoseSheetState extends ConsumerState<_DoseSheet> {
-  late bool _given = widget.status.done;
+  late bool _given = widget.status.done || widget.given;
   // A dose not yet given defaults to its due date, never a future one.
   late DateTime _date = givenDateOn(
     widget.status.givenOn ?? widget.status.dueOn,
@@ -608,7 +618,8 @@ class _DoseSheetState extends ConsumerState<_DoseSheet> {
           Text(doseName(l, s.dose), style: text.titleLarge),
           const SizedBox(height: 4),
           Text(
-            '${doseAge(l, s.dose)} · ${l.vaccineDueOn(_fmtc(s.dueOn))}',
+            '${widget.child.profile.displayName} · ${doseAge(l, s.dose)} · '
+            '${l.vaccineDueOn(_fmtc(s.dueOn))}',
             style: text.bodyMedium?.copyWith(color: context.usra.inkMuted),
           ),
           const SizedBox(height: 8),

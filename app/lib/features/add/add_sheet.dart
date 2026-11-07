@@ -11,10 +11,11 @@ import '../family/family_screen.dart';
 /// Asks what to add and for whom. Opened from a person's page, it starts on
 /// that person. From elsewhere with several people, nothing is chosen: the
 /// family has to pick, so a record can't land on the wrong person by default.
-Future<void> showAddSheet(BuildContext context) {
+/// [person] says who for, where the page knows better than its address.
+Future<void> showAddSheet(BuildContext context, {String? person}) {
   final match = RegExp(r'^/family/([^/]+)')
       .firstMatch(GoRouterState.of(context).uri.path);
-  final id = match?.group(1);
+  final id = person ?? match?.group(1);
   return showModalBottomSheet<void>(
     context: context,
     useRootNavigator: true,

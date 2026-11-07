@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -69,6 +70,23 @@ class InsuranceCardScreen extends ConsumerWidget {
               _Details(card: c),
               const SizedBox(height: 24),
               _ShareButton(profileId: profileId, card: c),
+              if (c.memberNumber case final number?) ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  key: const ValueKey('insurance-copy'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(UsraSizes.touchTarget),
+                  ),
+                  onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final copied = l.insuranceNumberCopied;
+                    await Clipboard.setData(ClipboardData(text: number));
+                    messenger.showSnackBar(SnackBar(content: Text(copied)));
+                  },
+                  icon: const Icon(Icons.copy_outlined),
+                  label: Text(l.insuranceCopyNumber),
+                ),
+              ],
             ],
           );
         },
