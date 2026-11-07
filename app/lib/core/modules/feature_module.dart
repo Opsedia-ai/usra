@@ -17,6 +17,9 @@ class ModuleTab {
     this.simple = false,
     this.simpleIcon,
     this.simpleLabel,
+    this.simpleOnly = false,
+    this.action,
+    this.alsoFor = const [],
   });
 
   final String path;
@@ -32,6 +35,15 @@ class ModuleTab {
   /// What the tab looks like in Simple Mode, when it should read differently.
   final IconData? simpleIcon;
   final String Function(BuildContext context)? simpleLabel;
+
+  /// Shown only in Simple Mode. The regular bar reaches this from Home or More.
+  final bool simpleOnly;
+
+  /// Runs instead of navigating, for the raised middle button.
+  final void Function(BuildContext context)? action;
+
+  /// Other paths that belong under this tab, so it stays selected there.
+  final List<String> alsoFor;
 }
 
 /// Every feature plugs into the app through this contract.

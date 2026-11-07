@@ -3762,4 +3762,142 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get aboutPrivacyBackupAuto =>
       'If you turn on automatic backup, Usra saves that file by itself to a folder you pick. It sends us nothing, and it won\'t use iCloud Drive.';
+
+  @override
+  String get navRecords => 'Records';
+
+  @override
+  String get navAdd => 'Add';
+
+  @override
+  String get homeMorning => 'Good morning';
+
+  @override
+  String get homeEvening => 'Good evening';
+
+  @override
+  String get homeNothingNeeded => 'Nothing needed';
+
+  @override
+  String get homeNeedsAttentionOne => 'needs your attention';
+
+  @override
+  String get homeNeedsAttentionMany => 'need your attention';
+
+  @override
+  String get homeNamesJoin => 'and';
+
+  @override
+  String get homeFamily => 'Family';
+
+  @override
+  String homeAllFamily(String count) {
+    return 'All family ($count)';
+  }
+
+  @override
+  String get homeUpcoming => 'Next today';
+
+  @override
+  String get homeNewPerson => 'New person';
+
+  @override
+  String get homeEmergency => 'Emergency';
+
+  @override
+  String homeBackupAgoDays(int days, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Last backup $shown days ago',
+      one: 'Last backup 1 day ago',
+      zero: 'Last backup today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeDoseLogged(String medicine, String person) {
+    return 'Logged: $medicine for $person';
+  }
+
+  @override
+  String get statusSick => 'Unwell';
+
+  @override
+  String get statusVaccineOverdue => 'Vaccine overdue';
+
+  @override
+  String get statusDoseMissed => 'Dose missed';
+
+  @override
+  String statusDoseNext(String time) {
+    return 'Dose $time';
+  }
+
+  @override
+  String get familyAllTitle => 'All family';
+
+  @override
+  String familyCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown people',
+      one: '1 person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addSheetTitle => 'What would you like to add?';
+
+  @override
+  String get addSheetFor => 'For';
+
+  @override
+  String get addSheetPickPerson => 'Choose a person first';
+
+  @override
+  String get addSheetNoPeople => 'Add a family member first';
+
+  @override
+  String get addMedicine => 'Medicine';
+
+  @override
+  String get addVaccine => 'Vaccine';
+
+  @override
+  String get addVisit => 'Visit';
+
+  @override
+  String get addLab => 'Lab test';
+
+  @override
+  String get addScan => 'Scan';
+
+  @override
+  String get addFever => 'Fever';
+
+  @override
+  String get addGrowth => 'Weight and height';
+
+  @override
+  String get addInsurance => 'Insurance card';
+
+  @override
+  String get recordsTitle => 'Records';
+
+  @override
+  String get recordsAll => 'All';
+
+  @override
+  String get recordsEmpty =>
+      'No records yet. Tap Add to log a first visit or test.';
+
+  @override
+  String get recordsAdd => 'Add a record';
+
+  @override
+  String get moreFamily => 'Family';
 }
