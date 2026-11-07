@@ -2,7 +2,7 @@
 
 The live, clickable canvas is at https://claude.ai/artifact/44YSoLZ4WSvWkebQyb2cAi (press Play on any screen). `screens/` holds the source of every frame (`.dc.html`) and the canvas layout (`canvas.json`). They are design references, not app code.
 
-The colours below are the current design, from `docs/product-definition.md`. The frames in `screens/` predate the Twilight palette and Variation B navigation, and `app/lib/core/design/tokens.dart` still holds the old Nile blue values until the redesign reaches it.
+**The accepted design is `app-screens/enhanced-sample`, with `app-screens/merged-review.md` (founder, 7 Nov 2026).** The colours below are from `docs/product-definition.md`. The frames in `screens/` predate them and are kept as history. `app/lib/core/design/tokens.dart` holds the current colours in the app.
 
 ## Colours
 

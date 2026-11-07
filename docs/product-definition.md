@@ -51,13 +51,13 @@ Usra wins by covering the whole family, ringing on time and keeping data private
 | WhatsApp chats and gallery | Photos sent to self or family | Mixed with everything else; no reminders | Records sorted by person and type, reminders that ring |
 | Jojo (child health records) | Children's vaccines, medicines, labs | Children only, iOS only, iCloud backup | Whole family incl. grandparents and pregnancy; Android + iOS; encrypted backup |
 | Sehhaty (KSA) | Government records, vaccines, appointments | Public sector only; KSA only | Complements it: private visits, costs, insurance cards |
-| Pill-reminder apps | Medicine alarms | No records, no family, English-first | Reminders tied to the person's file; caregiver alerts in v2 |
+| Pill-reminder apps | Medicine alarms | No records, no family, English-first | Reminders tied to the person's file and caregiver alerts |
 
 **Promise in one line:** صحة العيلة كلها في مكان واحد، على موبايلك إنت. The whole family's health in one place, on your own phone.
 
 ## Product principles
 
-1. **Phone first, private by default.** Health data stays on the phone, encrypted. Nothing leaves without the user's tap, except the automatic backup the user has turned on, which goes encrypted to a folder they chose.
+1. **Phone first, private by default.** Health data stays on the phone, encrypted. Nothing leaves without the user's tap.
 2. **Calm and minimal.** One main action per screen, few elements, soft colour; the next thing to do comes first.
 3. **Arabic first.** Egyptian Arabic, right-to-left, Arabic digits; English as the second language.
 4. **Built for grandparents.** Large type, big targets, Simple Mode, nothing hidden behind a swipe or long-press.
@@ -80,12 +80,12 @@ Usra uses the Twilight palette (navy and orchid) in light and dark mode, with Ba
 
 | Role | Light | Dark | Use |
 | --- | --- | --- | --- |
-| Primary | #26415E | #83A6CE | Buttons, links, selected state |
+| Primary | #26415E | #83A6CE | Buttons, links, selected tab |
 | On primary | #FFFFFF | #0B1B32 | Text on buttons |
 | Heading | #0D1E4C | #EAF0F7 | Titles, app bar |
 | Background | #F7F4F8 | #0B1B32 | Screen background |
 | Card | #FFFFFF | #0D1E4C | Cards, sheets |
-| Accent | #C48CB3 | #C48CB3 | Highlights, the large Add button, Dr. Usra's heart |
+| Accent | #C48CB3 | #C48CB3 | Highlights, the Add button, Dr. Usra's heart |
 | Soft accent | #E5C9D7 | #26415E | Chip and tag backgrounds |
 | Second highlight | #83A6CE | #83A6CE | Charts, secondary tags |
 | Text | #0B1B32 | #EAF0F7 | Body text |
@@ -110,12 +110,12 @@ The first 5,000 signed-in users to save a record are founding members and use Us
 
 | Phase | Revenue | Rule |
 | --- | --- | --- |
-| 1 · Founding members | None. Member numbers 1–5,000 free for life | One pool across all countries, counted by member number in Supabase; a seat is assigned when a signed-in user saves their first record; sign-in optional and offered as "Save your free-for-life spot", once an Egyptian lawyer has answered; limit changeable without an app update |
+| 1 · Founding members | None. Member numbers 1–5,000 free for life | One pool across all countries, counted by member number in Supabase; a seat is taken when a signed-in user saves their first record; sign-in optional and offered as "Save your free-for-life spot", once an Egyptian lawyer has answered; limit changeable without an app update |
 | 2 · Subscription | 1-year pass (499 EGP, 99.99 SAR, 11 JOD) or Lifetime (1,249 EGP, 249.99 SAR, 37.99 JOD), each a single payment, after a 14-day free trial, from member number 5,001 | Store billing only, through RevenueCat (no card, Fawry or Paymob for unlocking the app); promo codes via Apple offer codes and Google Play promo codes |
 | 3 · Dr. Usra AI | Included in the subscription or as credits (to decide) | Shown as "coming soon" in v1; behind regulatory gates (SFDA MDS-G27 in KSA, Egypt PDPL transfer licence) |
 | 4 · Partners | Clinic partnerships: labelled sponsored listings, appointment reminders | Matched by city and specialty only, never by health data (Apple 5.1.3, Google Play user data policy) |
 
-**Markets in order:** beta and first public launch in Egypt only; Saudi Arabia (as a complement to Sehhaty) and Jordan follow once a local doctor has reviewed their schedules; the user picks the country first, which sets the vaccine schedule, emergency number and currency. UAE later.
+**Markets in order:** beta and first public launch in Egypt only; then Saudi Arabia (as a complement to Sehhaty) and Jordan; the user picks the country first, which sets the vaccine schedule, emergency number and currency. UAE later.
 
 **Publisher:** Opsedia, as an organisation account (Apple 5.1.1(ix)).
 
@@ -124,7 +124,7 @@ The first 5,000 signed-in users to save a record are founding members and use Us
 ## What Usra is not
 
 - **Not a medical device.** It does not diagnose, treat or calculate doses (Apple 1.4.2). It records what the doctor wrote.
-- **Not a doctor.** Warning signs and follow-ups are cited information that end with "contact a doctor" or a call to the chosen country's emergency number.
+- **Not a doctor.** Warning signs and follow-ups are cited information that end with "contact a doctor" or "call 123".
 - **Not a cloud service in v1.** Optional sign-in with Google or Apple holds only name, email and membership; no server copy of health data, photos or backups.
 - **Not an ad platform.** No ads SDKs, no tracking, no data sales.
 - **Not a booking or telemedicine app.** Clinic booking comes only through partners in a later phase.

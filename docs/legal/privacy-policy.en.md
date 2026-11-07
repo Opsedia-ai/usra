@@ -2,9 +2,8 @@
 
 > **DRAFT – needs legal review** before publishing: Egypt Personal Data Protection
 > Law No. 151 of 2020 and its Executive Regulations; Saudi Personal Data Protection
-> Law (SDAIA) and SFDA rules for health software; Jordan's data protection rules
-> [legal review: name the law; Jordan research is under way separately]. Placeholders
-> are in [square brackets].
+> Law (SDAIA) and SFDA rules for health software; Jordan's Personal Data Protection Law No. 24 of 2023. Placeholders are in
+> [square brackets].
 
 Version: draft 0.1 · Last updated: [date of publication]
 
@@ -47,8 +46,6 @@ confirm you are their parent or guardian, or that they agreed to it.
   medicine names) can appear on the widget if you add it.
 - **Suggestions.** Follow-up suggestions, growth charts and vaccine dates are worked
   out on the phone from what you recorded, using published guidelines named in the app.
-- **First-use date.** Usra saves the date you first used it, on the phone and in your
-  backup file. It is not sent to us. [Confirm once this is built.]
 
 ## 3. Backups
 

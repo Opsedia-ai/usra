@@ -2340,11 +2340,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountPrivacy =>
-      'Your family\'s health records stay on this phone. An account doesn\'t upload them: it only holds what we need to run your account.';
+      'Your family\'s health records stay on this phone. An account doesn\'t upload them: it only gets things ready for syncing between your family\'s phones and for AI features later, and you\'ll choose before anything is shared.';
 
   @override
   String get accountSignInIntro =>
-      'You don\'t need an account in this version of the app. Google shares your name and email with us; Apple shares your email.';
+      'An account is optional: the app works fully without one. Google shares your name and email with us; Apple shares your email.';
 
   @override
   String get accountSignInConsent =>
@@ -2378,7 +2378,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountDeleteConfirm =>
-      'Delete your account? Your account and everything linked to it are erased from our servers. The records on this phone stay here.';
+      'Delete your account? Your account, devices and credits are erased from our servers. The records on this phone stay here.';
 
   @override
   String get accountDeleteAppleNote =>

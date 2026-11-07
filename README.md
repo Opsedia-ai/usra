@@ -34,7 +34,7 @@ The live documents are the most up to date. The files here are snapshots taken o
 
 ## Key decisions (short)
 
-- **First market:** Egypt only for the beta and first public launch. Arabic-first. Saudi Arabia and Jordan follow once a local doctor has reviewed their schedules; UAE later.
+- **First market:** Egypt only for the beta and first public launch. Arabic-first. Saudi Arabia and Jordan follow; UAE later.
 - **Business model:** the first 5,000 signed-in users to save a record are founding members, free for life; after that a 1-year pass or Lifetime, through the stores. Clinic partnerships later.
 - **Mobile:** Flutter, one codebase for Android and iOS.
 - **Backend:** Supabase (Auth, Postgres, Edge Functions), on Pro from the moment real member numbers exist; until then nothing runs. Health data stays on the phone in v1; end-to-end encrypted sync later.

@@ -3,7 +3,7 @@
 Usra holds a family's health records: diagnoses, medicines, pregnancy, children,
 insurance cards and photos of prescriptions. A leak can hurt people (stigma,
 insurance, family conflict), and in Egypt and KSA health data is sensitive
-personal data with stricter rules (Jordan's rules are being researched). This plan says what we protect,
+personal data with stricter rules (Jordan's Law 24 of 2023 also applies to accounts). This plan says what we protect,
 what is already in the code, what is missing, and when each gap must be
 closed.
 
@@ -311,7 +311,7 @@ with the cloud features (M6).
 | S1 | **Encrypt photos at rest** | P0 | Done (see section 3); verify on a device with existing photos. Was the biggest gap: insurance cards and prescriptions were plain files. Encrypt each file with XChaCha20-Poly1305 using a file key kept in the Keystore (or derived from the DB key); decrypt into memory for display; migrate existing files; share decrypts to a temp file that is deleted after. |
 | S2 | **App lock** | P0 | Optional PIN plus biometrics (`local_auth`), on by default from onboarding with skip. Re-lock after N minutes in the background. Simple Mode keeps it easy (biometrics first, big PIN pad). |
 | S3 | **Screen privacy** | P0 | Blur the app in the recent-apps switcher (iOS snapshot cover, Android `FLAG_SECURE` or `setRecentsScreenshotEnabled(false)`). `FLAG_SECURE` on the recovery key, emergency card is exempt so it can be shown. |
-| S4 | **Discreet mode** | P0 | Setting to show "Time for your medicine" instead of medicine/person names in notifications and the widget. Default on for the lock screen. Founder decision, 7 Nov 2026: neutral text plus a Taken button on notification and widget. Not built: today discreet mode has no Taken button, because identical notifications could mark someone else's dose, so the build has to solve that. |
+| S4 | **Discreet mode** | P0 | Setting to show "Time for your medicine" instead of medicine/person names in notifications and the widget. Default on for the lock screen. |
 | S5 | **No PHI in logs** | P0 | Replace `debugPrint` of exceptions with a logger that is silent in release and never prints record data. Lint/grep check in CI for `print(`/`debugPrint(` outside the logger. |
 | S6 | **Release hardening** | P0 | R8/obfuscation with `--obfuscate --split-debug-info` (symbols kept privately), `debuggable=false`, no cleartext (`usesCleartextTraffic=false` + network security config), iOS ATS default. Android done in the M5 release PR (#19, `docs/release.md`); symbols must be archived per release. iOS ATS still to check when iOS is built. |
 | S7 | **Clipboard and sharing** | P1 | Done (see section 3). Clear copied recovery key from the clipboard after 60 s; mark it sensitive on Android 13+. Warn before sharing an insurance card or record outside the app. |
@@ -342,7 +342,7 @@ with the cloud features (M6).
 | S22 | **Pre-launch review** | P1 | OWASP MASVS L1 (L2 for storage and crypto) self-assessment, then an external mobile pen test before public launch. |
 | S23 | **Incident response** | P1 | Written runbook: who decides, how to rotate keys, how to notify users and regulators. Egypt PDPL requires notifying the Data Protection Center of a breach quickly (72 hours is the commonly cited limit; confirm in legal review); KSA PDPL has similar duties; check Jordan's. |
 | S24 | **Vulnerability disclosure** | P1 | `SECURITY.md` with a contact address and response times. |
-| S25 | **Legal and compliance** | P1 | Egypt PDPL (health data is sensitive; licence/permit from the Data Protection Center may be needed), KSA PDPL and data residency, Jordan's rules (research under way separately). UAE is off the list for launch. Founder task with a lawyer; links to the store/legal drafts. |
+| S25 | **Legal and compliance** | P1 | Egypt PDPL (health data is sensitive; licence/permit from the Data Protection Center may be needed), KSA PDPL and data residency, Jordan's Law 24 of 2023. UAE is off the list for launch. Founder task with a lawyer; links to the store/legal drafts. |
 
 ## 5. Rules for every PR
 
