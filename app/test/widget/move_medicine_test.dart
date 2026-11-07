@@ -57,6 +57,7 @@ void main() {
     WidgetTester tester, {
     bool twoPeople = true,
     String? prescribed,
+    Future<void> Function()? before,
   }) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 1400);
@@ -81,6 +82,7 @@ void main() {
           schedule: const DoseScheduleInput(times: ['08:00']),
         );
       }
+      await before?.call();
     });
     await tester.pumpWidget(
       ProviderScope(
@@ -155,28 +157,29 @@ void main() {
   testWidgets('it warns that a running next-dose reminder stops', (
     tester,
   ) async {
-    await start(tester);
-    await tester.runAsync(() async {
-      await db.saveMedicine(
-        id: medicine,
-        profileId: sara,
-        name: 'جلوكوفاج',
-        startOn: DateTime(2026, 11, 1),
-        minHoursBetweenDoses: const Value(6),
-      );
-      final episode = await db.saveEpisode(
-        profileId: sara,
-        startedAt: DateTime(2026, 11, 3),
-      );
-      await db.saveGivenMedicine(
-        episodeId: episode,
-        medicineId: medicine,
-        name: 'جلوكوفاج',
-        givenAt: DateTime(2026, 11, 3, 8),
-        remindNext: true,
-      );
-    });
-    await settle(tester);
+    await start(
+      tester,
+      before: () async {
+        await db.saveMedicine(
+          id: medicine,
+          profileId: sara,
+          name: 'جلوكوفاج',
+          startOn: DateTime(2026, 11, 1),
+          minHoursBetweenDoses: const Value(6),
+        );
+        final episode = await db.saveEpisode(
+          profileId: sara,
+          startedAt: DateTime(2026, 11, 3),
+        );
+        await db.saveGivenMedicine(
+          episodeId: episode,
+          medicineId: medicine,
+          name: 'جلوكوفاج',
+          givenAt: DateTime(2026, 11, 3, 8),
+          remindNext: true,
+        );
+      },
+    );
     await tester.tap(key('medicine-move'));
     await settle(tester);
     expect(find.textContaining('أيام التعب'), findsOneWidget);
