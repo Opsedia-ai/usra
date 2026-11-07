@@ -383,7 +383,7 @@ void main() {
 
     await tester.tap(find.text('المزيد').last);
     await tester.pumpAndSettle();
-    expect(find.text('مقفول: أي حد معاه الموبايل يقدر يفتح أسرة'), findsOne);
+    expect(find.text('مش شغّال: أي حد معاه الموبايل يقدر يفتح أسرة'), findsOne);
     await tester.tap(find.byKey(const ValueKey('settings-app-lock')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('app-lock-switch')));

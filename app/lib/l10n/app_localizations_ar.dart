@@ -1777,7 +1777,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shareWarningGo => 'ابعت';
 
   @override
-  String get rootWarningTitle => 'حماية الموبايل ده مقفولة';
+  String get rootWarningTitle => 'حماية الموبايل ده مش شغّالة';
 
   @override
   String get rootWarningBody =>
@@ -2704,7 +2704,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsAppLockOn => 'شغّال: لازم الرقم السري عشان تفتح أسرة';
 
   @override
-  String get settingsAppLockOff => 'مقفول: أي حد معاه الموبايل يقدر يفتح أسرة';
+  String get settingsAppLockOff =>
+      'مش شغّال: أي حد معاه الموبايل يقدر يفتح أسرة';
 
   @override
   String get lockSettingsSwitch => 'اقفل برقم سري';
@@ -2717,7 +2718,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lockSettingsBiometricsHint =>
-      'أي حد بصمته أو وشه متسجلين على الموبايل ده يقدر يفتح أسرة، حتى لو من العيلة. لو في حد تاني بيستخدم الموبايل، سيبها مقفولة واستخدم الرقم السري بس.';
+      'أي حد بصمته أو وشه متسجلين على الموبايل ده يقدر يفتح أسرة، حتى لو من العيلة. لو في حد تاني بيستخدم الموبايل، سيبها مش شغّالة واستخدم الرقم السري بس.';
 
   @override
   String get lockSettingsTimeout => 'اقفل تاني بعد ما تخرج من أسرة بـ';
@@ -2742,7 +2743,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get lockVerifyTitle => 'أكّد إنه إنت';
 
   @override
-  String get lockOffDone => 'قفل التطبيق اتقفل';
+  String get lockOffDone => 'قفل التطبيق اتلغى';
 
   @override
   String get lockUnavailable =>
@@ -2836,7 +2837,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settingsBlockScreenshotsHint =>
-      'مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق كله. مفتاح الاسترجاع محمي على طول. سيبها مقفولة لو عايز تصوّر كارت الطوارئ.';
+      'مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق كله. مفتاح الاسترجاع محمي على طول. سيبها مش شغّالة لو عايز تصوّر كارت الطوارئ.';
 
   @override
   String get doseReminderDiscreetBody => 'افتح أسرة عشان تشوف أنهي دوا';
@@ -4070,7 +4071,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backupAutoPausedTitle => 'النسخ التلقائي واقف';
 
   @override
-  String get backupAutoUnreadableTitle => 'النسخ التلقائي مقفول';
+  String get backupAutoUnreadableTitle => 'النسخ التلقائي مش شغّال';
 
   @override
   String get backupAutoUnreadableBody =>
