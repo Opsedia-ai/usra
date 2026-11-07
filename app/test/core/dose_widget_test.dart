@@ -49,11 +49,7 @@ void main() {
         schedule: DoseScheduleInput(times: times, amount: 'قرص واحد'),
       );
 
-  Future<WidgetSnapshot> snapshotAt(
-    DateTime now, {
-    AppLocalizations? l,
-    bool discreet = false,
-  }) async {
+  Future<WidgetSnapshot> snapshotAt(DateTime now, {AppLocalizations? l}) async {
     final regimens = await db.watchRegimens().first;
     final logs = await db
         .watchDoseLogs(
@@ -61,13 +57,7 @@ void main() {
           to: now.add(const Duration(days: 3)),
         )
         .first;
-    return buildWidgetSnapshot(
-      regimens,
-      logs,
-      now: now,
-      l: l ?? ar,
-      discreet: discreet,
-    );
+    return buildWidgetSnapshot(regimens, logs, now: now, l: l ?? ar);
   }
 
   test('doses still due, soonest first, across the family', () async {
@@ -75,15 +65,12 @@ void main() {
     await medicine(mona, 'أوجمنتين', ['14:00']);
     final s = await snapshotAt(DateTime(2026, 11, 3, 7, 30));
     expect(
+      [for (final d in s.doses.take(4)) '${d.time} · ${d.label}'],
       [
-        for (final d in s.doses.take(4))
-          '${d.time} · ${d.person} · ${d.medicine}',
-      ],
-      [
-        '٨:٠٠ ص · عمر · باراسيتامول',
-        '٢:٠٠ م · منى · أوجمنتين',
-        '٨:٠٠ م · عمر · باراسيتامول',
-        '٨:٠٠ ص · عمر · باراسيتامول',
+        '٨:٠٠ ص · ميعاد جرعة',
+        '٢:٠٠ م · ميعاد جرعة',
+        '٨:٠٠ م · ميعاد جرعة',
+        '٨:٠٠ ص · ميعاد جرعة',
       ],
     );
     // Today and tomorrow, so the widget rolls over at midnight alone.
@@ -146,52 +133,139 @@ void main() {
     expect(doneSnoozeIds(logs), {snoozeIdFor(id, eight)});
   });
 
-  test('only first names and medicine names leave the database', () async {
-    final id = await medicine(omar, 'باراسيتامول', ['08:00']);
-    // Without the random id, which can contain "500".
-    final json = (await snapshotAt(DateTime(2026, 11, 3, 7)))
-        .encode()
-        .replaceAll(id, '');
-    expect(json, contains('عمر'));
-    for (final secret in [
-      'محمد',
-      'السيد',
-      'سكر',
-      'بنسلين',
-      '500',
-      'بعد الأكل',
-      'قرص',
-    ]) {
-      expect(json, isNot(contains(secret)), reason: secret);
+  test('no names leave the database, only times and counts', () async {
+    final first = await medicine(omar, 'باراسيتامول', ['08:00']);
+    final second = await medicine(mona, 'Augmentin', ['14:00']);
+    for (final l in [ar, en]) {
+      // Without the random ids, which can contain "500".
+      final json = (await snapshotAt(
+        DateTime(2026, 11, 3, 7),
+        l: l,
+      )).encode().replaceAll(first, '').replaceAll(second, '');
+      for (final secret in [
+        'عمر',
+        'محمد',
+        'السيد',
+        'منى',
+        'باراسيتامول',
+        'Augmentin',
+        'سكر',
+        'بنسلين',
+        '500',
+        'بعد الأكل',
+        'قرص',
+      ]) {
+        expect(json, isNot(contains(secret)), reason: secret);
+      }
+      final dose = (jsonDecode(json)['doses'] as List).first as Map;
+      expect(
+        dose.keys,
+        unorderedEquals(['at', 'until', 'time', 'label', 'm', 't']),
+      );
     }
-    final dose = (jsonDecode(json)['doses'] as List).first as Map;
-    expect(
-      dose.keys,
-      unorderedEquals(['at', 'until', 'time', 'person', 'medicine', 'm', 't']),
-    );
   });
 
-  test('discreet: no person or medicine names on the widget', () async {
+  test('the medicine id is only on a row with Taken', () async {
+    final alone = await medicine(omar, 'باراسيتامول', ['14:00']);
+    final near = await medicine(mona, 'Augmentin', ['08:00']);
+    await medicine(omar, 'أوجمنتين', ['08:30']);
+    final s = await snapshotAt(DateTime(2026, 11, 3, 7));
+    final today = s.doses.where((d) => d.at.day == 3).toList();
+    expect([for (final d in today) d.canMark], [false, false, true]);
+    expect(today[0].medicineId, isEmpty);
+    expect(today[1].medicineId, isEmpty);
+    expect(today[2].medicineId, alone);
+    expect(s.encode(), isNot(contains(near)));
+  });
+
+  test('doses at the same time are one row that says how many', () async {
+    await medicine(omar, 'باراسيتامول', ['08:00']);
+    await medicine(mona, 'Augmentin', ['08:00']);
+    final now = DateTime(2026, 11, 3, 7);
+    final s = await snapshotAt(now);
+    final eight = s.doses.first;
+    expect(eight.at, DateTime(2026, 11, 3, 8));
+    expect(eight.label, 'جرعتين');
+    expect(eight.canMark, isFalse);
+    expect(eight.medicineId, isEmpty);
+    expect(s.doses[1].at, DateTime(2026, 11, 4, 8));
+    expect(s.doses, hasLength(2));
+
+    await medicine(omar, 'أوجمنتين', ['08:00']);
+    expect((await snapshotAt(now)).doses.first.label, '٣ جرعات');
+    expect((await snapshotAt(now, l: en)).doses.first.label, '3 doses due');
+  });
+
+  test(
+    'doses that leave at different times aren\'t counted together',
+    () async {
+      final first = await medicine(omar, 'باراسيتامول', ['08:00']);
+      await medicine(mona, 'Augmentin', ['08:00']);
+      await db.logDose(
+        first,
+        DateTime(2026, 11, 3, 8).toUtc(),
+        DoseOutcome.snoozed,
+        at: DateTime(2026, 11, 3, 8, 30),
+      );
+      final s = await snapshotAt(DateTime(2026, 11, 3, 8, 35));
+      final eight = s.doses.where((d) => d.at == DateTime(2026, 11, 3, 8));
+      expect(eight.map((d) => d.label).toSet(), {'ميعاد جرعة'});
+      expect(eight.map((d) => d.until).toSet(), {
+        DateTime(2026, 11, 3, 9),
+        DateTime(2026, 11, 3, 9, 40),
+      });
+    },
+  );
+
+  test('the discreet setting changes nothing on the widget', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final dir = Directory.systemTemp.createTempSync('usra_widget');
+    addTearDown(() => dir.deleteSync(recursive: true));
     await medicine(omar, 'باراسيتامول', ['08:00', '20:00']);
-    await medicine(mona, 'Augmentin', ['14:00']);
-    final s = await snapshotAt(DateTime(2026, 11, 3, 7), discreet: true);
-    expect(s.doses, hasLength(6));
-    expect(s.doses.first.person, isEmpty);
-    expect(s.doses.first.medicine, 'ميعاد جرعة');
-    expect(s.discreet, isTrue);
-    expect(jsonDecode(s.encode())['discreet'], isTrue);
-    final json = s.encode();
-    for (final secret in ['عمر', 'منى', 'باراسيتامول', 'Augmentin']) {
-      expect(json, isNot(contains(secret)), reason: secret);
+    final now = DateTime(2026, 11, 3, 7);
+    Future<String> published(bool discreet) async {
+      final widget = FakeWidgetSnapshotPublisher();
+      await ReminderSync(
+        db: db,
+        scheduler: FakeReminderScheduler(),
+        inbox: DoseActionInbox(File('${dir.path}/a.jsonl')),
+        texts: () => ReminderTexts(ar, discreet: discreet),
+        widget: widget,
+        clock: () => now,
+      ).resync();
+      return widget.last.encode();
     }
-    final english = await snapshotAt(
-      DateTime(2026, 11, 3, 7),
-      l: en,
-      discreet: true,
+
+    final on = await published(true);
+    expect(await published(false), on);
+    expect(on, isNot(contains('عمر')));
+    expect(on, isNot(contains('discreet')));
+    final english = await snapshotAt(now, l: en);
+    expect(english.doses.first.label, 'Dose due');
+  });
+
+  test('the snapshot version moved past the one that held names', () async {
+    final s = await snapshotAt(DateTime(2026, 11, 3, 7));
+    expect(jsonDecode(s.encode())['v'], 2);
+    // The widgets must read the same version, or they'd show nothing; and they
+    // must not look for the old fields.
+    final kotlin = File(
+      'android/app/src/main/kotlin/com/opsedia/usra/DoseWidgetProvider.kt',
+    ).readAsStringSync();
+    final swift = File('ios/DoseWidget/DoseWidget.swift').readAsStringSync();
+    expect(kotlin, contains('SNAPSHOT_VERSION = ${WidgetSnapshot.version}'));
+    expect(swift, contains('snapshotVersion = ${WidgetSnapshot.version}'));
+    expect(kotlin, isNot(contains('"person"')));
+    expect(kotlin, isNot(contains('"medicine"')));
+    expect(swift, isNot(contains('let person')));
+    expect(swift, isNot(contains('let medicine')));
+    // Before the early return for no widget on the home screen.
+    expect(
+      kotlin.indexOf('widgetData.edit().remove(DATA_KEY)'),
+      lessThan(kotlin.indexOf('if (ids.isEmpty()) return')),
     );
-    expect(english.doses.first.medicine, 'Dose due');
-    // With names, the widget keeps its Taken buttons.
-    expect((await snapshotAt(DateTime(2026, 11, 3, 7))).discreet, isFalse);
+    expect(kotlin, contains('widgetData.edit().remove(DATA_KEY)'));
+    expect(swift, contains('defaults.removeObject(forKey: dataKey)'));
   });
 
   test('discreet: two people due at once get no Taken anywhere', () async {
@@ -211,13 +285,8 @@ void main() {
     expect(planned.map((r) => r.title).toSet(), {'ميعاد الدوا'});
     expect(planned.every((r) => r.takenLabel == null), isTrue);
     expect(planned.every((r) => r.snoozeLabel == ar.doseSnooze), isTrue);
-    final widget = await snapshotAt(now, discreet: true);
-    expect(
-      widget.doses.take(2).map((d) => '${d.time} · ${d.medicine}').toSet(),
-      {'٨:٠٠ ص · ميعاد جرعة'},
-    );
-    expect(widget.discreet, isTrue);
-    expect(widget.doses.take(2).every((d) => !d.canMark), isTrue);
+    final widget = await snapshotAt(now);
+    expect(widget.doses.first.canMark, isFalse);
 
     // With names they can be told apart, and Taken stays.
     final named = planReminders(
@@ -250,8 +319,8 @@ void main() {
     expect(reminderTextsOf(off).discreet, isFalse);
   });
 
-  test('switching discreet mode rewrites reminders, snoozes, notifications '
-      'on screen and the widget', () async {
+  test('switching discreet mode rewrites reminders, snoozes and notifications '
+      'on screen', () async {
     TestWidgetsFlutterBinding.ensureInitialized();
     final dir = Directory.systemTemp.createTempSync('usra_widget');
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -281,7 +350,7 @@ void main() {
     await sync.resync();
     const name = 'ميعاد دوا عمر محمد السيد: باراسيتامول 500 مجم';
     expect(scheduler.planned.first.title, name);
-    expect(widget.last.doses.first.person, 'عمر');
+    expect(widget.last.encode(), isNot(contains('عمر')));
     PhoneReminder onPhone(PlannedReminder r) =>
         (id: r.id, title: r.title, body: r.body, payload: r.toPayload());
     // Yesterday's 20:00 snoozed until 07:05, and a 06:00 reminder still on
@@ -319,8 +388,7 @@ void main() {
     for (var i = 0; i < 100 && widget.published.length < 2; i++) {
       await Future<void>.delayed(const Duration(milliseconds: 10));
     }
-    expect(widget.last.doses.first.person, isEmpty);
-    expect(widget.last.discreet, isTrue);
+    expect(widget.last.encode(), isNot(contains('عمر')));
 
     final changes = diffReminders(
       pending: pending,
@@ -603,14 +671,10 @@ void main() {
     test('the widget offers Taken under the same rule', () async {
       await medicine(omar, 'باراسيتامول', ['08:00', '14:00']);
       await medicine(mona, 'Augmentin', ['08:30']);
-      final s = await snapshotAt(now, discreet: true);
+      final s = await snapshotAt(now);
       final today = s.doses.where((d) => d.at.day == 3).toList();
       expect([for (final d in today) d.canMark], [false, false, true]);
-      expect(today.every((d) => d.person.isEmpty), isTrue);
-      expect(today.every((d) => d.medicine == ar.widgetDiscreetDose), isTrue);
-      // With names, every row can be told apart.
-      final named = await snapshotAt(now);
-      expect(named.doses.every((d) => d.canMark), isTrue);
+      expect(today.every((d) => d.label == ar.widgetDoseDue), isTrue);
     });
 
     test('a marked dose leaves the screen instead of reading as due', () async {
@@ -636,24 +700,19 @@ void main() {
       expect(changes.repost, isEmpty);
     });
 
-    test(
-      'a snoozed dose has no Taken on the widget, even with names',
-      () async {
-        final id = await medicine(omar, 'باراسيتامول', ['08:00']);
-        await db.logDose(
-          id,
-          DateTime(2026, 11, 3, 8).toUtc(),
-          DoseOutcome.snoozed,
-          at: DateTime(2026, 11, 3, 8, 5).toUtc(),
-        );
-        final at = DateTime(2026, 11, 3, 8, 7);
-        for (final discreet in [true, false]) {
-          final s = await snapshotAt(at, discreet: discreet);
-          expect(s.doses.first.at, DateTime(2026, 11, 3, 8));
-          expect(s.doses.first.canMark, isFalse);
-        }
-      },
-    );
+    test('a snoozed dose has no Taken on the widget', () async {
+      final id = await medicine(omar, 'باراسيتامول', ['08:00']);
+      await db.logDose(
+        id,
+        DateTime(2026, 11, 3, 8).toUtc(),
+        DoseOutcome.snoozed,
+        at: DateTime(2026, 11, 3, 8, 5).toUtc(),
+      );
+      final at = DateTime(2026, 11, 3, 8, 7);
+      final s = await snapshotAt(at);
+      expect(s.doses.first.at, DateTime(2026, 11, 3, 8));
+      expect(s.doses.first.canMark, isFalse);
+    });
 
     test('the widget sees a snooze from before midnight too', () async {
       final late = await medicine(omar, 'باراسيتامول', ['22:00']);
@@ -665,7 +724,7 @@ void main() {
         DoseOutcome.snoozed,
         at: DateTime(2026, 11, 2, 23, 58).toUtc(),
       );
-      final s = await snapshotAt(DateTime(2026, 11, 3, 0, 1), discreet: true);
+      final s = await snapshotAt(DateTime(2026, 11, 3, 0, 1));
       final dose = s.doses.firstWhere(
         (d) => d.at == DateTime(2026, 11, 3, 0, 30),
       );

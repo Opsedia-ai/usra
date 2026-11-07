@@ -40,10 +40,10 @@ confirm you are their parent or guardian, or that they agreed to it.
   the text are not sent anywhere. A photo taken only to read a medicine's name is not
   kept; a photo you save with a medicine is kept with it.
 - **Reminders.** Medicine reminders are local notifications scheduled on the phone.
-  By default, reminders and the home-screen widget use neutral text, without names. If
-  you turn discreet notifications off, the person's name as you entered it and the
-  medicine name can appear on your lock screen, and today's doses (first names and
-  medicine names) can appear on the widget if you add it.
+  By default, reminders use neutral text, without names. If you turn discreet
+  notifications off, the person's name as you entered it and the medicine name can
+  appear on your lock screen. The home-screen widget, if you add it, never shows names:
+  only dose times and how many doses are due.
 - **Suggestions.** Follow-up suggestions, growth charts and vaccine dates are worked
   out on the phone from what you recorded, using published guidelines named in the app.
 

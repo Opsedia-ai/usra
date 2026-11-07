@@ -119,7 +119,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutPrivacyReminders =>
-      'Reminders are set on this phone. People\'s names and medicine names can show on the lock screen (the name as you typed it) and on the home-screen widget (first names).';
+      'Reminders are set on this phone. People\'s names and medicine names can show on the lock screen (the name as you typed it). The home-screen widget has no names, only times and how many doses.';
 
   @override
   String get aboutPrivacyDelete =>
@@ -2708,14 +2708,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get doseReminderDiscreetTitle => 'Your medicine time';
 
   @override
-  String get widgetDiscreetDose => 'Dose due';
+  String get widgetDoseDue => 'Dose due';
+
+  @override
+  String widgetDoseCount(int count, String digits) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$digits doses due',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get settingsDiscreet => 'Discreet notifications';
 
   @override
   String get settingsDiscreetHint =>
-      'Reminders and the home-screen widget say \"Your medicine time\", without the person\'s or the medicine\'s name. When several doses are close together, open Usra to mark them.';
+      'Reminders say \"Your medicine time\", without the person\'s or the medicine\'s name. When several doses are close together, open Usra to mark them.';
 
   @override
   String get settingsBlockScreenshots => 'Block screenshots';
@@ -4192,6 +4202,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutYouSexHint => 'For growth charts and pregnancy.';
+
+  @override
+  String get aboutYouBirthDateHint => 'For suggestions that depend on age.';
+
+  @override
+  String get aboutYouBirthDateFuture =>
+      'A date of birth can\'t be in the future.';
 
   @override
   String get aboutYouDone => 'Let\'s go';

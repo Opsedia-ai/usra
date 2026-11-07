@@ -207,13 +207,7 @@ class ReminderSync with WidgetsBindingObserver {
     if (widget == null) return;
     try {
       await widget.publish(
-        buildWidgetSnapshot(
-          regimens,
-          logs,
-          now: now,
-          l: t.l,
-          discreet: t.discreet,
-        ),
+        buildWidgetSnapshot(regimens, logs, now: now, l: t.l),
       );
     } catch (e, s) {
       _report(e, s);

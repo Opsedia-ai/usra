@@ -75,6 +75,20 @@ void main() {
 
   Finder key(String k) => find.byKey(ValueKey(k));
 
+  /// Opens the date picker on About you and takes what it starts on: 1990.
+  Future<void> pickBirthDate(WidgetTester tester) async {
+    await tapKey(tester, 'about-birthDate');
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byType(DatePickerDialog),
+            matching: find.byType(TextButton),
+          )
+          .last,
+    );
+    await settle(tester);
+  }
+
   void go(WidgetTester tester, String path) =>
       ProviderScope.containerOf(tester.element(find.byType(Navigator).first))
           .read(routerProvider)
@@ -106,20 +120,27 @@ void main() {
     await tapKey(tester, 'country-next');
     expect(store.getString(PrefKeys.country), 'EG');
 
-    // Name and sex are both needed, and sex isn't chosen for anyone.
+    // Name, date of birth and sex are all needed, and sex isn't chosen for
+    // anyone.
     await tapKey(tester, 'about-done');
     expect(key('about-sex-missing'), findsOneWidget);
-    expect(find.text('مطلوب'), findsWidgets);
+    expect(find.text('مطلوب'), findsNWidgets(3));
     await tester.enterText(key('about-name'), 'آية');
     await tapKey(tester, 'about-done');
     expect(key('about-sex-missing'), findsOneWidget);
     expect((await tester.runAsync(() => db.watchProfiles().first))!, isEmpty);
     await tapKey(tester, 'about-sex-female');
     await tapKey(tester, 'about-done');
+    // Name and sex alone aren't enough.
+    expect(find.text('مطلوب'), findsOneWidget);
+    expect((await tester.runAsync(() => db.watchProfiles().first))!, isEmpty);
+    await pickBirthDate(tester);
+    await tapKey(tester, 'about-done');
 
     final people = (await tester.runAsync(() => db.watchProfiles().first))!;
     expect(people.single.displayName, 'آية');
     expect(people.single.sex, 'female');
+    expect(people.single.birthDate, DateTime(1990));
     expect(store.getString(PrefKeys.meProfileId), people.single.id);
     expect(store.getBool(PrefKeys.tutorialSeen), isTrue);
     expect(store.getBool(PrefKeys.appLockOffered), isNull);
@@ -132,6 +153,69 @@ void main() {
     await settle(tester);
     expect(find.text('مساء الخير يا آية'), findsOneWidget);
     expect(key('welcome-headline'), findsNothing);
+  });
+
+  group('date of birth in About you', () {
+    Future<void> toAboutYou(WidgetTester tester) async {
+      phone(tester);
+      await tester.pumpWidget(app());
+      await settle(tester);
+      await tapKey(tester, 'welcome-start');
+      await tapKey(tester, 'country-next');
+    }
+
+    testWidgets('the picker offers nothing after today', (tester) async {
+      await toAboutYou(tester);
+      await tapKey(tester, 'about-birthDate');
+      final picker = tester.widget<DatePickerDialog>(
+        find.byType(DatePickerDialog),
+      );
+      final today = DateUtils.dateOnly(DateTime.now());
+      expect(DateUtils.dateOnly(picker.lastDate), today);
+      expect(picker.firstDate, DateTime(1900));
+    });
+
+    testWidgets('a date saved earlier that\'s in the future isn\'t accepted, '
+        'and the picker still opens', (tester) async {
+      phone(tester);
+      final id = (await tester.runAsync(
+        () => db.addProfile(
+          'آية',
+          sex: 'female',
+          birthDate: DateTime.now().add(const Duration(days: 30)),
+        ),
+      ))!;
+      await store.setString(PrefKeys.meProfileId, id);
+      await tester.pumpWidget(app());
+      await settle(tester);
+      go(tester, '/welcome/country/about');
+      await settle(tester);
+      await tapKey(tester, 'about-done');
+      expect(
+        find.text('تاريخ الميلاد مينفعش يكون في المستقبل.'),
+        findsOneWidget,
+      );
+      expect(store.getBool(PrefKeys.tutorialSeen), isNot(isTrue));
+
+      await pickBirthDate(tester);
+      expect(find.text('تاريخ الميلاد مينفعش يكون في المستقبل.'), findsNothing);
+      await tapKey(tester, 'about-done');
+      expect(store.getBool(PrefKeys.tutorialSeen), isTrue);
+      final people = (await tester.runAsync(() => db.watchProfiles().first))!;
+      expect(people.single.birthDate, DateTime(1990));
+    });
+
+    testWidgets('someone already past the first run isn\'t asked', (
+      tester,
+    ) async {
+      phone(tester);
+      await store.setBool(PrefKeys.tutorialSeen, true);
+      await tester.runAsync(() => db.addProfile('جدو'));
+      await tester.pumpWidget(app());
+      await settle(tester);
+      expect(key('about-birthDate'), findsNothing);
+      expect(key('welcome-headline'), findsNothing);
+    });
   });
 
   testWidgets('going back from About you and again makes one person, not two', (
@@ -338,6 +422,8 @@ void main() {
         );
         await tester.pumpAndSettle();
         await tester.enterText(key('about-name'), 'عبد الرحمن محمد عبد العزيز');
+        await pickBirthDate(tester);
+        expect(tester.takeException(), isNull);
         await tapKey(tester, 'about-sex-male');
         await tapKey(tester, 'about-done');
         // Home with the long name, the greeting and the emergency pill.
