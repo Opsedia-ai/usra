@@ -1,4 +1,16 @@
 import 'package:flutter/widgets.dart';
+import 'package:intl/number_symbols_data.dart';
+
+/// Makes intl write Arabic numbers in Arabic-Indic digits, once per isolate
+/// before any text is made.
+///
+/// Its plain `ar` numbers are Latin (1,234.5) while its `ar` dates are
+/// Arabic-Indic, so an amount in one sat beside a date in the other. Egypt's
+/// own symbols (١٬٢٣٤٫٥) fix it in one place for what the app formats, what
+/// gen-l10n formats and Flutter's own widgets. Dates are not affected.
+void useArabicIndicNumbers() {
+  numberFormatSymbols['ar'] = numberFormatSymbols['ar_EG']!;
+}
 
 /// [number] in the digits of the app's language: ٩ in Arabic, 9 in English.
 /// Amounts a person typed stay as they typed them; this is for counts the app

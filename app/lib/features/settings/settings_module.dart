@@ -18,6 +18,7 @@ import '../children/vaccines_screen.dart' show askForReminderAccess;
 import 'about_privacy_screen.dart';
 import 'delete_data_screen.dart';
 import '../home/simple_home.dart' show leaveSimpleMode;
+import '../../core/util/time_picker.dart';
 
 class SettingsModule extends FeatureModule {
   const SettingsModule();
@@ -423,10 +424,7 @@ class _VaccineReminderSettings extends ConsumerWidget {
               style: UsraType.label.copyWith(color: context.usra.inkMuted),
             ),
             onTap: () async {
-              final picked = await showTimePicker(
-                context: context,
-                initialTime: time,
-              );
+              final picked = await pickTime(context, initialTime: time);
               if (picked == null) return;
               await guarded(
                 () => ref

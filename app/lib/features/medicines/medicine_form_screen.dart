@@ -27,6 +27,7 @@ import 'medicine_text.dart';
 import 'min_hours.dart';
 import 'medicines_providers.dart';
 import 'prescription_form_screen.dart' show EveryHoursDialog, presetTimes;
+import '../../core/util/time_picker.dart';
 
 /// A photo in the form: already saved ([picked] false), or just picked and
 /// only copied into the app when the medicine is saved.
@@ -291,8 +292,8 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
   }
 
   Future<DoseTime?> _askTime(DoseTime initial) async {
-    final picked = await showTimePicker(
-      context: context,
+    final picked = await pickTime(
+      context,
       initialTime: TimeOfDay(hour: initial.hour, minute: initial.minute),
     );
     return picked == null ? null : DoseTime(picked.hour, picked.minute);

@@ -8,6 +8,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../../core/database/app_database.dart';
 import '../../core/security/app_lock.dart';
+import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import 'reminders.dart';
 
@@ -359,6 +360,7 @@ NotificationDetails _details(PlannedReminder r, {bool silent = false}) =>
 /// the inbox for the app, and a snooze is scheduled right here.
 @pragma('vm:entry-point')
 Future<void> onBackgroundDoseResponse(NotificationResponse response) async {
+  useArabicIndicNumbers();
   final dose = ReminderRef.fromPayload(response.payload);
   final status = LocalNotificationScheduler._statusOf(response.actionId);
   if (dose == null || status == null) return;

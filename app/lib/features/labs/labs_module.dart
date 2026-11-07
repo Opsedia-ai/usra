@@ -60,6 +60,7 @@ class LabsModule extends FeatureModule {
         FieldSpec(
           key: LabFields.value,
           kind: FieldKind.number,
+          keepsLatinDigits: true,
           label: (c) => _l(c).fieldValue,
         ),
         FieldSpec(

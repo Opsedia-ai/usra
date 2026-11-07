@@ -139,7 +139,7 @@ void main() {
 
     // Full screen: send the second photo, then delete it.
     await tapKey(tester, 'record-thumb-1');
-    expect(find.text('صورة 2 من 2'), findsOneWidget);
+    expect(find.text('صورة ٢ من ٢'), findsOneWidget);
     await tapKey(tester, 'photo-share');
     // Decrypted for the share sheet, and the copy is gone afterwards.
     expect(sharedBytes.last, [2]);

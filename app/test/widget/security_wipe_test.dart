@@ -241,7 +241,7 @@ void main() {
 
       await typePin(tester, '000000');
       expect(
-        find.textContaining('9 أرقام سرية غلط كمان تمسح كل حاجة'),
+        find.textContaining('٩ أرقام سرية غلط كمان تمسح كل حاجة'),
         findsOneWidget,
       );
       for (var i = 0; i < 8; i++) {

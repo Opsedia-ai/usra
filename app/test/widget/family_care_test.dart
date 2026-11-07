@@ -88,7 +88,7 @@ void main() {
 
     // Home shows the pregnancy, and the visits due feed the follow-ups.
     expect(find.byKey(ValueKey('pregnancy-summary-$mona')), findsOneWidget);
-    expect(find.textContaining('منى · 25 أسبوع'), findsOneWidget);
+    expect(find.textContaining('منى · ٢٥ أسبوع'), findsOneWidget);
 
     // Men get no pregnancy button or record type.
     router.go('/family/$ali');
@@ -195,13 +195,13 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.descendant(of: todayCard, matching: find.text('90 مل من الببرونة')),
+      find.descendant(of: todayCard, matching: find.text('٩٠ مل من الببرونة')),
       findsOneWidget,
     );
     expect(
       find.descendant(
         of: todayCard,
-        matching: find.text('الحفاضات: 1 مبلولة، 0 فيها براز'),
+        matching: find.text('الحفاضات: ١ مبلولة، ٠ فيها براز'),
       ),
       findsOneWidget,
     );

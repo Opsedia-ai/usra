@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../core/database/app_database.dart';
 import '../../core/records/record_type.dart' show decodeRecordData;
 import '../../core/util/dates.dart';
+import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../children/child_vaccines.dart';
 import '../children/egypt_vaccines.dart';
@@ -284,7 +285,7 @@ Report doctorSummary({
           label,
           number(value),
           date(e.occurredAt),
-          reading?.percentileLabel ?? '',
+          digitsIn(locale.split('_').first, reading?.percentileLabel ?? ''),
         ]);
         break;
       }

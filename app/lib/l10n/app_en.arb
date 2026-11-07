@@ -102,7 +102,8 @@
   "@recordPdf": {
     "placeholders": {
       "number": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -114,7 +115,8 @@
   "@labTestNumber": {
     "placeholders": {
       "number": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -140,7 +142,8 @@
   "@labScanFound": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -150,7 +153,8 @@
   "@labScanSkipped": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -158,7 +162,8 @@
   "@labScanReplace": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -212,7 +217,8 @@
   "@ageYears": {
     "placeholders": {
       "age": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -263,7 +269,8 @@
   "@spendingRecords": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -394,7 +401,8 @@
   "@vaccineAtMonths": {
     "placeholders": {
       "months": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -437,7 +445,8 @@
         "type": "String"
       },
       "dose": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -471,17 +480,20 @@
   "@recordPhotoCount": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
   "@photoPosition": {
     "placeholders": {
       "index": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "total": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -528,10 +540,12 @@
   "@tutorialStep": {
     "placeholders": {
       "current": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "total": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -646,7 +660,8 @@
   "@fuAgeMonths": {
     "placeholders": {
       "months": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -677,7 +692,8 @@
   "@fuLastDoneMonths": {
     "placeholders": {
       "months": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -686,7 +702,8 @@
   "@fuAgeFrom": {
     "placeholders": {
       "age": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -694,10 +711,12 @@
   "@fuAgeRange": {
     "placeholders": {
       "from": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "to": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -705,10 +724,12 @@
   "@fuWomenAgeRange": {
     "placeholders": {
       "from": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "to": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -883,7 +904,8 @@
   "@scheduleEveryNDays": {
     "placeholders": {
       "n": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -979,7 +1001,8 @@
   "@lockTriesBeforeWipe": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1025,16 +1048,20 @@
   "@restoreContents": {
     "placeholders": {
       "people": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "records": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "medicines": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "photos": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1067,10 +1094,12 @@
   "@pregnancyWeek": {
     "placeholders": {
       "weeks": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "days": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1094,7 +1123,8 @@
   "@pregnancyDaysLeft": {
     "placeholders": {
       "days": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1108,7 +1138,8 @@
   "@ancContact": {
     "placeholders": {
       "number": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1116,7 +1147,8 @@
   "@ancContactReason": {
     "placeholders": {
       "week": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1124,10 +1156,12 @@
   "@ancWindow": {
     "placeholders": {
       "from": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "to": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1180,10 +1214,12 @@
   "@devTickedCount": {
     "placeholders": {
       "done": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "total": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1229,7 +1265,8 @@
   "@logMl": {
     "placeholders": {
       "ml": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1237,10 +1274,12 @@
   "@logDuration": {
     "placeholders": {
       "hours": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "minutes": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1252,16 +1291,20 @@
   "@logSummaryFeeds": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "breast": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "bottle": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "solids": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1269,7 +1312,8 @@
   "@logSummaryBottleMl": {
     "placeholders": {
       "ml": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1285,10 +1329,12 @@
   "@logSummaryDiapers": {
     "placeholders": {
       "wet": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "dirty": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1369,7 +1415,8 @@
   "@pinEntered": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1415,7 +1462,8 @@
   "@backupDonePhotosSkipped": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1423,7 +1471,8 @@
   "@restorePhotosSkipped": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1476,10 +1525,12 @@
   "@vaccineRequiredDone": {
     "placeholders": {
       "done": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "total": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1487,10 +1538,12 @@
   "@vaccineOptionalDone": {
     "placeholders": {
       "done": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "total": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1531,7 +1584,8 @@
   "@vaccineInDays": {
     "placeholders": {
       "days": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1539,7 +1593,8 @@
   "@vaccineDaysAgo": {
     "placeholders": {
       "days": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1547,7 +1602,8 @@
   "@vaccineOverdueCount": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1606,7 +1662,8 @@
   "@prescriptionMedicineN": {
     "placeholders": {
       "n": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1618,7 +1675,8 @@
   "@prescriptionTimesN": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1645,7 +1703,8 @@
   "@prescriptionCount": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1653,7 +1712,8 @@
   "@prescriptionDaysCount": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1662,10 +1722,12 @@
   "@courseDayOf": {
     "placeholders": {
       "day": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "total": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1687,7 +1749,8 @@
   "@prescriptionEveryNHours": {
     "placeholders": {
       "n": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1714,10 +1777,12 @@
   "@reportPage": {
     "placeholders": {
       "page": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "total": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1777,10 +1842,12 @@
   "@reportVaccineProgress": {
     "placeholders": {
       "done": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "total": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -2176,7 +2243,8 @@
   "@backupAutoPhotosSkipped": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -2673,10 +2741,12 @@
   "@vaccineProgressLine": {
     "placeholders": {
       "done": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "total": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -2694,10 +2764,12 @@
   "@vaccineGroupCount": {
     "placeholders": {
       "done": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "total": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },

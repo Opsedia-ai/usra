@@ -115,7 +115,7 @@ void main() {
     // No prematurity correction, and it says so.
     expect(find.byKey(const ValueKey('growth-head-note')), findsOneWidget);
     // Two of the 18 required doses are recorded.
-    expect(chipText('vaccine-required-$kid', '2/18'), findsOneWidget);
+    expect(chipText('vaccine-required-$kid', '٢/١٨'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('vaccine-open-all')));
     await tester.pumpAndSettle();
     expect(chipText('dose-opv-0', 'اتاخد'), findsOneWidget);

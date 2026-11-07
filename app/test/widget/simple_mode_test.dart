@@ -80,7 +80,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('settings-tutorial')));
     await tester.pumpAndSettle();
-    expect(find.text('1 من 5'), findsOneWidget);
+    expect(find.text('١ من ٥'), findsOneWidget);
 
     // A stray back press steps out of a reopened tour, as before.
     await tester.tap(find.byKey(const ValueKey('tutorial-skip')));
@@ -119,7 +119,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // The short elder tour comes first, once.
-    expect(find.text('1 من 3'), findsOneWidget);
+    expect(find.text('١ من ٣'), findsOneWidget);
     await finishTour(tester);
     expect(store.getBool(PrefKeys.elderTutorialSeen), isTrue);
     expect(store.getBool(PrefKeys.simpleMode), isTrue);
@@ -260,7 +260,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // The elder tour, every page.
-    expect(find.text('1 من 3'), findsOneWidget);
+    expect(find.text('١ من ٣'), findsOneWidget);
     expect(
       MediaQuery.textScalerOf(
         tester.element(find.byKey(const ValueKey('tutorial-step'))),

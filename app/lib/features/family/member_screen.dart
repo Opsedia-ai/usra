@@ -1121,7 +1121,7 @@ class EventCard extends StatelessWidget {
                 excludeSemantics: true,
                 child: Badge(
                   key: ValueKey('event-photos-${event.id}'),
-                  label: Text('$photos'),
+                  label: Text(localizedDigits(context, photos)),
                   backgroundColor: context.usra.primary,
                   child:
                       thumbnail ??

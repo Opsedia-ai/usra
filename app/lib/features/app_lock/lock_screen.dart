@@ -9,6 +9,7 @@ import '../../core/design/type.dart';
 import '../../core/preferences.dart';
 import '../../core/screen_privacy.dart';
 import '../../core/security/app_lock.dart';
+import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/emergency_card_screen.dart';
 import '../family/family_screen.dart';
@@ -327,7 +328,7 @@ class _PinEntryState extends ConsumerState<PinEntry> {
     final text = Theme.of(context).textTheme;
     final wait = _lock.waitRemaining;
     var message = wait > Duration.zero
-        ? l.lockWait(_minutesSeconds(wait))
+        ? l.lockWait(localizedDigitsIn(context, _minutesSeconds(wait)))
         : switch (_result) {
             PinCheck.wrong || PinCheck.blocked => l.lockWrongPin,
             PinCheck.unavailable => l.lockUnavailable,

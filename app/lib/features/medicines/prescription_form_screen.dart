@@ -17,6 +17,7 @@ import '../doctors/doctors_providers.dart';
 import 'dose_schedule.dart';
 import 'medicine_text.dart';
 import 'medicines_providers.dart';
+import '../../core/util/time_picker.dart';
 
 /// Times filled in by the "times a day" shortcut; the person can change
 /// them. Spread over waking hours; this is about reminders, not doses. For
@@ -325,8 +326,8 @@ class _PrescriptionFormScreenState
   }
 
   Future<void> _addTime(_Item item) async {
-    final picked = await showTimePicker(
-      context: context,
+    final picked = await pickTime(
+      context,
       initialTime: const TimeOfDay(hour: 8, minute: 0),
     );
     if (picked == null) return;
@@ -836,8 +837,8 @@ class _EveryHoursDialogState extends State<EveryHoursDialog> {
             key: const ValueKey('rx-first-time'),
             style: OutlinedButton.styleFrom(minimumSize: const Size(0, 56)),
             onPressed: () async {
-              final t = await showTimePicker(
-                context: context,
+              final t = await pickTime(
+                context,
                 initialTime: TimeOfDay(
                   hour: _first.hour,
                   minute: _first.minute,

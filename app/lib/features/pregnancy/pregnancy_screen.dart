@@ -298,7 +298,8 @@ class _BodyState extends State<_Body> {
     final locale = Localizations.localeOf(context).toLanguageTag();
     return _latest(
       context,
-      '${NumberFormat.decimalPattern(locale).format(weight)} kg',
+      '${NumberFormat.decimalPattern(locale).format(weight)} '
+      '${AppLocalizations.of(context).growthUnitKg}',
       r.date,
     );
   }
@@ -316,7 +317,14 @@ class _BodyState extends State<_Body> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _latest(context, '${r.systolic ?? '–'}/${r.diastolic ?? '–'}', r.date),
+        _latest(
+          context,
+          localizedDigitsIn(
+            context,
+            '${r.systolic ?? '–'}/${r.diastolic ?? '–'}',
+          ),
+          r.date,
+        ),
         const SizedBox(height: 6),
         StatusChip(
           key: const ValueKey('pregnancy-bp-status'),
