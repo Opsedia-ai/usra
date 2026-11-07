@@ -2765,5 +2765,17 @@
   "pregnancyPastTitle": "Earlier",
   "pregnancySupplementsTitle": "Medicines and supplements today",
   "pregnancySupplementsEmpty": "Nothing recorded for today.",
-  "pregnancySupplementsAdd": "Add a medicine or supplement"
+  "pregnancySupplementsAdd": "Add a medicine or supplement",
+  "insuranceWatermark": "{name} · {date}",
+  "@insuranceWatermark": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "insuranceShareWarning": "Before you send it: the card holds personal details. We'll write the date and the insurer's name across the picture, so nobody can use it for anything else."
 }

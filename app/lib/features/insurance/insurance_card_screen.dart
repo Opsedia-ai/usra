@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../core/security/sensitive_clipboard.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider;
 import 'insurance_info.dart';
+import 'watermark.dart';
 import 'insurance_providers.dart';
 
 /// One insurance card: its photos, number and expiry, ready to send.
@@ -204,7 +207,20 @@ class _Details extends StatelessWidget {
                       color: context.usra.inkMuted,
                     ),
                   ),
-                  SelectableText(value, style: text.titleLarge),
+                  // Numbers read left to right even in an Arabic sentence.
+                  SelectableText(
+                    value,
+                    key: label == l.insuranceMemberNumber
+                        ? const ValueKey('insurance-number')
+                        : null,
+                    style: text.titleLarge,
+                    textDirection: label == l.insuranceMemberNumber
+                        ? TextDirection.ltr
+                        : null,
+                    textAlign: label == l.insuranceMemberNumber
+                        ? TextAlign.start
+                        : null,
+                  ),
                 ],
               ),
             ),
@@ -225,10 +241,7 @@ class _ShareButton extends ConsumerWidget {
     final person = ref.watch(profileProvider(profileId)).value?.displayName;
     return FilledButton.icon(
       key: const ValueKey('insurance-share'),
-      style: FilledButton.styleFrom(
-        minimumSize: const Size(0, 56),
-        backgroundColor: Severity.good.foregroundOf(context),
-      ),
+      style: FilledButton.styleFrom(minimumSize: const Size(0, 56)),
       // Wait for the name: the message is useless without it.
       onPressed: person == null ? null : () => _share(context, ref, person),
       icon: const Icon(Icons.share_outlined),
@@ -241,19 +254,108 @@ class _ShareButton extends ConsumerWidget {
     WidgetRef ref,
     String person,
   ) async {
+    final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final failed = AppLocalizations.of(context).shareFailed;
+    final failed = l.shareFailed;
     final box = context.findRenderObject() as RenderBox?;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final mark = l.insuranceWatermark(
+      card.insurer ?? card.label,
+      DateFormat.yMMMd(locale).format(DateTime.now()),
+    );
+    final front = card.frontPhoto ?? card.backPhoto;
+    final store = ref.read(cardPhotoStoreProvider);
+    final go = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => _ShareSheet(
+        watermark: mark,
+        image: front == null ? null : store.image(front),
+      ),
+    );
+    if (go != true || !context.mounted) return;
+    final watermark = ref.read(photoWatermarkerProvider);
     try {
       await shareStoredPhotos(
         ref,
-        ref.read(cardPhotoStoreProvider),
+        store,
         [?card.frontPhoto, ?card.backPhoto],
         text: insuranceShareText(person, card),
         origin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+        alreadyWarned: true,
+        transform: (bytes) => watermark(bytes, mark),
       );
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(failed)));
     }
+  }
+}
+
+/// Says what sending a card means, and shows it with the mark it will carry.
+class _ShareSheet extends StatelessWidget {
+  const _ShareSheet({required this.watermark, required this.image});
+
+  final String watermark;
+  final ImageProvider? image;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return SafeArea(
+      child: SingleChildScrollView(
+        key: const ValueKey('insurance-share-sheet'),
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l.insuranceShareWarning,
+              key: const ValueKey('insurance-share-warning'),
+              style: UsraType.body.copyWith(color: context.usra.ink),
+            ),
+            if (image case final image?) ...[
+              const SizedBox(height: UsraSpacing.s3),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 240),
+                  child: Stack(
+                    key: const ValueKey('insurance-watermark-preview'),
+                    fit: StackFit.passthrough,
+                    children: [
+                      PhotoImage(image: image, semanticLabel: l.insuranceCard),
+                      Positioned.fill(
+                        child: Semantics(
+                          label: watermark,
+                          child: CustomPaint(
+                            painter: WatermarkPainter(
+                              watermark,
+                              textDirection: Directionality.of(context),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: UsraSpacing.s4),
+            FilledButton(
+              key: const ValueKey('insurance-share-go'),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l.shareWarningGo),
+            ),
+            const SizedBox(height: UsraSpacing.s2),
+            OutlinedButton(
+              key: const ValueKey('insurance-share-cancel'),
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l.shareWarningCancel),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

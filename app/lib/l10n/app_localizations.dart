@@ -7680,6 +7680,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add a medicine or supplement'**
   String get pregnancySupplementsAdd;
+
+  /// No description provided for @insuranceWatermark.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {date}'**
+  String insuranceWatermark(String name, String date);
+
+  /// No description provided for @insuranceShareWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Before you send it: the card holds personal details. We\'ll write the date and the insurer\'s name across the picture, so nobody can use it for anything else.'**
+  String get insuranceShareWarning;
 }
 
 class _AppLocalizationsDelegate

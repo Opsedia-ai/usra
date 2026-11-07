@@ -4841,4 +4841,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pregnancySupplementsAdd => 'Add a medicine or supplement';
+
+  @override
+  String insuranceWatermark(String name, String date) {
+    return '$name · $date';
+  }
+
+  @override
+  String get insuranceShareWarning =>
+      'Before you send it: the card holds personal details. We\'ll write the date and the insurer\'s name across the picture, so nobody can use it for anything else.';
 }

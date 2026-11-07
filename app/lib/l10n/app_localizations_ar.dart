@@ -4873,4 +4873,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pregnancySupplementsAdd => 'ضيفي دوا أو مكمّل';
+
+  @override
+  String insuranceWatermark(String name, String date) {
+    return '$name · $date';
+  }
+
+  @override
+  String get insuranceShareWarning =>
+      'قبل ما تبعت: الكارت فيه بيانات شخصية. هنكتب على الصورة التاريخ واسم الجهة علشان محدش يستخدمها في حاجة تانية.';
 }

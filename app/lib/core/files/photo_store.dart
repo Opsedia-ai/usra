@@ -404,7 +404,13 @@ class SharedPhotoCache {
 
   /// Decrypts stored photos into files to share, leaving out any that are
   /// missing or can't be opened.
-  Future<List<XFile>> copyOut(PhotoStore store, Iterable<String> paths) async {
+  /// [transform] changes each photo's bytes on the way out. If it throws, the
+  /// share fails: a photo meant to carry a watermark never goes without one.
+  Future<List<XFile>> copyOut(
+    PhotoStore store,
+    Iterable<String> paths, {
+    Future<Uint8List> Function(Uint8List bytes)? transform,
+  }) async {
     final dir = await _folder(folderName);
     await dir.create(recursive: true);
     final files = <XFile>[];
@@ -417,6 +423,14 @@ class SharedPhotoCache {
       } on PhotoKeyUnavailableException {
         continue;
       } on FileSystemException {
+        continue;
+      }
+      if (transform != null) {
+        final out = await transform(bytes);
+        final name = '${p.basenameWithoutExtension(path)}.png';
+        final file = File(p.join(dir.path, name));
+        await file.writeAsBytes(out, flush: true);
+        files.add(XFile(file.path, mimeType: 'image/png'));
         continue;
       }
       final file = File(p.join(dir.path, p.basename(path)));
@@ -478,6 +492,8 @@ Future<void> shareStoredPhotos(
   Iterable<String> paths, {
   String? text,
   Rect? origin,
+  bool alreadyWarned = false,
+  Future<Uint8List> Function(Uint8List bytes)? transform,
 }) async {
   // Read now: the screen may be gone once the photos are decrypted.
   final (cache, share, prefs) = (
@@ -485,12 +501,14 @@ Future<void> shareStoredPhotos(
     ref.read(shareProvider),
     ref.read(keyValueStoreProvider),
   );
-  if (!ref.context.mounted || !await confirmShareOutside(ref.context, prefs)) {
+  if (!alreadyWarned &&
+      (!ref.context.mounted ||
+          !await confirmShareOutside(ref.context, prefs))) {
     return;
   }
   await cache.clear();
   try {
-    final files = await cache.copyOut(store, paths);
+    final files = await cache.copyOut(store, paths, transform: transform);
     await share(
       ShareParams(
         text: text,

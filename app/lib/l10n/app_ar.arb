@@ -1382,5 +1382,7 @@
   "pregnancyPastTitle": "اللي فات",
   "pregnancySupplementsTitle": "الأدوية والمكمّلات النهارده",
   "pregnancySupplementsEmpty": "مفيش حاجة متسجلة للنهارده.",
-  "pregnancySupplementsAdd": "ضيفي دوا أو مكمّل"
+  "pregnancySupplementsAdd": "ضيفي دوا أو مكمّل",
+  "insuranceWatermark": "{name} · {date}",
+  "insuranceShareWarning": "قبل ما تبعت: الكارت فيه بيانات شخصية. هنكتب على الصورة التاريخ واسم الجهة علشان محدش يستخدمها في حاجة تانية."
 }
