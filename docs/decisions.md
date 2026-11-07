@@ -62,6 +62,18 @@ These replace older rows above. `docs/prd-v1.md` holds them too, under "Decided 
 | Design | The enhanced design is accepted | `design/app-screens/enhanced-sample`, `design/app-screens/merged-review.md`. **Changes the PRD** |
 | Navigation | Bottom bar: Home, Medicines, Add, Records, More. Home shows the family, one person on their own page | **Changes the PRD:** replaces the person switcher and four tabs |
 | First run | Shorter: language and country, about you, then Home. The rest becomes optional cards on Home | **Changes the PRD** |
+| Sign-in | Google or Apple sign-in is required to save the first record, add family, back up, take a seat or pay. Before that, people can look around and read the guides. The rule only applies once login is on | **Changes the PRD:** sign-in was optional until the paywall. Apple 5.1.1(v) only allows a required login with significant account-based features, so this has some review risk: the account carries the seat, the pass and later AI payment across phones. If Apple objects, the fallback is the old optional sign-in |
+| Seats and paywall | With sign-in required, everyone who saves a record has an account, so there is no "saved first, signed in later" case. After seats run out, adding records needs sign-in plus the trial or pass | Closes both open seat questions |
+| PIN | Turning on the PIN requires a backup first, not only a recovery key | A forgotten PIN with no backup loses everything |
+| App lock offer | An optional Home card after the first backup, and always in More | Follows the PIN rule |
+| Discreet Taken | Shown only when no other dose is due within an hour | Avoids marking the wrong person's dose |
+| Damaged database | The screen offers Restore from backup, the support address and a clearly warned start-fresh option. Support address for now: aya@opsedia.ai | A family with a backup must be able to recover in the app |
+| Widget | No names in any mode, only times and counts | Apple 5.1.3: the snapshot may reach iCloud device backup |
+| Date of birth | Required in About you | As the PRD says; age-based suggestions need it |
+| Emergency contact and relationship | Add both to the person record | The accepted design shows them |
+| Moving a record | A saved medicine can move to another person, before beta | Recovers from a wrong-person entry |
+| Person colours | By sex, as the Product Definition says | Founder's choice over the review's neutral option |
+| Canvas | Redraw the `B-` screens in the accepted style, then build them | The canvas should show the final design |
 
 ## Open questions
 
