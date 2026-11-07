@@ -68,6 +68,7 @@ class FamilyModule extends FeatureModule {
                 key: ValueKey(s.uri.path),
                 profileId: s.pathParameters['id']!,
                 typeKey: s.pathParameters['type']!,
+                returnTo: s.uri.queryParameters['back'],
               ),
             ),
             GoRoute(

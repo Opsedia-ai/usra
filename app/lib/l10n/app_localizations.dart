@@ -1505,7 +1505,7 @@ abstract class AppLocalizations {
   /// No description provided for @growthWithinRange.
   ///
   /// In en, this message translates to:
-  /// **'Percentile {percentile}: within the usual range for this age.'**
+  /// **'Within the reference range for this age (percentile {percentile}).'**
   String growthWithinRange(String percentile);
 
   /// No description provided for @growthOutsideRange.
@@ -7572,6 +7572,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{dose} · overdue'**
   String vaccineChoiceOverdue(String dose);
+
+  /// No description provided for @growthTitleOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s growth'**
+  String growthTitleOf(String name);
+
+  /// No description provided for @growthNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New measurement'**
+  String get growthNew;
+
+  /// No description provided for @growthTabWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get growthTabWeight;
+
+  /// No description provided for @growthTabHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Height'**
+  String get growthTabHeight;
+
+  /// No description provided for @growthTabHead.
+  ///
+  /// In en, this message translates to:
+  /// **'Head'**
+  String get growthTabHead;
+
+  /// No description provided for @growthUnitKg.
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get growthUnitKg;
+
+  /// No description provided for @growthUnitCm.
+  ///
+  /// In en, this message translates to:
+  /// **'cm'**
+  String get growthUnitCm;
+
+  /// No description provided for @growthHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurements'**
+  String get growthHistoryTitle;
+
+  /// No description provided for @growthLegendOwn.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s measurements'**
+  String growthLegendOwn(String name);
+
+  /// No description provided for @growthLegendReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference range'**
+  String get growthLegendReference;
+
+  /// No description provided for @growthLastOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Last measured {date}'**
+  String growthLastOn(String date);
+
+  /// No description provided for @growthTabOutside.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside the usual range'**
+  String get growthTabOutside;
 
   /// No description provided for @pregnancyAddRecord.
   ///

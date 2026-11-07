@@ -370,7 +370,7 @@
       }
     }
   },
-  "growthWithinRange": "Percentile {percentile}: within the usual range for this age.",
+  "growthWithinRange": "Within the reference range for this age (percentile {percentile}).",
   "@growthWithinRange": {
     "placeholders": {
       "percentile": {
@@ -2727,6 +2727,39 @@
       }
     }
   },
+  "growthTitleOf": "{name}'s growth",
+  "@growthTitleOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "growthNew": "New measurement",
+  "growthTabWeight": "Weight",
+  "growthTabHeight": "Height",
+  "growthTabHead": "Head",
+  "growthUnitKg": "kg",
+  "growthUnitCm": "cm",
+  "growthHistoryTitle": "Measurements",
+  "growthLegendOwn": "{name}'s measurements",
+  "@growthLegendOwn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "growthLegendReference": "Reference range",
+  "growthLastOn": "Last measured {date}",
+  "@growthLastOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "growthTabOutside": "Outside the usual range",
   "pregnancyAddRecord": "Add a visit or test",
   "pregnancyNextTitle": "Coming up",
   "pregnancyPastTitle": "Earlier",

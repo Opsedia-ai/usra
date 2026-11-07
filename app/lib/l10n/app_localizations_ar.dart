@@ -833,7 +833,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String growthWithinRange(String percentile) {
-    return 'المئين $percentile: في المدى المعتاد للسن ده.';
+    return 'جوه المعدل المرجعي للسن ده (المئين $percentile).';
   }
 
   @override
@@ -4813,6 +4813,48 @@ class AppLocalizationsAr extends AppLocalizations {
   String vaccineChoiceOverdue(String dose) {
     return '$dose · متأخر';
   }
+
+  @override
+  String growthTitleOf(String name) {
+    return 'نمو $name';
+  }
+
+  @override
+  String get growthNew => 'قياس جديد';
+
+  @override
+  String get growthTabWeight => 'الوزن';
+
+  @override
+  String get growthTabHeight => 'الطول';
+
+  @override
+  String get growthTabHead => 'محيط الراس';
+
+  @override
+  String get growthUnitKg => 'كجم';
+
+  @override
+  String get growthUnitCm => 'سم';
+
+  @override
+  String get growthHistoryTitle => 'القياسات';
+
+  @override
+  String growthLegendOwn(String name) {
+    return 'قياسات $name';
+  }
+
+  @override
+  String get growthLegendReference => 'المعدل المرجعي';
+
+  @override
+  String growthLastOn(String date) {
+    return 'آخر قياس $date';
+  }
+
+  @override
+  String get growthTabOutside => 'برّه المدى المعتاد';
 
   @override
   String get pregnancyAddRecord => 'سجّلي زيارة أو تحليل';

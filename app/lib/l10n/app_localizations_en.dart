@@ -835,7 +835,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String growthWithinRange(String percentile) {
-    return 'Percentile $percentile: within the usual range for this age.';
+    return 'Within the reference range for this age (percentile $percentile).';
   }
 
   @override
@@ -4781,6 +4781,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String vaccineChoiceOverdue(String dose) {
     return '$dose · overdue';
   }
+
+  @override
+  String growthTitleOf(String name) {
+    return '$name\'s growth';
+  }
+
+  @override
+  String get growthNew => 'New measurement';
+
+  @override
+  String get growthTabWeight => 'Weight';
+
+  @override
+  String get growthTabHeight => 'Height';
+
+  @override
+  String get growthTabHead => 'Head';
+
+  @override
+  String get growthUnitKg => 'kg';
+
+  @override
+  String get growthUnitCm => 'cm';
+
+  @override
+  String get growthHistoryTitle => 'Measurements';
+
+  @override
+  String growthLegendOwn(String name) {
+    return '$name\'s measurements';
+  }
+
+  @override
+  String get growthLegendReference => 'Reference range';
+
+  @override
+  String growthLastOn(String date) {
+    return 'Last measured $date';
+  }
+
+  @override
+  String get growthTabOutside => 'Outside the usual range';
 
   @override
   String get pregnancyAddRecord => 'Add a visit or test';

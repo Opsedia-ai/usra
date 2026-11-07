@@ -91,17 +91,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('vaccine-summary')), findsOneWidget);
+    // Opens on the measure outside the range; the others are a tap away.
+    await tester.tap(find.byKey(const ValueKey('growth-tab-weight')));
+    await tester.pumpAndSettle();
     expect(
-      chipText('growth-status-weight', 'في المدى المعتاد'),
+      chipText('growth-status-weight', 'جوه المعدل المرجعي'),
       findsOneWidget,
     );
+    await tester.tap(find.byKey(const ValueKey('growth-tab-height')));
+    await tester.pumpAndSettle();
     expect(
       chipText('growth-status-height', 'اتكلم مع دكتور الأطفال'),
       findsOneWidget,
     );
     // Head circumference is charted too (near the WHO median for girls at 6 months).
+    await tester.tap(find.byKey(const ValueKey('growth-tab-head')));
+    await tester.pumpAndSettle();
     expect(find.text('محيط الراس حسب السن'), findsOneWidget);
-    expect(chipText('growth-status-head', 'في المدى المعتاد'), findsOneWidget);
+    expect(
+      chipText('growth-status-head', 'جوه المعدل المرجعي'),
+      findsOneWidget,
+    );
     // No prematurity correction, and it says so.
     expect(find.byKey(const ValueKey('growth-head-note')), findsOneWidget);
     // Two of the 18 required doses are recorded.
@@ -129,6 +139,8 @@ void main() {
     await tester.enterText(find.byKey(const ValueKey('field-weightKg')), '٨');
     await tester.tap(find.byKey(const ValueKey('record-save')));
     await tester.pumpAndSettle();
-    expect(find.text('قياس نمو · 8'), findsOneWidget);
+    // Back on Growth, in the history.
+    expect(find.byKey(const ValueKey('growth-history')), findsOneWidget);
+    expect(find.textContaining('٨ كجم'), findsWidgets);
   });
 }

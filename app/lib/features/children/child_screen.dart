@@ -7,9 +7,12 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat, NumberFormat;
 
 import '../../core/database/app_database.dart';
+import '../../core/design/pill_chip.dart';
 import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/records/record_type.dart' show decodeRecordData;
+import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import 'growth.dart';
@@ -53,14 +56,23 @@ class ChildScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l.growthTitle),
+        title: Text(switch (profile.value) {
+          final p? => l.growthTitleOf(p.displayName),
+          null => l.growthTitle,
+        }),
         leading: BackButton(onPressed: () => context.go('/family/$profileId')),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        key: const ValueKey('growth-add'),
-        onPressed: () => context.go('/family/$profileId/add/growth'),
-        icon: const Icon(Icons.add),
-        label: Text(l.growthAdd),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+          child: FilledButton.icon(
+            key: const ValueKey('growth-add'),
+            onPressed: () =>
+                context.go('/family/$profileId/add/growth?back=growth'),
+            icon: const Icon(Icons.add),
+            label: Text(l.growthNew),
+          ),
+        ),
       ),
       body: switch ((profile, timeline)) {
         (AsyncError(:final error), _) ||
@@ -77,63 +89,202 @@ class ChildScreen extends ConsumerWidget {
   }
 }
 
-class _Body extends StatelessWidget {
+class _Body extends StatefulWidget {
   const _Body({required this.profile, required this.events});
 
   final Profile profile;
   final List<MedicalEvent> events;
 
   @override
+  State<_Body> createState() => _BodyState();
+}
+
+class _BodyState extends State<_Body> {
+  /// Null until chosen: starts on the first measure outside the range, so a
+  /// reading to take to the doctor is never behind a tab nobody opens.
+  GrowthIndicator? _chosen;
+
+  bool _outside(GrowthIndicator i) {
+    final birth = widget.profile.birthDate!;
+    final points = growthPoints(widget.events, birth, i);
+    if (points.isEmpty) return false;
+    final reading = readGrowth(
+      i,
+      male: widget.profile.sex == 'male',
+      months: points.last.months,
+      value: points.last.value,
+    );
+    return reading != null && !reading.withinUsualRange;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final profile = widget.profile;
+    final events = widget.events;
     final birth = profile.birthDate!;
     final sex = profile.sex;
     final now = DateTime.now();
     final text = Theme.of(context).textTheme;
+    final known = sex == 'male' || sex == 'female';
+    final outside = known
+        ? {
+            for (final i in GrowthIndicator.values)
+              if (_outside(i)) i,
+          }
+        : const <GrowthIndicator>{};
+    final indicator = _chosen ?? outside.firstOrNull ?? GrowthIndicator.weight;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
-        Text(profile.displayName, style: text.titleLarge),
-        const SizedBox(height: 16),
-        if (sex != 'male' && sex != 'female')
+        if (!known)
           Text(l.growthNoSex, style: text.bodyLarge)
         else ...[
-          GrowthCheckCard(profile: profile),
-          const SizedBox(height: 12),
-          for (final indicator in GrowthIndicator.values) ...[
-            _GrowthCard(
-              indicator: indicator,
-              male: sex == 'male',
-              points: growthPoints(events, birth, indicator),
-              ageMonths: ageInMonths(birth, now),
-            ),
-            const SizedBox(height: 12),
-          ],
-          Text(
-            l.growthSource,
-            style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
+          Wrap(
+            spacing: UsraSpacing.s2,
+            runSpacing: UsraSpacing.s2,
+            children: [
+              for (final i in GrowthIndicator.values)
+                Semantics(
+                  value: outside.contains(i) ? l.growthTabOutside : null,
+                  child: UsraPill(
+                    key: ValueKey('growth-tab-${i.name}'),
+                    selected: indicator == i,
+                    icon: outside.contains(i)
+                        ? Icons.warning_amber_rounded
+                        : null,
+                    onTap: () => setState(() => _chosen = i),
+                    label: switch (i) {
+                      GrowthIndicator.weight => l.growthTabWeight,
+                      GrowthIndicator.height => l.growthTabHeight,
+                      GrowthIndicator.head => l.growthTabHead,
+                    },
+                  ),
+                ),
+            ],
           ),
+          const SizedBox(height: UsraSpacing.s3),
+          _GrowthCard(
+            key: ValueKey('growth-card-${indicator.name}'),
+            indicator: indicator,
+            male: sex == 'male',
+            name: profile.displayName,
+            points: growthPoints(events, birth, indicator),
+            ageMonths: ageInMonths(birth, now),
+          ),
+          const SizedBox(height: UsraSpacing.s3),
+          GrowthCheckCard(profile: profile),
         ],
-        const SizedBox(height: 28),
+        const SizedBox(height: UsraSpacing.s3),
+        _History(profileId: profile.id, events: events),
+        const SizedBox(height: UsraSpacing.s4),
         Text(l.vaccinesTitle, style: text.titleLarge),
-        const SizedBox(height: 8),
+        const SizedBox(height: UsraSpacing.s2),
         VaccineSummaryCard(profile: profile),
       ],
     );
   }
 }
 
+/// Every measurement, newest first, each opening its record.
+class _History extends StatelessWidget {
+  const _History({required this.profileId, required this.events});
+
+  final String profileId;
+  final List<MedicalEvent> events;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.usra;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final number = NumberFormat.decimalPattern(locale);
+    final rows = [
+      for (final e in events)
+        if (e.type == 'growth') e,
+    ]..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
+    String line(MedicalEvent e) {
+      final data = decodeRecordData(e.dataJson);
+      String? part(String key, String unit) => switch (data[key]) {
+        final num v when v > 0 =>
+          '${localizedDigitsIn(context, number.format(v))} $unit',
+        _ => null,
+      };
+      return [
+        ?part(GrowthFields.weightKg, l.growthUnitKg),
+        ?part(GrowthFields.heightCm, l.growthUnitCm),
+        ?part(GrowthFields.headCm, l.growthUnitCm),
+      ].join(' · ');
+    }
+
+    return Card(
+      key: const ValueKey('growth-history'),
+      child: Padding(
+        padding: const EdgeInsets.all(UsraSpacing.s4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l.growthHistoryTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            if (rows.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: UsraSpacing.s2),
+                child: Text(l.growthNoData),
+              ),
+            for (final e in rows)
+              InkWell(
+                key: ValueKey('growth-history-${e.id}'),
+                onTap: () => context.push('/family/$profileId/record/${e.id}'),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minHeight: UsraSizes.touchTarget,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: UsraSpacing.s2,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          DateFormat.yMMMd(locale).format(e.occurredAt),
+                          style: UsraType.label.copyWith(color: c.inkMuted),
+                        ),
+                        Text(
+                          line(e),
+                          style: UsraType.body.copyWith(
+                            color: c.ink,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _GrowthCard extends StatelessWidget {
   const _GrowthCard({
+    super.key,
     required this.indicator,
     required this.male,
+    required this.name,
     required this.points,
     required this.ageMonths,
   });
 
   final GrowthIndicator indicator;
   final bool male;
+  final String name;
   final List<GrowthPoint> points;
   final double ageMonths;
 
@@ -141,7 +292,10 @@ class _GrowthCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final unit = indicator == GrowthIndicator.weight ? 'kg' : 'cm';
+    final unit = indicator == GrowthIndicator.weight
+        ? l.growthUnitKg
+        : l.growthUnitCm;
+    final c = context.usra;
     final latest = points.isEmpty ? null : points.last;
     final reading = latest == null
         ? null
@@ -177,10 +331,13 @@ class _GrowthCard extends StatelessWidget {
               Text(l.growthNoData)
             else ...[
               Text(
-                l.growthLatest(
-                  '${NumberFormat.decimalPattern(locale).format(latest.value)} $unit',
-                  DateFormat.yMMMd(locale).format(latest.date),
-                ),
+                '${localizedDigitsIn(context, NumberFormat.decimalPattern(locale).format(latest.value))} $unit',
+                key: ValueKey('growth-value-${indicator.name}'),
+                style: UsraType.title.copyWith(color: c.heading),
+              ),
+              Text(
+                l.growthLastOn(DateFormat.yMMMd(locale).format(latest.date)),
+                style: UsraType.body.copyWith(color: c.inkMuted),
               ),
               if (reading != null) ...[
                 const SizedBox(height: 6),
@@ -188,8 +345,12 @@ class _GrowthCard extends StatelessWidget {
                   key: ValueKey('growth-status-${indicator.name}'),
                   severity: reading.severity,
                   label: reading.withinUsualRange
-                      ? l.growthWithinRange(reading.percentileLabel)
-                      : l.growthOutsideRange(reading.percentileLabel),
+                      ? l.growthWithinRange(
+                          localizedDigitsIn(context, reading.percentileLabel),
+                        )
+                      : l.growthOutsideRange(
+                          localizedDigitsIn(context, reading.percentileLabel),
+                        ),
                 ),
               ],
             ],
@@ -207,6 +368,7 @@ class _GrowthCard extends StatelessWidget {
                     maxMonths: maxMonths,
                     points: points,
                     unit: unit,
+                    language: Localizations.localeOf(context).languageCode,
                   ),
                 ),
               ),
@@ -217,6 +379,26 @@ class _GrowthCard extends StatelessWidget {
                 l.growthAgeAxis,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
+            ),
+            const SizedBox(height: UsraSpacing.s2),
+            Wrap(
+              spacing: UsraSpacing.s3,
+              runSpacing: UsraSpacing.s1,
+              children: [
+                _Legend(color: c.primary, label: l.growthLegendOwn(name)),
+                _Legend(
+                  color: Severity.good.backgroundOf(context),
+                  border: Severity.good.foregroundOf(context),
+                  label: l.growthLegendReference,
+                ),
+              ],
+            ),
+            const SizedBox(height: UsraSpacing.s2),
+            Text(
+              l.growthSource,
+              key: const ValueKey('growth-source'),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: c.inkMuted),
             ),
             if (indicator == GrowthIndicator.head) ...[
               const SizedBox(height: 8),
@@ -234,6 +416,40 @@ class _GrowthCard extends StatelessWidget {
   }
 }
 
+class _Legend extends StatelessWidget {
+  const _Legend({required this.color, required this.label, this.border});
+
+  final Color color;
+  final Color? border;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Container(
+        width: 14,
+        height: 14,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: border == null ? null : Border.all(color: border!),
+        ),
+      ),
+      const SizedBox(width: UsraSpacing.s1),
+      Flexible(
+        child: Text(
+          label,
+          style: UsraType.label.copyWith(color: context.usra.ink),
+        ),
+      ),
+    ],
+  );
+}
+
+/// The smallest text on a chart.
+const growthAxisFontSize = 14.0;
+
 class _ChartPainter extends CustomPainter {
   _ChartPainter({
     required this.colors,
@@ -242,6 +458,7 @@ class _ChartPainter extends CustomPainter {
     required this.maxMonths,
     required this.points,
     required this.unit,
+    required this.language,
   });
 
   final UsraColors colors;
@@ -250,10 +467,12 @@ class _ChartPainter extends CustomPainter {
   final double maxMonths;
   final List<GrowthPoint> points;
   final String unit;
+  final String language;
 
   static const _step = 0.5;
-  static const _left = 36.0;
-  static const _bottom = 20.0;
+  static const _left = 40.0;
+  static const _top = 22.0;
+  static const _bottom = 24.0;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -278,7 +497,7 @@ class _ChartPainter extends CustomPainter {
 
     final chart = Rect.fromLTRB(
       _left,
-      4,
+      _top,
       size.width - 4,
       size.height - _bottom,
     );
@@ -295,15 +514,20 @@ class _ChartPainter extends CustomPainter {
     for (var m = 0; m <= maxMonths; m += xStep) {
       final x = at(m.toDouble(), low).dx;
       canvas.drawLine(Offset(x, chart.top), Offset(x, chart.bottom), grid);
-      _label(canvas, '$m', Offset(x, chart.bottom + 3), center: true);
+      _label(
+        canvas,
+        digitsIn(language, '$m'),
+        Offset(x, chart.bottom + 2),
+        center: true,
+      );
     }
     final yStep = _niceStep((high - low) / 5);
     for (var v = (low / yStep).ceil() * yStep; v <= high; v += yStep) {
       final y = at(0, v).dy;
       canvas.drawLine(Offset(chart.left, y), Offset(chart.right, y), grid);
-      _label(canvas, _number(v), Offset(2, y - 7));
+      _label(canvas, digitsIn(language, _number(v)), Offset(2, y - 9));
     }
-    _label(canvas, unit, Offset(2, chart.top - 2));
+    _label(canvas, unit, const Offset(2, 0));
 
     // Usual range (3rd-97th) shaded, then the percentile lines.
     final band = Path()
@@ -337,12 +561,15 @@ class _ChartPainter extends CustomPainter {
               ? Severity.good.foregroundIn(colors)
               : colors.inkMuted,
       );
-      final (end, endValue) = curves[i].last;
-      _label(
-        canvas,
-        '${chartPercentiles[i].$1}',
-        at(end, endValue) - const Offset(14, 14),
-      );
+      // At 14 px all five would run together: the outer two and the middle.
+      if (i == 0 || median || i == curves.length - 1) {
+        final (end, endValue) = curves[i].last;
+        _label(
+          canvas,
+          digitsIn(language, '${chartPercentiles[i].$1}'),
+          at(end, endValue) - const Offset(22, 18),
+        );
+      }
     }
 
     // The child's measurements, joined in time order.
@@ -386,7 +613,7 @@ class _ChartPainter extends CustomPainter {
     final painter = TextPainter(
       text: TextSpan(
         text: text,
-        style: TextStyle(fontSize: 10, color: colors.inkMuted),
+        style: TextStyle(fontSize: growthAxisFontSize, color: colors.inkMuted),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
@@ -397,6 +624,7 @@ class _ChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(_ChartPainter old) =>
       old.colors != colors ||
+      old.language != language ||
       !listEquals(old.points, points) ||
       old.maxMonths != maxMonths ||
       old.male != male ||
