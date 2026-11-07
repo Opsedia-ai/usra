@@ -219,7 +219,122 @@ void main() {
     await settle(tester);
     await tester.tap(find.byKey(const ValueKey('sick-day-doctors')));
     await settle(tester);
+    // Asks which, in place, so the Fever screen is still there to come back to.
     expect(find.text('د. أحمد'), findsOneWidget);
+    expect(find.text('د. سارة'), findsOneWidget);
+  });
+
+  testWidgets('with no doctor the button opens the list, to add one', (
+    tester,
+  ) async {
+    phone(tester, height: 2600);
+    final (person, episode) = await seed(tester);
+    await open(tester, person, episode);
+    await tester.ensureVisible(find.byKey(const ValueKey('sick-day-doctors')));
+    await settle(tester);
+    await tester.tap(find.byKey(const ValueKey('sick-day-doctors')));
+    await settle(tester);
+    expect(find.byKey(const ValueKey('sick-day-title')), findsNothing);
+  });
+
+  testWidgets('a deleted sick day still has a way out', (tester) async {
+    phone(tester);
+    final (person, episode) = await seed(tester);
+    await tester.runAsync(() => db.softDeleteEpisode(episode));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          reminderSchedulerProvider.overrideWithValue(FakeReminderScheduler()),
+          clockProvider.overrideWithValue(() => now),
+        ],
+        child: const UsraApp(),
+      ),
+    );
+    await settle(tester);
+    GoRouter.of(tester.element(find.byType(Scaffold).first))
+        .go('/family/$person/sick-days/$episode');
+    for (var i = 0; i < 5; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    await tester.tap(find.byKey(const ValueKey('sick-day-bare-back')));
+    for (var i = 0; i < 5; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    expect(find.byKey(const ValueKey('sick-days-empty')), findsOneWidget);
+  });
+
+  testWidgets('notes being typed survive folding the section', (tester) async {
+    phone(tester, height: 2600);
+    final (person, episode) = await seed(tester);
+    await open(tester, person, episode);
+    final section = find.byKey(const ValueKey('sick-day-notes-section'));
+    await tester.ensureVisible(section);
+    await settle(tester);
+    await tester.tap(
+      find.descendant(of: section, matching: find.byType(ListTile)).first,
+    );
+    await settle(tester);
+    await tester.enterText(
+      find.byKey(const ValueKey('sick-day-notes')),
+      'بيكح بالليل',
+    );
+    await settle(tester);
+    await tester.tap(
+      find.descendant(of: section, matching: find.byType(ListTile)).first,
+    );
+    await settle(tester);
+    await tester.tap(
+      find.descendant(of: section, matching: find.byType(ListTile)).first,
+    );
+    await settle(tester);
+    expect(find.text('بيكح بالليل'), findsOneWidget);
+  });
+
+  testWidgets('axis labels keep the minutes and, over most of a day, the day', (
+    tester,
+  ) async {
+    phone(tester);
+    late String person;
+    late String episode;
+    await tester.runAsync(() async {
+      person = await db.addProfile('يوسف', sex: 'male');
+      episode = await db.saveEpisode(
+        profileId: person,
+        startedAt: DateTime(2026, 11, 6, 15),
+      );
+      await db.saveReading(
+        episodeId: episode,
+        takenAt: DateTime(2026, 11, 6, 15),
+        value: 38.1,
+        unit: 'c',
+      );
+      await db.saveReading(
+        episodeId: episode,
+        takenAt: DateTime(2026, 11, 7, 12, 55),
+        value: 38.2,
+        unit: 'c',
+      );
+    });
+    await open(tester, person, episode, locale: const Locale('en'));
+    final painter = tester
+        .widgetList<CustomPaint>(
+          find.descendant(
+            of: find.byKey(const ValueKey('sick-day-chart')),
+            matching: find.byType(CustomPaint),
+          ),
+        )
+        .map((c) => c.painter)
+        .whereType<TemperatureChartPainter>()
+        .single;
+    expect(painter.timeLabel(DateTime(2026, 11, 7, 12, 55)), contains('12:55'));
+    expect(painter.timeLabel(DateTime(2026, 11, 6, 15)), contains('Fri'));
   });
 
   testWidgets('time runs one way: right to left in Arabic, left to right in '

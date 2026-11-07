@@ -15,7 +15,7 @@ import 'fever.dart';
 /// When to get help, for the person's age: what was logged that matches,
 /// call an ambulance if, call the doctor if, each with a button, then the
 /// sources. Informational only. No Dr. Usra here (Product Definition).
-class WarningSignsCard extends ConsumerWidget {
+class WarningSignsCard extends StatelessWidget {
   const WarningSignsCard({
     super.key,
     required this.person,
@@ -30,7 +30,7 @@ class WarningSignsCard extends ConsumerWidget {
   final DateTime now;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     final age = ageGroupOf(person.birthDate, now);
@@ -188,10 +188,35 @@ class WarningSignsCard extends ConsumerWidget {
   }
 }
 
-/// Calls the family's doctor when there's exactly one with a number to call.
-/// With none or several, opens the list, since the app can't know which one.
+/// One doctor with a number: calls them, by name. Several: asks which, since
+/// the app can't know who this person sees. None: the list, to add one.
 class _DoctorButton extends ConsumerWidget {
   const _DoctorButton();
+
+  Future<void> _choose(BuildContext context, List<Doctor> doctors) =>
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (sheet) => SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              for (final d in doctors)
+                ListTile(
+                  key: ValueKey('sick-day-doctor-${d.id}'),
+                  minTileHeight: UsraSizes.touchTarget,
+                  leading: const Icon(Icons.call_outlined),
+                  title: Text(d.name),
+                  subtitle: d.specialty == null ? null : Text(d.specialty!),
+                  onTap: () {
+                    Navigator.of(sheet).pop();
+                    openContact(context, callUri(d.phone)!);
+                  },
+                ),
+            ],
+          ),
+        ),
+      );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -204,11 +229,15 @@ class _DoctorButton extends ConsumerWidget {
     return OutlinedButton.icon(
       key: const ValueKey('sick-day-doctors'),
       style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-      onPressed: only == null
+      onPressed: only != null
+          ? () => openContact(context, callUri(only.phone)!)
+          : callable.isEmpty
           ? () => context.push('/doctors')
-          : () => openContact(context, callUri(only.phone)!),
+          : () => _choose(context, callable),
       icon: Icon(
-        only == null ? Icons.medical_services_outlined : Icons.call_outlined,
+        callable.isEmpty
+            ? Icons.medical_services_outlined
+            : Icons.call_outlined,
       ),
       label: Text(
         only == null ? l.warnCallDoctor : l.sickDayCallDoctorNamed(only.name),

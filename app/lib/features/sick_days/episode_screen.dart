@@ -8,8 +8,10 @@ import '../../core/design/buttons.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/providers.dart';
+import '../../core/util/dates.dart';
 import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
+import '../children/egypt_vaccines.dart' show fullMonths;
 import '../family/member_screen.dart' show profileProvider;
 import '../medicines/medicines_providers.dart';
 import 'episode_sheets.dart';
@@ -40,18 +42,26 @@ class EpisodeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final person = ref.watch(profileProvider(profileId)).value;
     final episode = ref.watch(episodeProvider(episodeId));
+    // Always with a way out: a reminder can open a sick day that's been
+    // deleted, with nothing behind it to go back to.
+    Widget bare(Widget child) => Scaffold(
+      appBar: AppBar(
+        leading: BackButton(
+          key: const ValueKey('sick-day-bare-back'),
+          onPressed: () => context.canPop()
+              ? context.pop()
+              : context.go('/family/$profileId/sick-days'),
+        ),
+      ),
+      body: Center(child: child),
+    );
+    const waiting = CircularProgressIndicator();
     return episode.when(
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(body: Center(child: Text('$e'))),
-      data: (e) {
-        if (e == null || person == null) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-        return _Body(person: person, episode: e);
-      },
+      loading: () => bare(waiting),
+      error: (_, _) => bare(Text(AppLocalizations.of(context).homeLoadError)),
+      data: (e) => e == null || person == null
+          ? bare(waiting)
+          : _Body(person: person, episode: e),
     );
   }
 }
@@ -232,11 +242,7 @@ class _Header extends StatelessWidget {
   String _age(BuildContext context, AppLocalizations l) {
     final birth = person.birthDate;
     if (birth == null) return '';
-    final months =
-        (now.year - birth.year) * 12 +
-        now.month -
-        birth.month -
-        (now.day < birth.day ? 1 : 0);
+    final months = fullMonths(storedDay(birth), now);
     if (months < 0) return '';
     return localizedDigitsIn(
       context,
@@ -519,9 +525,11 @@ class _Details extends ConsumerWidget {
       required String key,
       required String title,
       String? summary,
+      bool keepTyping = false,
       required List<Widget> children,
     }) => ExpansionTile(
       key: ValueKey(key),
+      maintainState: keepTyping,
       shape: const Border(),
       collapsedShape: const Border(),
       tilePadding: const EdgeInsets.symmetric(horizontal: UsraSpacing.s4),
@@ -616,6 +624,8 @@ class _Details extends ConsumerWidget {
             key: 'sick-day-notes-section',
             title: l.sickDayNotes,
             summary: episode.notes,
+            // Folding it must not lose what's typed and not yet saved.
+            keepTyping: true,
             children: [_Notes(episode: episode)],
           ),
         ],

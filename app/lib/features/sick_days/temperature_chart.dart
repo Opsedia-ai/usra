@@ -26,12 +26,19 @@ class TemperatureChart extends StatelessWidget {
     final unit = readings.last.unit;
     final scaler = MediaQuery.textScalerOf(context);
     final feverLabel = feverLineLabel(context, unit);
+    // Over most of a day an hour alone could be either day, so the day shows.
     final hasLongSpan =
         readings.last.takenAt.difference(readings.first.takenAt) >
-        const Duration(hours: 24);
-    final axis = hasLongSpan
-        ? DateFormat('E', locale).add_j()
-        : DateFormat.j(locale);
+        const Duration(hours: 20);
+    String axisLabel(DateTime at) {
+      final t = at.toLocal();
+      // "٩ م", or "٨:٥٥ ص": a label never rounds a reading's time.
+      final time = t.minute == 0 ? DateFormat.j(locale) : DateFormat.jm(locale);
+      return hasLongSpan
+          ? '${DateFormat.E(locale).format(t)} ${time.format(t)}'
+          : time.format(t);
+    }
+
     final spoken = DateFormat.MMMd(locale).add_jm();
     return Semantics(
       image: true,
@@ -58,7 +65,7 @@ class TemperatureChart extends StatelessWidget {
             feverLabel: feverLabel,
             direction: Directionality.of(context),
             textScaler: scaler,
-            timeLabel: (t) => axis.format(t.toLocal()),
+            timeLabel: axisLabel,
           ),
         ),
       ),
@@ -99,17 +106,17 @@ class TemperatureChartPainter extends CustomPainter {
 
   /// Room for the half of a dot that sticks out, and the line's own label
   /// past the newest reading.
-  double _trailing() => _text(feverLabel).width + 12;
+  late final double _trailing = _measure(feverLabel) + 12;
 
-  double get _span {
+  late final double _span = () {
     final start = readings.first.takenAt;
     final span = readings.last.takenAt.difference(start).inMinutes.toDouble();
-    return span < 60 ? 60 : span;
-  }
+    return span < 60 ? 60.0 : span;
+  }();
 
   /// How far across [t] is, measured from the side time starts on.
   double _along(DateTime t, double width) {
-    final used = width - _dot * 2 - _trailing();
+    final used = width - _dot * 2 - _trailing;
     return _dot + used * t.difference(readings.first.takenAt).inMinutes / _span;
   }
 
@@ -126,8 +133,9 @@ class TemperatureChartPainter extends CustomPainter {
     // The line stays put as readings come in, whatever they are.
     final low = math.min(values.reduce(math.min), fromCelsius(36.5, unit));
     final high = math.max(values.reduce(math.max), fromCelsius(39.5, unit));
-    final labelHeight = _text('0').height;
-    final bottom = size.height - labelHeight - 8;
+    final sample = _text('0');
+    final bottom = size.height - sample.height - 8;
+    sample.dispose();
     const top = _dot + 2;
     double yOf(double v) =>
         bottom - _dot - (bottom - _dot - top) * (v - low) / (high - low);
@@ -182,6 +190,7 @@ class TemperatureChartPainter extends CustomPainter {
         y - label.height - 1,
       ),
     );
+    label.dispose();
   }
 
   /// The newest and oldest times always; others only where they fit.
@@ -204,10 +213,19 @@ class TemperatureChartPainter extends CustomPainter {
         width: label.width + 12,
         height: label.height,
       );
-      if (used.any(box.overlaps)) continue;
-      used.add(box);
-      label.paint(canvas, Offset(x - label.width / 2, y));
+      if (!used.any(box.overlaps)) {
+        used.add(box);
+        label.paint(canvas, Offset(x - half, y));
+      }
+      label.dispose();
     }
+  }
+
+  double _measure(String s) {
+    final painter = _text(s);
+    final width = painter.width;
+    painter.dispose();
+    return width;
   }
 
   TextPainter _text(
