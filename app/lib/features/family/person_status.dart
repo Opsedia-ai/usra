@@ -49,7 +49,7 @@ bool isDoseMissed(PlannedDose dose, DateTime now) =>
 mixin TodayRefresh<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   late final AppLifecycleListener _lifecycle;
   late final Timer _minute;
-  late DateTime _day = _today();
+  late DateTime _day;
 
   DateTime _today() {
     final now = ref.read(clockProvider)();
@@ -69,6 +69,7 @@ mixin TodayRefresh<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   @override
   void initState() {
     super.initState();
+    _day = _today();
     _lifecycle = AppLifecycleListener(onResume: _refresh);
     _minute = Timer.periodic(const Duration(minutes: 1), (_) => _refresh());
   }

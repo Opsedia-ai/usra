@@ -24,6 +24,7 @@ import '../children/milestones.dart' show showsMilestones;
 import '../children/vaccines_screen.dart'
     show showDoseSheet, watchChildVaccines;
 import '../follow_ups/follow_ups_providers.dart' show personFollowUpsProvider;
+import '../insurance/insurance_info.dart' show ExpiryChip, expirySeverity;
 import '../insurance/insurance_providers.dart' show insuranceCardsProvider;
 import '../medicines/dose_schedule.dart' show PlannedDose;
 import '../medicines/medicine_text.dart';
@@ -32,6 +33,7 @@ import '../pregnancy/pregnancy.dart' show canBePregnant;
 import '../pregnancy/pregnancy_widgets.dart';
 import '../sick_days/sick_days_providers.dart' show episodesProvider;
 import 'family_screen.dart';
+import 'person_sections_screen.dart' show hasPhotos, isVisitOrLab;
 import 'person_status.dart';
 import 'record_display.dart';
 
@@ -309,6 +311,14 @@ class _Attention extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final episodes = ref.watch(episodesProvider(person.id)).value;
     final overdue = watchChildVaccines(ref, person);
+    final today = ref.watch(clockProvider)();
+    final cards = ref.watch(insuranceCardsProvider(person.id)).value;
+    final expiring = [
+      for (final c in cards ?? const <InsuranceCard>[])
+        if (expirySeverity(c.expiresOn, today)
+            case Severity.urgent || Severity.headsUp)
+          c,
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -338,6 +348,29 @@ class _Attention extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: UsraSpacing.s3),
             child: _OverdueVaccine(child: overdue),
+          ),
+        for (final c in expiring)
+          Padding(
+            padding: const EdgeInsets.only(bottom: UsraSpacing.s3),
+            child: _AttentionCard(
+              key: ValueKey('person-insurance-${c.id}'),
+              chip: ExpiryChip(expiresOn: c.expiresOn),
+              children: [
+                Text(
+                  c.label,
+                  style: UsraType.body.copyWith(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: context.usra.ink,
+                  ),
+                ),
+                OutlinedButton(
+                  onPressed: () =>
+                      context.push('/family/${person.id}/insurance/${c.id}'),
+                  child: Text(l.personInsuranceOpen),
+                ),
+              ],
+            ),
           ),
       ],
     );
@@ -617,7 +650,11 @@ class _Tiles extends ConsumerWidget {
     final id = person.id;
     final now = ref.watch(clockProvider)();
     final locale = Localizations.localeOf(context).toLanguageTag();
-    String date(DateTime d) => DateFormat.MMMd(locale).format(d);
+    // With the year when it isn't this one, so an old value doesn't read as
+    // current.
+    String date(DateTime d) => d.year == now.year
+        ? DateFormat.MMMd(locale).format(d)
+        : DateFormat.yMMMd(locale).format(d);
     String count(int n) => localizedDigits(context, n);
     final events = ref.watch(timelineProvider(id)).value;
     final photos = ref.watch(attachmentCountsProvider(id)).value;
@@ -633,10 +670,17 @@ class _Tiles extends ConsumerWidget {
     final current = medicines
         ?.where((m) => m.active && !medicineEnded(m, now))
         .length;
-    final latestVisit = events
-        ?.where((e) => const {'visit', 'lab', 'scan'}.contains(e.type))
-        .firstOrNull;
-    final documents = photos?.values.where((n) => n > 0).length;
+    final latestVisit = events?.where(isVisitOrLab).firstOrNull;
+    final types = ref.watch(moduleRegistryProvider).recordTypes;
+    final documents = events == null || photos == null
+        ? null
+        : events
+              .where(
+                (e) =>
+                    (types[e.type]?.inTimeline ?? false) &&
+                    hasPhotos(e, photos[e.id] ?? 0),
+              )
+              .length;
 
     void open(String path) => context.push('/family/$id$path');
 
@@ -1036,7 +1080,7 @@ class EventCard extends StatelessWidget {
       child: ListTile(
         key: ValueKey('event-${event.id}'),
         onTap: () =>
-            context.go('/family/${event.profileId}/record/${event.id}'),
+            context.push('/family/${event.profileId}/record/${event.id}'),
         leading: CircleAvatar(
           backgroundColor: context.usra.primarySoft,
           child: Icon(

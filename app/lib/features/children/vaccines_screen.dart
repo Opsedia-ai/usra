@@ -545,9 +545,11 @@ class _DoseSheet extends ConsumerStatefulWidget {
 
 class _DoseSheetState extends ConsumerState<_DoseSheet> {
   late bool _given = widget.status.done || widget.given;
-  // A dose not yet given defaults to its due date, never a future one.
+  // A dose not yet given defaults to its due date, never a future one; opened
+  // to log it now, to today.
   late DateTime _date = givenDateOn(
-    widget.status.givenOn ?? widget.status.dueOn,
+    widget.status.givenOn ??
+        (widget.given ? DateTime.now() : widget.status.dueOn),
     DateTime.now(),
   );
   late final _note = TextEditingController(

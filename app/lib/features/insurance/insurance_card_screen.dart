@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -7,6 +6,7 @@ import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
+import '../../core/security/sensitive_clipboard.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider;
 import 'insurance_info.dart';
@@ -79,9 +79,18 @@ class InsuranceCardScreen extends ConsumerWidget {
                   ),
                   onPressed: () async {
                     final messenger = ScaffoldMessenger.of(context);
-                    final copied = l.insuranceNumberCopied;
-                    await Clipboard.setData(ClipboardData(text: number));
-                    messenger.showSnackBar(SnackBar(content: Text(copied)));
+                    final copied = await ref
+                        .read(sensitiveClipboardProvider)
+                        .copy(number);
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          copied
+                              ? l.insuranceNumberCopied
+                              : l.insuranceCopyFailed,
+                        ),
+                      ),
+                    );
                   },
                   icon: const Icon(Icons.copy_outlined),
                   label: Text(l.insuranceCopyNumber),

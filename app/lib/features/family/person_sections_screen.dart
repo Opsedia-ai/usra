@@ -10,6 +10,13 @@ import '../follow_ups/follow_ups_section.dart';
 import '../insurance/insurance_section.dart';
 import 'member_screen.dart';
 
+/// What the Visits and labs page lists, and what its tile dates.
+bool isVisitOrLab(MedicalEvent e) =>
+    const {'visit', 'lab', 'scan'}.contains(e.type);
+
+/// What the Documents page lists, and what its tile counts.
+bool hasPhotos(MedicalEvent e, int photos) => photos > 0;
+
 /// A page opened from a person's hub, with their name on top so it's clear
 /// whose records these are.
 class _PersonPage extends ConsumerWidget {
@@ -82,7 +89,7 @@ class PersonVisitsScreen extends ConsumerWidget {
         _RecordList(
           profileId: profileId,
           emptyText: l.personVisitsEmpty,
-          keep: (e, _) => const {'visit', 'lab', 'scan'}.contains(e.type),
+          keep: (e, _) => isVisitOrLab(e),
         ),
       ],
     );
@@ -109,7 +116,7 @@ class PersonDocumentsScreen extends ConsumerWidget {
         _RecordList(
           profileId: profileId,
           emptyText: l.personDocumentsEmpty,
-          keep: (_, photos) => photos > 0,
+          keep: hasPhotos,
         ),
       ],
     );

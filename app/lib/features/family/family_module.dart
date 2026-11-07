@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/modules/feature_module.dart';
 import '../../core/records/record_type.dart';
+import '../../core/routing/app_router.dart' show noTabBarRoute;
 import '../../l10n/app_localizations.dart';
 import '../insurance/insurance_card_screen.dart';
 import '../insurance/insurance_form_screen.dart';
@@ -43,6 +44,7 @@ class FamilyModule extends FeatureModule {
         GoRoute(path: 'new', builder: (_, _) => const ProfileFormScreen()),
         GoRoute(
           path: ':id',
+          name: '${noTabBarRoute}person',
           builder: (_, s) => MemberScreen(profileId: s.pathParameters['id']!),
           routes: [
             GoRoute(
@@ -52,6 +54,7 @@ class FamilyModule extends FeatureModule {
             ),
             GoRoute(
               path: 'emergency',
+              name: '${noTabBarRoute}emergency',
               builder: (_, s) =>
                   EmergencyCardScreen(profileId: s.pathParameters['id']!),
             ),

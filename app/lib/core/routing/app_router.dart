@@ -7,6 +7,10 @@ import '../modules/module_registry.dart';
 import '../preferences.dart';
 import '../providers.dart';
 
+/// A route whose name starts with this draws without the tab bar: it has its
+/// own actions and a way back.
+const noTabBarRoute = 'no-tab-bar/';
+
 final routerProvider = Provider<GoRouter>((ref) {
   final registry = ref.watch(moduleRegistryProvider);
   final hasTutorial = registry.fullScreenRoutes.any(
@@ -64,17 +68,12 @@ class AppShell extends ConsumerWidget {
   final String location;
   final Widget child;
 
-  /// A person's page and emergency card have their own actions and a way
-  /// back, as designed. Simple Mode keeps its big buttons everywhere.
-  static final _ownActions = RegExp(r'^/family/(?!new$)[^/]+(/emergency)?$');
-
-  bool _noBar(BuildContext context) => _ownActions.hasMatch(
-    GoRouter.of(context)
-        .routerDelegate
-        .currentConfiguration
-        .last
-        .matchedLocation,
-  );
+  /// A pushed page isn't in this shell's own `location`, so this asks the
+  /// router what's on top. Simple Mode keeps its big buttons everywhere.
+  bool _noBar(BuildContext context) {
+    final top = GoRouter.of(context).routerDelegate.currentConfiguration.last;
+    return top.route.name?.startsWith(noTabBarRoute) ?? false;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

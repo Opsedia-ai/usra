@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +7,7 @@ import '../../core/database/app_database.dart';
 import '../../core/design/buttons.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
+import '../../core/records/record_type.dart' show decodeRecordData;
 import '../../core/security/app_lock.dart';
 import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
@@ -233,13 +232,8 @@ class _CardBody extends ConsumerWidget {
 
   /// "Appendix removal · 2019", from the surgery record's procedure field.
   static String _surgeryLine(MedicalEvent e, String language) {
-    Object? procedure;
-    try {
-      final data = jsonDecode(e.dataJson);
-      if (data is Map) procedure = data['procedure'];
-    } catch (_) {}
     return [
-      ?procedure?.toString(),
+      ?decodeRecordData(e.dataJson)['procedure']?.toString(),
       digitsIn(language, '${e.occurredAt.year}'),
     ].join(' · ');
   }
@@ -285,7 +279,7 @@ class _CardBody extends ConsumerWidget {
       lines: [?profile.allergies],
       emptyText: l.emergencyNoneRecorded,
       color: c.urgent,
-      fill: c.urgentSoft,
+      fill: profile.allergies == null ? c.surfaceSoft : c.urgentSoft,
       big: true,
     );
     final blood = _Fact(

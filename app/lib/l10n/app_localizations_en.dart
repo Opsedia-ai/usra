@@ -3925,6 +3925,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get personDoctorSummary => 'Doctor summary';
 
   @override
+  String get personInsuranceOpen => 'Open card';
+
+  @override
   String get personVaccineLog => 'Given? Log it';
 
   @override
@@ -4004,7 +4007,7 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$shown current',
       one: '1 current',
-      zero: 'None recorded',
+      zero: 'None current',
     );
     return '$_temp0';
   }
@@ -4102,6 +4105,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insuranceCopyNumber => 'Copy member number';
+
+  @override
+  String get insuranceCopyFailed => 'Couldn\'t copy the number';
 
   @override
   String get insuranceNumberCopied => 'Member number copied';

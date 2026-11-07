@@ -283,11 +283,23 @@ void main() {
         isTrue,
       );
       expect(find.textContaining('ليلى ·'), findsOneWidget);
+      await tester.ensureVisible(find.byKey(const ValueKey('dose-save')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('dose-save')));
       await settleDb(tester);
 
       final events = (await tester.runAsync(() => db.watchTimeline(id).first))!;
-      expect(events.where((e) => e.type == 'vaccine'), hasLength(1));
+      final logged = events.where((e) => e.type == 'vaccine').single;
+      // Logged now, so it says today rather than the old due date.
+      final today = DateTime.now();
+      expect(
+        DateTime(
+          logged.occurredAt.year,
+          logged.occurredAt.month,
+          logged.occurredAt.day,
+        ),
+        DateTime(today.year, today.month, today.day),
+      );
     });
 
     testWidgets('the next dose: Taken in one tap, and Undo', (tester) async {
@@ -325,6 +337,49 @@ void main() {
       await settleDb(tester);
       expect(await logs(), isEmpty);
       expect(doseCard, findsOneWidget);
+    });
+
+    testWidgets('an expired insurance card asks for attention', (tester) async {
+      phone(tester);
+      late String id;
+      late String card;
+      await tester.runAsync(() async {
+        id = await db.addProfile('محمود', sex: 'male');
+        card = await db.saveInsuranceCard(
+          profileId: id,
+          label: 'نقابة',
+          expiresOn: DateTime.utc(2020),
+        );
+      });
+      await tester.pumpWidget(app());
+      await settleDb(tester);
+      await open(tester, '/family/$id');
+      expect(find.byKey(ValueKey('person-insurance-$card')), findsOneWidget);
+      expect(find.text('نقابة'), findsOneWidget);
+    });
+
+    testWidgets('tile dates from another year say the year', (tester) async {
+      phone(tester);
+      final id = (await tester.runAsync(() async {
+        final id = await db.addProfile('محمود', sex: 'male');
+        await db.addEvent(
+          profileId: id,
+          type: 'visit',
+          occurredAt: DateTime(2023, 3, 3),
+          dataJson: '{"doctorName":"د. سارة"}',
+        );
+        return id;
+      }))!;
+      await tester.pumpWidget(app());
+      await settleDb(tester);
+      await open(tester, '/family/$id');
+      final tile = find.byKey(const ValueKey('member-visits'));
+      await tester.ensureVisible(tile);
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(of: tile, matching: find.textContaining('٢٠٢٣')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a dose past its time shows as missed', (tester) async {

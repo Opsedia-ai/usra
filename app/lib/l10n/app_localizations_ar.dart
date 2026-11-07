@@ -3949,6 +3949,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get personDoctorSummary => 'ملخص للدكتور';
 
   @override
+  String get personInsuranceOpen => 'افتح الكارت';
+
+  @override
   String get personVaccineLog => 'اتاخدت؟ سجّلها';
 
   @override
@@ -4032,7 +4035,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few: '$shown أدوية',
       two: 'دوايين',
       one: 'دوا واحد',
-      zero: 'مفيش حاجة متسجلة',
+      zero: 'مفيش أدوية حالية',
     );
     return '$_temp0';
   }
@@ -4136,6 +4139,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insuranceCopyNumber => 'انسخ رقم العضوية';
+
+  @override
+  String get insuranceCopyFailed => 'مقدرناش ننسخ الرقم';
 
   @override
   String get insuranceNumberCopied => 'رقم العضوية اتنسخ';

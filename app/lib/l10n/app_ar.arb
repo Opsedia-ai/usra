@@ -1163,6 +1163,7 @@
   "personAddFor": "إضافة ل{name}",
   "personVaccineWasDue": "كان ميعادها {date}. اسأل الدكتور إمتى تتاخد.",
   "personDoctorSummary": "ملخص للدكتور",
+  "personInsuranceOpen": "افتح الكارت",
   "personVaccineLog": "اتاخدت؟ سجّلها",
   "personVaccineSource": "المرجع: جدول التطعيمات في مصر، {route} · اتراجع {date}",
   "personVaccineSourceOptional": "المرجع: الجداول المعتادة عند دكاترة الأطفال في مصر · اتراجع {date}",
@@ -1179,7 +1180,7 @@
   "personGrowthHeight": "{value} سم · {date}",
   "personLatestOn": "آخرها {date}",
   "personInsuranceCount": "{count, plural, =0{لسه مفيش} =1{كارت واحد} =2{كارتين} few{{shown} كروت} other{{shown} كارت}}",
-  "personMedicinesCount": "{count, plural, =0{مفيش حاجة متسجلة} =1{دوا واحد} =2{دوايين} few{{shown} أدوية} other{{shown} دوا}}",
+  "personMedicinesCount": "{count, plural, =0{مفيش أدوية حالية} =1{دوا واحد} =2{دوايين} few{{shown} أدوية} other{{shown} دوا}}",
   "personFollowUpsCount": "{count, plural, =0{مفيش دلوقتي} =1{متابعة واحدة} =2{متابعتين} few{{shown} متابعات} other{{shown} متابعة}}",
   "personDocumentsCount": "{count, plural, =0{لسه مفيش} =1{سجل واحد فيه صور} =2{سجلين فيهم صور} few{{shown} سجلات فيها صور} other{{shown} سجل فيه صور}}",
   "personVisitsEmpty": "لسه مفيش زيارات أو تحاليل متسجلة.",
@@ -1197,5 +1198,6 @@
   "lockEmergencyConfirmBody": "أي حد ماسك الموبايل وأسرة مفتوحة هيقدر يشوف فصيلة الدم والحساسية والأمراض والعمليات والأدوية الحالية من غير الرقم السري. ده قفل أسرة، مش قفل الموبايل.",
   "lockEmergencyConfirmYes": "أيوه، يظهر",
   "insuranceCopyNumber": "انسخ رقم العضوية",
+  "insuranceCopyFailed": "مقدرناش ننسخ الرقم",
   "insuranceNumberCopied": "رقم العضوية اتنسخ"
 }

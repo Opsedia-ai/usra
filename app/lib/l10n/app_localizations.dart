@@ -6356,6 +6356,12 @@ abstract class AppLocalizations {
   /// **'Doctor summary'**
   String get personDoctorSummary;
 
+  /// No description provided for @personInsuranceOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open card'**
+  String get personInsuranceOpen;
+
   /// No description provided for @personVaccineLog.
   ///
   /// In en, this message translates to:
@@ -6455,7 +6461,7 @@ abstract class AppLocalizations {
   /// No description provided for @personMedicinesCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{None recorded} =1{1 current} other{{shown} current}}'**
+  /// **'{count, plural, =0{None current} =1{1 current} other{{shown} current}}'**
   String personMedicinesCount(int count, String shown);
 
   /// No description provided for @personFollowUpsCount.
@@ -6559,6 +6565,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copy member number'**
   String get insuranceCopyNumber;
+
+  /// No description provided for @insuranceCopyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t copy the number'**
+  String get insuranceCopyFailed;
 
   /// No description provided for @insuranceNumberCopied.
   ///
