@@ -4849,5 +4849,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insuranceShareWarning =>
-      'Before you send it: the card holds personal details. We\'ll write the date and the insurer\'s name across the picture, so nobody can use it for anything else.';
+      'Before you send it: the card holds personal details, and whoever gets it could pass it on. We\'ll write the date and the insurer\'s name, if saved, across the picture.';
+
+  @override
+  String get insuranceShareWarningNoPhoto =>
+      'Before you send it: the member number is personal, and whoever gets it could pass it on.';
 }

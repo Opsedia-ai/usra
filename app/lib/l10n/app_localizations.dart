@@ -7690,8 +7690,14 @@ abstract class AppLocalizations {
   /// No description provided for @insuranceShareWarning.
   ///
   /// In en, this message translates to:
-  /// **'Before you send it: the card holds personal details. We\'ll write the date and the insurer\'s name across the picture, so nobody can use it for anything else.'**
+  /// **'Before you send it: the card holds personal details, and whoever gets it could pass it on. We\'ll write the date and the insurer\'s name, if saved, across the picture.'**
   String get insuranceShareWarning;
+
+  /// No description provided for @insuranceShareWarningNoPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Before you send it: the member number is personal, and whoever gets it could pass it on.'**
+  String get insuranceShareWarningNoPhoto;
 }
 
 class _AppLocalizationsDelegate

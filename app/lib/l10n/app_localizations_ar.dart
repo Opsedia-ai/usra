@@ -4881,5 +4881,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insuranceShareWarning =>
-      'قبل ما تبعت: الكارت فيه بيانات شخصية. هنكتب على الصورة التاريخ واسم الجهة علشان محدش يستخدمها في حاجة تانية.';
+      'قبل ما تبعت: الكارت فيه بيانات شخصية، واللي هيستلمه ممكن يبعته لغيره. هنكتب على الصورة التاريخ واسم شركة التأمين لو متسجل.';
+
+  @override
+  String get insuranceShareWarningNoPhoto =>
+      'قبل ما تبعت: رقم العضوية بيانات شخصية، واللي هيستلمه ممكن يبعته لغيره.';
 }
