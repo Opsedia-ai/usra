@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' show DateFormat;
 import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import '../children/growth.dart' show isUnderFive;
 import '../doctors/contact_links.dart' show isCallablePhone;
 
@@ -103,8 +104,13 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
     });
     if (_nameMissing || phoneInvalid) return;
     setState(() => _saving = true);
-    final db = ref.read(databaseProvider);
     final id = widget.profileId;
+    if (id == null && !await ref.read(saveGateProvider).allow()) {
+      if (mounted) setState(() => _saving = false);
+      return;
+    }
+    if (!mounted) return;
+    final db = ref.read(databaseProvider);
     final String savedId;
     try {
       if (id == null) {

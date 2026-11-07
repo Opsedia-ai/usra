@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import 'insurance_info.dart';
 
 /// A card photo in the form: already saved ([stored]), or just picked and
@@ -133,6 +134,11 @@ class _InsuranceFormScreenState extends ConsumerState<InsuranceFormScreen> {
     if (labelMissing) return;
 
     setState(() => _saving = true);
+    if (widget.cardId == null && !await ref.read(saveGateProvider).allow()) {
+      if (mounted) setState(() => _saving = false);
+      return;
+    }
+    if (!mounted) return;
     final db = ref.read(databaseProvider);
     final photos = ref.read(cardPhotoStoreProvider);
     final String id;

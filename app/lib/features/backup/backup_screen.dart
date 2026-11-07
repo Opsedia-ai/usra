@@ -15,6 +15,7 @@ import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../core/screen_privacy.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import 'auto_backup_section.dart';
 import 'backup_providers.dart';
 
@@ -41,6 +42,12 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final box = context.findRenderObject() as RenderBox?;
+    if (!await ref
+        .read(saveGateProvider)
+        .allow(reason: SaveGateReason.backup)) {
+      return;
+    }
+    if (!mounted) return;
     var key = await ref.read(recoveryKeyStoreProvider).read();
     if (key == null) {
       if (!mounted) return;

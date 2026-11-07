@@ -9,6 +9,7 @@ import '../../core/design/tokens.dart';
 import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import '../family/family_screen.dart' show profilesProvider;
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import '../follow_ups/follow_ups_providers.dart' show todayProvider;
@@ -93,6 +94,11 @@ Future<bool> confirmRemovingUserRecords(
   );
   return ok ?? false;
 }
+
+/// Whether this child already has a saved plan, so saving only updates it.
+Future<bool> _hasVaccinePlan(AppDatabase db, String profileId) async =>
+    (await db.eventsOfTypes({VaccinePlanFields.type}))
+        .any((e) => e.profileId == profileId);
 
 /// Saves [changes] in one transaction; nothing when there are none.
 Future<void> applyVaccineChanges(
@@ -581,8 +587,18 @@ class _DoseSheetState extends ConsumerState<_DoseSheet> {
     }
     if (!mounted) return;
     setState(() => _saving = true);
+    final plan = child.plan.withNote(s.dose.key, _note.text);
+    // Taking a tick off, changing a date or a saved plan's note corrects
+    // what's there.
+    final isNew =
+        changes.add.isNotEmpty ||
+        (plan != child.plan && !await _hasVaccinePlan(db, child.profile.id));
+    if (isNew && !await ref.read(saveGateProvider).allow()) {
+      if (mounted) setState(() => _saving = false);
+      return;
+    }
+    if (!mounted) return;
     try {
-      final plan = child.plan.withNote(s.dose.key, _note.text);
       if (plan != child.plan) {
         await db.saveSingletonEvent(
           profileId: child.profile.id,
@@ -899,6 +915,13 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
     }
     if (!mounted) return;
     setState(() => _saving = true);
+    final isNew =
+        changes.add.isNotEmpty || !await _hasVaccinePlan(db, profile.id);
+    if (isNew && !await ref.read(saveGateProvider).allow()) {
+      if (mounted) setState(() => _saving = false);
+      return;
+    }
+    if (!mounted) return;
     try {
       await db.saveSingletonEvent(
         profileId: profile.id,

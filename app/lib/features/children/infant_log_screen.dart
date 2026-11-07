@@ -10,6 +10,7 @@ import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../core/records/record_type.dart' show decodeRecordData;
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import 'infant_log.dart';
 
@@ -160,6 +161,7 @@ class _Body extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final db = ref.read(databaseProvider);
+    if (!await ref.read(saveGateProvider).allow()) return;
     try {
       final id = await db.addEvent(
         profileId: profile.id,

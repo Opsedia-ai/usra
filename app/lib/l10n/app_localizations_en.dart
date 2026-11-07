@@ -107,7 +107,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutPrivacyOptionalAccount =>
-      'An account is optional, and there are no ads and no tracking. If you sign in, we keep your email, account ID, language and device information to run the account, plus your name and profile photo link if you use Google. We never receive your health records. We never sell or share anyone\'s data.';
+      'Saving records needs a sign-in, and there are no ads and no tracking. We keep your email, account ID, language and device information to run the account, plus your name and profile photo link if you use Google. We never receive your health records. We never sell or share anyone\'s data.';
 
   @override
   String get aboutPrivacyBackup =>
@@ -1086,6 +1086,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tutorialPrivacyBody =>
       'Everything is saved on this phone, encrypted. No account needed.';
+
+  @override
+  String get tutorialPrivacyBodyAccount =>
+      'Records are saved on this phone, encrypted. The account doesn\'t hold them.';
 
   @override
   String get tutorialFamilyTitle => 'Add your family';
@@ -2491,7 +2495,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountTitle => 'Account';
 
   @override
-  String get accountSettingsHint => 'Optional. Your records stay on this phone';
+  String get accountSettingsHint => 'Your records stay on this phone';
 
   @override
   String get accountPrivacy =>
@@ -2499,11 +2503,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountSignInIntro =>
-      'An account is optional: the app works fully without one. Google shares your name, email, profile photo link and an account ID with us; Apple shares your email (or a replacement address if you hide yours) and an account ID. We store these with your language and device information to run the account.';
+      'You can look around and read the guides with no account. Saving records, adding family and backing up need a sign-in.';
 
   @override
   String get accountSignInConsent =>
       'By signing in, you agree that we keep this to run your account, as the privacy policy says.';
+
+  @override
+  String get accountSignInData =>
+      'Google shares your name, email, profile photo link and an account ID with us; Apple shares your email (or a replacement address if you hide yours) and an account ID. We store these with your language and device information to run the account.';
+
+  @override
+  String get accountGateTitle => 'Save your records';
+
+  @override
+  String get accountGateBody =>
+      'Saving records needs a sign-in. What was typed stays on the page.';
+
+  @override
+  String get accountGateBackupBody => 'Backing up needs a sign-in.';
+
+  @override
+  String get accountGateKeepsTitle => 'The account keeps';
+
+  @override
+  String get accountGateRecordsStay =>
+      'Records and photos stay on your phone, encrypted.';
 
   @override
   String get accountReadPrivacy => 'Read about privacy';
@@ -3866,7 +3891,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backupAutoHint =>
-      'When you open Usra and a backup is due, it saves an encrypted copy in a folder you choose. No account needed.';
+      'When you open Usra and a backup is due, it saves an encrypted copy in a folder you choose, never iCloud.';
 
   @override
   String get backupAutoFolder => 'Folder';

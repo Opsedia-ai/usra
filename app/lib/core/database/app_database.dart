@@ -8,6 +8,11 @@ import 'tables.dart';
 part 'app_database.g.dart';
 part 'sick_days.dart';
 
+/// A new record was refused because login is on and nobody is signed in.
+class SignInRequiredException implements Exception {
+  const SignInRequiredException();
+}
+
 @DriftDatabase(
   tables: [
     Profiles,
@@ -29,6 +34,11 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   static const _uuid = Uuid();
+
+  /// Set when login is on; throws to refuse a new record. Forms ask first
+  /// (`SaveGate`), so this only stops a save that didn't. Corrections, deletes,
+  /// doses and restoring a backup don't pass through it.
+  void Function()? newRecordGuard;
 
   @override
   int get schemaVersion => currentSchema;
@@ -183,6 +193,7 @@ class AppDatabase extends _$AppDatabase {
     String? relationship,
     String? emergencyPhone,
     String? emergencyContactName,
+    bool firstRun = false,
   }) async {
     final name = displayName.trim();
     if (name.isEmpty) {
@@ -192,6 +203,8 @@ class AppDatabase extends _$AppDatabase {
         'must not be empty',
       );
     }
+    // The person's own profile comes before Home, ahead of any sign-in.
+    if (!firstRun) newRecordGuard?.call();
     final id = _uuid.v7();
     await transaction(() async {
       await into(profiles).insert(
@@ -319,6 +332,7 @@ class AppDatabase extends _$AppDatabase {
     List<String> photos = const [],
     List<String> pdfs = const [],
   }) async {
+    newRecordGuard?.call();
     final id = _uuid.v7();
     await transaction(() async {
       await into(medicalEvents).insert(
@@ -427,6 +441,7 @@ class AppDatabase extends _$AppDatabase {
                 ..limit(1))
               .getSingleOrNull();
       if (existing == null) {
+        newRecordGuard?.call();
         final id = _uuid.v7();
         await into(medicalEvents).insert(
           MedicalEventsCompanion.insert(
@@ -467,6 +482,7 @@ class AppDatabase extends _$AppDatabase {
     Iterable<String> remove = const [],
     Map<String, DateTime> redate = const {},
   }) async {
+    if (add.isNotEmpty) newRecordGuard?.call();
     final now = DateTime.now().toUtc();
     await transaction(() async {
       for (final MapEntry(key: id, value: date) in redate.entries) {
@@ -674,6 +690,7 @@ class AppDatabase extends _$AppDatabase {
     if (cleanName.isEmpty) {
       throw ArgumentError.value(name, 'name', 'must not be empty');
     }
+    if (id == null) newRecordGuard?.call();
     final doctorId = id ?? _uuid.v7();
     final row = DoctorsCompanion(
       id: Value(doctorId),
@@ -771,6 +788,7 @@ class AppDatabase extends _$AppDatabase {
     if (cleanLabel.isEmpty) {
       throw ArgumentError.value(label, 'label', 'must not be empty');
     }
+    if (id == null) newRecordGuard?.call();
     final cardId = id ?? _uuid.v7();
     final row = InsuranceCardsCompanion(
       id: Value(cardId),
@@ -874,6 +892,7 @@ class AppDatabase extends _$AppDatabase {
     DoseScheduleInput? schedule,
     Value<double?> minHoursBetweenDoses = const Value.absent(),
   }) async {
+    if (id == null) newRecordGuard?.call();
     final cleanName = name.trim();
     final hours = minHoursBetweenDoses.present
         ? minHoursBetweenDoses.value
@@ -1240,6 +1259,9 @@ class AppDatabase extends _$AppDatabase {
     List<String> photos = const [],
     required List<PrescriptionItemInput> items,
   }) async {
+    if (id == null || items.any((i) => i.medicineId == null)) {
+      newRecordGuard?.call();
+    }
     if (items.isEmpty) {
       throw ArgumentError.value(items, 'items', 'needs at least one medicine');
     }

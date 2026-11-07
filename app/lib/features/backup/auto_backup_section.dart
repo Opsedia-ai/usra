@@ -9,6 +9,7 @@ import 'package:intl/intl.dart' show NumberFormat;
 import '../../core/backup/auto_backup.dart';
 import '../../core/design/tokens.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import 'backup_providers.dart';
 import 'backup_screen.dart';
 
@@ -147,6 +148,11 @@ class AutoBackupSection extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     final controller = ref.read(autoBackupProvider.notifier);
     try {
+      if (!await ref
+          .read(saveGateProvider)
+          .allow(reason: SaveGateReason.backup)) {
+        return;
+      }
       if (await ref.read(recoveryKeyStoreProvider).read() == null) {
         if (!context.mounted) return;
         final proceed = await showDialog<bool>(

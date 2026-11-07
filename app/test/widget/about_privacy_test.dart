@@ -166,7 +166,7 @@ void main() {
     addTearDown(() => cloud = SupabaseConfig.none);
     await openAbout(tester);
     expect(find.textContaining('مفيش حساب'), findsNothing);
-    expect(find.textContaining('الحساب اختياري'), findsOneWidget);
+    expect(find.textContaining('حفظ السجلات محتاج'), findsOneWidget);
   });
 
   testWidgets('in English', (tester) async {

@@ -1,6 +1,6 @@
 # Login setup: Google and Apple
 
-Usra's optional account signs in with Google or Apple, using the phone's own sign-in sheet. There's no SMS and no password. This page lists what the founder has to do. Until it's done the app has no account entry at all and works fully without one.
+Usra's account signs in with Google or Apple, using the phone's own sign-in sheet. There's no SMS and no password. This page lists what the founder has to do. Until it's done the app has no account entry at all and works fully without one.
 
 **No real family signs in until an Egyptian lawyer has answered the questions in step 6.** The beta runs without login unless that answer arrives first.
 
@@ -182,7 +182,7 @@ No real family signs in until these are answered. Take separate advice before op
 
 - [ ] Add the `APPLE_*` secrets (step 3).
 - [ ] Run the checks in step 5.
-- [ ] With `SUPABASE_URL` set, check that More > About & privacy says an account is optional, in both languages.
+- [ ] With `SUPABASE_URL` set, check that More > About & privacy says saving records needs a sign-in, in both languages.
 - [ ] Check that looking around and reading the guides work with no account, and that saving the first record asks for sign-in without losing what was typed. Sign-in became required on 7 November; see `docs/decisions.md`.
 
 ## Good to know

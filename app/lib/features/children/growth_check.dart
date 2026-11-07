@@ -8,6 +8,7 @@ import '../../core/design/status_chip.dart';
 import '../../core/providers.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import 'growth.dart';
 
 /// "Tell me the weight and I'll check": today's weight or height against
@@ -116,6 +117,7 @@ class _GrowthCheckCardState extends ConsumerState<GrowthCheckCard> {
   Future<void> _save() async {
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    if (!await ref.read(saveGateProvider).allow() || !mounted) return;
     try {
       await ref
           .read(databaseProvider)

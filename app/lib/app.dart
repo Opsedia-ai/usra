@@ -6,6 +6,7 @@ import 'core/design/theme.dart';
 import 'core/preferences.dart';
 import 'core/providers.dart';
 import 'core/routing/app_router.dart';
+import 'features/account/save_gate.dart';
 import 'features/app_lock/lock_screen.dart';
 import 'core/screen_privacy.dart';
 import 'core/security/root_warning.dart';
@@ -24,6 +25,7 @@ class UsraApp extends ConsumerWidget {
     final simple = ref.watch(simpleModeProvider);
     // Applies "Block screenshots" from the start.
     ref.watch(screenPrivacyProvider);
+    ref.watch(saveGuardProvider);
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,

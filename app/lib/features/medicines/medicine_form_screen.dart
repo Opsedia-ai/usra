@@ -17,6 +17,7 @@ import '../../core/ocr/medicine_name_extractor.dart';
 import '../../core/providers.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import '../doctors/doctors_providers.dart';
 import '../family/family_screen.dart' show profilesProvider;
 import '../family/person_status.dart';
@@ -395,6 +396,12 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final db = ref.read(databaseProvider);
     final store = ref.read(medicinePhotoStoreProvider);
+    if (widget.medicineId == null &&
+        !await ref.read(saveGateProvider).allow()) {
+      if (mounted) setState(() => _saving = false);
+      return;
+    }
+    if (!mounted) return;
     final String id;
     try {
       // Copy picked photos in, one at a time, so a retry after a failure

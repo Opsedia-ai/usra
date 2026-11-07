@@ -218,6 +218,7 @@ extension SickDayDatabase on AppDatabase {
     required String unit,
     String? site,
   }) async {
+    if (id == null) newRecordGuard?.call();
     if (!TemperatureUnit.all.contains(unit)) {
       throw ArgumentError.value(unit, 'unit');
     }
@@ -288,6 +289,7 @@ extension SickDayDatabase on AppDatabase {
     required DateTime givenAt,
     bool remindNext = false,
   }) async {
+    if (id == null) newRecordGuard?.call();
     if (name.trim().isEmpty) throw ArgumentError.value(name, 'name');
     // Only a saved medicine has instructions a reminder can come from.
     if (remindNext && medicineId == null) {
