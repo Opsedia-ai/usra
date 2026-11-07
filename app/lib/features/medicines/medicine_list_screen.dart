@@ -6,6 +6,7 @@ import '../../core/database/app_database.dart';
 import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../l10n/app_localizations.dart';
+import '../family/family_screen.dart' show profilesProvider;
 import '../family/member_screen.dart' show profileProvider;
 import 'medicine_text.dart';
 import 'medicines_providers.dart';
@@ -79,6 +80,65 @@ class MedicineListScreen extends ConsumerWidget {
   }
 }
 
+/// Everyone's medicines, person by person, from the Medicines tab's "All
+/// medicines" link.
+class AllMedicinesScreen extends ConsumerWidget {
+  const AllMedicinesScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final text = Theme.of(context).textTheme;
+    final people = ref.watch(profilesProvider).value ?? const <Profile>[];
+    final all = [
+      for (final p in people)
+        (person: p, list: ref.watch(medicinesProvider(p.id))),
+    ];
+    final byPerson = [
+      for (final e in all)
+        if (e.list.value case final medicines? when medicines.isNotEmpty)
+          (person: e.person, medicines: medicines),
+    ];
+    final profiles = ref.watch(profilesProvider);
+    // "No medicines" is only ever said after reading everyone's.
+    final failed = profiles.hasError || all.any((e) => e.list.hasError);
+    final loading = !profiles.hasValue || all.any((e) => !e.list.hasValue);
+    return Scaffold(
+      appBar: AppBar(title: Text(l.medicinesAll)),
+      body: failed
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Text(l.homeLoadError, textAlign: TextAlign.center),
+              ),
+            )
+          : loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              children: [
+                if (byPerson.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      l.medicinesEmpty,
+                      textAlign: TextAlign.center,
+                      style: text.bodyLarge,
+                    ),
+                  ),
+                for (final (i, e) in byPerson.indexed) ...[
+                  if (i > 0) const SizedBox(height: 20),
+                  Text(e.person.displayName, style: text.titleMedium),
+                  const SizedBox(height: 8),
+                  for (final m in e.medicines)
+                    _MedicineTile(profileId: e.person.id, medicine: m),
+                ],
+              ],
+            ),
+    );
+  }
+}
+
 class _PrescriptionTile extends ConsumerWidget {
   const _PrescriptionTile({
     required this.profileId,
@@ -130,7 +190,8 @@ class _MedicineTile extends ConsumerWidget {
     return Card(
       child: ListTile(
         key: ValueKey('medicine-${medicine.id}'),
-        onTap: () => context.go('/family/$profileId/medicines/${medicine.id}'),
+        onTap: () =>
+            context.push('/family/$profileId/medicines/${medicine.id}'),
         leading: CircleAvatar(
           backgroundColor: context.usra.primarySoft,
           child: Icon(

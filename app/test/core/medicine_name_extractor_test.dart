@@ -172,4 +172,44 @@ void main() {
     );
     expect(s, hasLength(3));
   });
+
+  group('how sure a reading is', () {
+    MedicineSuggestion first(List<String> lines) =>
+        extractor.suggest(ocrOf(lines)).first;
+
+    test('a listed name with its strength on the same line is sure', () {
+      final s = first(['Panadol 500mg']);
+      expect(s.nameSure, isTrue);
+      expect(s.strengthSure, isTrue);
+    });
+
+    test('a near match of a listed name is unsure', () {
+      final s = first(['Panadoi']);
+      expect(s.name, 'Panadol');
+      expect(s.known, isTrue);
+      expect(s.nameSure, isFalse);
+    });
+
+    test('a name not in the list is unsure', () {
+      expect(first(['Zzyxtra']).nameSure, isFalse);
+    });
+
+    test('a strength from another line is unsure', () {
+      final s = first(['Panadol', '500mg']);
+      expect(s.strength, '500mg');
+      expect(s.strengthSure, isFalse);
+    });
+
+    test('a strength read differently from how it is printed is unsure', () {
+      final s = first(['Panadol 1.250 mg']);
+      expect(s.strength, '1250mg');
+      expect(s.strengthSure, isFalse);
+    });
+
+    test('a strength with characters corrected is unsure', () {
+      final s = first(['Panadol 5OO mg']);
+      expect(s.strength, '500mg');
+      expect(s.strengthSure, isFalse);
+    });
+  });
 }

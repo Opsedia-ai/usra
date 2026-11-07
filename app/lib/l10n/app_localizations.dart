@@ -1973,7 +1973,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanMedicineStrength.
   ///
   /// In en, this message translates to:
-  /// **'Strength (optional), e.g. 500mg'**
+  /// **'Strength (optional)'**
   String get scanMedicineStrength;
 
   /// No description provided for @scanMedicineCheck.
@@ -2285,13 +2285,13 @@ abstract class AppLocalizations {
   /// No description provided for @doseSkip.
   ///
   /// In en, this message translates to:
-  /// **'Skip'**
+  /// **'Not taken'**
   String get doseSkip;
 
   /// No description provided for @doseSkipped.
   ///
   /// In en, this message translates to:
-  /// **'Skipped'**
+  /// **'Not taken'**
   String get doseSkipped;
 
   /// No description provided for @doseSnoozed.
@@ -2537,7 +2537,7 @@ abstract class AppLocalizations {
   /// No description provided for @medicineAmountHint.
   ///
   /// In en, this message translates to:
-  /// **'As the doctor wrote it, e.g. 1 tablet'**
+  /// **'As the doctor wrote it'**
   String get medicineAmountHint;
 
   /// No description provided for @medicineRepeat.
@@ -4811,7 +4811,7 @@ abstract class AppLocalizations {
   /// No description provided for @prescriptionDoseHint.
   ///
   /// In en, this message translates to:
-  /// **'e.g. 5 ml after meals'**
+  /// **'Exactly as written on the prescription'**
   String get prescriptionDoseHint;
 
   /// No description provided for @prescriptionTimesPerDay.
@@ -4979,7 +4979,7 @@ abstract class AppLocalizations {
   /// No description provided for @prescriptionTimesHint.
   ///
   /// In en, this message translates to:
-  /// **'Check the times match what the doctor wrote, e.g. every 8 hours.'**
+  /// **'Check the times match what the doctor wrote.'**
   String get prescriptionTimesHint;
 
   /// No description provided for @growthNoPrematurity.
@@ -6864,6 +6864,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Member number copied'**
   String get insuranceNumberCopied;
+
+  /// No description provided for @doseGroupMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed'**
+  String get doseGroupMissed;
+
+  /// No description provided for @doseGroupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get doseGroupNow;
+
+  /// No description provided for @doseGroupDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged'**
+  String get doseGroupDone;
+
+  /// No description provided for @dayPartMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get dayPartMorning;
+
+  /// No description provided for @dayPartNoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Noon'**
+  String get dayPartNoon;
+
+  /// No description provided for @dayPartAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Afternoon'**
+  String get dayPartAfternoon;
+
+  /// No description provided for @dayPartNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Night'**
+  String get dayPartNight;
+
+  /// No description provided for @doseSnoozeShort.
+  ///
+  /// In en, this message translates to:
+  /// **'In 10 min'**
+  String get doseSnoozeShort;
+
+  /// No description provided for @doseTakenEarly.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken early'**
+  String get doseTakenEarly;
+
+  /// No description provided for @doseSnoozedUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Snoozed until {time}'**
+  String doseSnoozedUntil(String time);
+
+  /// No description provided for @doseLoggedEarly.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged early: {medicine} for {person}'**
+  String doseLoggedEarly(String medicine, String person);
+
+  /// No description provided for @doseLoggedNotTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged as not taken: {medicine} for {person}'**
+  String doseLoggedNotTaken(String medicine, String person);
+
+  /// No description provided for @doseLoggedSnoozed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder in 10 minutes: {medicine} for {person}'**
+  String doseLoggedSnoozed(String medicine, String person);
+
+  /// No description provided for @medicinesAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All medicines'**
+  String get medicinesAll;
+
+  /// No description provided for @medicinesFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get medicinesFilterAll;
+
+  /// No description provided for @medicinesTodayEmptyFor.
+  ///
+  /// In en, this message translates to:
+  /// **'No medicines for {name} today.'**
+  String medicinesTodayEmptyFor(String name);
+
+  /// No description provided for @medicineFor.
+  ///
+  /// In en, this message translates to:
+  /// **'This medicine is for {name}'**
+  String medicineFor(String name);
+
+  /// No description provided for @medicineForChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get medicineForChange;
+
+  /// No description provided for @medicineForPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Who is this medicine for?'**
+  String get medicineForPick;
+
+  /// No description provided for @medicineSaveFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Save for {name}'**
+  String medicineSaveFor(String name);
+
+  /// No description provided for @medicineSaveForRemind.
+  ///
+  /// In en, this message translates to:
+  /// **'Save for {name} and remind me'**
+  String medicineSaveForRemind(String name);
+
+  /// No description provided for @medicineSavedFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved: {medicine} for {name}'**
+  String medicineSavedFor(String medicine, String name);
+
+  /// No description provided for @medicineScanOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the name from a box photo'**
+  String get medicineScanOption;
+
+  /// No description provided for @medicineScanOptionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll check the name and strength before saving'**
+  String get medicineScanOptionBody;
+
+  /// No description provided for @medicineScanRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read from the box photo'**
+  String get medicineScanRead;
+
+  /// No description provided for @medicineScanReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the details on the box before saving'**
+  String get medicineScanReview;
+
+  /// No description provided for @medicineScanConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'I checked the name and strength on the box'**
+  String get medicineScanConfirm;
+
+  /// No description provided for @medicineScanConfirmNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick this once you\'ve checked the name and strength'**
+  String get medicineScanConfirmNeeded;
+
+  /// No description provided for @medicineUnsureValue.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re not sure of this reading. Check it on the box'**
+  String get medicineUnsureValue;
+
+  /// No description provided for @medicineFreqOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a day'**
+  String get medicineFreqOnce;
+
+  /// No description provided for @medicineFreqTwice.
+  ///
+  /// In en, this message translates to:
+  /// **'Twice'**
+  String get medicineFreqTwice;
+
+  /// No description provided for @medicineFreqThrice.
+  ///
+  /// In en, this message translates to:
+  /// **'3 times'**
+  String get medicineFreqThrice;
+
+  /// No description provided for @medicineFreqAsNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'When needed'**
+  String get medicineFreqAsNeeded;
+
+  /// No description provided for @medicineAddAnotherTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Another time'**
+  String get medicineAddAnotherTime;
+
+  /// No description provided for @medicineChangeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Change {time}'**
+  String medicineChangeTime(String time);
+
+  /// No description provided for @medicineOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongoing'**
+  String get medicineOngoing;
+
+  /// No description provided for @medicineUntilDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Until a date'**
+  String get medicineUntilDate;
+
+  /// No description provided for @medicineLastDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Last day'**
+  String get medicineLastDay;
+
+  /// No description provided for @medicineMoreDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'More details'**
+  String get medicineMoreDetails;
+
+  /// No description provided for @medicineLessDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer details'**
+  String get medicineLessDetails;
+
+  /// No description provided for @medicineClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get medicineClose;
 }
 
 class _AppLocalizationsDelegate

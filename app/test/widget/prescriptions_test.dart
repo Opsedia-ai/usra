@@ -370,6 +370,6 @@ void main() {
     await tester.pumpAndSettle();
     await tapKey(tester, 'simple-medicines');
     expect(find.text('أوجمنتين'), findsOneWidget);
-    expect(find.text('اليوم 2 من 7'), findsOneWidget);
+    expect(find.text('اليوم ٢ من ٧'), findsOneWidget);
   });
 }

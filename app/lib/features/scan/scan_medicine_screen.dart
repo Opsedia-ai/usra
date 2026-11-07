@@ -39,6 +39,10 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
   /// may replace it.
   bool _filledIn = false;
 
+  /// Typed by the person, so not a reading that can be in doubt.
+  bool _nameTyped = false;
+  bool _strengthTyped = false;
+
   @override
   void dispose() {
     _name.dispose();
@@ -102,6 +106,8 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
     _strength.text = s.strength ?? '';
     _nameMissing = false;
     _filledIn = true;
+    _nameTyped = false;
+    _strengthTyped = false;
   });
 
   void _use() {
@@ -111,10 +117,25 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
       return;
     }
     final strength = _strength.text.trim();
+    // How sure the reading is goes along with it, so the form can highlight
+    // it. What the person typed themselves isn't in doubt; anything else with
+    // no match among the suggestions comes from an earlier photo, and is.
+    final readName = _suggestions.where(
+      (s) => s.name.toLowerCase() == name.toLowerCase(),
+    );
+    final readStrength = _suggestions.where((s) => s.strength == strength);
     context.pop(
       MedicineSuggestion(
         name: name,
         strength: strength.isEmpty ? null : strength,
+        nameSure:
+            _nameTyped ||
+            (readName.isNotEmpty && readName.every((s) => s.nameSure)),
+        strengthSure:
+            strength.isNotEmpty &&
+            (_strengthTyped ||
+                (readStrength.isNotEmpty &&
+                    readStrength.every((s) => s.strengthSure))),
       ),
     );
   }
@@ -239,11 +260,11 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
           TextField(
             key: const ValueKey('scan-name'),
             controller: _name,
-            textDirection: TextDirection.ltr,
             textCapitalization: TextCapitalization.words,
             onChanged: (_) => setState(() {
               _nameMissing = false;
               _filledIn = false;
+              _nameTyped = true;
             }),
             decoration: InputDecoration(
               labelText: l.scanMedicineName,
@@ -254,8 +275,10 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
           TextField(
             key: const ValueKey('scan-strength'),
             controller: _strength,
-            textDirection: TextDirection.ltr,
-            onChanged: (_) => setState(() => _filledIn = false),
+            onChanged: (_) => setState(() {
+              _filledIn = false;
+              _strengthTyped = true;
+            }),
             decoration: InputDecoration(labelText: l.scanMedicineStrength),
           ),
           if (_suggestions.isNotEmpty) ...[

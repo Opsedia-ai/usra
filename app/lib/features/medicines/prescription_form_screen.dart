@@ -313,7 +313,7 @@ class _PrescriptionFormScreenState
   Future<void> _everyHours(_Item item) async {
     final picked = await showDialog<List<DoseTime>>(
       context: context,
-      builder: (_) => const _EveryHoursDialog(),
+      builder: (_) => const EveryHoursDialog(),
     );
     if (picked == null || !mounted) return;
     setState(
@@ -789,14 +789,14 @@ class _ItemCard extends StatelessWidget {
 }
 
 /// Asks for "every N hours" and the first time; returns the times.
-class _EveryHoursDialog extends StatefulWidget {
-  const _EveryHoursDialog();
+class EveryHoursDialog extends StatefulWidget {
+  const EveryHoursDialog({super.key});
 
   @override
-  State<_EveryHoursDialog> createState() => _EveryHoursDialogState();
+  State<EveryHoursDialog> createState() => _EveryHoursDialogState();
 }
 
-class _EveryHoursDialogState extends State<_EveryHoursDialog> {
+class _EveryHoursDialogState extends State<EveryHoursDialog> {
   int _hours = 8;
   DoseTime _first = const DoseTime(8, 0);
 
@@ -804,6 +804,7 @@ class _EveryHoursDialogState extends State<_EveryHoursDialog> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return AlertDialog(
+      scrollable: true,
       title: Text(l.prescriptionEveryHours),
       content: Column(
         mainAxisSize: MainAxisSize.min,

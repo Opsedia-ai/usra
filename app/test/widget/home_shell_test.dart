@@ -143,7 +143,7 @@ void main() {
     expect(find.text('مفيش حاجة مطلوبة'), findsOneWidget);
     expect(find.textContaining('اتسجل'), findsOneWidget);
 
-    await tester.tap(find.text('رجوع'));
+    await tester.tap(find.text('تراجع'));
     await settleDb(tester);
     expect(find.text('دوا فات'), findsOneWidget);
   });
