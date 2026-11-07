@@ -382,12 +382,7 @@ class _ChartPainter extends CustomPainter {
   static String _number(double v) =>
       v == v.roundToDouble() ? '${v.round()}' : v.toStringAsFixed(1);
 
-  void _label(
-    Canvas canvas,
-    String text,
-    Offset at, {
-    bool center = false,
-  }) {
+  void _label(Canvas canvas, String text, Offset at, {bool center = false}) {
     final painter = TextPainter(
       text: TextSpan(
         text: text,

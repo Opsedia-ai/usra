@@ -411,12 +411,7 @@ class _LinePainter extends CustomPainter {
     }
   }
 
-  void _label(
-    Canvas canvas,
-    String text,
-    Offset at, {
-    bool center = false,
-  }) {
+  void _label(Canvas canvas, String text, Offset at, {bool center = false}) {
     final painter = TextPainter(
       text: TextSpan(
         text: text,

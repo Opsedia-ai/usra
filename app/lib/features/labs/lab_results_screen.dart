@@ -354,12 +354,7 @@ class LabChartPainter extends CustomPainter {
     return (10 * magnitude).toDouble();
   }
 
-  void _label(
-    Canvas canvas,
-    String text,
-    Offset at, {
-    bool end = false,
-  }) {
+  void _label(Canvas canvas, String text, Offset at, {bool end = false}) {
     final painter = TextPainter(
       text: TextSpan(
         text: text,
