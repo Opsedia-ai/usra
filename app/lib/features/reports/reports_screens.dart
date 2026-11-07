@@ -11,8 +11,8 @@ import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import '../follow_ups/follow_ups_providers.dart' show todayProvider;
-import '../labs/lab_report.dart' show LabFields, LabReport;
-import '../medicines/medicine_text.dart' show medicineEnded, medicineTitle;
+import '../labs/lab_report.dart' show LabReport;
+import '../medicines/medicine_text.dart' show medicineTitle;
 import '../medicines/medicines_providers.dart' show medicinesProvider;
 import 'doctor_summary.dart';
 import 'report_share.dart';
@@ -218,10 +218,10 @@ class _SummaryPreview extends ConsumerWidget {
             );
             final medicines = [
               for (final m in all ?? const <Medicine>[])
-                if (m.active && !medicineEnded(m, today)) medicineTitle(m),
+                if (summaryCountsMedicine(m, today)) medicineTitle(m),
             ];
             final lab = events
-                ?.where((e) => e.type == LabFields.type)
+                ?.where((e) => summaryCountsLab(e, today))
                 .firstOrNull;
             final labName = lab == null ? null : LabReport.of(lab).lab;
             final labDate = lab == null

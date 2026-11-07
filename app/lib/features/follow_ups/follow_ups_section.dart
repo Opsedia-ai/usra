@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
+import '../../core/follow_ups/follow_up.dart' show dayOf;
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/family_screen.dart' show profilesProvider;
@@ -28,17 +29,19 @@ class HomeFollowUps extends ConsumerWidget {
     if (items == null) return const SizedBox.shrink();
     final people = ref.watch(profilesProvider).value ?? const [];
     if (people.isEmpty) return const SizedBox.shrink();
+    // Home has its own vaccine card with the countdown.
+    final shown = items
+        .where((i) => !i.followUp.ruleId.startsWith(homeVaccineRulePrefix))
+        .take(homeFollowUpCount)
+        .toList();
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: _Section(
         key: const ValueKey('home-follow-ups'),
-        // Home has its own vaccine card with the countdown.
-        items: items
-            .where((i) => !i.followUp.ruleId.startsWith(homeVaccineRulePrefix))
-            .take(homeFollowUpCount)
-            .toList(),
+        items: shown,
         showNames: true,
-        allLink: items.length > homeFollowUpCount,
+        // Not when Home says there's nothing: its vaccine card covers those.
+        allLink: shown.isNotEmpty && items.length > shown.length,
       ),
     );
   }
@@ -57,7 +60,8 @@ class FollowUpsScreen extends ConsumerWidget {
     final text = Theme.of(context).textTheme;
     final today = ref.watch(todayProvider);
     final items = ref.watch(familyFollowUpsProvider);
-    final soon = today.add(const Duration(days: weekDays));
+    // Due dates are calendar days at UTC midnight.
+    final soon = dayOf(today).add(const Duration(days: weekDays));
     return Scaffold(
       appBar: AppBar(title: Text(l.followUpsTitle)),
       body: switch (items) {

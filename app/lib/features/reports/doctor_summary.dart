@@ -102,6 +102,18 @@ class SummaryInputs {
 /// latest ones), to keep it short.
 const summaryVisits = 5;
 const summaryLabReports = 3;
+
+/// A medicine the summary lists as current: the page's preview says the same.
+bool summaryCountsMedicine(Medicine m, DateTime today) =>
+    m.active &&
+    !medicineEnded(m, today) &&
+    !today.isBefore(storedDay(m.startOn));
+
+/// A lab report the summary lists: past, with results.
+bool summaryCountsLab(MedicalEvent e, DateTime today) =>
+    e.type == 'lab' &&
+    !_after(e.occurredAt, today) &&
+    LabReport.of(e).tests.isNotEmpty;
 const summaryVaccines = 6;
 
 /// The doctor summary for [inputs] in [l]'s language, with only the
@@ -155,8 +167,7 @@ Report doctorSummary({
   ReportSection medicines() {
     final rows = <List<String>>[];
     for (final (m, schedule) in inputs.medicines) {
-      if (!m.active || medicineEnded(m, today)) continue;
-      if (today.isBefore(storedDay(m.startOn))) continue;
+      if (!summaryCountsMedicine(m, today)) continue;
       final how = <String>[
         if (schedule == null)
           l.reportAsNeeded
@@ -213,9 +224,8 @@ Report doctorSummary({
     var reports = 0;
     for (final e in inputs.events) {
       if (reports == summaryLabReports) break;
-      if (e.type != 'lab' || _after(e.occurredAt, today)) continue;
+      if (!summaryCountsLab(e, today)) continue;
       final tests = LabReport.of(e).tests;
-      if (tests.isEmpty) continue;
       reports++;
       for (final t in tests) {
         final flag = switch (t.flag) {
