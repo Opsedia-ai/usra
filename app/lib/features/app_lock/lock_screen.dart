@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/preferences.dart';
 import '../../core/screen_privacy.dart';
 import '../../core/security/app_lock.dart';
@@ -404,6 +405,7 @@ class LockedEmergencyPicker extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: context.usra.urgent,
         foregroundColor: context.usra.onUrgent,
+        titleTextStyle: UsraType.title.copyWith(color: context.usra.onUrgent),
         title: Text(l.lockEmergencyPick),
       ),
       body: profiles == null

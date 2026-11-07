@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../l10n/app_localizations.dart';
 import '../doctors/call_buttons.dart';
 import 'family_screen.dart';
@@ -40,6 +41,7 @@ class EmergencyCardScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: context.usra.urgent,
         foregroundColor: context.usra.onUrgent,
+        titleTextStyle: UsraType.title.copyWith(color: context.usra.onUrgent),
         title: Text(l.emergencyTitle),
       ),
       body: profile.when(

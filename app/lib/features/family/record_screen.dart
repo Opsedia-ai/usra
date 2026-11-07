@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../core/records/record_type.dart';
@@ -377,6 +378,9 @@ class _PhotoViewerState extends ConsumerState<_PhotoViewer> {
       appBar: AppBar(
         backgroundColor: UsraFixedColors.photoBackdrop,
         foregroundColor: UsraFixedColors.onPhotoBackdrop,
+        titleTextStyle: UsraType.title.copyWith(
+          color: UsraFixedColors.onPhotoBackdrop,
+        ),
         title: photos.isEmpty
             ? null
             : Text(l.photoPosition(index + 1, photos.length)),

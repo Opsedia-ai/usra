@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:usra/core/design/tokens.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/design/dr_usra.dart';
@@ -279,6 +280,18 @@ void main() {
     expect(find.text('مفيش حاجة متسجلة'), findsOneWidget);
     expect(find.byKey(const ValueKey('emergency-ambulance')), findsOneWidget);
     expect(find.byKey(const ValueKey('emergency-complete')), findsNothing);
+    // The theme's title colour must not override the red bar's own.
+    final title = find.descendant(
+      of: find.byType(AppBar),
+      matching: find.byType(RichText),
+    );
+    final titleColor = tester
+        .widgetList<RichText>(title)
+        .last
+        .text
+        .style
+        ?.color;
+    expect(titleColor, UsraColors.light.onUrgent);
   });
 
   testWidgets('every Dr. Usra pose paints without errors', (tester) async {
