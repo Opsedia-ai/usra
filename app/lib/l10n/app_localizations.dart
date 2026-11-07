@@ -7704,6 +7704,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All follow-ups'**
   String get followUpsAll;
+
+  /// No description provided for @insuranceWatermark.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {date}'**
+  String insuranceWatermark(String name, String date);
+
+  /// No description provided for @insuranceShareWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Before you send it: the card holds personal details, and whoever gets it could pass it on. We\'ll write the date and the insurer\'s name, if saved, across the picture.'**
+  String get insuranceShareWarning;
+
+  /// No description provided for @insuranceShareWarningNoPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Before you send it: the member number is personal, and whoever gets it could pass it on.'**
+  String get insuranceShareWarningNoPhoto;
 }
 
 class _AppLocalizationsDelegate

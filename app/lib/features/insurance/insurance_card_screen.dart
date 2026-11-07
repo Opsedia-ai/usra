@@ -1,15 +1,20 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../core/security/sensitive_clipboard.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider;
 import 'insurance_info.dart';
+import 'watermark.dart';
 import 'insurance_providers.dart';
 
 /// One insurance card: its photos, number and expiry, ready to send.
@@ -204,7 +209,20 @@ class _Details extends StatelessWidget {
                       color: context.usra.inkMuted,
                     ),
                   ),
-                  SelectableText(value, style: text.titleLarge),
+                  // Numbers read left to right even in an Arabic sentence.
+                  SelectableText(
+                    value,
+                    key: label == l.insuranceMemberNumber
+                        ? const ValueKey('insurance-number')
+                        : null,
+                    style: text.titleLarge,
+                    textDirection: label == l.insuranceMemberNumber
+                        ? TextDirection.ltr
+                        : null,
+                    textAlign: label == l.insuranceMemberNumber
+                        ? TextAlign.start
+                        : null,
+                  ),
                 ],
               ),
             ),
@@ -213,47 +231,158 @@ class _Details extends StatelessWidget {
   }
 }
 
-class _ShareButton extends ConsumerWidget {
+class _ShareButton extends ConsumerStatefulWidget {
   const _ShareButton({required this.profileId, required this.card});
 
   final String profileId;
   final InsuranceCard card;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ShareButton> createState() => _ShareButtonState();
+}
+
+class _ShareButtonState extends ConsumerState<_ShareButton> {
+  /// Marking a photo takes a moment; a second share would delete the first's
+  /// files from under it.
+  var _busy = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final person = ref.watch(profileProvider(profileId)).value?.displayName;
+    final person = ref
+        .watch(profileProvider(widget.profileId))
+        .value
+        ?.displayName;
     return FilledButton.icon(
       key: const ValueKey('insurance-share'),
-      style: FilledButton.styleFrom(
-        minimumSize: const Size(0, 56),
-        backgroundColor: Severity.good.foregroundOf(context),
-      ),
+      style: FilledButton.styleFrom(minimumSize: const Size(0, 56)),
       // Wait for the name: the message is useless without it.
-      onPressed: person == null ? null : () => _share(context, ref, person),
+      onPressed: person == null || _busy ? null : () => _share(person),
       icon: const Icon(Icons.share_outlined),
       label: Text(l.insuranceShare),
     );
   }
 
-  Future<void> _share(
-    BuildContext context,
-    WidgetRef ref,
-    String person,
-  ) async {
+  Future<void> _share(String person) async {
+    final card = widget.card;
+    final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final failed = AppLocalizations.of(context).shareFailed;
+    final failed = l.shareFailed;
     final box = context.findRenderObject() as RenderBox?;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final date = DateFormat.yMMMd(locale).format(DateTime.now());
+    // No insurer: only the date. The card's own name may be a private
+    // nickname ("Work 2") and shouldn't go on a picture sent to someone.
+    final mark = card.insurer == null
+        ? date
+        : l.insuranceWatermark(card.insurer!, date);
+    final store = ref.read(cardPhotoStoreProvider);
+    final watermark = ref.read(photoWatermarkerProvider);
+    final photos = [?card.frontPhoto, ?card.backPhoto];
+    setState(() => _busy = true);
     try {
+      final go = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        showDragHandle: true,
+        builder: (_) => _ShareSheet(
+          hasPhoto: photos.isNotEmpty,
+          // Exactly what will be sent, marked the same way.
+          previews: [
+            for (final path in photos)
+              store.read(path).then((bytes) => watermark(bytes, mark)),
+          ],
+        ),
+      );
+      if (go != true || !mounted) return;
       await shareStoredPhotos(
         ref,
-        ref.read(cardPhotoStoreProvider),
-        [?card.frontPhoto, ?card.backPhoto],
+        store,
+        photos,
         text: insuranceShareText(person, card),
         origin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+        alreadyWarned: true,
+        transform: (bytes) => watermark(bytes, mark),
       );
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(failed)));
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
+  }
+}
+
+/// Says what sending a card means, and shows it with the mark it will carry.
+class _ShareSheet extends StatelessWidget {
+  const _ShareSheet({required this.hasPhoto, required this.previews});
+
+  final bool hasPhoto;
+  final List<Future<Uint8List>> previews;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return SafeArea(
+      child: FutureBuilder<List<Uint8List>>(
+        future: Future.wait(previews),
+        builder: (context, snapshot) {
+          // A photo that can't be marked isn't sent.
+          final failed = snapshot.hasError;
+          final ready = snapshot.hasData;
+          return SingleChildScrollView(
+            key: const ValueKey('insurance-share-sheet'),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  hasPhoto
+                      ? l.insuranceShareWarning
+                      : l.insuranceShareWarningNoPhoto,
+                  key: const ValueKey('insurance-share-warning'),
+                  style: UsraType.body.copyWith(color: context.usra.ink),
+                ),
+                const SizedBox(height: UsraSpacing.s3),
+                if (failed)
+                  Text(
+                    l.shareFailed,
+                    key: const ValueKey('insurance-share-unmarkable'),
+                    style: UsraType.body.copyWith(color: context.usra.ink),
+                  )
+                else if (!ready)
+                  const Center(child: CircularProgressIndicator())
+                else
+                  for (final bytes in snapshot.data!) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.memory(
+                        bytes,
+                        key: const ValueKey('insurance-watermark-preview'),
+                        height: 200,
+                        fit: BoxFit.contain,
+                        semanticLabel: l.insuranceCard,
+                        errorBuilder: (_, _, _) => const SizedBox(height: 48),
+                      ),
+                    ),
+                    const SizedBox(height: UsraSpacing.s2),
+                  ],
+                const SizedBox(height: UsraSpacing.s2),
+                FilledButton(
+                  key: const ValueKey('insurance-share-go'),
+                  onPressed: ready ? () => Navigator.pop(context, true) : null,
+                  child: Text(l.shareWarningGo),
+                ),
+                const SizedBox(height: UsraSpacing.s2),
+                OutlinedButton(
+                  key: const ValueKey('insurance-share-cancel'),
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(l.shareWarningCancel),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 }

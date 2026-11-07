@@ -4886,4 +4886,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get followUpsAll => 'كل المتابعات';
+
+  @override
+  String insuranceWatermark(String name, String date) {
+    return '$name · $date';
+  }
+
+  @override
+  String get insuranceShareWarning =>
+      'قبل ما تبعت: الكارت فيه بيانات شخصية، واللي هيستلمه ممكن يبعته لغيره. هنكتب على الصورة التاريخ واسم شركة التأمين لو متسجل.';
+
+  @override
+  String get insuranceShareWarningNoPhoto =>
+      'قبل ما تبعت: رقم العضوية بيانات شخصية، واللي هيستلمه ممكن يبعته لغيره.';
 }

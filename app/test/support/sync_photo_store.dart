@@ -66,15 +66,22 @@ class SyncSharedPhotoCache extends SharedPhotoCache {
       Directory(p.join(temporary.path, SharedPhotoCache.folderName));
 
   @override
-  Future<List<XFile>> copyOut(PhotoStore store, Iterable<String> paths) async {
+  Future<List<XFile>> copyOut(
+    PhotoStore store,
+    Iterable<String> paths, {
+    Future<Uint8List> Function(Uint8List bytes)? transform,
+  }) async {
     dir.createSync(recursive: true);
     return [
       for (final path in paths)
         if (store.fileOf(path).existsSync())
           XFile(
-            (File(
-              p.join(dir.path, p.basename(path)),
-            )..writeAsBytesSync(await store.read(path))).path,
+            (File(p.join(dir.path, p.basename(path)))..writeAsBytesSync(
+                  transform == null
+                      ? await store.read(path)
+                      : await transform(await store.read(path)),
+                ))
+                .path,
             mimeType: photoMimeOf(path),
           ),
     ];

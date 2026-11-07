@@ -1386,5 +1386,8 @@
   "reportSummaryNotOpinion": "ده ملخص من اللي العيلة سجلته، مش رأي طبي.",
   "followUpsThisWeek": "النهارده والأسبوع ده",
   "followUpsLater": "بعد كده",
-  "followUpsAll": "كل المتابعات"
+  "followUpsAll": "كل المتابعات",
+  "insuranceWatermark": "{name} · {date}",
+  "insuranceShareWarning": "قبل ما تبعت: الكارت فيه بيانات شخصية، واللي هيستلمه ممكن يبعته لغيره. هنكتب على الصورة التاريخ واسم شركة التأمين لو متسجل.",
+  "insuranceShareWarningNoPhoto": "قبل ما تبعت: رقم العضوية بيانات شخصية، واللي هيستلمه ممكن يبعته لغيره."
 }
