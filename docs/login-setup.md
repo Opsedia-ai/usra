@@ -154,7 +154,7 @@ Today's store listings, policy and legal text describe an app with no accounts. 
 - [ ] Does tapping a sign-in button count as "explicit written" consent? The app currently treats signing in as agreeing, with a notice and a link on the account screen.
 - [ ] Is Frankfurt the right region for the Supabase project?
 
-No real family signs in until these are answered. Take separate advice before opening accounts in Saudi Arabia or Jordan (Jordan research is under way separately). UAE is off the list for launch.
+No real family signs in until these are answered. Take separate advice before opening accounts in Saudi Arabia or Jordan. UAE is off the list for launch.
 
 **Privacy policy** (`docs/legal/privacy-policy.en.md` and `.ar.md`):
 
