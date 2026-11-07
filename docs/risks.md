@@ -58,7 +58,7 @@ Last updated: 7 November 2026. Update this when a risk changes, closes or appear
 
 | ID | Risk | What could happen | Level | Where it stands | Owner |
 |---|---|---|---|---|---|
-| M1 | Medical wording changes after review, or a specialty is missed | Text added after the review goes out unchecked. The PRD asks for a paediatrician and an obstetrician | Medium | On 7 November the founder said the doctor accepted the app's full wording. Their name, specialty and review date still need recording. New or changed medical text, including the 30 screens drawn that day, goes back to them | Founder |
+| M1 | Medical wording changes after review, or a specialty is missed | Text added after the review goes out unchecked. The PRD asks for a paediatrician and an obstetrician | Medium | On 7 November the founder said the doctor accepted the app's full wording. Their name, specialty and review date still need recording. Text changed afterwards is listed in `docs/medical-review-changes.md` and goes back to them | Founder |
 | M2 | Same-ingredient line and suggested hours between doses | Seen as dose advice, or wrong | High | Family types and accepts the hours. Needs review | Founder, doctor |
 | M3 | False reassurance | A status such as "fine" could calm a family when someone is sick | High | Home and Fever rebuilt; doctor sets the wording | Doctor |
 | M4 | Wrong person's dose or record | A dose is marked or a record saved under the wrong person | High | Person is shown in forms. Discreet Taken shows only when no other dose is due within an hour | Build |
@@ -68,6 +68,7 @@ Last updated: 7 November 2026. Update this when a risk changes, closes or appear
 | M8 | Emergency card out of reach | A responder can't reach Usra's own screen on a locked phone | Medium | People should also use the phone's Medical ID | Build |
 | M9 | Ambulance number and schedules outside Egypt | A wrong number or schedule in an emergency | High | Saudi Arabia and Jordan disabled until wired | Build |
 | M10 | Moving a prescribed medicine | It leaves the prescription's list, and moving back doesn't restore that link or sick-day links | Medium | In PR 43. Moving a whole prescription may be better; not decided | Founder |
+| M11 | Pregnancy calling | The drawing's call-my-doctor button isn't built, because a pregnancy has no link to a doctor. The ambulance button stays | Medium | Question for the doctor | Doctor, Build |
 
 ## Not yet tested
 
@@ -99,6 +100,8 @@ Last updated: 7 November 2026. Update this when a risk changes, closes or appear
 | P11 | Simple Mode lock offer | It shows only after a backup, and Simple Mode never prompts for one, so most of these users won't see it | Medium | Known | Founder |
 | P12 | Relationship wording after a restore | Words like "بنتك" depend on who uses the phone, so another relative may see the wrong one | Low | Known | Founder |
 | P13 | Lock screen emergency number | People already chosen for the lock screen show a number added later without being asked again. The form says so | Medium | Lawyer to check, since it's a third person's number | Founder, lawyer |
+| P14 | Insurance share mark is new and untested | A mark that's hard to read gives little protection, and Arabic drawn on an image hasn't been seen on a real phone. It holds the insurer and date, not who the card is for | Medium | Built in PR 55; needs a real-phone check and the lawyer's view | Build, lawyer |
+| P15 | Drawings show things the app doesn't | Hospitals, typed follow-ups, spending export and comparison, Simple Mode box photo, member number and more have nothing behind them | Medium | Listed; to build or remove from the drawings | Founder, Build |
 
 ## Cost and running the server
 
