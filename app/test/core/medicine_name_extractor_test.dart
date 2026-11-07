@@ -200,6 +200,12 @@ void main() {
       expect(s.strengthSure, isFalse);
     });
 
+    test('a strength read differently from how it is printed is unsure', () {
+      final s = first(['Panadol 1.250 mg']);
+      expect(s.strength, '1250mg');
+      expect(s.strengthSure, isFalse);
+    });
+
     test('a strength with characters corrected is unsure', () {
       final s = first(['Panadol 5OO mg']);
       expect(s.strength, '500mg');

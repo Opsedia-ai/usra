@@ -18,7 +18,7 @@ import 'dose_schedule.dart';
 import 'medicine_text.dart';
 import 'medicines_providers.dart';
 import 'reminder_access_card.dart';
-import 'reminders.dart' show snoozeDuration, snoozeIdFor;
+import 'reminders.dart' show snoozeIdFor;
 
 /// How long before its time a dose already counts as "now", so nobody is told
 /// they'd be taking it early when it's only minutes away.
@@ -63,7 +63,7 @@ class TodayScreen extends ConsumerStatefulWidget {
 class _TodayScreenState extends ConsumerState<TodayScreen> {
   late final AppLifecycleListener _lifecycle;
   late final Timer _minute;
-  late DateTime _day = _today();
+  late DateTime _day;
 
   /// The person shown; null is everyone.
   String? _person;
@@ -88,6 +88,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
   @override
   void initState() {
     super.initState();
+    _day = _today();
     // Back from the settings screens, or the next morning.
     _lifecycle = AppLifecycleListener(
       onResume: () {
@@ -374,8 +375,12 @@ class DoseCard extends ConsumerWidget {
         status,
         at: now,
       );
-      if (saved && status == DoseOutcome.snoozed) {
-        await _scheduleSnooze(container, r, now);
+      // Only a snooze can be refused: the dose was marked meanwhile, on a
+      // notification or the widget. That mark stands, so there's nothing to say
+      // and nothing to undo.
+      if (!saved) return;
+      if (status == DoseOutcome.snoozed) {
+        await _scheduleSnooze(container, snoozeRingsAt(dose, now));
       }
     } catch (_) {
       messenger
@@ -391,10 +396,34 @@ class DoseCard extends ConsumerWidget {
           action: SnackBarAction(
             key: ValueKey('dose-snack-undo-$_id'),
             label: l.doseUndo,
-            onPressed: () => db.clearDoseLog(r.medicine.id, dose.scheduledAt),
+            onPressed: () => unawaited(_undo(container)),
           ),
         ),
       );
+  }
+
+  /// Back to how the dose stood before this mark: a dose that was snoozed goes
+  /// back to snoozed, with its reminder if that's still to come.
+  Future<void> _undo(ProviderContainer container) async {
+    final db = container.read(databaseProvider);
+    final r = dose.regimen;
+    final previous = dose.log;
+    try {
+      await db.clearDoseLog(r.medicine.id, dose.scheduledAt);
+      if (previous?.status != DoseOutcome.snoozed) return;
+      await db.logDose(
+        r.medicine.id,
+        dose.scheduledAt,
+        DoseOutcome.snoozed,
+        at: previous!.at,
+      );
+      final rings = doseSnoozedUntil(dose);
+      if (rings.isAfter(container.read(clockProvider)())) {
+        await _scheduleSnooze(container, rings);
+      }
+    } catch (_) {
+      // The card still shows what's recorded, with its own Undo.
+    }
   }
 
   /// A snoozed dose gets no planned reminder (see `planReminders`), so it
@@ -403,10 +432,9 @@ class DoseCard extends ConsumerWidget {
   /// the dose keeps its planned reminder.
   Future<void> _scheduleSnooze(
     ProviderContainer container,
-    Regimen r,
-    DateTime now,
+    DateTime rings,
   ) async {
-    final rings = (now.isAfter(dose.at) ? now : dose.at).add(snoozeDuration);
+    final r = dose.regimen;
     try {
       await container
           .read(reminderSchedulerProvider)

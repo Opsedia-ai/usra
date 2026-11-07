@@ -37,10 +37,12 @@ const doseMissedAfter = Duration(hours: 1);
 
 /// When a snoozed [dose]'s reminder rings: ten minutes after it was snoozed,
 /// or after its time if it was snoozed a little before that.
-DateTime doseSnoozedUntil(PlannedDose dose) {
-  final snoozedAt = dose.log!.at.toLocal();
-  return (snoozedAt.isAfter(dose.at) ? snoozedAt : dose.at).add(snoozeDuration);
-}
+DateTime doseSnoozedUntil(PlannedDose dose) =>
+    snoozeRingsAt(dose, dose.log!.at.toLocal());
+
+/// When a snooze of [dose] made at [snoozedAt] rings.
+DateTime snoozeRingsAt(PlannedDose dose, DateTime snoozedAt) =>
+    (snoozedAt.isAfter(dose.at) ? snoozedAt : dose.at).add(snoozeDuration);
 
 /// Not marked, and past due by more than [doseMissedAfter]. A snooze only puts
 /// that off: the hour counts from when its reminder rang.

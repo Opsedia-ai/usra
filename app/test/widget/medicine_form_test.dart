@@ -213,6 +213,25 @@ void main() {
     expect(find.text('الدوا ده لمين؟'), findsNothing);
   });
 
+  testWidgets('Save only promises a reminder that will ring', (tester) async {
+    phone(tester);
+    final ids = await family(tester);
+    await go(tester, '/family/${ids.grandpa}/medicines/new');
+    await tapKey(tester, 'medicine-frequency-once');
+    expect(find.text('احفظ لجدو وفكّرني'), findsOneWidget);
+
+    // A course already over.
+    await tapKey(tester, 'medicine-start');
+    Navigator.of(tester.element(find.byType(DatePickerDialog)))
+        .pop(DateTime(2026, 10, 1));
+    await tester.pumpAndSettle();
+    await tapKey(tester, 'medicine-duration-until');
+    Navigator.of(tester.element(find.byType(DatePickerDialog)))
+        .pop(DateTime(2026, 10, 5));
+    await tester.pumpAndSettle();
+    expect(find.text('احفظ لجدو'), findsOneWidget);
+  });
+
   testWidgets('with one person there is nothing to change', (tester) async {
     phone(tester);
     final only = (await tester.runAsync(() => db.addProfile('جدو')))!;
@@ -442,6 +461,43 @@ void main() {
       // Correcting a value isn't the same as confirming the reading.
       await tapKey(tester, 'medicine-save');
       expect(await medicinesOf(tester, ids.grandpa), isEmpty);
+    });
+
+    testWidgets('Save scrolls back to the check it is waiting for', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 2;
+      tester.view.physicalSize = const Size(780, 1688);
+      addTearDown(tester.view.reset);
+      final ids = await family(tester);
+      await go(tester, '/family/${ids.grandpa}/medicines/new');
+      await scan(tester, ['Panadol 500mg']);
+      await tapKey(tester, 'medicine-more');
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
+      await tester.pumpAndSettle();
+      await tester.tap(key('medicine-save'));
+      await tester.pumpAndSettle();
+      expect(key('medicine-scan-confirm-needed').hitTestable(), findsOneWidget);
+    });
+
+    testWidgets('a reading kept after a failed photo stays unsure', (
+      tester,
+    ) async {
+      phone(tester);
+      final ids = await family(tester);
+      await go(tester, '/family/${ids.grandpa}/medicines/new');
+      ocr.result = ocrOf(['Panadol 500mg']);
+      await tapKey(tester, 'medicine-scan');
+      await tapKey(tester, 'scan-camera');
+      await settleDb(tester);
+      await tester.pumpAndSettle();
+      ocr.error = StateError('unreadable');
+      await tapKey(tester, 'scan-camera');
+      await settleDb(tester);
+      await tester.pumpAndSettle();
+      await tapKey(tester, 'scan-use');
+      expect(key('medicine-name-unsure'), findsOneWidget);
+      expect(key('medicine-strength-unsure'), findsOneWidget);
     });
 
     testWidgets('a strength it could not read asks for one', (tester) async {

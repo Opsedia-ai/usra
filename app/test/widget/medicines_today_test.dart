@@ -256,7 +256,7 @@ void main() {
     expect(find.textContaining('اتاخد الساعة'), findsOneWidget);
     expect(key('dose-taken-$missed'), findsNothing);
 
-    await tester.tap(find.text('تراجع').first);
+    await tester.tap(find.text('تراجع').last);
     await settleDb(tester);
     expect(await logOf(tester, ids.concor), isNull);
     await settleDb(tester);
@@ -293,7 +293,7 @@ void main() {
     expect(find.text('اتسجل إنه ماتاخدش: كونكور ٥ مجم لـجدو'), findsOneWidget);
     expect(find.textContaining('ماتاخدش الساعة'), findsOneWidget);
 
-    await tester.tap(find.text('تراجع').first);
+    await tester.tap(find.text('تراجع').last);
     await settleDb(tester);
     expect(await logOf(tester, ids.concor), isNull);
   });
@@ -332,7 +332,7 @@ void main() {
     expect(key('dose-taken-$due'), findsOneWidget);
     expect(find.text('هنفكّرك بعد ١٠ دقايق: جلوكوفاج لـجدو'), findsOneWidget);
 
-    await tester.tap(find.text('تراجع').first);
+    await tester.tap(find.text('تراجع').last);
     await settleDb(tester);
     expect(await logOf(tester, ids.gluco), isNull);
     await settleDb(tester);
@@ -386,7 +386,7 @@ void main() {
     expect(find.text('اتسجل بدري: شراب الحديد لـليلى'), findsOneWidget);
     expect(find.text('اتاخد بدري الساعة ٢:٠٠ م'), findsOneWidget);
 
-    await tester.tap(find.text('تراجع').first);
+    await tester.tap(find.text('تراجع').last);
     await settleDb(tester);
     expect(await logOf(tester, ids.iron), isNull);
     await settleDb(tester);
@@ -405,6 +405,63 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('اتسجل بدري: شراب الحديد لـليلى'), findsOneWidget);
     expect(find.text('اتسجل: كونكور ٥ مجم لـجدو'), findsNothing);
+  });
+
+  testWidgets('a snooze refused because the dose was marked says nothing', (
+    tester,
+  ) async {
+    phone(tester);
+    final ids = await seed(tester);
+    await open(tester);
+    final due = id(ids.gluco, two);
+    final button = tester.widget<OutlinedButton>(key('dose-snooze-$due'));
+    // Taken on the widget just as the snooze button is pressed.
+    await tester.runAsync(
+      () => db.logDose(ids.gluco, two.toUtc(), DoseOutcome.taken, at: now),
+    );
+    button.onPressed!();
+    await settleDb(tester);
+    await tester.pumpAndSettle();
+    expect((await logOf(tester, ids.gluco))!.status, DoseOutcome.taken);
+    expect(scheduler.snoozes, isEmpty);
+    expect(find.textContaining('هنفكّرك'), findsNothing);
+  });
+
+  testWidgets('undoing Taken on a snoozed dose puts the snooze back', (
+    tester,
+  ) async {
+    phone(tester);
+    final ids = await seed(tester);
+    await tester.runAsync(
+      () => db.logDose(
+        ids.gluco,
+        two.toUtc(),
+        DoseOutcome.snoozed,
+        at: now.subtract(const Duration(minutes: 2)),
+      ),
+    );
+    await open(tester);
+    final due = id(ids.gluco, two);
+    await tapKey(tester, 'dose-taken-$due');
+    expect((await logOf(tester, ids.gluco))!.status, DoseOutcome.taken);
+    await settleDb(tester);
+
+    await tester.tap(
+      find.descendant(of: find.byType(SnackBar), matching: find.text('تراجع')),
+    );
+    // Two writes and a reminder, each needing real time.
+    for (var i = 0; i < 4; i++) {
+      await settleDb(tester);
+    }
+    final log = (await logOf(tester, ids.gluco))!;
+    expect(log.status, DoseOutcome.snoozed);
+    expect(
+      log.at.isAtSameMomentAs(now.subtract(const Duration(minutes: 2))),
+      isTrue,
+    );
+    expect(scheduler.snoozes.single.at, DateTime(2026, 11, 3, 14, 10));
+    await settleDb(tester);
+    expect(key('dose-snoozed-$due'), findsOneWidget);
   });
 
   testWidgets('a course says which day it is, in the same digits as the time', (

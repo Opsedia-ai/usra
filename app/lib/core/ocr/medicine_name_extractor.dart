@@ -122,7 +122,15 @@ class MedicineNameExtractor {
         }
         return (
           strength: strengths[j]!,
-          sure: d == 0 && _fixDigits(lines[j].text) == lines[j].text,
+          // Same line, and printed just like this: a digit corrected or a
+          // separator reread ("1.250 mg" as 1250mg) leaves room for doubt.
+          sure:
+              d == 0 &&
+              _fixDigits(lines[j].text) == lines[j].text &&
+              lines[j].text
+                  .replaceAll(RegExp(r'\s+'), '')
+                  .toLowerCase()
+                  .contains(strengths[j]!.toLowerCase()),
         );
       }
       return null;
