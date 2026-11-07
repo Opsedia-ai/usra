@@ -64,9 +64,7 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('العيلة'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('ضيف شخص'));
+    await tester.tap(find.byKey(const ValueKey('home-add-first')));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byKey(const ValueKey('profile-name')), 'فاطمة');
@@ -117,7 +115,9 @@ void main() {
     await tester.pumpAndSettle();
 
     // Add the doctor.
-    await tester.tap(find.text('الدكاترة'));
+    await tester.tap(find.text('المزيد').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('more-doctors')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('doctor-add')));
     await tester.pumpAndSettle();
@@ -208,7 +208,9 @@ void main() {
     String total() =>
         tester.widget<Text>(find.byKey(const ValueKey('spending-total'))).data!;
 
-    await tester.tap(find.text('الفلوس'));
+    await tester.tap(find.text('المزيد').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('more-money')));
     await tester.pumpAndSettle();
     expect(total(), contains('550.50'));
     expect(find.byKey(const ValueKey('spending-by-type')), findsOneWidget);
@@ -269,7 +271,7 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(ValueKey('home-emergency-$id')));
+    await tester.tap(find.byKey(const ValueKey('home-emergency')));
     await tester.pumpAndSettle();
 
     expect(find.text('بطاقة الطوارئ'), findsOneWidget);

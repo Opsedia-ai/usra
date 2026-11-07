@@ -29,6 +29,7 @@ class FamilyModule extends FeatureModule {
       label: (c) => AppLocalizations.of(c).navFamily,
       order: 10,
       simple: true,
+      simpleOnly: true,
     ),
   ];
 
