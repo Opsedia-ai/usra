@@ -78,9 +78,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
-  String get settingsPrivacy => 'Your data stays on this phone, encrypted.';
-
-  @override
   String get recoveryNotice =>
       'We couldn\'t open your earlier records on this phone, so we kept them aside safely and started fresh. You can restore them from your backup in More.';
 
@@ -89,7 +86,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Usra is not a medical device. Always ask your doctor before medical decisions.';
 
   @override
-  String get aboutTitle => 'About & privacy';
+  String get aboutTitle => 'Privacy and terms';
 
   @override
   String get aboutHint => 'How your data is kept, and the app version';
@@ -119,7 +116,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutPrivacyReminders =>
-      'Reminders are set on this phone. People\'s names and medicine names can show on the lock screen (the name as you typed it). The home-screen widget has no names, only times and how many doses.';
+      'Reminders are set on this phone. From the start they show general text with no names. If \"Discreet notifications\" is turned off, people\'s names and medicine names can show on the lock screen. The home-screen widget has no names, only times and how many doses.';
 
   @override
   String get aboutPrivacyDelete =>
@@ -1680,10 +1677,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backupTitle => 'Backup';
 
   @override
-  String get settingsBackupHint =>
-      'Keep a copy of the family\'s records off this phone';
-
-  @override
   String get backupIntro =>
       'A backup is one encrypted file with all the family\'s records and photos. Save it to Google Drive or Files, or send it to yourself on WhatsApp. To open it on a new phone you\'ll need your recovery key.';
 
@@ -2508,7 +2501,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountPrivacy =>
-      'Your family\'s health records stay on this phone. An account doesn\'t upload them: it only gets things ready for syncing between your family\'s phones and for AI features later, and you\'ll choose before anything is shared.';
+      'Your family\'s health records stay on this phone. An account doesn\'t upload them.';
 
   @override
   String get accountSignInIntro =>
@@ -4234,7 +4227,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordsAdd => 'New record';
 
   @override
-  String get moreFamily => 'Family';
+  String get moreFamily => 'All family';
+
+  @override
+  String get moreGroupFamily => 'Family';
+
+  @override
+  String get moreGroupSafety => 'Safety';
+
+  @override
+  String get moreGroupApp => 'App';
+
+  @override
+  String get accountKeepsQuestion => 'What does the account keep?';
+
+  @override
+  String get accountKeeps =>
+      'Your email, an account ID, language and device information, plus your name and profile photo link if you use Google. Records and photos are not on it.';
+
+  @override
+  String get accountDeleteNote =>
+      'Deleting the account doesn\'t delete the records on this phone. You can delete those from Privacy.';
+
+  @override
+  String get privacyEncryptedQ => 'What\'s encrypted?';
+
+  @override
+  String get privacyEncryptedA => 'The database, the photos and the backups.';
+
+  @override
+  String get privacyCanSeeQ => 'Can we see your records?';
+
+  @override
+  String get privacyCanSeeA => 'No. Records and photos stay on your phone.';
+
+  @override
+  String get privacyBackupQ => 'What\'s in a backup?';
+
+  @override
+  String get privacyBackupA =>
+      'Your records and photos, encrypted with your recovery key.';
+
+  @override
+  String get privacyPinQ => 'What if the PIN is forgotten?';
+
+  @override
+  String get privacyPinA =>
+      'Nothing gets past it, not even us. Usra\'s data on the phone is erased, then restored from a backup with the recovery key. With no backup, the records are lost.';
+
+  @override
+  String get privacyDeleteQ => 'What if the data is deleted?';
+
+  @override
+  String get privacyDeleteA =>
+      'It\'s erased from the phone. Backups saved in a folder or on WhatsApp stay until they\'re deleted there.';
+
+  @override
+  String get lockSetupBackupReady =>
+      'A PIN needs a backup first. There is one, so you can go ahead.';
 
   @override
   String get statusSickFemale => 'Unwell';
