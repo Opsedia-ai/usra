@@ -10,7 +10,11 @@ import 'record_type.dart';
 
 /// Words the form needs, passed in so the core stays free of feature strings.
 class RecordFormStrings {
+  /// The tooltip on an optional date's clear button.
+  final String clearDate;
+
   const RecordFormStrings({
+    this.clearDate = '',
     required this.date,
     required this.cost,
     required this.currency,
@@ -35,6 +39,23 @@ class RecordFormStrings {
 
   /// Label of the "pick from your doctors" menu on types with a doctor field.
   final String chooseDoctor;
+
+  RecordFormStrings copyWith({String? save, String? photos}) =>
+      RecordFormStrings(
+        clearDate: clearDate,
+        date: date,
+        cost: cost,
+        currency: currency,
+        save: save ?? this.save,
+        required: required,
+        invalid: invalid,
+        pickDate: pickDate,
+        chooseDoctor: chooseDoctor,
+        photos: photos ?? this.photos,
+        photoCamera: photoCamera,
+        photoGallery: photoGallery,
+        photoRemove: photoRemove,
+      );
 
   /// The "Add photos" row, shown when the form is given a photo picker.
   final String photos;
@@ -98,9 +119,37 @@ class RecordForm extends StatefulWidget {
     required this.strings,
     required this.onSubmit,
     this.initialDate,
+    this.initialData = const {},
+    this.initialCostText,
+    this.initialDoctorId,
     this.doctors = const [],
     this.pickPhotos,
+    this.header,
+    this.hiddenFields = const {},
+    this.presetData = const {},
+    this.photosFirst = false,
+    this.firstOccurredAt,
+    this.lastOccurredAt,
   });
+
+  /// The earliest and latest days the record's own date can be picked; a date
+  /// already saved outside them stays pickable. Null: the usual wide range.
+  final DateTime? firstOccurredAt;
+  final DateTime? lastOccurredAt;
+
+  /// Shown above everything else: whose record it is, a choice from a list.
+  final Widget? header;
+
+  /// Fields of the type this form doesn't ask for, because [presetData] answers
+  /// them. May change while the form is open: nothing typed elsewhere is lost.
+  final Set<String> hiddenFields;
+
+  /// Saved as they are, along with what was typed.
+  final Map<String, Object?> presetData;
+
+  /// Photos under the header rather than last, where the photo is the quick
+  /// way to fill the record in.
+  final bool photosFirst;
 
   final RecordTypeDefinition type;
   final RecordFormStrings strings;
@@ -108,6 +157,14 @@ class RecordForm extends StatefulWidget {
   /// Awaited; the Save button stays disabled until it completes.
   final Future<void> Function(RecordFormResult) onSubmit;
   final DateTime? initialDate;
+
+  /// What an existing record holds, when correcting it.
+  final Map<String, Object?> initialData;
+  final String? initialCostText;
+
+  /// Kept unless the doctor's name is changed, as the saved doctors may not
+  /// have loaded yet when the form opens.
+  final String? initialDoctorId;
 
   /// Saved doctors, offered when the type has a [RecordTypeDefinition.doctorField].
   final List<DoctorChoice> doctors;
@@ -134,6 +191,8 @@ class _RecordFormState extends State<RecordForm> {
   DoctorChoice? _doctor;
   final _photos = <String>[];
 
+  String? _doctorNameAtStart;
+
   /// The fee text last filled in from a doctor, so switching doctors can
   /// replace it without overwriting a cost the user typed.
   String? _autoFee;
@@ -142,14 +201,47 @@ class _RecordFormState extends State<RecordForm> {
   void initState() {
     super.initState();
     for (final f in widget.type.fields) {
-      if (_usesTextField(f.kind)) _text[f.key] = TextEditingController();
+      final initial = widget.initialData[f.key];
+      if (_usesTextField(f.kind)) {
+        _text[f.key] = TextEditingController(text: initial?.toString() ?? '');
+      } else if (switch (f.kind) {
+        FieldKind.choice => f.choices.contains(initial),
+        FieldKind.boolean => initial is bool,
+        _ => initial is String && DateTime.tryParse(initial) != null,
+      }) {
+        // Anything else, say from a newer version, doesn't reach the widgets.
+        _values[f.key] = initial;
+      }
     }
+    _cost.text = widget.initialCostText ?? '';
+    _doctorNameAtStart = _doctorText?.text.trim();
+    _seedDoctor();
     // Typing a different name unlinks the picked doctor.
     _doctorText?.addListener(() {
       if (_doctor != null && _doctorText!.text.trim() != _doctor!.name) {
         setState(() => _doctor = null);
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(RecordForm old) {
+    super.didUpdateWidget(old);
+    _seedDoctor();
+    // Lists are rebuilt: keep the menu's value one of the current items.
+    if (_doctor case final d?) {
+      _doctor = widget.doctors.where((c) => c.id == d.id).firstOrNull ?? d;
+    }
+  }
+
+  /// The saved doctor shows in the menu, once the saved doctors have loaded.
+  void _seedDoctor() {
+    if (_doctor != null || _doctorText?.text.trim() != _doctorNameAtStart) {
+      return;
+    }
+    _doctor = widget.doctors
+        .where((d) => d.id == widget.initialDoctorId)
+        .firstOrNull;
   }
 
   TextEditingController? get _doctorText {
@@ -208,7 +300,10 @@ class _RecordFormState extends State<RecordForm> {
 
   Future<void> _submit() async {
     if (_submitting) return;
-    final data = _collect();
+    final data = {
+      ..._collect()..removeWhere((k, _) => widget.hiddenFields.contains(k)),
+      ...widget.presetData,
+    };
     final problems = widget.type.validate(data).toSet();
 
     int? costMinor;
@@ -231,7 +326,12 @@ class _RecordFormState extends State<RecordForm> {
           occurredAt: _occurredAt,
           data: data,
           costMinor: costMinor,
-          doctorId: _doctor?.id,
+          doctorId:
+              _doctor?.id ??
+              (_doctorText == null ||
+                      _doctorText!.text.trim() == _doctorNameAtStart
+                  ? widget.initialDoctorId
+                  : null),
           photos: List.unmodifiable(_photos),
         ),
       );
@@ -319,7 +419,18 @@ class _RecordFormState extends State<RecordForm> {
             }
           },
           child: InputDecorator(
-            decoration: InputDecoration(labelText: label, errorText: error),
+            decoration: InputDecoration(
+              labelText: label,
+              errorText: error,
+              suffixIcon: value == null || f.required
+                  ? null
+                  : IconButton(
+                      key: ValueKey('field-${f.key}-clear'),
+                      tooltip: widget.strings.clearDate,
+                      icon: const Icon(Icons.close),
+                      onPressed: () => setState(() => _values.remove(f.key)),
+                    ),
+            ),
             child: Text(value ?? widget.strings.pickDate),
           ),
         );
@@ -329,13 +440,44 @@ class _RecordFormState extends State<RecordForm> {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toLanguageTag();
+    final photos = widget.pickPhotos == null
+        ? null
+        : _PhotosRow(
+            strings: widget.strings,
+            photos: _photos,
+            onAdd: _submitting ? null : _addPhotos,
+            onRemove: _submitting ? null : _removePhoto,
+          );
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
+        if (widget.header case final header?) ...[
+          header,
+          const SizedBox(height: 16),
+        ],
+        if (widget.photosFirst && photos != null) ...[
+          photos,
+          const SizedBox(height: 16),
+        ],
         InkWell(
           key: const ValueKey('field-occurredAt'),
           onTap: () async {
-            final picked = await _pickDate(_occurredAt);
+            final first = widget.firstOccurredAt;
+            final last = widget.lastOccurredAt;
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: _occurredAt,
+              firstDate: first == null
+                  ? DateTime(1900)
+                  : first.isBefore(_occurredAt)
+                  ? first
+                  : _occurredAt,
+              lastDate: last == null
+                  ? DateTime(DateTime.now().year + 5, 12, 31)
+                  : last.isAfter(_occurredAt)
+                  ? last
+                  : _occurredAt,
+            );
             if (picked != null) setState(() => _occurredAt = picked);
           },
           child: InputDecorator(
@@ -343,34 +485,35 @@ class _RecordFormState extends State<RecordForm> {
             child: Text(DateFormat.yMMMd(locale).format(_occurredAt)),
           ),
         ),
-        for (final f in widget.type.fields) ...[
-          const SizedBox(height: 16),
-          if (f.key == widget.type.doctorField &&
-              widget.doctors.isNotEmpty) ...[
-            DropdownButtonFormField<DoctorChoice>(
-              key: const ValueKey('field-doctorPick'),
-              initialValue: _doctor,
-              isExpanded: true,
-              decoration: InputDecoration(
-                labelText: widget.strings.chooseDoctor,
-                prefixIcon: const Icon(Icons.contacts_outlined),
-              ),
-              items: [
-                for (final d in widget.doctors)
-                  DropdownMenuItem(
-                    value: d,
-                    child: Text(
-                      [d.name, ?d.specialty].join(' · '),
-                      overflow: TextOverflow.ellipsis,
+        for (final f in widget.type.fields)
+          if (!widget.hiddenFields.contains(f.key)) ...[
+            const SizedBox(height: 16),
+            if (f.key == widget.type.doctorField &&
+                widget.doctors.isNotEmpty) ...[
+              DropdownButtonFormField<DoctorChoice>(
+                key: const ValueKey('field-doctorPick'),
+                initialValue: _doctor,
+                isExpanded: true,
+                decoration: InputDecoration(
+                  labelText: widget.strings.chooseDoctor,
+                  prefixIcon: const Icon(Icons.contacts_outlined),
+                ),
+                items: [
+                  for (final d in widget.doctors)
+                    DropdownMenuItem(
+                      value: d,
+                      child: Text(
+                        [d.name, ?d.specialty].join(' · '),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-              ],
-              onChanged: _pickDoctor,
-            ),
-            const SizedBox(height: 12),
+                ],
+                onChanged: _pickDoctor,
+              ),
+              const SizedBox(height: 12),
+            ],
+            _field(f),
           ],
-          _field(f),
-        ],
         if (widget.type.hasCost) ...[
           const SizedBox(height: 16),
           TextFormField(
@@ -384,14 +527,9 @@ class _RecordFormState extends State<RecordForm> {
             ),
           ),
         ],
-        if (widget.pickPhotos != null) ...[
+        if (!widget.photosFirst && photos != null) ...[
           const SizedBox(height: 20),
-          _PhotosRow(
-            strings: widget.strings,
-            photos: _photos,
-            onAdd: _submitting ? null : _addPhotos,
-            onRemove: _submitting ? null : _removePhoto,
-          ),
+          photos,
         ],
         const SizedBox(height: 28),
         FilledButton(

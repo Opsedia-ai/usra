@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:usra/core/design/bottom_bar.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/preferences.dart';
@@ -35,6 +36,7 @@ void main() {
   );
 
   Finder tabs() => find.byType(NavigationDestination);
+  Finder regularBar() => find.byType(UsraBottomBar);
 
   // Simple Home's More link is below the big buttons.
   Future<void> openMoreFromSimpleHome(WidgetTester tester) async {
@@ -58,42 +60,18 @@ void main() {
     }
     await tester.tap(find.byKey(const ValueKey('tutorial-next')));
     await tester.pumpAndSettle();
-    // The first-run tour ends with the offer to lock the app.
-    if (find.byKey(const ValueKey('app-lock-offer')).evaluate().isNotEmpty) {
-      final skip = find.byKey(const ValueKey('app-lock-offer-skip'));
-      await tester.ensureVisible(skip);
-      await tester.pumpAndSettle();
-      await tester.tap(skip);
-      await tester.pumpAndSettle();
-    }
   }
 
-  testWidgets('the tour shows on first run only, and reopens from More', (
-    tester,
-  ) async {
+  testWidgets('the regular tour no longer opens the app, and reopens from '
+      'More', (tester) async {
+    tester.view.physicalSize = const Size(1170, 6000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    store = MemoryKeyValueStore({PrefKeys.tutorialSeen: true});
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
-
-    expect(find.text('أهلاً، أنا دكتور أسرة'), findsOneWidget);
-    expect(find.text('١ من ٥'), findsNothing);
-    expect(find.text('1 من 5'), findsOneWidget);
-    expect(tabs(), findsNothing);
-
-    // A stray back press doesn't skip the first-run tour for good.
-    await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
-    expect(find.text('1 من 5'), findsOneWidget);
-    await finishTour(tester);
-
-    expect(find.text('أهلاً! أنا دكتور أسرة'), findsOneWidget);
-    expect(store.getBool(PrefKeys.tutorialSeen), isTrue);
-    expect(store.getBool(PrefKeys.appLockOffered), isTrue);
-
-    // Opening the app again goes straight Home.
-    await tester.pumpWidget(app());
-    await tester.pumpAndSettle();
-    expect(find.text('أهلاً! أنا دكتور أسرة'), findsOneWidget);
     expect(find.byKey(const ValueKey('tutorial-step')), findsNothing);
+    expect(find.text('أهلاً! أنا دكتور أسرة'), findsOneWidget);
 
     // Reopened from More, skipped, and back on More.
     await tester.tap(find.text('المزيد').last);
@@ -102,10 +80,17 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('settings-tutorial')));
     await tester.pumpAndSettle();
-    expect(find.text('1 من 5'), findsOneWidget);
+    expect(find.text('١ من ٥'), findsOneWidget);
+
+    // A stray back press steps out of a reopened tour, as before.
     await tester.tap(find.byKey(const ValueKey('tutorial-skip')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('settings-simple-mode')), findsOneWidget);
+
+    // Opening the app again still goes straight Home.
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('tutorial-step')), findsNothing);
   });
 
   testWidgets('Simple Mode: three tabs, bigger text, big Home buttons', (
@@ -114,20 +99,27 @@ void main() {
     store = MemoryKeyValueStore({PrefKeys.tutorialSeen: true});
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
-    expect(tabs(), findsNWidgets(6));
+    expect(regularBar(), findsOneWidget);
+    expect(tabs(), findsNothing);
     double scale() =>
-        MediaQuery.textScalerOf(tester.element(find.byType(NavigationBar)))
+        MediaQuery.textScalerOf(tester.element(find.byType(Scaffold).first))
             .scale(10) /
         10;
     expect(scale(), 1.0);
 
     await tester.tap(find.text('المزيد').last);
     await tester.pumpAndSettle();
+    await tester.dragUntilVisible(
+      find.byKey(const ValueKey('settings-simple-mode')),
+      find.byType(ListView).first,
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('settings-simple-mode')));
     await tester.pumpAndSettle();
 
     // The short elder tour comes first, once.
-    expect(find.text('1 من 3'), findsOneWidget);
+    expect(find.text('١ من ٣'), findsOneWidget);
     await finishTour(tester);
     expect(store.getBool(PrefKeys.elderTutorialSeen), isTrue);
     expect(store.getBool(PrefKeys.simpleMode), isTrue);
@@ -162,9 +154,19 @@ void main() {
 
     // Turning it off brings everything back.
     await openMoreFromSimpleHome(tester);
+    await tester.dragUntilVisible(
+      find.byKey(const ValueKey('settings-simple-mode')),
+      find.byType(ListView).first,
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('settings-simple-mode')));
     await tester.pumpAndSettle();
-    expect(tabs(), findsNWidgets(6));
+    // Going out asks first.
+    await tester.tap(find.byKey(const ValueKey('simple-exit-go')));
+    await tester.pumpAndSettle();
+    expect(regularBar(), findsOneWidget);
+    expect(tabs(), findsNothing);
     expect(scale(), 1.0);
   });
 
@@ -181,11 +183,11 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('العيلة'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('ضيف شخص'));
+    await tester.tap(find.byKey(const ValueKey('home-add-first')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('profile-name')), 'فاطمة');
+    await tester.tap(find.byKey(const ValueKey('profile-more')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('profile-simple-mode')));
     await tester.tap(find.byKey(const ValueKey('profile-save')));
     await tester.pumpAndSettle();
@@ -194,12 +196,19 @@ void main() {
 
     // Simple Mode on this phone: no spending link, a named greeting.
     final fatma = saved.single.id;
+    await tester.ensureVisible(find.byKey(const ValueKey('member-spending')));
     expect(find.byKey(const ValueKey('member-spending')), findsOneWidget);
-    await tester.tap(find.text('المزيد').last);
+    final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
+    router.go('/settings');
+    await tester.pumpAndSettle();
+    await tester.dragUntilVisible(
+      find.byKey(const ValueKey('settings-simple-mode')),
+      find.byType(ListView).first,
+      const Offset(0, -200),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('settings-simple-mode')));
     await tester.pumpAndSettle();
-    final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
     router.go('/family/$fatma');
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('member-spending')), findsNothing);
@@ -251,7 +260,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // The elder tour, every page.
-    expect(find.text('1 من 3'), findsOneWidget);
+    expect(find.text('١ من ٣'), findsOneWidget);
     expect(
       MediaQuery.textScalerOf(
         tester.element(find.byKey(const ValueKey('tutorial-step'))),
@@ -270,7 +279,7 @@ void main() {
     await tester.tap(find.text('الرئيسية').last);
     await tester.pumpAndSettle();
     await openMoreFromSimpleHome(tester);
-    expect(find.byKey(const ValueKey('settings-simple-mode')), findsOneWidget);
+    expect(find.byKey(const ValueKey('settings-backup')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

@@ -1,22 +1,39 @@
 /// The signed-in person, as far as the app needs to know.
 class AccountUser {
-  const AccountUser({required this.id, this.phone});
+  const AccountUser({
+    required this.id,
+    this.email,
+    this.confirmsDeleteWithApple = false,
+  });
 
   final String id;
 
-  /// E.164 with a leading `+`.
-  final String? phone;
+  /// From Google or Apple; with Apple it may be a private relay address.
+  /// Shown on the account screen, never logged.
+  final String? email;
+
+  /// Deleting this account opens Apple's sheet once more (see
+  /// [AuthGateway.deleteAccount]), so the app warns first.
+  final bool confirmsDeleteWithApple;
 
   @override
   bool operator ==(Object other) =>
-      other is AccountUser && other.id == id && other.phone == phone;
+      other is AccountUser &&
+      other.id == id &&
+      other.email == email &&
+      other.confirmsDeleteWithApple == confirmsDeleteWithApple;
 
   @override
-  int get hashCode => Object.hash(id, phone);
+  int get hashCode => Object.hash(id, email, confirmsDeleteWithApple);
 }
 
+/// The ways to sign in.
+enum SignInMethod { google, apple }
+
 enum AccountErrorKind {
-  invalidCode,
+  /// The person closed Google's or Apple's sheet. Not a failure: nothing is
+  /// shown for it.
+  cancelled,
   tooManyRequests,
   network,
 
@@ -30,7 +47,7 @@ enum AccountErrorKind {
 }
 
 /// What went wrong talking to the account backend, without its message
-/// (which may echo the phone number).
+/// (which may echo the email address).
 class AccountException implements Exception {
   const AccountException(this.kind);
 
@@ -52,13 +69,15 @@ abstract class AuthGateway {
   /// (expired, revoked).
   Stream<AccountUser?> get userChanges;
 
-  /// Texts a one-time code to [phone] (E.164).
-  Future<void> sendCode(String phone);
+  /// Opens Google's sheet and signs in with what it returns. Throws
+  /// [AccountErrorKind.cancelled] if the person closes it.
+  Future<AccountUser> signInWithGoogle();
 
-  Future<AccountUser> verifyCode(String phone, String code);
+  /// As [signInWithGoogle], with Apple's sheet.
+  Future<AccountUser> signInWithApple();
 
-  /// Saves the account's country (`EG`, `SA`, `AE`) and language (`ar`, `en`).
-  Future<void> updateAccount({required String country, required String locale});
+  /// Saves the account's language (`ar`, `en`).
+  Future<void> updateAccount({required String locale});
 
   /// Updates this phone's device row, or adds one if [deviceId] is null or
   /// gone. Returns the row's id.
@@ -69,8 +88,10 @@ abstract class AuthGateway {
     required List<int> publicKey,
   });
 
-  /// Removes this phone's device row, before signing out.
-  Future<void> deleteDevice(String deviceId);
+  /// Revokes this phone's device row, before signing out. Revoked is final:
+  /// the row stays on the server (it may be listed in a family's log), its
+  /// sessions end, and signing in again registers a new device.
+  Future<void> revokeDevice(String deviceId);
 
   /// Ends the session and wipes it from the phone, even offline.
   Future<void> signOut();
@@ -85,5 +106,10 @@ abstract class AuthGateway {
 
   /// Deletes the account and everything the server holds for it, and
   /// wipes the session from the phone. Succeeds if it was already deleted.
+  ///
+  /// With Sign in with Apple on an iPhone, first opens Apple's sheet: the
+  /// fresh code it gives lets the server revoke Apple's tokens, as Apple
+  /// requires. Closing the sheet throws [AccountErrorKind.cancelled] and
+  /// deletes nothing.
   Future<void> deleteAccount();
 }

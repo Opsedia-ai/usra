@@ -5,6 +5,8 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../../core/util/localized_digits.dart';
+
 /// A report to print or share as a PDF (vaccination record, doctor
 /// summary), already in its language. Built on the phone from the
 /// family's own records; nothing is sent anywhere to make it.
@@ -276,7 +278,10 @@ Future<Uint8List> renderReportPdf(
   Report report,
   ReportFonts fonts, {
   bool compress = true,
-}) => Isolate.run(() => drawReportPdf(report, fonts, compress: compress));
+}) => Isolate.run(() {
+  useArabicIndicNumbers();
+  return drawReportPdf(report, fonts, compress: compress);
+});
 
 /// [renderReportPdf] on the calling isolate.
 Future<Uint8List> drawReportPdf(

@@ -38,6 +38,9 @@ void main() {
   });
 
   testWidgets('switching to English changes the language', (tester) async {
+    tester.view.physicalSize = const Size(1170, 6000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
@@ -63,9 +66,7 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('العيلة'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('ضيف شخص'));
+    await tester.tap(find.byKey(const ValueKey('home-add-first')));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byKey(const ValueKey('profile-name')), 'فاطمة');
@@ -77,6 +78,8 @@ void main() {
     expect(find.text('فاطمة'), findsWidgets);
     expect(find.textContaining('مفيش سجلات لسه'), findsOneWidget);
 
+    await tester.ensureVisible(find.byKey(const ValueKey('add-record')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('add-record')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('type-visit')));
@@ -98,7 +101,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('زيارة دكتور · د. هاني'), findsOneWidget);
-    expect(find.textContaining('600'), findsOneWidget);
+    expect(find.textContaining('٦٠٠'), findsOneWidget);
   });
 
   testWidgets('a saved doctor fills the visit and lists it on their page', (
@@ -116,7 +119,9 @@ void main() {
     await tester.pumpAndSettle();
 
     // Add the doctor.
-    await tester.tap(find.text('الدكاترة'));
+    await tester.tap(find.text('المزيد').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('more-doctors')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('doctor-add')));
     await tester.pumpAndSettle();
@@ -207,9 +212,11 @@ void main() {
     String total() =>
         tester.widget<Text>(find.byKey(const ValueKey('spending-total'))).data!;
 
-    await tester.tap(find.text('الفلوس'));
+    await tester.tap(find.text('المزيد').last);
     await tester.pumpAndSettle();
-    expect(total(), contains('550.50'));
+    await tester.tap(find.byKey(const ValueKey('more-money')));
+    await tester.pumpAndSettle();
+    expect(total(), contains('٥٥٠٫٥٠'));
     expect(find.byKey(const ValueKey('spending-by-type')), findsOneWidget);
     expect(find.byKey(const ValueKey('spending-by-person')), findsOneWidget);
     expect(find.text('د. هاني'), findsOneWidget);
@@ -217,29 +224,31 @@ void main() {
     // Only Omar.
     await tester.tap(find.byKey(ValueKey('spending-person-$omar')));
     await tester.pumpAndSettle();
-    expect(total(), contains('450'));
+    expect(total(), contains('٤٥٠'));
     expect(find.byKey(const ValueKey('spending-by-person')), findsNothing);
 
     // The year holds this month's spending; the years around it are empty.
     await tester.tap(find.text('سنة'));
     await tester.pumpAndSettle();
-    expect(total(), contains('450'));
+    expect(total(), contains('٤٥٠'));
     await tester.tap(find.byKey(const ValueKey('spending-previous')));
     await tester.pumpAndSettle();
-    expect(total(), startsWith('0'));
+    expect(total(), startsWith('٠'));
     expect(find.textContaining('مفيش مصاريف'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('spending-next')));
     await tester.tap(find.byKey(const ValueKey('spending-next')));
     await tester.pumpAndSettle();
-    expect(total(), startsWith('0'));
+    expect(total(), startsWith('٠'));
 
     // A person's page links to their spending.
     final router = tester.element(find.byType(Scaffold).first);
     GoRouter.of(router).go('/family/$omar');
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('member-spending')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('member-spending')));
     await tester.pumpAndSettle();
-    expect(total(), contains('450'));
+    expect(total(), contains('٤٥٠'));
     expect(
       tester
           .widget<ChoiceChip>(find.byKey(ValueKey('spending-person-$omar')))
@@ -268,15 +277,16 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(ValueKey('home-emergency-$id')));
+    await tester.tap(find.byKey(const ValueKey('home-emergency')));
     await tester.pumpAndSettle();
 
-    expect(find.text('بطاقة الطوارئ'), findsOneWidget);
+    expect(find.text('كارت الطوارئ'), findsOneWidget);
     expect(find.text('B+'), findsOneWidget);
     expect(find.text('بنسلين'), findsOneWidget);
-    expect(find.text('مرارة · 2019'), findsOneWidget);
-    // Conditions were never entered, so the card says so instead of hiding it.
-    expect(find.text('مفيش حاجة متسجلة'), findsOneWidget);
+    expect(find.text('مرارة · ٢٠١٩'), findsOneWidget);
+    // Conditions and medicines were never entered, so the card says so instead
+    // of hiding them.
+    expect(find.text('مفيش حاجة متسجلة'), findsNWidgets(2));
     expect(find.byKey(const ValueKey('emergency-ambulance')), findsOneWidget);
     expect(find.byKey(const ValueKey('emergency-complete')), findsNothing);
   });

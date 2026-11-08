@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/providers.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 
 /// Adds a doctor, or edits one when [doctorId] is given.
 class DoctorFormScreen extends ConsumerStatefulWidget {
@@ -83,6 +84,11 @@ class _DoctorFormScreenState extends ConsumerState<DoctorFormScreen> {
     if (nameMissing || feeInvalid) return;
 
     setState(() => _saving = true);
+    if (widget.doctorId == null && !await ref.read(saveGateProvider).allow()) {
+      if (mounted) setState(() => _saving = false);
+      return;
+    }
+    if (!mounted) return;
     final String id;
     try {
       id = await ref

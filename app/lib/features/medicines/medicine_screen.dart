@@ -9,6 +9,7 @@ import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../doctors/doctors_providers.dart';
+import '../family/family_screen.dart';
 import 'dose_schedule.dart';
 import 'medicine_text.dart';
 import 'min_hours.dart';
@@ -44,6 +45,16 @@ class MedicineScreen extends ConsumerWidget {
               onPressed: () =>
                   context.go('/family/$profileId/medicines/$medicineId/edit'),
             ),
+            // Only with someone to move it to.
+            if ((ref.watch(profilesProvider).value?.length ?? 0) > 1)
+              IconButton(
+                key: const ValueKey('medicine-move'),
+                tooltip: l.medicineMoveAction,
+                icon: const Icon(Icons.swap_horiz),
+                onPressed: () => context.push(
+                  '/family/$profileId/medicines/$medicineId/move',
+                ),
+              ),
             IconButton(
               key: const ValueKey('medicine-delete'),
               tooltip: l.medicineDelete,
@@ -80,9 +91,6 @@ class MedicineScreen extends ConsumerWidget {
           ),
           FilledButton(
             key: const ValueKey('medicine-delete-confirm'),
-            style: FilledButton.styleFrom(
-              backgroundColor: UsraColors.emergency,
-            ),
             onPressed: () => Navigator.pop(dialog, true),
             child: Text(l.medicineDelete),
           ),
@@ -166,7 +174,7 @@ class _Details extends ConsumerWidget {
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
               m.active ? l.medicineEnded : l.medicineStopped,
-              style: text.titleMedium?.copyWith(color: UsraColors.textMuted),
+              style: text.titleMedium?.copyWith(color: context.usra.inkMuted),
             ),
           ),
         if (courseProgress(m, now) case final c? when m.active)
@@ -180,7 +188,7 @@ class _Details extends ConsumerWidget {
           ),
         if (next != null)
           Card(
-            color: UsraColors.primaryTint,
+            color: context.usra.primarySoft,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
@@ -300,15 +308,15 @@ class _HistoryRow extends StatelessWidget {
     final (icon, color, label) = switch (log.status) {
       DoseOutcome.taken => (
         Icons.check_circle,
-        Severity.good.foreground,
+        Severity.good.foregroundOf(context),
         l.doseTaken,
       ),
       DoseOutcome.snoozed => (
         Icons.snooze,
-        Severity.headsUp.foreground,
+        Severity.headsUp.foregroundOf(context),
         l.doseSnoozed,
       ),
-      _ => (Icons.remove_circle_outline, UsraColors.textMuted, l.doseSkipped),
+      _ => (Icons.remove_circle_outline, context.usra.inkMuted, l.doseSkipped),
     };
     return ListTile(
       contentPadding: EdgeInsets.zero,

@@ -6,6 +6,7 @@ import '../../l10n/app_localizations.dart';
 import 'medicine_form_screen.dart';
 import 'medicine_list_screen.dart';
 import 'medicine_screen.dart';
+import 'move_medicine_screen.dart';
 import 'prescription_form_screen.dart';
 import 'prescription_screen.dart';
 import 'today_screen.dart';
@@ -30,7 +31,13 @@ class MedicinesModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-    GoRoute(path: '/medicines', builder: (_, _) => const TodayScreen()),
+    GoRoute(
+      path: '/medicines',
+      builder: (_, _) => const TodayScreen(),
+      routes: [
+        GoRoute(path: 'all', builder: (_, _) => const AllMedicinesScreen()),
+      ],
+    ),
     // A person's medicines, opened from their page, under the family tab.
     GoRoute(
       path: '/family/:id/medicines',
@@ -38,8 +45,11 @@ class MedicinesModule extends FeatureModule {
       routes: [
         GoRoute(
           path: 'new',
-          builder: (_, s) =>
-              MedicineFormScreen(profileId: s.pathParameters['id']!),
+          builder: (_, s) => MedicineFormScreen(
+            key: ValueKey(s.uri.path),
+            profileId: s.pathParameters['id']!,
+            startWithScan: s.uri.queryParameters['scan'] == '1',
+          ),
         ),
         GoRoute(
           path: ':medicineId',
@@ -51,8 +61,16 @@ class MedicinesModule extends FeatureModule {
             GoRoute(
               path: 'edit',
               builder: (_, s) => MedicineFormScreen(
+                key: ValueKey(s.uri.path),
                 profileId: s.pathParameters['id']!,
                 medicineId: s.pathParameters['medicineId'],
+              ),
+            ),
+            GoRoute(
+              path: 'move',
+              builder: (_, s) => MoveMedicineScreen(
+                key: ValueKey(s.uri.path),
+                medicineId: s.pathParameters['medicineId']!,
               ),
             ),
           ],
@@ -68,8 +86,10 @@ class MedicinesModule extends FeatureModule {
       routes: [
         GoRoute(
           path: 'new',
-          builder: (_, s) =>
-              PrescriptionFormScreen(profileId: s.pathParameters['id']!),
+          builder: (_, s) => PrescriptionFormScreen(
+            key: ValueKey(s.uri.path),
+            profileId: s.pathParameters['id']!,
+          ),
         ),
         GoRoute(
           path: ':prescriptionId',
@@ -81,6 +101,7 @@ class MedicinesModule extends FeatureModule {
             GoRoute(
               path: 'edit',
               builder: (_, s) => PrescriptionFormScreen(
+                key: ValueKey(s.uri.path),
                 profileId: s.pathParameters['id']!,
                 prescriptionId: s.pathParameters['prescriptionId'],
               ),

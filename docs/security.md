@@ -2,8 +2,8 @@
 
 Usra holds a family's health records: diagnoses, medicines, pregnancy, children,
 insurance cards and photos of prescriptions. A leak can hurt people (stigma,
-insurance, family conflict), and in Egypt, KSA and the UAE health data is
-sensitive personal data with stricter rules. This plan says what we protect,
+insurance, family conflict), and in Egypt and KSA health data is sensitive
+personal data with stricter rules (Jordan's Law 24 of 2023 also applies to accounts). This plan says what we protect,
 what is already in the code, what is missing, and when each gap must be
 closed.
 
@@ -36,7 +36,7 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
 | Photos: insurance cards, prescriptions, reports, medicine boxes | App private folder |
 | Database key, recovery key, device keys, auth session | Keystore / Keychain |
 | Backup files | Wherever the user puts them (Drive, Files, WhatsApp) |
-| Account data (phone number, country, devices), v2 ciphertext | Supabase |
+| Account data (email, name and profile photo link from Google, Apple's email or relay address, language, devices), v2 ciphertext | Supabase |
 | AI Doctor and cloud OCR requests | Edge function memory, the LLM/OCR provider |
 
 | Threat | Example | Main defences |
@@ -47,7 +47,7 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
 | Leaked backup file | Backup shared to the wrong WhatsApp chat | Argon2id + XChaCha20-Poly1305, 100-bit recovery key |
 | Network attacker | Café Wi-Fi | HTTPS only, no cleartext, E2EE |
 | Server breach or rogue insider | Database dump | E2EE (ciphertext only), RLS, minimal account data, no secrets in code |
-| Account takeover | SIM swap, OTP phishing | OTP rate limits, device approval for family keys, alerts on new devices |
+| Account takeover | A stolen Google or Apple account | Google's and Apple's own account protection, nonces on ID tokens, device approval for family keys, alerts on new devices |
 | Abuse of paid APIs | Draining AI credits, OCR cost | Auth, credits ledger, rate limits, body size limits |
 | Supply chain | Malicious package or GitHub Action | Pinned versions, Dependabot, review, pinned action SHAs |
 | Our own mistakes | PHI in a log or crash report, a debug flag in release | Lint rules, release checks, code review, tests |
@@ -64,11 +64,28 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   snapshot, `quick_check` on restore. `app/lib/core/backup/`.
 - **OS backup**: Android `allowBackup=false` plus data extraction rules that
   exclude everything; iOS photo folders excluded from iCloud backup.
+- **Secure storage fails closed on Android:** every `FlutterSecureStorage` uses
+  `secureStorageAndroidOptions` (`resetOnError: false`). The plugin's default
+  deletes keys on a Keystore or decrypt error, and the first call in the process
+  sets the options for all stores, so one store on the default would put the
+  database key at risk. A test checks every store in `lib/`. If the database key
+  can't be read, the app says so and offers to try again; it never makes a new key
+  over it. Only an unreadable account session is deleted, since signing in again
+  replaces it.
+- **Database open errors**: a database that won't open is never moved or
+  changed. A full disk, a lock, damage and SQLITE_NOTADB all show the
+  unavailable screen with the file in place: a damaged first page reports the
+  same NOTADB as a wrong key, so that code proves nothing. The file moves aside
+  (never deleted) only when the key store has no key at all, which is the one
+  proof that the key is gone. It moves before the new key is saved, so a crash
+  or a failed move can't leave a new key next to the old records.
+  A restore that went in but won't open is undone while the old data is still
+  aside, so a retry can't delete it. A stored key that's malformed shows the
+  screen too, and is never replaced.
 - **App lock** (S2): optional 6-digit PIN (trivial ones refused), stored
   only as a salted Argon2id hash (19 MiB, 2 passes) in Keystore / Keychain
-  this-device-only, checked in constant time. On Android the lock's storage
-  uses `resetOnError: false`, so a Keystore error keeps the app locked
-  instead of wiping the lock (fail closed); an unreadable lock is never
+  this-device-only, checked in constant time. A Keystore error keeps the app
+  locked instead of wiping the lock (fail closed); an unreadable lock is never
   written over and is read again on each try and on resume. Fingerprint or
   face through `local_auth`, biometrics only and, on Android, only with a
   strong (Class 3) sensor; Settings warns that anyone enrolled on the phone
@@ -83,16 +100,45 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   cover (`coverUntilReady` / `uncover`). Covers every page;
   notification / widget deep links wait until unlocked. Loosening a setting
   needs the PIN. No reset that skips the PIN: wipe app data and restore a
-  backup with the recovery key (turning the lock on suggests a backup
-  first). Emergency cards on the lock screen are opt-in per person.
+  backup with the recovery key. So turning the lock on requires a backup
+  first, with no way round it, and making that backup makes the recovery key.
+  A lock turned on before this rule stays on, and its settings warn until
+  there's a backup. Home offers the lock once after the first backup. The
+  phone's own PIN isn't accepted as a way in, since family members nearby
+  often know it. Emergency cards on the lock screen are opt-in per person.
   `app/lib/core/security/`, `app/lib/features/app_lock/`.
+- **Records that won't open**: the screen shown when the database key can't
+  be read or the file won't open (`app/lib/features/settings/key_unavailable.dart`,
+  `database_recovery.dart`) never changes anything by itself. It offers Try
+  again, Restore from backup, the support address, and Start fresh (the "Delete
+  all my data" warning, typed word and PIN). A lock that's on and readable asks
+  for the PIN before Restore or Start fresh; one that can't be read is skipped,
+  since it can't check anything and the phone's settings can clear the app
+  anyway. A restore goes in with the old data kept aside and a marker on disk,
+  must open, and only then saves new keys if there were none to read. A restart
+  before that puts the old data back; a restart after it keeps the restore.
+  Damage past the pages read at start (`prepareDatabaseFile`) doesn't reach this
+  screen: the app opens and those queries fail.
 - **Notifications**: payloads hold only the medicine id, dose time and
   language; the text is rebuilt from the current settings each time a
-  reminder is scheduled. Discreet notifications (default on, S4): "Time
-  for a medicine", no person, medicine or instructions, and no Taken
-  button (identical notifications could mark someone else's dose); a
-  snooze set while the app is closed is always discreet. Switching it
-  rewrites pending reminders, snoozes and notifications on screen.
+  reminder is scheduled. Discreet notifications (default on, S4): "Your
+  medicine time", no person, medicine or instructions. Neutral notifications
+  look alike, so the wrong one could be pressed for someone else's dose. Each
+  button still marks only the dose in its own payload, and Taken and Skip show
+  only when no other dose is still due within an hour (counting a snoozed one
+  at its planned time and its ring time); the text then gives the planned time
+  ("The 8:00 AM dose"), which is not a name. Otherwise there is Snooze only, the
+  text says to open the app, and a tap goes there behind the lock. The same
+  applies to a dose marked or changed later: the app re-plans and rewrites
+  reminders, and anything it can't check (a snooze set while the app is closed,
+  a dose too old to read) gets no Taken. On iOS, neutral Taken and Skip ask to
+  unlock the phone first (`authenticationRequired`), then run without opening
+  the app; iOS fixes a category's buttons, so each set is its own category.
+  Android can't require this through the notifications plugin: where the phone
+  shows notification content on the lock screen, the button works from there
+  and marks that one dose. The app lock isn't involved either way: these buttons
+  only save the dose and show nothing. Switching discreet mode rewrites pending
+  reminders, snoozes and notifications on screen.
   Lock screen: `NotificationVisibility.private` hides content only when
   the phone's lock-screen setting hides sensitive content (many phones
   show it by default), so with discreet off names can show there on
@@ -119,9 +165,19 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   Fever warning signs are informational, cited and say to contact a
   doctor or call 123
   (`docs/research/fever-warning-signs.md`, needs medical review).
-- **Widget**: first name and medicine name only, no strength or condition;
-  in discreet mode "Dose due" with no name and no Taken button (a tap
-  opens the app).
+- **Widget**: no names of people or medicines in any mode, only times and how
+  many doses (Apple 5.1.3: the snapshot may reach iCloud device backup). The
+  only other thing in a row is the medicine's id, and only on a row with Taken,
+  so that Taken can say which dose. It holds no name, but it is a UUID v7, so it
+  shows when the medicine was added. A snapshot from an older version held
+  names: the app overwrites it when it next runs, and the widgets refuse it and
+  delete it when they next draw, which on iOS needs a widget on the home screen
+  to ask for a timeline. Taken only under the notification rule above
+  (otherwise a tap opens the app, behind the lock).
+  A snoozed dose has no Taken here, as its reminder is still coming. iOS 17+
+  only; its Taken asks to unlock first (StandBy shows widgets on a locked phone)
+  and goes through an inbox in the App Group, holding medicine id and time,
+  excluded from iCloud device backup and cleared by "Delete all my data".
 - **Screen privacy (S3)**: recent-apps card is blank on Android 13+
   (`setRecentsScreenshotEnabled(false)`) and shows the launch screen
   below 13 (a cover added on pause, skipped in split screen) and on iOS
@@ -144,6 +200,21 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   left out; a restore encrypts them for the new phone as it unpacks.
   Rolling the app back past this needs a forward fix (photos stay
   encrypted), so it ships with a staged rollout. `app/lib/core/files/`.
+- **A photo stays with its person**: photos are found only through their row, by
+  path, and every path is a new UUID. A save can't move a card, medicine or
+  prescription to another person: it fails and nothing changes. The one way a
+  medicine changes owner is the deliberate move (`AppDatabase.moveMedicine`,
+  from a screen that names both people). Its schedule, doses and photos go with
+  it; a photo it shared with another record gets its own copy first, and the
+  move refuses if one is still shared. It comes off the old person's
+  prescription's list, and doses in their sick days stay by name, with no link
+  back. A prune keeps
+  every path a live row uses, so forms save the row first and then prune
+  (`test/widget/photo_forms_test.dart`). Photo forms are keyed by their full
+  path, so one opened for another person starts empty. Debug builds log counts of
+  missing and unused photo files at start, never a path or name
+  (`photo_integrity.dart`). `test/core/photo_safety_test.dart` covers two people
+  with a photo of every kind, through delete, replace, backup and restore.
 - **Clipboard and sharing (S7)**: the recovery key can only be copied
   with its own button (the digits aren't selectable). Android marks the
   clip sensitive (`EXTRA_IS_SENSITIVE`: hidden from the Android 13+
@@ -185,7 +256,7 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   and on existing files at each start and after a restore). The database
   folder and its small files are
   `NSFileProtectionCompleteUntilFirstUserAuthentication`, on purpose:
-  Taken / Snooze on a reminder runs while the phone may be locked and
+  Taken / Snooze / Skip on a reminder runs while the phone may be locked and
   writes the dose inbox file (`dose_actions.jsonl`) next to the database,
   and the database itself when the app is still running; iOS can also
   start the app in the background for that action, and a database that
@@ -230,6 +301,61 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   recovery key is never written to any file, file name or share text, only
   to the Keystore / Keychain (tested). The recovery key screen warns it's
   the only way in.
+- **Automatic backup (C11)**: optional, off by default, with no server or
+  account. A backup only starts with the app on screen, when one is due: no
+  background task, no notification. One already running carries on if the
+  person leaves, until the OS stops it. The file is made in the cache folder
+  as above, copied to the chosen folder as `.partial` and flushed where the
+  place allows, then read back and compared with the original byte for byte.
+  Only then is it renamed to `.usra`, and only then are older ones deleted.
+  So a killed app leaves at most a `.partial` (removed next time). A `.usra`
+  there matched the original when it landed; that says nothing about later
+  damage, and the backup itself isn't decrypted to check it. On another
+  app's storage, the read-back may come from that app's cache rather than
+  its servers. Keeps the last 3 this phone wrote; the newest with every photo
+  stays even if later ones left photos out or photos are missing. File names
+  hold a random per-install tag and a UTC time, nothing else, and retention
+  can't touch a name without this phone's tag. Files dated ahead of the clock
+  count as oldest. The folder's access (Android tree URI, iOS bookmark) and
+  the counts below are in `auto_backup.json` in the private folder, excluded
+  from iCloud device backup and removed by the wipe. A backup outliving the
+  wait in a restore or wipe stops at its next step and can't write that file
+  back. Errors are logged by type only, and native errors carry a fixed code
+  with no path.
+- **Automatic backup and shrinking content (C11)**: keep-3 alone would let
+  three runs after a data loss remove every good backup. If the database came
+  back empty after it couldn't be opened, automatic backup pauses. Each backup
+  also reports how many people, records and photos it holds, and how many
+  photos a live row points at have no file (attachments, insurance cards,
+  medicines and prescriptions). If any person is gone, or records or photos
+  drop by 3 or more and at least 10%, or a photo is newly missing, the new file
+  still lands, but the backups already there are held out of retention and Home
+  says so (Simple Mode too). What's expected doesn't move down until the person
+  says the change is right or the counts recover, or the hold would only delay
+  the loss by one run. Later runs still prune among newer files, so the folder
+  stays bounded at the held files plus 3. This catches restoring a much older
+  backup, a missing database file (`prepareDatabaseFile` calls that ready) and a
+  missing photo folder. It doesn't catch losses under those thresholds, or tables
+  it doesn't count, such as medicines.
+- **iCloud refusal (C11, Apple 5.1.3)**: automatic backup refuses a folder
+  in iCloud Drive, when it's picked, before every backup and again at each
+  write, because a folder can be moved there later. It uses iOS's `isUbiquitousItem` and
+  the `Mobile Documents` path. A file written to On My iPhone is also marked
+  `isExcludedFromBackup` as soon as it's copied, so it stays out of the iCloud
+  device backup; the run fails if that can't be set where the place supports it. Still
+  open for legal review: the manual share sheet is the system's, so a person
+  can choose Save to Files > iCloud Drive themselves. Usra can't remove that
+  option from the sheet. Whether that's acceptable for an encrypted file the
+  person chose to save hasn't been confirmed.
+- **Android and Google Drive (C11)**: the system folder picker only lists
+  storage that supports folder access (`FLAG_SUPPORTS_IS_CHILD` in AOSP's
+  DocumentsUI), and developer reports say Google Drive doesn't. Not yet
+  checked on a current phone. Usra doesn't ask for Drive permissions: the
+  Backup screen says to send a copy through the share sheet and choose
+  Drive. Only a copy known to be off the phone quiets Home's reminder to keep
+  one there. No folder counts yet: Android only knows its own providers, and
+  iOS can't tell On My iPhone from another Files app. So the manual share is
+  what quiets it.
 - **Backend**: RLS on every table, API roles start with no privileges,
   credits through functions only with locking, idempotent purchase webhook
   with signature check, in-memory rate limiter, body size limits, AI/OCR
@@ -247,9 +373,9 @@ with the cloud features (M6).
 | # | Item | Pri | Notes |
 | --- | --- | --- | --- |
 | S1 | **Encrypt photos at rest** | P0 | Done (see section 3); verify on a device with existing photos. Was the biggest gap: insurance cards and prescriptions were plain files. Encrypt each file with XChaCha20-Poly1305 using a file key kept in the Keystore (or derived from the DB key); decrypt into memory for display; migrate existing files; share decrypts to a temp file that is deleted after. |
-| S2 | **App lock** | P0 | Optional PIN plus biometrics (`local_auth`), on by default from onboarding with skip. Re-lock after N minutes in the background. Simple Mode keeps it easy (biometrics first, big PIN pad). |
+| S2 | **App lock** | P0 | Optional PIN plus biometrics (`local_auth`), off until a PIN is chosen. Offered after Simple Mode's first tour and in More › App lock; the shorter first run doesn't ask. Re-lock after N minutes in the background. Simple Mode keeps it easy (biometrics first, big PIN pad). |
 | S3 | **Screen privacy** | P0 | Blur the app in the recent-apps switcher (iOS snapshot cover, Android `FLAG_SECURE` or `setRecentsScreenshotEnabled(false)`). `FLAG_SECURE` on the recovery key, emergency card is exempt so it can be shown. |
-| S4 | **Discreet mode** | P0 | Setting to show "Time for your medicine" instead of medicine/person names in notifications and the widget. Default on for the lock screen. |
+| S4 | **Discreet mode** | P0 | Setting to show "Your medicine time" instead of medicine/person names in notifications. Default on for the lock screen. The widget has no names in any mode. |
 | S5 | **No PHI in logs** | P0 | Replace `debugPrint` of exceptions with a logger that is silent in release and never prints record data. Lint/grep check in CI for `print(`/`debugPrint(` outside the logger. |
 | S6 | **Release hardening** | P0 | R8/obfuscation with `--obfuscate --split-debug-info` (symbols kept privately), `debuggable=false`, no cleartext (`usesCleartextTraffic=false` + network security config), iOS ATS default. Android done in the M5 release PR (#19, `docs/release.md`); symbols must be archived per release. iOS ATS still to check when iOS is built. |
 | S7 | **Clipboard and sharing** | P1 | Done (see section 3). Clear copied recovery key from the clipboard after 60 s; mark it sensitive on Android 13+. Warn before sharing an insurance card or record outside the app. |
@@ -263,9 +389,9 @@ with the cloud features (M6).
 | # | Item | Pri | Notes |
 | --- | --- | --- | --- |
 | S12 | **Session and device keys in secure storage** | P2 | supabase_flutter defaults to SharedPreferences; use a secure-storage `LocalStorage`. Device keypair this-device-only. (Sent to the accounts PR.) |
-| S13 | **OTP abuse controls** | P2 | Per-number and per-IP limits in the SMS hook, cooldown, block premium-rate destinations, generic errors (no account enumeration), alert on spikes (SMS pumping fraud). |
-| S14 | **E2EE sync design review** | P2 | Design written for review: [`docs/sync-design.md`](sync-design.md). Family key per epoch (XChaCha20-Poly1305 records, a random key per file), wrapped to each device with HPKE (X25519); signed hash-chained family log for members, devices and key epochs; signed records; rotation when a member or device is removed; new devices approved from an existing phone (QR or comparison code) or with the recovery key, never by SMS alone. Needs the external crypto review (its section 18) before sync code. **Blocker before any sync code:** the grant and RLS gaps listed as B0 in that doc (device keys overwritable and `devices` insert on all columns, push tokens writable for other devices, family delete from an SMS-only session, direct membership / invite / record writes, `families.created_by` cascade) are **closed** in `20261105000001_sync_blockers_b0.sql`, with pgTAP tests in `supabase/tests/database/sync_blockers.test.sql`. Still needs the external crypto review. |
-| S15 | **Account takeover** | P2 | Notify all devices when a new device joins; new device sees no data until approved; SIM-swap note in the UI. |
+| S13 | **Sign-in abuse controls** | P2 | Google and Apple only: the phone and email providers are off, so there's no SMS to pump and no password to guess. ID tokens are checked against our client IDs with a nonce (`skip_nonce_check` stays off). Supabase's per-IP limits apply, and errors are generic (no account enumeration). |
+| S14 | **E2EE sync design review** | P2 | Design written for review: [`docs/sync-design.md`](sync-design.md). Family key per epoch (XChaCha20-Poly1305 records, a random key per file), wrapped to each device with HPKE (X25519); signed hash-chained family log for members, devices and key epochs; signed records; rotation when a member or device is removed; new devices approved from an existing phone (QR or comparison code) or with the recovery key, never by SMS alone. Needs the external crypto review (its section 18) before sync code. **Blocker before any sync code:** the grant and RLS gaps listed as B0 in that doc (device keys overwritable and `devices` insert on all columns, push tokens writable for other devices, family delete from an SMS-only session, direct membership / invite / record writes, `families.created_by` cascade) are **closed** in `20261105000001_sync_blockers_b0.sql`, with pgTAP tests in `supabase/tests/database/sync_blockers.test.sql`. Device approval and session binding, recovery, account reset, the signed family log, invites with a lookup hash, key wraps and rotation (B1–B6, B9) are in `20261105000002_sync_log_devices.sql` and the `bind-device`, `approve-device`, `recover-device`, `append-family-log` and `publish-head` functions (strict Ed25519 with RFC 8032 and Wycheproof vectors). Devices are revoked, never deleted by the apps; revoked rows are purged after 90 days unless a family log lists them. Still needs the external crypto review. |
+| S15 | **Account takeover** | P2 | Notify all devices when a new device joins; new device sees no data until approved; a note in the UI about a stolen Google or Apple account. |
 | S16 | **AI and cloud OCR consent** | P2 | Explicit per-use consent, show exactly what is sent, strip names and IDs before sending, provider with zero data retention / no training (contract), never logged; region notes in the privacy policy. |
 | S17 | **Backend hardening** | P2 | Rate limits in a shared store (the in-memory limiter resets per instance), JWT verification on every function, CORS locked to the app, Postgres backups encrypted, Supabase MFA on the dashboard for every admin, least-privilege service keys, audit log of admin actions, secrets rotation runbook. |
 | S18 | **Certificate pinning** | P2 | Consider pinning the Supabase host's public key (with a backup pin) once the domain is final; weigh against outage risk. |
@@ -278,13 +404,13 @@ with the cloud features (M6).
 | S20 | **Security tests** | P0 | Tests that fail if: the DB opens without a key, a photo is written unencrypted, notifications show names in discreet mode, release manifest allows backup/cleartext. |
 | S21 | **Repo and account hygiene** | P0 | 2FA required in the GitHub org, branch protection on main (PR + green CI), signed tags for releases, Play App Signing, upload key kept offline with a backup. |
 | S22 | **Pre-launch review** | P1 | OWASP MASVS L1 (L2 for storage and crypto) self-assessment, then an external mobile pen test before public launch. |
-| S23 | **Incident response** | P1 | Written runbook: who decides, how to rotate keys, how to notify users and regulators. Egypt PDPL requires notifying the Data Protection Center of a breach quickly (72 hours is the commonly cited limit; confirm in legal review); KSA PDPL and UAE PDPL have similar duties. |
+| S23 | **Incident response** | P1 | Written runbook: who decides, how to rotate keys, how to notify users and regulators. Egypt PDPL requires notifying the Data Protection Center of a breach quickly (72 hours is the commonly cited limit; confirm in legal review); KSA PDPL has similar duties; check Jordan's. |
 | S24 | **Vulnerability disclosure** | P1 | `SECURITY.md` with a contact address and response times. |
-| S25 | **Legal and compliance** | P1 | Egypt PDPL (health data is sensitive; licence/permit from the Data Protection Center may be needed), KSA PDPL and data residency, UAE PDPL and health data law (ICT Health Law). Founder task with a lawyer; links to the store/legal drafts. |
+| S25 | **Legal and compliance** | P1 | Egypt PDPL (health data is sensitive; licence/permit from the Data Protection Center may be needed), KSA PDPL and data residency, Jordan's Law 24 of 2023. UAE is off the list for launch. Founder task with a lawyer; links to the store/legal drafts. |
 
 ## 5. Rules for every PR
 
-- No health data, phone numbers, tokens or keys in logs, errors, analytics,
+- No health data, phone numbers, emails, names, tokens or keys in logs, errors, analytics,
   URLs, notifications or crash reports.
 - New stored data: encrypted at rest and excluded from OS backup.
 - New permission or network call: say why in the PR, update

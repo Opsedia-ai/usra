@@ -36,7 +36,7 @@ notes if you would like.
 
 - The Usra mobile app (Android and iOS) built from `app/`.
 - The Usra backend in `supabase/`: database policies (row-level security),
-  edge functions, authentication and SMS sign-in.
+  edge functions, authentication and Google and Apple sign-in.
 - The encrypted backup format and restore.
 - This repository's CI configuration and any secrets it exposes.
 
@@ -50,8 +50,7 @@ photo encryption, health data in logs, notifications or crash reports.
   physical access to an unlocked phone with the app open.
 - Denial of service, spam and volumetric attacks.
 - Social engineering of Opsedia staff or users.
-- Issues in third-party services (Supabase, Google, Apple, RevenueCat, SMS
-  providers) that are not caused by how Usra uses them; report those to the
+- Issues in third-party services (Supabase, Google, Apple, RevenueCat) that are not caused by how Usra uses them; report those to the
   vendor.
 - Missing best-practice headers or settings with no shown impact.
 

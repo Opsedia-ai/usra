@@ -5,9 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/preferences.dart';
 import '../../core/screen_privacy.dart';
 import '../../core/security/app_lock.dart';
+import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/emergency_card_screen.dart';
 import '../family/family_screen.dart';
@@ -139,14 +141,14 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
           ),
         ),
         if (_covered && !locked)
-          const ColoredBox(
+          ColoredBox(
             key: ValueKey('lock-cover'),
-            color: UsraColors.background,
+            color: context.usra.bg,
             child: Center(
               child: Icon(
                 Icons.lock_outline,
                 size: 48,
-                color: UsraColors.primary,
+                color: context.usra.primary,
               ),
             ),
           ),
@@ -198,11 +200,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.lock_outline,
-                  size: 40,
-                  color: UsraColors.primary,
-                ),
+                Icon(Icons.lock_outline, size: 40, color: context.usra.primary),
                 const SizedBox(height: 8),
                 Semantics(
                   header: true,
@@ -238,8 +236,8 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                   OutlinedButton.icon(
                     key: const ValueKey('lock-emergency'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: UsraColors.emergency,
-                      side: const BorderSide(color: UsraColors.emergency),
+                      foregroundColor: context.usra.urgent,
+                      side: BorderSide(color: context.usra.urgent),
                       minimumSize: Size.fromHeight(simple ? 64 : 52),
                     ),
                     onPressed: () => Navigator.of(context).push(
@@ -330,7 +328,7 @@ class _PinEntryState extends ConsumerState<PinEntry> {
     final text = Theme.of(context).textTheme;
     final wait = _lock.waitRemaining;
     var message = wait > Duration.zero
-        ? l.lockWait(_minutesSeconds(wait))
+        ? l.lockWait(localizedDigitsIn(context, _minutesSeconds(wait)))
         : switch (_result) {
             PinCheck.wrong || PinCheck.blocked => l.lockWrongPin,
             PinCheck.unavailable => l.lockUnavailable,
@@ -354,7 +352,9 @@ class _PinEntryState extends ConsumerState<PinEntry> {
               : Text(
                   message,
                   key: const ValueKey('pin-message'),
-                  style: text.bodyMedium?.copyWith(color: UsraColors.emergency),
+                  style: text.bodyMedium?.copyWith(
+                    color: Severity.actSoon.foregroundOf(context),
+                  ),
                   textAlign: TextAlign.center,
                 ),
         ),
@@ -406,8 +406,9 @@ class LockedEmergencyPicker extends ConsumerWidget {
         .toList();
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: UsraColors.emergency,
-        foregroundColor: Colors.white,
+        backgroundColor: context.usra.urgent,
+        foregroundColor: context.usra.onUrgent,
+        titleTextStyle: UsraType.title.copyWith(color: context.usra.onUrgent),
         title: Text(l.lockEmergencyPick),
       ),
       body: profiles == null

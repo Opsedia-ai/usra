@@ -114,11 +114,11 @@ void main() {
 
     await tester.tap(find.text('الأدوية').last);
     await tester.pumpAndSettle();
-    expect(find.text('أدوية النهارده'), findsOneWidget);
+    expect(find.byKey(const ValueKey('medicines-all')), findsOneWidget);
     expect(find.text('باراسيتامول 500 مجم'), findsNWidgets(2));
     expect(find.text('ميتفورمين'), findsOneWidget);
     expect(find.text('فيتامين د'), findsNothing);
-    expect(find.text('قرص واحد'), findsNWidgets(2));
+    expect(find.textContaining('قرص واحد'), findsNWidgets(2));
 
     final eight = DateTime(2026, 11, 3, 8);
     final key = '${ids.panadol}-${eight.millisecondsSinceEpoch}';
@@ -173,6 +173,7 @@ void main() {
       find.byKey(const ValueKey('medicine-instructions')),
       'كل 8 ساعات لمدة أسبوع',
     );
+    await tapKey(tester, 'medicine-more');
     await tapKey(tester, 'medicine-form-capsule');
     await tapKey(tester, 'medicine-photo-camera');
     expect(
@@ -238,7 +239,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tapKey(tester, 'simple-medicines');
-    expect(find.text('أدوية النهارده'), findsOneWidget);
+    expect(find.byKey(const ValueKey('medicines-all')), findsOneWidget);
     expect(find.text('كونكور'), findsOneWidget);
   });
 

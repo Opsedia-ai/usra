@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:usra/core/design/bottom_bar.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/preferences.dart';
@@ -240,7 +241,7 @@ void main() {
 
       await typePin(tester, '000000');
       expect(
-        find.textContaining('9 أرقام سرية غلط كمان تمسح كل حاجة'),
+        find.textContaining('٩ أرقام سرية غلط كمان تمسح كل حاجة'),
         findsOneWidget,
       );
       for (var i = 0; i < 8; i++) {
@@ -272,7 +273,7 @@ void main() {
       expect(find.byKey(const ValueKey('root-warning')), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('root-warning-ok')));
       await tester.pumpAndSettle();
-      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byType(UsraBottomBar), findsOneWidget);
       expect(prefs.getBool(PrefKeys.rootWarningShown), isTrue);
 
       // Next start: not again.

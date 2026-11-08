@@ -141,6 +141,7 @@ class _RecoveryKeyScreenState extends ConsumerState<RecoveryKeyScreen> {
         Text(l.recoveryKeyConfirmIntro, style: text.bodyLarge),
         const SizedBox(height: 16),
         for (var i = 0; i < 2; i++) ...[
+          // Only ever digits, and a number on paper reads left to right.
           TextField(
             key: ValueKey('recovery-confirm-${_asked[i] + 1}'),
             controller: _typed[i],
@@ -162,7 +163,7 @@ class _RecoveryKeyScreenState extends ConsumerState<RecoveryKeyScreen> {
             _error!,
             key: const ValueKey('recovery-confirm-error'),
             style: text.bodyMedium?.copyWith(
-              color: Severity.actSoon.foreground,
+              color: Severity.actSoon.foregroundOf(context),
             ),
           ),
           const SizedBox(height: 12),
@@ -248,7 +249,7 @@ class RecoveryKeyGroups extends StatelessWidget {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('${i + 1}', style: text.labelMedium),
+                    Text('${i + 1}', style: text.labelLarge),
                     // Not selectable: the system's copy would skip the
                     // sensitive marking and the clearing.
                     Text(
@@ -275,19 +276,22 @@ class _Warning extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(14),
     decoration: BoxDecoration(
-      color: Severity.actSoon.background,
+      color: Severity.actSoon.backgroundOf(context),
       borderRadius: BorderRadius.circular(16),
     ),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(Icons.key_off_outlined, color: Severity.actSoon.foreground),
+        Icon(
+          Icons.key_off_outlined,
+          color: Severity.actSoon.foregroundOf(context),
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodyMedium
-                ?.copyWith(color: Severity.actSoon.foreground),
+                ?.copyWith(color: Severity.actSoon.foregroundOf(context)),
           ),
         ),
       ],

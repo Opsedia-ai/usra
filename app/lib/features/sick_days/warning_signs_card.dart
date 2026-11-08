@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
+import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../doctors/call_buttons.dart' show openContact;
+import '../doctors/contact_links.dart';
+import '../doctors/doctors_providers.dart';
 import '../family/emergency_card_screen.dart' show ambulanceNumber;
 import 'fever.dart';
 
-/// Warning signs for the person's age, with sources, the ones what was
-/// logged matches on top, and the ambulance button. Informational only.
+/// When to get help, for the person's age: what was logged that matches,
+/// call an ambulance if, call the doctor if, each with a button, then the
+/// sources. Informational only. No Dr. Usra here (Product Definition).
 class WarningSignsCard extends StatelessWidget {
   const WarningSignsCard({
     super.key,
@@ -36,14 +41,15 @@ class WarningSignsCard extends StatelessWidget {
       birthDate: person.birthDate,
       now: now,
     );
-    final color = Severity.urgent.foreground;
+    final urgent = context.usra.urgent;
+    final heading = text.titleMedium?.copyWith(fontSize: 17, height: 24 / 17);
     Widget bullet(WarningSign s, {bool strong = false}) => Padding(
       key: ValueKey('warning-${strong ? 'matched-' : ''}${s.key}'),
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('•  ', style: text.bodyLarge?.copyWith(color: color)),
+          Text('•  ', style: text.bodyLarge),
           Expanded(
             child: Text(
               l.warnSign(s.key),
@@ -59,29 +65,12 @@ class WarningSignsCard extends StatelessWidget {
       ..sort((a, b) => a.index.compareTo(b.index));
     return Card(
       key: const ValueKey('sick-day-warnings'),
-      color: Severity.urgent.background,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(UsraSpacing.s4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.warning_amber_rounded,
-                  color: UsraColors.emergency,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    l.warnTitle,
-                    style: text.titleMedium?.copyWith(color: color),
-                  ),
-                ),
-              ],
-            ),
             if (age == AgeGroup.unknown) ...[
-              const SizedBox(height: 8),
               TextButton.icon(
                 key: const ValueKey('warning-no-birth-date'),
                 style: TextButton.styleFrom(
@@ -92,39 +81,79 @@ class WarningSignsCard extends StatelessWidget {
                 icon: const Icon(Icons.cake_outlined),
                 label: Text(l.warnNoBirthDate),
               ),
+              const SizedBox(height: UsraSpacing.s2),
             ],
             if (matched.isNotEmpty) ...[
-              const SizedBox(height: 8),
               Container(
                 key: const ValueKey('warning-matched'),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: UsraColors.surface,
-                  border: Border.all(color: UsraColors.emergency, width: 2),
+                  color: context.usra.urgentSoft,
+                  border: Border.all(color: urgent, width: 2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(l.warnLogged, style: text.titleSmall),
+                    Text(l.warnLogged, style: heading),
                     for (final s in signs)
                       if (matched.contains(s.key)) bullet(s, strong: true),
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
             ],
-            const SizedBox(height: 12),
-            Text(
-              l.warnEmergency,
-              style: text.titleSmall?.copyWith(color: color),
+            Semantics(
+              header: true,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Icon(
+                      Icons.warning_amber_rounded,
+                      color: urgent,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      l.warnEmergency,
+                      style: heading?.copyWith(color: urgent),
+                    ),
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(height: 4),
             for (final s in signs)
               if (s.level == WarningLevel.emergency) bullet(s),
             const SizedBox(height: 8),
-            Text(
-              l.warnDoctorNow,
-              style: text.titleSmall?.copyWith(color: color),
+            FilledButton.icon(
+              key: const ValueKey('sick-day-ambulance'),
+              style: FilledButton.styleFrom(
+                backgroundColor: urgent,
+                foregroundColor: context.usra.onUrgent,
+                minimumSize: const Size.fromHeight(56),
+              ),
+              onPressed: () => openContact(
+                context,
+                Uri(scheme: 'tel', path: ambulanceNumber),
+              ),
+              icon: const Icon(Icons.call_outlined),
+              label: Text(
+                l.emergencyCallAmbulance(
+                  localizedDigitsIn(context, ambulanceNumber),
+                ),
+              ),
             ),
+            const SizedBox(height: UsraSpacing.s4),
+            Semantics(
+              header: true,
+              child: Text(l.warnDoctorNow, style: heading),
+            ),
+            const SizedBox(height: 4),
             for (final s in signs)
               if (s.level == WarningLevel.doctorNow) bullet(s),
             if (age == AgeGroup.under3Months || age == AgeGroup.unknown) ...[
@@ -132,41 +161,15 @@ class WarningSignsCard extends StatelessWidget {
               Text(
                 l.warnArmpitNote,
                 key: const ValueKey('warning-armpit-note'),
-                style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                style: text.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
             ],
-            const SizedBox(height: 12),
-            FilledButton.icon(
-              key: const ValueKey('sick-day-ambulance'),
-              style: FilledButton.styleFrom(
-                backgroundColor: UsraColors.emergency,
-                minimumSize: const Size.fromHeight(56),
-                textStyle: text.titleMedium,
-              ),
-              onPressed: () => openContact(
-                context,
-                Uri(scheme: 'tel', path: ambulanceNumber),
-              ),
-              icon: const Icon(Icons.call),
-              label: Text(l.emergencyCallAmbulance(ambulanceNumber)),
-            ),
             const SizedBox(height: 8),
-            OutlinedButton.icon(
-              key: const ValueKey('sick-day-doctors'),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-              ),
-              onPressed: () => context.go('/doctors'),
-              icon: const Icon(Icons.medical_services_outlined),
-              label: Text(l.warnCallDoctor),
-            ),
+            const _DoctorButton(),
             const SizedBox(height: 12),
-            Text(l.warnFooter, style: text.bodyMedium),
+            Text(l.warnFooter, style: text.bodyLarge),
             const SizedBox(height: 8),
-            Text(
-              l.warnSources,
-              style: text.bodySmall?.copyWith(color: UsraColors.textMuted),
-            ),
+            Text(l.warnSources, style: text.bodySmall),
             for (final s in sources)
               TextButton(
                 key: ValueKey('warning-source-${s.name}'),
@@ -180,6 +183,64 @@ class WarningSignsCard extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// One doctor with a number: calls them, by name. Several: asks which, since
+/// the app can't know who this person sees. None: the list, to add one.
+class _DoctorButton extends ConsumerWidget {
+  const _DoctorButton();
+
+  Future<void> _choose(BuildContext context, List<Doctor> doctors) =>
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (sheet) => SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              for (final d in doctors)
+                ListTile(
+                  key: ValueKey('sick-day-doctor-${d.id}'),
+                  minTileHeight: UsraSizes.touchTarget,
+                  leading: const Icon(Icons.call_outlined),
+                  title: Text(d.name),
+                  subtitle: d.specialty == null ? null : Text(d.specialty!),
+                  onTap: () {
+                    Navigator.of(sheet).pop();
+                    openContact(context, callUri(d.phone)!);
+                  },
+                ),
+            ],
+          ),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final callable = [
+      for (final d in ref.watch(doctorsProvider).value ?? const <Doctor>[])
+        if (callUri(d.phone) != null) d,
+    ];
+    final only = callable.length == 1 ? callable.single : null;
+    return OutlinedButton.icon(
+      key: const ValueKey('sick-day-doctors'),
+      style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+      onPressed: only != null
+          ? () => openContact(context, callUri(only.phone)!)
+          : callable.isEmpty
+          ? () => context.push('/doctors')
+          : () => _choose(context, callable),
+      icon: Icon(
+        callable.isEmpty
+            ? Icons.medical_services_outlined
+            : Icons.call_outlined,
+      ),
+      label: Text(
+        only == null ? l.warnCallDoctor : l.sickDayCallDoctorNamed(only.name),
       ),
     );
   }

@@ -70,6 +70,139 @@ sharing with a caregiver, app lock.
 | Android | Not yet | Yes |
 | Elders, insurance, spending, doctors | No | Yes |
 
+## Full feature comparison (5 Nov 2026)
+
+Jojo v1.2 (store listing, release notes, website, privacy policy; it was #2 in
+Egypt's Top Free Medical apps that day) against Usra's `main` plus open PRs.
+Hands-on screenshots of Jojo are still to be added: iPhone Mirroring needs
+iCloud on the Mac.
+
+✅ has it · ◐ partly · — no · PR = built, in review
+
+| Area | Feature | Jojo | Usra |
+| --- | --- | --- | --- |
+| **Family** | Several children | ✅ | ✅ |
+| | Adults and grandparents | ✅ | ✅ |
+| | Simple Mode for elders (big controls) | — | ✅ |
+| | Guided tutorial (Dr. Usra) | — | ✅ |
+| **Vaccines** | Egypt MoHP/VACSERA schedule, required + optional | ✅ | ✅ |
+| | Government vs private (hexavalent) route | ✅ | ✅ |
+| | Tick vaccines already given when adding a child | ✅ | ✅ |
+| | Next vaccines on Home | ✅ | ✅ (countdown) |
+| | "Date passed but not recorded" wording | ✅ | ✅ (overdue / too late, ask the doctor) |
+| | Vaccine reminders (week before, on the day) | — | ✅ |
+| | Age limits and minimum gaps (rotavirus, catch-up) | ? | ✅ |
+| | Notes per dose | ✅ | ✅ |
+| | Read a vaccination card from a photo | ✅ | PR #12 |
+| | Vaccination record PDF to share | — | ✅ |
+| | Other countries: record vaccines by hand | ✅ | ✅ |
+| **Medicines** | Prescription with doctor, diagnosis, several medicines | ✅ | ✅ |
+| | Dose, how often, how long; "day 3 of 7" | ✅ | ✅ |
+| | Today's doses on Home, tick when given | ✅ | ✅ |
+| | Reminders that ring, with Taken/Snooze | — (not stated) | ✅ |
+| | Home-screen widget | — | ✅ (Android; iOS PR #10) |
+| | Discreet notifications (no names) | — | ✅ |
+| | Medicine box photo → name | — | ✅ |
+| | Read a prescription from a photo | ✅ | PR #12 |
+| | "Every N hours" schedules, as-needed medicines | ◐ | ✅ |
+| **Labs** | Lab report from photo **or PDF**, read on the phone | ✅ | ✅ (photo reading; PDF attached, not read) |
+| | Values with the lab's printed range, High/Low | ✅ | ✅ |
+| | Unsure values highlighted, confirm before saving | ✅ | ✅ (every row must be confirmed) |
+| | Trend chart per test | — | ✅ |
+| **Sick days** | Fever log, medicine given, reminder | ✅ (v1.3) | ✅ |
+| | Lock-screen live status with child's name | ◐ | — (by choice: privacy) |
+| | Age-based warning signs with sources | — | ✅ |
+| **Growth** | WHO weight, height, head circumference | — | ✅ |
+| | CDC milestones | — | ✅ |
+| | Infant feeds / sleep / diapers | — | ✅ |
+| **Other care** | Pregnancy mode | — | ✅ |
+| | Check-up and screening follow-ups (children and adults) | — | ✅ |
+| | Emergency card | — | ✅ |
+| | Doctors directory with call/WhatsApp | — | ✅ |
+| | Insurance cards | — | ✅ |
+| | Spending dashboard | — | ✅ |
+| | Doctor summary PDF | — | ✅ |
+| | Timeline of all records | ✅ | ✅ |
+| **Privacy and security** | No account needed | ✅ | ✅ (account optional) |
+| | Data only on the phone | ✅ | ✅ |
+| | Encrypted database and photos | iOS data protection | ✅ SQLCipher + XChaCha20 |
+| | App lock (PIN, Face ID) | — | ✅ |
+| | Recents/screenshot privacy | — | ✅ |
+| | Delete all data | ✅ | ✅ (also erase after 10 wrong PINs, opt-in) |
+| | Analytics | Opt-in, anonymous (PostHog EU) | None |
+| **Backup** | Moves to a new phone automatically | ✅ (iCloud / computer backup) | — (manual encrypted file + monthly reminder) |
+| | Encrypted, cross-platform (iPhone ↔ Android) | — | ✅ |
+| **Platforms** | iPhone | ✅ (iOS 18+) | ✅ (built, not yet on a device) |
+| | Android | — | ✅ |
+| **Languages** | Arabic and English | ✅ | ✅ (Egyptian Arabic first) |
+| **Price** | | Free ("first 100 families") | Free |
+
+**Where Jojo is still ahead:**
+
+1. **Backup without effort.** Jojo's data moves to a new iPhone with the
+   normal iCloud backup. Usra deliberately keeps health data out of iCloud
+   (Apple 5.1.3, our privacy promise) and asks the family to save an
+   encrypted file.
+2. **Reading PDFs.** Jojo reads lab PDFs; Usra attaches PDFs but only reads
+   photos.
+3. **Focus.** Three things done simply. Usra does much more, which is
+   harder to make feel calm; the UX audit (separate PR) checks this.
+
+Proposals that follow from this:
+
+| # | Proposal | Size |
+| --- | --- | --- |
+| C11 | **Automatic encrypted backup**: optional weekly backup of the encrypted file to a folder the user picks once (never iCloud Drive: Apple 5.1.3; Google Drive only by sending a copy, as the Android folder picker doesn't appear to offer it), still unreadable without the recovery key; shows the last backup on the Backup screen | M |
+| C12 | **Read lab PDFs**: extract text from text-based PDFs on the device (fall back to rendering a page to an image for the existing reader) | S |
+| C13 | **Calm Home for parents**: a child-focused Home (next vaccine, today's doses, last fever) that hides adult features until used; follow the UX audit's findings | M |
+| C14 | **Store page**: lead with "no account, stays on your phone", then reminders that ring, growth and milestones, the whole family, Android | S |
+
+## Hands-on: Jojo 1.3 (5 Nov 2026)
+
+From screenshots of the installed app (version 1.3, build 17, newer than the
+1.2 store listing above). Changes the comparison in four places:
+
+- **Fever is released.** The "+" button offers Vaccine, Medicine, Lab report
+  and **Fever**; Records has a Fevers tab. Mark Jojo's fever log as ✅.
+- **A paid plan exists.** Settings shows "Founding member: Premium is free for
+  you, for life". Early users get Premium free; later users will likely pay.
+  The welcome screen says "Free for every child in your family".
+- **Vaccine schedule differs from ours** (needs a doctor's or current MoHP
+  check before we change anything):
+  - Jojo lists **hexavalent as required** at 2, 4 and 6 months with polio, and
+    no separate pentavalent or IPV. Our research
+    (`egypt-vaccine-schedule.md`) found hexavalent is **not** in the free
+    public schedule as of 4 Nov 2026 and models it as a private route.
+  - Jojo offers **meningitis (optional) at 9 months**; we start MenACWY at
+    12 months. Some MenACWY vaccines are licensed from 9 months.
+  - Matches: birth BCG + hepatitis B + polio; PCV and rotavirus optional at
+    2 and 4 months, PCV at 6; polio at 9 months; MMR + polio at 12 months.
+- **"Where" on each vaccine:** government health unit or private, plus vaccine
+  search and an optional card photo.
+
+**How it feels** (useful for the UX audit and C13):
+
+| Moment | Jojo |
+| --- | --- |
+| Welcome | One card with a countdown ("58 days until her 6-month vaccines") and "Your child's health, calmly kept." |
+| Onboarding | 5 steps: your name; one child (name, date of birth, illustrated girl/boy avatar, colour); "What has she already had?" grouped by age with **Tick all** per group, optional vaccines labelled, dates optional |
+| Home | Greeting by name; one vaccine card (due today, next visit date, required chips solid, optional dashed, "Mark what she's already had"); empty state with three big rows: Vaccine, Medicine, Lab report |
+| Navigation | Floating 4-tab bar (Home, Records, Vaccines, Settings) + a large "+" that adds anything from any tab; child switcher pill on every tab |
+| Adding | Bottom sheets with the person picker in the header; "Type it in" first, photo second |
+| Records | One screen, tabs Medicines / Labs / Vaccines / Fevers, search |
+| Vaccines | "0/10 required doses done" with one line of explanation and a link; All / Required / Optional; timeline by age with dates; English and Arabic names on the same chip |
+| Look | Warm off-white, one accent colour, very large titles, few elements per screen |
+
+**What to take from it:** the one-tap "+" for every record type, "Tick all"
+per age group, bilingual vaccine names on one chip, the "Where" field, and a
+first screen that shows the next thing to do. **What not to copy:** analytics
+by default (Jojo asks; we don't collect any), and health data in iCloud.
+
+New proposals: **C15** global "+" add button and Records tabs per type (S);
+**C16** "Where given" on vaccines (S); **C17** resolve the hexavalent and
+meningitis questions with a doctor and update the schedule source (S, founder
++ app).
+
 ## Proposals
 
 Ordered by value to Egyptian parents and how directly they answer Jojo. Every

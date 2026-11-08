@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
+import '../../core/follow_ups/follow_up.dart' show dayOf;
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/family_screen.dart' show profilesProvider;
@@ -28,17 +29,91 @@ class HomeFollowUps extends ConsumerWidget {
     if (items == null) return const SizedBox.shrink();
     final people = ref.watch(profilesProvider).value ?? const [];
     if (people.isEmpty) return const SizedBox.shrink();
+    // Home has its own vaccine card with the countdown.
+    final shown = items
+        .where((i) => !i.followUp.ruleId.startsWith(homeVaccineRulePrefix))
+        .take(homeFollowUpCount)
+        .toList();
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: _Section(
         key: const ValueKey('home-follow-ups'),
-        // Home has its own vaccine card with the countdown.
-        items: items
-            .where((i) => !i.followUp.ruleId.startsWith(homeVaccineRulePrefix))
-            .take(homeFollowUpCount)
-            .toList(),
+        items: shown,
         showNames: true,
+        // Not when Home says there's nothing: its vaccine card covers those.
+        allLink: shown.isNotEmpty && items.length > shown.length,
       ),
+    );
+  }
+}
+
+/// Every follow-up in the family: this week first, then later.
+class FollowUpsScreen extends ConsumerWidget {
+  const FollowUpsScreen({super.key});
+
+  /// How far "this week" looks ahead.
+  static const weekDays = 7;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final text = Theme.of(context).textTheme;
+    final today = ref.watch(todayProvider);
+    final items = ref.watch(familyFollowUpsProvider);
+    // Due dates are calendar days at UTC midnight.
+    final soon = dayOf(today).add(const Duration(days: weekDays));
+    return Scaffold(
+      appBar: AppBar(title: Text(l.followUpsTitle)),
+      body: switch (items) {
+        AsyncError(:final error) => Center(child: Text('$error')),
+        AsyncValue(value: final list?) => ListView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          children: [
+            if (list.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Text(
+                  l.followUpsEmpty,
+                  key: const ValueKey('follow-ups-empty'),
+                  textAlign: TextAlign.center,
+                  style: text.bodyLarge,
+                ),
+              ),
+            for (final (title, group) in [
+              (
+                l.followUpsThisWeek,
+                [
+                  for (final i in list)
+                    if (!i.followUp.dueOn.isAfter(soon)) i,
+                ],
+              ),
+              (
+                l.followUpsLater,
+                [
+                  for (final i in list)
+                    if (i.followUp.dueOn.isAfter(soon)) i,
+                ],
+              ),
+            ])
+              if (group.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(title, style: text.titleLarge),
+                ),
+                for (final item in group) ...[
+                  FollowUpTile(item: item, showName: true),
+                  const SizedBox(height: 8),
+                ],
+              ],
+            const SizedBox(height: 8),
+            Text(
+              l.followUpsDisclaimer,
+              style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
+            ),
+          ],
+        ),
+        _ => const Center(child: CircularProgressIndicator()),
+      },
     );
   }
 }
@@ -62,10 +137,18 @@ class MemberFollowUps extends ConsumerWidget {
 }
 
 class _Section extends StatelessWidget {
-  const _Section({super.key, required this.items, required this.showNames});
+  const _Section({
+    super.key,
+    required this.items,
+    required this.showNames,
+    this.allLink = false,
+  });
 
   final List<PersonFollowUp> items;
   final bool showNames;
+
+  /// There are more than shown here: a way to the whole list.
+  final bool allLink;
 
   @override
   Widget build(BuildContext context) {
@@ -76,9 +159,9 @@ class _Section extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.event_repeat_outlined, color: UsraColors.primary),
+            Icon(Icons.event_repeat_outlined, color: context.usra.primary),
             const SizedBox(width: 8),
-            Text(l.followUpsTitle, style: text.titleLarge),
+            Expanded(child: Text(l.followUpsTitle, style: text.titleLarge)),
           ],
         ),
         const SizedBox(height: 8),
@@ -92,9 +175,18 @@ class _Section extends StatelessWidget {
             FollowUpTile(item: item, showName: showNames),
             const SizedBox(height: 8),
           ],
+        if (allLink)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              key: const ValueKey('follow-ups-all'),
+              onPressed: () => context.push('/follow-ups'),
+              child: Text(l.followUpsAll),
+            ),
+          ),
         Text(
           l.followUpsDisclaimer,
-          style: text.bodySmall?.copyWith(color: UsraColors.textMuted),
+          style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
         ),
       ],
     );
@@ -127,7 +219,7 @@ class FollowUpTile extends ConsumerWidget {
       key: ValueKey('follow-up-${f.cycleKey}'),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: severity.foreground, width: 1.5),
+        side: BorderSide(color: severity.foregroundOf(context), width: 1.5),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -151,7 +243,7 @@ class FollowUpTile extends ConsumerWidget {
                           style: text.titleMedium,
                         ),
                         const SizedBox(height: 6),
-                        SeverityChip(
+                        StatusChip(
                           severity: severity,
                           label: overdue
                               ? l.followUpOverdue(date)
@@ -176,7 +268,7 @@ class FollowUpTile extends ConsumerWidget {
               if (f.source != null)
                 Text(
                   l.followUpSource(f.source!),
-                  style: text.bodySmall?.copyWith(color: UsraColors.textMuted),
+                  style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
                 ),
               if (type != null)
                 Align(

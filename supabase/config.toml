@@ -199,8 +199,8 @@ password_requirements = ""
 # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
 email_sent = 2
 # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
-# Usra: kept tight against SMS pumping; the hosted project needs the same (README).
-sms_sent = 10
+# Usra: no SMS at all (phone sign-in is off).
+sms_sent = 0
 # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
 anonymous_users = 30
 # Number of sessions that can be refreshed in a 5 minute interval per IP address.
@@ -221,7 +221,8 @@ web3 = 30
 [auth.email]
 # Allow/disallow the email provider. When false, users can't sign up or sign in with email.
 # To block new signups only, set enable_signup = false under [auth] instead.
-enabled = true
+# Usra: Google and Apple only. Their addresses come with the identity, not this provider.
+enabled = false
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
@@ -260,14 +261,10 @@ otp_expiry = 3600
 [auth.sms]
 # Allow/disallow the phone provider. When false, users can't sign up or sign in with SMS.
 # To block new signups only, set enable_signup = false under [auth] instead.
-enabled = true
+# Usra: off. Sign-in is Google and Apple only, so no SMS is ever sent.
+enabled = false
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
-# Template for sending OTP to users
-template = "Your Usra code is {{ .Code }}"
-# Controls the minimum amount of time that must pass before sending another sms otp.
-# Usra: 60s, matching the app's resend countdown; the server is what enforces it.
-max_frequency = "60s"
 
 # Use pre-defined map of phone number to OTP for testing.
 # Keys are the phone number with country code and without the + prefix.
@@ -290,13 +287,6 @@ max_frequency = "60s"
 # [auth.hook.custom_access_token]
 # enabled = true
 # uri = "pg-functions://<database>/<schema>/<hook_name>"
-
-# Usra sends OTP SMS through its own Edge Function (Unifonic or Twilio behind an interface).
-# The secret is a Standard Webhooks secret ("v1,whsec_..."), shared with the function.
-[auth.hook.send_sms]
-enabled = true
-uri = "http://host.docker.internal:54321/functions/v1/send-sms-hook"
-secrets = "env(SEND_SMS_HOOK_SECRETS)"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
 [auth.sms.twilio]
@@ -332,11 +322,16 @@ max_frequency = "5s"
 # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
 # `twitter`, `x`, `slack_oidc`, `spotify`, `workos`, `zoom`.
+# Usra signs in natively: the app gets an ID token from the system's sheet and hands it to
+# Auth (signInWithIdToken), so neither provider needs a secret or a redirect. client_id lists
+# the audiences to accept, comma separated; docs/login-setup.md says what goes where. Nonces
+# are checked: the app sends them on both platforms, so skip_nonce_check stays false.
 [auth.external.apple]
-enabled = false
-client_id = ""
-# DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
-secret = "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)"
+enabled = true
+# The app's bundle id.
+client_id = "env(SUPABASE_AUTH_EXTERNAL_APPLE_CLIENT_ID)"
+# Only for Apple's web flow, which Usra doesn't use, so it stays empty.
+secret = ""
 # Overrides the default auth callback URL derived from auth.external_url.
 redirect_uri = ""
 # Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
@@ -345,6 +340,17 @@ url = ""
 # If enabled, the nonce check will be skipped. Required for local sign in with Google auth.
 skip_nonce_check = false
 # If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
+email_optional = false
+
+[auth.external.google]
+enabled = true
+# The web client id first, then the iOS one.
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+# Only for Google's web flow, which Usra doesn't use, so it stays empty.
+secret = ""
+redirect_uri = ""
+url = ""
+skip_nonce_check = false
 email_optional = false
 
 # Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS) standard.
@@ -443,5 +449,17 @@ verify_jwt = true
 [functions.revenuecat-webhook]
 verify_jwt = false
 
-[functions.send-sms-hook]
-verify_jwt = false
+[functions.bind-device]
+verify_jwt = true
+
+[functions.approve-device]
+verify_jwt = true
+
+[functions.recover-device]
+verify_jwt = true
+
+[functions.append-family-log]
+verify_jwt = true
+
+[functions.publish-head]
+verify_jwt = true

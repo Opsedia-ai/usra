@@ -1,7 +1,8 @@
-// Delete account. POST { confirm: true } with the user's JWT.
+// Delete account. POST { confirm: true, apple_authorization_code? } with the user's JWT.
 
 import { withHttp } from "../_shared/http.ts";
 import { getServiceClient, requireUserIdOrGone } from "../_shared/supabase.ts";
+import { appleRevokerFromEnv } from "./apple.ts";
 import { type AccountDeleter, createDeleteAccountHandler } from "./handler.ts";
 
 const deleter: AccountDeleter = {
@@ -18,4 +19,6 @@ const deleter: AccountDeleter = {
   },
 };
 
-Deno.serve(withHttp(createDeleteAccountHandler({ getUserId: requireUserIdOrGone, deleter })));
+Deno.serve(
+  withHttp(createDeleteAccountHandler({ getUserId: requireUserIdOrGone, deleter, revokeApple: appleRevokerFromEnv() })),
+);

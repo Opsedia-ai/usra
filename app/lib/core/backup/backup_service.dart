@@ -9,6 +9,7 @@ import 'package:sqlite3/sqlite3.dart';
 import '../database/app_database.dart';
 import '../database/connection.dart';
 import '../files/photo_crypto.dart';
+import 'auto_backup.dart' show backupMissingPhotosCount;
 import 'backup_archive.dart';
 import 'backup_crypto.dart';
 import 'recovery_key.dart';
@@ -59,9 +60,17 @@ class StagedRestore {
 
 /// A backup file made by [BackupService.create].
 class CreatedBackup {
-  const CreatedBackup(this.file, {this.skippedPhotos = 0});
+  const CreatedBackup(
+    this.file, {
+    this.skippedPhotos = 0,
+    this.counts = const {},
+  });
 
   final File file;
+
+  /// What's in it, as in [BackupManifest.counts], plus the photos with a row
+  /// in the database but no file (`backupMissingPhotosCount`).
+  final Map<String, int> counts;
 
   /// Photos left out because they can't be opened on this phone (damaged,
   /// or the photo key is gone); the backup isn't complete without saying so.
@@ -95,6 +104,7 @@ class BackupService {
     this.kdf = BackupKdf.standard,
     this.chunkSize = BackupFileFormat.defaultChunkSize,
     this.excludeFromBackup,
+    this.replaceUnreadablePhotoKey = false,
   });
 
   /// The app's private folder, holding the database, [folders] and [files].
@@ -111,6 +121,11 @@ class BackupService {
   /// Where a new photo key is saved when a restore brings photos back to a
   /// phone whose key was lost (or never made).
   final PhotoKeyStore? photoKeyStore;
+
+  /// Restoring from the screen for a database that won't open, where the
+  /// person has been told everything here is replaced: a photo key that can't
+  /// be read doesn't stop it. Otherwise it does, since it may come back.
+  final bool replaceUnreadablePhotoKey;
 
   /// The key a staged restore encrypted its photos with, if it had to make
   /// one; saved by [commit].
@@ -137,6 +152,9 @@ class BackupService {
   static const _stagingName = 'restore-staging';
   static const _asideName = 'restore-aside';
   static const _markerName = 'restore-in-progress.json';
+
+  /// In the marker once a held commit's files have all moved.
+  static const _movedMark = 'moved';
 
   Directory get _staging => Directory(p.join(root.path, _stagingName));
   Directory get _aside => Directory(p.join(root.path, _asideName));
@@ -168,7 +186,7 @@ class BackupService {
         this.kdf,
         chunkSize,
       );
-      final skipped = await Isolate.run(
+      final (skipped, counts) = await Isolate.run(
         () => _pack(
           snapshot: snapshot,
           out: out.path,
@@ -184,7 +202,7 @@ class BackupService {
           createdAt: createdAt,
         ),
       );
-      return CreatedBackup(out, skippedPhotos: skipped);
+      return CreatedBackup(out, skippedPhotos: skipped, counts: counts);
     } catch (_) {
       if (await out.exists()) await out.delete();
       rethrow;
@@ -229,7 +247,8 @@ class BackupService {
     _stagedKey = null;
     var cipher = photoKeys.cipher;
     if (cipher == null) {
-      if (photoKeys.problem == PhotoKeyProblem.unreadable ||
+      if (photoKeys.problem == PhotoKeyProblem.unreadable &&
+              !replaceUnreadablePhotoKey ||
           photoKeyStore == null) {
         throw PhotoKeyUnavailableException(photoKeys.problem!);
       }
@@ -271,17 +290,23 @@ class BackupService {
   /// Swaps the staged backup in for the database and photos. The database
   /// must be closed. What was there is kept in a side folder until
   /// [discardAside]; if anything fails it is put back and this rethrows.
-  Future<void> commit() async {
+  ///
+  /// With [hold], a restart puts the old data back until [finishCommit], unless
+  /// what came in already opens with [deviceKey]: that means the new key was
+  /// saved, and the old data's key is gone. A staged photo key waits for
+  /// [saveStagedPhotoKey].
+  Future<void> commit({bool hold = false}) async {
     if (!await File(p.join(_staging.path, databaseName)).exists()) {
       throw StateError('Nothing staged to restore');
     }
-    if (_stagedKey case final key?) {
-      // Before anything moves: photos encrypted with a key that isn't kept
-      // would be lost.
-      await photoKeyStore!.save(key);
-      photoKeys.replace(key);
-      _stagedKey = null;
+    // A stopped restore that couldn't be rolled back: the old data is aside,
+    // and going on would delete the only copy.
+    if (await _marker.exists()) {
+      throw StateError('An earlier restore has not been undone');
     }
+    // Before anything moves: photos encrypted with a key that isn't kept would
+    // be lost.
+    if (!hold) await saveStagedPhotoKey();
     if (await _aside.exists()) await _aside.delete(recursive: true);
     await _aside.create();
     // Its presence is what matters: rollback works from [_targets].
@@ -298,7 +323,9 @@ class BackupService {
       await _clearStaging();
       rethrow;
     }
-    await _marker.delete();
+    await (hold
+        ? _marker.writeAsString(_movedMark, flush: true)
+        : _marker.delete());
     await _clearStaging();
     for (final folder in folders) {
       final dir = Directory(p.join(root.path, folder));
@@ -306,10 +333,31 @@ class BackupService {
     }
   }
 
+  /// The photo key a staged restore made, if it had to make one.
+  Future<void> saveStagedPhotoKey() async {
+    if (_stagedKey case final key?) {
+      await photoKeyStore!.save(key);
+      photoKeys.replace(key);
+      _stagedKey = null;
+    }
+  }
+
+  /// A held [commit] is final: a restart no longer puts the old data back.
+  Future<void> finishCommit() async {
+    if (await _marker.exists()) await _marker.delete();
+  }
+
   /// Drops a staged backup that won't be restored after all.
   Future<void> discardStaged() => _clearStaging();
 
   /// Deletes what a successful restore replaced.
+  /// A restore that went in but won't open: puts the old data back, while
+  /// it's still aside. If this is stopped part way, the next start finishes it.
+  Future<void> undoCommit() async {
+    await _marker.writeAsString('', flush: true);
+    await recoverInterrupted();
+  }
+
   Future<void> discardAside() async {
     if (await _aside.exists()) await _aside.delete(recursive: true);
   }
@@ -319,11 +367,29 @@ class BackupService {
   /// leftovers.
   Future<void> recoverInterrupted() async {
     if (await _marker.exists()) {
-      await _rollBack();
+      if (await _heldCommitIsFinal()) {
+        await finishCommit();
+        await discardAside();
+      } else {
+        await _rollBack();
+      }
     } else {
       await discardAside();
     }
     await _clearStaging();
+  }
+
+  /// A held commit whose files are all in, and whose database opens with this
+  /// phone's key. Rolling back then would lose the restored data, and bring back
+  /// old data whose key is gone.
+  Future<bool> _heldCommitIsFinal() async {
+    if (await _marker.readAsString() != _movedMark) return false;
+    try {
+      prepareDatabaseFile(File(p.join(root.path, databaseName)), deviceKey);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Everything a restore replaces, relative to [root]. The journal files
@@ -395,8 +461,49 @@ const _countedTables = {
   'attachments': 'attachments',
 };
 
-/// Returns how many photos were left out.
-Future<int> _pack({
+/// Every photo the live rows point at, whichever table holds the path. Add
+/// any new photo column here, or its photos can go missing unnoticed.
+Set<String> _photoPathsInDatabase(Database db, Set<String> tables) {
+  final paths = <String>{};
+  void addColumn(String table, String column) {
+    if (!tables.contains(table)) return;
+    for (final row in db.select(
+      'SELECT $column AS path FROM $table WHERE deleted_at IS NULL',
+    )) {
+      if (row['path'] case final String path when path.isNotEmpty) {
+        paths.add(path);
+      }
+    }
+  }
+
+  void addJsonColumn(String table, String column) {
+    if (!tables.contains(table)) return;
+    for (final row in db.select(
+      'SELECT $column AS paths FROM $table WHERE deleted_at IS NULL',
+    )) {
+      try {
+        final list = jsonDecode(row['paths'] as String) as List<dynamic>;
+        for (final path in list) {
+          if (path case final String path when path.isNotEmpty) {
+            paths.add(path);
+          }
+        }
+      } on Object {
+        // A damaged list can't name anything to look for; the row is kept.
+      }
+    }
+  }
+
+  addColumn('attachments', 'path');
+  addColumn('insurance_cards', 'front_photo');
+  addColumn('insurance_cards', 'back_photo');
+  addJsonColumn('medicines', 'photos_json');
+  addJsonColumn('prescriptions', 'photos_json');
+  return paths;
+}
+
+/// Returns how many photos were left out, and what's in it.
+Future<(int, Map<String, int>)> _pack({
   required String snapshot,
   required String out,
   required String root,
@@ -415,6 +522,7 @@ Future<int> _pack({
   final snapshotKey = DatabaseKeyStore.generateKey();
   final counts = <String, int>{};
   final int schemaVersion;
+  final Set<String> expectedPhotos;
   final db = sqlite3.open(snapshot);
   try {
     unlockDatabase(db, deviceKey);
@@ -435,6 +543,7 @@ Future<int> _pack({
                   .first['n']
               as int;
     }
+    expectedPhotos = _photoPathsInDatabase(db, tables);
     db.execute("PRAGMA rekey = '$snapshotKey';");
   } finally {
     db.close();
@@ -453,6 +562,11 @@ Future<int> _pack({
       photos.add((name, entity));
     }
   }
+
+  // In the database but not on disk: its folder is gone, or it never landed.
+  // Nothing in the file can show this, so it's reported here.
+  final found = {for (final (name, _) in photos) name};
+  final missing = expectedPhotos.where((path) => !found.contains(path)).length;
 
   var skipped = 0;
   final writer = await BackupFileWriter.create(
@@ -513,7 +627,7 @@ Future<int> _pack({
   } finally {
     await writer.close();
   }
-  return skipped;
+  return (skipped, {...counts, backupMissingPhotosCount: missing});
 }
 
 Future<Map<String, dynamic>> _unpack({

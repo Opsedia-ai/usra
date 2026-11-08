@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/design/dismiss_keyboard.dart';
 import 'core/design/theme.dart';
 import 'core/preferences.dart';
 import 'core/providers.dart';
 import 'core/routing/app_router.dart';
+import 'features/account/save_gate.dart';
 import 'features/app_lock/lock_screen.dart';
 import 'core/screen_privacy.dart';
 import 'core/security/root_warning.dart';
+import 'features/backup/auto_backup_trigger.dart';
 import 'l10n/app_localizations.dart';
 
 /// Simple Mode grows text up to this, so screens still fit when the phone's
@@ -22,10 +25,13 @@ class UsraApp extends ConsumerWidget {
     final simple = ref.watch(simpleModeProvider);
     // Applies "Block screenshots" from the start.
     ref.watch(screenPrivacyProvider);
+    ref.watch(saveGuardProvider);
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       theme: buildUsraTheme(simple: simple),
+      darkTheme: buildUsraTheme(simple: simple, brightness: Brightness.dark),
+      themeMode: ref.watch(themeModeProvider),
       locale: ref.watch(localeProvider),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -34,7 +40,11 @@ class UsraApp extends ConsumerWidget {
       // page stack. The lock covers every page, deep links included.
       builder: (context, child) => _textScale(
         context,
-        AppLockGate(child: RootWarning(child: child!)),
+        DismissKeyboardOnTap(
+          child: AutoBackupTrigger(
+            child: AppLockGate(child: RootWarning(child: child!)),
+          ),
+        ),
         simple: simple,
       ),
     );

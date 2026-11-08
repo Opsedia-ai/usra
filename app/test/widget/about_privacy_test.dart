@@ -10,6 +10,8 @@ import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/features/backup/backup_providers.dart';
 import 'package:usra/features/settings/about_privacy_screen.dart';
+import 'package:usra/features/account/account_providers.dart';
+import 'package:usra/features/account/supabase_config.dart';
 
 void main() {
   late AppDatabase db;
@@ -33,8 +35,11 @@ void main() {
   });
   tearDown(() => db.close());
 
+  var cloud = SupabaseConfig.none;
+
   Widget app() => ProviderScope(
     overrides: [
+      supabaseConfigProvider.overrideWithValue(cloud),
       databaseProvider.overrideWithValue(db),
       keyValueStoreProvider.overrideWithValue(prefs),
       recoveryKeyStoreProvider.overrideWithValue(MemoryRecoveryKeyStore()),
@@ -48,12 +53,12 @@ void main() {
   );
 
   Future<void> openAbout(WidgetTester tester, {bool english = false}) async {
-    tester.view.physicalSize = const Size(1170, 3000);
+    tester.view.physicalSize = const Size(1170, 6000);
     tester.view.devicePixelRatio = 1.5;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.more_horiz).last);
+    await tester.tap(find.byIcon(Icons.menu).last);
     await tester.pumpAndSettle();
     if (english) {
       await tester.tap(find.text('English'));
@@ -68,7 +73,7 @@ void main() {
     (tester) async {
       await openAbout(tester);
 
-      expect(find.text('عن أسرة والخصوصية'), findsOneWidget);
+      expect(find.text('الخصوصية والشروط'), findsOneWidget);
       expect(find.text('خصوصيتك، بكلام بسيط'), findsOneWidget);
       expect(find.textContaining('قاعدة بيانات متشفرة'), findsOneWidget);
       expect(find.textContaining('مفيش حساب'), findsOneWidget);
@@ -83,6 +88,28 @@ void main() {
       expect(find.text('النسخة 0.1.0+1'), findsOneWidget);
     },
   );
+
+  testWidgets('Dr. Usra AI shows as coming soon and can\'t be opened', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 3000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.menu).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('English'));
+    await tester.pumpAndSettle();
+
+    final tile = tester.widget<ListTile>(
+      find.byKey(const ValueKey('settings-ai-soon')),
+    );
+    expect(tile.enabled, isFalse);
+    expect(tile.onTap, isNull);
+    expect(find.text('Dr. Usra AI'), findsOneWidget);
+    expect(find.text('Coming soon'), findsOneWidget);
+  });
 
   testWidgets('the back arrow returns to More', (tester) async {
     await openAbout(tester);
@@ -129,10 +156,23 @@ void main() {
     expect(find.text('مقدرناش نفتح الصفحة. اتأكد من النت.'), findsOneWidget);
   });
 
+  testWidgets('a build with accounts doesn\'t say there are none', (
+    tester,
+  ) async {
+    cloud = const SupabaseConfig(
+      url: 'https://example.supabase.co',
+      anonKey: 'anon',
+    );
+    addTearDown(() => cloud = SupabaseConfig.none);
+    await openAbout(tester);
+    expect(find.textContaining('مفيش حساب'), findsNothing);
+    expect(find.textContaining('حفظ السجلات محتاج'), findsOneWidget);
+  });
+
   testWidgets('in English', (tester) async {
     await openAbout(tester, english: true);
 
-    expect(find.text('About & privacy'), findsOneWidget);
+    expect(find.text('Privacy and terms'), findsOneWidget);
     expect(find.text('Medical disclaimer'), findsOneWidget);
     expect(find.text('Version 0.1.0+1'), findsOneWidget);
 

@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/providers.dart';
+import '../../core/util/localized_digits.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import 'growth.dart';
 
 /// "Tell me the weight and I'll check": today's weight or height against
@@ -86,12 +88,22 @@ class _GrowthCheckCardState extends ConsumerState<GrowthCheckCard> {
                     padding: const EdgeInsets.only(top: 6),
                     child: Align(
                       alignment: AlignmentDirectional.centerStart,
-                      child: SeverityChip(
+                      child: StatusChip(
                         key: ValueKey('check-status-${i.name}'),
                         severity: reading.severity,
                         label: reading.withinUsualRange
-                            ? l.growthWithinRange(reading.percentileLabel)
-                            : l.growthOutsideRange(reading.percentileLabel),
+                            ? l.growthWithinRange(
+                                localizedDigitsIn(
+                                  context,
+                                  reading.percentileLabel,
+                                ),
+                              )
+                            : l.growthOutsideRange(
+                                localizedDigitsIn(
+                                  context,
+                                  reading.percentileLabel,
+                                ),
+                              ),
                       ),
                     ),
                   ),
@@ -116,6 +128,7 @@ class _GrowthCheckCardState extends ConsumerState<GrowthCheckCard> {
   Future<void> _save() async {
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    if (!await ref.read(saveGateProvider).allow() || !mounted) return;
     try {
       await ref
           .read(databaseProvider)

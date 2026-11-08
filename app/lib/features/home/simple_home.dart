@@ -7,9 +7,17 @@ import '../../core/design/dr_usra.dart';
 import '../../core/design/theme.dart';
 import '../../core/design/tokens.dart';
 import '../../l10n/app_localizations.dart';
+import '../app_lock/app_lock_module.dart';
 import '../backup/backup_notices.dart';
 import '../children/vaccines_screen.dart' show HomeVaccines;
 import '../family/family_screen.dart';
+import '../../core/preferences.dart' show simpleModeProvider;
+import '../../core/security/app_lock.dart' show appLockProvider;
+import '../family/person_status.dart' show TodayRefresh;
+import '../medicines/medicine_text.dart' show formatDoseTime, medicineTitle;
+import '../medicines/medicines_providers.dart'
+    show clockProvider, todayDosesProvider;
+import '../medicines/today_screen.dart' show DoseCard, DoseGroup, doseGroupOf;
 
 /// Home in Simple Mode: a greeting, the next vaccine visit of any young
 /// child, and four big buttons.
@@ -29,6 +37,7 @@ class SimpleHome extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
       children: [
         const BackupNotices(simple: true),
+        const AppLockHomeNotice(),
         Row(
           children: [
             DrUsra(size: 72, semanticLabel: l.homeGreeting),
@@ -47,6 +56,8 @@ class SimpleHome extends ConsumerWidget {
             ),
           ],
         ),
+        const SizedBox(height: 24),
+        _SimpleDoses(person: me),
         const SizedBox(height: 24),
         // A grandchild's next vaccine visit, when there's one.
         const HomeVaccines(),
@@ -91,6 +102,18 @@ class SimpleHome extends ConsumerWidget {
             onPressed: () => context.go('/settings'),
             icon: const Icon(Icons.settings_outlined),
             label: Text(l.navSettings),
+          ),
+        ),
+        Center(
+          child: TextButton(
+            key: const ValueKey('simple-exit'),
+            onPressed: () => leaveSimpleMode(context, ref),
+            child: Text(
+              ref.watch(appLockProvider).enabled
+                  ? l.simpleExitWithPin
+                  : l.simpleExit,
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
       ],
@@ -145,6 +168,133 @@ class SimpleHome extends ConsumerWidget {
   }
 }
 
+/// Leaving Simple Mode asks first, so it can't happen by a stray tap: the PIN
+/// (or fingerprint) when there's a lock, otherwise a plain question. True when
+/// the app left it.
+Future<bool> leaveSimpleMode(BuildContext context, WidgetRef ref) async {
+  final l = AppLocalizations.of(context);
+  final bool yes;
+  if (ref.read(appLockProvider).enabled) {
+    yes = await confirmItsYou(context);
+  } else {
+    yes =
+        await showDialog<bool>(
+          context: context,
+          builder: (dialog) => AlertDialog(
+            key: const ValueKey('simple-exit-confirm'),
+            content: Text(l.simpleExitConfirm),
+            actions: [
+              TextButton(
+                key: const ValueKey('simple-exit-stay'),
+                onPressed: () => Navigator.pop(dialog, false),
+                child: Text(l.simpleExitStay),
+              ),
+              FilledButton(
+                key: const ValueKey('simple-exit-go'),
+                onPressed: () => Navigator.pop(dialog, true),
+                child: Text(l.simpleExitGo),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+  if (!yes) return false;
+  try {
+    await ref.read(simpleModeProvider.notifier).set(false);
+    return true;
+  } catch (_) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l.saveFailed)));
+    }
+    return false;
+  }
+}
+
+/// The next doses, each with its own button and the Medicines tab's rules, then
+/// the one after; or a plain line when none are left today.
+class _SimpleDoses extends ConsumerStatefulWidget {
+  const _SimpleDoses({required this.person});
+
+  /// Whose phone this is; null shows the whole family's.
+  final Profile? person;
+
+  @override
+  ConsumerState<_SimpleDoses> createState() => _SimpleDosesState();
+}
+
+class _SimpleDosesState extends ConsumerState<_SimpleDoses>
+    with TodayRefresh<_SimpleDoses> {
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final text = Theme.of(context).textTheme;
+    final doses = ref.watch(todayDosesProvider).value;
+    // Says nothing until it knows: "none left" has to be true.
+    if (doses == null) return const SizedBox.shrink();
+    final person = widget.person;
+    final open = [
+      for (final d in doses)
+        if (!d.isDone && (person == null || d.regimen.person.id == person.id))
+          d,
+    ];
+    if (open.isEmpty) {
+      return Text(
+        l.simpleNoDoses,
+        key: const ValueKey('simple-no-doses'),
+        style: text.titleLarge,
+      );
+    }
+    // What's missed or due now, each with its own button. Only when there's
+    // none does the next time come forward. A dose missed this morning can't
+    // hide the one that's due.
+    final clock = ref.watch(clockProvider)();
+    final due = [
+      for (final d in open)
+        if (doseGroupOf(d, clock) != DoseGroup.later) d,
+    ];
+    final now = due.isNotEmpty
+        ? due
+        : [
+            for (final d in open)
+              if (d.at == open.first.at) d,
+          ];
+    final then = open.where((d) => !now.contains(d)).firstOrNull;
+    return Column(
+      key: const ValueKey('simple-doses'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: UsraSpacing.s2,
+      children: [
+        Text(l.simpleNextDose, style: text.titleLarge),
+        for (final d in now)
+          DoseCard(
+            key: ValueKey(
+              'simple-dose-${d.regimen.medicine.id}-'
+              '${d.at.millisecondsSinceEpoch}',
+            ),
+            dose: d,
+          ),
+        if (then != null)
+          Text(
+            person == null
+                ? l.simpleThenDoseFor(
+                    medicineTitle(then.regimen.medicine),
+                    then.regimen.person.displayName,
+                    formatDoseTime(context, then.at),
+                  )
+                : l.simpleThenDose(
+                    medicineTitle(then.regimen.medicine),
+                    formatDoseTime(context, then.at),
+                  ),
+            key: const ValueKey('simple-then'),
+            style: text.titleMedium,
+          ),
+      ],
+    );
+  }
+}
+
 enum _Look { primary, outlined, emergency }
 
 class _BigButton extends StatelessWidget {
@@ -164,14 +314,14 @@ class _BigButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (background, foreground) = switch (style) {
-      _Look.primary => (UsraColors.primary, Colors.white),
-      _Look.emergency => (UsraColors.emergency, Colors.white),
-      _Look.outlined => (UsraColors.surface, UsraColors.primary),
+      _Look.primary => (context.usra.primary, context.usra.onPrimary),
+      _Look.emergency => (context.usra.urgent, context.usra.onUrgent),
+      _Look.outlined => (context.usra.surface, context.usra.primary),
     };
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(22),
       side: style == _Look.outlined
-          ? const BorderSide(color: UsraColors.primary, width: 2)
+          ? BorderSide(color: context.usra.primary, width: 2)
           : BorderSide.none,
     );
     final text = Theme.of(context).textTheme;

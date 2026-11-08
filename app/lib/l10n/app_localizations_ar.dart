@@ -77,9 +77,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
-  String get settingsPrivacy => 'بياناتك بتفضل على الموبايل ده ومتشفرة.';
-
-  @override
   String get recoveryNotice =>
       'مقدرناش نفتح سجلاتك القديمة على الموبايل ده، فحفظناها على جنب بأمان وبدأنا من جديد. تقدر ترجعها من النسخة الاحتياطية في المزيد.';
 
@@ -88,10 +85,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'أسرة مش جهاز طبي. اسأل دكتورك دايماً قبل أي قرار طبي.';
 
   @override
-  String get aboutTitle => 'عن أسرة والخصوصية';
+  String get aboutTitle => 'الخصوصية والشروط';
 
   @override
-  String get aboutHint => 'بياناتك بتتحفظ إزاي، ونسخة التطبيق';
+  String get aboutHint => 'البيانات بتتحفظ إزاي، ونسخة التطبيق';
 
   @override
   String get aboutPrivacyHeading => 'خصوصيتك، بكلام بسيط';
@@ -105,6 +102,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'مفيش حساب ولا تسجيل دخول ولا إعلانات ولا تتبع. وعمرنا ما بنبيع ولا بنشارك بيانات حد.';
 
   @override
+  String get aboutPrivacyOptionalAccount =>
+      'حفظ السجلات محتاج تسجيل دخول، ومفيش إعلانات ولا تتبع. بنحتفظ بإيميلك ورقم تعريف للحساب ومعاهم اللغة ومعلومات الجهاز علشان الحساب يشتغل، وكمان اسمك ولينك صورة حسابك لو الدخول بـ Google. ومش بنستلم سجلاتك الصحية. وعمرنا ما بنبيع ولا بنشارك بيانات حد.';
+
+  @override
   String get aboutPrivacyBackup =>
       'النسخة الاحتياطية ملف متشفر إنت بتحتفظ بيه في المكان اللي تختاره. ميتفتحش غير بمفتاح الاسترجاع بتاعك، وهو مش معانا.';
 
@@ -114,7 +115,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutPrivacyReminders =>
-      'التذكير بيتظبط على الموبايل ده. أسامي الأشخاص وأسامي الأدوية ممكن تظهر على شاشة القفل (الاسم زي ما كتبته) وفي الويدجت (الاسم الأول).';
+      'التذكير بيتظبط على الموبايل ده. من الأول بيظهر فيه كلام عام من غير أسامي. ولو \"تنبيهات من غير أسامي\" اتقفلت، أسامي الأشخاص وأسامي الأدوية ممكن تظهر على شاشة القفل. الويدجت مفيهوش أسامي، مواعيد وعدد جرعات بس.';
 
   @override
   String get aboutPrivacyDelete =>
@@ -146,7 +147,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get aboutLinkFailed => 'مقدرناش نفتح الصفحة. اتأكد من النت.';
 
   @override
-  String get familyNew => 'شخص جديد';
+  String get familyNew => 'فرد جديد';
 
   @override
   String get familyEdit => 'تعديل';
@@ -156,6 +157,74 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profileSex => 'النوع';
+
+  @override
+  String get profileRelationship => 'صلة القرابة';
+
+  @override
+  String relationshipMine(String relationship) {
+    String _temp0 = intl.Intl.selectLogic(relationship, {
+      'son': 'ابني',
+      'daughter': 'بنتي',
+      'husband': 'جوزي',
+      'wife': 'مراتي',
+      'father': 'بابا',
+      'mother': 'ماما',
+      'brother': 'أخويا',
+      'sister': 'أختي',
+      'grandfather': 'جدو',
+      'grandmother': 'تيتة',
+      'other': 'حد تاني',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String relationshipYours(String relationship) {
+    String _temp0 = intl.Intl.selectLogic(relationship, {
+      'son': 'ابنك',
+      'daughter': 'بنتك',
+      'husband': 'جوزك',
+      'wife': 'مراتك',
+      'father': 'باباك',
+      'mother': 'مامتك',
+      'brother': 'أخوك',
+      'sister': 'أختك',
+      'grandfather': 'جدك',
+      'grandmother': 'تيتتك',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get profileEmergencyPhone => 'رقم للطوارئ';
+
+  @override
+  String get profileEmergencyPhoneHint =>
+      'اختياري. بيظهر في كارت الطوارئ، وعلى قفل أسرة لو الكارت متاح هناك.';
+
+  @override
+  String get profileEmergencyInvalid => 'ده مش رقم تليفون.';
+
+  @override
+  String get profileEmergencyName => 'صاحب الرقم';
+
+  @override
+  String get profileEmergencyNameHint => 'اختياري. مثلًا: آية، مامته.';
+
+  @override
+  String get emergencyContactNoName => 'رقم للطوارئ';
+
+  @override
+  String emergencyCallNumber(String phone) {
+    return 'اتصل برقم الطوارئ: $phone';
+  }
+
+  @override
+  String emergencyCallContact(String name, String phone) {
+    return 'اتصل بـ $name: $phone';
+  }
 
   @override
   String get sexFemale => 'أنثى';
@@ -180,11 +249,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String ageYears(int age) {
+    final intl.NumberFormat ageNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String ageString = ageNumberFormat.format(age);
+
     String _temp0 = intl.Intl.pluralLogic(
       age,
       locale: localeName,
-      other: '$age سنة',
-      few: '$age سنين',
+      other: '$ageString سنة',
+      few: '$ageString سنين',
       two: 'سنتين',
       one: 'سنة',
       zero: 'أقل من سنة',
@@ -263,7 +337,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String recordPdf(int number) {
-    return 'ملف PDF $number';
+    final intl.NumberFormat numberNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String numberString = numberNumberFormat.format(number);
+
+    return 'ملف PDF $numberString';
   }
 
   @override
@@ -280,7 +358,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String labTestNumber(int number) {
-    return 'تحليل $number';
+    final intl.NumberFormat numberNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String numberString = numberNumberFormat.format(number);
+
+    return 'تحليل $numberString';
   }
 
   @override
@@ -341,7 +423,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String labScanFound(int count) {
-    return 'لقينا $count نتيجة. الخانات المعلّمة الموبايل مكانش متأكد منها: راجعها على الورقة.';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'لقينا $countString نتيجة. الخانات المعلّمة الموبايل مكانش متأكد منها: راجعها على الورقة.';
   }
 
   @override
@@ -353,10 +439,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String labScanSkipped(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count تحاليل كانوا موجودين، فقراءتهم الجديدة متضافتش.',
+      other: '$countString تحاليل كانوا موجودين، فقراءتهم الجديدة متضافتش.',
       one: 'تحليل كان موجود، فقراءته الجديدة متضافتش.',
     );
     return '$_temp0';
@@ -364,10 +454,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String labScanReplace(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'استخدم القراءات الجديدة ($count)',
+      other: 'استخدم القراءات الجديدة ($countString)',
       one: 'استخدم القراءة الجديدة',
     );
     return '$_temp0';
@@ -583,11 +677,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String spendingRecords(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count سجل',
-      few: '$count سجلات',
+      other: '$countString سجل',
+      few: '$countString سجلات',
       two: 'سجلين',
       one: 'سجل واحد',
     );
@@ -689,7 +787,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shareFailed => 'مقدرناش نفتح المشاركة';
 
   @override
-  String get emergencyTitle => 'بطاقة الطوارئ';
+  String get emergencyTitle => 'كارت الطوارئ';
 
   @override
   String get emergencyUnknown => 'مش متسجلة';
@@ -764,7 +862,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String growthWithinRange(String percentile) {
-    return 'المئين $percentile: في المدى المعتاد للسن ده.';
+    return 'جوه المعدل المرجعي للسن ده (المئين $percentile).';
   }
 
   @override
@@ -789,11 +887,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String vaccineAtMonths(int months) {
+    final intl.NumberFormat monthsNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String monthsString = monthsNumberFormat.format(months);
+
     String _temp0 = intl.Intl.pluralLogic(
       months,
       locale: localeName,
-      other: 'عند $months شهر',
-      few: 'عند $months شهور',
+      other: 'عند $monthsString شهر',
+      few: 'عند $monthsString شهور',
       two: 'عند شهرين',
       one: 'عند شهر',
     );
@@ -822,7 +924,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String vaccineDoseName(String name, int dose) {
-    return '$name، جرعة $dose';
+    final intl.NumberFormat doseNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String doseString = doseNumberFormat.format(dose);
+
+    return '$name، جرعة $doseString';
   }
 
   @override
@@ -860,11 +967,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String recordPhotoCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count صورة',
-      few: '$count صور',
+      other: '$countString صورة',
+      few: '$countString صور',
       two: 'صورتين',
       one: 'صورة',
     );
@@ -878,7 +989,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordShare => 'ابعت';
 
   @override
-  String get recordDelete => 'امسح';
+  String get recordDelete => 'مسح';
+
+  @override
+  String get recordClearDate => 'شيل التاريخ';
 
   @override
   String get recordDeleteConfirm => 'نمسح السجل ده؟ صوره هتتمسح من الموبايل.';
@@ -894,7 +1008,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String photoPosition(int index, int total) {
-    return 'صورة $index من $total';
+    final intl.NumberFormat indexNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String indexString = indexNumberFormat.format(index);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return 'صورة $indexString من $totalString';
   }
 
   @override
@@ -907,11 +1028,44 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navCall => 'اتصال';
 
   @override
+  String get drUsraWelcome => 'دكتور أسرة بيسلّم عليك';
+
+  @override
+  String get drUsraExplaining => 'دكتور أسرة بيشرح';
+
+  @override
+  String get drUsraEmptyState => 'دكتور أسرة ماسك علامة زائد';
+
+  @override
+  String get drUsraCelebrating => 'دكتور أسرة فرحان';
+
+  @override
+  String get drUsraResting => 'دكتور أسرة بيرتاح';
+
+  @override
+  String get settingsTheme => 'شكل التطبيق';
+
+  @override
+  String get settingsThemeSystem => 'زي الموبايل';
+
+  @override
+  String get settingsThemeLight => 'فاتح';
+
+  @override
+  String get settingsThemeDark => 'غامق';
+
+  @override
   String get settingsSimpleMode => 'الوضع البسيط';
 
   @override
   String get settingsSimpleModeHint =>
       'كلام وزراير أكبر وتابات أقل. مناسب للجدّ والجدّة لما يستخدموا الموبايل لوحدهم.';
+
+  @override
+  String get settingsAiTitle => 'دكتور أسرة الذكي';
+
+  @override
+  String get settingsAiSoon => 'قريب';
 
   @override
   String get settingsTutorial => 'اعرض الشرح تاني';
@@ -966,7 +1120,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String tutorialStep(int current, int total) {
-    return '$current من $total';
+    final intl.NumberFormat currentNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String currentString = currentNumberFormat.format(current);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return '$currentString من $totalString';
   }
 
   @override
@@ -981,7 +1142,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tutorialPrivacyBody =>
-      'كل حاجة متسجّلة على الموبايل ده ومتشفّرة. مش محتاج حساب.';
+      'كل حاجة متسجّلة على الموبايل ده ومتشفّرة، من غير حساب.';
+
+  @override
+  String get tutorialPrivacyBodyAccount =>
+      'السجلات متسجّلة على الموبايل ده ومتشفّرة، والحساب مش بيشيلها.';
 
   @override
   String get tutorialFamilyTitle => 'ضيف عيلتك';
@@ -1053,7 +1218,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get scanMedicineName => 'اسم الدوا';
 
   @override
-  String get scanMedicineStrength => 'التركيز (اختياري)، زي 500mg';
+  String get scanMedicineStrength => 'التركيز (اختياري)';
 
   @override
   String get scanMedicineCheck => 'راجع الاسم على العلبة قبل ما تستخدمه.';
@@ -1168,11 +1333,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String fuAgeMonths(int months) {
+    final intl.NumberFormat monthsNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String monthsString = monthsNumberFormat.format(months);
+
     String _temp0 = intl.Intl.pluralLogic(
       months,
       locale: localeName,
-      other: '$months شهر',
-      few: '$months شهور',
+      other: '$monthsString شهر',
+      few: '$monthsString شهور',
       two: 'شهرين',
       one: 'شهر',
     );
@@ -1198,11 +1367,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String fuLastDoneMonths(int months) {
+    final intl.NumberFormat monthsNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String monthsString = monthsNumberFormat.format(months);
+
     String _temp0 = intl.Intl.pluralLogic(
       months,
       locale: localeName,
-      other: 'آخر مرة من $months شهر',
-      few: 'آخر مرة من $months شهور',
+      other: 'آخر مرة من $monthsString شهر',
+      few: 'آخر مرة من $monthsString شهور',
       two: 'آخر مرة من شهرين',
       one: 'آخر مرة من شهر',
       zero: 'آخر مرة الشهر ده',
@@ -1215,17 +1388,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String fuAgeFrom(int age) {
-    return 'مقترح من سن $age';
+    final intl.NumberFormat ageNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String ageString = ageNumberFormat.format(age);
+
+    return 'مقترح من سن $ageString';
   }
 
   @override
   String fuAgeRange(int from, int to) {
-    return 'مقترح من سن $from لـ $to';
+    final intl.NumberFormat fromNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String fromString = fromNumberFormat.format(from);
+    final intl.NumberFormat toNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String toString = toNumberFormat.format(to);
+
+    return 'مقترح من سن $fromString لـ $toString';
   }
 
   @override
   String fuWomenAgeRange(int from, int to) {
-    return 'مقترح للستات من سن $from لـ $to';
+    final intl.NumberFormat fromNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String fromString = fromNumberFormat.format(from);
+    final intl.NumberFormat toNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String toString = toNumberFormat.format(to);
+
+    return 'مقترح للستات من سن $fromString لـ $toString';
   }
 
   @override
@@ -1260,19 +1456,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get doseTaken => 'اتاخد';
 
   @override
-  String get doseSkip => 'فوّته';
+  String get doseSkip => 'ماتاخدش';
 
   @override
-  String get doseSkipped => 'اتفوّت';
+  String get doseSkipped => 'ماتاخدش';
 
   @override
   String get doseSnoozed => 'متأجل';
 
   @override
-  String get doseSnooze => 'أجّل 10 دقايق';
+  String get doseSnooze => 'أجّل ١٠ دقايق';
 
   @override
-  String get doseUndo => 'رجوع';
+  String get doseUndo => 'تراجع';
 
   @override
   String doseMarkedAt(String status, String time) {
@@ -1285,7 +1481,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get doseReminderBody => 'دوس اتاخد بعد ما ياخده';
+  String doseReminderBody(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'female': 'دوس اتاخد بعد ما تاخده',
+      'other': 'دوس اتاخد بعد ما ياخده',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get doseChannelName => 'مواعيد الأدوية';
@@ -1319,6 +1521,66 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get medicineEdit => 'تعديل الدوا';
+
+  @override
+  String get medicineMoveAction => 'نقل لشخص تاني';
+
+  @override
+  String get medicineMoveTitle => 'نقل الدوا';
+
+  @override
+  String medicineMoveNow(String name) {
+    return 'دلوقتي عند $name';
+  }
+
+  @override
+  String get medicineMoveTo => 'ينتقل لمين؟';
+
+  @override
+  String get medicineMoveWhatTitle => 'هينقل مع الدوا';
+
+  @override
+  String get medicineMoveWhat => 'المواعيد والتذكير والجرعات المسجلة والصور.';
+
+  @override
+  String medicineMoveStaysTitle(String name) {
+    return 'هيفضل عند $name';
+  }
+
+  @override
+  String get medicineMoveStaysPrescription =>
+      'الروشتة، بتاريخها وصورها. الدوا هيتشال من قايمتها.';
+
+  @override
+  String get medicineMoveStaysSickDays =>
+      'الجرعات المتسجلة في أيام التعب، باسم الدوا.';
+
+  @override
+  String get medicineMoveStopsNextDose =>
+      'تذكير الجرعة الجاية في يوم التعب هيتوقف.';
+
+  @override
+  String medicineMoveReminder(String to, String from) {
+    return 'بعد النقل التذكير هيبقى ل$to، مش ل$from.';
+  }
+
+  @override
+  String get medicineMoveChoose => 'اختار الشخص الأول';
+
+  @override
+  String medicineMoveConfirm(String name) {
+    return 'نقل ل$name';
+  }
+
+  @override
+  String medicineMoveKeep(String name) {
+    return 'يفضل عند $name';
+  }
+
+  @override
+  String medicineMoveDone(String name) {
+    return 'الدوا اتنقل ل$name.';
+  }
 
   @override
   String get medicineName => 'اسم الدوا';
@@ -1395,7 +1657,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get medicineAmount => 'الكمية كل مرة';
 
   @override
-  String get medicineAmountHint => 'زي ما الدكتور كتب، مثلاً: قرص واحد';
+  String get medicineAmountHint => 'زي ما الدكتور كتب';
 
   @override
   String get medicineRepeat => 'كل قد إيه';
@@ -1413,7 +1675,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get medicineEveryN => 'كل كام يوم';
 
   @override
-  String get medicineEveryNInvalid => 'اكتب رقم من 2 لـ 60';
+  String get medicineEveryNInvalid => 'اكتب رقم من ٢ لـ ٦٠';
 
   @override
   String get medicineWeekdaysEmpty => 'اختار يوم واحد على الأقل';
@@ -1470,11 +1732,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String scheduleEveryNDays(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
     String _temp0 = intl.Intl.pluralLogic(
       n,
       locale: localeName,
-      other: 'كل $n يوم',
-      few: 'كل $n أيام',
+      other: 'كل $nString يوم',
+      few: 'كل $nString أيام',
       two: 'كل يومين',
       one: 'كل يوم',
     );
@@ -1509,15 +1776,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backupTitle => 'النسخة الاحتياطية';
 
   @override
-  String get settingsBackupHint =>
-      'احتفظ بنسخة من سجلات العيلة برّه الموبايل ده';
-
-  @override
   String get backupIntro =>
-      'النسخة الاحتياطية ملف واحد متشفّر فيه كل سجلات العيلة وصورها. احفظه على Google Drive أو في الملفات، أو ابعته لنفسك على واتساب. علشان تفتحه على موبايل جديد هتحتاج مفتاح الاسترجاع بتاعك.';
+      'النسخة الاحتياطية ملف واحد متشفّر فيه كل سجلات العيلة وصورها، وبيتحفظ على Google Drive أو في الملفات أو على واتساب. فتحه على موبايل جديد محتاج مفتاح الاسترجاع.';
 
   @override
-  String get backupNever => 'لسه معملتش نسخة احتياطية';
+  String get backupNever => 'لسه مفيش نسخة احتياطية';
 
   @override
   String backupLast(String date) {
@@ -1525,7 +1788,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get backupNow => 'اعمل نسخة احتياطية دلوقتي';
+  String get backupNow => 'نسخة احتياطية دلوقتي';
 
   @override
   String get backupWorking => 'بنجهّز النسخة…';
@@ -1554,22 +1817,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recoveryKeyIntro =>
-      'ده مفتاح الاسترجاع بتاعك. اكتبه على ورقة واحتفظ بيها في مكان أمين بعيد عن الموبايل. هتحتاجه علشان تفتح النسخ الاحتياطية على موبايل جديد.';
+      'ده مفتاح الاسترجاع. مكانه ورقة في مكان أمين بعيد عن الموبايل. فتح النسخ الاحتياطية على موبايل جديد محتاجه.';
 
   @override
   String get recoveryKeyShowIntro =>
-      'ده المفتاح اللي بيفتح نسخك الاحتياطية. اتأكد إنه زي اللي مكتوب عندك على الورقة.';
+      'ده المفتاح اللي بيفتح النسخ الاحتياطية. لازم يكون زي اللي مكتوب على الورقة.';
 
   @override
   String get recoveryKeyLoseWarning =>
       'من غير المفتاح ده محدش يقدر يفتح نسخك الاحتياطية، ولا حتى إحنا. ولو ضاع مش هنقدر نرجّعه.';
 
   @override
-  String get recoveryKeyWrittenDown => 'كتبته';
+  String get recoveryKeyWrittenDown => 'اتكتب على الورقة';
 
   @override
   String get recoveryKeyConfirmIntro =>
-      'علشان نتأكد إنه مكتوب صح، اكتب المجموعتين دول من الورقة.';
+      'علشان نتأكد إنه مكتوب صح: المجموعتين دول من الورقة.';
 
   @override
   String recoveryKeyGroupLabel(int number) {
@@ -1580,10 +1843,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recoveryKeyConfirm => 'تأكيد';
 
   @override
-  String get recoveryKeyShowAgain => 'اعرض المفتاح تاني';
+  String get recoveryKeyShowAgain => 'عرض المفتاح تاني';
 
   @override
-  String get recoveryKeyCopy => 'انسخ المفتاح';
+  String get recoveryKeyCopy => 'نسخ المفتاح';
 
   @override
   String get recoveryKeyCopied =>
@@ -1606,7 +1869,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shareWarningGo => 'ابعت';
 
   @override
-  String get rootWarningTitle => 'حماية الموبايل ده مقفولة';
+  String get rootWarningTitle => 'حماية الموبايل ده مش شغّالة';
 
   @override
   String get rootWarningBody =>
@@ -1663,6 +1926,31 @@ class AppLocalizationsAr extends AppLocalizations {
       'أسرة مقدرتش تفتح تاني بعد المسح. اقفلها وافتحها تاني.';
 
   @override
+  String get databaseKeyUnavailable =>
+      'أسرة مقدرتش تفتح مفتاح سجلاتك دلوقتي. سجلاتك لسه موجودة ومتمسحتش. جرّب تاني، أو اقفل الموبايل وافتحه. لو المشكلة فضلت، كلمنا قبل ما تمسح التطبيق.';
+
+  @override
+  String get databaseOpenFailed =>
+      'أسرة مقدرتش تفتح سجلاتك دلوقتي. سجلاتك لسه موجودة ومتمسحتش. اتأكد إن الموبايل فيه مساحة فاضية، وبعدين جرّب تاني أو اقفل الموبايل وافتحه. لو المشكلة فضلت، كلمنا قبل ما تمسح التطبيق.';
+
+  @override
+  String get databaseSupportLabel => 'للمساعدة والدعم:';
+
+  @override
+  String get databaseSupportAddress => 'aya@opsedia.ai';
+
+  @override
+  String get databaseStartFresh => 'ابدأ من جديد';
+
+  @override
+  String get databaseStartFreshHint =>
+      'آخر حل، لو مفيش نسخة احتياطية والمشكلة مش بتروح. ده بيمسح كل حاجة أسرة شايلاها على الموبايل ده.';
+
+  @override
+  String get databaseStartFreshIntro =>
+      'سجلاتك مش بتتفتح، وممكن تكون لسه موجودة على الموبايل. لو عندك نسخة احتياطية، ارجع وجرّب استرجاعها الأول. لو كلّمتنا الأول ممكن نساعد.';
+
+  @override
   String get recoveryKeyCopyFailed =>
       'مقدرناش ننسخ المفتاح. اكتبه من على الشاشة بدل كده.';
 
@@ -1696,10 +1984,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String lockTriesBeforeWipe(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count أرقام سرية غلط كمان تمسح كل حاجة',
+      other: '$countString أرقام سرية غلط كمان تمسح كل حاجة',
       one: 'رقم سري غلط كمان واحد يمسح كل حاجة',
     );
     return '$_temp0';
@@ -1711,20 +2003,26 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get recoveryKeyShow => 'اعرض مفتاح الاسترجاع';
+  String get restoreTitle => 'استرجاع من نسخة احتياطية';
 
   @override
-  String get restoreTitle => 'استرجع من نسخة احتياطية';
+  String get restoreHint => 'كل اللي على الموبايل ده هيتبدل';
 
   @override
-  String get restoreHint => 'هتستبدل كل اللي على الموبايل ده';
+  String get recoveryKeyRowHint => 'مكتوب على الورقة';
+
+  @override
+  String get restoreKeyHelp => '٦ مجموعات، كل مجموعة ٦ أرقام.';
+
+  @override
+  String get restoreCancel => 'رجوع من غير تغيير';
 
   @override
   String get restoreIntro =>
-      'اختار ملف النسخة الاحتياطية (بينتهي بـ ‎.usra‎) من Drive أو الملفات أو واتساب، وبعدين اكتب مفتاح الاسترجاع.';
+      'ملف النسخة الاحتياطية بينتهي بـ ‎.usra‎ وبيبقى على Drive أو في الملفات أو واتساب. بعد الملف، مفتاح الاسترجاع.';
 
   @override
-  String get restorePick => 'اختار ملف النسخة';
+  String get restorePick => 'اختيار ملف النسخة';
 
   @override
   String get restoreKeyLabel => 'مفتاح الاسترجاع (٣٦ رقم)';
@@ -1735,7 +2033,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get restoreOpen => 'افتح النسخة';
+  String get restoreOpen => 'فتح النسخة';
 
   @override
   String get restoreNotABackup => 'الملف ده مش نسخة احتياطية من أسرة.';
@@ -1761,35 +2059,48 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String restoreContents(int people, int records, int medicines, int photos) {
+    final intl.NumberFormat peopleNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String peopleString = peopleNumberFormat.format(people);
+    final intl.NumberFormat recordsNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String recordsString = recordsNumberFormat.format(records);
+    final intl.NumberFormat medicinesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String medicinesString = medicinesNumberFormat.format(medicines);
+    final intl.NumberFormat photosNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String photosString = photosNumberFormat.format(photos);
+
     String _temp0 = intl.Intl.pluralLogic(
       people,
       locale: localeName,
-      other: '$people شخص',
-      few: '$people أشخاص',
+      other: '$peopleString شخص',
+      few: '$peopleString أشخاص',
       two: 'شخصين',
       one: 'شخص واحد',
     );
     String _temp1 = intl.Intl.pluralLogic(
       records,
       locale: localeName,
-      other: '$records سجل',
-      few: '$records سجلات',
+      other: '$recordsString سجل',
+      few: '$recordsString سجلات',
       two: 'سجلين',
       one: 'سجل واحد',
     );
     String _temp2 = intl.Intl.pluralLogic(
       medicines,
       locale: localeName,
-      other: '$medicines دوا',
-      few: '$medicines أدوية',
+      other: '$medicinesString دوا',
+      few: '$medicinesString أدوية',
       two: 'دوايين',
       one: 'دوا واحد',
     );
     String _temp3 = intl.Intl.pluralLogic(
       photos,
       locale: localeName,
-      other: '$photos صورة',
-      few: '$photos صور',
+      other: '$photosString صورة',
+      few: '$photosString صور',
       two: 'صورتين',
       one: 'صورة واحدة',
     );
@@ -1801,7 +2112,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'كل اللي على الموبايل ده دلوقتي هيتشال ويتحط مكانه اللي في النسخة دي.';
 
   @override
-  String get restoreReplace => 'استرجع واستبدل';
+  String get restoreReplace => 'استرجاع واستبدال';
 
   @override
   String get restoreDoneNotice => 'رجّعنا نسختك الاحتياطية.';
@@ -1877,11 +2188,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String pregnancyWeek(int weeks, int days) {
+    final intl.NumberFormat weeksNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String weeksString = weeksNumberFormat.format(weeks);
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
     String _temp0 = intl.Intl.pluralLogic(
       weeks,
       locale: localeName,
-      other: '$weeks أسبوع',
-      few: '$weeks أسابيع',
+      other: '$weeksString أسبوع',
+      few: '$weeksString أسابيع',
       two: 'أسبوعين',
       one: 'أسبوع',
       zero: 'أقل من أسبوع',
@@ -1889,11 +2208,11 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp1 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days يوم',
-      few: '$days أيام',
+      other: '$daysString يوم',
+      few: '$daysString أيام',
       two: 'يومين',
       one: 'يوم',
-      zero: '0 يوم',
+      zero: '٠ يوم',
     );
     return '$_temp0 و$_temp1';
   }
@@ -1917,11 +2236,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String pregnancyDaysLeft(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: 'فاضل $days يوم على ميعاد الولادة',
-      few: 'فاضل $days أيام على ميعاد الولادة',
+      other: 'فاضل $daysString يوم على ميعاد الولادة',
+      few: 'فاضل $daysString أيام على ميعاد الولادة',
       two: 'فاضل يومين على ميعاد الولادة',
       one: 'فاضل يوم على ميعاد الولادة',
       zero: 'ميعاد الولادة النهارده',
@@ -1951,17 +2275,35 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String ancContact(int number) {
-    return 'زيارة متابعة الحمل $number من ٨';
+    final intl.NumberFormat numberNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String numberString = numberNumberFormat.format(number);
+
+    return 'زيارة متابعة الحمل $numberString من ٨';
   }
 
   @override
   String ancContactReason(int week) {
-    return 'حوالي الأسبوع $week من الحمل';
+    final intl.NumberFormat weekNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String weekString = weekNumberFormat.format(week);
+
+    return 'حوالي الأسبوع $weekString من الحمل';
   }
 
   @override
   String ancWindow(int from, int to) {
-    return 'عادةً بين الأسبوع $from والأسبوع $to من الحمل';
+    final intl.NumberFormat fromNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String fromString = fromNumberFormat.format(from);
+    final intl.NumberFormat toNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String toString = toNumberFormat.format(to);
+
+    return 'عادةً بين الأسبوع $fromString والأسبوع $toString من الحمل';
   }
 
   @override
@@ -2003,7 +2345,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'fever': 'سخونية',
       'water': 'نزول مية من المهبل',
       'movement': 'حركة البيبي قلّت عن العادي أو وقفت',
-      'swelling': 'ورم في الوش أو الإيدين',
+      'swelling': 'تورّم في الوش أو الإيدين',
       'breathing': 'صعوبة في التنفس',
       'other': '',
     });
@@ -2062,7 +2404,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String devTickedCount(int done, int total) {
-    return '$done من $total';
+    final intl.NumberFormat doneNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String doneString = doneNumberFormat.format(done);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return '$doneString من $totalString';
   }
 
   @override
@@ -2196,16 +2546,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String logMl(int ml) {
-    return '$ml مل';
+    final intl.NumberFormat mlNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String mlString = mlNumberFormat.format(ml);
+
+    return '$mlString مل';
   }
 
   @override
   String logDuration(int hours, int minutes) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
     String _temp0 = intl.Intl.pluralLogic(
       hours,
       locale: localeName,
-      other: '$hours س $minutes د',
-      zero: '$minutes دقيقة',
+      other: '$hoursString س $minutesString د',
+      zero: '$minutesString دقيقة',
     );
     return '$_temp0';
   }
@@ -2224,20 +2586,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String logSummaryFeeds(int count, int breast, int bottle, int solids) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+    final intl.NumberFormat breastNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String breastString = breastNumberFormat.format(breast);
+    final intl.NumberFormat bottleNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String bottleString = bottleNumberFormat.format(bottle);
+    final intl.NumberFormat solidsNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String solidsString = solidsNumberFormat.format(solids);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count رضعة',
-      few: '$count رضعات',
+      other: '$countString رضعة',
+      few: '$countString رضعات',
       two: 'رضعتين',
       one: 'رضعة واحدة',
     );
-    return '$_temp0 (طبيعي $breast، ببرونة $bottle، أكل $solids)';
+    return '$_temp0 (طبيعي $breastString، ببرونة $bottleString، أكل $solidsString)';
   }
 
   @override
   String logSummaryBottleMl(int ml) {
-    return '$ml مل من الببرونة';
+    final intl.NumberFormat mlNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String mlString = mlNumberFormat.format(ml);
+
+    return '$mlString مل من الببرونة';
   }
 
   @override
@@ -2247,7 +2627,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String logSummaryDiapers(int wet, int dirty) {
-    return 'الحفاضات: $wet مبلولة، $dirty فيها براز';
+    final intl.NumberFormat wetNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String wetString = wetNumberFormat.format(wet);
+    final intl.NumberFormat dirtyNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String dirtyString = dirtyNumberFormat.format(dirty);
+
+    return 'الحفاضات: $wetString مبلولة، $dirtyString فيها براز';
   }
 
   @override
@@ -2306,80 +2694,77 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountTitle => 'الحساب';
 
   @override
-  String get accountSettingsHint => 'اختياري. سجلاتك فاضلة على الموبايل ده';
+  String get accountSettingsHint => 'سجلاتك فاضلة على الموبايل ده';
 
   @override
   String get accountPrivacy =>
-      'سجلات العيلة الصحية فاضلة على الموبايل ده. الحساب مش بيرفعها: هو بس بيجهّز لمزامنة موبايلات العيلة ولخدمات الذكاء الاصطناعي بعدين، وإنت اللي هتختار قبل ما أي حاجة تتبعت.';
+      'سجلات العيلة الصحية فاضلة على الموبايل ده. الحساب مش بيرفعها.';
 
   @override
-  String get accountSignInIntro => 'ادخل برقم موبايلك، وهنبعتلك كود في رسالة.';
+  String get accountSignInIntro =>
+      'تقدر تتفرج وتقرا الأدلة من غير حساب. حفظ السجلات وإضافة العيلة والنسخ الاحتياطي محتاجين تسجيل دخول.';
 
   @override
-  String get countryEgypt => 'مصر';
+  String get accountSignInConsent =>
+      'تسجيل الدخول معناه موافقة إننا نحتفظ بالبيانات دي علشان الحساب يشتغل، زي ما سياسة الخصوصية بتقول.';
 
   @override
-  String get countrySaudiArabia => 'السعودية';
+  String get accountSignInData =>
+      'Google بيبعتلنا اسمك وإيميلك ولينك صورة حسابك ورقم تعريف للحساب، وApple بتبعتلنا إيميلك (أو عنوان بديل لو الإيميل متخبي) ورقم تعريف للحساب. بنخزن ده مع اللغة ومعلومات الجهاز علشان الحساب يشتغل.';
 
   @override
-  String get countryUae => 'الإمارات';
+  String get accountGateTitle => 'حفظ سجلاتك';
 
   @override
-  String get accountPhone => 'رقم الموبايل';
+  String get accountGateBody =>
+      'حفظ السجلات محتاج تسجيل دخول. اللي اتكتب بيفضل في الصفحة.';
 
   @override
-  String get accountPhoneInvalid => 'اتأكد من رقم الموبايل';
+  String get accountGateBackupBody => 'النسخة الاحتياطية محتاجة تسجيل دخول.';
 
   @override
-  String get accountSendCode => 'ابعت الكود';
+  String get accountGateKeepsTitle => 'الحساب بيحتفظ بـ';
 
   @override
-  String accountCodeSentTo(String phone) {
-    return 'اكتب الكود اللي فيه ٦ أرقام اللي بعتناه على $phone';
-  }
+  String get accountGateRecordsStay =>
+      'السجلات والصور بتفضل على موبايلك ومتشفرة.';
 
   @override
-  String get accountCode => 'الكود';
+  String get accountReadPrivacy => 'عن الخصوصية';
 
   @override
-  String get accountVerify => 'تأكيد';
+  String get accountSignInWithGoogle => 'تسجيل الدخول باستخدام Google';
 
   @override
-  String get accountResend => 'ابعت الكود تاني';
+  String get accountSignInWithApple => 'تسجيل الدخول باستخدام Apple';
 
   @override
-  String get accountCodeResent => 'الكود اتبعت تاني';
+  String get accountSignInUnavailable =>
+      'الدخول مش متاح في النسخة دي من التطبيق.';
 
   @override
-  String get accountChangeNumber => 'غيّر الرقم';
+  String get accountSignedIn => 'الدخول على الحساب شغّال';
 
   @override
-  String get accountSignedIn => 'إنت داخل على حسابك';
-
-  @override
-  String accountSignedInAs(String phone) {
-    return 'داخل برقم $phone';
-  }
-
-  @override
-  String get accountSignOut => 'اخرج من الحساب';
+  String get accountSignOut => 'خروج من الحساب';
 
   @override
   String get accountSignOutConfirm =>
-      'تخرج من الحساب؟ سجلاتك فاضلة على الموبايل.';
+      'خروج من الحساب؟ السجلات فاضلة على الموبايل.';
 
   @override
-  String get accountDelete => 'امسح الحساب';
+  String get accountDelete => 'مسح الحساب';
 
   @override
   String get accountDeleteConfirm =>
-      'تمسح حسابك؟ الحساب والأجهزة والرصيد هيتمسحوا من السيرفرات بتاعتنا. السجلات اللي على الموبايل ده هتفضل زي ما هي.';
+      'مسح الحساب؟ الحساب والأجهزة والرصيد هيتمسحوا من السيرفرات بتاعتنا. السجلات اللي على الموبايل ده هتفضل زي ما هي.';
+
+  @override
+  String get accountDeleteAppleNote =>
+      'Apple هتطلب منك تأكيد كمان مرة علشان نلغي ربط حسابك بالتطبيق.';
 
   @override
   String get accountDeleted => 'الحساب اتمسح';
-
-  @override
-  String get accountErrorInvalidCode => 'الكود ده مش صح أو انتهى';
 
   @override
   String get accountErrorTooMany => 'محاولات كتير. استنى شوية وجرّب تاني';
@@ -2392,11 +2777,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accountRetry => 'جرّب تاني';
-
-  @override
-  String accountResendIn(int seconds) {
-    return 'تقدر تطلب كود تاني بعد $seconds ثانية';
-  }
 
   @override
   String get accountErrorSignInAgain => 'الدخول انتهى. ادخل تاني';
@@ -2433,7 +2813,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lockForgotBody =>
-      'عشان سجلات عيلتك تفضل سر، مفيش حاجة تعدّي الرقم السري، ولا حتى إحنا.\n\nعشان تبدأ من جديد:\n1. امسح بيانات أسرة. على أندرويد: إعدادات الموبايل › التطبيقات › أسرة › التخزين › مسح البيانات. على الآيفون: امسح أسرة ونزّلها تاني. ده بيمسح كل حاجة أسرة شايلاها على الموبايل ده.\n2. افتح أسرة ورجّع آخر نسخة احتياطية بمفتاح الاسترجاع (المزيد › النسخة الاحتياطية).\n\nمن غير نسخة احتياطية ومفتاحها، السجلات مش هترجع.';
+      'عشان سجلات عيلتك تفضل سر، مفيش حاجة تعدّي الرقم السري، ولا حتى إحنا.\n\nعشان تبدأ من جديد:\n١. امسح بيانات أسرة. على أندرويد: إعدادات الموبايل › التطبيقات › أسرة › التخزين › مسح البيانات. على الآيفون: امسح أسرة ونزّلها تاني. ده بيمسح كل حاجة أسرة شايلاها على الموبايل ده.\n٢. افتح أسرة ورجّع آخر نسخة احتياطية بمفتاح الاسترجاع («عندي نسخة احتياطية» في أول شاشة).\n\nمن غير نسخة احتياطية ومفتاحها، السجلات مش هترجع.';
 
   @override
   String get lockEmergency => 'معلومات الطوارئ';
@@ -2451,15 +2831,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pinDelete => 'امسح';
 
   @override
-  String get pinLengthHint => '6 أرقام';
+  String get pinLengthHint => '٦ أرقام';
 
   @override
   String pinEntered(int count) {
-    return 'اتكتب $count من 6 أرقام';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'اتكتب $countString من ٦ أرقام';
   }
 
   @override
-  String get lockSetupNewPin => 'اختار رقم سري من 6 أرقام';
+  String get lockSetupNewPin => 'اختار رقم سري من ٦ أرقام';
 
   @override
   String get lockSetupConfirmPin => 'اكتب نفس الرقم السري تاني';
@@ -2510,7 +2894,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsAppLockOn => 'شغّال: لازم الرقم السري عشان تفتح أسرة';
 
   @override
-  String get settingsAppLockOff => 'مقفول: أي حد معاه الموبايل يقدر يفتح أسرة';
+  String get settingsAppLockOff =>
+      'مش شغّال: أي حد معاه الموبايل يقدر يفتح أسرة';
 
   @override
   String get lockSettingsSwitch => 'اقفل برقم سري';
@@ -2523,7 +2908,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lockSettingsBiometricsHint =>
-      'أي حد بصمته أو وشه متسجلين على الموبايل ده يقدر يفتح أسرة، حتى لو من العيلة. لو في حد تاني بيستخدم الموبايل، سيبها مقفولة واستخدم الرقم السري بس.';
+      'أي حد بصمته أو وشه متسجلين على الموبايل ده يقدر يفتح أسرة، حتى لو من العيلة. لو في حد تاني بيستخدم الموبايل، سيبها مش شغّالة واستخدم الرقم السري بس.';
 
   @override
   String get lockSettingsTimeout => 'اقفل تاني بعد ما تخرج من أسرة بـ';
@@ -2535,20 +2920,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get lockTimeoutOneMinute => 'دقيقة';
 
   @override
-  String get lockTimeoutFiveMinutes => '5 دقايق';
+  String get lockTimeoutFiveMinutes => '٥ دقايق';
 
   @override
-  String get lockSettingsEmergency => 'كارت الطوارئ على شاشة القفل';
+  String get lockSettingsEmergency => 'كارت الطوارئ على قفل أسرة';
 
   @override
   String get lockSettingsEmergencyHint =>
-      'المسعف يقدر يشوف فصيلة الدم والحساسية والأمراض للناس اللي هتختارهم هنا من غير الرقم السري. وأي حد ماسك الموبايل يقدر يشوفهم برضه.';
+      'فصيلة الدم والحساسية والأمراض والعمليات والأدوية الحالية ورقم الطوارئ وصاحبه للناس اللي هتختارهم هنا، أي حد ماسك الموبايل وأسرة مفتوحة يقدر يشوفها من غير الرقم السري. ده قفل أسرة، مش قفل الموبايل: للموبايل المقفول استخدم Medical ID بتاع الموبايل نفسه.';
 
   @override
   String get lockVerifyTitle => 'أكّد إنه إنت';
 
   @override
-  String get lockOffDone => 'قفل التطبيق اتقفل';
+  String get lockOffDone => 'قفل التطبيق اتلغى';
 
   @override
   String get lockUnavailable =>
@@ -2559,28 +2944,40 @@ class AppLocalizationsAr extends AppLocalizations {
       'الرقم ده سهل يتخمّن. ابعد عن الأرقام المتكررة أو اللي ورا بعض.';
 
   @override
-  String get lockEmergencyFor => 'يظهر على شاشة القفل';
+  String get lockEmergencyFor => 'يظهر على قفل أسرة';
 
   @override
-  String get lockBackupFirstTitle => 'تعمل نسخة احتياطية الأول؟';
+  String get lockBackupFirstTitle => 'لازم نسخة احتياطية الأول';
 
   @override
   String get lockBackupFirstBody =>
-      'لو نسيت الرقم السري، الطريقة الوحيدة إنك تمسح بيانات أسرة وترجّع نسخة احتياطية بمفتاح الاسترجاع بتاعها. إنت لسه معملتش نسخة احتياطية.';
+      'لو الرقم السري اتنسى، الطريقة الوحيدة هي مسح بيانات أسرة واسترجاع نسخة احتياطية بمفتاح الاسترجاع بتاعها. ولسه مفيش نسخة احتياطية، ومن غيرها السجلات بتضيع.\n\nأول ما النسخة الاحتياطية تتعمل، القفل يقدر يشتغل.';
 
   @override
   String get lockBackupFirstMake => 'اعمل نسخة احتياطية';
 
   @override
-  String get lockBackupFirstSkip => 'كمّل من غيرها';
+  String get lockNothingYetTitle => 'العيلة الأول';
+
+  @override
+  String get lockNothingYetBody =>
+      'القفل محتاج نسخة احتياطية، ولسه مفيش حاجة تتحفظ. لما حد من العيلة يتضاف وتتعمل نسخة احتياطية، القفل يقدر يشتغل.';
+
+  @override
+  String get lockOnNoBackupBody =>
+      'القفل شغال بس لسه مفيش نسخة احتياطية. لو الرقم السري اتنسى، السجلات هتضيع.';
 
   @override
   String backupDonePhotosSkipped(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count صورة مقدرناش نفتحهم على الموبايل ده ومش فيها',
-      few: '$count صور مقدرناش نفتحهم على الموبايل ده ومش فيها',
+      other: '$countString صورة مقدرناش نفتحهم على الموبايل ده ومش فيها',
+      few: '$countString صور مقدرناش نفتحهم على الموبايل ده ومش فيها',
       two: 'صورتين مقدرناش نفتحهم على الموبايل ده ومش فيها',
       one: 'صورة واحدة مقدرناش نفتحها على الموبايل ده ومش فيها',
     );
@@ -2589,11 +2986,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String restorePhotosSkipped(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count صورة في النسخة دي مش هيتفتحوا وهيتسابوا.',
-      few: '$count صور في النسخة دي مش هيتفتحوا وهيتسابوا.',
+      other: '$countString صورة في النسخة دي مش هيتفتحوا وهيتسابوا.',
+      few: '$countString صور في النسخة دي مش هيتفتحوا وهيتسابوا.',
       two: 'صورتين في النسخة دي مش هيتفتحوا وهيتسابوا.',
       one: 'صورة واحدة في النسخة دي مش هتتفتح وهتتساب.',
     );
@@ -2605,27 +3006,48 @@ class AppLocalizationsAr extends AppLocalizations {
       'الصور مش بتتفتح على الموبايل ده. رجّع نسختك الاحتياطية عشان ترجعلك.';
 
   @override
-  String get doseReminderDiscreetTitle => 'ميعاد دوا';
+  String get doseReminderDiscreetTitle => 'ميعاد الدوا';
 
   @override
-  String get widgetDiscreetDose => 'ميعاد جرعة';
+  String get widgetDoseDue => 'ميعاد جرعة';
+
+  @override
+  String widgetDoseCount(int count, String digits) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$digits جرعة',
+      few: '$digits جرعات',
+      two: 'جرعتين',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get settingsDiscreet => 'تنبيهات من غير أسامي';
 
   @override
   String get settingsDiscreetHint =>
-      'التنبيهات وويدجت الشاشة الرئيسية بتقول \"ميعاد دوا\" بس، من غير اسم الشخص ولا اسم الدوا.';
+      'التنبيهات بتقول \"ميعاد الدوا\" بس، من غير اسم الشخص ولا اسم الدوا. لو كذا جرعة قريبين من بعض، افتح أسرة عشان تعلّم عليهم.';
 
   @override
   String get settingsBlockScreenshots => 'امنع تصوير الشاشة';
 
   @override
   String get settingsBlockScreenshotsHint =>
-      'مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق كله. مفتاح الاسترجاع محمي على طول. سيبها مقفولة لو عايز تصوّر كارت الطوارئ.';
+      'مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق كله. مفتاح الاسترجاع محمي على طول. سيبها مش شغّالة لو عايز تصوّر كارت الطوارئ.';
 
   @override
   String get doseReminderDiscreetBody => 'افتح أسرة عشان تشوف أنهي دوا';
+
+  @override
+  String doseReminderDiscreetTimeBody(String time) {
+    return 'جرعة $time';
+  }
+
+  @override
+  String get doseReminderDiscreetSeveralBody =>
+      'فيه أكتر من جرعة ميعادها دلوقتي. افتح أسرة عشان تشوف أنهي دوا';
 
   @override
   String get memberVaccines => 'التطعيمات';
@@ -2667,12 +3089,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String vaccineRequiredDone(int done, int total) {
-    return '$done/$total من الإجباري اتاخدوا';
+    final intl.NumberFormat doneNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String doneString = doneNumberFormat.format(done);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return '$doneString/$totalString من الإجباري اتاخدوا';
   }
 
   @override
   String vaccineOptionalDone(int done, int total) {
-    return '$done/$total من الاختياري اتاخدوا';
+    final intl.NumberFormat doneNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String doneString = doneNumberFormat.format(done);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return '$doneString/$totalString من الاختياري اتاخدوا';
   }
 
   @override
@@ -2708,7 +3146,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get vaccineRouteHexavalentHint =>
-      'حقنة سداسي واحدة بدل الخماسي وسولك عند شهرين و4 و6 شهور، وجرعة منشطة سداسي عند سنة ونص. نقط شلل الأطفال والدرن والكبدي ب عند الولادة والثلاثي الفيروسي زي ما هما.';
+      'حقنة سداسي واحدة بدل الخماسي وسولك عند شهرين و٤ و٦ شهور، وجرعة منشطة سداسي عند سنة ونص. نقط شلل الأطفال والدرن والكبدي ب عند الولادة والثلاثي الفيروسي زي ما هما.';
 
   @override
   String get vaccineOptionalTitle => 'التطعيمات الاختيارية اللي ماشيين عليها';
@@ -2734,9 +3172,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get vaccineSetupNoneYet => 'لسه مفيش جرعات جه ميعادها.';
 
   @override
-  String get vaccineSetupSkip => 'بعدين';
-
-  @override
   String get vaccineSetupSaved => 'التطعيمات اتحفظت';
 
   @override
@@ -2744,17 +3179,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get vaccineScanHelp =>
-      'صوّر الكارت. الموبايل بيقرا التواريخ وأسامي التطعيمات بالإنجليزي بنفسه، ومفيش حاجة بتتبعت لأي مكان، والصورة مش بتتحفظ. راجع كل جرعة على الكارت.';
+      'صوّر الكارت. الموبايل بيقرا التواريخ وأسامي التطعيمات المطبوعة بالإنجليزي بس، والمكتوب بخط الإيد غالبًا مش هيتقرا. مفيش حاجة بتتبعت لأي مكان، والصورة مش بتتحفظ. راجع كل جرعة على الكارت.';
 
   @override
   String get vaccineScanReading => 'بنقرا الكارت…';
 
   @override
   String vaccineScanFound(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'لقينا $count جرعات في الكارت.',
+      other: 'لقينا $countString جرعات في الكارت.',
       two: 'لقينا جرعتين في الكارت.',
       one: 'لقينا جرعة واحدة في الكارت.',
     );
@@ -2767,10 +3206,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String vaccineScanAlready(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count جرعات من الكارت كانت متسجلة قبل كده، فمغيّرناهاش.',
+      other: '$countString جرعات من الكارت كانت متسجلة قبل كده، فمغيّرناهاش.',
       one: 'جرعة من الكارت كانت متسجلة قبل كده، فمغيّرناهاش.',
     );
     return '$_temp0';
@@ -2778,11 +3221,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String vaccineScanFutureRows(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
       other:
-          '$count سطور كان فيها تواريخ لسه مجتش (مواعيد الزيارة الجاية)، فمعلّمناش عليها.',
+          '$countString سطور كان فيها تواريخ لسه مجتش (مواعيد الزيارة الجاية)، فمعلّمناش عليها.',
       one: 'سطر واحد كان فيه تاريخ لسه مجاش (ميعاد الزيارة الجاية)، فمعلّمناش عليه.',
     );
     return '$_temp0';
@@ -2790,6 +3237,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get vaccineScanFailed => 'مقدرناش نقرا الصورة';
+
+  @override
+  String get vaccineScanRouteChanged =>
+      'الجدول اتغيّر، فشيلنا اللي اتقرا من الكارت. صوّر الكارت تاني.';
 
   @override
   String vaccineFromCard(String row) {
@@ -2855,11 +3306,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String vaccineInDays(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: 'بعد $days يوم',
-      few: 'بعد $days أيام',
+      other: 'بعد $daysString يوم',
+      few: 'بعد $daysString أيام',
       two: 'بعد يومين',
       one: 'بكره',
       zero: 'النهارده',
@@ -2869,11 +3325,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String vaccineDaysAgo(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: 'كان ميعاده من $days يوم',
-      few: 'كان ميعاده من $days أيام',
+      other: 'كان ميعاده من $daysString يوم',
+      few: 'كان ميعاده من $daysString أيام',
       two: 'كان ميعاده من يومين',
       one: 'كان ميعاده امبارح',
     );
@@ -2882,11 +3343,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String vaccineOverdueCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count جرعة متأخرة',
-      few: '$count جرعات متأخرة',
+      other: '$countString جرعة متأخرة',
+      few: '$countString جرعات متأخرة',
       two: 'جرعتين متأخرين',
       one: 'جرعة متأخرة',
     );
@@ -2993,7 +3458,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String prescriptionMedicineN(int n) {
-    return 'دوا $n';
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'دوا $nString';
   }
 
   @override
@@ -3003,7 +3473,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get prescriptionDose => 'الجرعة زي ما الدكتور كتبها';
 
   @override
-  String get prescriptionDoseHint => 'مثلاً ٥ مل بعد الأكل';
+  String get prescriptionDoseHint => 'زي ما مكتوبة في الروشتة بالظبط';
 
   @override
   String get prescriptionTimesPerDay =>
@@ -3011,11 +3481,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String prescriptionTimesN(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count مرة',
-      few: '$count مرات',
+      other: '$countString مرة',
+      few: '$countString مرات',
       two: 'مرتين',
       one: 'مرة',
     );
@@ -3065,11 +3539,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String prescriptionCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count دوا',
-      few: '$count أدوية',
+      other: '$countString دوا',
+      few: '$countString أدوية',
       two: 'دوايين',
       one: 'دوا واحد',
     );
@@ -3078,11 +3556,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String prescriptionDaysCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count يوم',
-      few: '$count أيام',
+      other: '$countString يوم',
+      few: '$countString أيام',
       two: 'يومين',
       one: 'يوم واحد',
     );
@@ -3094,7 +3576,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String courseDayOf(int day, int total) {
-    return 'اليوم $day من $total';
+    final intl.NumberFormat dayNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String dayString = dayNumberFormat.format(day);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return 'اليوم $dayString من $totalString';
   }
 
   @override
@@ -3123,11 +3613,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String prescriptionEveryNHours(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
     String _temp0 = intl.Intl.pluralLogic(
       n,
       locale: localeName,
-      other: 'كل $n ساعة',
-      few: 'كل $n ساعات',
+      other: 'كل $nString ساعة',
+      few: 'كل $nString ساعات',
       two: 'كل ساعتين',
       one: 'كل ساعة',
     );
@@ -3140,11 +3635,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get prescriptionTimesHint =>
-      'اتأكد إن المواعيد زي ما الدكتور كتب، مثلاً كل ٨ ساعات.';
+  String get prescriptionTimesHint => 'اتأكد إن المواعيد زي ما الدكتور كتب.';
 
   @override
   String get rxScanTitle => 'اقرا الروشتة من صورة';
+
+  @override
+  String rxFor(String name) {
+    return 'الروشتة دي ل$name';
+  }
 
   @override
   String get rxScanHelp =>
@@ -3155,10 +3654,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String rxScanFound(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'لقينا $count أدوية.',
+      other: 'لقينا $countString أدوية.',
       two: 'لقينا دوائين.',
       one: 'لقينا دوا واحد.',
     );
@@ -3226,7 +3729,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String reportPage(int page, int total) {
-    return 'صفحة $page من $total';
+    final intl.NumberFormat pageNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String pageString = pageNumberFormat.format(page);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return 'صفحة $pageString من $totalString';
   }
 
   @override
@@ -3283,7 +3794,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportSummaryDisclaimer =>
-      'ملخص عملته العيلة بتطبيق أسرة من سجلاتها. للمعلومات بس: راجعوه على الروشتات والتقارير الأصلية.';
+      'ده ملخص من اللي العيلة سجلته بتطبيق أسرة، مش رأي طبي. راجعوه على الروشتات والتقارير الأصلية.';
 
   @override
   String get reportAge => 'السن';
@@ -3351,7 +3862,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String reportVaccineProgress(int done, int total) {
-    return '$done من $total جرعة في الخطة اتاخدت';
+    final intl.NumberFormat doneNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String doneString = doneNumberFormat.format(done);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return '$doneString من $totalString جرعة في الخطة اتاخدت';
   }
 
   @override
@@ -3503,6 +4022,111 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sickDayNotesSaved => 'الملاحظات اتحفظت';
+
+  @override
+  String sickDayPersonUnwell(String sex, String name) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'male': '$name تعبان',
+      'female': '$name تعبانة',
+      'other': '$name: يوم تعب',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayPersonWasUnwell(String sex, String name) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'male': '$name كان تعبان',
+      'female': '$name كانت تعبانة',
+      'other': '$name: يوم تعب',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sickDaySinceToday(String time) {
+    return 'من النهارده $time';
+  }
+
+  @override
+  String sickDaySinceYesterday(String time) {
+    return 'من امبارح $time';
+  }
+
+  @override
+  String get sickDayLatestReading => 'آخر قراءة';
+
+  @override
+  String sickDayFeverLogged(String duration) {
+    return 'سخونية متسجلة: $duration';
+  }
+
+  @override
+  String get sickDayFeverUnderHour => 'أقل من ساعة';
+
+  @override
+  String sickDayFeverHours(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown ساعة',
+      few: '$shown ساعات',
+      two: 'ساعتين',
+      one: 'ساعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayFeverDays(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown يوم',
+      few: '$shown أيام',
+      two: 'يومين',
+      one: 'يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sickDayRecordedGiven(String what, String time) {
+    return 'مسجل: $what · $time';
+  }
+
+  @override
+  String sickDayChartSemantics(
+    String start,
+    String end,
+    String values,
+    String fever,
+  ) {
+    return 'القراءات من $start لحد $end: $values. الخط المتقطع عند $fever، من عندها تبقى سخونية.';
+  }
+
+  @override
+  String get sickDayChartThen => ' ثم ';
+
+  @override
+  String get sickDayAddReadingShort => 'قراءة حرارة';
+
+  @override
+  String get sickDayGivenShort => 'دوا اتاخد';
+
+  @override
+  String get sickDayAllReadings => 'كل القراءات';
+
+  @override
+  String get sickDayNoSymptoms => 'لسه مفيش أعراض متسجلة.';
+
+  @override
+  String sickDayCallDoctorNamed(String name) {
+    return 'كلّم $name';
+  }
+
+  @override
+  String get sickDayBack => 'رجوع';
 
   @override
   String get readingValue => 'الحرارة';
@@ -3737,4 +4361,1100 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get readingConfirmNo => 'عدّل';
+
+  @override
+  String backupLastCopy(String date) {
+    return 'آخر نسخة بعتها لمكان تاني: $date';
+  }
+
+  @override
+  String get backupAutoTitle => 'نسخة احتياطية تلقائية';
+
+  @override
+  String get backupAutoHint =>
+      'لما أسرة تتفتح ويكون ميعاد النسخة جه، بتتحفظ نسخة متشفرة في فولدر من اختيارك، مش iCloud.';
+
+  @override
+  String get backupAutoFolder => 'الفولدر';
+
+  @override
+  String get backupAutoChooseFolder => 'اختيار فولدر';
+
+  @override
+  String get backupAutoFrequency => 'كل قد إيه';
+
+  @override
+  String get backupFrequencyDaily => 'كل يوم';
+
+  @override
+  String get backupFrequencyWeekly => 'كل أسبوع';
+
+  @override
+  String get backupFrequencyMonthly => 'كل شهر';
+
+  @override
+  String get backupAutoNever => 'لسه مفيش نسخة تلقائية';
+
+  @override
+  String get backupAutoRunning =>
+      'بنعمل نسخة احتياطية. تقدر تكمل استخدام التطبيق عادي.';
+
+  @override
+  String get backupAutoDone => 'النسخة اتحفظت في الفولدر بتاعك.';
+
+  @override
+  String get backupSendCopy => 'نسخة لمكان تاني';
+
+  @override
+  String get backupBusy => 'فيه نسخة احتياطية شغالة دلوقتي. جرّب كمان شوية.';
+
+  @override
+  String get backupAutoDriveHint =>
+      'ممكن Google Drive ميظهرش وإنت بتختار الفولدر، وأسرة مش بتطلب إذن تدخل على الدرايف بتاعك. علشان تحتفظ بنسخة على الدرايف، دوس \"نسخة لمكان تاني\" واختار Drive.';
+
+  @override
+  String get backupAutoOnPhone =>
+      'الفولدر ده على الموبايل نفسه. لو الموبايل ضاع، النسخ دي هتضيع معاه، فابعت نسخة لمكان تاني كمان.';
+
+  @override
+  String get backupAutoIosHint =>
+      'اختار مكان بره الموبايل لو تقدر، زي تطبيق تاني في Files أو هارد خارجي. الفولدر اللي في On My iPhone بيضيع مع الموبايل. وiCloud Drive مينفعش للسجلات الصحية.';
+
+  @override
+  String get backupICloudTitle => 'مينفعش iCloud Drive';
+
+  @override
+  String get backupICloudBody =>
+      'قواعد Apple مش بتسمح بالسجلات الصحية على iCloud، حتى لو متشفرة، فأسرة مش هتحفظ النسخ هناك. اختار مكان تاني، زي تطبيق تاني في Files أو هارد خارجي.';
+
+  @override
+  String get backupFolderCantUseTitle => 'المكان ده مينفعش';
+
+  @override
+  String get backupFolderCantUseBody =>
+      'أسرة مقدرتش تحفظ وتنظم ملفاتها هناك. اختار فولدر تاني.';
+
+  @override
+  String get backupAutoKeyFirstTitle => 'الأول، مفتاح الاسترجاع';
+
+  @override
+  String get backupAutoKeyFirstBody =>
+      'النسخ بتبقى متشفرة، ومفيش غير مفتاح الاسترجاع بيفتحها. هتكتبه على ورقة دلوقتي. بيفضل في المخزن الآمن بتاع الموبايل ومش بيتحفظ أبدًا مع النسخ.';
+
+  @override
+  String get backupAutoKeyFirstContinue => 'كمّل';
+
+  @override
+  String get backupAutoFailedTitle => 'النسخة التلقائية مكملتش';
+
+  @override
+  String get backupAutoRetry => 'حاول تاني';
+
+  @override
+  String get backupAutoSetKey => 'جهّز المفتاح';
+
+  @override
+  String get backupAutoFailFolder =>
+      'مش قادرين نوصل لفولدر النسخ. يمكن اتنقل أو اتمسح. اختاره تاني.';
+
+  @override
+  String get backupAutoFailICloud =>
+      'فولدر النسخ بقى على iCloud Drive، وده مينفعش للسجلات الصحية. اختار مكان تاني.';
+
+  @override
+  String get backupAutoFailSpace =>
+      'مفيش مساحة كفاية للنسخة. فضّي شوية مساحة وحاول تاني.';
+
+  @override
+  String get backupAutoFailLocked =>
+      'الموبايل اتقفل أثناء النسخ. سيبه مفتوح وحاول تاني.';
+
+  @override
+  String get backupAutoFailKey =>
+      'مفتاح الاسترجاع مبقاش على الموبايل ده. جهّزه تاني علشان النسخ تكمل.';
+
+  @override
+  String get backupAutoFailInterrupted =>
+      'أسرة اتقفلت قبل ما النسخة تخلص. أي ملف مكملش هيتمسح المرة الجاية، والنسخ القديمة سليمة. حاول تاني.';
+
+  @override
+  String get backupAutoFailOther =>
+      'حاجة وقفت النسخة. النسخ القديمة سليمة. حاول تاني.';
+
+  @override
+  String get backupAutoPaused =>
+      'النسخ التلقائي واقف لأن أسرة بدأت من جديد، علشان النسخ الجديدة متمسحش اللي فيها سجلاتك. رجّع نسخة احتياطية، أو شغّله تاني.';
+
+  @override
+  String get backupDueAuto =>
+      'لو فولدر النسخ على الموبايل نفسه، ضياع الموبايل معناه ضياع النسخ كمان. ابعت نسخة لمكان تاني.';
+
+  @override
+  String backupAutoLast(String date, String size) {
+    return 'آخر نسخة تلقائية: $date ($size)';
+  }
+
+  @override
+  String backupSizeKb(String size) {
+    return '$size كيلوبايت';
+  }
+
+  @override
+  String backupSizeMb(String size) {
+    return '$size ميجابايت';
+  }
+
+  @override
+  String backupSizeGb(String size) {
+    return '$size جيجابايت';
+  }
+
+  @override
+  String backupAutoPhotosSkipped(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString صورة مقدرناش نفتحها على الموبايل ده ومش في النسخة.',
+      few: '$countString صور مقدرناش نفتحهم على الموبايل ده ومش في النسخة.',
+      two: 'صورتين مقدرناش نفتحهم على الموبايل ده ومش في النسخة.',
+      one: 'صورة واحدة مقدرناش نفتحها على الموبايل ده ومش في النسخة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupAutoOpen => 'افتح النسخة الاحتياطية';
+
+  @override
+  String get backupAutoPausedTitle => 'النسخ التلقائي واقف';
+
+  @override
+  String get backupAutoUnreadableTitle => 'النسخ التلقائي مش شغّال';
+
+  @override
+  String get backupAutoUnreadableBody =>
+      'مقدرناش نقرا إعدادات النسخ التلقائي. نسخك لسه في الفولدر بتاعك. افتح النسخة الاحتياطية وشغّله تاني.';
+
+  @override
+  String get backupContentDroppedTitle =>
+      'آخر نسخة فيها حاجات أقل من اللي قبلها';
+
+  @override
+  String get backupContentDroppedBody =>
+      'فيها أشخاص أو سجلات أو صور أقل، أو فيه صور ناقصة، فسيبنا النسخ القديمة زي ما هي. لو إنت مسحتهم بنفسك، أكّد ده. لو لأ، رجّع نسخة أقدم.';
+
+  @override
+  String get backupContentDroppedAccept => 'أنا اللي مسحتهم';
+
+  @override
+  String get backupAutoFolderTop => 'الفولدر الرئيسي للمكان اللي اخترته';
+
+  @override
+  String get aboutPrivacyBackupAuto =>
+      'لو شغّلت النسخ التلقائي، أسرة بتحفظ الملف ده لوحدها في فولدر تختاره. مش بتبعتلنا حاجة، ومش هتستخدم iCloud Drive.';
+
+  @override
+  String get navRecords => 'السجلات';
+
+  @override
+  String get navAdd => 'إضافة';
+
+  @override
+  String get homeMorning => 'صباح الخير';
+
+  @override
+  String get homeEvening => 'مساء الخير';
+
+  @override
+  String get homeNothingNeeded => 'مفيش حاجة مطلوبة';
+
+  @override
+  String get homeNeedsAttentionOne => 'محتاج انتباهك';
+
+  @override
+  String get homeNeedsAttentionMany => 'محتاجين انتباهك';
+
+  @override
+  String get homeNamesJoin => 'و';
+
+  @override
+  String get homeFamily => 'العيلة';
+
+  @override
+  String homeAllFamily(String count) {
+    return 'كل العيلة ($count)';
+  }
+
+  @override
+  String get homeUpcoming => 'الجاي النهارده';
+
+  @override
+  String get homeNewPerson => 'فرد جديد';
+
+  @override
+  String get homeEmergency => 'طوارئ';
+
+  @override
+  String homeBackupAgoDays(int days, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'آخر نسخة احتياطية من $shown يوم',
+      many: 'آخر نسخة احتياطية من $shown يوم',
+      few: 'آخر نسخة احتياطية من $shown أيام',
+      two: 'آخر نسخة احتياطية من يومين',
+      one: 'آخر نسخة احتياطية من يوم',
+      zero: 'آخر نسخة احتياطية النهارده',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeDoseLogged(String medicine, String person) {
+    return 'اتسجل: $medicine لـ$person';
+  }
+
+  @override
+  String get statusSick => 'تعبان';
+
+  @override
+  String get statusVaccineOverdue => 'تطعيم متأخر';
+
+  @override
+  String get statusDoseMissed => 'دوا فات';
+
+  @override
+  String statusDoseNext(String time) {
+    return 'دوا $time';
+  }
+
+  @override
+  String get familyAllTitle => 'كل العيلة';
+
+  @override
+  String familyCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown فرد',
+      few: '$shown أفراد',
+      two: 'فردين',
+      one: 'فرد واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addSheetTitle => 'هنضيف إيه؟';
+
+  @override
+  String get addSheetFor => 'لمين؟';
+
+  @override
+  String get addSheetPickPerson => 'اختيار الشخص الأول';
+
+  @override
+  String get addSheetNoPeople => 'أول حاجة: فرد من العيلة';
+
+  @override
+  String get addMedicine => 'دوا';
+
+  @override
+  String get addVaccine => 'تطعيم';
+
+  @override
+  String get addVisit => 'زيارة';
+
+  @override
+  String get addLab => 'تحليل';
+
+  @override
+  String get addScan => 'أشعة';
+
+  @override
+  String get addFever => 'سخونية';
+
+  @override
+  String get addGrowth => 'وزن وطول';
+
+  @override
+  String get addInsurance => 'كارت تأمين';
+
+  @override
+  String get addSurgery => 'عملية';
+
+  @override
+  String get addPhotoTitle => 'صوّر روشتة أو علبة دوا';
+
+  @override
+  String get addPhotoHint =>
+      'بنقرا على الموبايل الكلام المطبوع بالإنجليزي بس، والاسم والتركيز لازم يتأكدوا.';
+
+  @override
+  String get addPhotoPrescription => 'روشتة';
+
+  @override
+  String get addPhotoBox => 'علبة دوا';
+
+  @override
+  String get profileMoreDetails => 'تفاصيل أكتر';
+
+  @override
+  String profileSaveNamed(String name) {
+    return 'حفظ $name';
+  }
+
+  @override
+  String get recordsTitle => 'السجلات';
+
+  @override
+  String get recordsAll => 'الكل';
+
+  @override
+  String get recordsEmpty =>
+      'لسه مفيش سجلات. دوس إضافة وسجّل أول زيارة أو تحليل.';
+
+  @override
+  String get recordsAdd => 'سجل جديد';
+
+  @override
+  String get moreFamily => 'كل العيلة';
+
+  @override
+  String get moreGroupFamily => 'العيلة';
+
+  @override
+  String get moreGroupSafety => 'الأمان';
+
+  @override
+  String get moreGroupApp => 'التطبيق';
+
+  @override
+  String get accountKeepsQuestion => 'الحساب بيحتفظ بإيه؟';
+
+  @override
+  String get accountKeeps =>
+      'الإيميل ورقم تعريف للحساب واللغة ومعلومات الجهاز، وكمان الاسم ولينك صورة الحساب لو الدخول بـ Google. السجلات والصور مش عليه.';
+
+  @override
+  String get accountDeleteNote =>
+      'مسح الحساب مش بيمسح السجلات اللي على الموبايل. مسحها من الخصوصية.';
+
+  @override
+  String get privacyEncryptedQ => 'إيه اللي متشفر؟';
+
+  @override
+  String get privacyEncryptedA => 'قاعدة البيانات والصور والنسخ الاحتياطية.';
+
+  @override
+  String get privacyCanSeeQ => 'نقدر نشوف سجلاتك؟';
+
+  @override
+  String get privacyCanSeeA => 'لأ. السجلات والصور بتفضل على موبايلك.';
+
+  @override
+  String get privacyBackupQ => 'النسخة الاحتياطية فيها إيه؟';
+
+  @override
+  String get privacyBackupA => 'السجلات والصور، متشفرة بمفتاح الاسترجاع.';
+
+  @override
+  String get privacyPinQ => 'لو الرقم السري اتنسي؟';
+
+  @override
+  String get privacyPinA =>
+      'مفيش حاجة تعدّيه، ولا حتى إحنا. بيانات أسرة على الموبايل بتتمسح، وبترجع من النسخة الاحتياطية بمفتاح الاسترجاع. من غير نسخة، السجلات بتضيع.';
+
+  @override
+  String get privacyDeleteQ => 'لو البيانات اتمسحت؟';
+
+  @override
+  String get privacyDeleteA =>
+      'بتتمسح من الموبايل. النسخ اللي اتحفظت في فولدر أو على واتساب بتفضل لحد ما تتمسح من هناك.';
+
+  @override
+  String get lockSetupBackupReady =>
+      'الرقم السري محتاج نسخة احتياطية الأول، وفيه نسخة، فجاهز.';
+
+  @override
+  String get statusSickFemale => 'تعبانة';
+
+  @override
+  String get emergencyPickPerson => 'كارت مين؟';
+
+  @override
+  String get homeLoadError =>
+      'مش قادرين نقرا البيانات دلوقتي. اقفل التطبيق وافتحه تاني.';
+
+  @override
+  String homeGreetingNamed(String greeting, String name) {
+    return '$greeting يا $name';
+  }
+
+  @override
+  String get welcomeHeadline => 'صحة العيلة كلها\nفي مكان واحد';
+
+  @override
+  String get welcomePrivacyLine =>
+      'ملف لكل فرد وتذكير بالدوا. بياناتك على موبايلك ومتشفرة، وإحنا مش بنشوفها.';
+
+  @override
+  String get welcomeStart => 'يلا نبدأ';
+
+  @override
+  String get welcomeHaveBackup => 'عندي نسخة احتياطية';
+
+  @override
+  String get welcomeDisclaimer => 'أسرة مش جهاز طبي ومش بديل عن الدكتور.';
+
+  @override
+  String get welcomePrivacy => 'الخصوصية';
+
+  @override
+  String get welcomeTerms => 'الشروط';
+
+  @override
+  String get welcomeLanguageOther => 'English';
+
+  @override
+  String onboardingStep(String current, String total) {
+    return 'خطوة $current من $total';
+  }
+
+  @override
+  String get onboardingBack => 'رجوع';
+
+  @override
+  String get countryTitle => 'البلد';
+
+  @override
+  String get countryHint => 'علشان جدول التطعيمات ورقم الإسعاف يبقوا صح.';
+
+  @override
+  String get countryEgypt => 'مصر';
+
+  @override
+  String get countryEgyptDetail => 'وزارة الصحة والسكان · الإسعاف ١٢٣';
+
+  @override
+  String get countrySaudi => 'السعودية';
+
+  @override
+  String get countryJordan => 'الأردن';
+
+  @override
+  String get countrySoon => 'قريب';
+
+  @override
+  String get aboutYouTitle => 'أول ملف في عيلتك';
+
+  @override
+  String get aboutYouHint => 'ده ملفك، وممكن يتعدّل بعدين.';
+
+  @override
+  String get aboutYouSex => 'النوع';
+
+  @override
+  String get aboutYouSexHint => 'علشان منحنيات النمو والحمل.';
+
+  @override
+  String get aboutYouBirthDateHint => 'علشان الاقتراحات اللي بتعتمد على السن.';
+
+  @override
+  String get aboutYouBirthDateFuture =>
+      'تاريخ الميلاد مينفعش يكون في المستقبل.';
+
+  @override
+  String get aboutYouDone => 'يلا بينا';
+
+  @override
+  String personAddFor(String name) {
+    return 'إضافة ل$name';
+  }
+
+  @override
+  String personVaccineWasDue(String date) {
+    return 'كان ميعادها $date. اسأل الدكتور إمتى تتاخد.';
+  }
+
+  @override
+  String get personDoctorSummary => 'ملخص للدكتور';
+
+  @override
+  String get personInsuranceOpen => 'افتح الكارت';
+
+  @override
+  String get personVaccineLog => 'اتاخدت؟ سجّلها';
+
+  @override
+  String personVaccineSource(String route, String date) {
+    return 'المرجع: جدول التطعيمات في مصر، $route · اتراجع $date';
+  }
+
+  @override
+  String personVaccineSourceOptional(String date) {
+    return 'المرجع: الجداول المعتادة عند دكاترة الأطفال في مصر · اتراجع $date';
+  }
+
+  @override
+  String personNextDose(String time) {
+    return 'الجرعة الجاية · $time';
+  }
+
+  @override
+  String personDoseWasAt(String time) {
+    return 'كان ميعادها $time';
+  }
+
+  @override
+  String get personRecordedTitle => 'اللي العيلة سجّلته';
+
+  @override
+  String get personTimelineTitle => 'كل السجلات';
+
+  @override
+  String get personTileGrowth => 'النمو';
+
+  @override
+  String get personTileVisits => 'الزيارات والتحاليل';
+
+  @override
+  String get personTileInsurance => 'التأمين';
+
+  @override
+  String get personTileDocuments => 'الورق والصور';
+
+  @override
+  String personVaccinesSummary(String done, String total) {
+    return '$done من $total · جدول مصر';
+  }
+
+  @override
+  String personGrowthWeight(String value, String date) {
+    return '$value كجم · $date';
+  }
+
+  @override
+  String personGrowthHeight(String value, String date) {
+    return '$value سم · $date';
+  }
+
+  @override
+  String personLatestOn(String date) {
+    return 'آخرها $date';
+  }
+
+  @override
+  String personInsuranceCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown كارت',
+      few: '$shown كروت',
+      two: 'كارتين',
+      one: 'كارت واحد',
+      zero: 'لسه مفيش',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personMedicinesCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown دوا',
+      few: '$shown أدوية',
+      two: 'دوايين',
+      one: 'دوا واحد',
+      zero: 'مفيش أدوية حالية',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personFollowUpsCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown متابعة',
+      few: '$shown متابعات',
+      two: 'متابعتين',
+      one: 'متابعة واحدة',
+      zero: 'مفيش دلوقتي',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personDocumentsCount(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown سجل فيه صور',
+      few: '$shown سجلات فيها صور',
+      two: 'سجلين فيهم صور',
+      one: 'سجل واحد فيه صور',
+      zero: 'لسه مفيش',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get personVisitsEmpty => 'لسه مفيش زيارات أو تحاليل متسجلة.';
+
+  @override
+  String get personDocumentsEmpty => 'لسه مفيش سجلات فيها صور.';
+
+  @override
+  String personAgeYears(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown سنة',
+      few: '$shown سنين',
+      two: 'سنتين',
+      one: 'سنة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personAgeMonths(int count, String shown) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown شهر',
+      few: '$shown شهور',
+      two: 'شهرين',
+      one: 'شهر',
+      zero: 'أقل من شهر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String emergencyAmbulanceShort(String number) {
+    return 'الإسعاف $number';
+  }
+
+  @override
+  String get emergencyOtherLanguage => 'English';
+
+  @override
+  String get emergencyMedicines => 'أدوية حالية';
+
+  @override
+  String get emergencyAsTyped => 'ده اللي العيلة سجّلته، زي ما اتكتب.';
+
+  @override
+  String get emergencyLockTitle => 'إظهاره على قفل أسرة';
+
+  @override
+  String get emergencyLockHint => 'أي حد ماسك الموبايل وأسرة مفتوحة يقدر يشوفه';
+
+  @override
+  String get emergencyMedicalIdHint =>
+      'قفل أسرة بيظهر بس بعد ما الموبايل نفسه يتفتح. عشان المسعف يقدر يقرا المعلومات دي والموبايل مقفول، سجّلها كمان في Medical ID أو معلومات الطوارئ في إعدادات الموبايل.';
+
+  @override
+  String lockEmergencyConfirmTitle(String name) {
+    return 'يظهر كارت $name على قفل أسرة؟';
+  }
+
+  @override
+  String get lockEmergencyConfirmBody =>
+      'أي حد ماسك الموبايل وأسرة مفتوحة هيقدر يشوف فصيلة الدم والحساسية والأمراض والعمليات والأدوية الحالية ورقم الطوارئ وصاحبه من غير الرقم السري. ده قفل أسرة، مش قفل الموبايل.';
+
+  @override
+  String get lockEmergencyConfirmYes => 'أيوه، يظهر';
+
+  @override
+  String get insuranceCopyNumber => 'انسخ رقم العضوية';
+
+  @override
+  String get insuranceCopyFailed => 'مقدرناش ننسخ الرقم';
+
+  @override
+  String get insuranceNumberCopied => 'رقم العضوية اتنسخ';
+
+  @override
+  String get doseGroupMissed => 'فاتت';
+
+  @override
+  String get doseGroupNow => 'دلوقتي';
+
+  @override
+  String get doseGroupDone => 'اتسجلت';
+
+  @override
+  String get dayPartMorning => 'الصبح';
+
+  @override
+  String get dayPartNoon => 'الضهر';
+
+  @override
+  String get dayPartAfternoon => 'العصر';
+
+  @override
+  String get dayPartNight => 'بالليل';
+
+  @override
+  String get doseSnoozeShort => 'بعد ١٠ دقايق';
+
+  @override
+  String get doseTakenEarly => 'اتاخد بدري';
+
+  @override
+  String doseSnoozedUntil(String time) {
+    return 'متأجل لحد $time';
+  }
+
+  @override
+  String doseLoggedEarly(String medicine, String person) {
+    return 'اتسجل بدري: $medicine لـ$person';
+  }
+
+  @override
+  String doseLoggedNotTaken(String medicine, String person) {
+    return 'اتسجل إنه ماتاخدش: $medicine لـ$person';
+  }
+
+  @override
+  String doseLoggedSnoozed(String medicine, String person) {
+    return 'هنفكّرك بعد ١٠ دقايق: $medicine لـ$person';
+  }
+
+  @override
+  String get medicinesAll => 'كل الأدوية';
+
+  @override
+  String get medicinesFilterAll => 'الكل';
+
+  @override
+  String medicinesTodayEmptyFor(String name) {
+    return 'مفيش أدوية لـ$name النهارده.';
+  }
+
+  @override
+  String medicineFor(String name) {
+    return 'الدوا ده ل$name';
+  }
+
+  @override
+  String get medicineForChange => 'غيّر';
+
+  @override
+  String get medicineForPick => 'الدوا ده لمين؟';
+
+  @override
+  String medicineSaveFor(String name) {
+    return 'احفظ ل$name';
+  }
+
+  @override
+  String medicineSaveForRemind(String name) {
+    return 'احفظ ل$name وفكّرني';
+  }
+
+  @override
+  String medicineSavedFor(String medicine, String name) {
+    return 'اتحفظ: $medicine لـ$name';
+  }
+
+  @override
+  String get medicineScanOption => 'اقرا الاسم من صورة العلبة';
+
+  @override
+  String get medicineScanOptionBody => 'هتراجع الاسم والتركيز قبل الحفظ';
+
+  @override
+  String get medicineScanRead => 'اتقرا من صورة العلبة';
+
+  @override
+  String get medicineScanReview => 'راجع البيانات على العلبة قبل الحفظ';
+
+  @override
+  String get medicineScanConfirm => 'راجعت الاسم والتركيز على العلبة';
+
+  @override
+  String get medicineScanConfirmNeeded =>
+      'علّم هنا بعد ما تراجع الاسم والتركيز';
+
+  @override
+  String get medicineScanPrescription => 'روشتة فيها كذا دوا؟ صوّرها';
+
+  @override
+  String get medicineUnsureValue => 'مش متأكدين من القراية، راجعها على العلبة';
+
+  @override
+  String get medicineFreqOnce => 'مرة في اليوم';
+
+  @override
+  String get medicineFreqTwice => 'مرتين';
+
+  @override
+  String get medicineFreqThrice => '٣ مرات';
+
+  @override
+  String get medicineFreqAsNeeded => 'لما يحتاج';
+
+  @override
+  String get medicineAddAnotherTime => 'ميعاد تاني';
+
+  @override
+  String medicineChangeTime(String time) {
+    return 'غيّر $time';
+  }
+
+  @override
+  String get medicineOngoing => 'على طول';
+
+  @override
+  String get medicineUntilDate => 'لحد يوم معين';
+
+  @override
+  String get medicineLastDay => 'آخر يوم';
+
+  @override
+  String get medicineMoreDetails => 'تفاصيل أكتر';
+
+  @override
+  String get medicineLessDetails => 'تفاصيل أقل';
+
+  @override
+  String get medicineClose => 'اقفل';
+
+  @override
+  String vaccinesTitleOf(String name) {
+    return 'تطعيمات $name';
+  }
+
+  @override
+  String vaccineProgressLine(int done, int total) {
+    final intl.NumberFormat doneNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String doneString = doneNumberFormat.format(done);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return '$doneString من $totalString جرعة اتاخدت';
+  }
+
+  @override
+  String get vaccineNewTitle => 'تطعيم جديد';
+
+  @override
+  String get vaccineDoneGroup => 'اللي خلص';
+
+  @override
+  String vaccineDoneGroupLast(String date) {
+    return 'اتاخدت كلها · آخرها $date';
+  }
+
+  @override
+  String vaccineGroupCount(int done, int total) {
+    final intl.NumberFormat doneNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String doneString = doneNumberFormat.format(done);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return '$doneString من $totalString';
+  }
+
+  @override
+  String get vaccineTickAll => 'تحديد الكل';
+
+  @override
+  String get vaccineSetupSkipNow => 'تخطي التطعيمات دلوقتي';
+
+  @override
+  String get fieldVaccinePlace => 'فين؟';
+
+  @override
+  String get vaccineCardPhoto => 'صورة كارت التطعيم';
+
+  @override
+  String get vaccineCardScanTitle => 'صوّر كارت التطعيم';
+
+  @override
+  String get vaccineCardScanBody =>
+      'بنقرا على الموبايل التواريخ وأسامي التطعيمات المطبوعة بالإنجليزي بس، وإنت بتأكد كل جرعة.';
+
+  @override
+  String get vaccineWhich => 'أنهي تطعيم؟';
+
+  @override
+  String get vaccineOtherChoice => 'تطعيم تاني';
+
+  @override
+  String get vaccineWhoFor => 'لمين؟';
+
+  @override
+  String vaccineSavedFor(String vaccine, String name) {
+    return 'اتحفظ: $vaccine لـ$name';
+  }
+
+  @override
+  String vaccineChoiceOverdue(String dose) {
+    return '$dose · متأخر';
+  }
+
+  @override
+  String growthTitleOf(String name) {
+    return 'نمو $name';
+  }
+
+  @override
+  String get growthNew => 'قياس جديد';
+
+  @override
+  String get growthTabWeight => 'الوزن';
+
+  @override
+  String get growthTabHeight => 'الطول';
+
+  @override
+  String get growthTabHead => 'محيط الراس';
+
+  @override
+  String get growthUnitKg => 'كجم';
+
+  @override
+  String get growthUnitCm => 'سم';
+
+  @override
+  String get growthHistoryTitle => 'القياسات';
+
+  @override
+  String growthLegendOwn(String name) {
+    return 'قياسات $name';
+  }
+
+  @override
+  String get growthLegendReference => 'المعدل المرجعي';
+
+  @override
+  String growthLastOn(String date) {
+    return 'آخر قياس $date';
+  }
+
+  @override
+  String get growthTabOutside => 'برّه المدى المعتاد';
+
+  @override
+  String get pregnancyAddRecord => 'سجّلي زيارة أو تحليل';
+
+  @override
+  String get pregnancyNextTitle => 'الجاي';
+
+  @override
+  String get pregnancyPastTitle => 'اللي فات';
+
+  @override
+  String get pregnancySupplementsTitle => 'الأدوية والمكمّلات النهارده';
+
+  @override
+  String get pregnancySupplementsEmpty => 'مفيش حاجة متسجلة للنهارده.';
+
+  @override
+  String get pregnancySupplementsAdd => 'ضيفي دوا أو مكمّل';
+
+  @override
+  String get reportSummaryNotOpinion =>
+      'ده ملخص من اللي العيلة سجلته، مش رأي طبي.';
+
+  @override
+  String get followUpsThisWeek => 'النهارده والأسبوع ده';
+
+  @override
+  String get followUpsLater => 'بعد كده';
+
+  @override
+  String get followUpsAll => 'كل المتابعات';
+
+  @override
+  String insuranceWatermark(String name, String date) {
+    return '$name · $date';
+  }
+
+  @override
+  String get insuranceShareWarning =>
+      'قبل ما تبعت: الكارت فيه بيانات شخصية، واللي هيستلمه ممكن يبعته لغيره. هنكتب على الصورة التاريخ واسم شركة التأمين لو متسجل.';
+
+  @override
+  String get insuranceShareWarningNoPhoto =>
+      'قبل ما تبعت: رقم العضوية بيانات شخصية، واللي هيستلمه ممكن يبعته لغيره.';
+
+  @override
+  String get simpleNextDose => 'الدوا الجاي';
+
+  @override
+  String simpleThenDose(String medicine, String time) {
+    return 'وبعده: $medicine الساعة $time';
+  }
+
+  @override
+  String get simpleNoDoses => 'مفيش جرعات فاضلة النهارده.';
+
+  @override
+  String get simpleExit => 'خروج من الوضع البسيط';
+
+  @override
+  String get simpleExitWithPin => 'خروج من الوضع البسيط (بالرقم السري)';
+
+  @override
+  String get simpleExitConfirm => 'تخرج من الوضع البسيط؟';
+
+  @override
+  String get simpleExitStay => 'خليك فيه';
+
+  @override
+  String get simpleExitGo => 'اخرج';
+
+  @override
+  String get countrySoonNote =>
+      'السعودية والأردن هيفتحوا لما جداولهم وأرقام الإسعاف يتراجعوا.';
+
+  @override
+  String get homeSetupIntro => 'خطوات ممكن تبدأ بيها. مفيش حاجة منهم إجبارية.';
+
+  @override
+  String get homeSetupFamily => 'فرد من العيلة';
+
+  @override
+  String get homeSetupFamilyHint => 'الاسم والنوع وتاريخ الميلاد وصلة القرابة';
+
+  @override
+  String get homeSetupReminders => 'التذكير بالدوا والتطعيمات';
+
+  @override
+  String get homeSetupRemindersHint => 'الإذن بيتطلب وقتها بس';
+
+  @override
+  String get homeSetupEmergency => 'كارت الطوارئ';
+
+  @override
+  String get homeSetupEmergencyHint => 'فصيلة الدم والحساسية ورقم للطوارئ';
+
+  @override
+  String get homeSetupLockNote =>
+      'بعد أول نسخة احتياطية هنقترح قفل أسرة برقم سري.';
+
+  @override
+  String get homeSetupHide => 'إخفاء';
+
+  @override
+  String simpleThenDoseFor(String medicine, String name, String time) {
+    return 'وبعده: $medicine لـ$name الساعة $time';
+  }
 }

@@ -24,11 +24,13 @@ jobs:
     if: >-
       github.event.action != 'labeled' ||
       github.event.label.name == 'android-build' ||
-      github.event.label.name == 'release-build'
+      github.event.label.name == 'release-build' ||
+      github.event.label.name == 'ios-build'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
       native: ${{ steps.changes.outputs.native }}
+      ios: ${{ steps.changes.outputs.ios }}
     defaults:
       run:
         working-directory: app
@@ -51,6 +53,11 @@ jobs:
             echo "native=true" >> "$GITHUB_OUTPUT"
           else
             echo "native=false" >> "$GITHUB_OUTPUT"
+          fi
+          if echo "$changed" | grep -Eq '^app/ios/|^app/pubspec\.(yaml|lock)$|^\.github/workflows/app-ci\.yml$'; then
+            echo "ios=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ios=false" >> "$GITHUB_OUTPUT"
           fi
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
@@ -114,6 +121,47 @@ jobs:
         if: always()
         working-directory: /
         run: df -h /
+
+  # Proves the iOS app (Runner plus the DoseWidget extension, CocoaPods for
+  # ML Kit) compiles and links. Unsigned: no Apple certificates here. PRs
+  # that touch app/ios/, the pubspec or this workflow, PRs labelled
+  # `ios-build`, and main pushes. macOS runners are free for public repos
+  # but slower to start.
+  build-ios:
+    needs: test
+    if: >-
+      github.event_name == 'push' ||
+      needs.test.outputs.ios == 'true' ||
+      contains(github.event.pull_request.labels.*.name, 'ios-build')
+    runs-on: macos-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            app/ios/Pods
+          key: pods-${{ runner.os }}-${{ hashFiles('app/ios/Podfile.lock') }}
+          restore-keys: pods-${{ runner.os }}-
+      - run: flutter pub get
+      - run: flutter build ios --no-codesign --debug
+      # The extension must be embedded, or no widget ships.
+      - name: Dose widget is embedded
+        run: test -f build/ios/iphoneos/Runner.app/PlugIns/DoseWidget.appex/DoseWidget
+      # pod install must not change committed files (Podfile.lock, pbxproj).
+      # The CocoaPods version line is ignored: the runner's CocoaPods may be
+      # newer than the one that wrote the lock.
+      - name: CocoaPods integration is committed
+        run: |
+          git diff --exit-code -I '^COCOAPODS: ' -- ios/
 
   # Proves the Play release path (R8, resource shrinking, every ABI) still
   # builds. Main pushes only, as it is the slowest job and PRs already get

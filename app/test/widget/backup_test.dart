@@ -21,6 +21,8 @@ import 'package:usra/core/security/sensitive_clipboard.dart';
 import 'package:usra/features/backup/backup_providers.dart';
 import 'package:usra/features/backup/backup_screen.dart';
 
+import '../support/fits.dart';
+
 /// Hands back a ready-made file instead of packing the database.
 class _FakeBackupService extends BackupService {
   _FakeBackupService(Directory dir)
@@ -148,7 +150,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('settings-backup')));
       await tester.pumpAndSettle();
-      expect(find.text('لسه معملتش نسخة احتياطية'), findsOneWidget);
+      expect(find.text('لسه مفيش نسخة احتياطية'), findsOneWidget);
 
       await tester.tap(find.byKey(const ValueKey('backup-now')));
       await tester.pumpAndSettle();
@@ -323,8 +325,9 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('restore-open')));
     await tester.pumpAndSettle();
     expect(service.opened.single.$2, key);
-    expect(find.text('3 أشخاص، 12 سجل، دوايين، صورة واحدة'), findsOneWidget);
+    expect(find.text('٣ أشخاص، ١٢ سجل، دوايين، صورة واحدة'), findsOneWidget);
     expect(restarted, isEmpty);
+    expect(find.byKey(const ValueKey('restore-cancel')), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('restore-replace')));
     await tester.pumpAndSettle();
@@ -481,4 +484,58 @@ void main() {
       expect(find.text('تنبيهات من غير أسامي'), findsOneWidget);
     });
   });
+
+  group('fits a small phone at double text', () {
+    for (final locale in const ['ar', 'en']) {
+      for (final theme in const [ThemeMode.light, ThemeMode.dark]) {
+        for (final path in const [
+          '/settings/backup',
+          '/settings/backup/key',
+          '/settings/backup/restore',
+        ]) {
+          testWidgets('$path, $locale, ${theme.name}', (tester) async {
+            smallPhoneDoubleText(tester);
+            await prefs.setString(PrefKeys.language, locale);
+            await tester.pumpWidget(
+              app(
+                extra: [
+                  themeModeProvider.overrideWith(() => _FixedTheme(theme)),
+                ],
+              ),
+            );
+            await tester.pumpAndSettle();
+            await go(tester, path);
+            await walkScreen(tester);
+          });
+        }
+      }
+    }
+  });
+
+  testWidgets('the main button comes before automatic backup, and there is no '
+      'server option', (tester) async {
+    tester.view.physicalSize = const Size(1170, 3000);
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    await go(tester, '/settings/backup');
+    expect(
+      tester.getTopLeft(find.byKey(const ValueKey('backup-now'))).dy,
+      lessThan(
+        tester.getTopLeft(find.byKey(const ValueKey('backup-auto-toggle'))).dy,
+      ),
+    );
+    expect(find.textContaining('سيرفر'), findsNothing);
+    expect(find.byKey(const ValueKey('backup-restore')), findsOneWidget);
+  });
+}
+
+class _FixedTheme extends ThemeModeController {
+  _FixedTheme(this.mode);
+
+  final ThemeMode mode;
+
+  @override
+  ThemeMode build() => mode;
 }

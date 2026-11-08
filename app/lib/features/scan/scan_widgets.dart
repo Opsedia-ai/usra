@@ -39,7 +39,7 @@ class DocumentScanCard extends StatelessWidget {
     const tall = Size(0, 56);
     final scan = reading ? null : onScan;
     return Card(
-      color: UsraColors.primaryTint,
+      color: context.usra.primarySoft,
       elevation: 0,
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -122,15 +122,20 @@ InputDecoration unsureDecoration(
     errorText: error,
     helperText: unsure ? l.labCheckThis : null,
     helperMaxLines: 2,
-    helperStyle: unsure ? TextStyle(color: Severity.headsUp.foreground) : null,
+    helperStyle: unsure
+        ? TextStyle(color: Severity.headsUp.foregroundOf(context))
+        : null,
     filled: unsure,
-    fillColor: unsure ? Severity.headsUp.background : null,
+    fillColor: unsure ? Severity.headsUp.backgroundOf(context) : null,
     suffixIcon: unsure
         ? IconButton(
             key: ValueKey(checkKey),
             tooltip: l.labCheckedIt,
             onPressed: onChecked,
-            icon: Icon(Icons.task_alt, color: Severity.headsUp.foreground),
+            icon: Icon(
+              Icons.task_alt,
+              color: Severity.headsUp.foregroundOf(context),
+            ),
           )
         : null,
   );

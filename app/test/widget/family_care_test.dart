@@ -88,12 +88,14 @@ void main() {
 
     // Home shows the pregnancy, and the visits due feed the follow-ups.
     expect(find.byKey(ValueKey('pregnancy-summary-$mona')), findsOneWidget);
-    expect(find.textContaining('منى · 25 أسبوع'), findsOneWidget);
+    expect(find.textContaining('منى · ٢٥ أسبوع'), findsOneWidget);
 
     // Men get no pregnancy button or record type.
     router.go('/family/$ali');
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('member-pregnancy')), findsNothing);
+    await tester.ensureVisible(find.byKey(const ValueKey('add-record')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('add-record')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('type-visit')), findsOneWidget);
@@ -103,10 +105,13 @@ void main() {
         .pop();
     await tester.pumpAndSettle();
 
+    router.go('/family/$mona/follow-ups');
+    await tester.pumpAndSettle();
+    expect(find.text('تحليل سكر الحمل (منحنى السكر)'), findsWidgets);
+
     router.go('/family/$mona');
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('member-pregnancy')), findsOneWidget);
-    expect(find.text('تحليل سكر الحمل (منحنى السكر)'), findsWidgets);
 
     await tester.tap(find.byKey(ValueKey('pregnancy-summary-$mona')));
     await tester.pumpAndSettle();
@@ -171,6 +176,8 @@ void main() {
     router.go('/family/$kid');
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('member-pregnancy')), findsNothing);
+    await tester.ensureVisible(find.byKey(const ValueKey('member-baby-log')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('member-baby-log')));
     await tester.pumpAndSettle();
 
@@ -188,13 +195,13 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.descendant(of: todayCard, matching: find.text('90 مل من الببرونة')),
+      find.descendant(of: todayCard, matching: find.text('٩٠ مل من الببرونة')),
       findsOneWidget,
     );
     expect(
       find.descendant(
         of: todayCard,
-        matching: find.text('الحفاضات: 1 مبلولة، 0 فيها براز'),
+        matching: find.text('الحفاضات: ١ مبلولة، ٠ فيها براز'),
       ),
       findsOneWidget,
     );
@@ -206,6 +213,10 @@ void main() {
     expect(find.textContaining('مهارة'), findsNothing);
 
     // Milestones: the 2-month list is a month overdue except what's ticked.
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('member-development')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('member-development')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('dev-late-banner')), findsOneWidget);
@@ -244,12 +255,18 @@ void main() {
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('check-status-weight')),
-        matching: find.textContaining('في المدى المعتاد'),
+        matching: find.textContaining('جوه المعدل المرجعي'),
       ),
       findsOneWidget,
     );
     await tester.tap(find.byKey(const ValueKey('check-save')));
     await settleDb(tester);
-    expect(find.textContaining('آخر قياس: 6'), findsOneWidget);
+    expect(find.textContaining('آخر قياس'), findsOneWidget);
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey('growth-value-weight')))
+          .data,
+      startsWith('٦'),
+    );
   });
 }

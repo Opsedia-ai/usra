@@ -1,5 +1,8 @@
+import 'package:go_router/go_router.dart';
+
 import '../../core/follow_ups/follow_up.dart';
 import '../../core/modules/feature_module.dart';
+import 'follow_ups_section.dart';
 import 'rules/record_rules.dart';
 import 'rules/screening_rules.dart';
 
@@ -10,6 +13,11 @@ class FollowUpsModule extends FeatureModule {
 
   @override
   String get id => 'followUps';
+
+  @override
+  List<RouteBase> get routes => [
+    GoRoute(path: '/follow-ups', builder: (_, _) => const FollowUpsScreen()),
+  ];
 
   @override
   List<FollowUpRule> get followUpRules => const [

@@ -151,6 +151,25 @@ class PhotoStore {
     return relative;
   }
 
+  /// A new file with the same contents, for a record that's moving away from
+  /// one it shared this photo with. Copies the encrypted bytes as they are, with
+  /// nothing decrypted. A photo from before they were encrypted is encrypted as
+  /// it's copied. Throws if it can't be read.
+  Future<String> duplicate(String relativePath) async {
+    final relative = p.join(
+      folder,
+      '${_uuid.v7()}${p.extension(relativePath).toLowerCase()}',
+    );
+    final bytes = await fileOf(relativePath).readAsBytes();
+    await writeSealedFile(
+      fileOf(relative),
+      PhotoCipher.isSealed(bytes)
+          ? bytes
+          : await PhotoWorker.instance.seal(keys.require, bytes),
+    );
+    return relative;
+  }
+
   /// The photo's bytes, decrypted in memory. Throws
   /// [PhotoUnreadableException] if the file was changed or can't be opened,
   /// and [PhotoKeyUnavailableException] if there is no key to open it.
@@ -166,12 +185,25 @@ class PhotoStore {
   ImageProvider image(String relativePath) =>
       StoredPhotoImage(this, relativePath);
 
+  /// The paths of the photos in [folder], as saved in the database. Hidden
+  /// files aren't photos: temporary ones being written, or the system's.
+  Future<Set<String>> storedPaths() async {
+    if (!await _dir.exists()) return {};
+    return {
+      await for (final entity in _dir.list())
+        if (entity is File && !p.basename(entity.path).startsWith('.'))
+          p.relative(entity.path, from: root.path),
+    };
+  }
+
   /// Deletes every photo in [folder] not in [keep] (replaced, or what it
-  /// belonged to was deleted).
+  /// belonged to was deleted). A photo imported but not saved yet is not in
+  /// [keep], so save its row before pruning.
   Future<void> prune(Set<String> keep) async {
     if (!await _dir.exists()) return;
     await for (final entity in _dir.list()) {
-      if (entity is! File) continue;
+      // Hidden files aren't photos: one may be another import being written.
+      if (entity is! File || p.basename(entity.path).startsWith('.')) continue;
       final relative = p.relative(entity.path, from: root.path);
       if (!keep.contains(relative)) {
         try {
@@ -372,7 +404,13 @@ class SharedPhotoCache {
 
   /// Decrypts stored photos into files to share, leaving out any that are
   /// missing or can't be opened.
-  Future<List<XFile>> copyOut(PhotoStore store, Iterable<String> paths) async {
+  /// [transform] changes each photo's bytes on the way out. If it throws, the
+  /// share fails: a photo meant to carry a watermark never goes without one.
+  Future<List<XFile>> copyOut(
+    PhotoStore store,
+    Iterable<String> paths, {
+    Future<Uint8List> Function(Uint8List bytes)? transform,
+  }) async {
     final dir = await _folder(folderName);
     await dir.create(recursive: true);
     final files = <XFile>[];
@@ -385,6 +423,14 @@ class SharedPhotoCache {
       } on PhotoKeyUnavailableException {
         continue;
       } on FileSystemException {
+        continue;
+      }
+      if (transform != null) {
+        final out = await transform(bytes);
+        final name = '${p.basenameWithoutExtension(path)}.png';
+        final file = File(p.join(dir.path, name));
+        await file.writeAsBytes(out, flush: true);
+        files.add(XFile(file.path, mimeType: 'image/png'));
         continue;
       }
       final file = File(p.join(dir.path, p.basename(path)));
@@ -446,6 +492,8 @@ Future<void> shareStoredPhotos(
   Iterable<String> paths, {
   String? text,
   Rect? origin,
+  bool alreadyWarned = false,
+  Future<Uint8List> Function(Uint8List bytes)? transform,
 }) async {
   // Read now: the screen may be gone once the photos are decrypted.
   final (cache, share, prefs) = (
@@ -453,12 +501,14 @@ Future<void> shareStoredPhotos(
     ref.read(shareProvider),
     ref.read(keyValueStoreProvider),
   );
-  if (!ref.context.mounted || !await confirmShareOutside(ref.context, prefs)) {
+  if (!alreadyWarned &&
+      (!ref.context.mounted ||
+          !await confirmShareOutside(ref.context, prefs))) {
     return;
   }
   await cache.clear();
   try {
-    final files = await cache.copyOut(store, paths);
+    final files = await cache.copyOut(store, paths, transform: transform);
     await share(
       ShareParams(
         text: text,

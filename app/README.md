@@ -13,6 +13,13 @@ flutter test           # unit + widget tests
 flutter analyze
 ```
 
+iOS Simulator on an Apple Silicon Mac: ML Kit's frameworks have no arm64 simulator slice, so the simulator build fails to link until you patch the local Pods (dev only; before building for a phone, delete `ios/Pods` and run `pod install`, since `pod install` alone keeps the patched files):
+
+```bash
+cd ios && pod install && ../../tools/ios/mlkit_simulator.sh && cd ..
+flutter run -d "iPhone 17"
+```
+
 After changing database tables or ARB strings:
 
 ```bash

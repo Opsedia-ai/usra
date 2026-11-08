@@ -7,12 +7,18 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat, NumberFormat;
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/follow_ups/follow_up.dart';
+import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
+import '../add/add_sheet.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
+import '../family/person_status.dart' show TodayRefresh;
 import '../follow_ups/follow_ups_providers.dart' show todayProvider;
+import '../medicines/medicines_providers.dart' show todayDosesProvider;
+import '../medicines/today_screen.dart' show DoseCard;
 import 'antenatal_schedule.dart';
 import 'pregnancy.dart';
 import 'pregnancy_widgets.dart';
@@ -38,6 +44,26 @@ class PregnancyScreen extends ConsumerWidget {
         title: Text(l.pregnancyTitle),
         leading: BackButton(onPressed: () => context.go('/family/$profileId')),
       ),
+      // Only while a pregnancy is being followed: before that, its main action
+      // is starting one.
+      bottomNavigationBar: switch ((profile.value, timeline.value)) {
+        (final p?, final events?)
+            when canBePregnant(p, today) &&
+                activePregnancy(FollowUpSubject(p, events).records, today) !=
+                    null =>
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+              child: FilledButton.icon(
+                key: const ValueKey('pregnancy-add'),
+                onPressed: () => showAddSheet(context, person: profileId),
+                icon: const Icon(Icons.add),
+                label: Text(l.pregnancyAddRecord),
+              ),
+            ),
+          ),
+        _ => null,
+      },
       body: switch ((profile, timeline)) {
         (AsyncError(:final error), _) ||
         (_, AsyncError(:final error)) => Center(child: Text('$error')),
@@ -70,7 +96,7 @@ class _Message extends StatelessWidget {
   );
 }
 
-class _Body extends StatelessWidget {
+class _Body extends StatefulWidget {
   const _Body({
     required this.profile,
     required this.records,
@@ -82,10 +108,20 @@ class _Body extends StatelessWidget {
   final DateTime today;
 
   @override
+  State<_Body> createState() => _BodyState();
+}
+
+class _BodyState extends State<_Body> {
+  var _doneOpen = false;
+
+  @override
   Widget build(BuildContext context) {
+    final profile = widget.profile;
+    final records = widget.records;
+    final today = widget.today;
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    final muted = text.bodySmall?.copyWith(color: UsraColors.textMuted);
+    final muted = text.bodySmall?.copyWith(color: context.usra.inkMuted);
     final pregnancy = activePregnancy(records, today);
     final id = profile.id;
 
@@ -93,7 +129,7 @@ class _Body extends StatelessWidget {
       return ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Icon(Icons.pregnant_woman, size: 72, color: UsraColors.primary),
+          Icon(Icons.pregnant_woman, size: 72, color: context.usra.primary),
           const SizedBox(height: 12),
           Text(l.pregnancyStartIntro, style: text.bodyLarge),
           const SizedBox(height: 20),
@@ -111,6 +147,16 @@ class _Body extends StatelessWidget {
 
     final readings = pregnancyReadings(records, pregnancy);
     final left = pregnancy.daysLeft(today);
+    final anc = ancStatuses(pregnancy, records, today);
+    // A missed check stays in view: Home may be pointing at it.
+    final open = [
+      for (final s in anc)
+        if (s.state != AncState.done) s,
+    ];
+    final past = [
+      for (final s in anc)
+        if (s.state == AncState.done) s,
+    ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
@@ -151,10 +197,49 @@ class _Body extends StatelessWidget {
         const SizedBox(height: 16),
         const DangerSignsCard(),
         const SizedBox(height: 24),
+        _SupplementsCard(person: profile),
+        const SizedBox(height: 24),
         Text(l.pregnancyScheduleTitle, style: text.titleLarge),
         const SizedBox(height: 4),
-        for (final s in ancStatuses(pregnancy, records, today))
-          _AncTile(status: s, today: today),
+        if (open.isNotEmpty) ...[
+          Text(
+            l.pregnancyNextTitle,
+            key: const ValueKey('pregnancy-next'),
+            style: text.titleMedium,
+          ),
+          for (final s in open) _AncTile(status: s, today: today),
+        ],
+        if (past.isNotEmpty) ...[
+          Semantics(
+            button: true,
+            expanded: _doneOpen,
+            child: InkWell(
+              key: const ValueKey('pregnancy-past-toggle'),
+              onTap: () => setState(() => _doneOpen = !_doneOpen),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: UsraSizes.touchTarget,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l.pregnancyPastTitle,
+                        style: text.titleMedium,
+                      ),
+                    ),
+                    Icon(
+                      _doneOpen ? Icons.expand_less : Icons.expand_more,
+                      color: context.usra.inkMuted,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (_doneOpen)
+            for (final s in past) _AncTile(status: s, today: today),
+        ],
         const SizedBox(height: 4),
         Text(l.pregnancyScheduleSource, style: muted),
         const SizedBox(height: 24),
@@ -213,7 +298,8 @@ class _Body extends StatelessWidget {
     final locale = Localizations.localeOf(context).toLanguageTag();
     return _latest(
       context,
-      '${NumberFormat.decimalPattern(locale).format(weight)} kg',
+      '${NumberFormat.decimalPattern(locale).format(weight)} '
+      '${AppLocalizations.of(context).growthUnitKg}',
       r.date,
     );
   }
@@ -231,9 +317,16 @@ class _Body extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _latest(context, '${r.systolic ?? '–'}/${r.diastolic ?? '–'}', r.date),
+        _latest(
+          context,
+          localizedDigitsIn(
+            context,
+            '${r.systolic ?? '–'}/${r.diastolic ?? '–'}',
+          ),
+          r.date,
+        ),
         const SizedBox(height: 6),
-        SeverityChip(
+        StatusChip(
           key: const ValueKey('pregnancy-bp-status'),
           severity: level.severity,
           label: switch (level) {
@@ -271,17 +364,123 @@ class _AncTile extends StatelessWidget {
         final s => (s, l.followUpDue(date)),
       },
     };
-    return ListTile(
+    final c = context.usra;
+    return Padding(
       key: ValueKey('anc-${item.id}'),
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(switch (item.kind) {
-        AncKind.contact => Icons.medical_services_outlined,
-        AncKind.scan => Icons.image_outlined,
-        AncKind.lab => Icons.science_outlined,
-      }, color: UsraColors.primary),
-      title: Text(ancTitle(l, item)),
-      subtitle: Text(ancReason(l, item)),
-      trailing: SeverityChip(severity: severity, label: label),
+      padding: const EdgeInsets.symmetric(vertical: UsraSpacing.s2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ExcludeSemantics(
+            child: Icon(switch (item.kind) {
+              AncKind.contact => Icons.medical_services_outlined,
+              AncKind.scan => Icons.image_outlined,
+              AncKind.lab => Icons.science_outlined,
+            }, color: c.primary),
+          ),
+          const SizedBox(width: UsraSpacing.s3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  ancTitle(l, item),
+                  style: UsraType.body.copyWith(
+                    color: c.ink,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  ancReason(l, item),
+                  style: UsraType.body.copyWith(color: c.inkMuted),
+                ),
+                const SizedBox(height: UsraSpacing.s1),
+                StatusChip(severity: severity, label: label),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Today's doses for this person, each ticked on its own, with the same rules
+/// and Undo as the Medicines tab. They're whatever the family added as a
+/// medicine: the app names no supplement and suggests none.
+class _SupplementsCard extends ConsumerStatefulWidget {
+  const _SupplementsCard({required this.person});
+
+  final Profile person;
+
+  @override
+  ConsumerState<_SupplementsCard> createState() => _SupplementsCardState();
+}
+
+class _SupplementsCardState extends ConsumerState<_SupplementsCard>
+    with TodayRefresh<_SupplementsCard> {
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.usra;
+    final person = widget.person;
+    final doses = ref.watch(todayDosesProvider);
+    final List<Widget> rows = switch (doses) {
+      AsyncError() => [
+        Text(
+          l.homeLoadError,
+          key: const ValueKey('pregnancy-supplements-error'),
+          style: UsraType.body.copyWith(color: c.inkMuted),
+        ),
+      ],
+      AsyncValue(value: final all?) => () {
+        final mine = [
+          for (final d in all)
+            if (d.regimen.person.id == person.id) d,
+        ];
+        if (mine.isNotEmpty) {
+          return <Widget>[
+            for (final d in mine)
+              DoseCard(
+                key: ValueKey(
+                  'pregnancy-dose-${d.regimen.medicine.id}-'
+                  '${d.at.millisecondsSinceEpoch}',
+                ),
+                dose: d,
+              ),
+          ];
+        }
+        return <Widget>[
+          Text(
+            l.pregnancySupplementsEmpty,
+            key: const ValueKey('pregnancy-supplements-empty'),
+            style: UsraType.body.copyWith(color: c.inkMuted),
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              key: const ValueKey('pregnancy-supplements-add'),
+              onPressed: () =>
+                  context.push('/family/${person.id}/medicines/new'),
+              child: Text(l.pregnancySupplementsAdd),
+            ),
+          ),
+        ];
+      }(),
+      // Says nothing until it knows: "nothing recorded" has to be true.
+      _ => const [],
+    };
+    return Column(
+      key: const ValueKey('pregnancy-supplements'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: UsraSpacing.s1,
+      children: [
+        Text(
+          l.pregnancySupplementsTitle,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        ...rows,
+      ],
     );
   }
 }
@@ -321,7 +520,12 @@ class _ReadingsCard extends StatelessWidget {
                 child: AspectRatio(
                   aspectRatio: 1.8,
                   child: CustomPaint(
-                    painter: _LinePainter(series: series, unit: unit),
+                    painter: _LinePainter(
+                      colors: context.usra,
+                      series: series,
+                      unit: unit,
+                      language: Localizations.localeOf(context).languageCode,
+                    ),
                   ),
                 ),
               ),
@@ -340,15 +544,23 @@ class _ReadingsCard extends StatelessWidget {
 }
 
 class _LinePainter extends CustomPainter {
-  _LinePainter({required this.series, required this.unit});
+  _LinePainter({
+    required this.colors,
+    required this.series,
+    required this.unit,
+    required this.language,
+  });
 
+  final UsraColors colors;
   final List<List<(double, double)>> series;
   final String unit;
+  final String language;
 
   static const _maxWeek = 42.0;
-  static const _left = 36.0;
-  static const _bottom = 20.0;
-  static const _colors = [UsraColors.primary, UsraColors.cheek];
+  static const _left = 40.0;
+  static const _top = 22.0;
+  static const _bottom = 24.0;
+  List<Color> get _colors => [colors.primary, colors.orchidInk];
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -360,7 +572,7 @@ class _LinePainter extends CustomPainter {
     high = (high + pad).ceilToDouble();
     final chart = Rect.fromLTRB(
       _left,
-      4,
+      _top,
       size.width - 4,
       size.height - _bottom,
     );
@@ -370,19 +582,24 @@ class _LinePainter extends CustomPainter {
     );
 
     final grid = Paint()
-      ..color = UsraColors.line
+      ..color = colors.line
       ..strokeWidth = 1;
     for (var w = 0; w <= _maxWeek; w += 6) {
       final x = at(w.toDouble(), low).dx;
       canvas.drawLine(Offset(x, chart.top), Offset(x, chart.bottom), grid);
-      _label(canvas, '$w', Offset(x, chart.bottom + 3), center: true);
+      _label(
+        canvas,
+        digitsIn(language, '$w'),
+        Offset(x, chart.bottom + 2),
+        center: true,
+      );
     }
     for (final v in [low, (low + high) / 2, high]) {
       final y = at(0, v).dy;
       canvas.drawLine(Offset(chart.left, y), Offset(chart.right, y), grid);
-      _label(canvas, '${v.round()}', Offset(2, y - 7));
+      _label(canvas, digitsIn(language, '${v.round()}'), Offset(2, y - 9));
     }
-    _label(canvas, unit, Offset(chart.left + 4, chart.top));
+    _label(canvas, unit, const Offset(2, 0));
 
     for (final (i, s) in series.indexed) {
       final color = _colors[i % _colors.length];
@@ -402,16 +619,11 @@ class _LinePainter extends CustomPainter {
     }
   }
 
-  static void _label(
-    Canvas canvas,
-    String text,
-    Offset at, {
-    bool center = false,
-  }) {
+  void _label(Canvas canvas, String text, Offset at, {bool center = false}) {
     final painter = TextPainter(
       text: TextSpan(
         text: text,
-        style: const TextStyle(fontSize: 10, color: UsraColors.textMuted),
+        style: TextStyle(fontSize: 14, color: colors.inkMuted),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
@@ -421,6 +633,8 @@ class _LinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_LinePainter old) =>
+      old.colors != colors ||
+      old.language != language ||
       old.unit != unit ||
       old.series.length != series.length ||
       [

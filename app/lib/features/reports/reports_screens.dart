@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
+import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/preferences.dart' show simpleModeProvider;
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
-import '../family/member_screen.dart' show profileProvider;
+import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import '../follow_ups/follow_ups_providers.dart' show todayProvider;
+import '../labs/lab_report.dart' show LabReport;
+import '../medicines/medicine_text.dart' show medicineTitle;
+import '../medicines/medicines_providers.dart' show medicinesProvider;
 import 'doctor_summary.dart';
 import 'report_share.dart';
 import 'vaccination_record.dart';
@@ -120,7 +126,7 @@ Future<void> shareVaccinationRecord(
                         Text(
                           l.reportOnPhone,
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: UsraColors.textMuted),
+                              ?.copyWith(color: context.usra.inkMuted),
                         ),
                       ],
                     ),
@@ -162,6 +168,99 @@ Future<void> shareVaccinationRecord(
       );
     },
   );
+}
+
+/// The summary at a glance: only what the family has recorded, under the
+/// sections still ticked, and a line saying whose words these are.
+class _SummaryPreview extends ConsumerWidget {
+  const _SummaryPreview({
+    required this.profile,
+    required this.shown,
+    required this.today,
+  });
+
+  final Profile profile;
+  final Set<SummarySection> shown;
+  final DateTime today;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final c = context.usra;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final all = ref.watch(medicinesProvider(profile.id)).value;
+    final events = ref.watch(timelineProvider(profile.id)).value;
+    return Card(
+      key: const ValueKey('summary-preview'),
+      child: Padding(
+        padding: const EdgeInsets.all(UsraSpacing.s4),
+        child: Builder(
+          builder: (context) {
+            Widget row(String key, String label, String value) => Padding(
+              key: ValueKey('summary-preview-$key'),
+              padding: const EdgeInsets.only(bottom: UsraSpacing.s2),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: UsraType.label.copyWith(color: c.inkMuted),
+                  ),
+                  Text(
+                    value,
+                    style: UsraType.body.copyWith(
+                      color: c.ink,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            );
+            final medicines = [
+              for (final m in all ?? const <Medicine>[])
+                if (summaryCountsMedicine(m, today)) medicineTitle(m),
+            ];
+            final lab = events
+                ?.where((e) => summaryCountsLab(e, today))
+                .firstOrNull;
+            final labName = lab == null ? null : LabReport.of(lab).lab;
+            final labDate = lab == null
+                ? null
+                : DateFormat.yMMMd(locale).format(lab.occurredAt);
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (shown.contains(SummarySection.allergies))
+                  if (profile.allergies case final v?)
+                    row('allergies', l.profileAllergies, v),
+                if (shown.contains(SummarySection.conditions))
+                  if (profile.conditions case final v?)
+                    row('conditions', l.profileConditions, v),
+                if (shown.contains(SummarySection.medicines) &&
+                    medicines.isNotEmpty)
+                  row(
+                    'medicines',
+                    l.reportSectionMedicines,
+                    medicines.join('\n'),
+                  ),
+                if (shown.contains(SummarySection.labs) && lab != null)
+                  row(
+                    'labs',
+                    l.reportSectionLabs,
+                    [?labName, labDate!].join(' · '),
+                  ),
+                Text(
+                  l.reportSummaryNotOpinion,
+                  key: const ValueKey('summary-not-opinion'),
+                  style: UsraType.body.copyWith(color: c.ink),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
 }
 
 /// Picks what goes in the summary for the doctor (C10) and its
@@ -230,7 +329,7 @@ class _DoctorSummaryScreenState extends ConsumerState<DoctorSummaryScreen> {
     final profile = ref.watch(profileProvider(id));
     final today = ref.watch(todayProvider);
     final muted = Theme.of(context).textTheme.bodySmall
-        ?.copyWith(color: UsraColors.textMuted);
+        ?.copyWith(color: context.usra.inkMuted);
     return Scaffold(
       appBar: AppBar(
         title: Text(l.memberDoctorSummary),
@@ -254,6 +353,15 @@ class _DoctorSummaryScreenState extends ConsumerState<DoctorSummaryScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(simple ? l.reportSimpleIntro : l.reportSummaryIntro),
+                const SizedBox(height: 16),
+                _SummaryPreview(
+                  profile: p,
+                  shown: {
+                    for (final s in offered)
+                      if (simple || !_off.contains(s)) s,
+                  },
+                  today: today,
+                ),
                 const SizedBox(height: 16),
                 if (!simple) ...[
                   Text(

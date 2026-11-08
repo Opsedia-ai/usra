@@ -8,6 +8,11 @@ import 'tables.dart';
 part 'app_database.g.dart';
 part 'sick_days.dart';
 
+/// A new record was refused because login is on and nobody is signed in.
+class SignInRequiredException implements Exception {
+  const SignInRequiredException();
+}
+
 @DriftDatabase(
   tables: [
     Profiles,
@@ -30,8 +35,17 @@ class AppDatabase extends _$AppDatabase {
 
   static const _uuid = Uuid();
 
+  /// Set when login is on; throws to refuse a new record. Forms ask first
+  /// (`SaveGate`), so this only stops a save that didn't. Corrections, deletes,
+  /// doses and restoring a backup don't pass through it.
+  void Function()? newRecordGuard;
+
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => currentSchema;
+
+  /// What this app's database is at, without needing one open: restoring on
+  /// the screen for a database that won't open checks backups against it.
+  static const currentSchema = 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -81,6 +95,12 @@ class AppDatabase extends _$AppDatabase {
           );
         }
       }
+      if (from < 9) {
+        // Safe to run twice, for the reason above.
+        await _addColumnIfMissing(m, profiles, profiles.relationship);
+        await _addColumnIfMissing(m, profiles, profiles.emergencyPhone);
+        await _addColumnIfMissing(m, profiles, profiles.emergencyContactName);
+      }
     },
     // A database from a newer build (from > to): opened as it is; the
     // newer tables and columns are kept for when the app is updated again.
@@ -117,6 +137,10 @@ class AppDatabase extends _$AppDatabase {
     String? allergies,
     String? conditions,
     bool? simpleMode,
+    // Left out, they stay as they are: only the person form changes them.
+    Value<String?> relationship = const Value.absent(),
+    Value<String?> emergencyPhone = const Value.absent(),
+    Value<String?> emergencyContactName = const Value.absent(),
   }) async {
     final name = displayName.trim();
     if (name.isEmpty) {
@@ -126,6 +150,8 @@ class AppDatabase extends _$AppDatabase {
         'must not be empty',
       );
     }
+    Value<String?> cleaned(Value<String?> v) =>
+        v.present ? Value(_clean(v.value)) : v;
     await transaction(() async {
       await (update(profiles)..where((p) => p.id.equals(id))).write(
         ProfilesCompanion(
@@ -135,6 +161,9 @@ class AppDatabase extends _$AppDatabase {
           bloodType: Value(_clean(bloodType)),
           allergies: Value(_clean(allergies)),
           conditions: Value(_clean(conditions)),
+          relationship: cleaned(relationship),
+          emergencyPhone: cleaned(emergencyPhone),
+          emergencyContactName: cleaned(emergencyContactName),
           simpleMode: Value.absentIfNull(simpleMode),
           updatedAt: Value(DateTime.now().toUtc()),
         ),
@@ -161,6 +190,10 @@ class AppDatabase extends _$AppDatabase {
     String? allergies,
     String? conditions,
     bool? simpleMode,
+    String? relationship,
+    String? emergencyPhone,
+    String? emergencyContactName,
+    bool firstRun = false,
   }) async {
     final name = displayName.trim();
     if (name.isEmpty) {
@@ -170,6 +203,8 @@ class AppDatabase extends _$AppDatabase {
         'must not be empty',
       );
     }
+    // The person's own profile comes before Home, ahead of any sign-in.
+    if (!firstRun) newRecordGuard?.call();
     final id = _uuid.v7();
     await transaction(() async {
       await into(profiles).insert(
@@ -181,6 +216,9 @@ class AppDatabase extends _$AppDatabase {
           bloodType: Value(_clean(bloodType)),
           allergies: Value(_clean(allergies)),
           conditions: Value(_clean(conditions)),
+          relationship: Value(_clean(relationship)),
+          emergencyPhone: Value(_clean(emergencyPhone)),
+          emergencyContactName: Value(_clean(emergencyContactName)),
           simpleMode: Value.absentIfNull(simpleMode),
           updatedAt: DateTime.now().toUtc(),
         ),
@@ -294,6 +332,7 @@ class AppDatabase extends _$AppDatabase {
     List<String> photos = const [],
     List<String> pdfs = const [],
   }) async {
+    newRecordGuard?.call();
     final id = _uuid.v7();
     await transaction(() async {
       await into(medicalEvents).insert(
@@ -402,6 +441,7 @@ class AppDatabase extends _$AppDatabase {
                 ..limit(1))
               .getSingleOrNull();
       if (existing == null) {
+        newRecordGuard?.call();
         final id = _uuid.v7();
         await into(medicalEvents).insert(
           MedicalEventsCompanion.insert(
@@ -442,6 +482,7 @@ class AppDatabase extends _$AppDatabase {
     Iterable<String> remove = const [],
     Map<String, DateTime> redate = const {},
   }) async {
+    if (add.isNotEmpty) newRecordGuard?.call();
     final now = DateTime.now().toUtc();
     await transaction(() async {
       for (final MapEntry(key: id, value: date) in redate.entries) {
@@ -520,6 +561,34 @@ class AppDatabase extends _$AppDatabase {
         (_) => OrderingTerm.asc(const CustomExpression<int>('rowid')),
       ]);
     return query.watch();
+  }
+
+  /// The first live photo of each of a person's records, for a thumbnail.
+  Stream<Map<String, String>> watchFirstPhotos(String profileId) {
+    final query =
+        select(attachments).join([
+            innerJoin(
+              medicalEvents,
+              medicalEvents.id.equalsExp(attachments.eventId),
+              useColumns: false,
+            ),
+          ])
+          ..where(
+            medicalEvents.profileId.equals(profileId) &
+                attachments.kind.equals('photo') &
+                attachments.deletedAt.isNull(),
+          )
+          ..orderBy([
+            OrderingTerm.asc(const CustomExpression<int>('attachments.rowid')),
+          ]);
+    return query.watch().map((rows) {
+      final first = <String, String>{};
+      for (final row in rows) {
+        final a = row.readTable(attachments);
+        first.putIfAbsent(a.eventId, () => a.path);
+      }
+      return first;
+    });
   }
 
   /// How many live photos each of a person's records has (PDFs aren't
@@ -649,6 +718,7 @@ class AppDatabase extends _$AppDatabase {
     if (cleanName.isEmpty) {
       throw ArgumentError.value(name, 'name', 'must not be empty');
     }
+    if (id == null) newRecordGuard?.call();
     final doctorId = id ?? _uuid.v7();
     final row = DoctorsCompanion(
       id: Value(doctorId),
@@ -721,6 +791,14 @@ class AppDatabase extends _$AppDatabase {
         .watchSingleOrNull();
   }
 
+  /// The row is live and belongs to [profileId]. A save never moves a record
+  /// to another person, so a wrong id can't put one person's photos on another.
+  Expression<bool> _liveFor(
+    GeneratedColumn<String> owner,
+    GeneratedColumn<DateTime> deletedAt,
+    String profileId,
+  ) => owner.equals(profileId) & deletedAt.isNull();
+
   /// Creates a card for [profileId], or updates [id] when given.
   /// Returns the card's id.
   Future<String> saveInsuranceCard({
@@ -738,6 +816,7 @@ class AppDatabase extends _$AppDatabase {
     if (cleanLabel.isEmpty) {
       throw ArgumentError.value(label, 'label', 'must not be empty');
     }
+    if (id == null) newRecordGuard?.call();
     final cardId = id ?? _uuid.v7();
     final row = InsuranceCardsCompanion(
       id: Value(cardId),
@@ -759,10 +838,15 @@ class AppDatabase extends _$AppDatabase {
       if (id == null) {
         await into(insuranceCards).insert(row);
       } else {
-        final changed = await (update(
-          insuranceCards,
-        )..where((c) => c.id.equals(id) & c.deletedAt.isNull())).write(row);
+        final changed =
+            await (update(insuranceCards)..where(
+                  (c) =>
+                      c.id.equals(id) &
+                      _liveFor(c.profileId, c.deletedAt, profileId),
+                ))
+                .write(row);
         // Deleted meanwhile (or never existed): don't revive a tombstone.
+        // Someone else's card: its photos must not move to this person.
         if (changed == 0) throw StateError('Insurance card $id not found');
       }
       await _queue('insurance_card', cardId, 'upsert');
@@ -836,6 +920,7 @@ class AppDatabase extends _$AppDatabase {
     DoseScheduleInput? schedule,
     Value<double?> minHoursBetweenDoses = const Value.absent(),
   }) async {
+    if (id == null) newRecordGuard?.call();
     final cleanName = name.trim();
     final hours = minHoursBetweenDoses.present
         ? minHoursBetweenDoses.value
@@ -872,10 +957,15 @@ class AppDatabase extends _$AppDatabase {
       if (id == null) {
         await into(medicines).insert(row);
       } else {
-        final changed = await (update(
-          medicines,
-        )..where((m) => m.id.equals(id) & m.deletedAt.isNull())).write(row);
+        final changed =
+            await (update(medicines)..where(
+                  (m) =>
+                      m.id.equals(id) &
+                      _liveFor(m.profileId, m.deletedAt, profileId),
+                ))
+                .write(row);
         // Deleted meanwhile (or never existed): don't revive a tombstone.
+        // Someone else's medicine: its photos must not move to this person.
         if (changed == 0) throw StateError('Medicine $id not found');
       }
       await _queue('medicine', medicineId, 'upsert');
@@ -883,6 +973,113 @@ class AppDatabase extends _$AppDatabase {
     });
     return medicineId;
   }
+
+  /// Moves a saved medicine to another person, on purpose. The one way a medicine
+  /// changes owner: [saveMedicine] refuses, so a wrong id can't do it by accident.
+  /// Its schedule and dose log hang off the medicine, so they go with it, and so
+  /// do reminders, which are worked out from the medicine's owner.
+  ///
+  /// What's recorded about the old person stays with them, without a link back:
+  ///
+  /// - Its prescription stays theirs, with its date, diagnosis and photos, but
+  ///   the medicine comes off its list: prescriptions keep no copy of their
+  ///   medicines' names. With none left it shows as stopped. Its status updates.
+  /// - Doses given in their sick days stay in those sick days by name. A
+  ///   next-dose reminder for them stops, as this is no longer their medicine.
+  ///
+  /// [fromProfileId] must be the owner and [toProfileId] a live person, or this
+  /// throws and nothing changes. [photos] replaces the medicine's list when
+  /// given. So that a move can't put one photo on two people's records, it also
+  /// throws if a photo it ends up with is used by any other record: see
+  /// `moveMedicineToPerson`, which copies those first.
+  Future<void> moveMedicine({
+    required String id,
+    required String fromProfileId,
+    required String toProfileId,
+    List<String>? photos,
+  }) async {
+    if (fromProfileId == toProfileId) {
+      throw ArgumentError.value(
+        toProfileId,
+        'toProfileId',
+        'is the same person',
+      );
+    }
+    final now = DateTime.now().toUtc();
+    await transaction(() async {
+      final target =
+          await (select(profiles)
+                ..where((p) => p.id.equals(toProfileId) & p.deletedAt.isNull()))
+              .getSingleOrNull();
+      if (target == null) throw StateError('Person $toProfileId not found');
+      final medicine =
+          await (select(medicines)..where(
+                (m) =>
+                    m.id.equals(id) &
+                    _liveFor(m.profileId, m.deletedAt, fromProfileId),
+              ))
+              .getSingleOrNull();
+      if (medicine == null) throw StateError('Medicine $id not found');
+      final ending = photos ?? decodeMedicinePhotos(medicine.photosJson);
+      final others = await liveMedicinePhotos(exceptMedicine: id);
+      if (ending.any(others.contains)) {
+        throw StateError('A photo of medicine $id is used by another record');
+      }
+      await (update(medicines)..where((m) => m.id.equals(id))).write(
+        MedicinesCompanion(
+          profileId: Value(toProfileId),
+          prescriptionId: const Value(null),
+          position: const Value(null),
+          stoppedWithPrescription: const Value(false),
+          photosJson: photos == null
+              ? const Value.absent()
+              : Value(jsonEncode(photos)),
+          updatedAt: Value(now),
+        ),
+      );
+      await _queue('medicine', id, 'upsert');
+      final liveGiven =
+          givenMedicines.medicineId.equals(id) &
+          givenMedicines.deletedAt.isNull();
+      final givenIds =
+          await (selectOnly(givenMedicines)
+                ..addColumns([givenMedicines.id])
+                ..where(liveGiven))
+              .map((row) => row.read(givenMedicines.id)!)
+              .get();
+      await (update(givenMedicines)..where((_) => liveGiven)).write(
+        GivenMedicinesCompanion(
+          medicineId: const Value(null),
+          remindNext: const Value(false),
+          updatedAt: Value(now),
+        ),
+      );
+      for (final g in givenIds) {
+        await _queue('given_medicine', g, 'update');
+      }
+      if (medicine.prescriptionId case final prescription?) {
+        await _refreshPrescription(prescription, now);
+      }
+    });
+  }
+
+  /// The medicine's photos that another live medicine or prescription also uses.
+  Future<Set<String>> medicinePhotosUsedElsewhere(String id) async {
+    final medicine = await (select(
+      medicines,
+    )..where((m) => m.id.equals(id))).getSingleOrNull();
+    if (medicine == null) return const {};
+    return decodeMedicinePhotos(medicine.photosJson)
+        .toSet()
+        .intersection(await liveMedicinePhotos(exceptMedicine: id));
+  }
+
+  /// The doses of this medicine recorded in sick days.
+  Stream<List<GivenMedicine>> watchGivenOf(String medicineId) =>
+      (select(givenMedicines)..where(
+            (g) => g.medicineId.equals(medicineId) & g.deletedAt.isNull(),
+          ))
+          .watch();
 
   /// Keeps one live schedule per medicine: updates it in place, adds it, or
   /// deletes it when [schedule] is null. Call in a transaction.
@@ -1020,11 +1217,16 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Files in the medicines photo store still used by a live medicine or
-  /// prescription.
-  Future<Set<String>> liveMedicinePhotos() async {
+  /// prescription, leaving out [exceptMedicine] when given.
+  Future<Set<String>> liveMedicinePhotos({String? exceptMedicine}) async {
     final query = selectOnly(medicines)
       ..addColumns([medicines.photosJson])
-      ..where(medicines.deletedAt.isNull());
+      ..where(
+        medicines.deletedAt.isNull() &
+            (exceptMedicine == null
+                ? const Constant(true)
+                : medicines.id.equals(exceptMedicine).not()),
+      );
     final rx = selectOnly(prescriptions)
       ..addColumns([prescriptions.photosJson])
       ..where(prescriptions.deletedAt.isNull());
@@ -1085,6 +1287,9 @@ class AppDatabase extends _$AppDatabase {
     List<String> photos = const [],
     required List<PrescriptionItemInput> items,
   }) async {
+    if (id == null || items.any((i) => i.medicineId == null)) {
+      newRecordGuard?.call();
+    }
     if (items.isEmpty) {
       throw ArgumentError.value(items, 'items', 'needs at least one medicine');
     }
@@ -1112,9 +1317,14 @@ class AppDatabase extends _$AppDatabase {
       if (id == null) {
         await into(prescriptions).insert(row);
       } else {
-        final changed = await (update(
-          prescriptions,
-        )..where((p) => p.id.equals(id) & p.deletedAt.isNull())).write(row);
+        final changed =
+            await (update(prescriptions)..where(
+                  (p) =>
+                      p.id.equals(id) &
+                      _liveFor(p.profileId, p.deletedAt, profileId),
+                ))
+                .write(row);
+        // Someone else's prescription: it and its medicines stay with them.
         if (changed == 0) throw StateError('Prescription $id not found');
       }
       await _queue('prescription', prescriptionId, 'upsert');

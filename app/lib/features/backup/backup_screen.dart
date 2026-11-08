@@ -10,20 +10,24 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/backup/backup_crypto.dart';
 import '../../core/backup/backup_service.dart';
 import '../../core/backup/recovery_key.dart';
+import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../core/screen_privacy.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
+import 'auto_backup_section.dart';
 import 'backup_providers.dart';
 
 const backupPath = '/settings/backup';
 const recoveryKeyPath = '/settings/backup/key';
 const restorePath = '/settings/backup/restore';
 
-String _day(BuildContext context, DateTime at) =>
+String backupDay(BuildContext context, DateTime at) =>
     DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(at);
 
-/// Make a backup, see the recovery key, or restore from a backup.
+/// Make a backup, set up automatic ones, see the recovery key, or restore
+/// from a backup.
 class BackupScreen extends ConsumerStatefulWidget {
   const BackupScreen({super.key});
 
@@ -38,6 +42,12 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final box = context.findRenderObject() as RenderBox?;
+    if (!await ref
+        .read(saveGateProvider)
+        .allow(reason: SaveGateReason.backup)) {
+      return;
+    }
+    if (!mounted) return;
     var key = await ref.read(recoveryKeyStoreProvider).read();
     if (key == null) {
       if (!mounted) return;
@@ -47,6 +57,22 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       if (key == null) return;
     }
     setState(() => _working = true);
+    try {
+      final ran = await ref.read(backupGateProvider).tryRun<bool>(() async {
+        await _makeAndShare(key!, box);
+        return true;
+      });
+      if (ran == null) {
+        messenger.showSnackBar(SnackBar(content: Text(l.backupBusy)));
+      }
+    } finally {
+      if (mounted) setState(() => _working = false);
+    }
+  }
+
+  Future<void> _makeAndShare(RecoveryKey key, RenderBox? box) async {
+    final l = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     final service = ref.read(backupServiceProvider);
     CreatedBackup? created;
     try {
@@ -97,7 +123,6 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           // Cleared at the next start or backup.
         }
       }
-      if (mounted) setState(() => _working = false);
     }
   }
 
@@ -129,6 +154,13 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     final text = Theme.of(context).textTheme;
     final last = ref.watch(lastBackupProvider);
     final hasKey = ref.watch(savedRecoveryKeyProvider).value != null;
+    final auto = ref.watch(autoBackupProvider);
+    final autoOn = auto.settings.enabled;
+    final busy = _working || auto.running;
+    const spinner = SizedBox.square(
+      dimension: 20,
+      child: CircularProgressIndicator(strokeWidth: 2),
+    );
     return Scaffold(
       appBar: AppBar(title: Text(l.backupTitle)),
       body: ListView(
@@ -136,51 +168,67 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
         children: [
           Text(l.backupIntro, style: text.bodyLarge),
           const SizedBox(height: 16),
-          Card(
-            color: ref.watch(backupDueProvider)
-                ? Severity.headsUp.background
-                : null,
-            child: ListTile(
-              key: const ValueKey('backup-last'),
-              leading: const Icon(Icons.history),
-              title: Text(
-                last == null
-                    ? l.backupNever
-                    : l.backupLast(_day(context, last)),
+          // With automatic backup on, its own date is in the section below:
+          // this one is only about a copy sent somewhere else.
+          if (!autoOn || last != null) ...[
+            Card(
+              color: ref.watch(backupDueProvider)
+                  ? Severity.headsUp.backgroundOf(context)
+                  : null,
+              child: ListTile(
+                key: const ValueKey('backup-last'),
+                leading: const Icon(Icons.history),
+                title: Text(
+                  last == null
+                      ? l.backupNever
+                      : autoOn
+                      ? l.backupLastCopy(backupDay(context, last))
+                      : l.backupLast(backupDay(context, last)),
+                ),
               ),
             ),
-          ),
+            const SizedBox(height: 16),
+          ],
+          if (autoOn)
+            OutlinedButton.icon(
+              key: const ValueKey('backup-now'),
+              onPressed: busy ? null : _backUp,
+              icon: _working ? spinner : const Icon(Icons.ios_share),
+              label: Text(_working ? l.backupWorking : l.backupSendCopy),
+            )
+          else
+            FilledButton.icon(
+              key: const ValueKey('backup-now'),
+              onPressed: busy ? null : _backUp,
+              icon: _working ? spinner : const Icon(Icons.backup_outlined),
+              label: Text(_working ? l.backupWorking : l.backupNow),
+            ),
           const SizedBox(height: 16),
-          FilledButton.icon(
-            key: const ValueKey('backup-now'),
-            onPressed: _working ? null : _backUp,
-            icon: _working
-                ? const SizedBox.square(
-                    dimension: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.backup_outlined),
-            label: Text(_working ? l.backupWorking : l.backupNow),
-          ),
-          const SizedBox(height: 24),
+          const AutoBackupSection(),
+          const SizedBox(height: 16),
           Card(
             child: Column(
               children: [
                 if (hasKey) ...[
                   ListTile(
                     key: const ValueKey('backup-show-key'),
+                    minTileHeight: UsraSizes.touchTarget,
                     leading: const Icon(Icons.key_outlined),
-                    title: Text(l.recoveryKeyShow),
+                    title: Text(l.recoveryKeyTitle),
+                    subtitle: Text(l.recoveryKeyRowHint),
+                    trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.push(recoveryKeyPath),
                   ),
                   const Divider(height: 1),
                 ],
                 ListTile(
                   key: const ValueKey('backup-restore'),
+                  minTileHeight: UsraSizes.touchTarget,
                   leading: const Icon(Icons.settings_backup_restore),
                   title: Text(l.restoreTitle),
                   subtitle: Text(l.restoreHint),
-                  onTap: _working ? null : () => context.push(restorePath),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: busy ? null : () => context.push(restorePath),
                 ),
               ],
             ),
@@ -261,11 +309,7 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
     try {
       final staged = await ref
           .read(backupServiceProvider)
-          .stage(
-            File(_file!),
-            key,
-            currentSchema: ref.read(databaseProvider).schemaVersion,
-          );
+          .stage(File(_file!), key, currentSchema: AppDatabase.currentSchema);
       if (!mounted) return;
       setState(() {
         _staged = staged;
@@ -318,6 +362,7 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
             icon: const Icon(Icons.folder_open_outlined),
             label: Text(
               _file == null ? l.restorePick : _file!.split('/').last,
+              textDirection: _file == null ? null : TextDirection.ltr,
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -336,6 +381,8 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
               decoration: InputDecoration(
                 labelText: l.restoreKeyLabel,
                 hintText: '123456 123456 123456 123456 123456 123456',
+                helperText: l.restoreKeyHelp,
+                helperMaxLines: 2,
               ),
               maxLines: null,
             ),
@@ -357,7 +404,7 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
               _error!,
               key: const ValueKey('restore-error'),
               style: text.bodyMedium?.copyWith(
-                color: Severity.actSoon.foreground,
+                color: Severity.actSoon.foregroundOf(context),
               ),
             ),
           ],
@@ -371,7 +418,7 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
                   children: [
                     Text(
                       l.restoreFrom(
-                        _day(context, staged.manifest.createdAt.toLocal()),
+                        backupDay(context, staged.manifest.createdAt.toLocal()),
                       ),
                       style: text.titleMedium,
                     ),
@@ -400,13 +447,13 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Severity.actSoon.background,
+                color: Severity.actSoon.backgroundOf(context),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
                 l.restoreReplaceWarning,
                 style: text.bodyMedium?.copyWith(
-                  color: Severity.actSoon.foreground,
+                  color: Severity.actSoon.foregroundOf(context),
                 ),
               ),
             ),
@@ -416,6 +463,12 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
               onPressed: _working ? null : _replace,
               icon: const Icon(Icons.settings_backup_restore),
               label: Text(l.restoreReplace),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              key: const ValueKey('restore-cancel'),
+              onPressed: _working ? null : () => Navigator.maybePop(context),
+              child: Text(l.restoreCancel),
             ),
           ],
         ],

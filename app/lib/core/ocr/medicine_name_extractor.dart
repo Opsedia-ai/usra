@@ -13,6 +13,8 @@ class MedicineSuggestion {
     required this.name,
     this.strength,
     this.known = false,
+    this.nameSure = false,
+    this.strengthSure = false,
     this.box,
   });
 
@@ -23,6 +25,15 @@ class MedicineSuggestion {
 
   /// The name is in the bundled list, so it's more likely to be right.
   final bool known;
+
+  /// The name matched the bundled list letter for letter, rather than being a
+  /// guess or a near match corrected from an OCR slip. Anything else has to
+  /// be shown as unsure.
+  final bool nameSure;
+
+  /// The strength was printed on the same line as the name and read without
+  /// correcting any characters. Anything else has to be shown as unsure.
+  final bool strengthSure;
 
   /// Where the name was read, in the photo's pixels.
   final Rect? box;
@@ -90,14 +101,14 @@ class MedicineNameExtractor {
     ];
     final known = [
       for (final l in lines)
-        _isDetailLine(l.text) ? const <String>[] : _knownIn(l.text),
+        _isDetailLine(l.text) ? const <_Found>[] : _knownIn(l.text),
     ];
     final guessed = [
       for (final (i, l) in lines.indexed)
         known[i].isEmpty ? _guessName(l.text) : null,
     ];
 
-    String? strengthNear(int i) {
+    ({String strength, bool sure})? strengthNear(int i) {
       for (final d in const [0, 1, -1, 2, -2]) {
         final j = i + d;
         if (j < 0 || j >= lines.length || strengths[j] == null) continue;
@@ -109,7 +120,18 @@ class MedicineNameExtractor {
             lines[j].box.height > lines[i].box.height * 0.8) {
           continue;
         }
-        return strengths[j];
+        return (
+          strength: strengths[j]!,
+          // Same line, and printed just like this: a digit corrected or a
+          // separator reread ("1.250 mg" as 1250mg) leaves room for doubt.
+          sure:
+              d == 0 &&
+              _fixDigits(lines[j].text) == lines[j].text &&
+              lines[j].text
+                  .replaceAll(RegExp(r'\s+'), '')
+                  .toLowerCase()
+                  .contains(strengths[j]!.toLowerCase()),
+        );
       }
       return null;
     }
@@ -117,12 +139,15 @@ class MedicineNameExtractor {
     final ranked = <(MedicineSuggestion, double)>[];
     for (var i = 0; i < lines.length; i++) {
       final line = lines[i];
-      for (final name in known[i]) {
+      final near = strengthNear(i);
+      for (final found in known[i]) {
         ranked.add((
           MedicineSuggestion(
-            name: name,
-            strength: strengthNear(i),
+            name: found.name,
+            strength: near?.strength,
             known: true,
+            nameSure: found.exact,
+            strengthSure: near?.sure ?? false,
             box: line.box,
           ),
           line.box.height,
@@ -133,7 +158,8 @@ class MedicineNameExtractor {
         ranked.add((
           MedicineSuggestion(
             name: guess,
-            strength: strengthNear(i),
+            strength: near?.strength,
+            strengthSure: near?.sure ?? false,
             box: line.box,
           ),
           // A listed name is more likely right than a guess the same size.
@@ -190,15 +216,17 @@ class MedicineNameExtractor {
 
   /// Names from the list found in [text], spelled as listed; OCR slips
   /// ("Augrnentin") are matched to the nearest name.
-  List<String> knownIn(String text) => _knownIn(_tidy(text));
+  List<String> knownIn(String text) => [
+    for (final f in _knownIn(_tidy(text))) f.name,
+  ];
 
-  List<String> _knownIn(String text) {
+  List<_Found> _knownIn(String text) {
     var rest = text.toLowerCase();
-    final found = <String>[];
+    final found = <_Found>[];
     for (final n in _names) {
       final m = n.pattern.firstMatch(rest);
       if (m == null) continue;
-      found.add(n.display);
+      found.add((name: n.display, exact: true));
       // Blank it out so "Panadol" isn't found again inside "Panadol Extra".
       rest = rest.replaceRange(m.start, m.end, ' ' * (m.end - m.start));
     }
@@ -225,7 +253,7 @@ class MedicineNameExtractor {
           }
         }
       }
-      if (best != null) found.add(best.display);
+      if (best != null) found.add((name: best.display, exact: false));
     }
     return found;
   }
@@ -447,6 +475,9 @@ class MedicineNameExtractor {
     return prev[b.length];
   }
 }
+
+/// A name from the list found on a line: letter for letter, or a near match.
+typedef _Found = ({String name, bool exact});
 
 class _KnownName {
   const _KnownName(this.display, this.pattern, this.singleWord);

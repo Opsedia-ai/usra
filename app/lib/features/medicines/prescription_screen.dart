@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
@@ -92,9 +92,6 @@ class PrescriptionScreen extends ConsumerWidget {
           ),
           FilledButton(
             key: const ValueKey('rx-delete-confirm'),
-            style: FilledButton.styleFrom(
-              backgroundColor: UsraColors.emergency,
-            ),
             onPressed: () => Navigator.pop(dialog, true),
             child: Text(l.medicineDelete),
           ),
@@ -156,7 +153,7 @@ class _Details extends ConsumerWidget {
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
               l.medicineStopped,
-              style: text.titleMedium?.copyWith(color: UsraColors.textMuted),
+              style: text.titleMedium?.copyWith(color: context.usra.inkMuted),
             ),
           ),
         for (final (label, value) in rows)
@@ -267,8 +264,8 @@ class _MedicineTile extends ConsumerWidget {
         key: ValueKey('rx-medicine-${m.id}'),
         onTap: () => context.go('/family/$profileId/medicines/${m.id}'),
         leading: CircleAvatar(
-          backgroundColor: UsraColors.primaryTint,
-          child: Icon(medicineFormIcon(m.form), color: UsraColors.primary),
+          backgroundColor: context.usra.primarySoft,
+          child: Icon(medicineFormIcon(m.form), color: context.usra.primary),
         ),
         title: Text(medicineTitle(m)),
         subtitle: Column(
@@ -285,7 +282,7 @@ class _MedicineTile extends ConsumerWidget {
             if (course != null)
               Padding(
                 padding: const EdgeInsets.only(top: 6),
-                child: SeverityChip(
+                child: StatusChip(
                   key: ValueKey('rx-course-${m.id}'),
                   severity: running ? Severity.good : Severity.info,
                   label: course,

@@ -145,7 +145,7 @@ class _SpendingScreenState extends ConsumerState<SpendingScreen> {
                       key: const ValueKey('spending-total'),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: UsraColors.primary,
+                        color: context.usra.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -306,8 +306,8 @@ class _TrendBars extends StatelessWidget {
                                           .clamp(3, box.maxHeight),
                                 decoration: BoxDecoration(
                                   color: i == totals.length - 1
-                                      ? UsraColors.primary
-                                      : UsraColors.primaryTint,
+                                      ? context.usra.primary
+                                      : context.usra.primarySoft,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                               ),
@@ -384,44 +384,46 @@ class _SplitState extends ConsumerState<_Split> {
             child: Column(
               children: [
                 for (final s in slices)
-                  ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: UsraColors.primaryTint,
-                      foregroundColor: UsraColors.primary,
-                      child: switch (group) {
-                        SpendingGroup.type => Icon(
-                          types[s.key]?.icon ?? Icons.description_outlined,
-                        ),
-                        SpendingGroup.person => Text(initialOf(s.label ?? '')),
-                        SpendingGroup.doctor => const Icon(
-                          Icons.medical_services_outlined,
-                        ),
-                      },
-                    ),
-                    title: Text(
-                      group == SpendingGroup.type
-                          ? (types[s.key]?.labelOf(context) ?? s.key)
-                          : (s.label ?? '—'),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  Padding(
+                    key: ValueKey('spending-row-${group.name}-${s.key}'),
+                    padding: const EdgeInsets.all(UsraSpacing.s3),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(l.spendingRecords(s.count)),
-                        const SizedBox(height: 6),
+                        // Amount drops under the name at large text.
+                        Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          spacing: UsraSpacing.s2,
+                          children: [
+                            Text(
+                              group == SpendingGroup.type
+                                  ? (types[s.key]?.labelOf(context) ?? s.key)
+                                  : (s.label ?? '—'),
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            Text(
+                              _money(context, s.totalMinor),
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: UsraSpacing.s1),
                         LinearProgressIndicator(
                           value: whole == 0
                               ? 0
                               : (s.totalMinor / whole).clamp(0, 1),
-                          minHeight: 6,
-                          borderRadius: BorderRadius.circular(3),
-                          color: UsraColors.primary,
-                          backgroundColor: UsraColors.primaryTint,
+                          minHeight: 10,
+                          borderRadius: BorderRadius.circular(5),
+                          color: context.usra.primary,
+                          backgroundColor: context.usra.primarySoft,
+                          semanticsLabel: _money(context, s.totalMinor),
+                        ),
+                        const SizedBox(height: UsraSpacing.s1),
+                        Text(
+                          l.spendingRecords(s.count),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
-                    ),
-                    trailing: Text(
-                      _money(context, s.totalMinor),
-                      style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
               ],

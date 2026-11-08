@@ -3,12 +3,15 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/modules/feature_module.dart';
 import '../../core/records/record_type.dart';
+import '../../core/routing/app_router.dart' show noTabBarRoute;
 import '../../l10n/app_localizations.dart';
+import '../children/new_vaccine_screen.dart';
 import '../insurance/insurance_card_screen.dart';
 import '../insurance/insurance_form_screen.dart';
 import 'emergency_card_screen.dart';
 import 'family_screen.dart';
 import 'member_screen.dart';
+import 'person_sections_screen.dart';
 import 'profile_form_screen.dart';
 import 'record_form_screen.dart';
 import 'record_screen.dart';
@@ -29,6 +32,7 @@ class FamilyModule extends FeatureModule {
       label: (c) => AppLocalizations.of(c).navFamily,
       order: 10,
       simple: true,
+      simpleOnly: true,
     ),
   ];
 
@@ -41,6 +45,7 @@ class FamilyModule extends FeatureModule {
         GoRoute(path: 'new', builder: (_, _) => const ProfileFormScreen()),
         GoRoute(
           path: ':id',
+          name: '${noTabBarRoute}person',
           builder: (_, s) => MemberScreen(profileId: s.pathParameters['id']!),
           routes: [
             GoRoute(
@@ -50,14 +55,20 @@ class FamilyModule extends FeatureModule {
             ),
             GoRoute(
               path: 'emergency',
+              name: '${noTabBarRoute}emergency',
               builder: (_, s) =>
                   EmergencyCardScreen(profileId: s.pathParameters['id']!),
             ),
             GoRoute(
               path: 'add/:type',
+              // Keyed by path, as go_router keeps a screen's State when only the
+              // path's values change: a photo picked for one person must not
+              // stay in the form when it opens for another. So are the others.
               builder: (_, s) => RecordFormScreen(
+                key: ValueKey(s.uri.path),
                 profileId: s.pathParameters['id']!,
                 typeKey: s.pathParameters['type']!,
+                returnTo: s.uri.queryParameters['back'],
               ),
             ),
             GoRoute(
@@ -66,11 +77,44 @@ class FamilyModule extends FeatureModule {
                 profileId: s.pathParameters['id']!,
                 eventId: s.pathParameters['eventId']!,
               ),
+              routes: [
+                GoRoute(
+                  path: 'edit/:type',
+                  builder: (_, s) => RecordFormScreen(
+                    key: ValueKey(s.uri.path),
+                    profileId: s.pathParameters['id']!,
+                    typeKey: s.pathParameters['type']!,
+                    eventId: s.pathParameters['eventId'],
+                  ),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: 'visits',
+              builder: (_, s) =>
+                  PersonVisitsScreen(profileId: s.pathParameters['id']!),
+            ),
+            GoRoute(
+              path: 'documents',
+              builder: (_, s) =>
+                  PersonDocumentsScreen(profileId: s.pathParameters['id']!),
+            ),
+            GoRoute(
+              path: 'follow-ups',
+              builder: (_, s) =>
+                  PersonFollowUpsScreen(profileId: s.pathParameters['id']!),
+            ),
+            GoRoute(
+              path: 'insurance',
+              builder: (_, s) =>
+                  PersonInsuranceScreen(profileId: s.pathParameters['id']!),
             ),
             GoRoute(
               path: 'insurance/new',
-              builder: (_, s) =>
-                  InsuranceFormScreen(profileId: s.pathParameters['id']!),
+              builder: (_, s) => InsuranceFormScreen(
+                key: ValueKey(s.uri.path),
+                profileId: s.pathParameters['id']!,
+              ),
             ),
             GoRoute(
               path: 'insurance/:cardId',
@@ -82,6 +126,7 @@ class FamilyModule extends FeatureModule {
                 GoRoute(
                   path: 'edit',
                   builder: (_, s) => InsuranceFormScreen(
+                    key: ValueKey(s.uri.path),
                     profileId: s.pathParameters['id']!,
                     cardId: s.pathParameters['cardId'],
                   ),
@@ -172,7 +217,22 @@ class FamilyModule extends FeatureModule {
           kind: FieldKind.date,
           label: (c) => _l(c).fieldNextDue,
         ),
+        FieldSpec(
+          key: 'place',
+          kind: FieldKind.text,
+          label: (c) => _l(c).fieldVaccinePlace,
+        ),
+        FieldSpec(
+          key: 'note',
+          kind: FieldKind.text,
+          label: (c) => _l(c).vaccineDoseNote,
+        ),
       ],
+      screens: RecordTypeScreens(
+        add: (profileId) => NewVaccineScreen(profileId: profileId),
+        editPath: (profileId, eventId) =>
+            '/family/$profileId/record/$eventId/edit/vaccine',
+      ),
     ),
     RecordTypeDefinition(
       key: 'surgery',

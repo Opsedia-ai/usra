@@ -66,8 +66,8 @@ class EpisodeListScreen extends ConsumerWidget {
                     leading: Icon(
                       Icons.thermostat,
                       color: e.endedAt == null
-                          ? Severity.actSoon.foreground
-                          : UsraColors.textMuted,
+                          ? Severity.actSoon.foregroundOf(context)
+                          : context.usra.inkMuted,
                     ),
                     title: Text(
                       e.endedAt == null
@@ -82,7 +82,7 @@ class EpisodeListScreen extends ConsumerWidget {
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () =>
-                        context.go('/family/$profileId/sick-days/${e.id}'),
+                        context.push('/family/$profileId/sick-days/${e.id}'),
                   ),
                 ),
             ],
@@ -99,6 +99,6 @@ class EpisodeListScreen extends ConsumerWidget {
           profileId: profileId,
           startedAt: ref.read(clockProvider)(),
         );
-    if (context.mounted) context.go('/family/$profileId/sick-days/$id');
+    if (context.mounted) context.push('/family/$profileId/sick-days/$id');
   }
 }

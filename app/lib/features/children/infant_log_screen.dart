@@ -10,6 +10,7 @@ import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../core/records/record_type.dart' show decodeRecordData;
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import 'infant_log.dart';
 
@@ -145,7 +146,7 @@ class _Body extends ConsumerWidget {
         const SizedBox(height: 16),
         Text(
           l.logDisclaimer,
-          style: text.bodySmall?.copyWith(color: UsraColors.textMuted),
+          style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
         ),
       ],
     );
@@ -160,6 +161,7 @@ class _Body extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final db = ref.read(databaseProvider);
+    if (!await ref.read(saveGateProvider).allow()) return;
     try {
       final id = await db.addEvent(
         profileId: profile.id,
@@ -315,7 +317,7 @@ class _EntryTile extends ConsumerWidget {
     return ListTile(
       key: ValueKey('log-entry-${event.id}'),
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: UsraColors.primary),
+      leading: Icon(icon, color: context.usra.primary),
       title: Text(label),
       subtitle: Text(DateFormat.jm(locale).format(event.occurredAt.toLocal())),
       trailing: IconButton(

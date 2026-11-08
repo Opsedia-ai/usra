@@ -1,16 +1,20 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' show SocketException;
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' show ClientException;
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import 'account_secure_storage.dart';
 import 'auth_gateway.dart';
+import 'native_sign_in.dart';
 import 'supabase_config.dart';
 
-/// [AuthGateway] on Supabase Auth (phone OTP), the `accounts` and `devices`
-/// tables and the `delete-account` function.
+/// [AuthGateway] on Supabase Auth (ID tokens from the system's Google and
+/// Apple sheets), the `accounts` and `devices` tables and the `delete-account`
+/// function.
 ///
 /// Supabase starts on the first call, not with the app, so nothing touches
 /// the network until someone opens the account screen.
@@ -18,13 +22,15 @@ class SupabaseAuthGateway implements AuthGateway {
   /// [client] and [wipeLocal] replace the real Supabase client and the
   /// secure-storage wipe in tests.
   SupabaseAuthGateway(
-    this.config, {
+    this.config,
+    this._native, {
     @visibleForTesting Future<sb.SupabaseClient> Function()? client,
     @visibleForTesting Future<void> Function()? wipeLocal,
   }) : _clientOverride = client,
        _wipe = wipeLocal ?? _wipeLocalSession;
 
   final SupabaseConfig config;
+  final NativeSignIn _native;
   final Future<sb.SupabaseClient> Function()? _clientOverride;
   final Future<void> Function() _wipe;
 
@@ -44,7 +50,7 @@ class SupabaseAuthGateway implements AuthGateway {
         authOptions: const sb.FlutterAuthClientOptions(
           localStorage: SecureSessionStorage(),
           pkceAsyncStorage: SecureAuthItemStorage(),
-          // Phone codes only: no magic links to catch.
+          // ID tokens only: no redirects or magic links to catch.
           detectSessionInUri: false,
         ),
       ).then((s) => s.client).catchError((Object e) {
@@ -52,13 +58,19 @@ class SupabaseAuthGateway implements AuthGateway {
         throw e;
       });
 
-  static AccountUser? _user(sb.User? u) =>
-      u == null ? null : AccountUser(id: u.id, phone: _plus(u.phone));
-
-  // Supabase keeps phone numbers without the `+`.
-  static String? _plus(String? phone) => phone == null || phone.isEmpty
+  AccountUser? _user(sb.User? u) => u == null
       ? null
-      : (phone.startsWith('+') ? phone : '+$phone');
+      : AccountUser(
+          id: u.id,
+          email: u.email == null || u.email!.isEmpty ? null : u.email,
+          confirmsDeleteWithApple: _native.appleSupported && _usesApple(u),
+        );
+
+  // Linked identities too: Google and Apple with the same email are one user.
+  static bool _usesApple(sb.User? u) => switch (u?.appMetadata['providers']) {
+    final List<dynamic> providers => providers.contains('apple'),
+    _ => u?.appMetadata['provider'] == 'apple',
+  };
 
   @override
   Future<AccountUser?> restore() => _guard(() async {
@@ -79,41 +91,44 @@ class SupabaseAuthGateway implements AuthGateway {
   }
 
   @override
-  Future<void> sendCode(String phone) => _guard(() async {
+  Future<AccountUser> signInWithGoogle() => _guard(() async {
+    final tokens = await _native.google();
     final client = await _client();
-    await client.auth.signInWithOtp(phone: phone);
+    final res = await client.auth.signInWithIdToken(
+      provider: sb.OAuthProvider.google,
+      idToken: tokens.idToken,
+      accessToken: tokens.accessToken,
+      nonce: tokens.nonce,
+    );
+    return _signedIn(res);
   });
 
   @override
-  Future<AccountUser> verifyCode(String phone, String code) =>
-      _guard(call: _Call.verify, () async {
-        final client = await _client();
-        final res = await client.auth.verifyOTP(
-          phone: phone,
-          token: code,
-          type: sb.OtpType.sms,
-        );
-        final user = _user(res.user ?? res.session?.user);
-        if (user == null) {
-          throw const AccountException(AccountErrorKind.invalidCode);
-        }
-        return user;
-      });
+  Future<AccountUser> signInWithApple() => _guard(() async {
+    final tokens = await _native.apple();
+    final client = await _client();
+    final res = await client.auth.signInWithIdToken(
+      provider: sb.OAuthProvider.apple,
+      idToken: tokens.idToken,
+      nonce: tokens.nonce,
+    );
+    return _signedIn(res);
+  });
+
+  AccountUser _signedIn(sb.AuthResponse res) {
+    final user = _user(res.user ?? res.session?.user);
+    if (user == null) throw const AccountException(AccountErrorKind.unknown);
+    return user;
+  }
 
   @override
-  Future<void> updateAccount({
-    required String country,
-    required String locale,
-  }) => _guard(() async {
+  Future<void> updateAccount({required String locale}) => _guard(() async {
     final client = await _client();
     final id = client.auth.currentUser?.id;
     if (id == null) throw const AccountException(AccountErrorKind.unknown);
-    // The row is made by a trigger when the user is created; the app may
-    // only change these two columns.
-    await client
-        .from('accounts')
-        .update({'country': country, 'locale': locale})
-        .eq('id', id);
+    // The row is made by a trigger when the user is created. Google and Apple
+    // don't say where someone lives, so `country` stays empty.
+    await client.from('accounts').update({'locale': locale}).eq('id', id);
   });
 
   @override
@@ -158,9 +173,9 @@ class SupabaseAuthGateway implements AuthGateway {
       '\\x${bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}';
 
   @override
-  Future<void> deleteDevice(String deviceId) => _guard(() async {
+  Future<void> revokeDevice(String deviceId) => _guard(() async {
     final client = await _client();
-    await client.from('devices').delete().eq('id', deviceId);
+    await client.rpc('revoke_own_device', params: {'p_device': deviceId});
   });
 
   @override
@@ -172,6 +187,8 @@ class SupabaseAuthGateway implements AuthGateway {
       // Offline, the server's copy of the session just expires.
     } finally {
       await _wipe();
+      // Not awaited: the session is gone, so nothing should wait on the plugin.
+      unawaited(_native.forgetGoogle());
     }
   }
 
@@ -195,6 +212,8 @@ class SupabaseAuthGateway implements AuthGateway {
       // The stored copy goes below either way.
     } finally {
       await _wipe();
+      // Not awaited: the session is gone, so nothing should wait on the plugin.
+      unawaited(_native.forgetGoogle());
     }
   }
 
@@ -217,19 +236,73 @@ class SupabaseAuthGateway implements AuthGateway {
   @override
   Future<void> deleteAccount() => _guard(call: _Call.delete, () async {
     final client = await _client();
-    await client.functions.invoke('delete-account', body: {'confirm': true});
+    final user = client.auth.currentUser;
+    final usesApple = _user(user)?.confirmsDeleteWithApple ?? false;
+    final appleCode = usesApple ? await _appleCodeForDelete(user) : null;
+    await client.functions.invoke(
+      'delete-account',
+      body: {
+        'confirm': true,
+        'apple_authorization_code': ?appleCode,
+        // No secrets or names: lets the server log a revocation it couldn't do.
+        if (usesApple && appleCode == null) 'apple_revoke_skipped': true,
+      },
+    );
     try {
       // The server session is gone with the user; drop the local copy.
       await client.auth.signOut(scope: sb.SignOutScope.local);
     } catch (_) {
     } finally {
       await _wipe();
+      // Not awaited: the session is gone, so nothing should wait on the plugin.
+      unawaited(_native.forgetGoogle());
     }
   });
 
-  /// Runs [run], turning failures into [AccountException]. Only the code
-  /// check reads a rejection as a wrong code; elsewhere a 401 means the
-  /// session is gone.
+  /// Apple's code to revoke with. Null if the sheet failed, or if it answered
+  /// for a different Apple ID than this account's, whose link isn't ours to
+  /// revoke: deleting must still work then (Apple says so too, TN3194). Only
+  /// closing the sheet stops it.
+  Future<String?> _appleCodeForDelete(sb.User? user) async {
+    try {
+      final tokens = await _native.apple();
+      final sub = _subject(tokens.idToken);
+      return sub != null && sub == _appleSubject(user)
+          ? tokens.authorizationCode
+          : null;
+    } on AccountException catch (e) {
+      if (e.kind == AccountErrorKind.cancelled) rethrow;
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// The Apple ID linked to this account, as Apple's `sub`.
+  static String? _appleSubject(sb.User? user) {
+    for (final identity in user?.identities ?? const <sb.UserIdentity>[]) {
+      if (identity.provider == 'apple') {
+        return identity.identityData?['sub'] as String? ?? identity.id;
+      }
+    }
+    return null;
+  }
+
+  /// The `sub` of an ID token just received from Apple's sheet. It's compared,
+  /// never trusted for anything else, so the signature isn't checked here.
+  static String? _subject(String idToken) {
+    try {
+      final payload = idToken.split('.')[1];
+      final claims = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(payload))),
+      );
+      return claims['sub'] as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Runs [run], turning failures into [AccountException].
   static Future<T> _guard<T>(
     Future<T> Function() run, {
     _Call call = _Call.other,
@@ -267,13 +340,6 @@ class SupabaseAuthGateway implements AuthGateway {
     if (status == '429' || (code?.startsWith('over_') ?? false)) {
       return AccountErrorKind.tooManyRequests;
     }
-    if (call == _Call.verify &&
-        (code == 'otp_expired' ||
-            code == 'invalid_credentials' ||
-            status == '403' ||
-            status == '401')) {
-      return AccountErrorKind.invalidCode;
-    }
     if (call == _Call.delete && code == 'family_has_members') {
       return AccountErrorKind.familyHasMembers;
     }
@@ -291,17 +357,17 @@ class SupabaseAuthGateway implements AuthGateway {
   static String bytea(List<int> bytes) => _bytea(bytes);
 }
 
-enum _Call { verify, delete, other }
+enum _Call { delete, other }
 
 const _secure = accountSecureStorage;
 
 /// Keeps the Supabase session (with its refresh token) in Android Keystore /
 /// iOS Keychain, this device only, instead of shared preferences.
 class SecureSessionStorage extends sb.LocalStorage {
-  const SecureSessionStorage();
+  const SecureSessionStorage([this._storage = _secure]);
 
   static const _key = 'usra.account.session.v1';
-  static const _storage = _secure;
+  final FlutterSecureStorage _storage;
 
   @override
   Future<void> initialize() async {}
@@ -309,8 +375,17 @@ class SecureSessionStorage extends sb.LocalStorage {
   @override
   Future<bool> hasAccessToken() => _storage.containsKey(key: _key);
 
+  /// A session that can't be read is only a reason to sign in again, so it
+  /// goes. Just this key: nothing here may touch the keys to local records.
   @override
-  Future<String?> accessToken() => _storage.read(key: _key);
+  Future<String?> accessToken() async {
+    try {
+      return await _storage.read(key: _key);
+    } catch (_) {
+      await _storage.delete(key: _key);
+      return null;
+    }
+  }
 
   @override
   Future<void> persistSession(String persistSessionString) =>

@@ -35,6 +35,7 @@ class LabsModule extends FeatureModule {
     GoRoute(
       path: '/family/:id/labs/:eventId/edit',
       builder: (_, s) => LabReportFormScreen(
+        key: ValueKey(s.uri.path),
         profileId: s.pathParameters['id']!,
         eventId: s.pathParameters['eventId'],
       ),
@@ -59,6 +60,7 @@ class LabsModule extends FeatureModule {
         FieldSpec(
           key: LabFields.value,
           kind: FieldKind.number,
+          keepsLatinDigits: true,
           label: (c) => _l(c).fieldValue,
         ),
         FieldSpec(

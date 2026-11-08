@@ -15,11 +15,13 @@ import '../../core/ocr/ocr_service.dart';
 import '../../core/providers.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/save_gate.dart';
 import '../doctors/doctors_providers.dart';
 import '../scan/scan_widgets.dart';
 import 'dose_schedule.dart';
 import 'medicine_text.dart';
 import 'medicines_providers.dart';
+import '../../core/util/time_picker.dart';
 import 'prescription_parser.dart';
 
 /// Times filled in by the "times a day" shortcut; the person can change
@@ -504,7 +506,7 @@ class _PrescriptionFormScreenState
   Future<void> _everyHours(_Item item) async {
     final picked = await showDialog<List<DoseTime>>(
       context: context,
-      builder: (_) => const _EveryHoursDialog(),
+      builder: (_) => const EveryHoursDialog(),
     );
     if (picked == null || !mounted) return;
     setState(() {
@@ -516,8 +518,8 @@ class _PrescriptionFormScreenState
   }
 
   Future<void> _addTime(_Item item) async {
-    final picked = await showTimePicker(
-      context: context,
+    final picked = await pickTime(
+      context,
       initialTime: const TimeOfDay(hour: 8, minute: 0),
     );
     if (picked == null) return;
@@ -541,6 +543,13 @@ class _PrescriptionFormScreenState
     final l = AppLocalizations.of(context);
     final db = ref.read(databaseProvider);
     final store = ref.read(medicinePhotoStoreProvider);
+    if ((widget.prescriptionId == null ||
+            _items.any((i) => i.medicineId == null)) &&
+        !await ref.read(saveGateProvider).allow()) {
+      if (mounted) setState(() => _saving = false);
+      return;
+    }
+    if (!mounted) return;
     final String id;
     try {
       for (var i = 0; i < _photos.length; i++) {
@@ -622,7 +631,7 @@ class _PrescriptionFormScreenState
               padding: const EdgeInsets.all(20),
               children: [
                 Card(
-                  color: UsraColors.primaryTint,
+                  color: context.usra.primarySoft,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text(
@@ -858,7 +867,9 @@ class _PrescriptionFormScreenState
                     child: Text(
                       l.rxConfirmNeeded,
                       key: const ValueKey('rx-confirm-needed'),
-                      style: TextStyle(color: Severity.headsUp.foreground),
+                      style: TextStyle(
+                        color: Severity.headsUp.foregroundOf(context),
+                      ),
                     ),
                   ),
                 FilledButton(
@@ -932,7 +943,9 @@ class _ItemCard extends StatelessWidget {
                 child: Text(
                   l.rxFromPhoto,
                   key: ValueKey('$k-from-photo'),
-                  style: TextStyle(color: Severity.headsUp.foreground),
+                  style: TextStyle(
+                    color: Severity.headsUp.foregroundOf(context),
+                  ),
                 ),
               ),
             TextField(
@@ -1013,7 +1026,7 @@ class _ItemCard extends StatelessWidget {
                     onPressed: () => edited(RxField.times),
                     icon: Icon(
                       Icons.task_alt,
-                      color: Severity.headsUp.foreground,
+                      color: Severity.headsUp.foregroundOf(context),
                     ),
                   ),
               ],
@@ -1050,7 +1063,9 @@ class _ItemCard extends StatelessWidget {
                   ? l.rxTimesFromPaper
                   : l.prescriptionTimesHint,
               style: item.unsure.contains(RxField.times)
-                  ? text.bodySmall?.copyWith(color: Severity.headsUp.foreground)
+                  ? text.bodySmall?.copyWith(
+                      color: Severity.headsUp.foregroundOf(context),
+                    )
                   : text.bodySmall,
             ),
             const SizedBox(height: 8),
@@ -1171,14 +1186,14 @@ class _ItemCard extends StatelessWidget {
 }
 
 /// Asks for "every N hours" and the first time; returns the times.
-class _EveryHoursDialog extends StatefulWidget {
-  const _EveryHoursDialog();
+class EveryHoursDialog extends StatefulWidget {
+  const EveryHoursDialog({super.key});
 
   @override
-  State<_EveryHoursDialog> createState() => _EveryHoursDialogState();
+  State<EveryHoursDialog> createState() => _EveryHoursDialogState();
 }
 
-class _EveryHoursDialogState extends State<_EveryHoursDialog> {
+class _EveryHoursDialogState extends State<EveryHoursDialog> {
   int _hours = 8;
   DoseTime _first = const DoseTime(8, 0);
 
@@ -1186,6 +1201,7 @@ class _EveryHoursDialogState extends State<_EveryHoursDialog> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return AlertDialog(
+      scrollable: true,
       title: Text(l.prescriptionEveryHours),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1209,8 +1225,8 @@ class _EveryHoursDialogState extends State<_EveryHoursDialog> {
             key: const ValueKey('rx-first-time'),
             style: OutlinedButton.styleFrom(minimumSize: const Size(0, 56)),
             onPressed: () async {
-              final t = await showTimePicker(
-                context: context,
+              final t = await pickTime(
+                context,
                 initialTime: TimeOfDay(
                   hour: _first.hour,
                   minute: _first.minute,

@@ -11,8 +11,8 @@ import flutter_local_notifications
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     // Medicine reminders: show them while the app is open too, and let the
-    // Taken / Snooze buttons run without opening the app.
-    UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
+    // Taken / Snooze / Skip buttons run without opening the app.
+    UNUserNotificationCenter.current().delegate = self
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
@@ -23,6 +23,9 @@ import flutter_local_notifications
     }
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "UsraFiles") {
       registerFilesChannel(messenger: registrar.messenger())
+    }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "UsraBackupFolder") {
+      BackupFolderChannel.register(messenger: registrar.messenger())
     }
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "UsraClock") {
       registerClockChannel(messenger: registrar.messenger())

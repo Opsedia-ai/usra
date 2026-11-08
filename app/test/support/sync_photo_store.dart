@@ -35,6 +35,17 @@ class SyncPhotoStore extends PhotoStore {
       keys.require.open(fileOf(relativePath).readAsBytesSync());
 
   @override
+  Future<Set<String>> storedPaths() async {
+    final dir = Directory('${root.path}/$folder');
+    if (!dir.existsSync()) return {};
+    return {
+      for (final f in dir.listSync().whereType<File>())
+        if (!f.uri.pathSegments.last.startsWith('.'))
+          '$folder/${f.uri.pathSegments.last}',
+    };
+  }
+
+  @override
   Future<void> prune(Set<String> keep) async {
     final dir = Directory('${root.path}/$folder');
     if (!dir.existsSync()) return;
@@ -55,15 +66,22 @@ class SyncSharedPhotoCache extends SharedPhotoCache {
       Directory(p.join(temporary.path, SharedPhotoCache.folderName));
 
   @override
-  Future<List<XFile>> copyOut(PhotoStore store, Iterable<String> paths) async {
+  Future<List<XFile>> copyOut(
+    PhotoStore store,
+    Iterable<String> paths, {
+    Future<Uint8List> Function(Uint8List bytes)? transform,
+  }) async {
     dir.createSync(recursive: true);
     return [
       for (final path in paths)
         if (store.fileOf(path).existsSync())
           XFile(
-            (File(
-              p.join(dir.path, p.basename(path)),
-            )..writeAsBytesSync(await store.read(path))).path,
+            (File(p.join(dir.path, p.basename(path)))..writeAsBytesSync(
+                  transform == null
+                      ? await store.read(path)
+                      : await transform(await store.read(path)),
+                ))
+                .path,
             mimeType: photoMimeOf(path),
           ),
     ];

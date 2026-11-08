@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/severity_chip.dart';
+import '../../core/design/status_chip.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../l10n/app_localizations.dart';
 import 'lab_report.dart';
 import 'lab_tests.dart';
@@ -36,7 +37,7 @@ class LabFlagChip extends StatelessWidget {
   final LabFlag flag;
 
   @override
-  Widget build(BuildContext context) => SeverityChip(
+  Widget build(BuildContext context) => StatusChip(
     severity: labFlagSeverity(flag),
     label: labFlagLabel(AppLocalizations.of(context), flag),
   );
@@ -51,12 +52,12 @@ class LabInfoNote extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
+        Padding(
           padding: EdgeInsetsDirectional.only(end: 8, top: 2),
           child: Icon(
             Icons.info_outline,
             size: 18,
-            color: UsraColors.textMuted,
+            color: context.usra.inkMuted,
           ),
         ),
         Expanded(
@@ -64,7 +65,7 @@ class LabInfoNote extends StatelessWidget {
             AppLocalizations.of(context).labInfoNote,
             key: const ValueKey('lab-info-note'),
             style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: UsraColors.textMuted),
+                ?.copyWith(color: context.usra.inkMuted),
           ),
         ),
       ],
@@ -100,7 +101,7 @@ class LabReportDetails extends StatelessWidget {
         children: [
           Text(
             label,
-            style: text.labelLarge?.copyWith(color: UsraColors.textMuted),
+            style: text.labelLarge?.copyWith(color: context.usra.inkMuted),
           ),
           SelectableText(value, style: text.titleMedium),
         ],
@@ -118,25 +119,42 @@ class LabReportDetails extends StatelessWidget {
         for (final (i, t) in report.tests.indexed)
           Card(
             key: ValueKey('lab-result-$i'),
-            child: ListTile(
+            child: InkWell(
               onTap: t.value == null
                   ? null
                   : () => context.go(labTrendPath(event.profileId, t.name)),
-              title: Text(t.name),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 2),
-                  Text(labValueText(t), style: text.titleMedium),
-                  if (!t.range.isEmpty)
-                    Text(l.labRangeLine('\u2066${t.range.format()}\u2069')),
-                  const SizedBox(height: 6),
-                  LabFlagChip(flag: t.flag),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(UsraSpacing.s3),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(t.name, style: text.titleMedium),
+                          Text(
+                            labValueText(t),
+                            style: UsraType.numeral.copyWith(
+                              color: context.usra.ink,
+                            ),
+                          ),
+                          if (!t.range.isEmpty)
+                            Text(
+                              l.labRangeLine('\u2066${t.range.format()}\u2069'),
+                              style: UsraType.label.copyWith(
+                                color: context.usra.inkMuted,
+                              ),
+                            ),
+                          const SizedBox(height: UsraSpacing.s1),
+                          LabFlagChip(flag: t.flag),
+                        ],
+                      ),
+                    ),
+                    if (t.value != null)
+                      Icon(Icons.show_chart, color: context.usra.primary),
+                  ],
+                ),
               ),
-              trailing: t.value == null
-                  ? null
-                  : const Icon(Icons.show_chart, color: UsraColors.primary),
             ),
           ),
       ],

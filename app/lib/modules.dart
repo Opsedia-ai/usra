@@ -1,4 +1,5 @@
 import 'core/modules/feature_module.dart';
+import 'features/add/add_module.dart';
 import 'features/app_lock/app_lock_module.dart';
 import 'features/account/account_module.dart';
 import 'features/backup/backup_module.dart';
@@ -9,7 +10,9 @@ import 'features/follow_ups/follow_ups_module.dart';
 import 'features/home/home_module.dart';
 import 'features/labs/labs_module.dart';
 import 'features/medicines/medicines_module.dart';
+import 'features/onboarding/onboarding_module.dart';
 import 'features/pregnancy/pregnancy_module.dart';
+import 'features/records/records_module.dart';
 import 'features/reports/reports_module.dart';
 import 'features/scan/scan_module.dart';
 import 'features/settings/settings_module.dart';
@@ -27,6 +30,8 @@ const List<FeatureModule> appModules = [
   ChildrenModule(),
   PregnancyModule(),
   MedicinesModule(),
+  AddModule(),
+  RecordsModule(),
   SickDaysModule(),
   DoctorsModule(),
   ReportsModule(),
@@ -35,6 +40,7 @@ const List<FeatureModule> appModules = [
   SettingsModule(),
   BackupModule(),
   AccountModule(),
+  OnboardingModule(),
   TutorialModule(),
   AppLockModule(),
 ];
