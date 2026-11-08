@@ -38,8 +38,11 @@ class ChildrenModule extends FeatureModule {
     GoRoute(
       path: '/family/:id/vaccines/setup',
       builder: (_, s) => VaccineSetupScreen(
+        // What a card said belongs to this child: a new person starts empty.
+        key: ValueKey(s.uri.path),
         profileId: s.pathParameters['id']!,
         first: s.uri.queryParameters['first'] == '1',
+        startWithScan: s.uri.queryParameters['scan'] == '1',
       ),
     ),
     GoRoute(

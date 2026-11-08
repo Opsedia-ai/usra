@@ -13,6 +13,8 @@ import 'package:usra/core/ocr/medicine_name_extractor.dart';
 import 'package:usra/core/ocr/ocr_service.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
+import 'package:usra/features/account/save_gate.dart';
+import 'package:usra/features/add/add_sheet.dart';
 import 'package:usra/features/children/child_vaccines.dart';
 import 'package:usra/features/follow_ups/follow_ups_providers.dart';
 import 'package:usra/features/medicines/medicines_providers.dart';
@@ -65,8 +67,9 @@ void main() {
     return f.path;
   }
 
-  Widget app({bool simple = false}) => ProviderScope(
+  Widget app({bool simple = false, SaveGate? gate}) => ProviderScope(
     overrides: [
+      if (gate != null) saveGateProvider.overrideWithValue(gate),
       databaseProvider.overrideWithValue(db),
       keyValueStoreProvider.overrideWithValue(
         MemoryKeyValueStore({
@@ -110,8 +113,8 @@ void main() {
   bool enabled(WidgetTester tester, String key) =>
       tester.widget<ButtonStyleButton>(find.byKey(ValueKey(key))).enabled;
 
-  Future<void> go(WidgetTester tester, String path) async {
-    await tester.pumpWidget(app());
+  Future<void> go(WidgetTester tester, String path, {SaveGate? gate}) async {
+    await tester.pumpWidget(app(gate: gate));
     await tester.pumpAndSettle();
     GoRouter.of(tester.element(find.byType(Scaffold).first)).go(path);
     await tester.pumpAndSettle();
@@ -363,7 +366,7 @@ void main() {
         tester
             .widget<Text>(find.byKey(const ValueKey('vaccine-scan-result')))
             .data,
-        startsWith('لقينا 7 جرعات'),
+        startsWith('لقينا ٧ جرعات'),
       );
 
       const read = [
@@ -456,6 +459,178 @@ void main() {
     });
   });
 
+  group('the rebuilt screens', () {
+    final birthDate = DateTime(2025, 3, 1);
+    const prescription = ['R/', '1- Augmentin 1g tab', '1x2 for 7 days'];
+    const card = ['BCG  5/3/2025', 'At birth  OPV 0  1/3/2025'];
+
+    Future<void> openSheet(WidgetTester tester) async {
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+      showAddSheet(tester.element(find.byType(Scaffold).first));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Add: the prescription button reads, and saves nothing yet', (
+      tester,
+    ) async {
+      tallScreen(tester);
+      final omar = (await tester.runAsync(() => db.addProfile('عمر')))!;
+      ocr.result = ocrOf(prescription);
+      await openSheet(tester);
+      expect(find.text('صوّر روشتة أو علبة دوا'), findsOneWidget);
+
+      await tapKey(tester, 'add-photo-prescription');
+
+      expect(ocr.read, [pickedPaths.single]);
+      expect(fieldText(tester, 'rx-item-0-name'), 'Augmentin');
+      expect(find.byKey(const ValueKey('rx-for')), findsOneWidget);
+      expect(find.text('احفظ لعمر'), findsOneWidget);
+      expect(enabled(tester, 'rx-save'), isFalse);
+      final saved = await tester.runAsync(
+        () => db.watchPrescriptions(omar).first,
+      );
+      expect(saved, isEmpty);
+    });
+
+    testWidgets('Add: the box button opens the box reader', (tester) async {
+      tallScreen(tester);
+      await tester.runAsync(() => db.addProfile('عمر'));
+      await openSheet(tester);
+      await tapKey(tester, 'add-photo-box');
+      expect(find.byKey(const ValueKey('rx-for')), findsNothing);
+      expect(find.text('صوّر علبة الدوا'), findsWidgets);
+    });
+
+    testWidgets('Add: with no one picked neither button opens', (tester) async {
+      tallScreen(tester);
+      await tester.runAsync(() => db.addProfile('عمر'));
+      await tester.runAsync(() => db.addProfile('ليلى'));
+      await openSheet(tester);
+      expect(enabled(tester, 'add-photo-prescription'), isFalse);
+      expect(enabled(tester, 'add-photo-box'), isFalse);
+      expect(pickedPaths, isEmpty);
+    });
+
+    testWidgets('Add medicine leads to the prescription reader, when new', (
+      tester,
+    ) async {
+      tallScreen(tester);
+      final omar = (await tester.runAsync(() => db.addProfile('عمر')))!;
+      ocr.result = ocrOf(prescription);
+      await go(tester, '/family/$omar/medicines/new');
+      await tapKey(tester, 'medicine-scan-prescription');
+      expect(fieldText(tester, 'rx-item-0-name'), 'Augmentin');
+      expect(enabled(tester, 'rx-save'), isFalse);
+    });
+
+    testWidgets(
+      'signed out: the gate stops a checked save, and it can resume',
+      (tester) async {
+        tallScreen(tester);
+        final omar = (await tester.runAsync(() => db.addProfile('عمر')))!;
+        ocr.result = ocrOf(['R/', '1- Augmentin 1g tab 1x2']);
+        final gate = _Gate();
+        await go(tester, '/family/$omar/prescriptions/new', gate: gate);
+        await tapKey(tester, 'rx-scan-camera');
+        await tester.enterText(
+          find.byKey(const ValueKey('rx-item-0-days')),
+          '7',
+        );
+        await tester.pumpAndSettle();
+        for (final field in ['name', 'strength', 'dose', 'times', 'days']) {
+          final check = 'rx-item-0-unsure-$field';
+          if (find.byKey(ValueKey(check)).evaluate().isNotEmpty) {
+            await tapKey(tester, check);
+          }
+        }
+        await tapKey(tester, 'rx-item-0-confirm');
+        expect(enabled(tester, 'rx-save'), isTrue);
+        await tapKey(tester, 'rx-save');
+        expect(gate.asked, 1);
+        expect(
+          await tester.runAsync(() => db.watchPrescriptions(omar).first),
+          isEmpty,
+        );
+        // Still there, and the photo still only the picker's copy.
+        expect(fieldText(tester, 'rx-item-0-name'), 'Augmentin');
+        expect(File(pickedPaths.single).existsSync(), isTrue);
+
+        gate.open = true;
+        await tapKey(tester, 'rx-save');
+        expect(
+          await tester.runAsync(() => db.watchPrescriptions(omar).first),
+          hasLength(1),
+        );
+        expect(File(pickedPaths.single).existsSync(), isFalse);
+      },
+    );
+
+    testWidgets('signed out: adding the doctor on the paper waits too', (
+      tester,
+    ) async {
+      tallScreen(tester);
+      final omar = (await tester.runAsync(() => db.addProfile('عمر')))!;
+      ocr.result = ocrOf(['Dr. Hany Fouad', 'R/', '1- Augmentin 1g tab 1x2']);
+      final gate = _Gate();
+      await go(tester, '/family/$omar/prescriptions/new', gate: gate);
+      await tapKey(tester, 'rx-scan-camera');
+      await tapKey(tester, 'rx-doctor-add');
+      expect(gate.asked, 1);
+      expect(await tester.runAsync(() => db.watchDoctors().first), isEmpty);
+    });
+
+    testWidgets('New vaccine: a child can photograph the card', (tester) async {
+      tallScreen(tester);
+      final kid = (await tester.runAsync(
+        () => db.addProfile('ليلى', birthDate: birthDate, sex: 'female'),
+      ))!;
+      ocr.result = ocrOf(card);
+      await go(tester, '/family/$kid/add/vaccine');
+      expect(find.text('صوّر كارت التطعيم'), findsOneWidget);
+
+      await tapKey(tester, 'new-vaccine-scan');
+
+      // Read and let go of at once; each dose still waits for its check.
+      expect(ocr.read, [pickedPaths.single]);
+      expect(File(pickedPaths.single).existsSync(), isFalse);
+      expect(find.byKey(const ValueKey('setup-confirm-bcg-1')), findsOneWidget);
+      expect(enabled(tester, 'vaccine-setup-save'), isFalse);
+      final events = await tester.runAsync(() => db.watchTimeline(kid).first);
+      expect(vaccineRecords(events!), isEmpty);
+    });
+
+    testWidgets('New vaccine: an adult has no schedule to read a card to', (
+      tester,
+    ) async {
+      tallScreen(tester);
+      final adult = (await tester.runAsync(
+        () => db.addProfile('جدو', birthDate: DateTime(1950, 1, 1)),
+      ))!;
+      await go(tester, '/family/$adult/add/vaccine');
+      expect(find.byKey(const ValueKey('new-vaccine-scan')), findsNothing);
+    });
+
+    testWidgets('changing the route drops what the card matched', (
+      tester,
+    ) async {
+      tallScreen(tester);
+      final kid = (await tester.runAsync(
+        () => db.addProfile('ليلى', birthDate: birthDate),
+      ))!;
+      ocr.result = ocrOf(card);
+      await go(tester, '/family/$kid/vaccines/setup');
+      await tapKey(tester, 'vaccine-scan-camera');
+      expect(enabled(tester, 'vaccine-setup-save'), isFalse);
+
+      await tapKey(tester, 'vaccine-route-hexavalent');
+
+      expect(find.byKey(const ValueKey('setup-confirm-bcg-1')), findsNothing);
+      expect(find.textContaining('الجدول اتغيّر'), findsOneWidget);
+      expect(enabled(tester, 'vaccine-setup-save'), isTrue);
+    });
+  });
+
   testWidgets('Simple Mode: the scan card is there, with big buttons', (
     tester,
   ) async {
@@ -471,4 +646,16 @@ void main() {
     expect(tester.getSize(camera).height, greaterThanOrEqualTo(48));
     expect(tester.takeException(), isNull);
   });
+}
+
+/// Signed out with login on, until [open].
+class _Gate implements SaveGate {
+  bool open = false;
+  int asked = 0;
+
+  @override
+  Future<bool> allow({SaveGateReason reason = SaveGateReason.record}) async {
+    asked++;
+    return open;
+  }
 }

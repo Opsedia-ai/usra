@@ -1049,12 +1049,16 @@ class VaccineSetupScreen extends ConsumerStatefulWidget {
     super.key,
     required this.profileId,
     this.first = false,
+    this.startWithScan = false,
   });
 
   final String profileId;
 
   /// Right after the child was added: "Later" leads to their page.
   final bool first;
+
+  /// Opens the camera on the card first, from the New vaccine form.
+  final bool startWithScan;
 
   @override
   ConsumerState<VaccineSetupScreen> createState() => _VaccineSetupScreenState();
@@ -1086,12 +1090,32 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
 
   bool _ticked(DoseStatus s) => _toggled[s.dose.key] ?? s.done;
 
-  /// Something read from the card still waits for the family.
-  bool get _needsCheck =>
+  bool _startedScan = false;
+
+  /// Something read from the card still waits for the family. Only doses
+  /// still on the schedule count: one dropped since can't be confirmed.
+  bool _needsCheck(List<DoseStatus> statuses) =>
       _unknown.isNotEmpty ||
-      _fromCard.keys.any(
-        (k) => (_toggled[k] ?? false) && !_confirmed.contains(k),
+      statuses.any(
+        (s) =>
+            _fromCard.containsKey(s.dose.key) &&
+            (_toggled[s.dose.key] ?? false) &&
+            !_confirmed.contains(s.dose.key),
       );
+
+  /// Another route has other doses, so what the card matched no longer holds.
+  void _forgetScan() {
+    if (_fromCard.isEmpty && _unknown.isEmpty) return;
+    final l = AppLocalizations.of(context);
+    for (final key in _fromCard.keys) {
+      _toggled.remove(key);
+      _dates.remove(key);
+    }
+    _fromCard.clear();
+    _confirmed.clear();
+    _unknown.clear();
+    _scanMessages = [l.vaccineScanRouteChanged];
+  }
 
   /// Reads a photo of the card and ticks the dated doses on it, each to be
   /// confirmed. The photo is only read, on the phone, and then deleted.
@@ -1228,6 +1252,12 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
         now: today,
         plan: plan,
       );
+      if (widget.startWithScan && !_startedScan) {
+        _startedScan = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _scan(ImageSource.camera, profile, statuses);
+        });
+      }
       body = _form(context, profile, plan, statuses, today);
     }
     return Scaffold(
@@ -1258,7 +1288,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
           s,
     ];
     final ticked = _ticked;
-    final needsCheck = _needsCheck;
+    final needsCheck = _needsCheck(statuses);
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
@@ -1269,7 +1299,11 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
         RadioGroup<VaccineRoute>(
           groupValue: plan.route,
           onChanged: (r) {
-            if (r != null) setState(() => _plan = plan.copyWith(route: r));
+            if (r == null || r == plan.route) return;
+            setState(() {
+              _plan = plan.copyWith(route: r);
+              _forgetScan();
+            });
           },
           child: Column(
             children: [
@@ -1484,7 +1518,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
     List<DoseStatus> statuses,
     List<DoseStatus> checklist,
   ) async {
-    if (_needsCheck) return;
+    if (_needsCheck(statuses)) return;
     final l = AppLocalizations.of(context);
     final db = ref.read(databaseProvider);
     final ticked = _ticked;

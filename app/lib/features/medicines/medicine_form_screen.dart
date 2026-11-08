@@ -704,6 +704,17 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
                     onScan: _scan,
                     onChecked: (v) => setState(() => _readingChecked = v),
                   ),
+                  if (widget.medicineId == null && _reading == null)
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton(
+                        key: const ValueKey('medicine-scan-prescription'),
+                        onPressed: () => context.push(
+                          '/family/$_personId/prescriptions/new?scan=1',
+                        ),
+                        child: Text(l.medicineScanPrescription),
+                      ),
+                    ),
                   const SizedBox(height: UsraSpacing.s3),
                   field(
                     'name',

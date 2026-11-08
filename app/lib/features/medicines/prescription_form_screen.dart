@@ -17,6 +17,7 @@ import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
 import '../doctors/doctors_providers.dart';
+import '../family/member_screen.dart' show profileProvider;
 import '../scan/scan_widgets.dart';
 import 'dose_schedule.dart';
 import 'medicine_text.dart';
@@ -172,10 +173,15 @@ class PrescriptionFormScreen extends ConsumerStatefulWidget {
     super.key,
     required this.profileId,
     this.prescriptionId,
+    this.startWithScan = false,
   });
 
   final String profileId;
   final String? prescriptionId;
+
+  /// Opens the camera first, from the Add sheet's photo button. What it reads
+  /// still waits for the person's check before anything can be saved.
+  final bool startWithScan;
 
   @override
   ConsumerState<PrescriptionFormScreen> createState() =>
@@ -222,6 +228,11 @@ class _PrescriptionFormScreenState
     if (widget.prescriptionId == null) {
       _items.add(_Item());
       _loaded = true;
+      if (widget.startWithScan) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _scan(ImageSource.camera);
+        });
+      }
     } else {
       _load(widget.prescriptionId!);
     }
@@ -397,6 +408,7 @@ class _PrescriptionFormScreenState
   Future<void> _addDoctorFromPaper() async {
     final name = _doctorOnPaper;
     if (name == null) return;
+    if (!await ref.read(saveGateProvider).allow() || !mounted) return;
     try {
       final id = await ref.read(databaseProvider).saveDoctor(name: name);
       if (!mounted) return;
@@ -616,6 +628,10 @@ class _PrescriptionFormScreenState
     final locale = Localizations.localeOf(context).toLanguageTag();
     final doctors = ref.watch(doctorsProvider).value ?? const <Doctor>[];
     final store = ref.watch(medicinePhotoStoreProvider);
+    final name = ref
+        .watch(profileProvider(widget.profileId))
+        .value
+        ?.displayName;
 
     return Scaffold(
       appBar: AppBar(
@@ -630,6 +646,15 @@ class _PrescriptionFormScreenState
           : ListView(
               padding: const EdgeInsets.all(20),
               children: [
+                // A photo goes straight in: say whose this is before saving.
+                if (name != null) ...[
+                  Text(
+                    l.rxFor(name),
+                    key: const ValueKey('rx-for'),
+                    style: text.titleMedium,
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 Card(
                   color: context.usra.primarySoft,
                   child: Padding(
@@ -876,7 +901,9 @@ class _PrescriptionFormScreenState
                   key: const ValueKey('rx-save'),
                   style: FilledButton.styleFrom(minimumSize: const Size(0, 56)),
                   onPressed: _saving || _needsCheck ? null : _save,
-                  child: Text(l.familySave),
+                  child: Text(
+                    name == null ? l.familySave : l.medicineSaveFor(name),
+                  ),
                 ),
               ],
             ),

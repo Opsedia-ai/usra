@@ -115,7 +115,10 @@ class _AddSheetState extends ConsumerState<AddSheet> {
                 ),
               const SizedBox(height: UsraSpacing.s3),
               _PhotoCard(
-                onTap: person == null
+                onPrescription: person == null
+                    ? null
+                    : () => _open('/family/$person/prescriptions/new?scan=1'),
+                onBox: person == null
                     ? null
                     : () => _open('/family/$person/medicines/new?scan=1'),
               ),
@@ -158,55 +161,81 @@ class _AddSheetState extends ConsumerState<AddSheet> {
   }
 }
 
-/// The quickest way in, first: photograph a box. Says what the reading can do.
+/// The quickest way in, first: photograph a prescription or a box. Says what
+/// the reading can do. Which one it is decides the form: a prescription holds
+/// several medicines, a box one.
 class _PhotoCard extends StatelessWidget {
-  const _PhotoCard({required this.onTap});
+  const _PhotoCard({required this.onPrescription, required this.onBox});
 
-  final VoidCallback? onTap;
+  final VoidCallback? onPrescription;
+  final VoidCallback? onBox;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final c = context.usra;
-    final enabled = onTap != null;
+    final enabled = onBox != null;
+    const tall = Size(0, UsraSizes.touchTarget);
     return Material(
+      key: const ValueKey('add-photo'),
       color: c.primarySoft,
       borderRadius: BorderRadius.circular(UsraRadius.md),
-      child: InkWell(
-        key: const ValueKey('add-photo'),
-        borderRadius: BorderRadius.circular(UsraRadius.md),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(UsraSpacing.s3),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.photo_camera_outlined,
-                color: enabled ? c.primary : c.inkMuted,
-              ),
-              const SizedBox(width: UsraSpacing.s3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l.addPhotoTitle,
-                      style: UsraType.body.copyWith(
-                        color: enabled ? c.ink : c.inkMuted,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: UsraSpacing.s1),
-                    Text(
-                      l.addPhotoHint,
-                      style: UsraType.label.copyWith(color: c.inkMuted),
-                    ),
-                  ],
+      child: Padding(
+        padding: const EdgeInsets.all(UsraSpacing.s3),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ExcludeSemantics(
+                  child: Icon(
+                    Icons.photo_camera_outlined,
+                    color: enabled ? c.primary : c.inkMuted,
+                  ),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: UsraSpacing.s3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l.addPhotoTitle,
+                        style: UsraType.body.copyWith(
+                          color: enabled ? c.ink : c.inkMuted,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: UsraSpacing.s1),
+                      Text(
+                        l.addPhotoHint,
+                        style: UsraType.label.copyWith(color: c.inkMuted),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: UsraSpacing.s2),
+            Wrap(
+              spacing: UsraSpacing.s2,
+              runSpacing: UsraSpacing.s2,
+              children: [
+                FilledButton(
+                  key: const ValueKey('add-photo-prescription'),
+                  style: FilledButton.styleFrom(minimumSize: tall),
+                  onPressed: onPrescription,
+                  child: Text(l.addPhotoPrescription),
+                ),
+                OutlinedButton(
+                  key: const ValueKey('add-photo-box'),
+                  style: OutlinedButton.styleFrom(minimumSize: tall),
+                  onPressed: onBox,
+                  child: Text(l.addPhotoBox),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

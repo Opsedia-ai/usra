@@ -127,6 +127,15 @@ class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
                   ),
               ],
             ),
+            // The checklist, not this form: a card holds many doses, and each
+            // one needs its own check. Only a child has a schedule to read to.
+            if (child != null) ...[
+              const SizedBox(height: UsraSpacing.s3),
+              _CardScanLink(
+                onTap: () =>
+                    context.push('/family/$_person/vaccines/setup?scan=1'),
+              ),
+            ],
             if (waiting.isNotEmpty) ...[
               const SizedBox(height: UsraSpacing.s3),
               Text(
@@ -237,5 +246,58 @@ class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
     );
     if (!mounted) return;
     router.go(young ? '/family/$person/vaccines' : '/family/$person');
+  }
+}
+
+/// The way in to reading a whole vaccination card.
+class _CardScanLink extends StatelessWidget {
+  const _CardScanLink({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.usra;
+    return Material(
+      color: c.primarySoft,
+      borderRadius: BorderRadius.circular(UsraRadius.md),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        key: const ValueKey('new-vaccine-scan'),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(UsraSpacing.s3),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ExcludeSemantics(
+                child: Icon(Icons.photo_camera_outlined, color: c.primary),
+              ),
+              const SizedBox(width: UsraSpacing.s3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l.vaccineCardScanTitle,
+                      style: UsraType.body.copyWith(
+                        color: c.ink,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: UsraSpacing.s1),
+                    Text(
+                      l.vaccineCardScanBody,
+                      style: UsraType.label.copyWith(color: c.inkMuted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
