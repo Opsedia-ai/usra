@@ -9,15 +9,21 @@ import 'package:intl/intl.dart';
 import '../../core/database/app_database.dart';
 import '../../core/design/tokens.dart';
 import '../../core/files/photo_store.dart';
+import '../../core/log.dart';
+import '../../core/ocr/medicine_name_extractor.dart';
+import '../../core/ocr/ocr_service.dart';
 import '../../core/providers.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
 import '../doctors/doctors_providers.dart';
+import '../family/member_screen.dart' show profileProvider;
+import '../scan/scan_widgets.dart';
 import 'dose_schedule.dart';
 import 'medicine_text.dart';
 import 'medicines_providers.dart';
 import '../../core/util/time_picker.dart';
+import 'prescription_parser.dart';
 
 /// Times filled in by the "times a day" shortcut; the person can change
 /// them. Spread over waking hours; this is about reminders, not doses. For
@@ -66,7 +72,12 @@ class _Item {
     this.startOn,
     this.ended = false,
     int? days,
-  }) : name = TextEditingController(text: name),
+    this.scanned = false,
+    Set<RxField> unsure = const {},
+    this.suggestedName,
+  }) : unsure = {...unsure},
+       timesFromPaper = scanned && times.isNotEmpty,
+       name = TextEditingController(text: name),
        strength = TextEditingController(text: strength),
        dose = TextEditingController(text: dose),
        days = TextEditingController(text: days == null ? '' : '$days'),
@@ -91,6 +102,50 @@ class _Item {
 
   /// A unique key for this row's widgets.
   final Key key = UniqueKey();
+
+  /// A medicine read from a photo of the prescription: what the phone read,
+  /// every word to be checked against the paper.
+  factory _Item.scanned(RxCandidate c) => _Item(
+    name: c.name,
+    strength: c.strength ?? '',
+    dose: c.dose,
+    times: switch ((c.timesPerDay, c.everyHours)) {
+      (_, final int h) => everyHours(const DoseTime(8, 0), h),
+      (final int n, _) => presetTimes[n] ?? const [],
+      _ => const [],
+    },
+    days: c.days,
+    scanned: true,
+    unsure: c.unsure,
+    suggestedName: c.suggestedName,
+  );
+
+  /// Read from a photo: Save waits until the person confirms it matches
+  /// the paper.
+  final bool scanned;
+  bool confirmed = false;
+
+  /// What the phone wasn't sure of; cleared field by field as the person
+  /// edits it or says they checked it.
+  final Set<RxField> unsure;
+
+  /// The reminder times came from how often the paper says.
+  final bool timesFromPaper;
+
+  /// A listed name close to what was read, offered until used or the name
+  /// is edited; never filled in by itself.
+  String? suggestedName;
+
+  bool get needsCheck => scanned && (!confirmed || unsure.isNotEmpty);
+
+  /// Nothing typed: a scan replaces it.
+  bool get isBlank =>
+      medicineId == null &&
+      name.text.trim().isEmpty &&
+      strength.text.trim().isEmpty &&
+      dose.text.trim().isEmpty &&
+      days.text.trim().isEmpty &&
+      times.isEmpty;
 
   int? get daysValue {
     final n = parseLocalizedNumber(days.text);
@@ -118,10 +173,15 @@ class PrescriptionFormScreen extends ConsumerStatefulWidget {
     super.key,
     required this.profileId,
     this.prescriptionId,
+    this.startWithScan = false,
   });
 
   final String profileId;
   final String? prescriptionId;
+
+  /// Opens the camera first, from the Add sheet's photo button. What it reads
+  /// still waits for the person's check before anything can be saved.
+  final bool startWithScan;
 
   @override
   ConsumerState<PrescriptionFormScreen> createState() =>
@@ -140,12 +200,39 @@ class _PrescriptionFormScreenState
   bool _saving = false;
   bool _showErrors = false;
 
+  /// Reading a photo of the prescription.
+  bool _reading = false;
+
+  /// What the last photo gave.
+  List<String> _scanMessages = const [];
+
+  /// The last photo read, shown to check the medicines against.
+  String? _scanPhoto;
+
+  /// The date was picked by hand, so a photo doesn't change it.
+  bool _dateTouched = false;
+
+  /// The date or doctor came from the photo and wasn't checked yet.
+  bool _dateUnsure = false;
+  bool _doctorUnsure = false;
+
+  /// The doctor printed on the paper, when no saved doctor matches.
+  String? _doctorOnPaper;
+
+  bool get _needsCheck =>
+      _dateUnsure || _doctorUnsure || _items.any((i) => i.needsCheck);
+
   @override
   void initState() {
     super.initState();
     if (widget.prescriptionId == null) {
       _items.add(_Item());
       _loaded = true;
+      if (widget.startWithScan) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _scan(ImageSource.camera);
+        });
+      }
     } else {
       _load(widget.prescriptionId!);
     }
@@ -226,6 +313,120 @@ class _PrescriptionFormScreenState
     }
   }
 
+  /// Reads a photo of the prescription and fills in what it plainly says.
+  /// The photo is kept with the prescription (encrypted on save) whatever
+  /// is read; nothing read is saved until the person confirms it.
+  Future<void> _scan(ImageSource source) async {
+    final l = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    String? path;
+    try {
+      path = await ref.read(photoPickerProvider)(source);
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l.photoFailed)));
+      return;
+    }
+    if (path == null) return;
+    if (!mounted) {
+      discardPicked(path);
+      return;
+    }
+    setState(() {
+      _photos.add(_Photo(path!, picked: true));
+      _scanPhoto = path;
+      _reading = true;
+      _scanMessages = const [];
+    });
+    PrescriptionScan scan;
+    // Keeps the recogniser open while it reads.
+    final ocr = ref.listenManual(ocrServiceProvider, (_, _) {});
+    try {
+      final text = await ocr.read().recognise(path);
+      MedicineNameExtractor? names;
+      try {
+        names = await ref.read(medicineNameExtractorProvider.future);
+      } catch (error) {
+        // Without the list only lines laid out like a medicine are read.
+        Log.error('Medicine names unavailable', error);
+      }
+      scan = PrescriptionParser(names).parse(text);
+    } catch (error) {
+      Log.error('Prescription scan failed', error);
+      if (mounted) {
+        setState(() => _reading = false);
+        messenger.showSnackBar(SnackBar(content: Text(l.rxScanFailed)));
+      }
+      return;
+    } finally {
+      ocr.close();
+    }
+    if (!mounted) return;
+    final doctors = ref.read(doctorsProvider).value ?? const <Doctor>[];
+    final today = DateUtils.dateOnly(ref.read(clockProvider)());
+    setState(() {
+      _reading = false;
+      if (scan.items.isNotEmpty) {
+        for (final blank in _items.where((i) => i.isBlank).toList()) {
+          _items.remove(blank);
+          blank.dispose();
+        }
+        _items.addAll(scan.items.map(_Item.scanned));
+      }
+      final date = scan.date;
+      if (date != null &&
+          widget.prescriptionId == null &&
+          !_dateTouched &&
+          !date.isAfter(today) &&
+          date != _date) {
+        _date = date;
+        _dateUnsure = true;
+      }
+      final doctor = scan.doctor;
+      if (doctor != null && _doctorId == null) {
+        final match = doctors
+            .where((d) => sameDoctorName(d.name, doctor))
+            .firstOrNull;
+        if (match != null) {
+          _doctorId = match.id;
+          _doctorUnsure = true;
+          _doctorOnPaper = null;
+        } else {
+          _doctorOnPaper = doctor;
+        }
+      }
+      _scanMessages = [
+        scan.unclear
+            ? l.rxScanUnclear
+            : scan.items.isEmpty
+            ? l.rxScanNothing
+            : l.rxScanFound(scan.items.length),
+      ];
+    });
+  }
+
+  /// Saves the doctor printed on the paper and picks them.
+  Future<void> _addDoctorFromPaper() async {
+    final name = _doctorOnPaper;
+    if (name == null) return;
+    if (!await ref.read(saveGateProvider).allow() || !mounted) return;
+    try {
+      final id = await ref.read(databaseProvider).saveDoctor(name: name);
+      if (!mounted) return;
+      setState(() {
+        _doctorId = id;
+        _doctorOnPaper = null;
+        _doctorUnsure = false;
+      });
+    } catch (error) {
+      Log.error('Doctor save failed', error);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).saveFailed)),
+        );
+      }
+    }
+  }
+
   Future<void> _pickDate() async {
     final now = DateTime.now();
     final first = DateTime(now.year - 30);
@@ -270,6 +471,8 @@ class _PrescriptionFormScreenState
     }
     setState(() {
       _date = picked;
+      _dateTouched = true;
+      _dateUnsure = false;
       if (move) {
         for (final item in movable) {
           item.startOn = null;
@@ -318,11 +521,12 @@ class _PrescriptionFormScreenState
       builder: (_) => const EveryHoursDialog(),
     );
     if (picked == null || !mounted) return;
-    setState(
-      () => item.times
+    setState(() {
+      item.times
         ..clear()
-        ..addAll(picked),
-    );
+        ..addAll(picked);
+      item.unsure.remove(RxField.times);
+    });
   }
 
   Future<void> _addTime(_Item item) async {
@@ -333,14 +537,16 @@ class _PrescriptionFormScreenState
     if (picked == null) return;
     final t = DoseTime(picked.hour, picked.minute);
     if (item.times.contains(t)) return;
-    setState(
-      () => item.times
+    setState(() {
+      item.times
         ..add(t)
-        ..sort(),
-    );
+        ..sort();
+      item.unsure.remove(RxField.times);
+    });
   }
 
   Future<void> _save() async {
+    if (_needsCheck) return;
     final invalid = _items.isEmpty || _items.any((i) => !i.valid);
     setState(() => _showErrors = invalid);
     if (invalid) return;
@@ -422,6 +628,10 @@ class _PrescriptionFormScreenState
     final locale = Localizations.localeOf(context).toLanguageTag();
     final doctors = ref.watch(doctorsProvider).value ?? const <Doctor>[];
     final store = ref.watch(medicinePhotoStoreProvider);
+    final name = ref
+        .watch(profileProvider(widget.profileId))
+        .value
+        ?.displayName;
 
     return Scaffold(
       appBar: AppBar(
@@ -436,6 +646,15 @@ class _PrescriptionFormScreenState
           : ListView(
               padding: const EdgeInsets.all(20),
               children: [
+                // A photo goes straight in: say whose this is before saving.
+                if (name != null) ...[
+                  Text(
+                    l.rxFor(name),
+                    key: const ValueKey('rx-for'),
+                    style: text.titleMedium,
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 Card(
                   color: context.usra.primarySoft,
                   child: Padding(
@@ -448,40 +667,104 @@ class _PrescriptionFormScreenState
                   ),
                 ),
                 const SizedBox(height: 16),
+                DocumentScanCard(
+                  keyPrefix: 'rx-scan',
+                  title: l.rxScanTitle,
+                  help: l.rxScanHelp,
+                  readingText: l.rxScanReading,
+                  reading: _reading,
+                  messages: _scanMessages,
+                  onScan: _saving ? null : _scan,
+                ),
+                const SizedBox(height: 16),
+                if (_scanPhoto case final photo?
+                    when _photos.any((p) => p.picked && p.path == photo))
+                  ScanPhotoView(
+                    path: photo,
+                    semanticLabel: l.rxScanPhoto,
+                    keyPrefix: 'rx-scan',
+                  ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: InkWell(
                     key: const ValueKey('rx-date'),
                     onTap: _pickDate,
                     child: InputDecorator(
-                      decoration: InputDecoration(
-                        labelText: l.prescriptionDate,
-                        suffixIcon: const Icon(Icons.event_outlined),
-                      ),
+                      decoration: _dateUnsure
+                          ? unsureDecoration(
+                              context,
+                              label: l.prescriptionDate,
+                              unsure: true,
+                              checkKey: 'rx-unsure-date',
+                              onChecked: () =>
+                                  setState(() => _dateUnsure = false),
+                            )
+                          : InputDecoration(
+                              labelText: l.prescriptionDate,
+                              suffixIcon: const Icon(Icons.event_outlined),
+                            ),
                       child: Text(DateFormat.yMMMd(locale).format(_date)),
                     ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: DropdownButtonFormField<String?>(
-                    key: const ValueKey('rx-doctor'),
-                    initialValue: doctors.any((d) => d.id == _doctorId)
-                        ? _doctorId
-                        : null,
-                    isExpanded: true,
-                    decoration: InputDecoration(labelText: l.medicineDoctor),
-                    items: [
-                      DropdownMenuItem(
-                        value: null,
-                        child: Text(l.medicineNoDoctor),
+                  // A new key when the doctor is set from outside the menu
+                  // (from the photo, or just added), so the menu shows it.
+                  child: KeyedSubtree(
+                    key: ValueKey((
+                      'rx-doctor-box',
+                      _doctorId,
+                      doctors.any((d) => d.id == _doctorId),
+                    )),
+                    child: DropdownButtonFormField<String?>(
+                      key: const ValueKey('rx-doctor'),
+                      initialValue: doctors.any((d) => d.id == _doctorId)
+                          ? _doctorId
+                          : null,
+                      isExpanded: true,
+                      decoration: unsureDecoration(
+                        context,
+                        label: l.medicineDoctor,
+                        unsure: _doctorUnsure,
+                        checkKey: 'rx-unsure-doctor',
+                        onChecked: () => setState(() => _doctorUnsure = false),
                       ),
-                      for (final d in doctors)
-                        DropdownMenuItem(value: d.id, child: Text(d.name)),
-                    ],
-                    onChanged: (v) => setState(() => _doctorId = v),
+                      items: [
+                        DropdownMenuItem(
+                          value: null,
+                          child: Text(l.medicineNoDoctor),
+                        ),
+                        for (final d in doctors)
+                          DropdownMenuItem(value: d.id, child: Text(d.name)),
+                      ],
+                      onChanged: (v) => setState(() {
+                        _doctorId = v;
+                        _doctorUnsure = false;
+                      }),
+                    ),
                   ),
                 ),
+                if (_doctorOnPaper case final name? when _doctorId == null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      children: [
+                        Text(
+                          l.rxDoctorOnPaper(name),
+                          key: const ValueKey('rx-doctor-on-paper'),
+                        ),
+                        TextButton.icon(
+                          key: const ValueKey('rx-doctor-add'),
+                          onPressed: _addDoctorFromPaper,
+                          icon: const Icon(Icons.person_add_alt_outlined),
+                          label: Text(l.rxDoctorAdd),
+                        ),
+                      ],
+                    ),
+                  ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: TextField(
@@ -554,6 +837,9 @@ class _PrescriptionFormScreenState
                                   if (removed.picked) {
                                     discardPicked(removed.path);
                                   }
+                                  if (removed.path == _scanPhoto) {
+                                    _scanPhoto = null;
+                                  }
                                 }),
                                 icon: const Icon(Icons.close),
                               ),
@@ -600,11 +886,24 @@ class _PrescriptionFormScreenState
                   decoration: InputDecoration(labelText: l.prescriptionNotes),
                 ),
                 const SizedBox(height: 24),
+                if (_needsCheck)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(
+                      l.rxConfirmNeeded,
+                      key: const ValueKey('rx-confirm-needed'),
+                      style: TextStyle(
+                        color: Severity.headsUp.foregroundOf(context),
+                      ),
+                    ),
+                  ),
                 FilledButton(
                   key: const ValueKey('rx-save'),
                   style: FilledButton.styleFrom(minimumSize: const Size(0, 56)),
-                  onPressed: _saving ? null : _save,
-                  child: Text(l.familySave),
+                  onPressed: _saving || _needsCheck ? null : _save,
+                  child: Text(
+                    name == null ? l.familySave : l.medicineSaveFor(name),
+                  ),
                 ),
               ],
             ),
@@ -665,22 +964,64 @@ class _ItemCard extends StatelessWidget {
                   ),
               ],
             ),
+            if (item.scanned)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  l.rxFromPhoto,
+                  key: ValueKey('$k-from-photo'),
+                  style: TextStyle(
+                    color: Severity.headsUp.foregroundOf(context),
+                  ),
+                ),
+              ),
             TextField(
               key: ValueKey('$k-name'),
               controller: item.name,
-              onChanged: (_) => onChanged(),
-              decoration: InputDecoration(
-                labelText: '${l.medicineName} *',
-                errorText: showErrors && item.name.text.trim().isEmpty
+              onChanged: (_) {
+                item.suggestedName = null;
+                edited(RxField.name);
+              },
+              decoration: decoration(
+                context,
+                RxField.name,
+                '${l.medicineName} *',
+                error: showErrors && item.name.text.trim().isEmpty
                     ? l.fieldRequired
                     : null,
               ),
             ),
+            if (item.suggestedName case final listed?)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  // Only when the person picks it: look-alike names can be
+                  // very different medicines.
+                  child: ActionChip(
+                    key: ValueKey('$k-did-you-mean'),
+                    avatar: const Icon(Icons.spellcheck),
+                    label: Text(l.rxDidYouMean(listed)),
+                    onPressed: () {
+                      item.name.text = listed;
+                      item.suggestedName = null;
+                      // Still to be checked against the paper.
+                      item.confirmed = false;
+                      onChanged();
+                    },
+                  ),
+                ),
+              ),
             const SizedBox(height: 12),
             TextField(
               key: ValueKey('$k-strength'),
               controller: item.strength,
-              decoration: InputDecoration(labelText: l.medicineStrength),
+              onChanged: (_) => edited(RxField.strength),
+              decoration: decoration(
+                context,
+                RxField.strength,
+                l.medicineStrength,
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -688,13 +1029,35 @@ class _ItemCard extends StatelessWidget {
               controller: item.dose,
               minLines: 1,
               maxLines: 3,
-              decoration: InputDecoration(
-                labelText: l.prescriptionDose,
-                hintText: l.prescriptionDoseHint,
+              onChanged: (_) => edited(RxField.dose),
+              decoration: decoration(
+                context,
+                RxField.dose,
+                l.prescriptionDose,
+                hint: l.prescriptionDoseHint,
               ),
             ),
             const SizedBox(height: 16),
-            Text(l.prescriptionTimesPerDay, style: text.titleSmall),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l.prescriptionTimesPerDay,
+                    style: text.titleSmall,
+                  ),
+                ),
+                if (item.scanned && item.unsure.contains(RxField.times))
+                  IconButton(
+                    key: ValueKey('$k-unsure-times'),
+                    tooltip: l.rxTimesChecked,
+                    onPressed: () => edited(RxField.times),
+                    icon: Icon(
+                      Icons.task_alt,
+                      color: Severity.headsUp.foregroundOf(context),
+                    ),
+                  ),
+              ],
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -710,7 +1073,7 @@ class _ItemCard extends StatelessWidget {
                       item.times
                         ..clear()
                         ..addAll(times);
-                      onChanged();
+                      edited(RxField.times);
                     },
                   ),
                 ActionChip(
@@ -722,7 +1085,16 @@ class _ItemCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            Text(l.prescriptionTimesHint, style: text.bodySmall),
+            Text(
+              item.timesFromPaper
+                  ? l.rxTimesFromPaper
+                  : l.prescriptionTimesHint,
+              style: item.unsure.contains(RxField.times)
+                  ? text.bodySmall?.copyWith(
+                      color: Severity.headsUp.foregroundOf(context),
+                    )
+                  : text.bodySmall,
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -740,7 +1112,7 @@ class _ItemCard extends StatelessWidget {
                     ),
                     onDeleted: () {
                       item.times.remove(t);
-                      onChanged();
+                      edited(RxField.times);
                     },
                   ),
                 ActionChip(
@@ -778,13 +1150,34 @@ class _ItemCard extends StatelessWidget {
                 key: ValueKey('$k-days'),
                 controller: item.days,
                 keyboardType: TextInputType.number,
-                onChanged: (_) => onChanged(),
-                decoration: InputDecoration(
-                  labelText: l.prescriptionDays,
-                  errorText: showErrors && item.daysValue == null
+                onChanged: (_) => edited(RxField.days),
+                decoration: decoration(
+                  context,
+                  RxField.days,
+                  l.prescriptionDays,
+                  error: showErrors && item.daysValue == null
                       ? l.prescriptionDaysInvalid
                       : null,
                 ),
+              ),
+            ],
+            if (item.scanned) ...[
+              const SizedBox(height: 8),
+              CheckboxListTile(
+                key: ValueKey('$k-confirm'),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                value: item.confirmed,
+                title: Text(l.rxConfirmMedicine),
+                subtitle: item.unsure.isEmpty
+                    ? null
+                    : Text(l.rxConfirmFirstCheck),
+                onChanged: item.unsure.isNotEmpty
+                    ? null
+                    : (v) {
+                        item.confirmed = v ?? false;
+                        onChanged();
+                      },
               ),
             ],
           ],
@@ -792,6 +1185,28 @@ class _ItemCard extends StatelessWidget {
       ),
     );
   }
+
+  /// The person changed [field]: it's theirs now, not the phone's.
+  void edited(RxField field) {
+    item.unsure.remove(field);
+    onChanged();
+  }
+
+  InputDecoration decoration(
+    BuildContext context,
+    RxField field,
+    String label, {
+    String? hint,
+    String? error,
+  }) => unsureDecoration(
+    context,
+    label: label,
+    hint: hint,
+    error: error,
+    unsure: item.scanned && item.unsure.contains(field),
+    checkKey: 'rx-item-$index-unsure-${field.name}',
+    onChecked: () => edited(field),
+  );
 
   static bool _sameTimes(List<DoseTime> a, List<DoseTime> b) =>
       a.length == b.length && a.every(b.contains);

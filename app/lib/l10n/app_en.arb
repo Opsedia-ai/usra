@@ -54,9 +54,21 @@
   "profileSex": "Sex",
   "profileRelationship": "Relationship",
   "relationshipMine": "{relationship, select, son{My son} daughter{My daughter} husband{My husband} wife{My wife} father{My father} mother{My mother} brother{My brother} sister{My sister} grandfather{My grandfather} grandmother{My grandmother} other{Someone else}}",
-  "@relationshipMine": {"placeholders": {"relationship": {"type": "String"}}},
+  "@relationshipMine": {
+    "placeholders": {
+      "relationship": {
+        "type": "String"
+      }
+    }
+  },
   "relationshipYours": "{relationship, select, son{Your son} daughter{Your daughter} husband{Your husband} wife{Your wife} father{Your father} mother{Your mother} brother{Your brother} sister{Your sister} grandfather{Your grandfather} grandmother{Your grandmother} other{}}",
-  "@relationshipYours": {"placeholders": {"relationship": {"type": "String"}}},
+  "@relationshipYours": {
+    "placeholders": {
+      "relationship": {
+        "type": "String"
+      }
+    }
+  },
   "profileEmergencyPhone": "Emergency number",
   "profileEmergencyPhoneHint": "Optional. Shown on the emergency card, and on Usra's lock screen if the card is available there.",
   "profileEmergencyInvalid": "That isn't a phone number.",
@@ -64,9 +76,24 @@
   "profileEmergencyNameHint": "Optional. For example: Aya, his mother.",
   "emergencyContactNoName": "Emergency number",
   "emergencyCallNumber": "Call the emergency number: {phone}",
-  "@emergencyCallNumber": {"placeholders": {"phone": {"type": "String"}}},
+  "@emergencyCallNumber": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCallContact": "Call {name}: {phone}",
-  "@emergencyCallContact": {"placeholders": {"name": {"type": "String"}, "phone": {"type": "String"}}},
+  "@emergencyCallContact": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "sexFemale": "Female",
   "sexMale": "Male",
   "profileBloodType": "Blood type",
@@ -798,24 +825,63 @@
   "medicineMoveAction": "Move to another person",
   "medicineMoveTitle": "Move medicine",
   "medicineMoveNow": "Now with {name}",
-  "@medicineMoveNow": {"placeholders": {"name": {"type": "String"}}},
+  "@medicineMoveNow": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "medicineMoveTo": "Move it to who?",
   "medicineMoveWhatTitle": "Moves with the medicine",
   "medicineMoveWhat": "Times, reminders, recorded doses and photos.",
   "medicineMoveStaysTitle": "Stays with {name}",
-  "@medicineMoveStaysTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@medicineMoveStaysTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "medicineMoveStaysPrescription": "The prescription, with its date and photos. The medicine comes off its list.",
   "medicineMoveStaysSickDays": "Doses recorded in sick days, by the medicine's name.",
   "medicineMoveStopsNextDose": "The next-dose reminder in the sick day stops.",
   "medicineMoveReminder": "After the move, reminders are for {to}, not {from}.",
-  "@medicineMoveReminder": {"placeholders": {"to": {"type": "String"}, "from": {"type": "String"}}},
+  "@medicineMoveReminder": {
+    "placeholders": {
+      "to": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      }
+    }
+  },
   "medicineMoveChoose": "Choose a person first",
   "medicineMoveConfirm": "Move to {name}",
-  "@medicineMoveConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@medicineMoveConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "medicineMoveKeep": "Keep with {name}",
-  "@medicineMoveKeep": {"placeholders": {"name": {"type": "String"}}},
+  "@medicineMoveKeep": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "medicineMoveDone": "Medicine moved to {name}.",
-  "@medicineMoveDone": {"placeholders": {"name": {"type": "String"}}},
+  "@medicineMoveDone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "medicineName": "Medicine name",
   "medicineStrength": "Strength (as on the box)",
   "medicineForm": "Form",
@@ -1480,7 +1546,16 @@
   "doseReminderDiscreetTitle": "Your medicine time",
   "widgetDoseDue": "Dose due",
   "widgetDoseCount": "{count, plural, other{{digits} doses due}}",
-  "@widgetDoseCount": {"placeholders": {"count": {"type": "int"}, "digits": {"type": "String"}}},
+  "@widgetDoseCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "digits": {
+        "type": "String"
+      }
+    }
+  },
   "settingsDiscreet": "Discreet notifications",
   "settingsDiscreetHint": "Reminders say \"Your medicine time\", without the person's or the medicine's name. When several doses are close together, open Usra to mark them.",
   "settingsBlockScreenshots": "Block screenshots",
@@ -1566,6 +1641,73 @@
   "vaccineSetupGivenHint": "Tick what's on the child's card. The date is the due date unless you change it.",
   "vaccineSetupNoneYet": "No doses are due yet.",
   "vaccineSetupSaved": "Vaccinations saved",
+  "vaccineScanTitle": "Read the vaccination card",
+  "vaccineScanHelp": "Take a photo of the card. The phone only reads dates and vaccine names printed in English; handwriting usually won't be read. Nothing is sent anywhere, and the photo isn't kept. Check every dose against the card.",
+  "vaccineScanReading": "Reading the card…",
+  "vaccineScanFound": "{count, plural, =1{Found 1 dose on the card.} other{Found {count} doses on the card.}} Check each one below and tick “Matches the card”.",
+  "@vaccineScanFound": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "vaccineScanNothing": "Couldn't find dated doses in this photo. Tick them by hand below.",
+  "vaccineScanAlready": "{count, plural, =1{1 dose on the card was already recorded, so it wasn't changed.} other{{count} doses on the card were already recorded, so they weren't changed.}}",
+  "@vaccineScanAlready": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "vaccineScanFutureRows": "{count, plural, =1{1 row only had a date still to come (the next visit), so nothing was ticked for it.} other{{count} rows only had dates still to come (next visits), so nothing was ticked for them.}}",
+  "@vaccineScanFutureRows": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "vaccineScanFailed": "Couldn't read the photo",
+  "vaccineScanRouteChanged": "The schedule changed, so what was read from the card was removed. Photograph the card again.",
+  "vaccineFromCard": "On the card: {row}",
+  "@vaccineFromCard": {
+    "placeholders": {
+      "row": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineDoseGuessed": "The card doesn't say which dose this is: check the number.",
+  "vaccineDateCheck": "Check the date against the card: the row had more than one, or it doesn't fit the schedule (before an earlier dose, or well before this dose's age).",
+  "vaccineConfirmCard": "Matches the card",
+  "vaccineConfirmNeeded": "Before saving, confirm each dose read from the card (or untick it), and say which dose each unnamed row is, or skip it.",
+  "vaccineUnknownTitle": "Rows the phone couldn't name",
+  "vaccineUnknownRow": "“{text}”, given {date}",
+  "@vaccineUnknownRow": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineUnknownDateOnly": "A dose given {date}",
+  "@vaccineUnknownDateOnly": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineUnknownPick": "Which dose is this?",
+  "vaccineUnknownSkip": "Skip",
   "vaccineChangeDate": "Change date",
   "vaccineDoseGiven": "Given",
   "vaccineDoseDate": "Date given",
@@ -1763,6 +1905,53 @@
     }
   },
   "prescriptionTimesHint": "Check the times match what the doctor wrote.",
+  "rxScanTitle": "Read the prescription from a photo",
+  "rxFor": "This prescription is for {name}",
+  "@rxFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rxScanHelp": "The phone reads printed medicine names in English itself; nothing is sent anywhere. It doesn't read handwriting: if the doctor wrote by hand, type the medicines from the photo. The photo is kept, encrypted, with the prescription.",
+  "rxScanReading": "Reading the prescription…",
+  "rxScanFound": "{count, plural, =1{Found 1 medicine.} other{Found {count} medicines.}} Check each one against the paper; highlighted boxes are ones the phone wasn't sure of.",
+  "@rxScanFound": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "rxScanUnclear": "This looks handwritten or unclear, so nothing was filled in. The photo is kept with the prescription: type the medicines from it.",
+  "rxScanNothing": "Couldn't find medicines in this photo. Type them in; the photo is kept with the prescription.",
+  "rxScanFailed": "Couldn't read the photo",
+  "rxScanPhoto": "The photo of the prescription",
+  "rxFromPhoto": "Read from the photo: check it against the paper",
+  "rxConfirmMedicine": "Matches the paper",
+  "rxTimesChecked": "The times match the paper",
+  "rxDidYouMean": "Did you mean {name}?",
+  "@rxDidYouMean": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rxConfirmFirstCheck": "Check the highlighted boxes first",
+  "rxConfirmNeeded": "Before saving, check every medicine read from the photo against the paper and tick “Matches the paper”, and check the date and doctor.",
+  "rxDoctorOnPaper": "On the paper: {name}",
+  "@rxDoctorOnPaper": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rxDoctorAdd": "Add to my doctors",
+  "rxTimesFromPaper": "How often was read from the paper; the reminder times are only spread over the day. Change them if the doctor said otherwise.",
   "growthNoPrematurity": "Uses age from birth, with no correction for babies born early. If your baby was premature, ask the pediatrician how to read this chart.",
   "reportAppLine": "Made with Usra (أسرة), a family health app",
   "reportGenerated": "Generated on {date}",
@@ -2335,11 +2524,19 @@
   "addGrowth": "Weight and height",
   "addInsurance": "Insurance card",
   "addSurgery": "Surgery",
-  "addPhotoTitle": "Photo of a medicine box",
+  "addPhotoTitle": "Photograph a prescription or medicine box",
   "addPhotoHint": "Read on the phone: printed English only, and the name and strength still need checking.",
+  "addPhotoPrescription": "Prescription",
+  "addPhotoBox": "Medicine box",
   "profileMoreDetails": "More details",
   "profileSaveNamed": "Save {name}",
-  "@profileSaveNamed": {"placeholders": {"name": {"type": "String"}}},
+  "@profileSaveNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "recordsTitle": "Records",
   "recordsAll": "All",
   "recordsEmpty": "No records yet. Tap Add to log a first visit or test.",
@@ -2709,6 +2906,7 @@
   "medicineScanReview": "Check the details on the box before saving",
   "medicineScanConfirm": "I checked the name and strength on the box",
   "medicineScanConfirmNeeded": "Tick this once you've checked the name and strength",
+  "medicineScanPrescription": "A prescription with several medicines? Photograph it",
   "medicineUnsureValue": "We're not sure of this reading. Check it on the box",
   "medicineFreqOnce": "Once a day",
   "medicineFreqTwice": "Twice",
@@ -2777,6 +2975,8 @@
   "vaccineSetupSkipNow": "Skip vaccines for now",
   "fieldVaccinePlace": "Where?",
   "vaccineCardPhoto": "Photo of the vaccine card",
+  "vaccineCardScanTitle": "Photograph the vaccination card",
+  "vaccineCardScanBody": "Read on the phone: only dates and vaccine names printed in English, and you confirm each dose.",
   "vaccineWhich": "Which vaccine?",
   "vaccineOtherChoice": "Another vaccine",
   "vaccineWhoFor": "For whom?",

@@ -72,7 +72,7 @@ void main() {
   }
 
   void tallScreen(WidgetTester tester) {
-    tester.view.physicalSize = const Size(1170, 3600);
+    tester.view.physicalSize = const Size(1170, 6000);
     tester.view.devicePixelRatio = 1.5;
     addTearDown(tester.view.reset);
   }

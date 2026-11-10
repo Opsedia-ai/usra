@@ -3159,6 +3159,113 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vaccineSetupSaved => 'Vaccinations saved';
 
   @override
+  String get vaccineScanTitle => 'Read the vaccination card';
+
+  @override
+  String get vaccineScanHelp =>
+      'Take a photo of the card. The phone only reads dates and vaccine names printed in English; handwriting usually won\'t be read. Nothing is sent anywhere, and the photo isn\'t kept. Check every dose against the card.';
+
+  @override
+  String get vaccineScanReading => 'Reading the card…';
+
+  @override
+  String vaccineScanFound(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Found $countString doses on the card.',
+      one: 'Found 1 dose on the card.',
+    );
+    return '$_temp0 Check each one below and tick “Matches the card”.';
+  }
+
+  @override
+  String get vaccineScanNothing =>
+      'Couldn\'t find dated doses in this photo. Tick them by hand below.';
+
+  @override
+  String vaccineScanAlready(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$countString doses on the card were already recorded, so they weren\'t changed.',
+      one: '1 dose on the card was already recorded, so it wasn\'t changed.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineScanFutureRows(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$countString rows only had dates still to come (next visits), so nothing was ticked for them.',
+      one: '1 row only had a date still to come (the next visit), so nothing was ticked for it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get vaccineScanFailed => 'Couldn\'t read the photo';
+
+  @override
+  String get vaccineScanRouteChanged =>
+      'The schedule changed, so what was read from the card was removed. Photograph the card again.';
+
+  @override
+  String vaccineFromCard(String row) {
+    return 'On the card: $row';
+  }
+
+  @override
+  String get vaccineDoseGuessed =>
+      'The card doesn\'t say which dose this is: check the number.';
+
+  @override
+  String get vaccineDateCheck =>
+      'Check the date against the card: the row had more than one, or it doesn\'t fit the schedule (before an earlier dose, or well before this dose\'s age).';
+
+  @override
+  String get vaccineConfirmCard => 'Matches the card';
+
+  @override
+  String get vaccineConfirmNeeded =>
+      'Before saving, confirm each dose read from the card (or untick it), and say which dose each unnamed row is, or skip it.';
+
+  @override
+  String get vaccineUnknownTitle => 'Rows the phone couldn\'t name';
+
+  @override
+  String vaccineUnknownRow(String text, String date) {
+    return '“$text”, given $date';
+  }
+
+  @override
+  String vaccineUnknownDateOnly(String date) {
+    return 'A dose given $date';
+  }
+
+  @override
+  String get vaccineUnknownPick => 'Which dose is this?';
+
+  @override
+  String get vaccineUnknownSkip => 'Skip';
+
+  @override
   String get vaccineChangeDate => 'Change date';
 
   @override
@@ -3501,6 +3608,83 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get prescriptionTimesHint =>
       'Check the times match what the doctor wrote.';
+
+  @override
+  String get rxScanTitle => 'Read the prescription from a photo';
+
+  @override
+  String rxFor(String name) {
+    return 'This prescription is for $name';
+  }
+
+  @override
+  String get rxScanHelp =>
+      'The phone reads printed medicine names in English itself; nothing is sent anywhere. It doesn\'t read handwriting: if the doctor wrote by hand, type the medicines from the photo. The photo is kept, encrypted, with the prescription.';
+
+  @override
+  String get rxScanReading => 'Reading the prescription…';
+
+  @override
+  String rxScanFound(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Found $countString medicines.',
+      one: 'Found 1 medicine.',
+    );
+    return '$_temp0 Check each one against the paper; highlighted boxes are ones the phone wasn\'t sure of.';
+  }
+
+  @override
+  String get rxScanUnclear =>
+      'This looks handwritten or unclear, so nothing was filled in. The photo is kept with the prescription: type the medicines from it.';
+
+  @override
+  String get rxScanNothing =>
+      'Couldn\'t find medicines in this photo. Type them in; the photo is kept with the prescription.';
+
+  @override
+  String get rxScanFailed => 'Couldn\'t read the photo';
+
+  @override
+  String get rxScanPhoto => 'The photo of the prescription';
+
+  @override
+  String get rxFromPhoto => 'Read from the photo: check it against the paper';
+
+  @override
+  String get rxConfirmMedicine => 'Matches the paper';
+
+  @override
+  String get rxTimesChecked => 'The times match the paper';
+
+  @override
+  String rxDidYouMean(String name) {
+    return 'Did you mean $name?';
+  }
+
+  @override
+  String get rxConfirmFirstCheck => 'Check the highlighted boxes first';
+
+  @override
+  String get rxConfirmNeeded =>
+      'Before saving, check every medicine read from the photo against the paper and tick “Matches the paper”, and check the date and doctor.';
+
+  @override
+  String rxDoctorOnPaper(String name) {
+    return 'On the paper: $name';
+  }
+
+  @override
+  String get rxDoctorAdd => 'Add to my doctors';
+
+  @override
+  String get rxTimesFromPaper =>
+      'How often was read from the paper; the reminder times are only spread over the day. Change them if the doctor said otherwise.';
 
   @override
   String get growthNoPrematurity =>
@@ -4471,11 +4655,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addSurgery => 'Surgery';
 
   @override
-  String get addPhotoTitle => 'Photo of a medicine box';
+  String get addPhotoTitle => 'Photograph a prescription or medicine box';
 
   @override
   String get addPhotoHint =>
       'Read on the phone: printed English only, and the name and strength still need checking.';
+
+  @override
+  String get addPhotoPrescription => 'Prescription';
+
+  @override
+  String get addPhotoBox => 'Medicine box';
 
   @override
   String get profileMoreDetails => 'More details';
@@ -4959,6 +5149,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tick this once you\'ve checked the name and strength';
 
   @override
+  String get medicineScanPrescription =>
+      'A prescription with several medicines? Photograph it';
+
+  @override
   String get medicineUnsureValue =>
       'We\'re not sure of this reading. Check it on the box';
 
@@ -5053,6 +5247,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vaccineCardPhoto => 'Photo of the vaccine card';
+
+  @override
+  String get vaccineCardScanTitle => 'Photograph the vaccination card';
+
+  @override
+  String get vaccineCardScanBody =>
+      'Read on the phone: only dates and vaccine names printed in English, and you confirm each dose.';
 
   @override
   String get vaccineWhich => 'Which vaccine?';

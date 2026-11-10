@@ -89,6 +89,7 @@ class MedicinesModule extends FeatureModule {
           builder: (_, s) => PrescriptionFormScreen(
             key: ValueKey(s.uri.path),
             profileId: s.pathParameters['id']!,
+            startWithScan: s.uri.queryParameters['scan'] == '1',
           ),
         ),
         GoRoute(
