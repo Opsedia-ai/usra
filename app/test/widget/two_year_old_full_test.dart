@@ -188,11 +188,13 @@ void main() {
       final picker = tester.widget<DatePickerDialog>(
         find.byType(DatePickerDialog),
       );
-      // BUG: a new person's date-of-birth picker opens on 1 Jan 1990 for
-      // everyone, a child too: to reach 12 Nov 2024 in the calendar takes
-      // the year switch, the year, ten "next month" taps, the day and OK
-      // (14 taps), or the pencil, typing and OK.
-      expect(picker.initialDate, DateTime(1990));
+      // A daughter's birth-date picker opens on today (K, #77); before, it
+      // opened on 1 Jan 1990 for everyone, 14 calendar taps from her
+      // birthday. (The form reads the phone's clock here, bug 13.)
+      expect(
+        DateUtils.dateOnly(picker.initialDate!),
+        DateUtils.dateOnly(DateTime.now()),
+      );
       final tapsBeforeCalendar = taps;
       await pickDate(tester, birth);
       taps += 1; // OK, counted; the calendar taps are added below.
