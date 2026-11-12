@@ -5456,4 +5456,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vaccineCatchUpShort => 'catch-up';
+
+  @override
+  String get vaccineMarkPast => 'Mark everything due so far as given';
+
+  @override
+  String get vaccineMarkPastTitle => 'Mark past doses as given?';
+
+  @override
+  String vaccineMarkPastBody(int count, String upTo) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString required doses',
+      one: '1 required dose',
+    );
+    return '$_temp0 $upTo will be marked as given, each on its date on the schedule, not today. Check the vaccination card first: the card and the child\'s doctor are the reference. You can undo this, or untick any dose later.';
+  }
+
+  @override
+  String vaccineUpTo(int months) {
+    final intl.NumberFormat monthsNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String monthsString = monthsNumberFormat.format(months);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'up to $monthsString months',
+      one: 'up to 1 month',
+      zero: 'at birth',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineMarkPastOptional(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'Also the optional ones you follow ($countString)';
+  }
+
+  @override
+  String get vaccineMarkPastOk => 'Mark them';
+
+  @override
+  String vaccineMarkPastDone(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Marked $countString doses as given',
+      one: 'Marked 1 dose as given',
+    );
+    return '$_temp0';
+  }
 }

@@ -5495,4 +5495,74 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get vaccineCatchUpShort => 'تعويضية';
+
+  @override
+  String get vaccineMarkPast => 'علّم على كل اللي فات إنه اتاخد';
+
+  @override
+  String get vaccineMarkPastTitle => 'تعلّم على الجرعات اللي فاتت؟';
+
+  @override
+  String vaccineMarkPastBody(int count, String upTo) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString جرعة إجبارية',
+      few: '$countString جرعات إجبارية',
+      two: 'جرعتين إجباريتين',
+      one: 'جرعة إجبارية واحدة',
+    );
+    return '$_temp0 $upTo هيتعلّم عليها إنها اتاخدت، كل واحدة في ميعادها على الجدول، مش النهارده. راجع كارت التطعيم الأول: الكارت ودكتور الطفل هما المرجع. تقدر ترجع فيها، أو تشيل العلامة من أي جرعة بعدين.';
+  }
+
+  @override
+  String vaccineUpTo(int months) {
+    final intl.NumberFormat monthsNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String monthsString = monthsNumberFormat.format(months);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'لحد سن $monthsString شهر',
+      few: 'لحد سن $monthsString شهور',
+      two: 'لحد سن شهرين',
+      one: 'لحد سن شهر',
+      zero: 'عند الولادة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineMarkPastOptional(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'ومعاها الاختياري اللي ماشيين عليه ($countString)';
+  }
+
+  @override
+  String get vaccineMarkPastOk => 'علّم عليها';
+
+  @override
+  String vaccineMarkPastDone(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'اتعلّم على $countString جرعة',
+      few: 'اتعلّم على $countString جرعات',
+      two: 'اتعلّم على جرعتين',
+      one: 'اتعلّم على جرعة واحدة',
+    );
+    return '$_temp0';
+  }
 }

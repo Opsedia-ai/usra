@@ -8130,6 +8130,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'catch-up'**
   String get vaccineCatchUpShort;
+
+  /// No description provided for @vaccineMarkPast.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark everything due so far as given'**
+  String get vaccineMarkPast;
+
+  /// No description provided for @vaccineMarkPastTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark past doses as given?'**
+  String get vaccineMarkPastTitle;
+
+  /// No description provided for @vaccineMarkPastBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 required dose} other{{count} required doses}} {upTo} will be marked as given, each on its date on the schedule, not today. Check the vaccination card first: the card and the child\'s doctor are the reference. You can undo this, or untick any dose later.'**
+  String vaccineMarkPastBody(int count, String upTo);
+
+  /// No description provided for @vaccineUpTo.
+  ///
+  /// In en, this message translates to:
+  /// **'{months, plural, =0{at birth} =1{up to 1 month} other{up to {months} months}}'**
+  String vaccineUpTo(int months);
+
+  /// No description provided for @vaccineMarkPastOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Also the optional ones you follow ({count})'**
+  String vaccineMarkPastOptional(int count);
+
+  /// No description provided for @vaccineMarkPastOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark them'**
+  String get vaccineMarkPastOk;
+
+  /// No description provided for @vaccineMarkPastDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Marked 1 dose as given} other{Marked {count} doses as given}}'**
+  String vaccineMarkPastDone(int count);
 }
 
 class _AppLocalizationsDelegate

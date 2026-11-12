@@ -1460,5 +1460,12 @@
   "vaccineDoseNotGiven": "ماتاخدتش",
   "prescriptionStopped": "متوقفة",
   "reminderExactOffTitle": "التنبيهات ممكن تتأخر",
-  "vaccineCatchUpShort": "تعويضية"
+  "vaccineCatchUpShort": "تعويضية",
+  "vaccineMarkPast": "علّم على كل اللي فات إنه اتاخد",
+  "vaccineMarkPastTitle": "تعلّم على الجرعات اللي فاتت؟",
+  "vaccineMarkPastBody": "{count, plural, =1{جرعة إجبارية واحدة} =2{جرعتين إجباريتين} few{{count} جرعات إجبارية} other{{count} جرعة إجبارية}} {upTo} هيتعلّم عليها إنها اتاخدت، كل واحدة في ميعادها على الجدول، مش النهارده. راجع كارت التطعيم الأول: الكارت ودكتور الطفل هما المرجع. تقدر ترجع فيها، أو تشيل العلامة من أي جرعة بعدين.",
+  "vaccineUpTo": "{months, plural, =0{عند الولادة} =1{لحد سن شهر} =2{لحد سن شهرين} few{لحد سن {months} شهور} other{لحد سن {months} شهر}}",
+  "vaccineMarkPastOptional": "ومعاها الاختياري اللي ماشيين عليه ({count})",
+  "vaccineMarkPastOk": "علّم عليها",
+  "vaccineMarkPastDone": "{count, plural, =1{اتعلّم على جرعة واحدة} =2{اتعلّم على جرعتين} few{اتعلّم على {count} جرعات} other{اتعلّم على {count} جرعة}}"
 }
