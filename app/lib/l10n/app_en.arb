@@ -3106,5 +3106,6 @@
     }
   },
   "vaccineNextCatchUp": "Catch-up doses (past their age)",
-  "vaccineDateAssumed": "The date on the schedule. Change it if it was given on another day."
+  "vaccineDateAssumed": "The date on the schedule. Change it if it was given on another day.",
+  "vaccineCatchUpShort": "catch-up"
 }

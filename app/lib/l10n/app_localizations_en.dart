@@ -5436,4 +5436,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get vaccineDateAssumed =>
       'The date on the schedule. Change it if it was given on another day.';
+
+  @override
+  String get vaccineCatchUpShort => 'catch-up';
 }

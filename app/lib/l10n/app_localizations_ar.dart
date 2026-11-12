@@ -5469,4 +5469,7 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get vaccineDateAssumed =>
       'ده ميعادها على الجدول. غيّره لو اتاخدت في يوم تاني.';
+
+  @override
+  String get vaccineCatchUpShort => 'تعويضية';
 }

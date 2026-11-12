@@ -8106,6 +8106,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The date on the schedule. Change it if it was given on another day.'**
   String get vaccineDateAssumed;
+
+  /// No description provided for @vaccineCatchUpShort.
+  ///
+  /// In en, this message translates to:
+  /// **'catch-up'**
+  String get vaccineCatchUpShort;
 }
 
 class _AppLocalizationsDelegate

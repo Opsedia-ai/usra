@@ -1456,5 +1456,6 @@
   "simpleThenDoseFor": "وبعده: {medicine} لـ{name} الساعة {time}",
   "vaccineCatchUp": "جرعة تعويضية · ميعادها {date}",
   "vaccineNextCatchUp": "جرعات تعويضية (فات سنّها)",
-  "vaccineDateAssumed": "ده ميعادها على الجدول. غيّره لو اتاخدت في يوم تاني."
+  "vaccineDateAssumed": "ده ميعادها على الجدول. غيّره لو اتاخدت في يوم تاني.",
+  "vaccineCatchUpShort": "تعويضية"
 }
