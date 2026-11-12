@@ -28,6 +28,7 @@ import 'egypt_vaccine_sources.dart';
 import 'egypt_vaccines.dart';
 import 'growth.dart' show isUnderFive;
 import 'vaccine_card_parser.dart';
+import '../../core/util/date_picker.dart';
 
 /// [profile]'s vaccines today, once their records have loaded; null for
 /// anyone five or over.
@@ -51,8 +52,8 @@ Future<DateTime?> pickGivenDate(
 }) {
   final now = DateTime.now();
   final start = givenDateOn(initial, now);
-  return showDatePicker(
-    context: context,
+  return pickDate(
+    context,
     initialDate: start,
     firstDate: start.isBefore(birthDate) ? start : birthDate,
     lastDate: now,

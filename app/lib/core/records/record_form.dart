@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../files/photo_store.dart';
 import '../util/localized_numbers.dart';
 import 'record_type.dart';
+import '../util/date_picker.dart';
 
 /// Words the form needs, passed in so the core stays free of feature strings.
 class RecordFormStrings {
@@ -360,8 +361,8 @@ class _RecordFormState extends State<RecordForm> {
     return empty ? widget.strings.required : widget.strings.invalid;
   }
 
-  Future<DateTime?> _pickDate(DateTime initial) => showDatePicker(
-    context: context,
+  Future<DateTime?> _pickDate(DateTime initial) => pickDate(
+    context,
     initialDate: initial,
     firstDate: DateTime(1900),
     lastDate: DateTime(DateTime.now().year + 5, 12, 31),
@@ -464,8 +465,8 @@ class _RecordFormState extends State<RecordForm> {
           onTap: () async {
             final first = widget.firstOccurredAt;
             final last = widget.lastOccurredAt;
-            final picked = await showDatePicker(
-              context: context,
+            final picked = await pickDate(
+              context,
               initialDate: _occurredAt,
               firstDate: first == null
                   ? DateTime(1900)

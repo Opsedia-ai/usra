@@ -175,6 +175,28 @@ void main() {
       expect(picker.firstDate, DateTime(1900));
     });
 
+    testWidgets('a birth date typed in Arabic digits is kept (bug E)', (
+      tester,
+    ) async {
+      await toAboutYou(tester);
+      expect(find.text('اختيار التاريخ'), findsOneWidget);
+      await tapKey(tester, 'about-birthDate');
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(DatePickerDialog),
+          matching: find.byType(TextField),
+        ),
+        '١٩٩١/٥/١٤',
+      );
+      await tester.tap(find.text('حسنًا').last);
+      await settle(tester);
+      expect(find.byType(DatePickerDialog), findsNothing);
+      expect(find.text('اختيار التاريخ'), findsNothing);
+      expect(find.text('١٤ مايو ١٩٩١'), findsOneWidget);
+    });
+
     testWidgets('a date saved earlier that\'s in the future isn\'t accepted, '
         'and the picker still opens', (tester) async {
       phone(tester);

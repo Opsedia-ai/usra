@@ -11,6 +11,7 @@ import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
 import 'insurance_info.dart';
+import '../../core/util/date_picker.dart';
 
 /// A card photo in the form: already saved ([stored]), or just picked and
 /// only copied into the app when the card is saved.
@@ -118,8 +119,8 @@ class _InsuranceFormScreenState extends ConsumerState<InsuranceFormScreen> {
     final initial = _expiresOn ?? now;
     final first = DateTime(1990);
     final last = DateTime(now.year + 20, 12, 31);
-    final picked = await showDatePicker(
-      context: context,
+    final picked = await pickDate(
+      context,
       initialDate: initial,
       // Widen the range so an unusual saved date still opens the picker.
       firstDate: initial.isBefore(first) ? initial : first,

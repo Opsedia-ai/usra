@@ -10,6 +10,7 @@ import '../medicines/medicines_providers.dart';
 import 'fever.dart';
 import '../medicines/min_hours.dart';
 import '../../core/util/time_picker.dart';
+import '../../core/util/date_picker.dart';
 
 /// A date and time row that opens the pickers.
 class _WhenField extends StatelessWidget {
@@ -48,8 +49,8 @@ class _WhenField extends StatelessWidget {
               child: OutlinedButton.icon(
                 key: ValueKey('$keyPrefix-date'),
                 onPressed: () async {
-                  final d = await showDatePicker(
-                    context: context,
+                  final d = await pickDate(
+                    context,
                     initialDate: value,
                     firstDate: first ?? DateTime(now.year - 1),
                     lastDate: now,
