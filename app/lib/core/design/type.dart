@@ -26,8 +26,10 @@ abstract final class UsraType {
         fontWeight: weight,
       );
 
-  static final display = _display(32, 44, 700);
-  static final title = _display(24, 34, 700);
+  // Lighter headings since the November 2026 polish: size carries the
+  // hierarchy, not weight.
+  static final display = _display(32, 44, 600);
+  static final title = _display(24, 34, 600);
   static final heading = _display(20, 30, 600);
 
   static final bodySimple = _body(20, 32, FontWeight.w500);

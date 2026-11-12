@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 // Usra's design tokens. Colour values come from the design file
-// ds/usra/tokens.json; shape and shadow values follow Variation B, which won
-// over that file where they differ (see the notes on UsraRadius, UsraShadows).
+// ds/usra/tokens.json, with the light values, radii, hairlines and quiet
+// status colours of the November 2026 polish (docs/design/polish-2026-11/).
 // Screens never hard-code a colour: they read `context.usra`.
 
 /// Every colour token, for one theme. Read it with `context.usra`.
@@ -38,6 +38,8 @@ class UsraColors extends ThemeExtension<UsraColors> {
     required this.urgent,
     required this.onUrgent,
     required this.urgentSoft,
+    required this.attention,
+    required this.attentionDot,
     required this.shadowCard,
     required this.shadowFloat,
     required this.shadowControl,
@@ -130,7 +132,17 @@ class UsraColors extends ThemeExtension<UsraColors> {
   /// Background of an urgent notice.
   final Color urgentSoft;
 
-  /// Soft shadow under cards. Dark mode has none: cards take a [line] border.
+  /// Text of a quiet "needs attention" status, beside an [attentionDot]: a
+  /// late vaccine, no backup yet, a person who's unwell. Passes 4.5:1 on bg
+  /// and surface in both themes. Emergencies use [urgent] instead.
+  final Color attention;
+
+  /// The small dot in front of a quiet status. Never the only sign: the
+  /// words beside it carry the meaning.
+  final Color attentionDot;
+
+  /// Soft shadow under cards. Empty since the November 2026 polish: cards
+  /// take a hairline [line] border in both themes.
   final List<BoxShadow> shadowCard;
 
   /// The + button, primary pills and bottom sheets.
@@ -143,15 +155,15 @@ class UsraColors extends ThemeExtension<UsraColors> {
   Color get focus => primary;
 
   static const light = UsraColors(
-    bg: Color(0xFFF7F4F8),
+    bg: Color(0xFFF4F5F9),
     surface: Color(0xFFFFFFFF),
-    surfaceSoft: Color(0xFFF1E6EE),
-    line: Color(0xFFD9CFDD),
+    surfaceSoft: Color(0xFFEEF2F8),
+    line: Color(0xFFE3E6EC),
     lineStrong: Color(0xFF8C8299),
-    ink: Color(0xFF0B1B32),
-    inkMuted: Color(0xFF56637A),
-    heading: Color(0xFF0D1E4C),
-    primary: Color(0xFF26415E),
+    ink: Color(0xFF14263D),
+    inkMuted: Color(0xFF55657A),
+    heading: Color(0xFF14263D),
+    primary: Color(0xFF24405F),
     onPrimary: Color(0xFFFFFFFF),
     primarySoft: Color(0xFFE3EAF3),
     orchid: Color(0xFFC48CB3),
@@ -169,12 +181,12 @@ class UsraColors extends ThemeExtension<UsraColors> {
     headsUpSoft: Color(0xFFFBF1D6),
     actSoon: Color(0xFF9E4409),
     actSoonSoft: Color(0xFFFCE9DC),
-    urgent: Color(0xFFB42828),
+    urgent: Color(0xFFB42318),
     onUrgent: Color(0xFFFFFFFF),
     urgentSoft: Color(0xFFFBE3E3),
-    shadowCard: [
-      BoxShadow(color: Color(0x0F0B1B32), offset: Offset(0, 6), blurRadius: 20),
-    ],
+    attention: Color(0xFF9A6200),
+    attentionDot: Color(0xFFD49A2A),
+    shadowCard: [],
     shadowFloat: [
       BoxShadow(
         color: Color(0x380B1B32),
@@ -217,6 +229,8 @@ class UsraColors extends ThemeExtension<UsraColors> {
     urgent: Color(0xFFF28B8B),
     onUrgent: Color(0xFF0B1B32),
     urgentSoft: Color(0xFF3D2028),
+    attention: Color(0xFFE2AE55),
+    attentionDot: Color(0xFFE2AE55),
     shadowCard: [],
     shadowFloat: [
       BoxShadow(color: Color(0x66000000), offset: Offset(0, 8), blurRadius: 24),
@@ -255,6 +269,8 @@ class UsraColors extends ThemeExtension<UsraColors> {
     Color? urgent,
     Color? onUrgent,
     Color? urgentSoft,
+    Color? attention,
+    Color? attentionDot,
     List<BoxShadow>? shadowCard,
     List<BoxShadow>? shadowFloat,
     List<BoxShadow>? shadowControl,
@@ -288,6 +304,8 @@ class UsraColors extends ThemeExtension<UsraColors> {
     urgent: urgent ?? this.urgent,
     onUrgent: onUrgent ?? this.onUrgent,
     urgentSoft: urgentSoft ?? this.urgentSoft,
+    attention: attention ?? this.attention,
+    attentionDot: attentionDot ?? this.attentionDot,
     shadowCard: shadowCard ?? this.shadowCard,
     shadowFloat: shadowFloat ?? this.shadowFloat,
     shadowControl: shadowControl ?? this.shadowControl,
@@ -326,6 +344,8 @@ class UsraColors extends ThemeExtension<UsraColors> {
       urgent: Color.lerp(urgent, other.urgent, t)!,
       onUrgent: Color.lerp(onUrgent, other.onUrgent, t)!,
       urgentSoft: Color.lerp(urgentSoft, other.urgentSoft, t)!,
+      attention: Color.lerp(attention, other.attention, t)!,
+      attentionDot: Color.lerp(attentionDot, other.attentionDot, t)!,
       shadowCard: BoxShadow.lerpList(shadowCard, other.shadowCard, t)!,
       shadowFloat: BoxShadow.lerpList(shadowFloat, other.shadowFloat, t)!,
       shadowControl: BoxShadow.lerpList(shadowControl, other.shadowControl, t)!,
@@ -390,13 +410,16 @@ abstract final class UsraSpacing {
   static const s7 = 48.0;
 }
 
-/// Corner radii. Cards are 28 and buttons are pills, following Variation B;
-/// the design file's 20 and 12 are kept for sheets and for fields and notices.
+/// Corner radii, sized to the element (November 2026 polish): cards 16,
+/// buttons and tiles 14, sheets 20, fields and icon boxes 12 or 10, and
+/// chips stay round.
 abstract final class UsraRadius {
   static const sm = 8.0;
+  static const iconBox = 10.0;
   static const md = 12.0;
+  static const button = 14.0;
+  static const card = 16.0;
   static const lg = 20.0;
-  static const card = 28.0;
   static const pill = 999.0;
 }
 

@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:usra/core/design/buttons.dart';
 import 'package:usra/core/design/dr_usra.dart';
+import 'package:usra/core/design/list_row.dart';
 import 'package:usra/core/design/pebble.dart';
 import 'package:usra/core/design/status_chip.dart';
+import 'package:usra/core/design/status_dot.dart';
 import 'package:usra/core/design/theme.dart';
 import 'package:usra/core/design/tokens.dart';
 import 'package:usra/core/preferences.dart';
@@ -115,38 +117,41 @@ void main() {
   });
 
   group('UsraPillButton', () {
-    testWidgets('is a pill, tappable, and disabled without a callback', (
-      tester,
-    ) async {
-      var taps = 0;
-      await tester.pumpWidget(
-        _host(UsraPillButton(label: 'احفظ', onPressed: () => taps++)),
-      );
-      final button = tester.widget<FilledButton>(find.byType(FilledButton));
-      expect(
-        Theme.of(tester.element(find.byType(FilledButton)))
-            .filledButtonTheme
-            .style!
-            .shape!
-            .resolve({}),
-        isA<StadiumBorder>(),
-      );
-      await tester.tap(find.text('احفظ'));
-      expect(taps, 1);
-      expect(button.enabled, isTrue);
-      expect(
-        tester.getSize(find.byType(FilledButton)).height,
-        greaterThanOrEqualTo(48),
-      );
+    testWidgets(
+      'has 14 corners, is tappable, and disabled without a callback',
+      (tester) async {
+        var taps = 0;
+        await tester.pumpWidget(
+          _host(UsraPillButton(label: 'احفظ', onPressed: () => taps++)),
+        );
+        final button = tester.widget<FilledButton>(find.byType(FilledButton));
+        expect(
+          Theme.of(tester.element(find.byType(FilledButton)))
+              .filledButtonTheme
+              .style!
+              .shape!
+              .resolve({}),
+          const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(UsraRadius.button)),
+          ),
+        );
+        await tester.tap(find.text('احفظ'));
+        expect(taps, 1);
+        expect(button.enabled, isTrue);
+        expect(
+          tester.getSize(find.byType(FilledButton)).height,
+          greaterThanOrEqualTo(48),
+        );
 
-      await tester.pumpWidget(
-        _host(const UsraPillButton(label: 'احفظ', onPressed: null)),
-      );
-      expect(
-        tester.widget<FilledButton>(find.byType(FilledButton)).enabled,
-        isFalse,
-      );
-    });
+        await tester.pumpWidget(
+          _host(const UsraPillButton(label: 'احفظ', onPressed: null)),
+        );
+        expect(
+          tester.widget<FilledButton>(find.byType(FilledButton)).enabled,
+          isFalse,
+        );
+      },
+    );
 
     testWidgets('Simple Mode makes it the simple height', (tester) async {
       await tester.pumpWidget(
@@ -324,5 +329,96 @@ void main() {
         expect(odd.read(themeModeProvider), ThemeMode.system);
       },
     );
+  });
+
+  group('StatusDotText', () {
+    for (final brightness in Brightness.values) {
+      testWidgets('a dot and words in the attention colour, $brightness', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          _host(
+            const StatusDotText(label: 'لسه مفيش نسخة'),
+            brightness: brightness,
+          ),
+        );
+        final colors = brightness == Brightness.dark
+            ? UsraColors.dark
+            : UsraColors.light;
+        final text = tester.widget<Text>(find.text('لسه مفيش نسخة'));
+        expect(text.style?.color, colors.attention);
+        final dot = tester.widget<Container>(
+          find.descendant(
+            of: find.byType(StatusDot),
+            matching: find.byType(Container),
+          ),
+        );
+        expect((dot.decoration! as BoxDecoration).color, colors.attentionDot);
+      });
+    }
+
+    testWidgets('a screen reader hears the words only', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(_host(const StatusDotText(label: 'تعبانة')));
+      expect(find.bySemanticsLabel('تعبانة'), findsOneWidget);
+      handle.dispose();
+    });
+  });
+
+  group('UsraListCard', () {
+    testWidgets('rows with hairlines between them, and a chevron when '
+        'tappable', (tester) async {
+      var taps = 0;
+      await tester.pumpWidget(
+        _host(
+          UsraListCard(
+            children: [
+              UsraListRow(
+                title: 'كل العيلة',
+                subtitleText: '٢ أفراد',
+                icon: Icons.group_outlined,
+                onTap: () => taps++,
+              ),
+              const UsraListRow(title: 'الدكاترة'),
+            ],
+          ),
+        ),
+      );
+      expect(find.byType(Divider), findsOneWidget);
+      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+      expect(find.text('٢ أفراد'), findsOneWidget);
+      await tester.tap(find.text('كل العيلة'));
+      expect(taps, 1);
+      expect(
+        tester.getSize(find.byType(UsraListRow).first).height,
+        greaterThanOrEqualTo(listRowMinHeight),
+      );
+    });
+
+    testWidgets('Simple Mode makes rows taller', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          const UsraListCard(children: [UsraListRow(title: 'الدكاترة')]),
+          simple: true,
+        ),
+      );
+      expect(
+        tester.getSize(find.byType(UsraListRow)).height,
+        greaterThanOrEqualTo(72),
+      );
+    });
+
+    testWidgets('cards have 16 corners and a hairline, no shadow', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(const UsraListCard(children: [UsraListRow(title: 'x')])),
+      );
+      final theme = Theme.of(tester.element(find.byType(Card)));
+      final shape = theme.cardTheme.shape! as RoundedRectangleBorder;
+      expect(shape.borderRadius, BorderRadius.circular(UsraRadius.card));
+      expect(shape.side.color, UsraColors.light.line);
+      expect(theme.cardTheme.elevation, 0);
+    });
   });
 }

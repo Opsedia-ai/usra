@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'tokens.dart';
 
-/// The screen's one main action: a full-width pill. Its height, including
+/// The screen's one main action: a full-width button with 14 corners. Its height, including
 /// Simple Mode's, comes from the theme.
 class UsraPillButton extends StatelessWidget {
   const UsraPillButton({
@@ -23,7 +23,9 @@ class UsraPillButton extends StatelessWidget {
     final enabled = onPressed != null;
     return DecoratedBox(
       decoration: ShapeDecoration(
-        shape: const StadiumBorder(),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(UsraRadius.button)),
+        ),
         shadows: enabled ? context.usra.shadowControl : null,
       ),
       child: icon == null
