@@ -244,7 +244,12 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                 ),
                 const SizedBox(height: 8),
                 SegmentedButton<String>(
-                  emptySelectionAllowed: true,
+                  // Unknown is allowed, except when the relationship says
+                  // (a daughter is a girl): then tapping أنثى again, as
+                  // people did before it was chosen for them, keeps it
+                  // rather than clearing it.
+                  emptySelectionAllowed:
+                      sexOfRelationship(_relationship) == null,
                   segments: [
                     ButtonSegment(value: 'female', label: Text(l.sexFemale)),
                     ButtonSegment(value: 'male', label: Text(l.sexMale)),

@@ -135,6 +135,15 @@ void main() {
     await tester.tap(key('profile-relationship-daughter'));
     await settle(tester);
     expect(sex(), {'female'});
+    // Tapping أنثى again, as before, keeps it rather than clearing it.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(SegmentedButton<String>),
+        matching: find.text('أنثى'),
+      ),
+    );
+    await settle(tester);
+    expect(sex(), {'female'});
     await tester.tap(key('profile-relationship-son'));
     await settle(tester);
     expect(sex(), {'male'});
