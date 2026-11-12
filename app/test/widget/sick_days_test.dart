@@ -411,4 +411,34 @@ void main() {
     expect(find.text('لسه تعبانة'), findsOneWidget);
     expect(find.text('لسه تعبان'), findsNothing);
   });
+
+  testWidgets('the list while a sick day is on: one main button for a '
+      'reading, when to call an ambulance, and starting another stays', (
+    tester,
+  ) async {
+    tallScreen(tester);
+    final kid = (await tester.runAsync(() async {
+      final id = await db.addProfile('Gamila', birthDate: DateTime(2024, 11));
+      await db.saveEpisode(profileId: id, startedAt: now);
+      return id;
+    }))!;
+    await tester.pumpWidget(app());
+    await settle(tester);
+    go(tester, '/family/$kid/sick-days');
+    await settle(tester);
+
+    expect(find.textContaining('مفيش قراءات لسه'), findsOneWidget);
+    expect(find.byType(FloatingActionButton), findsNothing);
+    expect(find.byType(FilledButton), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('sick-days-ambulance-card')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('sick-days-ambulance')), findsOneWidget);
+    expect(find.byKey(const ValueKey('sick-days-past-empty')), findsOneWidget);
+    expect(find.byKey(const ValueKey('sick-day-start')), findsOneWidget);
+
+    await tapKey(tester, 'sick-days-add-reading');
+    expect(find.byKey(const ValueKey('reading-value')), findsOneWidget);
+  });
 }

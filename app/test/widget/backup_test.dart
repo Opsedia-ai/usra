@@ -286,7 +286,7 @@ void main() {
     final notice = find.byKey(const ValueKey('recovery-notice'));
     expect(notice, findsOneWidget);
     await tester.tap(
-      find.descendant(of: notice, matching: find.byType(FilledButton)),
+      find.descendant(of: notice, matching: find.byType(OutlinedButton)),
     );
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('restore-pick')), findsOneWidget);

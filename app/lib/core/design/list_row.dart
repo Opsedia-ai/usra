@@ -174,3 +174,29 @@ class UsraGroupLabel extends StatelessWidget {
     ),
   );
 }
+
+/// A 36 square with 10 corners holding a muted icon, at the start of a card
+/// or row. [color] tints it, such as amber for someone who's unwell.
+class IconBox extends StatelessWidget {
+  const IconBox({super.key, required this.icon, this.color});
+
+  final IconData icon;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.usra;
+    final tint = color;
+    return ExcludeSemantics(
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: tint == null ? c.surfaceSoft : tint.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(UsraRadius.iconBox),
+        ),
+        child: Icon(icon, size: 20, color: tint ?? c.inkMuted),
+      ),
+    );
+  }
+}

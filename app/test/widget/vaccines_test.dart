@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
+import 'package:usra/core/design/status_dot.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/features/children/child_vaccines.dart';
@@ -155,9 +156,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(ValueKey('home-vaccines-$kid')), findsOneWidget);
     expect(inKey('home-vaccines-$kid', 'ليلى'), findsOneWidget);
-    expect(inKey('vaccine-overdue-$kid', 'متأخر'), findsOneWidget);
-    // The 9-month visit is about two months away.
-    expect(inKey('vaccine-next-$kid', 'بعد'), findsOneWidget);
+    // One quiet line: what she's missing, beside an amber dot. The next
+    // visit shows instead once nothing is overdue.
+    expect(find.byKey(ValueKey('vaccine-overdue-$kid')), findsOneWidget);
+    expect(find.byType(StatusDot), findsWidgets);
+    expect(find.byKey(ValueKey('vaccine-next-$kid')), findsNothing);
     // Home's follow-up list leaves vaccines to this card.
     expect(inKey('home-follow-ups', 'التطعيمات'), findsNothing);
 

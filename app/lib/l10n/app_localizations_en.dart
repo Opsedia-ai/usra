@@ -1801,7 +1801,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backupDueNever =>
-      'If this phone is lost, the records go with it. Make an encrypted backup and keep it off the phone.';
+      'If this phone is lost, the records go with it. The backup is encrypted and kept off the phone';
 
   @override
   String get backupDueOld => 'Your last backup is more than 30 days old.';
@@ -5558,4 +5558,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get growthImplausibleKeep => 'Save as it is';
+
+  @override
+  String vaccineGivableNowCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString can be given now';
+  }
+
+  @override
+  String get backupNoneTitle => 'No backup yet';
+
+  @override
+  String get sickDayNoReadingsYet => 'No readings yet';
+
+  @override
+  String get sickDaysPastHere => 'Past sick days will show here';
+
+  @override
+  String get warnEmergencyShort => 'Call an ambulance at once if you see';
+
+  @override
+  String get sickDayAllSigns => 'All the signs, and when to call the doctor';
 }

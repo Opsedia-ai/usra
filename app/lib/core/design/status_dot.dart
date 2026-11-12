@@ -29,7 +29,13 @@ class StatusDot extends StatelessWidget {
 /// A quiet status: a dot, then plain text. Replaces tinted chips and pills
 /// for things that need attention but aren't an emergency.
 class StatusDotText extends StatelessWidget {
-  const StatusDotText({super.key, required this.label, this.style, this.color});
+  const StatusDotText({
+    super.key,
+    required this.label,
+    this.style,
+    this.color,
+    this.dotColor,
+  });
 
   final String label;
 
@@ -38,6 +44,9 @@ class StatusDotText extends StatelessWidget {
 
   /// Text colour; defaults to the theme's attention colour.
   final Color? color;
+
+  /// Defaults to the theme's attention dot.
+  final Color? dotColor;
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +62,7 @@ class StatusDotText extends StatelessWidget {
         // Centres the dot on the first line, however the text wraps.
         SizedBox(
           height: MediaQuery.textScalerOf(context).scale(line),
-          child: const Center(child: StatusDot()),
+          child: Center(child: StatusDot(color: dotColor)),
         ),
         const SizedBox(width: UsraSpacing.s2),
         Flexible(child: Text(label, style: textStyle)),

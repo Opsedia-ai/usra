@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design/list_row.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/providers.dart';
 import '../../core/security/data_wipe.dart';
 import '../../l10n/app_localizations.dart';
@@ -132,8 +135,10 @@ class BackupNotices extends ConsumerWidget {
           BackupNotice(
             key: const ValueKey('backup-due'),
             severity: Severity.headsUp,
-            icon: Icons.backup_outlined,
-            title: l.backupDueTitle,
+            icon: Icons.shield_outlined,
+            title: last == null && !auto.settings.enabled
+                ? l.backupNoneTitle
+                : l.backupDueTitle,
             body: auto.settings.enabled
                 ? l.backupDueAuto
                 : last == null
@@ -148,7 +153,9 @@ class BackupNotices extends ConsumerWidget {
   }
 }
 
-/// A coloured notice on Home or in settings, with an optional button.
+/// A notice on Home or in settings, with an optional button: a white card
+/// with an icon, a dot before the title for how it stands (amber when it
+/// needs attention, green when it went well), and quiet body text.
 class BackupNotice extends StatelessWidget {
   const BackupNotice({
     super.key,
@@ -171,53 +178,74 @@ class BackupNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final color = severity.foregroundOf(context);
+    final c = context.usra;
+    final dot = switch (severity) {
+      Severity.good => c.good,
+      Severity.urgent => c.urgent,
+      Severity.info => c.info,
+      Severity.headsUp || Severity.actSoon => c.attentionDot,
+    };
+    final bodyStyle = (simple ? UsraType.bodyLg : UsraType.label).copyWith(
+      color: title == null ? c.ink : c.inkMuted,
+      fontWeight: FontWeight.w400,
+    );
+    final headline = title;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: severity.backgroundOf(context),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (title != null) ...[
-              Row(
-                children: [
-                  if (icon != null) ...[
-                    Icon(icon, color: color),
-                    const SizedBox(width: 8),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(UsraSpacing.s4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IconBox(
+                icon:
+                    icon ??
+                    (severity == Severity.good
+                        ? Icons.check
+                        : Icons.info_outline),
+              ),
+              const SizedBox(width: UsraSpacing.s3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: UsraSpacing.s1,
+                  children: [
+                    if (headline != null)
+                      StatusDotText(
+                        label: headline,
+                        color: c.ink,
+                        style: UsraType.body.copyWith(
+                          fontWeight: FontWeight.w600,
+                          height: 24 / 16,
+                        ),
+                        dotColor: dot,
+                      )
+                    else
+                      StatusDotText(
+                        label: body,
+                        color: c.ink,
+                        style: bodyStyle,
+                        dotColor: dot,
+                      ),
+                    if (headline != null) Text(body, style: bodyStyle),
+                    if (action != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: UsraSpacing.s2),
+                        child: OutlinedButton(
+                          onPressed: onAction,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: c.ink,
+                            side: BorderSide(color: c.lineStrong),
+                          ),
+                          child: Text(action!),
+                        ),
+                      ),
                   ],
-                  Expanded(
-                    child: Text(
-                      title!,
-                      style: text.titleMedium?.copyWith(color: color),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-            ],
-            Text(
-              body,
-              style: (simple ? text.bodyLarge : text.bodyMedium)?.copyWith(
-                color: color,
-              ),
-            ),
-            if (action != null) ...[
-              const SizedBox(height: 8),
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: FilledButton.tonal(
-                  onPressed: onAction,
-                  child: Text(action!),
                 ),
               ),
             ],
-          ],
+          ),
         ),
       ),
     );

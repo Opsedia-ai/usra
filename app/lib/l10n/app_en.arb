@@ -999,7 +999,7 @@
   "backupDone": "Backup ready. Keep it somewhere safe off this phone.",
   "backupFailed": "Couldn't make the backup. Try again.",
   "backupDueTitle": "Back up the family's records",
-  "backupDueNever": "If this phone is lost, the records go with it. Make an encrypted backup and keep it off the phone.",
+  "backupDueNever": "If this phone is lost, the records go with it. The backup is encrypted and kept off the phone",
   "backupDueOld": "Your last backup is more than 30 days old.",
   "recoveryKeyTitle": "Recovery key",
   "recoveryKeyIntro": "This is your recovery key. Write it on paper and keep it somewhere safe, away from this phone. You'll need it to open your backups on a new phone.",
@@ -3202,5 +3202,19 @@
     }
   },
   "growthImplausibleFix": "Fix it",
-  "growthImplausibleKeep": "Save as it is"
+  "growthImplausibleKeep": "Save as it is",
+  "vaccineGivableNowCount": "{count} can be given now",
+  "@vaccineGivableNowCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "backupNoneTitle": "No backup yet",
+  "sickDayNoReadingsYet": "No readings yet",
+  "sickDaysPastHere": "Past sick days will show here",
+  "warnEmergencyShort": "Call an ambulance at once if you see",
+  "sickDayAllSigns": "All the signs, and when to call the doctor"
 }

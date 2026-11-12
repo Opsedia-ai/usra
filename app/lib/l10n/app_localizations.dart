@@ -2939,7 +2939,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupDueNever.
   ///
   /// In en, this message translates to:
-  /// **'If this phone is lost, the records go with it. Make an encrypted backup and keep it off the phone.'**
+  /// **'If this phone is lost, the records go with it. The backup is encrypted and kept off the phone'**
   String get backupDueNever;
 
   /// No description provided for @backupDueOld.
@@ -8208,6 +8208,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save as it is'**
   String get growthImplausibleKeep;
+
+  /// No description provided for @vaccineGivableNowCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} can be given now'**
+  String vaccineGivableNowCount(int count);
+
+  /// No description provided for @backupNoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup yet'**
+  String get backupNoneTitle;
+
+  /// No description provided for @sickDayNoReadingsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No readings yet'**
+  String get sickDayNoReadingsYet;
+
+  /// No description provided for @sickDaysPastHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Past sick days will show here'**
+  String get sickDaysPastHere;
+
+  /// No description provided for @warnEmergencyShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Call an ambulance at once if you see'**
+  String get warnEmergencyShort;
+
+  /// No description provided for @sickDayAllSigns.
+  ///
+  /// In en, this message translates to:
+  /// **'All the signs, and when to call the doctor'**
+  String get sickDayAllSigns;
 }
 
 class _AppLocalizationsDelegate

@@ -552,7 +552,7 @@
   "backupDone": "النسخة جاهزة. احفظها في مكان أمين برّه الموبايل.",
   "backupFailed": "مقدرناش نعمل النسخة. جرّب تاني.",
   "backupDueTitle": "اعمل نسخة احتياطية لسجلات العيلة",
-  "backupDueNever": "لو الموبايل ضاع، السجلات هتضيع معاه. اعمل نسخة احتياطية متشفّرة واحفظها برّه الموبايل.",
+  "backupDueNever": "لو الموبايل ضاع، السجلات بتضيع معاه. النسخة متشفرة وبتتحفظ برّه الموبايل",
   "backupDueOld": "آخر نسخة احتياطية عملتها من أكتر من ٣٠ يوم.",
   "recoveryKeyTitle": "مفتاح الاسترجاع",
   "recoveryKeyIntro": "ده مفتاح الاسترجاع. مكانه ورقة في مكان أمين بعيد عن الموبايل. فتح النسخ الاحتياطية على موبايل جديد محتاجه.",
@@ -1473,5 +1473,11 @@
   "growthImplausibleTitle": "متأكد/ة من الرقم؟",
   "growthImplausibleBody": "{values}: بعيد جدًا عن أي قياس لطفل في السن ده. ممكن يكون فيه غلطة في الكتابة.",
   "growthImplausibleFix": "تصحيح الرقم",
-  "growthImplausibleKeep": "حفظ زي ما هو"
+  "growthImplausibleKeep": "حفظ زي ما هو",
+  "vaccineGivableNowCount": "{count} ممكن تتاخد دلوقتي",
+  "backupNoneTitle": "لسه مفيش نسخة احتياطية",
+  "sickDayNoReadingsYet": "مفيش قراءات لسه",
+  "sickDaysPastHere": "أيام التعب اللي فاتت هتظهر هنا",
+  "warnEmergencyShort": "اطلب الإسعاف فورًا لو ظهر",
+  "sickDayAllSigns": "كل العلامات وإمتى نكلم الدكتور"
 }
