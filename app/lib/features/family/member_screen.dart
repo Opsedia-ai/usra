@@ -424,12 +424,19 @@ class _OverdueVaccine extends ConsumerWidget {
     final due = first.dueOn.year == today.year
         ? DateFormat.MMMMd(locale).format(first.dueOn)
         : DateFormat.yMMMMd(locale).format(first.dueOn);
+    // Everything she's missing, not only what's overdue now: a missing
+    // earlier dose keeps the later ones waiting, but they're missing too.
+    final missing = child.missing(today);
+    final now = child.givableNow(today);
     return _AttentionCard(
       key: const ValueKey('person-vaccine-overdue'),
       chip: StatusChip(
+        key: const ValueKey('person-vaccine-count'),
         severity: Severity.actSoon,
         icon: Icons.warning_amber_rounded,
-        label: overdue.length == 1
+        label: missing > overdue.length
+            ? l.vaccineMissingCount(missing)
+            : overdue.length == 1
             ? l.statusVaccineOverdue
             : digitsIn(
                 Localizations.localeOf(context).languageCode,
@@ -437,6 +444,12 @@ class _OverdueVaccine extends ConsumerWidget {
               ),
       ),
       children: [
+        if (missing > now)
+          Text(
+            l.vaccineGivableNow(now),
+            key: const ValueKey('person-vaccine-now'),
+            style: UsraType.body.copyWith(color: context.usra.ink),
+          ),
         Text(
           doseName(l, first.dose),
           style: UsraType.body.copyWith(

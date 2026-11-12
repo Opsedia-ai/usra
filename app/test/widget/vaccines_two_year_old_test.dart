@@ -478,4 +478,24 @@ void main() {
       expect(key('vaccine-progress'), findsNothing);
     });
   });
+
+  testWidgets('everything she is missing shows, apart from what can be '
+      'given now (F)', (tester) async {
+    veryTall(tester);
+    final id = await seed(tester);
+    await h.open(tester, '/family/$id');
+    // 18 required doses missing; 7 can be given today (birth, 2 months and
+    // MMR 1), the rest wait for the doses before them.
+    expect(
+      tester.widget<StatusChip>(key('person-vaccine-count')).label,
+      '١٨ جرعة ناقصة',
+    );
+    expect(text(tester, 'person-vaccine-now'), 'ممكن تتاخد دلوقتي: ٧');
+    expect(find.textContaining('الدكتور يحدد إمتى تتاخد'), findsOneWidget);
+    await h.go(tester, '/family/$id/vaccines');
+    expect(
+      tester.widget<StatusChip>(key('vaccine-missing-$id')).label,
+      '١٨ جرعة ناقصة · ممكن تتاخد دلوقتي: ٧',
+    );
+  });
 }
