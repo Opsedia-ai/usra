@@ -8173,6 +8173,18 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Marked 1 dose as given} other{Marked {count} doses as given}}'**
   String vaccineMarkPastDone(int count);
 
+  /// No description provided for @vaccineMissingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dose missing} other{{count} doses missing}}'**
+  String vaccineMissingCount(int count);
+
+  /// No description provided for @vaccineGivableNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Can be given now: {count}'**
+  String vaccineGivableNow(int count);
+
   /// No description provided for @growthImplausibleTitle.
   ///
   /// In en, this message translates to:
