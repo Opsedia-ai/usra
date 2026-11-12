@@ -14,6 +14,7 @@ import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
 import '../children/child_vaccines.dart' show checklistSourceKey;
+import '../children/growth_check.dart' show confirmPlausibleGrowth;
 import '../doctors/doctors_providers.dart';
 import 'member_screen.dart';
 
@@ -93,6 +94,19 @@ class RecordFormScreen extends ConsumerWidget {
         lastOccurredAt: typeKey == 'vaccine' ? DateTime.now() : null,
         pickPhotos: (source) => pickRecordPhotos(context, ref, source),
         onSubmit: (result) async {
+          // A growth value WHO flags as implausible: likely a typing mistake.
+          final person = ref.read(profileProvider(profileId)).value;
+          if (typeKey == 'growth' && person != null) {
+            if (!await confirmPlausibleGrowth(
+              context,
+              person,
+              result.occurredAt,
+              result.data,
+            )) {
+              return;
+            }
+            if (!context.mounted) return;
+          }
           if (!editing && !await ref.read(saveGateProvider).allow()) return;
           if (!context.mounted) return;
           final db = ref.read(databaseProvider);
