@@ -59,8 +59,10 @@ class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
         ? const <DoseStatus>[]
         : [
             for (final s in child.statuses)
+              // In the plan only: an optional vaccine the family doesn't
+              // follow is still there under "another vaccine".
               if (child.next.overdue.contains(s) ||
-                  s.state == DoseState.due ||
+                  (s.followed && s.state == DoseState.due) ||
                   child.next.doses.contains(s.dose))
                 s,
           ];

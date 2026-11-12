@@ -432,7 +432,7 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
               if (e.value.every((s) => s.done)) e.key,
           ]
         : const <int>[];
-    final doneDoses = [for (final a in doneAges) ...byAge[a]!];
+    final doneDoses = {for (final a in doneAges) ...byAge[a]!};
     final rest = [
       for (final s in shown)
         if (!doneDoses.contains(s)) s,

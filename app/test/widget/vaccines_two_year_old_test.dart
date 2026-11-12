@@ -257,6 +257,8 @@ void main() {
       // Rotavirus is past its upper age.
       expect(chip(tester, 'rota-1'), startsWith('اختياري · فات السن المسموح'));
       expect(chip(tester, 'varicella-1'), startsWith('اختياري ·'));
+      // Its second dose's date assumes the first is given today: catch-up.
+      expect(chip(tester, 'varicella-2'), startsWith('اختياري · جرعة تعويضية'));
       expect(find.text('مش في خطتك'), findsNothing);
       expect(key('vaccine-overdue-card-pcv-1'), findsNothing);
       expect(text(tester, 'vaccine-progress-line'), contains('٠ من ١٨'));

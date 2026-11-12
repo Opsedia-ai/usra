@@ -532,7 +532,10 @@ class DoseStatus {
   /// Still to give and not yet overdue, but the child is already past the
   /// age it's for on the schedule and its date moved later (an earlier dose
   /// was missing or late): a catch-up dose, never "at 4 months".
-  bool get catchUp => open && state != DoseState.overdue && pastItsAge;
+  /// Optional doses the family doesn't follow say so too: their date
+  /// assumes the series starts today.
+  bool get catchUp =>
+      (state == DoseState.due || state == DoseState.later) && pastItsAge;
 
   /// Still to be given, in the plan: due, overdue or later.
   bool get open =>
