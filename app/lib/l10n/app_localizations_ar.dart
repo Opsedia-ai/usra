@@ -5492,4 +5492,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reminderExactOffTitle => 'التنبيهات ممكن تتأخر';
+
+  @override
+  String get vaccineCatchUpShort => 'تعويضية';
 }

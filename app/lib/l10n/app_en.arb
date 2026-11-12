@@ -3130,5 +3130,6 @@
   },
   "vaccineDoseNotGiven": "Not given",
   "prescriptionStopped": "Stopped",
-  "reminderExactOffTitle": "Reminders may be late"
+  "reminderExactOffTitle": "Reminders may be late",
+  "vaccineCatchUpShort": "catch-up"
 }

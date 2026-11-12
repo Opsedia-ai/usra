@@ -8124,6 +8124,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reminders may be late'**
   String get reminderExactOffTitle;
+
+  /// No description provided for @vaccineCatchUpShort.
+  ///
+  /// In en, this message translates to:
+  /// **'catch-up'**
+  String get vaccineCatchUpShort;
 }
 
 class _AppLocalizationsDelegate

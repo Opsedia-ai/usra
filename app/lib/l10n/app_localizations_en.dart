@@ -5453,4 +5453,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reminderExactOffTitle => 'Reminders may be late';
+
+  @override
+  String get vaccineCatchUpShort => 'catch-up';
 }
