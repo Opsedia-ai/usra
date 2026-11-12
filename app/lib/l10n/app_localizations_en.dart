@@ -5456,4 +5456,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vaccineCatchUpShort => 'catch-up';
+
+  @override
+  String get growthImplausibleTitle => 'Is this number right?';
+
+  @override
+  String growthImplausibleBody(String values) {
+    return '$values: far from any measurement for a child of this age. It may be a typing mistake.';
+  }
+
+  @override
+  String get growthImplausibleFix => 'Fix it';
+
+  @override
+  String get growthImplausibleKeep => 'Save as it is';
 }

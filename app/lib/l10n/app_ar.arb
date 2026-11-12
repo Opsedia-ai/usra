@@ -1460,5 +1460,9 @@
   "vaccineDoseNotGiven": "ماتاخدتش",
   "prescriptionStopped": "متوقفة",
   "reminderExactOffTitle": "التنبيهات ممكن تتأخر",
-  "vaccineCatchUpShort": "تعويضية"
+  "vaccineCatchUpShort": "تعويضية",
+  "growthImplausibleTitle": "متأكد/ة من الرقم؟",
+  "growthImplausibleBody": "{values}: بعيد جدًا عن أي قياس لطفل في السن ده. ممكن يكون فيه غلطة في الكتابة.",
+  "growthImplausibleFix": "تصحيح الرقم",
+  "growthImplausibleKeep": "حفظ زي ما هو"
 }

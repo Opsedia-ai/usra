@@ -122,6 +122,62 @@ void main() {
     expect(key('growth-history'), findsOneWidget);
   });
 
+  testWidgets('an impossible value asks first, and can be fixed (H)', (
+    tester,
+  ) async {
+    h.tall(tester);
+    final (id, _) = await seed(tester);
+    await h.open(tester, '/family/$id/growth');
+    await h.tapKey(tester, 'growth-add');
+    // 896 cm for a 7-month-old: a typing mistake for 89.6? Even that is
+    // far off; 67 is ordinary.
+    await tester.enterText(key('field-heightCm'), '896');
+    await h.tapKey(tester, 'record-save');
+    expect(key('growth-implausible'), findsOneWidget);
+    expect(find.textContaining('٨٩٦'), findsWidgets);
+    await h.tapKey(tester, 'growth-implausible-fix');
+    // Back in the form, nothing saved.
+    expect(key('field-heightCm'), findsOneWidget);
+    final events = (await tester.runAsync(() => h.db.watchTimeline(id).first))!;
+    expect(events.where((e) => e.type == 'growth'), hasLength(2));
+    await tester.enterText(key('field-heightCm'), '68');
+    await h.tapKey(tester, 'record-save');
+    expect(key('growth-implausible'), findsNothing);
+    expect(key('growth-history'), findsOneWidget);
+  });
+
+  testWidgets('a saved impossible value keeps the axis readable (H)', (
+    tester,
+  ) async {
+    h.tall(tester);
+    final (id, _) = await seed(tester);
+    await tester.runAsync(
+      () => h.db.addEvent(
+        profileId: id,
+        type: 'growth',
+        occurredAt: DateUtils.dateOnly(DateTime.now()),
+        dataJson: jsonEncode({'heightCm': 896}),
+      ),
+    );
+    await h.open(tester, '/family/$id/growth');
+    await h.tapKey(tester, 'growth-tab-height');
+    expect(tester.takeException(), isNull);
+  });
+
+  test('WHO implausible-value flags, by hand', () {
+    // A 24-month-old girl: median weight about 11.5 kg, height 86.4 cm,
+    // head 47.2 cm.
+    bool odd(GrowthIndicator i, double v) =>
+        implausibleGrowth(i, male: false, months: 24, value: v);
+    expect(odd(GrowthIndicator.weight, 12), isFalse);
+    expect(odd(GrowthIndicator.weight, 120), isTrue);
+    expect(odd(GrowthIndicator.height, 86), isFalse);
+    expect(odd(GrowthIndicator.height, 896), isTrue);
+    expect(odd(GrowthIndicator.height, 8.6), isTrue);
+    expect(odd(GrowthIndicator.head, 47), isFalse);
+    expect(odd(GrowthIndicator.head, 4.7), isTrue);
+  });
+
   testWidgets('no sex recorded: measurements still listed', (tester) async {
     h.tall(tester);
     final id = (await tester.runAsync(() async {

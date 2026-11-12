@@ -8130,6 +8130,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'catch-up'**
   String get vaccineCatchUpShort;
+
+  /// No description provided for @growthImplausibleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Is this number right?'**
+  String get growthImplausibleTitle;
+
+  /// No description provided for @growthImplausibleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{values}: far from any measurement for a child of this age. It may be a typing mistake.'**
+  String growthImplausibleBody(String values);
+
+  /// No description provided for @growthImplausibleFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix it'**
+  String get growthImplausibleFix;
+
+  /// No description provided for @growthImplausibleKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as it is'**
+  String get growthImplausibleKeep;
 }
 
 class _AppLocalizationsDelegate

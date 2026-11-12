@@ -12,6 +12,63 @@ import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
 import 'growth.dart';
 
+/// Before saving a measurement: asks "is this number right?" when a value
+/// is one WHO flags as implausible for the child's age and sex, so a typing
+/// mistake (896 cm for 89.6) isn't saved unnoticed. True to save.
+Future<bool> confirmPlausibleGrowth(
+  BuildContext context,
+  Profile profile,
+  DateTime on,
+  Map<String, Object?> data,
+) async {
+  final birth = profile.birthDate;
+  if (birth == null) return true;
+  final l = AppLocalizations.of(context);
+  final months = ageInMonths(birth, on);
+  final male = switch (profile.sex) {
+    'male' => true,
+    'female' => false,
+    _ => null,
+  };
+  final odd = [
+    for (final i in GrowthIndicator.values)
+      if (data[GrowthFields.of(i)] case final num v)
+        if (implausibleGrowth(
+          i,
+          male: male,
+          months: months,
+          value: v.toDouble(),
+        ))
+          '${switch (i) {
+            GrowthIndicator.weight => l.fieldWeightKg,
+            GrowthIndicator.height => l.fieldHeightCm,
+            GrowthIndicator.head => l.fieldHeadCm,
+          }} ${localizedDigitsIn(context, '$v')}',
+  ];
+  if (odd.isEmpty) return true;
+  final keep = await showDialog<bool>(
+    context: context,
+    builder: (c) => AlertDialog(
+      key: const ValueKey('growth-implausible'),
+      title: Text(l.growthImplausibleTitle),
+      content: Text(l.growthImplausibleBody(odd.join('، '))),
+      actions: [
+        TextButton(
+          key: const ValueKey('growth-implausible-keep'),
+          onPressed: () => Navigator.of(c).pop(true),
+          child: Text(l.growthImplausibleKeep),
+        ),
+        FilledButton(
+          key: const ValueKey('growth-implausible-fix'),
+          onPressed: () => Navigator.of(c).pop(false),
+          child: Text(l.growthImplausibleFix),
+        ),
+      ],
+    ),
+  );
+  return keep ?? false;
+}
+
 /// "Tell me the weight and I'll check": today's weight or height against
 /// the WHO curves for the child's age and sex, before deciding to save it.
 class GrowthCheckCard extends ConsumerStatefulWidget {
@@ -128,6 +185,14 @@ class _GrowthCheckCardState extends ConsumerState<GrowthCheckCard> {
   Future<void> _save() async {
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final data = {
+      for (final i in GrowthIndicator.values) GrowthFields.of(i): ?_value(i),
+    };
+    final today = DateUtils.dateOnly(DateTime.now());
+    if (!await confirmPlausibleGrowth(context, widget.profile, today, data) ||
+        !mounted) {
+      return;
+    }
     if (!await ref.read(saveGateProvider).allow() || !mounted) return;
     try {
       await ref
@@ -135,11 +200,8 @@ class _GrowthCheckCardState extends ConsumerState<GrowthCheckCard> {
           .addEvent(
             profileId: widget.profile.id,
             type: 'growth',
-            occurredAt: DateUtils.dateOnly(DateTime.now()),
-            dataJson: jsonEncode({
-              for (final i in GrowthIndicator.values)
-                GrowthFields.of(i): ?_value(i),
-            }),
+            occurredAt: today,
+            dataJson: jsonEncode(data),
           );
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(l.saveFailed)));
