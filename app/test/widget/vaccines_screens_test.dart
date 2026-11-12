@@ -90,6 +90,9 @@ void main() {
     expect(key('dose-bcg-1'), findsOneWidget);
     // Every other filter still lists them.
     await h.tapKey(tester, 'vaccine-done-group');
+    // Optional doses are listed too now: back to the filters at the top.
+    await tester.drag(find.byType(ListView).first, const Offset(0, 3000));
+    await tester.pumpAndSettle();
     await h.tapKey(tester, 'vaccine-filter-required');
     expect(key('dose-bcg-1'), findsOneWidget);
   });

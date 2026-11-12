@@ -3085,9 +3085,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get vaccineOptional => 'اختياري';
 
   @override
-  String get vaccineNotFollowed => 'مش في خطتك';
-
-  @override
   String vaccineRequiredDone(int done, int total) {
     final intl.NumberFormat doneNumberFormat = intl.NumberFormat.decimalPattern(
       localeName,
@@ -5469,6 +5466,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get vaccineDateAssumed =>
       'ده ميعادها على الجدول. غيّره لو اتاخدت في يوم تاني.';
+
+  @override
+  String vaccineOptionalWasDue(String date) {
+    return 'اختياري · كان ميعادها $date';
+  }
 
   @override
   String get vaccineCatchUpShort => 'تعويضية';

@@ -127,13 +127,15 @@ void main() {
     // Rotavirus isn't in the plan: never overdue.
     expect(find.byKey(const ValueKey('dose-rota-1')), findsNothing);
     await tapKey(tester, 'vaccine-filter-optional');
-    expect(inKey('dose-rota-1', 'مش في خطتك'), findsOneWidget);
+    // Not followed: still shown, with its state, marked optional.
+    expect(inKey('dose-rota-1', 'اختياري ·'), findsWidgets);
     expect(find.byKey(const ValueKey('dose-hexa-1')), findsNothing);
     await tapKey(tester, 'vaccine-filter-required');
     expect(find.byKey(const ValueKey('dose-pcv-1')), findsNothing);
     expect(find.byKey(const ValueKey('dose-opv-4')), findsOneWidget);
     await tapKey(tester, 'vaccine-filter-all');
-    expect(find.byKey(const ValueKey('dose-rota-1')), findsNothing);
+    // Every optional dose is listed, followed or not.
+    expect(find.byKey(const ValueKey('dose-rota-1')), findsOneWidget);
     expect(find.byKey(const ValueKey('dose-pcv-2')), findsOneWidget);
 
     // A note on a dose, and marking it given.

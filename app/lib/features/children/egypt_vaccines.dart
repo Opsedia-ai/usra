@@ -465,9 +465,6 @@ enum DoseState {
   due,
   later,
 
-  /// An optional vaccine the family doesn't follow: never due or overdue.
-  notFollowed,
-
   /// Past the age this vaccine may be given (rotavirus): ask the doctor.
   /// Never due, overdue or reminded.
   tooLate,
@@ -482,7 +479,6 @@ extension DoseStateSeverity on DoseState {
     DoseState.overdue => Severity.actSoon,
     DoseState.due => Severity.headsUp,
     DoseState.later ||
-    DoseState.notFollowed ||
     DoseState.tooLate ||
     DoseState.notNeeded => Severity.info,
   };
@@ -538,7 +534,10 @@ class DoseStatus {
   /// Still to give and not yet overdue, but the child is already past the
   /// age it's for on the schedule and its date moved later (an earlier dose
   /// was missing or late): a catch-up dose, never "at 4 months".
-  bool get catchUp => open && state != DoseState.overdue && pastItsAge;
+  /// Optional doses the family doesn't follow say so too: their date
+  /// assumes the series starts today.
+  bool get catchUp =>
+      (state == DoseState.due || state == DoseState.later) && pastItsAge;
 
   /// Still to be given, in the plan: due, overdue or later.
   bool get open =>
@@ -672,7 +671,9 @@ List<ScheduledDose> _byAge(List<ScheduledDose> doses) => [
 /// Matches a child's vaccine records to the schedule for [plan].
 ///
 /// Records of optional vaccines count whether or not the plan follows
-/// them. Each dose is due at its age on the schedule, but never before its
+/// them, and every optional dose gets its date and state too: one the
+/// family doesn't follow is shown, but never "open" (no reminder, overdue
+/// card, next visit or count). Each dose is due at its age on the schedule, but never before its
 /// minimum interval after the previous dose of the same vaccine (given, or
 /// at the earliest today when still missing), so a late start becomes a
 /// catch-up rather than a list of overdue doses. Doses past their upper age
@@ -786,7 +787,6 @@ List<DoseStatus> matchSchedule({
 
   DoseState stateOf(ScheduledDose dose) {
     if (given.containsKey(dose)) return DoseState.done;
-    if (!plan.follows(dose)) return DoseState.notFollowed;
     if (dose.kind == VaccineKind.pcv && dose.dose > pcvNeeded) {
       return DoseState.notNeeded;
     }

@@ -184,12 +184,27 @@ void main() {
   group('matching with a plan', () {
     final birth = DateTime(2026, 1, 1);
 
-    test('optional vaccines are never overdue unless chosen', () {
+    test('optional vaccines always have a state, but are open only when '
+        'chosen', () {
       final now = DateTime(2027, 6, 1);
-      final standard = states(birth, [], now);
-      expect(standard['pcv-1'], DoseState.notFollowed);
-      expect(standard['rota-2'], DoseState.notFollowed);
+      final all = {
+        for (final s in matchSchedule(birthDate: birth, records: [], now: now))
+          s.dose.key: s,
+      };
+      final standard = {for (final e in all.entries) e.key: e.value.state};
+      // Its date and state, never an open dose, a reminder or a count.
+      expect(standard['pcv-1'], DoseState.overdue);
+      expect(all['pcv-1']!.open, isFalse);
+      expect(all['pcv-1']!.dueOn, DateTime(2026, 3, 1));
+      // Rotavirus's upper age still applies; PCV's late start too (2 doses
+      // from 17 months).
+      expect(standard['rota-2'], DoseState.tooLate);
+      expect(standard['pcv-3'], DoseState.notNeeded);
       expect(standard['penta-1'], DoseState.overdue);
+      expect(
+        NextVaccineVisit.of(all.values.toList()).overdue.map((s) => s.dose),
+        everyElement(predicate<ScheduledDose>((d) => d.required)),
+      );
 
       final withPcv = states(
         birth,
@@ -198,7 +213,7 @@ void main() {
         plan: const VaccinePlan(optional: {VaccineKind.pcv}),
       );
       expect(withPcv['pcv-1'], DoseState.overdue);
-      expect(withPcv['rota-1'], DoseState.notFollowed);
+      expect(withPcv['rota-1'], DoseState.tooLate);
     });
 
     test('a given optional dose counts even when not followed', () {
@@ -206,7 +221,7 @@ void main() {
         rec('PCV', DateTime(2026, 3, 1)),
       ], DateTime(2026, 3, 2));
       expect(s['pcv-1'], DoseState.done);
-      expect(s['pcv-2'], DoseState.notFollowed);
+      expect(s['pcv-2'], DoseState.later);
     });
 
     test('route switching: a hexavalent record fits either route', () {
@@ -521,12 +536,10 @@ void main() {
       expect(byKey['penta-2'], DoseState.done);
       expect(byKey['ipv-2'], DoseState.done);
       expect(byKey['hepB-0'], DoseState.overdue);
-      // No optional dose is due or overdue.
+      // No optional dose is open: none is reminded, counted or on a card.
       expect(
-        c.statuses
-            .where((s) => !s.dose.required && !s.done)
-            .map((s) => s.state),
-        everyElement(DoseState.notFollowed),
+        c.statuses.where((s) => !s.dose.required && !s.done).map((s) => s.open),
+        everyElement(isFalse),
       );
     });
 
