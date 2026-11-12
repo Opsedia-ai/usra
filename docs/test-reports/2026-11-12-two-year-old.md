@@ -36,7 +36,7 @@ Nothing here was measured on a real phone. The founder's phone and simulator wal
 | [#76](https://github.com/Opsedia-ai/usra/pull/76) | G: growth chart labels on their own curve | Merged |
 | [#77](https://github.com/Opsedia-ai/usra/pull/77) | J and K: relationship sets the sex; birth-date picker opens near the right year | Merged |
 | [#80](https://github.com/Opsedia-ai/usra/pull/80) | Fix of #77: tapping أنثى after "بنتي" kept clearing the sex | Merged |
-| [#78](https://github.com/Opsedia-ai/usra/pull/78) | H: ask before saving an impossible growth value; readable axis | Open, see the final report |
+| [#78](https://github.com/Opsedia-ai/usra/pull/78) | H: ask before saving an impossible growth value; readable axis | Merged |
 | This PR | The full-app tests and this report | Open |
 
 ## Scores
