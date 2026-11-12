@@ -3405,7 +3405,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reminderHiddenPreview => 'تنبيه من أسرة';
 
   @override
-  String get vaccineTooLate => 'فات السن المسموح: اسأل الدكتور';
+  String get vaccineTooLate => 'فات السن المسموح: الرأي للدكتور';
 
   @override
   String get vaccineNotNeeded => 'مش محتاجها في السن ده';
@@ -3929,10 +3929,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reportFlagLow => 'واطي';
 
   @override
-  String get reportTooLate => 'فات ميعاده: اسأل الدكتور';
+  String get reportTooLate => 'فات ميعاده: الرأي للدكتور';
 
   @override
-  String get reportTooLateLabel => 'فات ميعاده (اسأل الدكتور)';
+  String get reportTooLateLabel => 'فات ميعاده (الرأي للدكتور)';
 
   @override
   String get reportSimpleIntro =>
@@ -4887,7 +4887,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String personVaccineWasDue(String date) {
-    return 'كان ميعادها $date. اسأل الدكتور إمتى تتاخد.';
+    return 'كان ميعادها $date. الدكتور يحدد إمتى تتاخد.';
   }
 
   @override
@@ -5564,5 +5564,31 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'اتعلّم على جرعة واحدة',
     );
     return '$_temp0';
+  }
+
+  @override
+  String vaccineMissingCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString جرعة ناقصة',
+      few: '$countString جرعات ناقصة',
+      two: 'جرعتين ناقصين',
+      one: 'جرعة ناقصة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineGivableNow(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'ممكن تتاخد دلوقتي: $countString';
   }
 }

@@ -77,6 +77,24 @@ class ChildVaccines {
 
   late final VaccineProgress progress = vaccineProgress(statuses);
   late final NextVaccineVisit next = NextVaccineVisit.of(statuses);
+
+  /// Doses in the plan not given whose day on the schedule has come: all
+  /// she's missing, though a missing earlier dose may make some wait.
+  int missing(DateTime today) =>
+      pastDosesToMark(statuses, today, withOptional: true).length;
+
+  /// Doses in the plan that can be given today: their date, after the
+  /// minimum interval from the dose before, has come.
+  int givableNow(DateTime today) {
+    final day = DateTime(today.year, today.month, today.day);
+    return statuses
+        .where(
+          (s) =>
+              s.open &&
+              !DateTime(s.dueOn.year, s.dueOn.month, s.dueOn.day).isAfter(day),
+        )
+        .length;
+  }
 }
 
 /// The `vaccine` record the checklist writes for [dose] given on [date]:

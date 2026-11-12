@@ -3173,5 +3173,23 @@
         "format": "decimalPattern"
       }
     }
+  },
+  "vaccineMissingCount": "{count, plural, =1{1 dose missing} other{{count} doses missing}}",
+  "@vaccineMissingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "vaccineGivableNow": "Can be given now: {count}",
+  "@vaccineGivableNow": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
   }
 }

@@ -568,7 +568,7 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
-        _ProgressCard(child: c),
+        _ProgressCard(child: c, today: today),
         // A few cards, so a child with no records yet doesn't push everything
         // else away; the rest open from the count under them.
         for (final s
@@ -688,9 +688,10 @@ String _listComma(AppLocalizations l) =>
 
 /// How far along, as a bar, and which schedule that's counted against.
 class _ProgressCard extends StatelessWidget {
-  const _ProgressCard({required this.child});
+  const _ProgressCard({required this.child, required this.today});
 
   final ChildVaccines child;
+  final DateTime today;
 
   @override
   Widget build(BuildContext context) {
@@ -745,6 +746,14 @@ class _ProgressCard extends StatelessWidget {
                     l.vaccineRequiredDone(p.requiredDone, p.requiredTotal),
                   ),
                 ),
+                if (child.missing(today) case final missing when missing > 0)
+                  StatusChip(
+                    key: ValueKey('vaccine-missing-${child.profile.id}'),
+                    severity: Severity.actSoon,
+                    label:
+                        '${l.vaccineMissingCount(missing)} · '
+                        '${l.vaccineGivableNow(child.givableNow(today))}',
+                  ),
                 if (p.optionalTotal > 0)
                   StatusChip(
                     key: ValueKey('vaccine-optional-${child.profile.id}'),
