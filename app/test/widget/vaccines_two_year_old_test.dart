@@ -183,7 +183,16 @@ void main() {
     await h.tapKey(tester, 'vaccine-setup-save');
     expect(await given(tester, id), scheduleDay);
     expect(text(tester, 'vaccine-progress-line'), contains('١٨ من ١٨'));
-    expect(find.textContaining('vaccine-overdue-card'), findsNothing);
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w.key is ValueKey<String> &&
+            (w.key! as ValueKey<String>).value.startsWith(
+              'vaccine-overdue-card-',
+            ),
+      ),
+      findsNothing,
+    );
     expect(find.text('كل التطعيمات اللي في الخطة اتاخدت'), findsOneWidget);
   });
 
@@ -207,6 +216,26 @@ void main() {
     final dates = await given(tester, id);
     expect(dates, scheduleDay);
     expect(dates.values.where((v) => v == d(2026, 11, 12)), isEmpty);
+  });
+
+  testWidgets('a dose ticked without a date never comes before the one '
+      'before it, dated later in the same checklist', (tester) async {
+    veryTall(tester);
+    final id = await seed(tester);
+    await h.open(tester, '/family/$id/vaccines/setup');
+    await h.tapKey(tester, 'setup-penta-1');
+    await h.tapKey(tester, 'setup-date-penta-1');
+    Navigator.of(tester.element(find.byType(DatePickerDialog)))
+        .pop(d(2025, 6, 1));
+    await h.settle(tester);
+    await h.tapKey(tester, 'setup-penta-2');
+    await h.tapKey(tester, 'setup-penta-3');
+    await h.tapKey(tester, 'vaccine-setup-save');
+    final dates = await given(tester, id);
+    expect(dates['penta-1'], d(2025, 6, 1));
+    // 28 days apart at least, not their schedule days (March and May).
+    expect(dates['penta-2'], d(2025, 6, 29));
+    expect(dates['penta-3'], d(2025, 7, 27));
   });
 
   testWidgets('the founder\'s records, already dated today: catch-up, not '

@@ -5471,4 +5471,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String vaccineOptionalWasDue(String date) {
     return 'اختياري · كان ميعادها $date';
   }
+
+  @override
+  String get vaccineCatchUpShort => 'تعويضية';
 }

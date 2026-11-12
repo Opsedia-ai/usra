@@ -5438,4 +5438,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String vaccineOptionalWasDue(String date) {
     return 'Optional · was due $date';
   }
+
+  @override
+  String get vaccineCatchUpShort => 'catch-up';
 }

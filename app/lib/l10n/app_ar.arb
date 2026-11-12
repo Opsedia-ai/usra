@@ -1456,5 +1456,6 @@
   "vaccineCatchUp": "جرعة تعويضية · ميعادها {date}",
   "vaccineNextCatchUp": "جرعات تعويضية (فات سنّها)",
   "vaccineDateAssumed": "ده ميعادها على الجدول. غيّره لو اتاخدت في يوم تاني.",
-  "vaccineOptionalWasDue": "اختياري · كان ميعادها {date}"
+  "vaccineOptionalWasDue": "اختياري · كان ميعادها {date}",
+  "vaccineCatchUpShort": "تعويضية"
 }

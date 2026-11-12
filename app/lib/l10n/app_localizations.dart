@@ -8106,6 +8106,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional · was due {date}'**
   String vaccineOptionalWasDue(String date);
+
+  /// No description provided for @vaccineCatchUpShort.
+  ///
+  /// In en, this message translates to:
+  /// **'catch-up'**
+  String get vaccineCatchUpShort;
 }
 
 class _AppLocalizationsDelegate
