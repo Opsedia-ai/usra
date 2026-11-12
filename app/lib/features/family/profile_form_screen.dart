@@ -12,6 +12,7 @@ import '../medicines/medicines_providers.dart' show clockProvider;
 import 'person_status.dart';
 import '../children/growth.dart' show isUnderFive;
 import '../doctors/contact_links.dart' show isCallablePhone;
+import '../../core/util/date_picker.dart';
 
 const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -231,8 +232,8 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                 InkWell(
                   key: const ValueKey('profile-birthDate'),
                   onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
+                    final picked = await pickDate(
+                      context,
                       initialDate: _birthDate ?? DateTime(1990),
                       firstDate: DateTime(1900),
                       lastDate: DateTime.now(),

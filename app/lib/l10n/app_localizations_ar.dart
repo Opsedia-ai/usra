@@ -245,7 +245,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileNotFound => 'مش موجود';
 
   @override
-  String get pickDate => 'اختار تاريخ';
+  String get pickDate => 'اختيار التاريخ';
 
   @override
   String ageYears(int age) {

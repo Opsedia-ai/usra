@@ -24,6 +24,7 @@ import 'medicine_text.dart';
 import 'medicines_providers.dart';
 import '../../core/util/time_picker.dart';
 import 'prescription_parser.dart';
+import '../../core/util/date_picker.dart';
 
 /// Times filled in by the "times a day" shortcut; the person can change
 /// them. Spread over waking hours; this is about reminders, not doses. For
@@ -431,8 +432,8 @@ class _PrescriptionFormScreenState
     final now = DateTime.now();
     final first = DateTime(now.year - 30);
     final last = DateTime(now.year + 10, 12, 31);
-    final picked = await showDatePicker(
-      context: context,
+    final picked = await pickDate(
+      context,
       initialDate: _date,
       firstDate: _date.isBefore(first) ? _date : first,
       lastDate: _date.isAfter(last) ? _date : last,
