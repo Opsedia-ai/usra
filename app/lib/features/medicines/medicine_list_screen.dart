@@ -167,7 +167,7 @@ class _PrescriptionTile extends ConsumerWidget {
           [
             ?p.diagnosis,
             l.prescriptionCount(count),
-            if (!p.active) l.medicineStopped,
+            if (!p.active) l.prescriptionStopped,
           ].join(' · '),
         ),
       ),

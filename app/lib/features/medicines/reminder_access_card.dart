@@ -28,7 +28,10 @@ class ReminderAccessCard extends ConsumerWidget {
         key: const ValueKey('reminders-off'),
         severity: Severity.actSoon,
         icon: Icons.notifications_off_outlined,
-        title: l.reminderOffTitle,
+        // Allowed, but without exact alarms: on, possibly late, not off.
+        title: access.notifications
+            ? l.reminderExactOffTitle
+            : l.reminderOffTitle,
         body: access.notifications ? l.reminderExactOff : l.reminderOffBody,
         action: l.reminderAllow,
         onAction: allow,

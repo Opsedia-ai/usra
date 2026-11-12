@@ -322,4 +322,22 @@ void main() {
       expect(openPcv(pcv), isTrue);
     });
   });
+
+  testWidgets('the dose sheet\'s switch says given or not given (bug C)', (
+    tester,
+  ) async {
+    veryTall(tester);
+    final id = await seed(tester);
+    await h.open(tester, '/family/$id/vaccines');
+    await h.tapKey(tester, 'dose-pcv-1');
+    String title() =>
+        (tester.widget<SwitchListTile>(key('dose-given')).title! as Text).data!;
+    expect(tester.widget<SwitchListTile>(key('dose-given')).value, isFalse);
+    expect(title(), 'ماتاخدتش');
+    await h.tapKey(tester, 'dose-given');
+    expect(tester.widget<SwitchListTile>(key('dose-given')).value, isTrue);
+    expect(title(), 'اتاخدت');
+    await h.tapKey(tester, 'dose-given');
+    expect(title(), 'ماتاخدتش');
+  });
 }

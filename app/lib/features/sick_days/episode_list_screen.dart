@@ -78,7 +78,9 @@ class EpisodeListScreen extends ConsumerWidget {
                             ),
                     ),
                     subtitle: Text(
-                      e.endedAt == null ? l.sickDayOngoing : l.sickDayEnded,
+                      e.endedAt == null
+                          ? l.sickDayOngoing(person?.sex ?? 'other')
+                          : l.sickDayEnded,
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () =>

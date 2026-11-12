@@ -165,7 +165,7 @@ class _Body extends ConsumerWidget {
                   key: const ValueKey('sick-day-reopen'),
                   onPressed: () => db.setEpisodeEnded(episode.id, null),
                   icon: const Icon(Icons.replay),
-                  label: Text(l.sickDayReopen),
+                  label: Text(l.sickDayReopen(person.sex ?? 'other')),
                 ),
               const SizedBox(height: 4),
               TextButton(
