@@ -15,6 +15,7 @@ import '../account/save_gate.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import 'growth.dart';
 import 'milestones.dart';
+import '../../core/util/date_picker.dart';
 
 /// The CDC milestones checklist: tick what the child does, with the day it
 /// was first seen. Informational only; the pediatrician assesses development.
@@ -235,8 +236,8 @@ class _MilestoneTile extends ConsumerWidget {
       }
       final today = DateUtils.dateOnly(DateTime.now());
       final birth = storedDay(profile.birthDate!);
-      final picked = await showDatePicker(
-        context: context,
+      final picked = await pickDate(
+        context,
         initialDate: today,
         firstDate: birth.isAfter(today) ? today : birth,
         lastDate: today,
