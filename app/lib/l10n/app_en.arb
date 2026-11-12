@@ -3130,5 +3130,43 @@
   },
   "vaccineDoseNotGiven": "Not given",
   "prescriptionStopped": "Stopped",
-  "reminderExactOffTitle": "Reminders may be late"
+  "reminderExactOffTitle": "Reminders may be late",
+  "vaccineMarkPast": "Mark everything due so far as given",
+  "vaccineMarkPastTitle": "Mark past doses as given?",
+  "vaccineMarkPastBody": "{count, plural, =1{1 required dose} other{{count} required doses}} {upTo} will be marked as given, each on its date on the schedule, not today. Check the vaccination card first: the card and the child's doctor are the reference. You can undo this, or untick any dose later.",
+  "@vaccineMarkPastBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "upTo": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineUpTo": "{months, plural, =0{at birth} =1{up to 1 month} other{up to {months} months}}",
+  "@vaccineUpTo": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "vaccineMarkPastOptional": "Also the optional ones you follow ({count})",
+  "@vaccineMarkPastOptional": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vaccineMarkPastOk": "Mark them",
+  "vaccineMarkPastDone": "{count, plural, =1{Marked 1 dose as given} other{Marked {count} doses as given}}",
+  "@vaccineMarkPastDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
