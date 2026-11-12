@@ -31,6 +31,24 @@ const relationships = [
   'other',
 ];
 
+/// The sex a relationship implies ("بنتي" is a girl); null for "other".
+String? sexOfRelationship(String? relationship) => switch (relationship) {
+  'son' || 'husband' || 'father' || 'brother' || 'grandfather' => 'male',
+  'daughter' || 'wife' || 'mother' || 'sister' || 'grandmother' => 'female',
+  _ => null,
+};
+
+/// Where the birth-date picker opens for a new person: today for a son or
+/// daughter (most are added as babies or young children), a usual year for
+/// parents and grandparents, otherwise 1990. A guess only, to save taps.
+DateTime birthDatePickerStart(String? relationship, DateTime today) =>
+    switch (relationship) {
+      'son' || 'daughter' => DateUtils.dateOnly(today),
+      'father' || 'mother' => DateTime(1965),
+      'grandfather' || 'grandmother' => DateTime(1945),
+      _ => DateTime(1990),
+    };
+
 /// Adds a person, or edits one when [profileId] is given.
 class ProfileFormScreen extends ConsumerStatefulWidget {
   const ProfileFormScreen({super.key, this.profileId});
@@ -197,8 +215,15 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                           key: ValueKey('profile-relationship-$r'),
                           label: Text(l.relationshipMine(r)),
                           selected: _relationship == r,
-                          onSelected: (on) =>
-                              setState(() => _relationship = on ? r : null),
+                          // "بنتي" selects أنثى, "ابني" ذكر; still
+                          // changeable below.
+                          onSelected: (on) => setState(() {
+                            _relationship = on ? r : null;
+                            if (sexOfRelationship(_relationship)
+                                case final sex?) {
+                              _sex = sex;
+                            }
+                          }),
                         ),
                     ],
                   ),
@@ -234,7 +259,9 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                   onTap: () async {
                     final picked = await pickDate(
                       context,
-                      initialDate: _birthDate ?? DateTime(1990),
+                      initialDate:
+                          _birthDate ??
+                          birthDatePickerStart(_relationship, DateTime.now()),
                       firstDate: DateTime(1900),
                       lastDate: DateTime.now(),
                     );

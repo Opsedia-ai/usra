@@ -3,6 +3,8 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:usra/features/family/profile_form_screen.dart'
+    show birthDatePickerStart, sexOfRelationship;
 import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
@@ -120,6 +122,43 @@ void main() {
     await tester.tap(key('add-person-$laila'));
     await settle(tester);
     expect(key('add-pick-person'), findsNothing);
+  });
+
+  testWidgets('a daughter is a girl, a son a boy, and her birth date picker '
+      'opens on today (J, K)', (tester) async {
+    tall(tester);
+    await open(tester, '/family/new');
+    Set<String> sex() => tester
+        .widget<SegmentedButton<String>>(find.byType(SegmentedButton<String>))
+        .selected;
+    expect(sex(), isEmpty);
+    await tester.tap(key('profile-relationship-daughter'));
+    await settle(tester);
+    expect(sex(), {'female'});
+    await tester.tap(key('profile-relationship-son'));
+    await settle(tester);
+    expect(sex(), {'male'});
+    await tester.tap(key('profile-relationship-daughter'));
+    await settle(tester);
+    await tester.ensureVisible(key('profile-birthDate'));
+    await settle(tester);
+    await tester.tap(key('profile-birthDate'));
+    await settle(tester);
+    final picker = tester.widget<DatePickerDialog>(
+      find.byType(DatePickerDialog),
+    );
+    expect(
+      DateUtils.dateOnly(picker.initialDate!),
+      DateUtils.dateOnly(DateTime.now()),
+    );
+  });
+
+  test('a grandparent\'s picker opens decades back', () {
+    final today = DateTime(2026, 11, 12);
+    expect(birthDatePickerStart('grandmother', today), DateTime(1945));
+    expect(birthDatePickerStart('mother', today), DateTime(1965));
+    expect(birthDatePickerStart(null, today), DateTime(1990));
+    expect(sexOfRelationship('other'), isNull);
   });
 
   testWidgets('a new person starts short, and the button names them', (
