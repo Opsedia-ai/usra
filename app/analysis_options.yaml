@@ -5,3 +5,10 @@ analyzer:
     - build/**
     - android/**
     - ios/**
+  errors:
+    # Flutter 3.50 (stable from 12 Nov 2026) deprecates
+    # package:flutter/material.dart in favour of package:material_ui. CI
+    # installs the latest stable, so every file's import would fail
+    # `flutter analyze`. Until the move to material_ui, deprecation notices
+    # are not reported. Remove this with that move.
+    deprecated_member_use: ignore
