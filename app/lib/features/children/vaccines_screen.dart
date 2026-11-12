@@ -200,18 +200,9 @@ Future<void> markPastDoses(
     for (final s in doses) s.dose.key: givenDateOn(s.plannedOn, today),
   });
   if (!await ref.read(saveGateProvider).allow()) return;
-  Set<String> vaccineIds(List<MedicalEvent> events) => {
-    for (final e in events)
-      if (e.type == 'vaccine' && e.deletedAt == null) e.id,
-  };
   final List<String> added;
   try {
-    final before = vaccineIds(await db.watchTimeline(id).first);
-    await applyVaccineChanges(db, id, changes);
-    added = [
-      for (final e in vaccineIds(await db.watchTimeline(id).first))
-        if (!before.contains(e)) e,
-    ];
+    added = await applyVaccineChanges(db, id, changes);
   } catch (_) {
     messenger.showSnackBar(SnackBar(content: Text(l.saveFailed)));
     return;
@@ -224,7 +215,14 @@ Future<void> markPastDoses(
       ),
       action: SnackBarAction(
         label: l.doseUndo,
-        onPressed: () => db.replaceEvents(profileId: id, remove: added),
+        // Exactly the records just added.
+        onPressed: () async {
+          try {
+            await db.replaceEvents(profileId: id, remove: added);
+          } catch (_) {
+            messenger.showSnackBar(SnackBar(content: Text(l.saveFailed)));
+          }
+        },
       ),
     ),
   );
@@ -235,16 +233,17 @@ Future<bool> _hasVaccinePlan(AppDatabase db, String profileId) async =>
     (await db.eventsOfTypes({VaccinePlanFields.type}))
         .any((e) => e.profileId == profileId);
 
-/// Saves [changes] in one transaction; nothing when there are none.
-Future<void> applyVaccineChanges(
+/// Saves [changes] in one transaction; nothing when there are none. The
+/// ids of the records added.
+Future<List<String>> applyVaccineChanges(
   AppDatabase db,
   String profileId,
   VaccineRecordChanges changes,
 ) async {
   if (changes.add.isEmpty && changes.remove.isEmpty && changes.redate.isEmpty) {
-    return;
+    return const [];
   }
-  await db.replaceEvents(
+  return db.replaceEvents(
     profileId: profileId,
     add: changes.add,
     remove: changes.remove,
@@ -485,6 +484,9 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
   static const _overdueCards = 3;
 
   var _filter = VaccineFilter.all;
+
+  /// Marking past doses: the button waits until it's done.
+  var _marking = false;
   var _doneOpen = false;
   var _allOverdue = false;
 
@@ -594,7 +596,16 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
           const SizedBox(height: UsraSpacing.s2),
           OutlinedButton.icon(
             key: const ValueKey('vaccine-mark-past'),
-            onPressed: () => markPastDoses(context, ref, c),
+            onPressed: _marking
+                ? null
+                : () async {
+                    setState(() => _marking = true);
+                    try {
+                      await markPastDoses(context, ref, c);
+                    } finally {
+                      if (mounted) setState(() => _marking = false);
+                    }
+                  },
             icon: const Icon(Icons.done_all),
             label: Text(l.vaccineMarkPast),
           ),
@@ -1578,7 +1589,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
           onScan: _saving ? null : (source) => _scan(source, profile, statuses),
         ),
         const SizedBox(height: 8),
-        if (_toMark(statuses, today).length > 1)
+        if (_toMark(statuses, today).length >= markPastFrom)
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: TextButton.icon(
@@ -1747,10 +1758,20 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
       ],
     );
     if (doses == null || doses.isEmpty || !mounted) return;
-    final before = {for (final s in doses) s.dose.key: _toggled[s.dose.key]};
+    final before = {
+      for (final s in doses)
+        s.dose.key: (
+          ticked: _toggled[s.dose.key],
+          date: _dates[s.dose.key],
+          card: _fromCard[s.dose.key],
+        ),
+    };
     setState(() {
+      // On its schedule day: not a date chosen or read for it before.
       for (final s in doses) {
         _toggled[s.dose.key] = true;
+        _dates.remove(s.dose.key);
+        _fromCard.remove(s.dose.key);
       }
     });
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1765,11 +1786,13 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
             if (!mounted) return;
             setState(() {
               for (final MapEntry(:key, :value) in before.entries) {
-                if (value == null) {
-                  _toggled.remove(key);
+                if (value.ticked case final t?) {
+                  _toggled[key] = t;
                 } else {
-                  _toggled[key] = value;
+                  _toggled.remove(key);
                 }
+                if (value.date case final d?) _dates[key] = d;
+                if (value.card case final c?) _fromCard[key] = c;
               }
             });
           },
