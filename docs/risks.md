@@ -122,3 +122,4 @@ Last updated: 7 November 2026. Update this when a risk changes, closes or appear
 - `docs/server-backup-plan.md`: gates for server backups
 - `docs/login-setup.md`: the lawyer's questions and launch checklist
 - `docs/security.md`: threats and how the app handles them
+- `docs/clinical-safety/hazard-log.md`: the clinical view of the medical and data-loss risks, awaiting clinical review
