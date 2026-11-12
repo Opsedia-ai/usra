@@ -142,7 +142,7 @@ Severity:
 | 16 | Screen readers: `labeledTapTargetGuideline` fails on 7 screens. The full-screen `DismissKeyboard` `GestureDetector` is an unlabeled tap node, and `UsraRoundIconButton` labels sit outside the tap node. | Medium | Not fixed. Proposal: `excludeFromSemantics: true` on the detector; merge the button's semantics. |
 | 17 | No cost field for a pharmacy or medicine purchase | Low (feature) | Not fixed |
 | 18 | At exactly 5, the Vaccines page is hidden ("for under-fives"), so "mark everything" isn't there for a 5-year-old, the founder's example | Question | Founder decision |
-| 19 | CI: Flutter 3.50 (stable from 12 Nov) deprecates `material.dart`, and `flutter analyze` failed every PR | High (CI) | Worked around, #70. Moving to `material_ui` is still to do. |
+| 19 | CI: Flutter 3.50 (stable from 12 Nov) deprecates `material.dart`, and `flutter analyze` failed every PR | High (CI) | Worked around for `analyze` in #70. Main's release builds still fail on Flutter 3.50: the Android release bundle needs Android Gradle Plugin 9.1.1 (the app has 9.1.0). Proposal: pin Flutter in CI as in the closed #67, or bump the Android Gradle Plugin. Moving to `material_ui` is still to do. |
 | 20 | CI: the iOS build fails its Podfile.lock check because CocoaPods now computes different checksums for AppAuth 3.0.0, GoogleSignIn 10.1.0 and GTMAppAuth 6.0.0. The versions are the same. | High (CI) | Not fixed. A person should check why the podspecs changed before the lock file is updated. |
 | 21 | In this repo a failing widget test can hang `flutter test` instead of failing at `--timeout` | Low (tooling) | Not fixed. It showed up several times in this work; run with `-r expanded` into a log to see the failure. |
 
