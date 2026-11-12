@@ -39,8 +39,21 @@ class EgyptVaccineRule extends FollowUpRule {
         title: (c) => AppLocalizations.of(c).fuVaccinesDue,
         reason: (c) {
           final l = AppLocalizations.of(c);
+          // A child past these doses' age: catch-up, never "at 4 months".
+          // Doses of mixed ages, or mixed catch-up and on time: no age.
+          final day = [
+            for (final s in open)
+              if (dayOf(s.dueOn) == dayOf(open.first.dueOn)) s,
+          ];
+          final when = day.every((s) => s.catchUp)
+              ? l.vaccineNextCatchUp
+              : day.any((s) => s.catchUp || s.dose.ageMonths != months)
+              ? l.vaccineNextVisit
+              : months == 0
+              ? l.vaccineAtBirth
+              : l.vaccineAtMonths(months);
           return l.fuVaccinesAt(
-            months == 0 ? l.vaccineAtBirth : l.vaccineAtMonths(months),
+            when,
             {for (final d in doses) vaccineName(l, d.kind)}.join('، '),
           );
         },

@@ -701,8 +701,8 @@ class _NextCard extends StatelessWidget {
             if (child.next.doses.isNotEmpty) ...[
               const SizedBox(height: UsraSpacing.s1),
               Text(
-                '${doseAge(l, child.next.doses.first)}: '
-                '${child.next.doses.map((d) => doseName(l, d)).join(_listComma(l))}',
+                nextVisitDoses(l, child),
+                key: const ValueKey('vaccine-next-doses'),
                 style: UsraType.body.copyWith(color: c.ink),
               ),
             ],
@@ -722,6 +722,32 @@ class _NextCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The doses of the next visit, under their age when they share it: "At 4
+/// months: …", or under "catch-up" when the child is past the age of every
+/// one. Otherwise each dose carries its own age, or "catch-up".
+String nextVisitDoses(AppLocalizations l, ChildVaccines child) {
+  final comma = _listComma(l);
+  final doses = child.next.doses;
+  final catchUp = {
+    for (final s in child.statuses)
+      if (s.catchUp && doses.contains(s.dose)) s.dose,
+  };
+  final names = doses.map((d) => doseName(l, d)).join(comma);
+  if (catchUp.length == doses.length) {
+    return '${l.vaccineNextCatchUp}: $names';
+  }
+  if (catchUp.isEmpty && {for (final d in doses) d.ageMonths}.length == 1) {
+    return '${doseAge(l, doses.first)}: $names';
+  }
+  return doses
+      .map(
+        (d) =>
+            '${doseName(l, d)} '
+            '(${catchUp.contains(d) ? l.vaccineCatchUpShort : doseAge(l, d)})',
+      )
+      .join(comma);
 }
 
 /// The ages already given, folded into one line.
@@ -831,6 +857,9 @@ class DoseTile extends StatelessWidget {
     final label = switch (status.state) {
       DoseState.done => l.vaccineDone(date(status.givenOn!)),
       DoseState.overdue => l.vaccineOverdue(date(status.dueOn)),
+      DoseState.due || DoseState.later when status.catchUp => l.vaccineCatchUp(
+        date(status.dueOn),
+      ),
       DoseState.due => l.vaccineDue(date(status.dueOn)),
       DoseState.later => l.vaccineLater(date(status.dueOn)),
       DoseState.notFollowed => l.vaccineNotFollowed,
@@ -902,13 +931,20 @@ class _DoseSheet extends ConsumerStatefulWidget {
 
 class _DoseSheetState extends ConsumerState<_DoseSheet> {
   late bool _given = widget.status.done || widget.given;
-  // A dose not yet given defaults to its due date, never a future one; opened
-  // to log it now, to today.
+  // A dose not yet given defaults to the day it was planned for, never a
+  // future one: a past dose logged late (from its overdue card too) was most
+  // likely given on time, and the family can change it. Never today when
+  // that's after the planned day.
   late DateTime _date = givenDateOn(
-    widget.status.givenOn ??
-        (widget.given ? DateTime.now() : widget.status.dueOn),
-    DateTime.now(),
+    widget.status.givenOn ?? widget.status.plannedOn,
+    ref.read(todayProvider),
   );
+
+  /// The date is the planned one, a past day, not one the family chose or
+  /// saved.
+  late bool _dateAssumed =
+      widget.status.givenOn == null &&
+      !widget.status.plannedOn.isAfter(ref.read(todayProvider));
   late final _note = TextEditingController(
     text: widget.child.plan.notes[widget.status.dose.key] ?? '',
   );
@@ -1006,14 +1042,24 @@ class _DoseSheetState extends ConsumerState<_DoseSheet> {
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.event),
                 title: Text(l.vaccineDoseDate),
-                subtitle: Text(_fmtc(_date)),
+                subtitle: Text(
+                  _dateAssumed
+                      ? '${_fmtc(_date)}\n${l.vaccineDateAssumed}'
+                      : _fmtc(_date),
+                ),
+                trailing: const Icon(Icons.edit_calendar_outlined),
                 onTap: () async {
                   final picked = await pickGivenDate(
                     context,
                     initial: _date,
                     birthDate: widget.child.profile.birthDate!,
                   );
-                  if (picked != null) setState(() => _date = picked);
+                  if (picked != null) {
+                    setState(() {
+                      _date = picked;
+                      _dateAssumed = false;
+                    });
+                  }
                 },
               ),
             TextField(
@@ -1258,6 +1304,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
           if (mounted) _scan(ImageSource.camera, profile, statuses);
         });
       }
+      _statuses = statuses;
       body = _form(context, profile, plan, statuses, today);
     }
     return Scaffold(
@@ -1283,7 +1330,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
     final checklist = [
       for (final s in statuses)
         if (s.done ||
-            (s.followed && !s.dueOn.isAfter(soon)) ||
+            (s.followed && !s.plannedOn.isAfter(soon)) ||
             _fromCard.containsKey(s.dose.key))
           s,
     ];
@@ -1507,10 +1554,33 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
     );
   }
 
+  /// The checklist's doses, as last built.
+  List<DoseStatus> _statuses = const [];
+
   /// The given date for a ticked dose: its record's, the one chosen, or
-  /// the due date (never in the future).
-  DateTime _dateOf(DoseStatus s) =>
-      givenDateOn(s.givenOn ?? _dates[s.dose.key] ?? s.dueOn, DateTime.now());
+  /// the day it was planned for (never in the future, never moved to today
+  /// by a missing earlier dose). Not before its minimum interval after the
+  /// previous dose of the same vaccine ticked here, if that one was dated
+  /// later.
+  DateTime _dateOf(DoseStatus s) {
+    final today = ref.read(todayProvider);
+    final known = s.givenOn ?? _dates[s.dose.key];
+    if (known != null) return givenDateOn(known, today);
+    var date = s.plannedOn;
+    final prev = _statuses
+        .where(
+          (p) =>
+              p.dose.kind == s.dose.kind &&
+              p.dose.dose < s.dose.dose &&
+              _ticked(p),
+        )
+        .lastOrNull;
+    if (prev != null && s.dose.hasInterval) {
+      final after = s.dose.earliestAfter(_dateOf(prev));
+      if (after.isAfter(date)) date = after;
+    }
+    return givenDateOn(date, today);
+  }
 
   Future<void> _save(
     Profile profile,

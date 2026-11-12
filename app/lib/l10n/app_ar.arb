@@ -1453,5 +1453,9 @@
   "homeSetupEmergencyHint": "فصيلة الدم والحساسية ورقم للطوارئ",
   "homeSetupLockNote": "بعد أول نسخة احتياطية هنقترح قفل أسرة برقم سري.",
   "homeSetupHide": "إخفاء",
-  "simpleThenDoseFor": "وبعده: {medicine} لـ{name} الساعة {time}"
+  "simpleThenDoseFor": "وبعده: {medicine} لـ{name} الساعة {time}",
+  "vaccineCatchUp": "جرعة تعويضية · ميعادها {date}",
+  "vaccineNextCatchUp": "جرعات تعويضية (فات سنّها)",
+  "vaccineDateAssumed": "ده ميعادها على الجدول. غيّره لو اتاخدت في يوم تاني.",
+  "vaccineCatchUpShort": "تعويضية"
 }
