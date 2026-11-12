@@ -327,16 +327,19 @@ class _HomeChips extends StatelessWidget {
 
 enum VaccineFilter { all, required, optional, overdue }
 
-/// Which doses [filter] shows: "All" is the plan plus any optional dose
-/// already given; "Optional" also lists the ones the family doesn't follow.
+/// Which doses [filter] shows: "All" is every dose, optional ones the
+/// family doesn't follow too (marked optional), so their dates are always
+/// there.
 List<DoseStatus> filterDoses(List<DoseStatus> statuses, VaccineFilter filter) =>
     [
       for (final s in statuses)
         if (switch (filter) {
-          VaccineFilter.all => s.followed || s.done,
+          VaccineFilter.all => true,
           VaccineFilter.required => s.dose.required,
           VaccineFilter.optional => !s.dose.required,
-          VaccineFilter.overdue => s.state == DoseState.overdue,
+          // Only what's in the plan: an optional dose the family doesn't
+          // follow is never "overdue".
+          VaccineFilter.overdue => s.open && s.state == DoseState.overdue,
         })
           s,
     ];
@@ -417,10 +420,11 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
     final today = ref.watch(todayProvider);
     final shown = filterDoses(c.statuses, _filter);
     // Whole ages already given fold away; only under "All", where nothing
-    // else would hide them.
+    // else would hide them. An optional dose the family doesn't follow
+    // never keeps an age open, and stays in the list.
     final byAge = <int, List<DoseStatus>>{};
     for (final s in shown) {
-      (byAge[s.dose.ageMonths] ??= []).add(s);
+      if (s.followed || s.done) (byAge[s.dose.ageMonths] ??= []).add(s);
     }
     final doneAges = _filter == VaccineFilter.all
         ? [
@@ -431,7 +435,7 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
     final doneDoses = [for (final a in doneAges) ...byAge[a]!];
     final rest = [
       for (final s in shown)
-        if (!doneAges.contains(s.dose.ageMonths)) s,
+        if (!doneDoses.contains(s)) s,
     ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
@@ -847,13 +851,16 @@ class DoseTile extends StatelessWidget {
     final dose = status.dose;
     final label = switch (status.state) {
       DoseState.done => l.vaccineDone(date(status.givenOn!)),
+      // Optional and not followed: its date, but not "overdue".
+      DoseState.overdue when !status.followed => l.vaccineOptionalWasDue(
+        date(status.dueOn),
+      ),
       DoseState.overdue => l.vaccineOverdue(date(status.dueOn)),
       DoseState.due || DoseState.later when status.catchUp => l.vaccineCatchUp(
         date(status.dueOn),
       ),
       DoseState.due => l.vaccineDue(date(status.dueOn)),
       DoseState.later => l.vaccineLater(date(status.dueOn)),
-      DoseState.notFollowed => l.vaccineNotFollowed,
       DoseState.tooLate => l.vaccineTooLate,
       DoseState.notNeeded => l.vaccineNotNeeded,
     };
@@ -881,7 +888,19 @@ class DoseTile extends StatelessWidget {
             if (note != null)
               Text(note!, style: UsraType.label.copyWith(color: c.inkMuted)),
             const SizedBox(height: UsraSpacing.s1),
-            StatusChip(severity: status.state.severity, label: label),
+            StatusChip(
+              key: ValueKey('dose-state-${dose.key}'),
+              // Not followed: shown for its dates, never as something to do.
+              severity: status.followed || status.done
+                  ? status.state.severity
+                  : Severity.info,
+              label:
+                  status.followed ||
+                      status.done ||
+                      status.state == DoseState.overdue
+                  ? label
+                  : '${l.vaccineOptional} · $label',
+            ),
           ],
         ),
       ),

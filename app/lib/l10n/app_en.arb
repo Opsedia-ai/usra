@@ -1595,7 +1595,6 @@
   },
   "vaccineRequired": "Required",
   "vaccineOptional": "Optional",
-  "vaccineNotFollowed": "Not in your plan",
   "vaccineRequiredDone": "{done}/{total} required done",
   "@vaccineRequiredDone": {
     "placeholders": {
@@ -3106,5 +3105,13 @@
     }
   },
   "vaccineNextCatchUp": "Catch-up doses (past their age)",
-  "vaccineDateAssumed": "The date on the schedule. Change it if it was given on another day."
+  "vaccineDateAssumed": "The date on the schedule. Change it if it was given on another day.",
+  "vaccineOptionalWasDue": "Optional · was due {date}",
+  "@vaccineOptionalWasDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  }
 }

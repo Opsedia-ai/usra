@@ -4664,12 +4664,6 @@ abstract class AppLocalizations {
   /// **'Optional'**
   String get vaccineOptional;
 
-  /// No description provided for @vaccineNotFollowed.
-  ///
-  /// In en, this message translates to:
-  /// **'Not in your plan'**
-  String get vaccineNotFollowed;
-
   /// No description provided for @vaccineRequiredDone.
   ///
   /// In en, this message translates to:
@@ -8106,6 +8100,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The date on the schedule. Change it if it was given on another day.'**
   String get vaccineDateAssumed;
+
+  /// No description provided for @vaccineOptionalWasDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional · was due {date}'**
+  String vaccineOptionalWasDue(String date);
 }
 
 class _AppLocalizationsDelegate

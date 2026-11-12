@@ -123,8 +123,10 @@ void main() {
     expect(chipText('dose-bcg-1', 'اتاخد'), findsOneWidget);
     expect(chipText('dose-mmr-1', 'معاده'), findsNothing);
     expect(find.textContaining('كارت التطعيم'), findsOneWidget);
-    // Optional vaccines aren't followed by default: never overdue.
-    expect(find.byKey(const ValueKey('dose-pcv-1')), findsNothing);
+    // Optional vaccines aren't followed by default: listed with their
+    // date, marked optional, never overdue.
+    expect(chipText('dose-pcv-1', 'اختياري ·'), findsOneWidget);
+    expect(chipText('dose-pcv-1', 'متأخر'), findsNothing);
 
     router.go('/family/$kid/growth');
     await tester.pumpAndSettle();

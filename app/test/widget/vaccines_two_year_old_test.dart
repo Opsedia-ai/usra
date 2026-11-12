@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:usra/core/design/status_chip.dart';
 import 'package:usra/features/children/child_vaccines.dart';
 import 'package:usra/features/children/egypt_vaccines.dart';
 import 'package:usra/features/follow_ups/follow_ups_providers.dart';
@@ -236,5 +237,58 @@ void main() {
     final next = text(tester, 'vaccine-next-doses');
     expect(next, startsWith('جرعات تعويضية'));
     expect(next, contains('الثلاثي الفيروسي (MMR)، جرعة ٢'));
+  });
+
+  group('optional vaccines (bug B)', () {
+    String chip(WidgetTester tester, String key) => tester
+        .widget<StatusChip>(find.byKey(ValueKey('dose-state-$key')))
+        .label;
+
+    testWidgets('always listed with their dates and state, marked optional, '
+        'never counted or on a card', (tester) async {
+      veryTall(tester);
+      final id = await seed(tester);
+      await h.open(tester, '/family/$id/vaccines');
+      // PCV at 2 months: due 12 Jan 2025, not followed.
+      expect(chip(tester, 'pcv-1'), startsWith('اختياري · كان ميعادها'));
+      expect(chip(tester, 'pcv-1'), contains('٢٠٢٥'));
+      // A 2-year-old starting PCV needs one dose: the rest aren't needed.
+      expect(chip(tester, 'pcv-2'), 'اختياري · مش محتاجها في السن ده');
+      // Rotavirus is past its upper age.
+      expect(chip(tester, 'rota-1'), startsWith('اختياري · فات السن المسموح'));
+      expect(chip(tester, 'varicella-1'), startsWith('اختياري ·'));
+      expect(find.text('مش في خطتك'), findsNothing);
+      expect(key('vaccine-overdue-card-pcv-1'), findsNothing);
+      expect(text(tester, 'vaccine-progress-line'), contains('٠ من ١٨'));
+    });
+
+    testWidgets('can be recorded, dated on its schedule day', (tester) async {
+      veryTall(tester);
+      final id = await seed(tester);
+      await h.open(tester, '/family/$id/vaccines');
+      await h.tapKey(tester, 'dose-pcv-1');
+      await h.tapKey(tester, 'dose-given');
+      await h.tapKey(tester, 'dose-save');
+      expect((await given(tester, id))['pcv-1'], d(2025, 1, 12));
+      expect(chip(tester, 'pcv-1'), startsWith('اتاخد'));
+    });
+
+    test('reminded only when the family follows it', () {
+      final none = matchSchedule(
+        birthDate: DateTime(2026, 9, 12),
+        records: const [],
+        now: today,
+      );
+      final pcv = matchSchedule(
+        birthDate: DateTime(2026, 9, 12),
+        records: const [],
+        now: today,
+        plan: const VaccinePlan(optional: {VaccineKind.pcv}),
+      );
+      bool openPcv(List<DoseStatus> s) =>
+          s.any((x) => x.dose.kind == VaccineKind.pcv && x.open);
+      expect(openPcv(none), isFalse);
+      expect(openPcv(pcv), isTrue);
+    });
   });
 }

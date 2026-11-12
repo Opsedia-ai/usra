@@ -70,7 +70,9 @@ class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
         _choice ??
         waiting
             .where(
-              (s) => s.state == DoseState.overdue || s.state == DoseState.due,
+              (s) =>
+                  s.followed &&
+                  (s.state == DoseState.overdue || s.state == DoseState.due),
             )
             .firstOrNull
             ?.dose

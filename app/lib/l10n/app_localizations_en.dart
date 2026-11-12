@@ -3069,9 +3069,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vaccineOptional => 'Optional';
 
   @override
-  String get vaccineNotFollowed => 'Not in your plan';
-
-  @override
   String vaccineRequiredDone(int done, int total) {
     final intl.NumberFormat doneNumberFormat = intl.NumberFormat.decimalPattern(
       localeName,
@@ -5436,4 +5433,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get vaccineDateAssumed =>
       'The date on the schedule. Change it if it was given on another day.';
+
+  @override
+  String vaccineOptionalWasDue(String date) {
+    return 'Optional · was due $date';
+  }
 }
