@@ -62,7 +62,7 @@
   "profileAllergies": "حساسية",
   "profileConditions": "أمراض مزمنة",
   "profileNotFound": "مش موجود",
-  "pickDate": "اختار تاريخ",
+  "pickDate": "اختيار التاريخ",
   "ageYears": "{age, plural, =0{أقل من سنة} =1{سنة} =2{سنتين} few{{age} سنين} other{{age} سنة}}",
   "timelineEmpty": "مفيش سجلات لسه. ضيف أول زيارة أو أشعة أو تطعيم.",
   "addRecord": "ضيف سجل",

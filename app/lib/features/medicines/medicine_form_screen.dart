@@ -28,6 +28,7 @@ import 'min_hours.dart';
 import 'medicines_providers.dart';
 import 'prescription_form_screen.dart' show EveryHoursDialog, presetTimes;
 import '../../core/util/time_picker.dart';
+import '../../core/util/date_picker.dart';
 
 /// A photo in the form: already saved ([picked] false), or just picked and
 /// only copied into the app when the medicine is saved.
@@ -271,8 +272,8 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
     var initial = current ?? now;
     if (initial.isBefore(earliest)) initial = earliest;
     final last = DateTime(now.year + 10, 12, 31);
-    return showDatePicker(
-      context: context,
+    return pickDate(
+      context,
       initialDate: initial,
       firstDate: earliest,
       lastDate: initial.isAfter(last) ? initial : last,

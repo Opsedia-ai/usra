@@ -8,6 +8,7 @@ import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import 'onboarding_chrome.dart';
+import '../../core/util/date_picker.dart';
 
 /// Name, date of birth and sex, which make the first family member and remember
 /// them as "me". All three are required: age-based suggestions need the date. The
@@ -68,8 +69,8 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
     FocusManager.instance.primaryFocus?.unfocus();
     final now = DateTime.now();
     final current = _birthDate;
-    final picked = await showDatePicker(
-      context: context,
+    final picked = await pickDate(
+      context,
       initialDate: current == null || _isFuture(current)
           ? DateTime(1990)
           : current,

@@ -25,6 +25,7 @@ import 'lab_report.dart';
 import 'lab_report_parser.dart';
 import 'lab_tests.dart';
 import 'lab_widgets.dart';
+import '../../core/util/date_picker.dart';
 
 /// Adds or changes a lab report: date, lab, the doctor who asked for it,
 /// cost, any number of results, and photos or PDFs of the paper.
@@ -498,8 +499,8 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
                 InkWell(
                   key: const ValueKey('lab-date'),
                   onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
+                    final picked = await pickDate(
+                      context,
                       initialDate: _date,
                       firstDate: DateTime(1900),
                       lastDate: DateTime(DateTime.now().year + 1, 12, 31),
