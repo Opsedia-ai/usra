@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:usra/features/children/child_screen.dart'
-    show growthAxisFontSize;
+    show growthAxisFontSize, lastGrowthChart;
 import 'package:usra/features/children/growth.dart';
 
 import '../support/fits.dart';
@@ -61,6 +61,50 @@ void main() {
     );
     expect(find.textContaining('ماشي كويس'), findsNothing);
     expect(find.textContaining('المدى المعتاد للسن'), findsNothing);
+  });
+
+  testWidgets('each percentile label sits on its own curve (G)', (
+    tester,
+  ) async {
+    h.tall(tester);
+    // A 2-year-old girl's weight: her chart runs to 24 months, where the
+    // curves are close together.
+    final id = (await tester.runAsync(() async {
+      final today = DateUtils.dateOnly(DateTime.now());
+      final id = await h.db.addProfile(
+        'جميلة',
+        sex: 'female',
+        birthDate: addMonths(today, -24),
+      );
+      await h.db.addEvent(
+        profileId: id,
+        type: 'growth',
+        occurredAt: today,
+        dataJson: jsonEncode({'weightKg': 12.0}),
+      );
+      return id;
+    }))!;
+    lastGrowthChart = null;
+    await h.open(tester, '/family/$id/growth');
+    final chart = lastGrowthChart!;
+    expect([for (final l in chart.labels) l.percentile], [3, 50, 97]);
+    for (final l in chart.labels) {
+      // Centred on its curve's end...
+      expect(
+        l.label.center.dy,
+        closeTo(l.curveY, 1),
+        reason: '${l.percentile}',
+      );
+      // ...and nearer its own curve than any other.
+      final nearest = chart.curveEnds.reduce(
+        (a, b) => (a - l.label.center.dy).abs() <= (b - l.label.center.dy).abs()
+            ? a
+            : b,
+      );
+      expect(nearest, l.curveY, reason: '${l.percentile}');
+      // Left of the curve's end, inside the chart.
+      expect(l.label.left, greaterThan(0));
+    }
   });
 
   testWidgets('a value far outside says so and points to the doctor', (
