@@ -3131,6 +3131,7 @@
   "vaccineDoseNotGiven": "Not given",
   "prescriptionStopped": "Stopped",
   "reminderExactOffTitle": "Reminders may be late",
+  "vaccineCatchUpShort": "catch-up",
   "vaccineMarkPast": "Mark everything due so far as given",
   "vaccineMarkPastTitle": "Mark past doses as given?",
   "vaccineMarkPastBody": "{count, plural, =1{1 required dose} other{{count} required doses}} {upTo} will be marked as given, each on its date on the schedule, not today. Check the vaccination card first: the card and the child's doctor are the reference. You can undo this, or untick any dose later.",

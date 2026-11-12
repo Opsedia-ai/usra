@@ -501,8 +501,9 @@ class DoseStatus {
     this.pastItsAge = false,
   }) : plannedOn = plannedOn ?? dueOn;
 
-  /// The child is past this dose's age on the schedule and its date moved
-  /// later than that age (an earlier dose was missing or late).
+  /// The child is more than [overdueAfterDays] past this dose's age on the
+  /// schedule (it would be overdue by age alone), and its date moved later
+  /// than that age (an earlier dose was missing or late).
   final bool pastItsAge;
 
   final ScheduledDose dose;
@@ -513,8 +514,9 @@ class DoseStatus {
 
   /// When it was due as the plan would have run: its age on the schedule,
   /// or later only when a dose before it was given late. Unlike [dueOn], a
-  /// missing earlier dose doesn't move it. The day a past dose ticked
-  /// without a date is taken to have been given (never later than today).
+  /// missing earlier dose doesn't move it. A past dose ticked without a
+  /// date is taken to have been given on this day (callers clamp it to
+  /// today with `givenDateOn`; for a dose still ahead it's in the future).
   final DateTime plannedOn;
 
   final DoseState state;
@@ -803,7 +805,7 @@ List<DoseStatus> matchSchedule({
         plannedOn: planned[dose]!,
         state: stateOf(dose),
         pastItsAge:
-            today.isAfter(dose.dueOn(birthDate)) &&
+            today.isAfter(plusDays(dose.dueOn(birthDate), overdueAfterDays)) &&
             dayOf(due[dose]!).isAfter(dayOf(dose.dueOn(birthDate))),
         givenOn: given[dose]?.date,
         recordIds: given[dose]?.ids ?? const [],

@@ -5453,4 +5453,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reminderExactOffTitle => 'Reminders may be late';
+
+  @override
+  String get vaccineCatchUpShort => 'catch-up';
+
+  @override
+  String get vaccineMarkPast => 'Mark everything due so far as given';
+
+  @override
+  String get vaccineMarkPastTitle => 'Mark past doses as given?';
+
+  @override
+  String vaccineMarkPastBody(int count, String upTo) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count required doses',
+      one: '1 required dose',
+    );
+    return '$_temp0 $upTo will be marked as given, each on its date on the schedule, not today. Check the vaccination card first: the card and the child\'s doctor are the reference. You can undo this, or untick any dose later.';
+  }
+
+  @override
+  String vaccineUpTo(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'up to $months months',
+      one: 'up to 1 month',
+      zero: 'at birth',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineMarkPastOptional(int count) {
+    return 'Also the optional ones you follow ($count)';
+  }
+
+  @override
+  String get vaccineMarkPastOk => 'Mark them';
+
+  @override
+  String vaccineMarkPastDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Marked $count doses as given',
+      one: 'Marked 1 dose as given',
+    );
+    return '$_temp0';
+  }
 }

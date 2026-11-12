@@ -5492,4 +5492,61 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reminderExactOffTitle => 'التنبيهات ممكن تتأخر';
+
+  @override
+  String get vaccineCatchUpShort => 'تعويضية';
+
+  @override
+  String get vaccineMarkPast => 'علّم على كل اللي فات إنه اتاخد';
+
+  @override
+  String get vaccineMarkPastTitle => 'تعلّم على الجرعات اللي فاتت؟';
+
+  @override
+  String vaccineMarkPastBody(int count, String upTo) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count جرعة إجبارية',
+      few: '$count جرعات إجبارية',
+      two: 'جرعتين إجباريتين',
+      one: 'جرعة إجبارية واحدة',
+    );
+    return '$_temp0 $upTo هيتعلّم عليها إنها اتاخدت، كل واحدة في ميعادها على الجدول، مش النهارده. راجع كارت التطعيم الأول: الكارت ودكتور الطفل هما المرجع. تقدر ترجع فيها، أو تشيل العلامة من أي جرعة بعدين.';
+  }
+
+  @override
+  String vaccineUpTo(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'لحد سن $months شهر',
+      few: 'لحد سن $months شهور',
+      two: 'لحد سن شهرين',
+      one: 'لحد سن شهر',
+      zero: 'عند الولادة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineMarkPastOptional(int count) {
+    return 'ومعاها الاختياري اللي ماشيين عليه ($count)';
+  }
+
+  @override
+  String get vaccineMarkPastOk => 'علّم عليها';
+
+  @override
+  String vaccineMarkPastDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'اتعلّم على $count جرعة',
+      few: 'اتعلّم على $count جرعات',
+      two: 'اتعلّم على جرعتين',
+      one: 'اتعلّم على جرعة واحدة',
+    );
+    return '$_temp0';
+  }
 }
