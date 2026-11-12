@@ -353,6 +353,11 @@ void main() {
     // (birth), OPV 1, IPV 1, Penta 1 (2 months) and MMR 1 (12 months) = 7.
     // The later doses wait on these, so they are catch-up, not overdue.
     expect(screenText(tester), contains('٧ جرعات متأخرة'));
+    // All 18 required doses are missing; 7 of them can be given now (F).
+    expect(
+      screenText(tester),
+      contains('١٨ جرعة ناقصة · ممكن تتاخد دلوقتي: ٧'),
+    );
     // Only the first few are cards; the rest open from the count.
     expect(key('vaccine-overdue-card-mmr-1'), findsNothing);
     await tap(tester, 'vaccine-overdue-all');

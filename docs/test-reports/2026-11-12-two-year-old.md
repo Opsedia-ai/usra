@@ -31,11 +31,12 @@ Nothing here was measured on a real phone. The founder's phone and simulator wal
 | [#70](https://github.com/Opsedia-ai/usra/pull/70) | CI: don't fail analyze on Flutter 3.50's material.dart deprecation | Merged |
 | [#67](https://github.com/Opsedia-ai/usra/pull/67) | CI: pin Flutter 3.47.9 | Closed, replaced by #70 |
 | [#73](https://github.com/Opsedia-ai/usra/pull/73) | E: dates typed in Arabic are read, never dropped | Merged |
-| [#71](https://github.com/Opsedia-ai/usra/pull/71) | D: mark everything due so far as given | Open, see the final report |
-| [#74](https://github.com/Opsedia-ai/usra/pull/74) | F: everything missing shown apart from what can be given now | Open, stacked on #71 |
-| [#76](https://github.com/Opsedia-ai/usra/pull/76) | G: growth chart labels on their own curve | Open |
-| [#77](https://github.com/Opsedia-ai/usra/pull/77) | J and K: relationship sets the sex; birth-date picker opens near the right year | Open |
-| [#78](https://github.com/Opsedia-ai/usra/pull/78) | H: ask before saving an impossible growth value; readable axis | Open |
+| [#71](https://github.com/Opsedia-ai/usra/pull/71) | D: mark everything due so far as given | Merged |
+| [#74](https://github.com/Opsedia-ai/usra/pull/74) | F: everything missing shown apart from what can be given now | Merged |
+| [#76](https://github.com/Opsedia-ai/usra/pull/76) | G: growth chart labels on their own curve | Merged |
+| [#77](https://github.com/Opsedia-ai/usra/pull/77) | J and K: relationship sets the sex; birth-date picker opens near the right year | Merged |
+| [#80](https://github.com/Opsedia-ai/usra/pull/80) | Fix of #77: tapping أنثى after "بنتي" kept clearing the sex | Open, see the final report |
+| [#78](https://github.com/Opsedia-ai/usra/pull/78) | H: ask before saving an impossible growth value; readable axis | Open, see the final report |
 | This PR | The full-app tests and this report | Open |
 
 ## Scores
@@ -132,7 +133,7 @@ Severity:
 | G | Growth chart labels sat one curve off ("٥٠" by the 85th) | High | Fixed, #76 |
 | H | Impossible growth values (896 cm) saved without question; the axis became unreadable | Medium | Fixed, #78 |
 | I | Text about a family member is masculine for a girl: danger signs ("نفسه", "عينه", "عادته", "سنه … وحرارته"), symptoms, and all CDC milestones ("بيضحك…") | Medium | Not fixed, see below |
-| J | "بنتي" didn't select أنثى | Low | Fixed, #77 |
+| J | "بنتي" didn't select أنثى | Low | Fixed, #77. Its regression (tapping أنثى again cleared the sex) is fixed in #80 |
 | K | The birth-date picker opened at January 1990 | Medium | Fixed, #77 |
 | 12 | A medicine added at 10:00 with an 08:00 time shows that morning's dose as missed ("فاتت") | High | Not fixed. Proposal: skip times before the medicine was created on its first day, in `plannedDoses` (`lib/features/medicines/dose_schedule.dart`) and `isDoseMissed`. |
 | 13 | Several screens read the phone clock (`DateTime.now()`) instead of `clockProvider`: insurance expiry, spending period, the vaccine date picker, growth age, the record form's default date, the profile picker's last date, and the dose log time. Around midnight they can disagree with the rest of the app, and they can't be tested on a fixed date. | Medium | Not fixed. Proposal: read `clockProvider` everywhere. |
