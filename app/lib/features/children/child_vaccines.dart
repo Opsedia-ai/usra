@@ -127,6 +127,29 @@ String doseName(AppLocalizations l, ScheduledDose dose) {
 String doseAge(AppLocalizations l, ScheduledDose dose) =>
     dose.ageMonths == 0 ? l.vaccineAtBirth : l.vaccineAtMonths(dose.ageMonths);
 
+/// What "mark everything due so far as given" marks: doses still to give
+/// whose day on the plan has come (never one not due yet), required ones,
+/// and the optional ones the family follows only with [withOptional]. Never
+/// a dose past its upper age or not needed.
+List<DoseStatus> pastDosesToMark(
+  List<DoseStatus> statuses,
+  DateTime today, {
+  bool withOptional = false,
+}) {
+  final day = DateTime(today.year, today.month, today.day);
+  return [
+    for (final s in statuses)
+      if (s.open &&
+          (s.dose.required || withOptional) &&
+          !DateTime(
+            s.plannedOn.year,
+            s.plannedOn.month,
+            s.plannedOn.day,
+          ).isAfter(day))
+        s,
+  ];
+}
+
 /// A record the vaccine screens add.
 typedef NewVaccineRecord = ({
   String type,

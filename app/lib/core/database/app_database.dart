@@ -475,8 +475,9 @@ class AppDatabase extends _$AppDatabase {
   /// nothing: the vaccine checklist saves this way.
   ///
   /// [redate] moves records to a new date in place, keeping everything else
-  /// on them (photos, doctor, cost).
-  Future<void> replaceEvents({
+  /// on them (photos, doctor, cost). Returns the ids of the records added,
+  /// in the order of [add].
+  Future<List<String>> replaceEvents({
     required String profileId,
     List<({String type, DateTime occurredAt, String dataJson})> add = const [],
     Iterable<String> remove = const [],
@@ -484,6 +485,7 @@ class AppDatabase extends _$AppDatabase {
   }) async {
     if (add.isNotEmpty) newRecordGuard?.call();
     final now = DateTime.now().toUtc();
+    final added = <String>[];
     await transaction(() async {
       for (final MapEntry(key: id, value: date) in redate.entries) {
         await (update(
@@ -518,8 +520,10 @@ class AppDatabase extends _$AppDatabase {
           ),
         );
         await _queue('medical_event', id, 'upsert');
+        added.add(id);
       }
     });
+    return added;
   }
 
   /// Emits when a record of [types] is added, changed or deleted (and

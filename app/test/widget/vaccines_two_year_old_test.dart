@@ -340,4 +340,142 @@ void main() {
     await h.tapKey(tester, 'dose-given');
     expect(title(), 'ماتاخدتش');
   });
+
+  group('mark everything due so far (D)', () {
+    String body(WidgetTester tester) =>
+        tester.widget<Text>(key('vaccine-mark-past-body')).data!;
+
+    testWidgets('a 2-year-old: from the vaccine page, all 18 on their '
+        'schedule days, then undone', (tester) async {
+      veryTall(tester);
+      final id = await seed(tester);
+      await h.open(tester, '/family/$id/vaccines');
+      await h.tapKey(tester, 'vaccine-mark-past');
+      expect(body(tester), contains('١٨ جرعة إجبارية'));
+      expect(body(tester), contains('لحد سن ١٨ شهر'));
+      expect(body(tester), contains('مش النهارده'));
+      expect(body(tester), contains('كارت التطعيم'));
+      // No optional vaccine followed: nothing to add.
+      expect(key('vaccine-mark-past-optional'), findsNothing);
+      await h.tapKey(tester, 'vaccine-mark-past-ok');
+      expect(await given(tester, id), scheduleDay);
+      expect(find.text('اتعلّم على ١٨ جرعة'), findsOneWidget);
+      await tester.tap(find.text('تراجع'));
+      await h.settle(tester);
+      expect(await given(tester, id), isEmpty);
+    });
+
+    testWidgets('cancelled: nothing saved', (tester) async {
+      veryTall(tester);
+      final id = await seed(tester);
+      await h.open(tester, '/family/$id/vaccines');
+      await h.tapKey(tester, 'vaccine-mark-past');
+      await tester.tap(find.text('إلغاء'));
+      await h.settle(tester);
+      expect(await given(tester, id), isEmpty);
+    });
+
+    testWidgets('optional ones only when also chosen', (tester) async {
+      veryTall(tester);
+      final id = await seed(tester);
+      await tester.runAsync(
+        () => h.db.saveSingletonEvent(
+          profileId: id,
+          type: VaccinePlanFields.type,
+          dataJson: const VaccinePlan(optional: {VaccineKind.pcv}).toJson(),
+        ),
+      );
+      await h.open(tester, '/family/$id/vaccines');
+      await h.tapKey(tester, 'vaccine-mark-past');
+      // A 2-year-old starting PCV needs one dose.
+      expect(
+        find.textContaining('الاختياري اللي ماشيين عليه (١)'),
+        findsOneWidget,
+      );
+      await h.tapKey(tester, 'vaccine-mark-past-ok');
+      expect((await given(tester, id)).containsKey('pcv-1'), isFalse);
+    });
+
+    testWidgets('a 7-month-old: never a dose not due yet', (tester) async {
+      veryTall(tester);
+      final id = (await tester.runAsync(
+        () => h.db.addProfile(
+          'ليلى',
+          sex: 'female',
+          birthDate: DateTime(2026, 4, 12),
+        ),
+      ))!;
+      await h.open(tester, '/family/$id/vaccines');
+      await h.tapKey(tester, 'vaccine-mark-past');
+      // Birth, 2, 4 and 6 months: 12 doses. OPV 4 at 9 months isn't due.
+      expect(body(tester), contains('١٢ جرعة إجبارية'));
+      expect(body(tester), contains('لحد سن ٦ شهور'));
+      await h.tapKey(tester, 'vaccine-mark-past-ok');
+      final dates = await given(tester, id);
+      expect(dates.length, 12);
+      expect(dates['penta-3'], d(2026, 10, 12));
+      expect(dates.containsKey('opv-4'), isFalse);
+    });
+
+    testWidgets('a child of 4 years 11 months: from the setup, ticked on '
+        'the schedule, saved on Save, and the ticks can be undone first', (
+      tester,
+    ) async {
+      veryTall(tester);
+      final born = DateTime(2021, 12, 12);
+      final id = (await tester.runAsync(
+        () => h.db.addProfile('سلمى', sex: 'female', birthDate: born),
+      ))!;
+      await h.open(tester, '/family/$id/vaccines/setup');
+      await h.tapKey(tester, 'setup-mark-past');
+      expect(body(tester), contains('١٨ جرعة إجبارية'));
+      await h.tapKey(tester, 'vaccine-mark-past-ok');
+      expect(tester.widget<CheckboxListTile>(key('setup-dtp-1')).value, isTrue);
+      // Undo puts the ticks back as they were.
+      await tester.tap(find.text('تراجع'));
+      await h.settle(tester);
+      expect(
+        tester.widget<CheckboxListTile>(key('setup-dtp-1')).value,
+        isFalse,
+      );
+      await h.tapKey(tester, 'setup-mark-past');
+      await h.tapKey(tester, 'vaccine-mark-past-ok');
+      await h.tapKey(tester, 'vaccine-setup-save');
+      final dates = await given(tester, id);
+      DateTime at(int months) {
+        final m = DateTime(born.year, born.month + months, born.day);
+        return DateTime(m.year, m.month, m.day);
+      }
+
+      expect(dates, {
+        for (final e in scheduleDay.entries)
+          e.key: at(
+            const {
+              'hepB-0': 0, 'bcg-1': 0, 'opv-0': 0, //
+              'opv-1': 2, 'ipv-1': 2, 'penta-1': 2,
+              'opv-2': 4, 'ipv-2': 4, 'penta-2': 4,
+              'opv-3': 6, 'ipv-3': 6, 'penta-3': 6,
+              'opv-4': 9, 'opv-5': 12, 'mmr-1': 12,
+              'opv-6': 18, 'mmr-2': 18, 'dtp-1': 18,
+            }[e.key]!,
+          ),
+      });
+    });
+
+    testWidgets('at 5, the vaccine page is for under-fives only', (
+      tester,
+    ) async {
+      veryTall(tester);
+      final id = (await tester.runAsync(
+        () => h.db.addProfile(
+          'سلمى',
+          sex: 'female',
+          birthDate: DateTime(2021, 11, 12),
+        ),
+      ))!;
+      await h.open(tester, '/family/$id/vaccines');
+      expect(key('vaccine-mark-past'), findsNothing);
+      expect(key('vaccine-progress'), findsNothing);
+    });
+  });
 }

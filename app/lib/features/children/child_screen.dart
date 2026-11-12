@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart' show listEquals;
+import 'package:flutter/foundation.dart' show listEquals, visibleForTesting;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -450,6 +450,15 @@ class _Legend extends StatelessWidget {
 /// The smallest text on a chart.
 const growthAxisFontSize = 14.0;
 
+/// One percentile label as last painted: the curve's end (y) and where the
+/// label went. Tests check each label sits on its own curve.
+typedef PercentileLabel = ({int percentile, double curveY, Rect label});
+
+/// What the growth chart painted last: its labels, and where every curve
+/// ends. For tests only.
+@visibleForTesting
+({List<PercentileLabel> labels, List<double> curveEnds})? lastGrowthChart;
+
 class _ChartPainter extends CustomPainter {
   _ChartPainter({
     required this.colors,
@@ -551,6 +560,7 @@ class _ChartPainter extends CustomPainter {
       band..close(),
       Paint()..color = Severity.good.backgroundIn(colors),
     );
+    final labels = <PercentileLabel>[];
     for (var i = 0; i < curves.length; i++) {
       final median = chartPercentiles[i].$1 == 50;
       final line = Path();
@@ -568,15 +578,28 @@ class _ChartPainter extends CustomPainter {
               : colors.inkMuted,
       );
       // At 14 px all five would run together: the outer two and the middle.
+      // Each sits just left of its curve's end, centred on it: placed above
+      // the end, as before, it read as the next curve's label.
       if (i == 0 || median || i == curves.length - 1) {
         final (end, endValue) = curves[i].last;
-        _label(
+        final tip = at(end, endValue);
+        final rect = _label(
           canvas,
           digitsIn(language, '${chartPercentiles[i].$1}'),
-          at(end, endValue) - const Offset(22, 18),
+          tip,
+          endCentred: true,
         );
+        labels.add((
+          percentile: chartPercentiles[i].$1,
+          curveY: tip.dy,
+          label: rect,
+        ));
       }
     }
+    lastGrowthChart = (
+      labels: labels,
+      curveEnds: [for (final c in curves) at(c.last.$1, c.last.$2).dy],
+    );
 
     // The child's measurements, joined in time order.
     final shown = [
@@ -615,7 +638,17 @@ class _ChartPainter extends CustomPainter {
   static String _number(double v) =>
       v == v.roundToDouble() ? '${v.round()}' : v.toStringAsFixed(1);
 
-  void _label(Canvas canvas, String text, Offset at, {bool center = false}) {
+  /// Paints [text] at [at] (its top left, or top centre with [center]); with
+  /// [endCentred], ending a little left of [at] and centred on it
+  /// vertically, on a patch of the chart's background so the curve doesn't
+  /// run through it. Where it went.
+  Rect _label(
+    Canvas canvas,
+    String text,
+    Offset at, {
+    bool center = false,
+    bool endCentred = false,
+  }) {
     final painter = TextPainter(
       text: TextSpan(
         text: text,
@@ -623,8 +656,18 @@ class _ChartPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    painter.paint(canvas, center ? at - Offset(painter.width / 2, 0) : at);
+    final topLeft = endCentred
+        ? at - Offset(painter.width + 4, painter.height / 2)
+        : center
+        ? at - Offset(painter.width / 2, 0)
+        : at;
+    final rect = topLeft & painter.size;
+    if (endCentred) {
+      canvas.drawRect(rect.inflate(1), Paint()..color = colors.surface);
+    }
+    painter.paint(canvas, topLeft);
     painter.dispose();
+    return rect;
   }
 
   @override
