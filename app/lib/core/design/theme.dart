@@ -107,23 +107,25 @@ ThemeData buildUsraTheme({
     cardTheme: CardThemeData(
       color: c.surface,
       surfaceTintColor: Colors.transparent,
-      // A Card has one elevation, not the token's exact blur: this is the
-      // nearest match. Dark mode has no shadow, so the line draws the edge.
-      elevation: dark ? 0 : 3,
-      shadowColor: c.ink.withValues(alpha: 0.18),
+      // Hairline border, no shadow, in both themes.
+      elevation: 0,
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(UsraRadius.card),
-        side: dark ? BorderSide(color: c.line) : BorderSide.none,
+        side: BorderSide(color: c.line),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: Size.fromHeight(simple ? simpleTapTarget : 52),
-        shape: const StadiumBorder(),
+        minimumSize: Size.fromHeight(
+          simple ? simpleTapTarget : UsraSizes.touchTarget,
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(UsraRadius.button)),
+        ),
         textStyle: UsraType.body.copyWith(
-          fontSize: 17,
+          fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -132,7 +134,9 @@ ThemeData buildUsraTheme({
       style: OutlinedButton.styleFrom(
         minimumSize:
             tap ?? const Size(UsraSizes.touchTarget, UsraSizes.touchTarget),
-        shape: const StadiumBorder(),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(UsraRadius.button)),
+        ),
         foregroundColor: c.primary,
         side: BorderSide(color: c.lineStrong),
       ),

@@ -36,6 +36,10 @@ void main() {
     'orchid-ink on surface': (c) => (c.orchidInk, c.surface),
     'sky-ink on surface': (c) => (c.skyInk, c.surface),
     'on-urgent on urgent': (c) => (c.onUrgent, c.urgent),
+    'attention on bg': (c) => (c.attention, c.bg),
+    'attention on surface': (c) => (c.attention, c.surface),
+    'attention on surface-soft': (c) => (c.attention, c.surfaceSoft),
+    'urgent on bg': (c) => (c.urgent, c.bg),
   };
 
   for (final MapEntry(key: theme, value: colors) in themes.entries) {
@@ -80,11 +84,12 @@ void main() {
     });
   }
 
-  test('good text fails on surface-soft in light, so never pair them', () {
-    // Measured 4.40:1. Pinned so a token change makes someone re-check.
+  test('good text reaches 4.5:1 on the polished light surface-soft', () {
+    // Was 4.40:1 on the old pink surface-soft; the November 2026 polish's
+    // cooler grey lifts it. Pinned so a token change makes someone re-check.
     expect(
       contrast(UsraColors.light.good, UsraColors.light.surfaceSoft),
-      lessThan(4.5),
+      greaterThanOrEqualTo(4.5),
     );
   });
 
