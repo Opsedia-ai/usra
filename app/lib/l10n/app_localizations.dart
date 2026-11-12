@@ -935,7 +935,7 @@ abstract class AppLocalizations {
   /// No description provided for @fieldFilmed.
   ///
   /// In en, this message translates to:
-  /// **'Filmed'**
+  /// **'Filmed?'**
   String get fieldFilmed;
 
   /// No description provided for @fieldDaysInHospital.
@@ -5855,8 +5855,8 @@ abstract class AppLocalizations {
   /// No description provided for @sickDayOngoing.
   ///
   /// In en, this message translates to:
-  /// **'Still ill'**
-  String get sickDayOngoing;
+  /// **'{sex, select, other{Still ill}}'**
+  String sickDayOngoing(String sex);
 
   /// No description provided for @sickDayEnded.
   ///
@@ -5897,8 +5897,8 @@ abstract class AppLocalizations {
   /// No description provided for @sickDayReopen.
   ///
   /// In en, this message translates to:
-  /// **'Still ill'**
-  String get sickDayReopen;
+  /// **'{sex, select, other{Still ill}}'**
+  String sickDayReopen(String sex);
 
   /// No description provided for @sickDayDelete.
   ///
@@ -8106,6 +8106,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional · was due {date}'**
   String vaccineOptionalWasDue(String date);
+
+  /// No description provided for @vaccineDoseNotGiven.
+  ///
+  /// In en, this message translates to:
+  /// **'Not given'**
+  String get vaccineDoseNotGiven;
+
+  /// No description provided for @prescriptionStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped'**
+  String get prescriptionStopped;
+
+  /// No description provided for @reminderExactOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders may be late'**
+  String get reminderExactOffTitle;
 }
 
 class _AppLocalizationsDelegate

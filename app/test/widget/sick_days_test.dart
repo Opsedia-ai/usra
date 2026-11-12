@@ -376,7 +376,11 @@ void main() {
     late String grandma;
     late String episode;
     await tester.runAsync(() async {
-      grandma = await db.addProfile('Teta', birthDate: DateTime(1950, 1, 1));
+      grandma = await db.addProfile(
+        'Teta',
+        birthDate: DateTime(1950, 1, 1),
+        sex: 'female',
+      );
       episode = await db.saveEpisode(profileId: grandma, startedAt: now);
     });
     await tester.pumpWidget(app(simple: true));
@@ -403,5 +407,8 @@ void main() {
       (await tester.runAsync(() => db.watchEpisode(episode).first))!.endedAt,
       isNotNull,
     );
+    // Reopening says she's still ill, in the feminine (bug C audit).
+    expect(find.text('لسه تعبانة'), findsOneWidget);
+    expect(find.text('لسه تعبان'), findsNothing);
   });
 }

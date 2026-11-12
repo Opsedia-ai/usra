@@ -152,7 +152,7 @@ class _Details extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
-              l.medicineStopped,
+              l.prescriptionStopped,
               style: text.titleMedium?.copyWith(color: context.usra.inkMuted),
             ),
           ),

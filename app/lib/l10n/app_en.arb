@@ -234,7 +234,7 @@
   "fieldNextDue": "Next dose",
   "fieldProcedure": "Procedure",
   "fieldHospital": "Hospital",
-  "fieldFilmed": "Filmed",
+  "fieldFilmed": "Filmed?",
   "fieldDaysInHospital": "Days in hospital",
   "scanXray": "X-ray",
   "scanCt": "CT",
@@ -2064,7 +2064,14 @@
   "sickDaysTitle": "Fever and sick days",
   "sickDaysEmpty": "No sick days yet. When someone gets ill, start one to log temperatures, symptoms and the medicines given.",
   "sickDayStart": "Start a sick day",
-  "sickDayOngoing": "Still ill",
+  "sickDayOngoing": "{sex, select, other{Still ill}}",
+  "@sickDayOngoing": {
+    "placeholders": {
+      "sex": {
+        "type": "String"
+      }
+    }
+  },
   "sickDayEnded": "Over",
   "sickDaySince": "Since {date}",
   "@sickDaySince": {
@@ -2088,7 +2095,14 @@
   "sickDayTitle": "Sick day",
   "sickDayStartedAt": "Started",
   "sickDayEnd": "Mark as over",
-  "sickDayReopen": "Still ill",
+  "sickDayReopen": "{sex, select, other{Still ill}}",
+  "@sickDayReopen": {
+    "placeholders": {
+      "sex": {
+        "type": "String"
+      }
+    }
+  },
   "sickDayDelete": "Delete this sick day",
   "sickDayDeleteConfirm": "Delete this sick day with its temperatures and medicines given?",
   "sickDayTemperatures": "Temperature",
@@ -3113,5 +3127,8 @@
         "type": "String"
       }
     }
-  }
+  },
+  "vaccineDoseNotGiven": "Not given",
+  "prescriptionStopped": "Stopped",
+  "reminderExactOffTitle": "Reminders may be late"
 }

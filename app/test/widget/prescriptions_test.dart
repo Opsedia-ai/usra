@@ -271,6 +271,9 @@ void main() {
     expect(await tester.runAsync(() => db.watchRegimens().first), isEmpty);
     await tester.pumpAndSettle();
     expect(find.text('وقّف الروشتة كلها'), findsNothing);
+    // A prescription (روشتة) is feminine: متوقفة. Its medicines (دوا)
+    // stay متوقف.
+    expect(find.text('متوقفة'), findsWidgets);
     await tapKey(tester, 'rx-toggle-active');
     expect(await tester.runAsync(() => db.watchRegimens().first), hasLength(1));
     await tester.pumpAndSettle();

@@ -544,7 +544,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get fieldHospital => 'المستشفى';
 
   @override
-  String get fieldFilmed => 'اتصورت فيديو';
+  String get fieldFilmed => 'اتصورت فيديو؟';
 
   @override
   String get fieldDaysInHospital => 'أيام في المستشفى';
@@ -904,17 +904,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String vaccineDone(String date) {
-    return 'اتاخد $date';
+    return 'اتاخدت $date';
   }
 
   @override
   String vaccineDue(String date) {
-    return 'معاده $date';
+    return 'ميعادها $date';
   }
 
   @override
   String vaccineOverdue(String date) {
-    return 'متأخر من $date';
+    return 'متأخرة من $date';
   }
 
   @override
@@ -3952,7 +3952,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sickDayStart => 'ابدأ يوم تعب';
 
   @override
-  String get sickDayOngoing => 'لسه تعبان';
+  String sickDayOngoing(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'female': 'لسه تعبانة',
+      'other': 'لسه تعبان',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get sickDayEnded => 'خلص';
@@ -3977,7 +3983,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sickDayEnd => 'خلص التعب';
 
   @override
-  String get sickDayReopen => 'لسه تعبان';
+  String sickDayReopen(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'female': 'لسه تعبانة',
+      'other': 'لسه تعبان',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get sickDayDelete => 'امسح يوم التعب ده';
@@ -5303,7 +5315,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String vaccineChoiceOverdue(String dose) {
-    return '$dose · متأخر';
+    return '$dose · متأخرة';
   }
 
   @override
@@ -5471,4 +5483,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String vaccineOptionalWasDue(String date) {
     return 'اختياري · كان ميعادها $date';
   }
+
+  @override
+  String get vaccineDoseNotGiven => 'ماتاخدتش';
+
+  @override
+  String get prescriptionStopped => 'متوقفة';
+
+  @override
+  String get reminderExactOffTitle => 'التنبيهات ممكن تتأخر';
 }

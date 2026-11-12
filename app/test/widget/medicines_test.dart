@@ -216,6 +216,9 @@ void main() {
     await tester.tap(find.text('الأدوية').last);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('reminders-off')), findsOneWidget);
+    // Notifications are on, only not exact: never "reminders are off".
+    expect(find.text('التنبيهات ممكن تتأخر'), findsOneWidget);
+    expect(find.text('التنبيهات مقفولة'), findsNothing);
     scheduler.afterRequest = const ReminderAccess(notifications: true);
     await tester.tap(find.text('اسمح'));
     await tester.pumpAndSettle();

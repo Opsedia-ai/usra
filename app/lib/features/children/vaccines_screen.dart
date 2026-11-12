@@ -1044,7 +1044,8 @@ class _DoseSheetState extends ConsumerState<_DoseSheet> {
               contentPadding: EdgeInsets.zero,
               value: _given,
               onChanged: (v) => setState(() => _given = v),
-              title: Text(l.vaccineDoseGiven),
+              // Says what the switch shows: given, or not given.
+              title: Text(_given ? l.vaccineDoseGiven : l.vaccineDoseNotGiven),
             ),
             if (_given)
               ListTile(

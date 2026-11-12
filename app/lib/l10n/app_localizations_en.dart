@@ -548,7 +548,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fieldHospital => 'Hospital';
 
   @override
-  String get fieldFilmed => 'Filmed';
+  String get fieldFilmed => 'Filmed?';
 
   @override
   String get fieldDaysInHospital => 'Days in hospital';
@@ -3925,7 +3925,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sickDayStart => 'Start a sick day';
 
   @override
-  String get sickDayOngoing => 'Still ill';
+  String sickDayOngoing(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {'other': 'Still ill'});
+    return '$_temp0';
+  }
 
   @override
   String get sickDayEnded => 'Over';
@@ -3950,7 +3953,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sickDayEnd => 'Mark as over';
 
   @override
-  String get sickDayReopen => 'Still ill';
+  String sickDayReopen(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {'other': 'Still ill'});
+    return '$_temp0';
+  }
 
   @override
   String get sickDayDelete => 'Delete this sick day';
@@ -5438,4 +5444,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String vaccineOptionalWasDue(String date) {
     return 'Optional · was due $date';
   }
+
+  @override
+  String get vaccineDoseNotGiven => 'Not given';
+
+  @override
+  String get prescriptionStopped => 'Stopped';
+
+  @override
+  String get reminderExactOffTitle => 'Reminders may be late';
 }
