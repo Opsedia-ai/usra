@@ -5504,11 +5504,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String vaccineMarkPastBody(int count, String upTo) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count جرعة إجبارية',
-      few: '$count جرعات إجبارية',
+      other: '$countString جرعة إجبارية',
+      few: '$countString جرعات إجبارية',
       two: 'جرعتين إجباريتين',
       one: 'جرعة إجبارية واحدة',
     );
@@ -5517,11 +5521,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String vaccineUpTo(int months) {
+    final intl.NumberFormat monthsNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String monthsString = monthsNumberFormat.format(months);
+
     String _temp0 = intl.Intl.pluralLogic(
       months,
       locale: localeName,
-      other: 'لحد سن $months شهر',
-      few: 'لحد سن $months شهور',
+      other: 'لحد سن $monthsString شهر',
+      few: 'لحد سن $monthsString شهور',
       two: 'لحد سن شهرين',
       one: 'لحد سن شهر',
       zero: 'عند الولادة',
@@ -5531,7 +5539,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String vaccineMarkPastOptional(int count) {
-    return 'ومعاها الاختياري اللي ماشيين عليه ($count)';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'ومعاها الاختياري اللي ماشيين عليه ($countString)';
   }
 
   @override
@@ -5539,11 +5551,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String vaccineMarkPastDone(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'اتعلّم على $count جرعة',
-      few: 'اتعلّم على $count جرعات',
+      other: 'اتعلّم على $countString جرعة',
+      few: 'اتعلّم على $countString جرعات',
       two: 'اتعلّم على جرعتين',
       one: 'اتعلّم على جرعة واحدة',
     );

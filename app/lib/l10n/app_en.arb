@@ -3138,7 +3138,8 @@
   "@vaccineMarkPastBody": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "upTo": {
         "type": "String"
@@ -3149,7 +3150,8 @@
   "@vaccineUpTo": {
     "placeholders": {
       "months": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -3157,7 +3159,8 @@
   "@vaccineMarkPastOptional": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -3166,7 +3169,8 @@
   "@vaccineMarkPastDone": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   }
