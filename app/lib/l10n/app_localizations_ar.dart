@@ -5457,4 +5457,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String simpleThenDoseFor(String medicine, String name, String time) {
     return 'وبعده: $medicine لـ$name الساعة $time';
   }
+
+  @override
+  String vaccineCatchUp(String date) {
+    return 'جرعة تعويضية · ميعادها $date';
+  }
+
+  @override
+  String get vaccineNextCatchUp => 'جرعات تعويضية (فات سنّها)';
+
+  @override
+  String get vaccineDateAssumed =>
+      'ده ميعادها على الجدول. غيّره لو اتاخدت في يوم تاني.';
 }

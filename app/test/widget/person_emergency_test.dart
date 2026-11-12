@@ -296,15 +296,15 @@ void main() {
 
       final events = (await tester.runAsync(() => db.watchTimeline(id).first))!;
       final logged = events.where((e) => e.type == 'vaccine').single;
-      // Logged now, so it says today rather than the old due date.
-      final today = DateTime.now();
+      // Logged without a date: taken as given on its day on the schedule
+      // (the birth dose, at birth), never today.
       expect(
         DateTime(
           logged.occurredAt.year,
           logged.occurredAt.month,
           logged.occurredAt.day,
         ),
-        DateTime(today.year, today.month, today.day),
+        DateTime(2026, 3, 1),
       );
     });
 

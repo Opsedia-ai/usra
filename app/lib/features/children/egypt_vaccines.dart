@@ -497,17 +497,30 @@ class DoseStatus {
   const DoseStatus({
     required this.dose,
     required this.dueOn,
+    DateTime? plannedOn,
     required this.state,
     this.givenOn,
     this.recordIds = const [],
     this.followed = true,
-  });
+    this.pastItsAge = false,
+  }) : plannedOn = plannedOn ?? dueOn;
+
+  /// The child is past this dose's age on the schedule and its date moved
+  /// later than that age (an earlier dose was missing or late).
+  final bool pastItsAge;
 
   final ScheduledDose dose;
 
   /// When it's due: its age on the schedule, or later when the previous
   /// dose came late (minimum interval).
   final DateTime dueOn;
+
+  /// When it was due as the plan would have run: its age on the schedule,
+  /// or later only when a dose before it was given late. Unlike [dueOn], a
+  /// missing earlier dose doesn't move it. The day a past dose ticked
+  /// without a date is taken to have been given (never later than today).
+  final DateTime plannedOn;
+
   final DoseState state;
   final DateTime? givenOn;
 
@@ -519,6 +532,11 @@ class DoseStatus {
   final bool followed;
 
   bool get done => state == DoseState.done;
+
+  /// Still to give and not yet overdue, but the child is already past the
+  /// age it's for on the schedule and its date moved later (an earlier dose
+  /// was missing or late): a catch-up dose, never "at 4 months".
+  bool get catchUp => open && state != DoseState.overdue && pastItsAge;
 
   /// Still to be given, in the plan: due, overdue or later.
   bool get open =>
@@ -675,20 +693,13 @@ List<DoseStatus> matchSchedule({
       if (e.key.kind == VaccineKind.pcv) e.value.date,
   ], today);
 
-  // Due dates and upper ages, dose by dose within each vaccine.
-  final due = <ScheduledDose, DateTime>{};
-  final tooLate = <ScheduledDose>{};
-  // Earliest day each dose was or can be given, for the next dose.
-  final earliest = <ScheduledDose, DateTime>{};
   final series = <VaccineKind, List<ScheduledDose>>{};
   for (final d in schedule) {
     (series[d.kind] ??= []).add(d);
   }
-  DateTime later(DateTime a, DateTime b) => a.isAfter(b) ? a : b;
-  DateTime? earliestOf(VaccineKind kind, int dose) => series[kind]
-      ?.where((d) => d.dose == dose)
-      .map((d) => earliest[d])
-      .firstOrNull;
+  for (final doses in series.values) {
+    doses.sort((a, b) => a.dose.compareTo(b.dose));
+  }
   // Penta, IPV and OPV first: the DTP and hexavalent boosters count from
   // them.
   final order = [...series.keys]
@@ -697,48 +708,77 @@ List<DoseStatus> matchSchedule({
           k == VaccineKind.dtp || k == VaccineKind.hexa ? 1 : 0;
       return rank(a).compareTo(rank(b));
     });
-  for (final kind in order) {
-    final doses = series[kind]!..sort((a, b) => a.dose.compareTo(b.dose));
-    DateTime? prev;
+
+  // Due dates, dose by dose within each vaccine. With [catchUp], a missing
+  // dose can be given today at the earliest, so the doses after it move
+  // later (the catch-up plan); without, a missing dose is placed on its own
+  // due date (the plan as it would have run, for dating past doses ticked
+  // without a date).
+  Map<ScheduledDose, DateTime> chain({required bool catchUp}) {
+    final due = <ScheduledDose, DateTime>{};
+    // Earliest day each dose was or can be given, for the next dose.
+    final earliest = <ScheduledDose, DateTime>{};
+    DateTime? earliestOf(VaccineKind kind, int dose) => series[kind]
+        ?.where((d) => d.dose == dose)
+        .map((d) => earliest[d])
+        .firstOrNull;
+    for (final kind in order) {
+      DateTime? prev;
+      for (final d in series[kind]!) {
+        var date = d.dueOn(birthDate);
+        if (prev != null && d.hasInterval) {
+          date = _later(date, d.earliestAfter(prev));
+        }
+        // The boosters: 6 months after the third DTP-containing dose,
+        // whichever product it was (mixed routes).
+        if (d.kind == VaccineKind.dtp ||
+            (d.kind == VaccineKind.hexa && d.dose == 4)) {
+          final third =
+              earliestOf(VaccineKind.hexa, 3) ??
+              earliestOf(VaccineKind.penta, 3);
+          if (third != null) {
+            date = _later(date, addMonths(third, _dtpBoosterAfterMonths));
+          }
+        }
+        // PCV for a late starter: the last dose needed is the booster, from
+        // 12 months and 8 weeks after the previous one.
+        if (d.kind == VaccineKind.pcv && d.dose == pcvNeeded && pcvNeeded > 1) {
+          date = _later(date, addMonths(birthDate, 12));
+          if (prev != null) {
+            date = _later(date, plusDays(prev, 56));
+          }
+        }
+        due[d] = date;
+        final g = given[d];
+        earliest[d] = g != null
+            ? DateTime(g.date.year, g.date.month, g.date.day)
+            : catchUp
+            ? _later(date, today)
+            : date;
+        prev = earliest[d];
+      }
+    }
+    return due;
+  }
+
+  final due = chain(catchUp: true);
+  final planned = chain(catchUp: false);
+
+  // Upper ages (rotavirus): a dose is too late once its last day has passed
+  // or its catch-up date falls after it, and so is every dose after it.
+  final tooLate = <ScheduledDose>{};
+  for (final doses in series.values) {
     var prevTooLate = false;
     for (final d in doses) {
-      var date = d.dueOn(birthDate);
-      if (prev != null && d.hasInterval) {
-        date = later(date, d.earliestAfter(prev));
-      }
-      // The boosters: 6 months after the third DTP-containing dose,
-      // whichever product it was (mixed routes).
-      if (d.kind == VaccineKind.dtp ||
-          (d.kind == VaccineKind.hexa && d.dose == 4)) {
-        final third =
-            earliestOf(VaccineKind.hexa, 3) ?? earliestOf(VaccineKind.penta, 3);
-        if (third != null) {
-          date = later(date, addMonths(third, _dtpBoosterAfterMonths));
-        }
-      }
-      // PCV for a late starter: the last dose needed is the booster, from
-      // 12 months and 8 weeks after the previous one.
-      if (d.kind == VaccineKind.pcv && d.dose == pcvNeeded && pcvNeeded > 1) {
-        date = later(date, addMonths(birthDate, 12));
-        if (prev != null) {
-          date = later(date, plusDays(prev, 56));
-        }
-      }
-      due[d] = date;
-      final g = given[d];
       final last = d.maxAgeDays == null
           ? null
           : plusDays(birthDate, d.maxAgeDays!);
       final late =
-          g == null &&
+          !given.containsKey(d) &&
           (prevTooLate ||
-              (last != null && (today.isAfter(last) || date.isAfter(last))));
+              (last != null && (today.isAfter(last) || due[d]!.isAfter(last))));
       if (late) tooLate.add(d);
       prevTooLate = late;
-      earliest[d] = g == null
-          ? later(date, today)
-          : DateTime(g.date.year, g.date.month, g.date.day);
-      prev = earliest[d];
     }
   }
 
@@ -760,13 +800,19 @@ List<DoseStatus> matchSchedule({
       DoseStatus(
         dose: dose,
         dueOn: due[dose]!,
+        plannedOn: planned[dose]!,
         state: stateOf(dose),
+        pastItsAge:
+            today.isAfter(dose.dueOn(birthDate)) &&
+            dayOf(due[dose]!).isAfter(dayOf(dose.dueOn(birthDate))),
         givenOn: given[dose]?.date,
         recordIds: given[dose]?.ids ?? const [],
         followed: plan.follows(dose),
       ),
   ];
 }
+
+DateTime _later(DateTime a, DateTime b) => a.isAfter(b) ? a : b;
 
 /// Progress through the plan: "10/12 required done".
 typedef VaccineProgress = ({

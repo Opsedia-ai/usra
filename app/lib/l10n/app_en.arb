@@ -3096,5 +3096,15 @@
         "type": "String"
       }
     }
-  }
+  },
+  "vaccineCatchUp": "Catch-up · due {date}",
+  "@vaccineCatchUp": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineNextCatchUp": "Catch-up doses (past their age)",
+  "vaccineDateAssumed": "The date on the schedule. Change it if it was given on another day."
 }

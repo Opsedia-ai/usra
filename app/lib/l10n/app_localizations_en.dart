@@ -5424,4 +5424,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String simpleThenDoseFor(String medicine, String name, String time) {
     return 'Then: $medicine for $name at $time';
   }
+
+  @override
+  String vaccineCatchUp(String date) {
+    return 'Catch-up · due $date';
+  }
+
+  @override
+  String get vaccineNextCatchUp => 'Catch-up doses (past their age)';
+
+  @override
+  String get vaccineDateAssumed =>
+      'The date on the schedule. Change it if it was given on another day.';
 }

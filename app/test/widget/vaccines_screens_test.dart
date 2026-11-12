@@ -65,7 +65,9 @@ void main() {
     final events = await tester.runAsync(() => h.db.watchTimeline(id).first);
     final records = vaccineRecords(events!);
     expect(records, hasLength(1));
-    expect(records.single.date.day, DateTime.now().day);
+    // Dated on the day it was due (at birth), not today.
+    final born = addMonths(DateUtils.dateOnly(DateTime.now()), -7);
+    expect(DateUtils.dateOnly(records.single.date), born);
     await tester.drag(find.byType(ListView).first, const Offset(0, 3000));
     await tester.pumpAndSettle();
     expect(

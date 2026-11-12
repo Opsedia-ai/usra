@@ -8088,6 +8088,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Then: {medicine} for {name} at {time}'**
   String simpleThenDoseFor(String medicine, String name, String time);
+
+  /// No description provided for @vaccineCatchUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Catch-up · due {date}'**
+  String vaccineCatchUp(String date);
+
+  /// No description provided for @vaccineNextCatchUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Catch-up doses (past their age)'**
+  String get vaccineNextCatchUp;
+
+  /// No description provided for @vaccineDateAssumed.
+  ///
+  /// In en, this message translates to:
+  /// **'The date on the schedule. Change it if it was given on another day.'**
+  String get vaccineDateAssumed;
 }
 
 class _AppLocalizationsDelegate
