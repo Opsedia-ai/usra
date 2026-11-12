@@ -121,6 +121,32 @@ double _erf(double x) {
   return sign * y;
 }
 
+/// WHO's flags for biologically implausible values (WHO Anthro: weight-for-
+/// age z below -6 or above 5, length/height-for-age beyond ±6, head
+/// circumference beyond ±5). Used only to catch typing mistakes before
+/// saving, never as a medical threshold. With [male] null (sex unknown),
+/// only a value implausible for girls and boys alike counts.
+bool implausibleGrowth(
+  GrowthIndicator indicator, {
+  required bool? male,
+  required double months,
+  required double value,
+}) {
+  if (value <= 0 || !value.isFinite) return true;
+  bool out(bool m) {
+    final lms = whoLms(indicator, male: m, months: months);
+    if (lms == null) return false;
+    final z = lmsZScore(lms, value);
+    return switch (indicator) {
+      GrowthIndicator.weight => z < -6 || z > 5,
+      GrowthIndicator.height => z.abs() > 6,
+      GrowthIndicator.head => z.abs() > 5,
+    };
+  }
+
+  return male == null ? out(true) && out(false) : out(male);
+}
+
 /// Where one measurement falls on the WHO curves. Informational only.
 class GrowthReading {
   const GrowthReading({required this.z, required this.percentile});

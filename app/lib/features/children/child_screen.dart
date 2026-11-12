@@ -493,12 +493,18 @@ class _ChartPainter extends CustomPainter {
             (m, lmsValue(whoLms(indicator, male: male, months: m)!, z)),
         ],
     ];
-    var low = curves.first.map((p) => p.$2).reduce(math.min);
-    var high = curves.last.map((p) => p.$2).reduce(math.max);
+    final curveLow = curves.first.map((p) => p.$2).reduce(math.min);
+    final curveHigh = curves.last.map((p) => p.$2).reduce(math.max);
+    // Measurements stretch the axis by a third of the curves' span at most:
+    // a typing mistake (896 cm) keeps it readable, and its point sits on
+    // the edge.
+    final reach = (curveHigh - curveLow) / 3;
+    var low = curveLow;
+    var high = curveHigh;
     for (final p in points) {
       if (p.months > maxMonths) continue;
-      low = math.min(low, p.value);
-      high = math.max(high, p.value);
+      low = math.min(low, math.max(p.value, curveLow - reach));
+      high = math.max(high, math.min(p.value, curveHigh + reach));
     }
     final pad = (high - low) * 0.05;
     low = (low - pad).floorToDouble();
@@ -598,7 +604,7 @@ class _ChartPainter extends CustomPainter {
     // The child's measurements, joined in time order.
     final shown = [
       for (final p in points)
-        if (p.months <= maxMonths) at(p.months, p.value),
+        if (p.months <= maxMonths) at(p.months, p.value.clamp(low, high)),
     ];
     if (shown.length > 1) {
       canvas.drawPath(

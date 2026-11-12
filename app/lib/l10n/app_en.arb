@@ -3191,5 +3191,16 @@
         "format": "decimalPattern"
       }
     }
-  }
+  },
+  "growthImplausibleTitle": "Is this number right?",
+  "growthImplausibleBody": "{values}: far from any measurement for a child of this age. It may be a typing mistake.",
+  "@growthImplausibleBody": {
+    "placeholders": {
+      "values": {
+        "type": "String"
+      }
+    }
+  },
+  "growthImplausibleFix": "Fix it",
+  "growthImplausibleKeep": "Save as it is"
 }
