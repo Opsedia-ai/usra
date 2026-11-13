@@ -156,11 +156,12 @@ reasons as Play.
 
 ### Privacy manifest
 
-`ios/Runner/PrivacyInfo.xcprivacy` does not exist yet. Plugins ship their own; the
-app target still needs one declaring `NSPrivacyTracking = false`, no tracking domains,
-and the required-reason APIs it uses directly (UserDefaults through
-`shared_preferences`: `CA92.1`; file timestamps if any). Follow-up for the iOS release
-build, not in this change.
+`ios/Runner/PrivacyInfo.xcprivacy` and `ios/DoseWidget/PrivacyInfo.xcprivacy` declare
+`NSPrivacyTracking = false`, no tracking domains, no collected data, and UserDefaults with
+reasons `CA92.1` (the app's own settings, through `shared_preferences`) and `1C8F.1` (the
+app group shared with the dose widget). Plugins and SDKs ship their own manifests, which
+Xcode merges into the privacy report. When accounts ship, add the name, email and user ID
+the sign-in collects (see the accounts section above).
 
 ## Apple: medical and health review points
 
