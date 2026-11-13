@@ -116,7 +116,7 @@ class _InsuranceFormScreenState extends ConsumerState<InsuranceFormScreen> {
   }
 
   Future<void> _pickDate() async {
-    final now = DateTime.now();
+    final now = nowOf(context);
     final initial = _expiresOn ?? now;
     final first = DateTime(1990);
     final last = DateTime(now.year + 20, 12, 31);

@@ -31,7 +31,7 @@ class SpendingScreen extends ConsumerStatefulWidget {
 
 class _SpendingScreenState extends ConsumerState<SpendingScreen> {
   // Read each time, so a screen left open past midnight stays right.
-  DateTime get _now => widget.now ?? DateTime.now();
+  DateTime get _now => widget.now ?? nowOf(context);
   var _period = SpendingPeriod.month;
   late DateTime _start = _period.startOf(_now);
   late String? _profileId = widget.profileId;

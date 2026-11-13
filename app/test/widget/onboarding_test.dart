@@ -13,7 +13,6 @@ import 'package:usra/core/routing/app_router.dart';
 import 'package:usra/core/backup/backup_service.dart';
 import 'package:usra/features/backup/backup_providers.dart';
 import 'package:usra/features/backup/backup_screen.dart';
-import 'package:usra/features/medicines/medicines_providers.dart';
 import 'package:usra/features/onboarding/onboarding_chrome.dart';
 import 'package:usra/features/settings/about_privacy_screen.dart';
 import 'package:usra/l10n/app_localizations.dart';
@@ -170,7 +169,8 @@ void main() {
       final picker = tester.widget<DatePickerDialog>(
         find.byType(DatePickerDialog),
       );
-      final today = DateUtils.dateOnly(DateTime.now());
+      // The app clock's today (bug 13), not the phone's.
+      final today = DateUtils.dateOnly(evening);
       expect(DateUtils.dateOnly(picker.lastDate), today);
       expect(picker.firstDate, DateTime(1900));
     });

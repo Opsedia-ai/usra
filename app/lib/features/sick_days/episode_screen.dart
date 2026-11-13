@@ -14,7 +14,6 @@ import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
 import '../children/egypt_vaccines.dart' show fullMonths;
 import '../family/member_screen.dart' show profileProvider;
-import '../medicines/medicines_providers.dart';
 import 'episode_sheets.dart';
 import 'fever.dart';
 import '../medicines/min_hours.dart' show formatHours;

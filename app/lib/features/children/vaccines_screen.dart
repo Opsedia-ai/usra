@@ -52,7 +52,7 @@ Future<DateTime?> pickGivenDate(
   required DateTime initial,
   required DateTime birthDate,
 }) {
-  final now = DateTime.now();
+  final now = nowOf(context);
   final start = givenDateOn(initial, now);
   return pickDate(
     context,

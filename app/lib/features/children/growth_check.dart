@@ -131,7 +131,7 @@ class _GrowthCheckCardState extends ConsumerState<GrowthCheckCard> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    final months = ageInMonths(widget.profile.birthDate!, DateTime.now());
+    final months = ageInMonths(widget.profile.birthDate!, nowOf(context));
     final filled = GrowthIndicator.values.any((i) => _value(i) != null);
     return Card(
       key: const ValueKey('growth-check'),
@@ -202,7 +202,7 @@ class _GrowthCheckCardState extends ConsumerState<GrowthCheckCard> {
     final data = {
       for (final i in GrowthIndicator.values) GrowthFields.of(i): ?_value(i),
     };
-    final today = DateUtils.dateOnly(DateTime.now());
+    final today = DateUtils.dateOnly(nowOf(context));
     if (!await confirmPlausibleGrowth(context, widget.profile, today, data) ||
         !mounted) {
       return;

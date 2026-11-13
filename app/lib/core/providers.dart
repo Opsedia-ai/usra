@@ -9,6 +9,26 @@ import 'log.dart';
 import 'modules/module_registry.dart';
 import 'preferences.dart';
 
+/// The current time, for everything that decides "today" or "now" on
+/// screen: doses, ages, due and expiry dates, default dates and the last day
+/// a picker allows. Overridden in tests to fix the date.
+///
+/// Database timestamps (`updatedAt`, `deletedAt`), backup file times and
+/// reminder scheduling with the phone keep the phone's own clock.
+final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
+
+/// [clockProvider]'s time from the nearest `ProviderScope`, for widgets
+/// without a `ref`; the phone's clock when there's no scope.
+DateTime nowOf(BuildContext context) {
+  final ProviderContainer container;
+  try {
+    container = ProviderScope.containerOf(context, listen: false);
+  } on StateError {
+    return DateTime.now();
+  }
+  return container.read(clockProvider)();
+}
+
 /// All feature modules. Override in tests to load a subset.
 final moduleRegistryProvider = Provider<ModuleRegistry>(
   (ref) => ModuleRegistry(appModules),

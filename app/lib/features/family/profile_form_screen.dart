@@ -9,7 +9,6 @@ import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
-import '../medicines/medicines_providers.dart' show clockProvider;
 import 'person_status.dart';
 import '../children/growth.dart' show isUnderFive;
 import '../doctors/contact_links.dart' show isCallablePhone;
@@ -178,7 +177,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
           savedId,
           isNew: id == null,
           birthDate: _birthDate,
-          today: DateTime.now(),
+          today: nowOf(context),
         ),
       );
     }
@@ -267,9 +266,9 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                       context,
                       initialDate:
                           _birthDate ??
-                          birthDatePickerStart(_relationship, DateTime.now()),
+                          birthDatePickerStart(_relationship, nowOf(context)),
                       firstDate: DateTime(1900),
-                      lastDate: DateTime.now(),
+                      lastDate: nowOf(context),
                     );
                     if (picked != null) setState(() => _birthDate = picked);
                   },

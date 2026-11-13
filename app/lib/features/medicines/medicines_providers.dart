@@ -8,6 +8,8 @@ import '../../l10n/app_localizations.dart';
 import 'dose_schedule.dart';
 import 'reminders.dart';
 
+export '../../core/providers.dart' show clockProvider, nowOf;
+
 /// Where photos of medicine boxes and prescriptions live; provided in
 /// `main.dart`.
 final medicinePhotoStoreProvider = Provider<PhotoStore>(
@@ -38,9 +40,6 @@ void resyncOnTextChange(ProviderContainer container, void Function() resync) {
   container.listen(vaccineRemindersProvider, (_, _) => resync());
   container.listen(vaccineReminderMinutesProvider, (_, _) => resync());
 }
-
-/// The current time. Overridden in tests.
-final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
 
 final medicinesProvider = StreamProvider.family<List<Medicine>, String>(
   (ref, profileId) => ref.watch(databaseProvider).watchMedicines(profileId),

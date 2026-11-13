@@ -92,7 +92,7 @@ class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
           save: name.isEmpty ? null : l.medicineSaveFor(name),
           photos: l.vaccineCardPhoto,
         ),
-        lastOccurredAt: DateTime.now(),
+        lastOccurredAt: nowOf(context),
         firstOccurredAt: person?.birthDate,
         photosFirst: true,
         hiddenFields: chosen == null

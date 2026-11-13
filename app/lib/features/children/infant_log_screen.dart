@@ -36,7 +36,7 @@ class InfantLogScreen extends ConsumerWidget {
         (AsyncError(:final error), _) ||
         (_, AsyncError(:final error)) => Center(child: Text('$error')),
         (AsyncValue(value: final p?), AsyncValue(value: final events?)) =>
-          isUnderOne(p.birthDate, DateTime.now())
+          isUnderOne(p.birthDate, nowOf(context))
               ? _Body(profile: p, events: events)
               : Center(child: Text(l.infantLogUnderOneOnly)),
         (AsyncData(value: null), _) => Center(child: Text(l.profileNotFound)),
@@ -56,7 +56,7 @@ class _Body extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    final now = DateTime.now();
+    final now = nowOf(context);
     final yesterday = DateTime(now.year, now.month, now.day - 1);
     final today = entriesOn(events, now);
 
@@ -168,7 +168,7 @@ class _Body extends ConsumerWidget {
       final id = await db.addEvent(
         profileId: profile.id,
         type: type,
-        occurredAt: DateTime.now(),
+        occurredAt: ref.read(clockProvider)(),
         dataJson: jsonEncode(data),
       );
       messenger

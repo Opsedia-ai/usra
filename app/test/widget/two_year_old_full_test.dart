@@ -190,11 +190,8 @@ void main() {
       );
       // A daughter's birth-date picker opens on today (K, #77); before, it
       // opened on 1 Jan 1990 for everyone, 14 calendar taps from her
-      // birthday. (The form reads the phone's clock here, bug 13.)
-      expect(
-        DateUtils.dateOnly(picker.initialDate!),
-        DateUtils.dateOnly(DateTime.now()),
-      );
+      // birthday. It reads the app clock (bug 13).
+      expect(DateUtils.dateOnly(picker.initialDate!), DateUtils.dateOnly(now));
       final tapsBeforeCalendar = taps;
       await pickDate(tester, birth);
       taps += 1; // OK, counted; the calendar taps are added below.
@@ -612,15 +609,17 @@ void main() {
       expect(t(), contains(ar.doseGroupDone));
     });
 
-    testWidgets('added at 10:00, the 08:00 dose of the first day is '
-        'already "missed"', (tester) async {
+    testWidgets('added on an earlier day, the 08:00 dose of the first day '
+        'is missed', (tester) async {
       h.tall(tester);
       await family(tester);
       now = today10;
       final id = await addMedicine(tester);
       await h.go(tester, '/medicines');
-      // BUG: a course started at 10:00 shows that morning's 08:00 dose,
-      // which was never planned, as missed.
+      // Bug 12 is fixed: on its first day, a medicine doesn't plan doses due
+      // before it was added (test/core/dose_first_day_test.dart). Here it was
+      // added on the phone's real day, not the test's 12 Nov, so 12 Nov's
+      // 08:00 dose was due before then and is missed, as it should be.
       expect(screenText(tester), contains(ar.doseGroupMissed));
       expect(
         key('dose-$id-${DateTime(2026, 11, 12, 8).millisecondsSinceEpoch}'),
@@ -672,12 +671,7 @@ void main() {
     await tap(tester, 'record-save');
 
     await h.go(tester, '/money');
-    // Spending opens on the real month, not the app's clock.
-    final real = DateTime.now();
-    final back = (real.year - 2026) * 12 + real.month - 11;
-    for (var i = 0; i < back; i++) {
-      await h.tapKey(tester, 'spending-previous');
-    }
+    // Spending opens on the app clock's month (bug 13): November 2026.
     String total() => tester.widget<Text>(key('spending-total')).data!;
     // 300 + 85 = 385 in November, the whole family.
     expect(total(), contains('٣٨٥'));

@@ -8,6 +8,7 @@ import '../files/photo_store.dart';
 import '../util/localized_numbers.dart';
 import 'record_type.dart';
 import '../util/date_picker.dart';
+import '../providers.dart' show nowOf;
 
 /// Words the form needs, passed in so the core stays free of feature strings.
 class RecordFormStrings {
@@ -182,7 +183,7 @@ class _RecordFormState extends State<RecordForm> {
   static final _isoDate = DateFormat('yyyy-MM-dd');
 
   late DateTime _occurredAt =
-      widget.initialDate ?? DateUtils.dateOnly(DateTime.now());
+      widget.initialDate ?? DateUtils.dateOnly(nowOf(context));
   final _text = <String, TextEditingController>{};
   final _values = <String, Object?>{};
   final _cost = TextEditingController();
@@ -365,7 +366,7 @@ class _RecordFormState extends State<RecordForm> {
     context,
     initialDate: initial,
     firstDate: DateTime(1900),
-    lastDate: DateTime(DateTime.now().year + 5, 12, 31),
+    lastDate: DateTime(nowOf(context).year + 5, 12, 31),
   );
 
   Widget _field(FieldSpec f) {
@@ -413,7 +414,7 @@ class _RecordFormState extends State<RecordForm> {
           key: ValueKey('field-${f.key}'),
           onTap: () async {
             final picked = await _pickDate(
-              value == null ? DateTime.now() : DateTime.parse(value),
+              value == null ? nowOf(context) : DateTime.parse(value),
             );
             if (picked != null) {
               setState(() => _values[f.key] = _isoDate.format(picked));
@@ -474,7 +475,7 @@ class _RecordFormState extends State<RecordForm> {
                   ? first
                   : _occurredAt,
               lastDate: last == null
-                  ? DateTime(DateTime.now().year + 5, 12, 31)
+                  ? DateTime(nowOf(context).year + 5, 12, 31)
                   : last.isAfter(_occurredAt)
                   ? last
                   : _occurredAt,
