@@ -437,8 +437,8 @@ Rules every phone checks while replaying:
 ### Head beacons (required)
 
 Every device publishes a signed beacon for each family when its log head
-changes and at least every 3 days (section 22, rule 7; Q19), and reads every
-other beacon on every sync:
+changes, and on its first sync once its last beacon is more than 3 days old
+(section 22, rule 7; Q19). It reads every other beacon on every sync:
 
 ```
 beacon_bytes = UTF-8 JSON { "v": 1, "family", "device", "seq", "h": <head hash>, "at": <HLC string> }
@@ -1779,3 +1779,10 @@ Verdict:
 5. **Push to the other phone.** Without it, the other parent sees an edit the
    next time they open the app. A push is free through FCM but costs Edge
    Function calls (above). Phase 2 with its own cost check: agreed?
+6. **A parent who rarely opens the app.** Phones sync only when the app is
+   opened (rule 1), so a parent who doesn't open Usra for 7 days publishes no
+   beacon, and the security rule in section 7 then stops the other parent's
+   phone from sending changes ("Ahmed's phone hasn't been seen for a week")
+   until it is opened again. Their records stay on their own phone meanwhile.
+   This is a security rule (Q12 asks the reviewer about the 7 days); is the
+   behaviour acceptable for the beta?
