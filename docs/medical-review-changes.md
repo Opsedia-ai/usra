@@ -41,6 +41,10 @@ The founder reports that the doctor accepted the app's full wording on 7 Novembe
 | Sick day (bug 15) | أعلى قراءة: ٣٩٫١° · ١٢:٠٠ م (the highest reading of the sick day, shown when there are two or more) |
 | Sick day, English (bug 15) | Highest reading: 39.1° · 12:00 PM |
 
+## Danger signs, symptoms and milestones by sex (item I)
+
+Grammar only: the feminine and neutral forms must say exactly what the boy's form says. Please check each one, with the Arabic reader. The full table, with every string for a girl, a boy and a person whose sex isn't recorded, is in `docs/arabic-review.md` under "Text that follows the person's sex (item I)". That's 13 danger signs, 3 symptoms and 48 milestones.
+
 ## Questions for the doctor
 
 1. Growth now says "المعدل المرجعي" when a value is in range and "برّه المدى المعتاد" when it isn't. Should these use one term?
@@ -51,6 +55,7 @@ The founder reports that the doctor accepted the app's full wording on 7 Novembe
 
 6. The Arabic doctor report now shows weights, percentiles and page numbers in Arabic-Indic digits, while lab values stay Latin to match the lab's paper. Is that acceptable for a doctor reading it?
 7. Sick day (bug 15): the card now shows the highest reading, and the fever as the times of its first and last readings instead of "٤ ساعات". The warning signs for a long fever ("more than 24 hours", "more than 3 days", "5 days or more") still count from the first fever reading to the last, or to now while the latest reading is a fever, as before. Is showing the times, not a duration, right for parents?
+8. Item I: is the neutral wording for a person whose sex isn't recorded right? For example "السن أقل من ٣ شهور والحرارة ٣٨ °م", "نعاس شديد أو صعوبة في الصحيان، أو مفيش رد زي العادة", and "مفيش شرب أو مفيش رضاعة، أو مش زي العادة خالص" for "مش بيشرب أو مش بيرضع". Milestones keep the boy's wording in that case.
 
 ## Changes to the rules, not the wording
 

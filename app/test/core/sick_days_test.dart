@@ -415,16 +415,20 @@ void main() {
       for (final age in AgeGroup.values) {
         for (final s in warningSignsFor(age)) {
           expect(s.sources, isNotEmpty, reason: s.key);
-          expect(en.warnSign(s.key), isNotEmpty, reason: s.key);
-          expect(ar.warnSign(s.key), isNotEmpty, reason: s.key);
+          for (final sex in ['female', 'male', 'other']) {
+            expect(en.warnSign(sex, s.key), isNotEmpty, reason: s.key);
+            expect(ar.warnSign(sex, s.key), isNotEmpty, reason: s.key);
+          }
         }
       }
       for (final url in warningSourceUrls.values) {
         expect(url, startsWith('https://'));
       }
       for (final s in Symptom.all) {
-        expect(en.symptomName(s), isNot('Other'));
-        expect(ar.symptomName(s), isNot('تاني'));
+        for (final sex in ['female', 'male', 'other']) {
+          expect(en.symptomName(sex, s), isNot('Other'));
+          expect(ar.symptomName(sex, s), isNot('تاني'));
+        }
       }
       final adult = warningSignsFor(AgeGroup.adult).map((s) => s.key);
       expect(adult, isNot(contains('under3Months')));

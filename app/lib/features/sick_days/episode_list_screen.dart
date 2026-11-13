@@ -250,7 +250,8 @@ class _AmbulanceCard extends StatelessWidget {
     final age = ageGroupOf(person.birthDate, now);
     final signs = [
       for (final s in warningSignsFor(age))
-        if (s.level == WarningLevel.emergency) l.warnSign(s.key),
+        if (s.level == WarningLevel.emergency)
+          l.warnSign(person.sex ?? 'other', s.key),
     ];
     return Card(
       key: const ValueKey('sick-days-ambulance-card'),

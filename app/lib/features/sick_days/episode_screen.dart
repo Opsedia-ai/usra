@@ -513,7 +513,7 @@ class _Details extends ConsumerWidget {
     final ticked = decodeSymptoms(episode.symptomsJson).toSet();
     final tickedNames = [
       for (final s in Symptom.all)
-        if (ticked.contains(s)) l.symptomName(s),
+        if (ticked.contains(s)) l.symptomName(person.sex ?? 'other', s),
     ];
     Widget section({
       required String key,
@@ -562,7 +562,7 @@ class _Details extends ConsumerWidget {
                   for (final s in Symptom.all)
                     FilterChip(
                       key: ValueKey('symptom-$s'),
-                      label: Text(l.symptomName(s)),
+                      label: Text(l.symptomName(person.sex ?? 'other', s)),
                       selected: ticked.contains(s),
                       onSelected: (on) async {
                         // Taking one off corrects what's there.

@@ -52,7 +52,7 @@ class WarningSignsCard extends StatelessWidget {
           Text('•  ', style: text.bodyLarge),
           Expanded(
             child: Text(
-              l.warnSign(s.key),
+              l.warnSign(person.sex ?? 'other', s.key),
               style: strong
                   ? text.bodyLarge?.copyWith(fontWeight: FontWeight.w700)
                   : text.bodyLarge,

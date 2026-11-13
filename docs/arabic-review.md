@@ -438,3 +438,76 @@ From the fixes for the two-year-old test report (`docs/test-reports/2026-11-12-t
 | `sickDayFeverSpan` | New, replaces `sickDayFeverLogged` | سخونية متسجلة من {from} لـ {to} (was سخونية متسجلة: {duration}, e.g. ٤ ساعات) | Fever readings from {from} to {to} (was Fever logged: {duration}) |
 | `sickDayFeverOnce` | New | سخونية متسجلة: {time} | Fever reading: {time} |
 | `sickDayFeverUnderHour`, `sickDayFeverHours`, `sickDayFeverDays` | Removed | أقل من ساعة، {n} ساعة، {n} يوم | no longer shown |
+
+## Text that follows the person's sex (item I), 13 November 2026
+
+Danger signs (`warnSign`), symptoms (`symptomName`) and CDC milestones (`milestone`) now follow the person's sex, the same way `vaccineMarkPastAsk` does: `female` for a girl or woman, `male` for a boy or man, `other` when sex isn't recorded. Only the grammar changes. The boy's text is the wording reviewed before and is unchanged. The English doesn't change. Strings not listed here (seizure, skin colour, fever days and so on) are the same for everyone.
+
+For a person whose sex isn't recorded, danger signs and symptoms use a neutral form (السن، الحرارة، نعاس شديد). Milestones keep the boy's wording, because a neutral version of 48 milestones would mean rewriting them, not changing grammar. The milestone label in a saved record's details (`children_module.dart`) has no person to read, so it also keeps the boy's wording.
+
+| Key | Case | Boy (unchanged) | Girl | Sex not recorded |
+|---|---|---|---|---|
+| `warnSign` | `breathing` | صعوبة في النفس، أو بيتنفس بسرعة جدًا، أو نفسه مقطوع | صعوبة في النفس، أو بتتنفس بسرعة جدًا، أو نفسها مقطوع | صعوبة في النفس، أو نفَس سريع جدًا، أو النفس مقطوع |
+| `warnSign` | `drowsy` | نعسان جدًا أو صعب يصحى، أو مش بيرد زي عادته | نعسانة جدًا أو صعب تصحى، أو مش بترد زي عادتها | نعاس شديد أو صعوبة في الصحيان، أو مفيش رد زي العادة |
+| `warnSign` | `stiffNeck` | تيبس في الرقبة، أو النور بيضايق عينه | تيبس في الرقبة، أو النور بيضايق عينها | تيبس في الرقبة، أو النور بيضايق العين |
+| `warnSign` | `confused` | مش مركز أو متلخبط، أو متضايق جدًا ومش بيبطل عياط | مش مركزة أو متلخبطة، أو متضايقة جدًا ومش بتبطل عياط | قلة تركيز أو لخبطة، أو ضيق شديد وعياط مش بيقف |
+| `warnSign` | `under3Months` | سنه أقل من ٣ شهور وحرارته ٣٨ °م (١٠٠٫٤ °ف) أو أكتر | سنها أقل من ٣ شهور وحرارتها ٣٨ °م (١٠٠٫٤ °ف) أو أكتر | السن أقل من ٣ شهور والحرارة ٣٨ °م (١٠٠٫٤ °ف) أو أكتر |
+| `warnSign` | `months3to6` | سنه من ٣ لـ ٦ شهور وحرارته ٣٩ °م (١٠٢٫٢ °ف) أو أكتر | سنها من ٣ لـ ٦ شهور وحرارتها ٣٩ °م (١٠٢٫٢ °ف) أو أكتر | السن من ٣ لـ ٦ شهور والحرارة ٣٩ °م (١٠٢٫٢ °ف) أو أكتر |
+| `warnSign` | `longUnder2` | سنه أقل من سنتين والسخونية بقالها أكتر من ٢٤ ساعة | سنها أقل من سنتين والسخونية بقالها أكتر من ٢٤ ساعة | السن أقل من سنتين والسخونية بقالها أكتر من ٢٤ ساعة |
+| `warnSign` | `longChild` | سنه سنتين أو أكتر والسخونية بقالها أكتر من ٣ أيام | سنها سنتين أو أكتر والسخونية بقالها أكتر من ٣ أيام | السن سنتين أو أكتر والسخونية بقالها أكتر من ٣ أيام |
+| `warnSign` | `dehydration` | علامات جفاف: حفاضات ناشفة أو بيعمل حمام أقل، مفيش دموع، عينين غايرة، بُق ناشف | علامات جفاف: حفاضات ناشفة أو بتعمل حمام أقل، مفيش دموع، عينين غايرة، بُق ناشف | علامات جفاف: حفاضات ناشفة أو حمام أقل، مفيش دموع، عينين غايرة، بُق ناشف |
+| `warnSign` | `notDrinking` | مش بيشرب أو مش بيرضع، أو مش زي عادته خالص | مش بتشرب أو مش بترضع، أو مش زي عادتها خالص | مفيش شرب أو مفيش رضاعة، أو مش زي العادة خالص |
+| `warnSign` | `vomitsEverything` | بيرجّع أي حاجة ياخدها، أو مش بيبطل ترجيع | بترجّع أي حاجة تاخدها، أو مش بتبطل ترجيع | ترجيع لأي حاجة بتتاخد، أو ترجيع مش بيقف |
+| `warnSign` | `armpitUnder3Months` | سنه أقل من ٣ شهور والحرارة تحت الباط ٣٧٫٥ °م (٩٩٫٥ °ف) أو أكتر | سنها أقل من ٣ شهور والحرارة تحت الباط ٣٧٫٥ °م (٩٩٫٥ °ف) أو أكتر | السن أقل من ٣ شهور والحرارة تحت الباط ٣٧٫٥ °م (٩٩٫٥ °ف) أو أكتر |
+| `warnSign` | `lowUnder3Months` | سنه أقل من ٣ شهور وحرارته أقل من ٣٦ °م (٩٦٫٨ °ف) | سنها أقل من ٣ شهور وحرارتها أقل من ٣٦ °م (٩٦٫٨ °ف) | السن أقل من ٣ شهور والحرارة أقل من ٣٦ °م (٩٦٫٨ °ف) |
+| `symptomName` | `poorFeeding` | بياكل أو بيشرب أقل | بتاكل أو بتشرب أقل | أكل أو شرب أقل |
+| `symptomName` | `dehydration` | حفاضات ناشفة أو بيعمل حمام أقل أو مفيش دموع | حفاضات ناشفة أو بتعمل حمام أقل أو مفيش دموع | حفاضات ناشفة أو حمام أقل أو مفيش دموع |
+| `symptomName` | `drowsy` | نعسان جدًا أو صعب يصحى | نعسانة جدًا أو صعب تصحى | نعاس شديد أو صعوبة في الصحيان |
+| `milestone` | `m2_social` | بيضحك لما تكلمه أو تضحكله | بتضحك لما تكلمها أو تضحكلها | same as boy |
+| `milestone` | `m2_language` | بيطلّع أصوات غير العياط | بتطلّع أصوات غير العياط | same as boy |
+| `milestone` | `m2_cognitive` | بيتابعك بعينه وانت بتتحرك | بتتابعك بعينها وانت بتتحرك | same as boy |
+| `milestone` | `m2_movement` | بيرفع راسه وهو نايم على بطنه | بترفع راسها وهي نايمة على بطنها | same as boy |
+| `milestone` | `m4_social` | بيضحك من نفسه عشان يلفت انتباهك | بتضحك من نفسها عشان تلفت انتباهك | same as boy |
+| `milestone` | `m4_language` | بيناغي بأصوات زي «أووو» و«آآه» | بتناغي بأصوات زي «أووو» و«آآه» | same as boy |
+| `milestone` | `m4_cognitive` | بيبص على إيديه باهتمام | بتبص على إيديها باهتمام | same as boy |
+| `milestone` | `m4_movement` | بيثبّت راسه لوحده وانت شايله | بتثبّت راسها لوحدها وانت شايلها | same as boy |
+| `milestone` | `m6_social` | بيعرف الناس اللي متعود عليهم | بتعرف الناس اللي متعودة عليهم | same as boy |
+| `milestone` | `m6_language` | بيرد عليك بأصوات لما تكلمه | بترد عليك بأصوات لما تكلمها | same as boy |
+| `milestone` | `m6_cognitive` | بيمد إيده يمسك اللعبة اللي عايزها | بتمد إيدها تمسك اللعبة اللي عايزاها | same as boy |
+| `milestone` | `m6_movement` | بيتقلب من بطنه لضهره | بتتقلب من بطنها لضهرها | same as boy |
+| `milestone` | `m9_social` | بيبص لما تنده اسمه | بتبص لما تنده اسمها | same as boy |
+| `milestone` | `m9_language` | بيقول أصوات زي «ماماما» و«بابابا» | بتقول أصوات زي «ماماما» و«بابابا» | same as boy |
+| `milestone` | `m9_cognitive` | بيدور على الحاجة لما تقع من قدامه | بتدور على الحاجة لما تقع من قدامها | same as boy |
+| `milestone` | `m9_movement` | بيقعد من غير سند | بتقعد من غير سند | same as boy |
+| `milestone` | `m12_social` | بيلعب معاك ألعاب زي التسقيف | بتلعب معاك ألعاب زي التسقيف | same as boy |
+| `milestone` | `m12_language` | بيعمل «باي باي» بإيده | بتعمل «باي باي» بإيدها | same as boy |
+| `milestone` | `m12_cognitive` | بيدور على الحاجة اللي شافك بتخبيها | بتدور على الحاجة اللي شافتك بتخبيها | same as boy |
+| `milestone` | `m12_movement` | بيسند على حاجة ويقف | بتسند على حاجة وتقف | same as boy |
+| `milestone` | `m15_social` | بيوريك حاجة بيحبها | بتوريك حاجة بتحبها | same as boy |
+| `milestone` | `m15_language` | بيحاول يقول كلمة أو اتنين غير «ماما» و«بابا» | بتحاول تقول كلمة أو اتنين غير «ماما» و«بابا» | same as boy |
+| `milestone` | `m15_cognitive` | بيرص حاجتين صغيرين على بعض على الأقل | بترص حاجتين صغيرين على بعض على الأقل | same as boy |
+| `milestone` | `m15_movement` | بيمشي كام خطوة لوحده | بتمشي كام خطوة لوحدها | same as boy |
+| `milestone` | `m18_social` | بيشاور عشان يوريك حاجة لفتت نظره | بتشاور عشان توريك حاجة لفتت نظرها | same as boy |
+| `milestone` | `m18_language` | بيحاول يقول ٣ كلمات أو أكتر غير «ماما» و«بابا» | بتحاول تقول ٣ كلمات أو أكتر غير «ماما» و«بابا» | same as boy |
+| `milestone` | `m18_cognitive` | بيقلدك وانت بتعمل شغل البيت، زي الكنس | بتقلدك وانت بتعمل شغل البيت، زي الكنس | same as boy |
+| `milestone` | `m18_movement` | بيمشي من غير ما يسند على حد أو حاجة | بتمشي من غير ما تسند على حد أو حاجة | same as boy |
+| `milestone` | `m24_social` | بياخد باله لما حد يتعور أو يزعل | بتاخد بالها لما حد يتعور أو يزعل | same as boy |
+| `milestone` | `m24_language` | بيقول كلمتين مع بعض على الأقل، زي «عايز لبن» | بتقول كلمتين مع بعض على الأقل، زي «عايزة لبن» | same as boy |
+| `milestone` | `m24_cognitive` | بيحاول يشغّل الزراير أو المفاتيح في اللعب | بتحاول تشغّل الزراير أو المفاتيح في اللعب | same as boy |
+| `milestone` | `m24_movement` | بيشوط الكورة | بتشوط الكورة | same as boy |
+| `milestone` | `m30_social` | بيلعب جنب الأطفال التانيين وساعات معاهم | بتلعب جنب الأطفال التانيين وساعات معاهم | same as boy |
+| `milestone` | `m30_language` | بيقول حوالي ٥٠ كلمة | بتقول حوالي ٥٠ كلمة | same as boy |
+| `milestone` | `m30_cognitive` | بيلعب تمثيل، زي إنه يأكّل العروسة | بتلعب تمثيل، زي إنها تأكّل العروسة | same as boy |
+| `milestone` | `m30_movement` | بينط من على الأرض برجليه الاتنين | بتنط من على الأرض برجليها الاتنين | same as boy |
+| `milestone` | `m36_social` | بياخد باله من الأطفال التانيين ويلعب معاهم | بتاخد بالها من الأطفال التانيين وتلعب معاهم | same as boy |
+| `milestone` | `m36_language` | بيتكلم معاك ويرد عليك مرتين على الأقل في نفس الكلام | بتتكلم معاك وترد عليك مرتين على الأقل في نفس الكلام | same as boy |
+| `milestone` | `m36_cognitive` | بيرسم دايرة لما توريه إزاي | بترسم دايرة لما توريها إزاي | same as boy |
+| `milestone` | `m36_movement` | بيلبس شوية من هدومه لوحده | بتلبس شوية من هدومها لوحدها | same as boy |
+| `milestone` | `m48_social` | بيطبطب على اللي متعور أو زعلان | بتطبطب على اللي متعور أو زعلان | same as boy |
+| `milestone` | `m48_language` | بيقول جمل فيها ٤ كلمات أو أكتر | بتقول جمل فيها ٤ كلمات أو أكتر | same as boy |
+| `milestone` | `m48_cognitive` | بيعرف يسمي كام لون | بتعرف تسمي كام لون | same as boy |
+| `milestone` | `m48_movement` | بيمسك الكورة الكبيرة أغلب الوقت | بتمسك الكورة الكبيرة أغلب الوقت | same as boy |
+| `milestone` | `m60_social` | بيلتزم بقواعد اللعب ويستنى دوره | بتلتزم بقواعد اللعب وتستنى دورها | same as boy |
+| `milestone` | `m60_language` | بيحكي حكاية سمعها أو ألّفها فيها حدثين على الأقل | بتحكي حكاية سمعتها أو ألّفتها فيها حدثين على الأقل | same as boy |
+| `milestone` | `m60_cognitive` | بيعد لحد ١٠ | بتعد لحد ١٠ | same as boy |
+| `milestone` | `m60_movement` | بينط على رجل واحدة | بتنط على رجل واحدة | same as boy |
