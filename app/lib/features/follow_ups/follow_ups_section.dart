@@ -14,6 +14,7 @@ import '../family/family_screen.dart' show profilesProvider;
 import 'dismissals.dart';
 import 'follow_ups_providers.dart';
 import '../../core/util/separator.dart';
+import '../../core/design/undo_snack_bar.dart';
 
 /// How many follow-ups Home shows across the family.
 const homeFollowUpCount = 3;
@@ -315,14 +316,10 @@ class FollowUpTile extends ConsumerWidget {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
+        undoSnackBar(
           content: Text(l.followUpDismissed),
-          duration: UsraDurations.undo,
-          persist: false,
-          action: SnackBarAction(
-            label: l.followUpUndo,
-            onPressed: () => dismissed.restore(key),
-          ),
+          label: l.followUpUndo,
+          onUndo: () => dismissed.restore(key),
         ),
       );
   }

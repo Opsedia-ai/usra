@@ -19,6 +19,7 @@ import 'medicine_text.dart';
 import 'medicines_providers.dart';
 import 'reminder_access_card.dart';
 import '../../core/util/separator.dart';
+import '../../core/design/undo_snack_bar.dart';
 import 'reminders.dart' show snoozeIdFor;
 
 /// How long before its time a dose already counts as "now", so nobody is told
@@ -392,19 +393,19 @@ class DoseCard extends ConsumerWidget {
     } catch (_) {
       messenger
         ..clearSnackBars()
-        ..showSnackBar(_snackBar(Text(l.saveFailed)));
+        ..showSnackBar(SnackBar(content: Text(l.saveFailed)));
       return;
     }
     messenger
       ..clearSnackBars()
       ..showSnackBar(
-        _snackBar(
-          Text(message(l, medicineTitle(r.medicine), r.person.displayName)),
-          action: SnackBarAction(
-            key: ValueKey('dose-snack-undo-$_id'),
-            label: l.doseUndo,
-            onPressed: () => unawaited(_undo(container)),
+        undoSnackBar(
+          content: Text(
+            message(l, medicineTitle(r.medicine), r.person.displayName),
           ),
+          actionKey: ValueKey('dose-snack-undo-$_id'),
+          label: l.doseUndo,
+          onUndo: () => unawaited(_undo(container)),
         ),
       );
   }
@@ -460,13 +461,6 @@ class DoseCard extends ConsumerWidget {
       rethrow;
     }
   }
-
-  SnackBar _snackBar(Widget content, {SnackBarAction? action}) => SnackBar(
-    content: content,
-    action: action,
-    duration: UsraDurations.undo,
-    persist: false,
-  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

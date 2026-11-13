@@ -17,6 +17,7 @@ import '../medicines/medicine_text.dart';
 import '../medicines/medicines_providers.dart';
 import '../medicines/reminders.dart' show snoozeDuration;
 import '../sick_days/sick_days_providers.dart';
+import '../../core/design/undo_snack_bar.dart';
 
 /// The one thing to show for a person on Home and the family list.
 class PersonStatus {
@@ -116,19 +117,18 @@ Future<void> logDoseTaken(
     messenger.showSnackBar(SnackBar(content: Text(l.saveFailed)));
     return;
   }
-  messenger.showSnackBar(
-    SnackBar(
-      content: Text(
-        l.homeDoseLogged(medicineTitle(r.medicine), r.person.displayName),
-      ),
-      duration: UsraDurations.undo,
-      persist: false,
-      action: SnackBarAction(
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      undoSnackBar(
+        content: Text(
+          l.homeDoseLogged(medicineTitle(r.medicine), r.person.displayName),
+        ),
+        actionKey: ValueKey('home-dose-undo-${r.medicine.id}'),
         label: l.doseUndo,
-        onPressed: () => db.clearDoseLog(r.medicine.id, dose.scheduledAt),
+        onUndo: () => db.clearDoseLog(r.medicine.id, dose.scheduledAt),
       ),
-    ),
-  );
+    );
 }
 
 /// "8 months" under two years, "68 years" after, in [l]'s language and digits;

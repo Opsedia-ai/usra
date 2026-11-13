@@ -15,6 +15,7 @@ import '../account/save_gate.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import 'infant_log.dart';
 import '../../core/util/separator.dart';
+import '../../core/design/undo_snack_bar.dart';
 
 /// Feeds, sleep and diapers for a baby under one, one tap each, with the
 /// day added up. A diary for the family and the pediatrician.
@@ -175,14 +176,10 @@ class _Body extends ConsumerWidget {
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(
+          undoSnackBar(
             content: Text(l.logSaved),
-            duration: UsraDurations.undo,
-            persist: false,
-            action: SnackBarAction(
-              label: l.followUpUndo,
-              onPressed: () => _delete(messenger, db, id, l.saveFailed),
-            ),
+            label: l.followUpUndo,
+            onUndo: () => _delete(messenger, db, id, l.saveFailed),
           ),
         );
     } catch (_) {

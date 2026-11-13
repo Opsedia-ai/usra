@@ -34,6 +34,7 @@ import 'vaccine_card_parser.dart';
 import '../../core/util/date_picker.dart';
 import '../../core/util/separator.dart';
 import '../../core/design/dialog.dart';
+import '../../core/design/undo_snack_bar.dart';
 
 /// [profile]'s vaccines today, once their records have loaded; null for
 /// anyone five or over.
@@ -302,18 +303,17 @@ Future<void> markPastDoses(
     messenger.showSnackBar(SnackBar(content: Text(l.saveFailed)));
     return;
   }
-  messenger.showSnackBar(
-    SnackBar(
-      key: const ValueKey('vaccine-mark-past-done'),
-      content: Text(
-        digitsIn(l.localeName, l.vaccineMarkPastDone(doses.length)),
-      ),
-      duration: UsraDurations.undo,
-      persist: false,
-      action: SnackBarAction(
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      undoSnackBar(
+        key: const ValueKey('vaccine-mark-past-done'),
+        content: Text(
+          digitsIn(l.localeName, l.vaccineMarkPastDone(doses.length)),
+        ),
         label: l.doseUndo,
         // Exactly the records just added, and the plan as it was.
-        onPressed: () async {
+        onUndo: () async {
           try {
             await db.replaceEvents(profileId: id, remove: added);
             await restorePlan();
@@ -322,8 +322,7 @@ Future<void> markPastDoses(
           }
         },
       ),
-    ),
-  );
+    );
 }
 
 /// Whether this child already has a saved plan, so saving only updates it.
@@ -1978,17 +1977,16 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
         _fromCard.remove(d.dose.key);
       }
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        key: const ValueKey('setup-mark-past-done'),
-        content: Text(
-          localizedDigitsIn(context, l.vaccineMarkPastDone(doses.length)),
-        ),
-        duration: UsraDurations.undo,
-        persist: false,
-        action: SnackBarAction(
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        undoSnackBar(
+          key: const ValueKey('setup-mark-past-done'),
+          content: Text(
+            localizedDigitsIn(context, l.vaccineMarkPastDone(doses.length)),
+          ),
           label: l.doseUndo,
-          onPressed: () {
+          onUndo: () {
             if (!mounted) return;
             setState(() {
               if (_plan case final now?) {
@@ -2008,8 +2006,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
             });
           },
         ),
-      ),
-    );
+      );
   }
 
   /// The checklist's doses, as last built.
