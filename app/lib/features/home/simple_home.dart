@@ -73,7 +73,9 @@ class SimpleHome extends ConsumerWidget {
           key: const ValueKey('simple-call-doctor'),
           icon: Icons.call,
           label: l.simpleCallDoctor,
-          style: _Look.primary,
+          // One filled navy button per screen: My medicines. This one keeps
+          // its full size with a strong 2 px navy edge.
+          style: _Look.outlined,
           onPressed: () => context.go('/doctors'),
         ),
         const SizedBox(height: 16),
@@ -319,7 +321,7 @@ class _BigButton extends StatelessWidget {
       _Look.outlined => (context.usra.surface, context.usra.primary),
     };
     final shape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(UsraRadius.card),
       side: style == _Look.outlined
           ? BorderSide(color: context.usra.primary, width: 2)
           : BorderSide.none,
@@ -349,7 +351,7 @@ class _BigButton extends StatelessWidget {
                           label,
                           style: text.titleLarge?.copyWith(
                             color: foreground,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
