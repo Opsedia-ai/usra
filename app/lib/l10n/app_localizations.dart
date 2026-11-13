@@ -1784,17 +1784,173 @@ abstract class AppLocalizations {
   /// **'Bigger text and buttons, fewer tabs. Good for grandparents using the phone on their own.'**
   String get settingsSimpleModeHint;
 
-  /// No description provided for @settingsAiTitle.
+  /// No description provided for @drAiTitle.
   ///
   /// In en, this message translates to:
-  /// **'Dr. Usra AI'**
-  String get settingsAiTitle;
+  /// **'Dr. Usra, powered by AI'**
+  String get drAiTitle;
 
-  /// No description provided for @settingsAiSoon.
+  /// No description provided for @drAiSoon.
   ///
   /// In en, this message translates to:
   /// **'Coming soon'**
-  String get settingsAiSoon;
+  String get drAiSoon;
+
+  /// No description provided for @drAiIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming in a future update. It doesn\'t work yet.'**
+  String get drAiIntro;
+
+  /// No description provided for @drAiFeaturesHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'What it will help with'**
+  String get drAiFeaturesHeading;
+
+  /// No description provided for @drAiPhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reads a prescription or lab report photo'**
+  String get drAiPhotoTitle;
+
+  /// No description provided for @drAiPhotoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'And fills in the medicine or result, for you to check before saving.'**
+  String get drAiPhotoBody;
+
+  /// No description provided for @drAiLabTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Explains a lab result in simple words'**
+  String get drAiLabTitle;
+
+  /// No description provided for @drAiLabBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Next to the lab\'s own normal range, with questions to ask your doctor.'**
+  String get drAiLabBody;
+
+  /// No description provided for @drAiVisitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepares a doctor visit'**
+  String get drAiVisitTitle;
+
+  /// No description provided for @drAiVisitBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A short summary of the last few months, and your questions.'**
+  String get drAiVisitBody;
+
+  /// No description provided for @drAiAskTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions about your family\'s records, in Arabic'**
+  String get drAiAskTitle;
+
+  /// No description provided for @drAiAskBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Like: “When was Gamila\'s last vaccine?”'**
+  String get drAiAskBody;
+
+  /// No description provided for @drAiVoiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log by voice, in Egyptian Arabic'**
+  String get drAiVoiceTitle;
+
+  /// No description provided for @drAiVoiceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Like: “Gamila\'s temperature is 38.5”'**
+  String get drAiVoiceBody;
+
+  /// No description provided for @drAiMedicineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Explains a medicine simply'**
+  String get drAiMedicineTitle;
+
+  /// No description provided for @drAiMedicineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What it\'s for and how to take it, and gathers the family\'s medicines worth asking the pharmacist about together.'**
+  String get drAiMedicineBody;
+
+  /// No description provided for @drAiInsuranceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reads an insurance card photo'**
+  String get drAiInsuranceTitle;
+
+  /// No description provided for @drAiInsuranceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'And fills in its details, for you to check before saving.'**
+  String get drAiInsuranceBody;
+
+  /// No description provided for @drAiWeeklyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A weekly family summary'**
+  String get drAiWeeklyTitle;
+
+  /// No description provided for @drAiWeeklyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Doses taken, vaccines coming up, and follow-ups due.'**
+  String get drAiWeeklyBody;
+
+  /// No description provided for @drAiSimpleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'In Simple Mode'**
+  String get drAiSimpleTitle;
+
+  /// No description provided for @drAiSimpleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Reads things aloud, and answers “Did I take my pill?”'**
+  String get drAiSimpleBody;
+
+  /// No description provided for @drAiLimitsHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Its limits'**
+  String get drAiLimitsHeading;
+
+  /// No description provided for @drAiLimitHelps.
+  ///
+  /// In en, this message translates to:
+  /// **'It helps you understand and organise. That\'s all.'**
+  String get drAiLimitHelps;
+
+  /// No description provided for @drAiLimitNever.
+  ///
+  /// In en, this message translates to:
+  /// **'It never diagnoses or prescribes.'**
+  String get drAiLimitNever;
+
+  /// No description provided for @drAiLimitDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'It always points you to your doctor.'**
+  String get drAiLimitDoctor;
+
+  /// No description provided for @drAiLimitEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'In an emergency it says: call the ambulance on {number}.'**
+  String drAiLimitEmergency(String number);
+
+  /// No description provided for @drAiOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'It will be optional, and it will only see the family records you choose.'**
+  String get drAiOptional;
 
   /// No description provided for @settingsTutorial.
   ///

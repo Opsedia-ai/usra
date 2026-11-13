@@ -25,6 +25,7 @@ import '../medicines/medicines_providers.dart'
 import '../medicines/reminder_permission.dart';
 import 'about_privacy_screen.dart';
 import 'delete_data_screen.dart';
+import 'dr_usra_ai_screen.dart';
 import '../home/simple_home.dart' show leaveSimpleMode;
 import '../../core/util/time_picker.dart';
 
@@ -50,6 +51,7 @@ class SettingsModule extends FeatureModule {
     GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
     GoRoute(path: aboutPath, builder: (_, _) => const AboutPrivacyScreen()),
     GoRoute(path: deleteDataPath, builder: (_, _) => const DeleteDataScreen()),
+    GoRoute(path: drUsraAiPath, builder: (_, _) => const DrUsraAiScreen()),
   ];
 }
 
@@ -221,13 +223,22 @@ class SettingsScreen extends ConsumerWidget {
                 title: l.settingsTutorial,
                 onTap: ref.read(tutorialProvider.notifier).reopen,
               ),
-              ListTile(
-                key: const ValueKey('settings-ai-soon'),
-                enabled: false,
-                leading: const Icon(Icons.auto_awesome_outlined),
-                title: Text(l.settingsAiTitle),
-                subtitle: Text(l.settingsAiSoon),
-              ),
+              // Planned, informational only. Simple Mode leaves it out.
+              if (!ref.watch(simpleModeProvider))
+                UsraListRow(
+                  key: const ValueKey('settings-dr-ai'),
+                  leading: const UsraMark(),
+                  title: l.drAiTitle,
+                  subtitle: const Padding(
+                    padding: EdgeInsets.only(top: UsraSpacing.s1),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: ComingSoonPill(),
+                    ),
+                  ),
+                  semanticLabel: '${l.drAiTitle}، ${l.drAiSoon}',
+                  onTap: () => context.push(drUsraAiPath),
+                ),
               UsraListRow(
                 key: const ValueKey('settings-about'),
                 icon: Icons.privacy_tip_outlined,

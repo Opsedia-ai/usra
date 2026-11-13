@@ -1064,10 +1064,100 @@ class AppLocalizationsEn extends AppLocalizations {
       'Bigger text and buttons, fewer tabs. Good for grandparents using the phone on their own.';
 
   @override
-  String get settingsAiTitle => 'Dr. Usra AI';
+  String get drAiTitle => 'Dr. Usra, powered by AI';
 
   @override
-  String get settingsAiSoon => 'Coming soon';
+  String get drAiSoon => 'Coming soon';
+
+  @override
+  String get drAiIntro => 'Coming in a future update. It doesn\'t work yet.';
+
+  @override
+  String get drAiFeaturesHeading => 'What it will help with';
+
+  @override
+  String get drAiPhotoTitle => 'Reads a prescription or lab report photo';
+
+  @override
+  String get drAiPhotoBody =>
+      'And fills in the medicine or result, for you to check before saving.';
+
+  @override
+  String get drAiLabTitle => 'Explains a lab result in simple words';
+
+  @override
+  String get drAiLabBody =>
+      'Next to the lab\'s own normal range, with questions to ask your doctor.';
+
+  @override
+  String get drAiVisitTitle => 'Prepares a doctor visit';
+
+  @override
+  String get drAiVisitBody =>
+      'A short summary of the last few months, and your questions.';
+
+  @override
+  String get drAiAskTitle =>
+      'Questions about your family\'s records, in Arabic';
+
+  @override
+  String get drAiAskBody => 'Like: “When was Gamila\'s last vaccine?”';
+
+  @override
+  String get drAiVoiceTitle => 'Log by voice, in Egyptian Arabic';
+
+  @override
+  String get drAiVoiceBody => 'Like: “Gamila\'s temperature is 38.5”';
+
+  @override
+  String get drAiMedicineTitle => 'Explains a medicine simply';
+
+  @override
+  String get drAiMedicineBody =>
+      'What it\'s for and how to take it, and gathers the family\'s medicines worth asking the pharmacist about together.';
+
+  @override
+  String get drAiInsuranceTitle => 'Reads an insurance card photo';
+
+  @override
+  String get drAiInsuranceBody =>
+      'And fills in its details, for you to check before saving.';
+
+  @override
+  String get drAiWeeklyTitle => 'A weekly family summary';
+
+  @override
+  String get drAiWeeklyBody =>
+      'Doses taken, vaccines coming up, and follow-ups due.';
+
+  @override
+  String get drAiSimpleTitle => 'In Simple Mode';
+
+  @override
+  String get drAiSimpleBody =>
+      'Reads things aloud, and answers “Did I take my pill?”';
+
+  @override
+  String get drAiLimitsHeading => 'Its limits';
+
+  @override
+  String get drAiLimitHelps =>
+      'It helps you understand and organise. That\'s all.';
+
+  @override
+  String get drAiLimitNever => 'It never diagnoses or prescribes.';
+
+  @override
+  String get drAiLimitDoctor => 'It always points you to your doctor.';
+
+  @override
+  String drAiLimitEmergency(String number) {
+    return 'In an emergency it says: call the ambulance on $number.';
+  }
+
+  @override
+  String get drAiOptional =>
+      'It will be optional, and it will only see the family records you choose.';
 
   @override
   String get settingsTutorial => 'Show the tour again';
