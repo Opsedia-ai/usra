@@ -6,6 +6,18 @@ Contains ads: **No**. In-app purchases: **No** in a build with no accounts, as t
 
 Counts are `characters / limit`; check with `python3 tools/store/check_lengths.py`.
 
+Store settings → Store listing contact details, and App content → Privacy policy:
+
+| Field | Value |
+| --- | --- |
+| Website | <https://opsedia.ai/usra> |
+| Privacy policy | <https://opsedia.ai/usra/en/privacy> (the Arabic page, <https://opsedia.ai/usra/ar/privacy>, is linked from the app) |
+| Email | Founder to choose; shown publicly on the listing |
+| Phone | Optional, leave empty |
+
+Graphics (none made yet): icon 512×512, feature graphic 1024×500 (required), 2 to 8 phone
+screenshots per language; plan in `screenshots.md`.
+
 ## العربية (ar)
 
 ### App name (20/30)

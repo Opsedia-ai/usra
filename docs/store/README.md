@@ -42,12 +42,23 @@ Notes:
 ## Before submitting
 
 - [ ] Final name after the trademark and store-name checks (`docs/decisions.md`, open questions).
-- [ ] Support e-mail, website and the hosted privacy policy URL. Store builds must pass
-      `--dart-define=USRA_RELEASE=true --dart-define=USRA_WEBSITE=https://<domain>`;
-      with `USRA_RELEASE` and no `USRA_WEBSITE` the compile fails on purpose
+- [x] Website and hosted privacy policy, live since November 2026:
+      website and support page <https://opsedia.ai/usra>, privacy policy
+      <https://opsedia.ai/usra/en/privacy> and <https://opsedia.ai/usra/ar/privacy>,
+      terms `/en/terms` and `/ar/terms`. Store builds must pass
+      `--dart-define=USRA_RELEASE=true --dart-define=USRA_WEBSITE=https://opsedia.ai/usra`
+      (no trailing slash: the app adds `/ar/privacy`, `/en/privacy`, `/ar/terms`, `/en/terms`).
+      With `USRA_RELEASE` and no `USRA_WEBSITE` the compile fails on purpose
       (`releaseWebsiteCheck` in `app/lib/features/settings/about_privacy_screen.dart`),
-      so the placeholder `https://usra.example` can't ship. The app opens
-      `<domain>/ar/privacy`, `/en/privacy`, `/ar/terms`, `/en/terms`.
+      so the placeholder `https://usra.example` can't ship. A build **without**
+      `USRA_RELEASE` still compiles with the placeholder and dead links, so always use
+      the command in `docs/release.md`.
+- [ ] Support e-mail for the listing (Play shows it publicly). The app's damaged-database
+      screen shows aya@opsedia.ai today; the founder decides whether the store uses it or
+      a shared address.
+- [ ] Play graphics: app icon 512×512 (from `app/assets/branding/icon.png`), **feature
+      graphic 1024×500 (required by Play)**, and 2 to 8 phone screenshots per language
+      (`screenshots.md`). None are made yet.
 - [ ] Saudi Arabia and Jordan listings, after a local doctor has reviewed their
       schedules: settle the dialect (still open in `docs/prd-v1.md`), then swap "العيلة"
       and the Egyptian phrasing to match, and replace "Egypt's vaccine schedule" and
