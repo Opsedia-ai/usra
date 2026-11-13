@@ -225,6 +225,30 @@ void main() {
     expect(find.byKey(const ValueKey('reminders-off')), findsNothing);
   });
 
+  testWidgets('a person\'s medicines opened on their own have a way back, '
+      'and Add medicine is a flat button (e2e #5)', (tester) async {
+    tallScreen(tester);
+    final omar = (await tester.runAsync(() => db.addProfile('عمر')))!;
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    // As after saving a medicine: nothing under the list in the stack.
+    GoRouter.of(tester.element(find.byType(Scaffold).first))
+        .go('/family/$omar/medicines');
+    await tester.pumpAndSettle();
+    expect(find.text('أدوية عمر'), findsOneWidget);
+    expect(find.byType(FloatingActionButton), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('medicine-add')),
+        matching: find.byType(FilledButton),
+      ),
+      findsOneWidget,
+    );
+
+    await tapKey(tester, 'medicines-back');
+    expect(find.byKey(const ValueKey('member-medicines')), findsOneWidget);
+  });
+
   testWidgets('Simple Mode\'s "My medicines" opens today\'s doses', (
     tester,
   ) async {
