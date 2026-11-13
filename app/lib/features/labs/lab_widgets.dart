@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/status_chip.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../l10n/app_localizations.dart';
@@ -31,16 +31,28 @@ IconData labFlagIcon(LabFlag flag) => switch (flag) {
   LabFlag.unknown => Icons.remove,
 };
 
+/// How a result compares with its range, as a dot and words: amber when
+/// above or below, green when within, muted when there's no range.
 class LabFlagChip extends StatelessWidget {
   const LabFlagChip({super.key, required this.flag});
 
   final LabFlag flag;
 
   @override
-  Widget build(BuildContext context) => StatusChip(
-    severity: labFlagSeverity(flag),
-    label: labFlagLabel(AppLocalizations.of(context), flag),
-  );
+  Widget build(BuildContext context) {
+    final c = context.usra;
+    final (dot, text) = switch (labFlagSeverity(flag)) {
+      Severity.good => (c.good, c.inkMuted),
+      Severity.headsUp || Severity.actSoon => (c.attentionDot, c.attention),
+      Severity.urgent => (c.urgent, c.urgent),
+      Severity.info => (c.lineStrong, c.inkMuted),
+    };
+    return StatusDotText(
+      label: labFlagLabel(AppLocalizations.of(context), flag),
+      color: text,
+      dotColor: dot,
+    );
+  }
 }
 
 /// Says what the flags are, every time they're shown.
@@ -151,7 +163,12 @@ class LabReportDetails extends StatelessWidget {
                       ),
                     ),
                     if (t.value != null)
-                      Icon(Icons.show_chart, color: context.usra.primary),
+                      ExcludeSemantics(
+                        child: Icon(
+                          Icons.show_chart,
+                          color: context.usra.inkMuted,
+                        ),
+                      ),
                   ],
                 ),
               ),

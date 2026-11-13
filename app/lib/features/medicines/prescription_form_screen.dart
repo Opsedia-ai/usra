@@ -7,7 +7,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart' show IconBox;
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/log.dart';
 import '../../core/ocr/medicine_name_extractor.dart';
@@ -656,14 +659,23 @@ class _PrescriptionFormScreenState
                   ),
                   const SizedBox(height: 12),
                 ],
+                // A plain card with an icon box: no tint, same words.
                 Card(
-                  color: context.usra.primarySoft,
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      l.prescriptionNoDoseAdvice,
-                      key: const ValueKey('rx-no-dose-advice'),
-                      style: text.bodyLarge,
+                    padding: const EdgeInsets.all(UsraSpacing.s4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const IconBox(icon: Icons.info_outline),
+                        const SizedBox(width: UsraSpacing.s3),
+                        Expanded(
+                          child: Text(
+                            l.prescriptionNoDoseAdvice,
+                            key: const ValueKey('rx-no-dose-advice'),
+                            style: text.bodyLarge,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -890,12 +902,10 @@ class _PrescriptionFormScreenState
                 if (_needsCheck)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(
-                      l.rxConfirmNeeded,
+                    child: StatusDotText(
                       key: const ValueKey('rx-confirm-needed'),
-                      style: TextStyle(
-                        color: Severity.headsUp.foregroundOf(context),
-                      ),
+                      label: l.rxConfirmNeeded,
+                      style: UsraType.body,
                     ),
                   ),
                 FilledButton(
@@ -968,12 +978,10 @@ class _ItemCard extends StatelessWidget {
             if (item.scanned)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  l.rxFromPhoto,
+                child: StatusDotText(
                   key: ValueKey('$k-from-photo'),
-                  style: TextStyle(
-                    color: Severity.headsUp.foregroundOf(context),
-                  ),
+                  label: l.rxFromPhoto,
+                  style: UsraType.body,
                 ),
               ),
             TextField(

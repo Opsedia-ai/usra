@@ -296,4 +296,27 @@ void main() {
       await walkScreen(tester);
     });
   });
+
+  // The polished milestones and baby log (amber dot, list rows) also fit.
+  group('milestones fit 320 px at double text', () {
+    forEachSmallLayout(() => h, (tester) async {
+      final (id, _) = await seed(tester);
+      await h.open(tester, '/family/$id/development');
+      await walkScreen(tester);
+    });
+  });
+
+  group('baby log fits 320 px at double text', () {
+    forEachSmallLayout(() => h, (tester) async {
+      final id = (await tester.runAsync(
+        () => h.db.addProfile(
+          'ليلى',
+          sex: 'female',
+          birthDate: addMonths(DateUtils.dateOnly(DateTime.now()), -3),
+        ),
+      ))!;
+      await h.open(tester, '/family/$id/baby-log');
+      await walkScreen(tester);
+    });
+  });
 }

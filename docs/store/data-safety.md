@@ -43,19 +43,36 @@ Android, `app/src/main/AndroidManifest.xml`:
 | --- | --- |
 | `POST_NOTIFICATIONS` | Medicine reminders (asked from the Medicines tab, Android 13+) |
 | `SCHEDULE_EXACT_ALARM` | Reminders on the minute (user grants it in system settings, Android 12+). Not `USE_EXACT_ALARM`, so no Play exact-alarm declaration is needed |
-| `RECEIVE_BOOT_COMPLETED` | Re-arm reminders and the widget after a restart |
-| `VIBRATE` (from flutter_local_notifications) | Reminder vibration |
+| `RECEIVE_BOOT_COMPLETED` | Re-arm reminders and the widget after a restart (also declared by WorkManager) |
+| `USE_BIOMETRIC` | App lock with fingerprint or face (`local_auth`) |
 
-No camera or storage permission: `image_picker` uses the system camera app and the
-Android photo picker, `file_picker` the system file picker.
+Added by libraries in the merged manifest (checked on 13 Nov 2026 from each plugin's
+manifest and the Maven manifests of their Android dependencies, not yet from a built
+APK, because the release build was broken that day):
 
-**To verify on the release build** (other session, M5 release build): the merged
-manifest (`build/app/intermediates/merged_manifests/release/.../AndroidManifest.xml`).
-`INTERNET` is always there now: `google_sign_in_android` declares it, in builds with
-accounts off too, so it says nothing about what is sent. To decide on the ML Kit row
-below, look for Google's `datatransport` services in the merged manifest. If they are
-there, the row applies. If not, a build with accounts off answers "No data collected"
-on Android. A build with accounts always collects data (see the last section).
+| Permission | From | Play Console |
+| --- | --- | --- |
+| `VIBRATE` | flutter_local_notifications | Nothing to declare |
+| `INTERNET` | google_sign_in_android, ML Kit's `datatransport` | Nothing to declare. In every build, accounts off too, so it says nothing about what is sent |
+| `ACCESS_NETWORK_STATE` | ML Kit's `datatransport`, WorkManager | Nothing to declare |
+| `WAKE_LOCK`, `FOREGROUND_SERVICE` | WorkManager (`androidx.work`, through home_widget) | Nothing to declare: no `FOREGROUND_SERVICE_<TYPE>` permission and no service with a `foregroundServiceType`, so Play's foreground service declaration doesn't apply |
+
+Not in the manifest, so no declaration and nothing to remove: `CAMERA`,
+`READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` / `READ_EXTERNAL_STORAGE`,
+`USE_EXACT_ALARM`, `USE_FULL_SCREEN_INTENT`, `QUERY_ALL_PACKAGES`, any
+`FOREGROUND_SERVICE_<TYPE>`, location, contacts. `image_picker` uses the system
+camera app and the Android photo picker (Play's Photo and Video Permissions policy is
+met), `file_picker` the system file picker. Package visibility uses a `<queries>` list
+of three intents (process text, dial, https), not `QUERY_ALL_PACKAGES`.
+
+**ML Kit sends diagnostics, so the ML Kit rows below apply.** `com.google.mlkit:common`
+18.11.0 and `vision-common` 17.3.0 depend on `transport-backend-cct` and
+`transport-runtime` (Google's `datatransport`), which add the `INTERNET` and
+`ACCESS_NETWORK_STATE` permissions and their upload services to the merged manifest.
+A build with accounts always collects more (see the last section).
+
+Re-check on the first release bundle: `bundletool dump manifest --bundle app-release.aab`
+and compare with the two tables above. Any new permission means a new review of this file.
 
 iOS, `ios/Runner/Info.plist`: `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`
 (both say photos and text read from them stay on the phone). Notification permission is
@@ -110,7 +127,8 @@ Not collected, with the reason (keep for the reviewer and for our own audits):
 
 | Declaration | Answer |
 | --- | --- |
-| Privacy policy | Hosted URL of `docs/legal/privacy-policy.en.md` (and `.ar.md`); must match `privacyPolicyUrl` in the app |
+| Privacy policy | <https://opsedia.ai/usra/en/privacy> (Arabic: <https://opsedia.ai/usra/ar/privacy>), from `docs/legal/privacy-policy.en.md` and `.ar.md`. The app opens the same pages when built with `USRA_WEBSITE=https://opsedia.ai/usra` (`docs/release.md`) |
+| Account deletion URL | Not needed in a build with no accounts (answer "No" to "Does your app allow users to create an account?"). Needed before any build with accounts ships, and the page doesn't exist yet |
 | Ads | No ads |
 | App access | All functionality available without special access. With accounts: no login is needed until the paywall (subscribing or redeeming a code) |
 | Target audience | 18 and over. The app is for adults managing their family's records; it is not designed for children, so it stays out of the Families programme |
@@ -120,7 +138,9 @@ Not collected, with the reason (keep for the reviewer and for our own audits):
 | Financial features | None |
 | **Health apps** | See below |
 | Health Connect | Not used |
-| Exact alarm (`USE_EXACT_ALARM`) | Not used (we use `SCHEDULE_EXACT_ALARM`) |
+| Exact alarm (`USE_EXACT_ALARM`) | Not used (we use `SCHEDULE_EXACT_ALARM`, which the person grants and which needs no declaration) |
+| Full-screen intent, foreground services, photo and video permissions | Not used, nothing to declare (see Permissions above) |
+| Developer account type | **Organization.** Play requires it for health apps: "developers providing the following services must register as an Organization: … Health apps, such as Medical apps" (Play Console Requirements, answer 10788890). Needs Opsedia's D-U-N-S number |
 
 ### Health apps declaration (Play Console → App content → Health apps)
 
@@ -156,11 +176,12 @@ reasons as Play.
 
 ### Privacy manifest
 
-`ios/Runner/PrivacyInfo.xcprivacy` does not exist yet. Plugins ship their own; the
-app target still needs one declaring `NSPrivacyTracking = false`, no tracking domains,
-and the required-reason APIs it uses directly (UserDefaults through
-`shared_preferences`: `CA92.1`; file timestamps if any). Follow-up for the iOS release
-build, not in this change.
+`ios/Runner/PrivacyInfo.xcprivacy` and `ios/DoseWidget/PrivacyInfo.xcprivacy` declare
+`NSPrivacyTracking = false`, no tracking domains, no collected data, and UserDefaults with
+reasons `CA92.1` (the app's own settings, through `shared_preferences`) and `1C8F.1` (the
+app group shared with the dose widget). Plugins and SDKs ship their own manifests, which
+Xcode merges into the privacy report. When accounts ship, add the name, email and user ID
+the sign-in collects (see the accounts section above).
 
 ## Apple: medical and health review points
 

@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import '../../core/database/app_database.dart';
 import '../../core/design/buttons.dart';
 import '../../core/design/pill_chip.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
@@ -518,7 +519,7 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
       fontSize: 17,
       fontWeight: FontWeight.w600,
     );
-    final unsureColor = Severity.headsUp.foregroundOf(context);
+    final unsureColor = c.attention;
     final unsureBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(UsraRadius.md),
       borderSide: BorderSide(color: unsureColor, width: 2),
@@ -563,31 +564,12 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
             if (unsure)
               Padding(
                 padding: const EdgeInsets.only(top: UsraSpacing.s1),
-                child: Row(
+                // An amber dot and words; the amber border stays, so the
+                // field to check is easy to find.
+                child: StatusDotText(
                   key: ValueKey('medicine-$key-unsure'),
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ExcludeSemantics(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 3),
-                        child: Icon(
-                          Icons.warning_amber_rounded,
-                          size: 18,
-                          color: unsureColor,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: UsraSpacing.s1),
-                    Expanded(
-                      child: Text(
-                        l.medicineUnsureValue,
-                        style: UsraType.body.copyWith(
-                          color: unsureColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
+                  label: l.medicineUnsureValue,
+                  style: UsraType.body.copyWith(fontWeight: FontWeight.w500),
                 ),
               ),
           ],
@@ -1086,7 +1068,10 @@ class _PersonBanner extends StatelessWidget {
       container: true,
       child: Material(
         color: c.surface,
-        shape: StadiumBorder(side: BorderSide(color: c.primary, width: 2)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(UsraRadius.button),
+          side: BorderSide(color: c.line),
+        ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           key: const ValueKey('medicine-person'),
@@ -1226,8 +1211,11 @@ class _ScanCard extends StatelessWidget {
     final l = AppLocalizations.of(context);
     final c = context.usra;
     return Material(
-      color: c.infoSoft,
-      borderRadius: BorderRadius.circular(UsraRadius.lg),
+      color: c.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(UsraRadius.card),
+        side: BorderSide(color: c.line),
+      ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1243,7 +1231,7 @@ class _ScanCard extends StatelessWidget {
                     width: UsraSizes.touchTarget,
                     height: UsraSizes.touchTarget,
                     decoration: BoxDecoration(
-                      color: c.surface,
+                      color: c.surfaceSoft,
                       borderRadius: BorderRadius.circular(UsraRadius.md),
                     ),
                     child: ExcludeSemantics(
@@ -1269,7 +1257,11 @@ class _ScanCard extends StatelessWidget {
                           read
                               ? l.medicineScanReview
                               : l.medicineScanOptionBody,
-                          style: UsraType.label.copyWith(color: c.ink),
+                          // "Check what was read" stays in ink.
+                          style: UsraType.label.copyWith(
+                            color: read ? c.ink : c.inkMuted,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
                       ],
                     ),

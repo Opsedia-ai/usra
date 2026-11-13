@@ -178,17 +178,46 @@ List<PlannedDose> plannedDoses(
   required DateTime to,
 }) {
   final byKey = {for (final l in logs) _key(l.medicineId, l.scheduledAt): l};
-  final doses = [
-    for (final r in regimens)
-      for (final at in DoseRule.of(
-        r.medicine,
-        r.schedule,
-      ).occurrencesBetween(from, to))
-        PlannedDose(regimen: r, at: at, log: byKey[_key(r.medicine.id, at)]),
-  ];
+  final doses = <PlannedDose>[];
+  for (final r in regimens) {
+    final rule = DoseRule.of(r.medicine, r.schedule);
+    final added = medicineAddedAt(r.medicine.id);
+    for (final at in rule.occurrencesBetween(from, to)) {
+      final log = byKey[_key(r.medicine.id, at)];
+      if (log == null && _beforeAdded(at, rule.startOn, added)) continue;
+      doses.add(PlannedDose(regimen: r, at: at, log: log));
+    }
+  }
   // Stable: same-time doses keep the person/medicine order.
   _stableSort(doses, (a, b) => a.at.compareTo(b.at));
   return doses;
+}
+
+/// When the medicine with [id] was added, read from its id: medicine ids are
+/// UUID version 7, whose first 48 bits are the time it was made, in
+/// milliseconds since 1970. Null for any other id, so nothing is hidden.
+DateTime? medicineAddedAt(String id) {
+  final hex = id.replaceAll('-', '');
+  if (hex.length != 32 || hex[12] != '7') return null;
+  final ms = int.tryParse(hex.substring(0, 12), radix: 16);
+  return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+}
+
+/// A dose on a medicine's first day, due before the medicine was added the
+/// same day: nobody was asked for it, so it isn't due or missed. A medicine
+/// added at 10:00 with 08:00 and 20:00 times starts with the 20:00 dose.
+/// A first day in the past was chosen on purpose, so its doses all stay.
+bool _beforeAdded(DateTime at, DateTime startOn, DateTime? added) {
+  if (added == null) return false;
+  final a = added.toLocal();
+  final d = at.toLocal();
+  return a.year == startOn.year &&
+      a.month == startOn.month &&
+      a.day == startOn.day &&
+      d.year == a.year &&
+      d.month == a.month &&
+      d.day == a.day &&
+      d.isBefore(a);
 }
 
 String _key(String medicineId, DateTime at) =>

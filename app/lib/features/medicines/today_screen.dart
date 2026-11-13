@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/design/pill_chip.dart';
-import '../../core/design/status_chip.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/providers.dart';
@@ -465,7 +465,6 @@ class DoseCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.usra;
     final group = doseGroupOf(dose, ref.watch(clockProvider)());
     final compact = _isCompact(context);
     void mark(String status, _DoseMessage message) =>
@@ -482,7 +481,6 @@ class DoseCard extends ConsumerWidget {
         padding: const EdgeInsets.only(top: UsraSpacing.s2),
         child: Card(
           key: ValueKey('dose-$_id'),
-          color: group == DoseGroup.now ? c.primarySoft : null,
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: UsraSpacing.s4,
@@ -538,11 +536,9 @@ class _Summary extends StatelessWidget {
       ?r.medicine.instructions,
     ].join(' · ');
     final nameBeside = nameGoesBesidePebble(context, r.person);
-    final chip = StatusChip(
-      severity: Severity.actSoon,
-      label: l.doseGroupMissed,
-      icon: Icons.warning_amber_rounded,
-    );
+    // A quiet amber dot and words: a missed dose needs a look, but it isn't
+    // an emergency.
+    final chip = StatusDotText(label: l.doseGroupMissed);
     final course = courseProgress(r.medicine, dose.at);
     return Row(
       children: [
@@ -566,7 +562,7 @@ class _Summary extends StatelessWidget {
                           key: ValueKey('dose-person-$id'),
                           style: UsraType.label.copyWith(
                             color: c.ink,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       Text(
@@ -589,7 +585,10 @@ class _Summary extends StatelessWidget {
                             l.courseDayOf(course.day, course.total),
                           ),
                           key: ValueKey('dose-course-$id'),
-                          style: UsraType.label.copyWith(color: c.primary),
+                          style: UsraType.label.copyWith(
+                            color: c.inkMuted,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
                       if (missed && compact)
                         Padding(
@@ -599,10 +598,8 @@ class _Summary extends StatelessWidget {
                       if (dose.log?.status == DoseOutcome.snoozed && !missed)
                         Padding(
                           padding: const EdgeInsets.only(top: UsraSpacing.s1),
-                          child: StatusChip(
+                          child: _Snoozed(
                             key: ValueKey('dose-snoozed-$id'),
-                            severity: Severity.info,
-                            icon: Icons.snooze,
                             label: l.doseSnoozedUntil(
                               formatDoseTime(context, doseSnoozedUntil(dose)),
                             ),
@@ -654,9 +651,52 @@ class _Buttons extends StatelessWidget {
         );
 }
 
-/// An outlined button that stays readable on the tinted "now" card.
+/// "Snoozed until 2:10": a muted line with a snooze icon, not a tinted chip.
+class _Snoozed extends StatelessWidget {
+  const _Snoozed({super.key, required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = context.usra.inkMuted;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ExcludeSemantics(child: Icon(Icons.snooze, size: 16, color: muted)),
+        const SizedBox(width: UsraSpacing.s1),
+        Flexible(
+          child: Text(
+            label,
+            style: UsraType.label.copyWith(
+              color: muted,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Taken: an outlined ink button as tall as a filled one (Simple Mode too).
+/// The page has many doses, so none of them takes the filled navy button.
 ButtonStyle _outlined(BuildContext context) => OutlinedButton.styleFrom(
-  backgroundColor: context.usra.surface,
+  foregroundColor: context.usra.ink,
+  side: BorderSide(color: context.usra.lineStrong),
+  minimumSize: Size(
+    0,
+    Theme.of(context).filledButtonTheme.style?.minimumSize
+            ?.resolve(const {})
+            ?.height ??
+        UsraSizes.touchTarget,
+  ),
+  textStyle: UsraType.body.copyWith(fontWeight: FontWeight.w600),
+);
+
+/// The quieter choices beside Taken: short text actions, still a full touch
+/// target.
+ButtonStyle _text(BuildContext context) => TextButton.styleFrom(
   minimumSize: Size(
     0,
     Theme.of(context).filledButtonTheme.style?.minimumSize
@@ -674,8 +714,9 @@ class _TakenButton extends StatelessWidget {
   final _Mark mark;
 
   @override
-  Widget build(BuildContext context) => FilledButton.icon(
+  Widget build(BuildContext context) => OutlinedButton.icon(
     key: ValueKey('dose-taken-$id'),
+    style: _outlined(context),
     onPressed: () => mark(
       DoseOutcome.taken,
       (l, medicine, person) => l.homeDoseLogged(medicine, person),
@@ -699,9 +740,9 @@ class _MissedButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _Buttons(
     first: _TakenButton(id: id, mark: mark),
-    second: OutlinedButton(
+    second: TextButton(
       key: ValueKey('dose-skip-$id'),
-      style: _outlined(context),
+      style: _text(context),
       onPressed: () => _markNotTaken(mark),
       child: Text(AppLocalizations.of(context).doseSkip),
     ),
@@ -722,9 +763,9 @@ class _DueButtons extends StatelessWidget {
       children: [
         _Buttons(
           first: _TakenButton(id: id, mark: mark),
-          second: OutlinedButton(
+          second: TextButton(
             key: ValueKey('dose-snooze-$id'),
-            style: _outlined(context),
+            style: _text(context),
             onPressed: () => mark(
               DoseOutcome.snoozed,
               (l, medicine, person) => l.doseLoggedSnoozed(medicine, person),
@@ -754,9 +795,9 @@ class _LaterButton extends StatelessWidget {
   final _Mark mark;
 
   @override
-  Widget build(BuildContext context) => OutlinedButton(
+  Widget build(BuildContext context) => TextButton(
     key: ValueKey('dose-early-$id'),
-    style: _outlined(context),
+    style: _text(context),
     onPressed: () => mark(
       DoseOutcome.taken,
       (l, medicine, person) => l.doseLoggedEarly(medicine, person),

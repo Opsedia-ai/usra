@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../core/records/record_type.dart' show decodeRecordData;
@@ -142,7 +143,8 @@ class _Body extends ConsumerWidget {
           summary: summarizeDay(events, yesterday),
         ),
         const SizedBox(height: 16),
-        for (final e in today) _EntryTile(event: e),
+        if (today.isNotEmpty)
+          UsraListCard(children: [for (final e in today) _EntryTile(event: e)]),
         const SizedBox(height: 16),
         Text(
           l.logDisclaimer,
@@ -314,15 +316,14 @@ class _EntryTile extends ConsumerWidget {
       (_, 'dirty') => (Icons.baby_changing_station_outlined, l.diaperDirty),
       _ => (Icons.baby_changing_station_outlined, l.diaperBoth),
     };
-    return ListTile(
+    return UsraListRow(
       key: ValueKey('log-entry-${event.id}'),
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: context.usra.primary),
-      title: Text(label),
-      subtitle: Text(DateFormat.jm(locale).format(event.occurredAt.toLocal())),
+      icon: icon,
+      title: label,
+      subtitleText: DateFormat.jm(locale).format(event.occurredAt.toLocal()),
       trailing: IconButton(
         tooltip: l.logDelete,
-        icon: const Icon(Icons.delete_outline),
+        icon: Icon(Icons.delete_outline, color: context.usra.inkMuted),
         onPressed: () => _delete(
           ScaffoldMessenger.of(context),
           ref.read(databaseProvider),

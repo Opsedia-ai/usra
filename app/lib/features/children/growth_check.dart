@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/status_chip.dart';
+import '../../core/design/status_dot.dart';
+import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/providers.dart';
 import '../../core/util/localized_digits.dart';
 import '../../core/util/localized_numbers.dart';
@@ -67,6 +69,31 @@ Future<bool> confirmPlausibleGrowth(
     ),
   );
   return keep ?? false;
+}
+
+/// Where a measurement sits against the WHO reference, in words. Outside
+/// the usual range it takes the quiet amber dot; inside it stays plain muted
+/// text, never a green "all is well".
+class GrowthStatusText extends StatelessWidget {
+  const GrowthStatusText({super.key, required this.reading});
+
+  final GrowthReading reading;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final percentile = localizedDigitsIn(context, reading.percentileLabel);
+    if (!reading.withinUsualRange) {
+      return StatusDotText(label: l.growthOutsideRange(percentile));
+    }
+    return Text(
+      l.growthWithinRange(percentile),
+      style: UsraType.label.copyWith(
+        color: context.usra.inkMuted,
+        fontWeight: FontWeight.w400,
+      ),
+    );
+  }
 }
 
 /// "Tell me the weight and I'll check": today's weight or height against
@@ -145,22 +172,9 @@ class _GrowthCheckCardState extends ConsumerState<GrowthCheckCard> {
                     padding: const EdgeInsets.only(top: 6),
                     child: Align(
                       alignment: AlignmentDirectional.centerStart,
-                      child: StatusChip(
+                      child: GrowthStatusText(
                         key: ValueKey('check-status-${i.name}'),
-                        severity: reading.severity,
-                        label: reading.withinUsualRange
-                            ? l.growthWithinRange(
-                                localizedDigitsIn(
-                                  context,
-                                  reading.percentileLabel,
-                                ),
-                              )
-                            : l.growthOutsideRange(
-                                localizedDigitsIn(
-                                  context,
-                                  reading.percentileLabel,
-                                ),
-                              ),
+                        reading: reading,
                       ),
                     ),
                   ),

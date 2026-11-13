@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/status_chip.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import 'call_buttons.dart';
@@ -53,17 +54,33 @@ class DoctorScreen extends ConsumerWidget {
               const SizedBox(height: 20),
               CallButtons(phone: d.phone),
               const SizedBox(height: 28),
-              Text(
-                l.doctorVisits,
-                style: Theme.of(context).textTheme.titleMedium,
+              Semantics(
+                header: true,
+                child: Text(
+                  l.doctorVisits,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
               const SizedBox(height: 8),
               ...visits.when(
                 loading: () => [const LinearProgressIndicator()],
                 error: (e, _) => [Text('$e')],
                 data: (list) => list.isEmpty
-                    ? [Text(l.doctorNoVisits)]
-                    : [for (final v in list) _VisitTile(visit: v)],
+                    ? [
+                        Text(
+                          l.doctorNoVisits,
+                          style: UsraType.body.copyWith(
+                            color: context.usra.inkMuted,
+                          ),
+                        ),
+                      ]
+                    : [
+                        UsraListCard(
+                          children: [
+                            for (final v in list) _VisitTile(visit: v),
+                          ],
+                        ),
+                      ],
               ),
             ],
           );
@@ -114,42 +131,35 @@ class _Details extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final text = Theme.of(context).textTheme;
     final d = doctor;
+    // Specialty and fee as one plain line, not tinted chips.
+    final summary = [
+      ?d.specialty,
+      if (d.feeMinor != null)
+        '${l.doctorFee}: ${_money(context, d.feeMinor!, l.currencyEgp)}',
+    ].join(' · ');
+    final rows = [
+      for (final (icon, value) in [
+        (Icons.phone_outlined, d.phone),
+        (Icons.local_hospital_outlined, d.clinic),
+        (Icons.place_outlined, d.address),
+        (Icons.notes_outlined, d.notes),
+      ])
+        if (value != null) UsraListRow(icon: icon, title: value),
+    ];
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            if (d.specialty != null)
-              StatusChip(severity: Severity.info, label: d.specialty!),
-            if (d.feeMinor != null)
-              StatusChip(
-                severity: Severity.info,
-                label:
-                    '${l.doctorFee}: ${_money(context, d.feeMinor!, l.currencyEgp)}',
-              ),
-          ],
-        ),
-        for (final (icon, value) in [
-          (Icons.phone_outlined, d.phone),
-          (Icons.local_hospital_outlined, d.clinic),
-          (Icons.place_outlined, d.address),
-          (Icons.notes_outlined, d.notes),
-        ])
-          if (value != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Row(
-                children: [
-                  Icon(icon, color: context.usra.inkMuted),
-                  const SizedBox(width: 10),
-                  Expanded(child: Text(value, style: text.bodyLarge)),
-                ],
-              ),
-            ),
+        if (summary.isNotEmpty)
+          Text(
+            summary,
+            key: const ValueKey('doctor-summary'),
+            style: UsraType.body.copyWith(color: context.usra.inkMuted),
+          ),
+        if (rows.isNotEmpty) ...[
+          const SizedBox(height: UsraSpacing.s3),
+          UsraListCard(children: rows),
+        ],
       ],
     );
   }
@@ -165,20 +175,15 @@ class _VisitTile extends ConsumerWidget {
     final locale = Localizations.localeOf(context).toLanguageTag();
     final e = visit.event;
     final type = ref.watch(moduleRegistryProvider).recordTypes[e.type];
-    return Card(
-      child: ListTile(
-        onTap: () => context.go('/family/${visit.person.id}'),
-        title: Text(
+    return UsraListRow(
+      onTap: () => context.go('/family/${visit.person.id}'),
+      title:
           '${visit.person.displayName} · ${type?.labelOf(context) ?? e.type}',
-        ),
-        subtitle: Text(
-          [
-            DateFormat.yMMMd(locale).format(e.occurredAt),
-            if (e.costMinor != null)
-              _money(context, e.costMinor!, e.currency ?? ''),
-          ].join(' · '),
-        ),
-      ),
+      subtitleText: [
+        DateFormat.yMMMd(locale).format(e.occurredAt),
+        if (e.costMinor != null)
+          _money(context, e.costMinor!, e.currency ?? ''),
+      ].join(' · '),
     );
   }
 }

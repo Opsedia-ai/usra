@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
+import '../../core/design/pill_chip.dart';
 import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -211,14 +212,14 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                     runSpacing: 8,
                     children: [
                       for (final r in relationships)
-                        ChoiceChip(
+                        UsraPill(
                           key: ValueKey('profile-relationship-$r'),
-                          label: Text(l.relationshipMine(r)),
+                          label: l.relationshipMine(r),
                           selected: _relationship == r,
                           // "بنتي" selects أنثى, "ابني" ذكر; still
-                          // changeable below.
-                          onSelected: (on) => setState(() {
-                            _relationship = on ? r : null;
+                          // changeable below. Tapped again, it clears.
+                          onTap: () => setState(() {
+                            _relationship = _relationship == r ? null : r;
                             if (sexOfRelationship(_relationship)
                                 case final sex?) {
                               _sex = sex;

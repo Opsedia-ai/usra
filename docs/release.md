@@ -74,8 +74,18 @@ Bump the build number in `app/pubspec.yaml` first (every upload needs a higher v
 
 ```bash
 cd app && USRA_REQUIRE_UPLOAD_KEY=true flutter build appbundle --release \
+  --dart-define=USRA_RELEASE=true \
+  --dart-define=USRA_WEBSITE=https://opsedia.ai/usra \
   --obfuscate --split-debug-info=build/symbols/$(sed -n 's/^version: *//p' pubspec.yaml)
 ```
+
+The two `--dart-define`s are required. Without them the bundle still builds, but the
+privacy policy and terms links in the app point to the placeholder `https://usra.example`
+and don't open; Play requires a working privacy policy link inside a health app.
+`USRA_WEBSITE` has no trailing slash: the app adds `/ar/privacy`, `/en/privacy`,
+`/ar/terms` and `/en/terms`. With `USRA_RELEASE=true` and no `USRA_WEBSITE` the
+compile fails on purpose. Don't pass `SUPABASE_URL` or the sign-in client IDs: the
+first release has no accounts (`docs/store/data-safety.md`).
 
 `--obfuscate` renames Dart classes and functions in the shipped `libapp.so`; `--split-debug-info` writes the symbols needed to read stack traces from that build to `app/build/symbols/<version>/`. **Keep that folder for every uploaded build**, privately (the team drive or password manager's file storage, not the repo, not a public release). Without it, crash stack traces from that version can't be read. To decode one:
 
@@ -97,7 +107,19 @@ To try the release build on a phone before uploading:
 cd app && flutter build apk --release && flutter install --release
 ```
 
-Check in it: reminders fire (including after a reboot), the home-screen widget updates, scanning a prescription reads text, and a backup restores. These are the parts that depend on R8 keeping plugin classes.
+Check in it: reminders fire (including after a reboot), the home-screen widget updates, scanning a prescription reads text, a backup restores, and More › About & privacy opens <https://opsedia.ai/usra/ar/privacy>. These are the parts that depend on R8 keeping plugin classes or on the build flags.
+
+### 16 KB memory pages
+
+Play: "all apps targeting Android 15 (API level 35) and higher must support 16 KB memory page sizes on 64-bit devices… Starting February 1, 2027, if your app updates don't support 16 KB memory page sizes, you won't be able to release these updates" (developer.android.com/guide/practices/page-sizes). Checked on 13 Nov 2026 from the libraries themselves: the 64-bit ML Kit text recognition library (`libmlkit_google_ocr_pipeline.so`) and DataStore's `libdatastore_shared_counter.so` are 16 KB aligned. Not checked yet: the prebuilt SQLite3 Multiple Ciphers library from the `sqlite3` package, Flutter's own libraries and `libdartjni.so`. Check every release before uploading (needs Android SDK build-tools 35 or newer):
+
+```bash
+cd app && flutter build apk --release \
+  --dart-define=USRA_RELEASE=true --dart-define=USRA_WEBSITE=https://opsedia.ai/usra
+zipalign -c -P 16 -v 4 build/app/outputs/flutter-apk/app-release.apk | tail -1
+```
+
+The last line must say `Verification successful`. Play Console also shows a 16 KB warning on the bundle's page in App bundle explorer.
 
 ### The two release files
 
@@ -117,7 +139,13 @@ The iOS App Store build needs the Apple Developer account's signing set up in Xc
 3. Upload `app-release.aab`, add release notes (Arabic first), **Save → Review release → Start rollout to Internal testing**.
 4. Add testers under **Testers** (an email list) and share the opt-in link.
 
-Before the first production release the store listing, content rating, Data safety form and privacy policy have to be filled in; that is tracked separately.
+Before the first production release the store listing, content rating, Data safety form, Health apps declaration and privacy policy have to be filled in: answers in `docs/store/data-safety.md`, texts in `docs/store/google-play.md`.
+
+## The Play developer account
+
+Use an **organization** account for Opsedia, not a personal one. Play requires it for health apps: "developers providing the following services must register as an Organization: … Health apps, such as Medical apps" (Play Console Help, answer 10788890). It needs Opsedia's D-U-N-S number (free from Dun & Bradstreet; it can take up to about 30 days) and the one-time registration fee. Google then verifies the organization and the website.
+
+An organization account also skips the closed test that new personal accounts must run before production: "a closed test for their app with a minimum of 12 testers who have been opted in continuously for at least 14 days" (answer 14151465, personal accounts created after 13 November 2023). Internal testing still works for both and is where the first builds go.
 
 ## Rolling back a release that changed the database schema
 
@@ -150,3 +178,9 @@ The generators also rewrite `ios/Runner/Assets.xcassets/AppIcon.appiconset/Conte
 ### Saving CI minutes
 
 The debug Android build (`build-android`) runs on a PR only when it changes `app/android/`, `app/ios/`, `app/pubspec.yaml`/`pubspec.lock`, `tools/ci/` or the workflow itself; Dart-only and docs PRs run just the tests. Add the `android-build` label to force it. Main pushes skip the debug build because the release bundle job compiles the same code. The unsigned iOS release build (`build-ios`, macOS runner) runs on PRs that change `app/ios/`, `app/pubspec.yaml`/`pubspec.lock` or the workflow, on PRs labelled `ios-build`, and on main pushes; it caches CocoaPods by `Podfile.lock` and fails if `pod install` changes committed files. A new push to a PR cancels that PR's older run.
+
+## App Store settings already in the project
+
+- **iPhone only.** `TARGETED_DEVICE_FAMILY = 1` for the app and the widget. iPads run it in iPhone mode, so the store needs no iPad screenshots. Turn iPad on only after its layouts are checked.
+- **Export compliance.** `ITSAppUsesNonExemptEncryption = false` in `Runner/Info.plist`: Usra uses only standard encryption (the encrypted SQLite3 Multiple Ciphers database, XChaCha20-Poly1305 for photos and backups, HTTPS), so App Store Connect doesn't ask on each upload. Revisit if any custom or non-standard cryptography is added.
+- **Privacy manifests.** `Runner/PrivacyInfo.xcprivacy` and `DoseWidget/PrivacyInfo.xcprivacy`, see `docs/store/data-safety.md`.

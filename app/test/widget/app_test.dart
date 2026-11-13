@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
+import 'package:usra/core/design/pill_chip.dart';
 import 'package:usra/core/design/dr_usra.dart';
 import 'package:usra/core/providers.dart';
 
@@ -251,7 +252,7 @@ void main() {
     expect(total(), contains('٤٥٠'));
     expect(
       tester
-          .widget<ChoiceChip>(find.byKey(ValueKey('spending-person-$omar')))
+          .widget<UsraPill>(find.byKey(ValueKey('spending-person-$omar')))
           .selected,
       isTrue,
     );

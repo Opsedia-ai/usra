@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/pill_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
@@ -262,46 +263,16 @@ class _CardScanLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final c = context.usra;
-    return Material(
-      color: c.primarySoft,
-      borderRadius: BorderRadius.circular(UsraRadius.md),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        key: const ValueKey('new-vaccine-scan'),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(UsraSpacing.s3),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ExcludeSemantics(
-                child: Icon(Icons.photo_camera_outlined, color: c.primary),
-              ),
-              const SizedBox(width: UsraSpacing.s3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l.vaccineCardScanTitle,
-                      style: UsraType.body.copyWith(
-                        color: c.ink,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: UsraSpacing.s1),
-                    Text(
-                      l.vaccineCardScanBody,
-                      style: UsraType.label.copyWith(color: c.inkMuted),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+    return UsraListCard(
+      children: [
+        UsraListRow(
+          key: const ValueKey('new-vaccine-scan'),
+          icon: Icons.photo_camera_outlined,
+          title: l.vaccineCardScanTitle,
+          subtitleText: l.vaccineCardScanBody,
+          onTap: onTap,
         ),
-      ),
+      ],
     );
   }
 }

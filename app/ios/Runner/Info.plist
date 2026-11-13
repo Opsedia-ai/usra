@@ -2,6 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 	<dict>
+		<!-- Only standard encryption (encrypted SQLite database, XChaCha20-Poly1305 photos and backups, HTTPS), exempt from export documentation. docs/release.md -->
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false/>
 		<key>NSCameraUsageDescription</key>
 		<string>Usra uses the camera to photograph insurance cards, reports and medicine boxes. Photos, and any text read from them, stay on this phone.</string>
 		<key>NSFaceIDUsageDescription</key>

@@ -3,6 +3,9 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:usra/core/design/list_row.dart';
+import 'package:usra/core/design/status_chip.dart';
+import 'package:usra/core/design/status_dot.dart';
 import 'package:usra/core/files/photo_store.dart';
 import 'package:usra/features/insurance/watermark.dart';
 
@@ -47,6 +50,30 @@ void main() {
       }))!;
 
   group('Insurance', () {
+    testWidgets('an expired card: an amber dot and the words, never red', (
+      tester,
+    ) async {
+      h.tall(tester);
+      final id = (await tester.runAsync(() async {
+        final id = await h.db.addProfile('فاطمة', sex: 'female');
+        await h.db.saveInsuranceCard(
+          profileId: id,
+          label: 'نقابة المهندسين',
+          expiresOn: DateTime(2020, 1, 31),
+        );
+        return id;
+      }))!;
+      await h.open(tester, '/family/$id/insurance');
+      final line = find.descendant(
+        of: key('insurance-expiry'),
+        matching: find.byType(StatusDotText),
+        matchRoot: true,
+      );
+      expect(line, findsOneWidget);
+      expect(tester.widget<StatusDotText>(line).label, startsWith('انتهى'));
+      expect(find.byType(StatusChip), findsNothing);
+    });
+
     testWidgets('member numbers read left to right', (tester) async {
       h.tall(tester);
       final (id, card) = await seedCard(tester);
@@ -108,6 +135,38 @@ void main() {
       expect(key('doctors-empty'), findsOneWidget);
       expect(key('doctor-add'), findsOneWidget);
       expect(find.byType(ListTile), findsNothing);
+      expect(find.byType(UsraListRow), findsNothing);
+    });
+
+    testWidgets('each doctor is a row with a short call, no tinted chips', (
+      tester,
+    ) async {
+      h.tall(tester);
+      final doctor = (await tester.runAsync(
+        () => h.db.saveDoctor(
+          name: 'د. منى',
+          specialty: 'باطنة',
+          phone: '01012345678',
+          feeMinor: 45000,
+        ),
+      ))!;
+      await h.open(tester, '/doctors');
+      expect(
+        find.ancestor(
+          of: key('doctor-call-$doctor'),
+          matching: find.byType(UsraListRow),
+        ),
+        findsOneWidget,
+      );
+      await h.go(tester, '/doctors/$doctor');
+      expect(find.byType(StatusChip), findsNothing);
+      expect(
+        tester.widget<Text>(key('doctor-summary')).data,
+        startsWith('باطنة · '),
+      );
+      // One filled button: the call.
+      expect(key('doctor-call'), findsOneWidget);
+      expect(find.byType(FilledButton), findsOneWidget);
     });
   });
 
@@ -139,6 +198,13 @@ void main() {
           dataJson: '{"doctorName":"سارة"}',
           costMinor: 40000,
           currency: 'EGP',
+        ),
+      );
+      await tester.runAsync(
+        () => h.db.saveDoctor(
+          name: 'د. منى',
+          specialty: 'باطنة',
+          phone: '01012345678',
         ),
       );
       await h.open(tester, '/family/$id/insurance/$card');

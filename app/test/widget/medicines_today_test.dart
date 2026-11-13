@@ -181,6 +181,11 @@ void main() {
 
     // The one word for a dose, everywhere on the screen.
     expect(find.text('اتاخد'), findsNWidgets(2));
+
+    // Polish: many doses, so none takes the filled navy button, and the
+    // "now" dose isn't a tinted card.
+    expect(find.byType(FilledButton), findsNothing);
+    expect(tester.widget<Card>(key('dose-$due')).color, isNull);
   });
 
   testWidgets('the filter shows one person; All shows everyone again', (
@@ -414,7 +419,7 @@ void main() {
     final ids = await seed(tester);
     await open(tester);
     final due = id(ids.gluco, two);
-    final button = tester.widget<OutlinedButton>(key('dose-snooze-$due'));
+    final button = tester.widget<TextButton>(key('dose-snooze-$due'));
     // Taken on the widget just as the snooze button is pressed.
     await tester.runAsync(
       () => db.logDose(ids.gluco, two.toUtc(), DoseOutcome.taken, at: now),

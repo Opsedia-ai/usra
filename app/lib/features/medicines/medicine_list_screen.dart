@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/status_chip.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
+import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/family_screen.dart' show profilesProvider;
 import '../family/member_screen.dart' show profileProvider;
@@ -44,22 +46,30 @@ class MedicineListScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
             children: [
-              FilledButton.tonalIcon(
+              // Adding a medicine is the page's one filled action (the
+              // floating button); a prescription is the outlined second.
+              OutlinedButton.icon(
                 key: const ValueKey('prescription-add'),
-                style: FilledButton.styleFrom(minimumSize: const Size(0, 56)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: context.usra.ink,
+                  side: BorderSide(color: context.usra.lineStrong),
+                ),
                 onPressed: () =>
                     context.go('/family/$profileId/prescriptions/new'),
                 icon: const Icon(Icons.receipt_long_outlined),
                 label: Text(l.prescriptionAdd),
               ),
               if (prescriptions.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                Text(l.prescriptionsSection, style: text.titleMedium),
-                const SizedBox(height: 8),
-                for (final p in prescriptions)
-                  _PrescriptionTile(profileId: profileId, prescription: p),
+                const SizedBox(height: UsraSpacing.s3),
+                UsraGroupLabel(l.prescriptionsSection),
+                UsraListCard(
+                  children: [
+                    for (final p in prescriptions)
+                      _PrescriptionTile(profileId: profileId, prescription: p),
+                  ],
+                ),
               ],
-              const SizedBox(height: 20),
+              const SizedBox(height: UsraSpacing.s4),
               if (list.isEmpty)
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -70,8 +80,12 @@ class MedicineListScreen extends ConsumerWidget {
                   ),
                 )
               else
-                for (final m in list)
-                  _MedicineTile(profileId: profileId, medicine: m),
+                UsraListCard(
+                  children: [
+                    for (final m in list)
+                      _MedicineTile(profileId: profileId, medicine: m),
+                  ],
+                ),
             ],
           );
         },
@@ -127,11 +141,14 @@ class AllMedicinesScreen extends ConsumerWidget {
                     ),
                   ),
                 for (final (i, e) in byPerson.indexed) ...[
-                  if (i > 0) const SizedBox(height: 20),
-                  Text(e.person.displayName, style: text.titleMedium),
-                  const SizedBox(height: 8),
-                  for (final m in e.medicines)
-                    _MedicineTile(profileId: e.person.id, medicine: m),
+                  if (i > 0) const SizedBox(height: UsraSpacing.s2),
+                  UsraGroupLabel(e.person.displayName),
+                  UsraListCard(
+                    children: [
+                      for (final m in e.medicines)
+                        _MedicineTile(profileId: e.person.id, medicine: m),
+                    ],
+                  ),
                 ],
               ],
             ),
@@ -154,27 +171,21 @@ class _PrescriptionTile extends ConsumerWidget {
     final p = prescription;
     final count =
         ref.watch(prescriptionMedicinesProvider(p.id)).value?.length ?? 0;
-    return Card(
-      child: ListTile(
-        key: ValueKey('prescription-${p.id}'),
-        onTap: () => context.go('/family/$profileId/prescriptions/${p.id}'),
-        leading: CircleAvatar(
-          backgroundColor: context.usra.primarySoft,
-          child: Icon(Icons.receipt_long_outlined, color: context.usra.primary),
-        ),
-        title: Text(prescriptionTitle(context, p)),
-        subtitle: Text(
-          [
-            ?p.diagnosis,
-            l.prescriptionCount(count),
-            if (!p.active) l.prescriptionStopped,
-          ].join(' · '),
-        ),
-      ),
+    return UsraListRow(
+      key: ValueKey('prescription-${p.id}'),
+      onTap: () => context.go('/family/$profileId/prescriptions/${p.id}'),
+      leading: const IconBox(icon: Icons.receipt_long_outlined),
+      title: prescriptionTitle(context, p),
+      subtitleText: [
+        ?p.diagnosis,
+        l.prescriptionCount(count),
+        if (!p.active) l.prescriptionStopped,
+      ].join(' · '),
     );
   }
 }
 
+/// A medicine: its schedule, then a muted "stopped", "finished" or course day.
 class _MedicineTile extends ConsumerWidget {
   const _MedicineTile({required this.profileId, required this.medicine});
 
@@ -184,49 +195,46 @@ class _MedicineTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
+    final c = context.usra;
     final schedule = ref.watch(doseScheduleProvider(medicine.id)).value;
     final now = ref.watch(clockProvider)();
     final ended = medicineEnded(medicine, now);
-    return Card(
-      child: ListTile(
-        key: ValueKey('medicine-${medicine.id}'),
-        onTap: () =>
-            context.push('/family/$profileId/medicines/${medicine.id}'),
-        leading: CircleAvatar(
-          backgroundColor: context.usra.primarySoft,
-          child: Icon(
-            medicineFormIcon(medicine.form),
-            color: context.usra.primary,
+    final muted = UsraType.label.copyWith(
+      color: c.inkMuted,
+      fontWeight: FontWeight.w400,
+    );
+    final course = !medicine.active || ended
+        ? null
+        : courseProgress(medicine, now);
+    return UsraListRow(
+      key: ValueKey('medicine-${medicine.id}'),
+      onTap: () => context.push('/family/$profileId/medicines/${medicine.id}'),
+      leading: IconBox(icon: medicineFormIcon(medicine.form)),
+      title: medicineTitle(medicine),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            schedule == null
+                ? l.medicineAsNeeded
+                : scheduleSummary(context, schedule),
+            style: muted,
           ),
-        ),
-        title: Text(medicineTitle(medicine)),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          if (!medicine.active || ended)
             Text(
-              schedule == null
-                  ? l.medicineAsNeeded
-                  : scheduleSummary(context, schedule),
-            ),
-            if (!medicine.active || ended)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: StatusChip(
-                  severity: Severity.info,
-                  label: medicine.active ? l.medicineEnded : l.medicineStopped,
-                ),
-              )
-            else if (courseProgress(medicine, now) case final c?)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: StatusChip(
-                  key: ValueKey('medicine-course-${medicine.id}'),
-                  severity: Severity.good,
-                  label: l.courseDayOf(c.day, c.total),
-                ),
+              medicine.active ? l.medicineEnded : l.medicineStopped,
+              style: muted,
+            )
+          else if (course case final course?)
+            Text(
+              localizedDigitsIn(
+                context,
+                l.courseDayOf(course.day, course.total),
               ),
-          ],
-        ),
+              key: ValueKey('medicine-course-${medicine.id}'),
+              style: muted,
+            ),
+        ],
       ),
     );
   }

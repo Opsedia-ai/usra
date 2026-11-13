@@ -5,7 +5,8 @@ Keep captions to **two short lines (about 40 characters)** so they stay readable
 the store's small previews. Same order and captions for Play and the App Store.
 
 Sizes: Play phone 1080×1920 or larger (16:9 or 9:16, 2–8 images); App Store 6.9"
-(1320×2868) required, 6.5" optional. Use sample family data only, never a real
+(1320×2868) required, 6.5" optional. The iOS app is iPhone-only (it runs on iPad in
+iPhone mode), so no iPad screenshots are needed. Use sample family data only, never a real
 person's records. The Arabic set shows the app in Arabic (RTL); the English set in English.
 
 | # | Screen | العربية | English |
@@ -19,7 +20,8 @@ person's records. The Arabic set shows the app in Arabic (RTL); the English set 
 | 7 | Insurance cards + doctors | كروت التأمين والدكاترة معاك دايماً | Insurance cards and doctors, always with you |
 | 8 | Backup / privacy | بياناتك على موبايلك، مش على سيرفرات | Your data stays on your phone, not our servers |
 
-Optional feature graphic (Play, 1024×500): Dr. Usra with the line
+Feature graphic (Play, 1024×500, JPEG or 24-bit PNG, no transparency; required
+before the app can be published): Dr. Usra with the line
 "ملف صحة العيلة" / "The family's health file".
 
 Caption rules: no medical claims ("diagnose", "treat", "prevent"), no prices,

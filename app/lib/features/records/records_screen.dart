@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart';
+import '../../core/design/pill_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
@@ -11,6 +13,7 @@ import '../../l10n/app_localizations.dart';
 import '../add/add_sheet.dart';
 import '../family/family_screen.dart';
 import '../family/member_screen.dart';
+import '../family/record_display.dart';
 
 /// Every record in the family, newest first and by month, with filters by
 /// person and by type.
@@ -41,11 +44,11 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
         for (final (id, name) in options)
           Padding(
             padding: const EdgeInsetsDirectional.only(end: UsraSpacing.s2),
-            child: ChoiceChip(
+            child: UsraPill(
               key: ValueKey('records-$prefix-${id ?? 'all'}'),
-              label: Text(name),
+              label: name,
               selected: selected == id,
-              onSelected: (_) => onSelected(id),
+              onTap: () => onSelected(id),
             ),
           ),
       ],
@@ -130,46 +133,63 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
                 l.recordsEmpty,
                 key: const ValueKey('records-empty'),
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge,
+                style: UsraType.body.copyWith(color: context.usra.inkMuted),
               ),
             ),
-          for (final (i, e) in events.indexed) ...[
-            if (i == 0 ||
-                month.format(e.occurredAt) !=
-                    month.format(events[i - 1].occurredAt))
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: UsraSpacing.s2,
-                  bottom: UsraSpacing.s2,
-                ),
-                child: Semantics(
-                  header: true,
-                  child: Text(
-                    month.format(e.occurredAt),
-                    key: ValueKey('records-month-$i'),
-                    style: UsraType.label.copyWith(
-                      color: context.usra.inkMuted,
-                    ),
+          // One card per month, under its muted label.
+          for (final (i, group) in _byMonth(events, month).indexed) ...[
+            Padding(
+              padding: const EdgeInsets.only(
+                top: UsraSpacing.s2,
+                bottom: UsraSpacing.s2,
+              ),
+              child: Semantics(
+                header: true,
+                child: Text(
+                  month.format(group.first.occurredAt),
+                  key: ValueKey('records-month-$i'),
+                  style: UsraType.label.copyWith(
+                    color: context.usra.inkMuted,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: UsraSpacing.s2),
-              child: EventCard(
-                event: e,
-                type: types[e.type],
-                photos: photos[e.id] ?? 0,
-                personName: person == null ? names[e.profileId] : null,
-                thumbnail: thumbs[e.id] == null
-                    ? null
-                    : _Thumbnail(event: e.id, path: thumbs[e.id]!),
-              ),
             ),
+            UsraListCard(
+              children: [
+                for (final e in group)
+                  RecordRow(
+                    event: e,
+                    type: types[e.type],
+                    photos: photos[e.id] ?? 0,
+                    personName: person == null ? names[e.profileId] : null,
+                    thumbnail: thumbs[e.id] == null
+                        ? null
+                        : _Thumbnail(event: e.id, path: thumbs[e.id]!),
+                  ),
+              ],
+            ),
+            const SizedBox(height: UsraSpacing.s2),
           ],
         ],
       ),
     );
   }
+}
+
+/// [events], newest first, split into runs of the same month.
+List<List<MedicalEvent>> _byMonth(List<MedicalEvent> events, DateFormat month) {
+  final groups = <List<MedicalEvent>>[];
+  for (final e in events) {
+    if (groups.isEmpty ||
+        month.format(groups.last.first.occurredAt) !=
+            month.format(e.occurredAt)) {
+      groups.add([e]);
+    } else {
+      groups.last.add(e);
+    }
+  }
+  return groups;
 }
 
 class _Thumbnail extends ConsumerWidget {
@@ -184,10 +204,10 @@ class _Thumbnail extends ConsumerWidget {
     child: PhotoImage(
       key: ValueKey('event-thumb-$event'),
       image: ref.watch(attachmentStoreProvider).image(path),
-      width: 48,
-      height: 48,
+      width: 36,
+      height: 36,
       fit: BoxFit.cover,
-      cacheWidth: (48 * MediaQuery.devicePixelRatioOf(context)).round(),
+      cacheWidth: (36 * MediaQuery.devicePixelRatioOf(context)).round(),
     ),
   );
 }
