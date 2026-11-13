@@ -186,6 +186,12 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: UsraSpacing.s2),
                     SegmentedButton<String>(
+                      key: const ValueKey('settings-language'),
+                      // Ink on the selected segment: the theme's primary on
+                      // its soft fill was too faint in dark mode.
+                      style: SegmentedButton.styleFrom(
+                        selectedForegroundColor: context.usra.ink,
+                      ),
                       segments: [
                         ButtonSegment(
                           value: 'ar',

@@ -8041,6 +8041,18 @@ abstract class AppLocalizations {
   /// **'Before you send it: the member number is personal, and whoever gets it could pass it on.'**
   String get insuranceShareWarningNoPhoto;
 
+  /// No description provided for @insuranceCopyShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get insuranceCopyShort;
+
+  /// No description provided for @insuranceDeleteCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete card'**
+  String get insuranceDeleteCard;
+
   /// No description provided for @simpleNextDose.
   ///
   /// In en, this message translates to:
