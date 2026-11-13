@@ -183,6 +183,25 @@ ThemeData buildUsraTheme({
     dialogTheme: DialogThemeData(
       backgroundColor: c.surface,
       surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(UsraRadius.card)),
+      ),
+    ),
+    // One look for every message: a floating pill above the bottom bar.
+    // Ones with Undo also pass [UsraDurations.undo] and persist: false.
+    snackBarTheme: const SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      shape: StadiumBorder(),
+    ),
+    // Dropdown and popup menus: rounded, a hairline, no shadow.
+    popupMenuTheme: PopupMenuThemeData(
+      color: c.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(UsraRadius.md),
+        side: BorderSide(color: c.line),
+      ),
     ),
     listTileTheme: ListTileThemeData(
       minTileHeight: simple ? 72 : null,

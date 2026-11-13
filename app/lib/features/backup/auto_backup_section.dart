@@ -15,6 +15,7 @@ import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
 import 'backup_providers.dart';
 import 'backup_screen.dart';
+import '../../core/design/dialog.dart';
 
 String _frequencyText(AppLocalizations l, BackupFrequency frequency) =>
     switch (frequency) {
@@ -127,7 +128,7 @@ Future<void> _explain(
   String body,
 ) => showDialog<void>(
   context: context,
-  builder: (context) => AlertDialog(
+  builder: (context) => UsraAlertDialog(
     key: key,
     title: Text(title),
     content: Text(body),
@@ -160,7 +161,7 @@ class AutoBackupSection extends ConsumerWidget {
         if (!context.mounted) return;
         final proceed = await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
+          builder: (context) => UsraAlertDialog(
             title: Text(l.backupAutoKeyFirstTitle),
             content: Text(l.backupAutoKeyFirstBody),
             actions: [

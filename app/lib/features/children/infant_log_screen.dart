@@ -177,6 +177,8 @@ class _Body extends ConsumerWidget {
         ..showSnackBar(
           SnackBar(
             content: Text(l.logSaved),
+            duration: UsraDurations.undo,
+            persist: false,
             action: SnackBarAction(
               label: l.followUpUndo,
               onPressed: () => _delete(messenger, db, id, l.saveFailed),

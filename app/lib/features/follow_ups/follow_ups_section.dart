@@ -317,6 +317,8 @@ class FollowUpTile extends ConsumerWidget {
       ..showSnackBar(
         SnackBar(
           content: Text(l.followUpDismissed),
+          duration: UsraDurations.undo,
+          persist: false,
           action: SnackBarAction(
             label: l.followUpUndo,
             onPressed: () => dismissed.restore(key),

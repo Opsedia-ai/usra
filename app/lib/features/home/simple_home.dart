@@ -11,6 +11,7 @@ import '../app_lock/app_lock_module.dart';
 import '../backup/backup_notices.dart';
 import '../children/vaccines_screen.dart' show HomeVaccines;
 import '../family/family_screen.dart';
+import '../../core/design/dialog.dart';
 import '../../core/preferences.dart' show simpleModeProvider;
 import '../../core/security/app_lock.dart' show appLockProvider;
 import '../family/person_status.dart' show TodayRefresh;
@@ -182,7 +183,7 @@ Future<bool> leaveSimpleMode(BuildContext context, WidgetRef ref) async {
     yes =
         await showDialog<bool>(
           context: context,
-          builder: (dialog) => AlertDialog(
+          builder: (dialog) => UsraAlertDialog(
             key: const ValueKey('simple-exit-confirm'),
             content: Text(l.simpleExitConfirm),
             actions: [

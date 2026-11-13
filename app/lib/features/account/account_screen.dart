@@ -8,6 +8,7 @@ import 'account_providers.dart';
 import 'auth_gateway.dart';
 import 'sign_in_buttons.dart';
 import '../settings/about_privacy_screen.dart';
+import '../../core/design/dialog.dart';
 
 const accountPath = '/settings/account';
 
@@ -207,7 +208,7 @@ class _SignedInState extends ConsumerState<_SignedIn> with _Busy<_SignedIn> {
     final l = AppLocalizations.of(context);
     final answer = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => UsraAlertDialog(
         content: Text(message),
         actions: [
           TextButton(

@@ -17,6 +17,7 @@ import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import 'growth.dart';
 import 'milestones.dart';
 import '../../core/util/date_picker.dart';
+import '../../core/design/dialog.dart';
 
 /// The CDC milestones checklist: tick what the child does, with the day it
 /// was first seen. Informational only; the pediatrician assesses development.
@@ -221,7 +222,7 @@ class _MilestoneTile extends ConsumerWidget {
         final l = AppLocalizations.of(context);
         final sure = await showDialog<bool>(
           context: context,
-          builder: (dialog) => AlertDialog(
+          builder: (dialog) => UsraAlertDialog(
             content: Text(l.devUntickConfirm),
             actions: [
               TextButton(

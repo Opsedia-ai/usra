@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../preferences.dart';
+import '../design/dialog.dart';
 
 /// Before an insurance card, record or photo leaves the app through the
 /// share sheet (security plan S7): once it's in WhatsApp, email or Drive,
@@ -18,7 +19,7 @@ Future<bool> confirmShareOutside(
     builder: (context) {
       final l = AppLocalizations.of(context);
       return StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
+        builder: (context, setState) => UsraAlertDialog(
           key: const ValueKey('share-warning'),
           icon: const Icon(Icons.share_outlined),
           title: Text(l.shareWarningTitle),

@@ -21,6 +21,7 @@ import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
 import 'auto_backup_section.dart';
 import 'backup_providers.dart';
+import '../../core/design/dialog.dart';
 
 const backupPath = '/settings/backup';
 const recoveryKeyPath = '/settings/backup/key';
@@ -133,7 +134,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     final l = AppLocalizations.of(context);
     final answer = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => UsraAlertDialog(
         content: Text(l.backupSavedQuestion),
         actions: [
           TextButton(

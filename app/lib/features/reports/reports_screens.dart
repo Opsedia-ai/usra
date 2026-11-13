@@ -19,6 +19,7 @@ import 'doctor_summary.dart';
 import 'report_share.dart';
 import 'vaccination_record.dart';
 import '../../core/util/separator.dart';
+import '../../core/design/dialog.dart';
 
 /// The two languages a report can be made in, whatever the app's own.
 const reportLanguages = ['ar', 'en'];
@@ -100,7 +101,7 @@ Future<void> shareVaccinationRecord(
             builder: (context) {
               final l = AppLocalizations.of(context);
               return StatefulBuilder(
-                builder: (context, setState) => AlertDialog(
+                builder: (context, setState) => UsraAlertDialog(
                   key: const ValueKey('vaccination-pdf-dialog'),
                   icon: const Icon(Icons.picture_as_pdf_outlined),
                   title: Text(l.reportVaccinationShare),

@@ -423,6 +423,13 @@ abstract final class UsraRadius {
   static const pill = 999.0;
 }
 
+/// How long things stay on screen.
+abstract final class UsraDurations {
+  /// A message with Undo: long enough to read and tap, then it goes, so it
+  /// never sits over the screen's own buttons.
+  static const undo = Duration(seconds: 6);
+}
+
 /// Minimum sizes from the design file.
 abstract final class UsraSizes {
   static const touchTarget = 48.0;

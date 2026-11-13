@@ -14,6 +14,7 @@ import '../backup/backup_screen.dart';
 import '../family/family_screen.dart';
 import 'lock_screen.dart';
 import 'pin_pad.dart';
+import '../../core/design/dialog.dart';
 
 /// The app lock's settings. The lock screen itself
 /// is [AppLockGate], around the whole app.
@@ -49,7 +50,7 @@ Future<bool> confirmEmergencyOnLock(BuildContext context, String name) async {
   final l = AppLocalizations.of(context);
   final yes = await showDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (context) => UsraAlertDialog(
       key: const ValueKey('emergency-lock-confirm'),
       icon: Icon(Icons.emergency_outlined, color: context.usra.urgent),
       title: Text(l.lockEmergencyConfirmTitle(name)),
@@ -107,7 +108,7 @@ Future<bool> turnOnLock(BuildContext context, WidgetRef ref) async {
   }
   final backUp = await showDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (context) => UsraAlertDialog(
       key: const ValueKey('lock-no-backup'),
       title: Text(hasRecords ? l.lockBackupFirstTitle : l.lockNothingYetTitle),
       content: SingleChildScrollView(
@@ -591,7 +592,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
       final l = AppLocalizations.of(context);
       final yes = await showDialog<bool>(
         context: context,
-        builder: (context) => AlertDialog(
+        builder: (context) => UsraAlertDialog(
           icon: Icon(
             Icons.delete_forever_outlined,
             color: Severity.actSoon.foregroundOf(context),

@@ -7,6 +7,7 @@ import '../preferences.dart';
 import '../routing/app_router.dart';
 import 'app_lock.dart';
 import 'device_integrity.dart';
+import '../design/dialog.dart';
 
 /// Shows the rooted / jailbroken phone warning once per install ([S8],
 /// see [DeviceIntegrity]), when the app is unlocked and the first-run tour
@@ -70,7 +71,7 @@ class _RootWarningState extends ConsumerState<RootWarning> {
         context: navigator,
         builder: (context) {
           final l = AppLocalizations.of(context);
-          return AlertDialog(
+          return UsraAlertDialog(
             key: const ValueKey('root-warning'),
             icon: const Icon(Icons.gpp_maybe_outlined),
             title: Text(l.rootWarningTitle),

@@ -17,6 +17,7 @@ import 'medicine_text.dart';
 import 'min_hours.dart';
 import 'medicines_providers.dart';
 import '../../core/util/separator.dart';
+import '../../core/design/dialog.dart';
 import 'prescription_screen.dart' show prescriptionTitle;
 
 /// One medicine: what the doctor prescribed, its photos, schedule and the
@@ -85,7 +86,7 @@ class MedicineScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final yes = await showDialog<bool>(
       context: context,
-      builder: (dialog) => AlertDialog(
+      builder: (dialog) => UsraAlertDialog(
         content: Text(l.medicineDeleteConfirm(m.name)),
         actions: [
           TextButton(
