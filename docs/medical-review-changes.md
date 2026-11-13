@@ -82,3 +82,20 @@ The doses are worked out as if each came on time: from birth forward, a dose cou
 - A vaccine's date can't be in the future, and a new vaccine's date can't be before birth.
 - Only the 3rd, 50th and 97th growth curves are labelled. All five are still drawn.
 - Done pregnancy checks fold away. Missed ones stay visible.
+
+## Follow-up sources by age (end-to-end test #6, 13 Nov 2026)
+
+The yearly dental check-up applies from the first birthday to everyone. Its source line read "AAPD 2024 (children); WHO oral health" for adults too, so an adult was shown a children's guideline. Now, for the same rule and the same 12-month interval:
+
+- Under 18: "AAPD 2024 (children); WHO oral health" (unchanged).
+- 18 and over: "NICE CG19 (dental recall, adults); WHO oral health". NICE CG19 sets adult recall intervals between 3 and 24 months by the dentist's judgement, and yearly sits inside that. Source status: partly verified (from the guideline's published recommendation, not re-read for this change).
+
+No interval, age or wording changed.
+
+Questions for the doctor:
+
+1. Is NICE CG19 the right adult source for a yearly dental check-up, or would you rather cite something else, such as an Egyptian or WHO source?
+2. Other rules checked for the same age mistake. Nothing was changed; please confirm:
+   - Diabetic eye exam (`screening.eyeExam`) applies from birth to anyone with diabetes and cites ADA Standards of Care 2025 §12, the adult section. ADA §14 (children and adolescents) starts the first eye exam at age 11 or puberty, after 3 to 5 years of diabetes. Should a child with diabetes see this follow-up, and with which source?
+   - HbA1c, lipid profile and kidney check (`chronic.*`) have no age limits and cite adult ADA sections, KDIGO and WHO HEARTS. Do they apply to children with these conditions as written?
+   - Blood pressure (from 18, USPSTF adults), diabetes screening (35–70), breast (women 40–74) and colorectal (45–75) screening are adult-only and cite adult sources. These look right.

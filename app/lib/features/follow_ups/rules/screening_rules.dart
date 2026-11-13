@@ -48,6 +48,11 @@ abstract class ScreeningRule extends FollowUpRule {
   /// The record type to add once done.
   String get recordType;
   String get source;
+
+  /// The guideline shown to [subject] on [today]: [source], unless the rule
+  /// spans children and adults and each has its own (end-to-end test #6: an
+  /// adult was shown a children's guideline).
+  String sourceFor(FollowUpSubject subject, DateTime today) => source;
   String title(AppLocalizations l);
 
   /// Why this person: their age, sex or condition.
@@ -102,7 +107,7 @@ abstract class ScreeningRule extends FollowUpRule {
         reason: (c) =>
             joinReasons([reason(c, subject), lastDone(c, last, today)]),
         recordType: recordType,
-        source: source,
+        source: sourceFor(subject, day),
         cycle: last == null && !from.isAfter(day) ? 'none' : null,
       ),
     ];
@@ -299,7 +304,8 @@ class DiabeticEyeExamRule extends ScreeningRule {
       becauseCondition(c, s.profile.sex, Condition.diabetes);
 }
 
-/// A dental check-up once a year from the first birthday.
+/// A dental check-up once a year from the first birthday. Children's and
+/// adults' guidelines differ, so each sees their own as the source.
 class DentalCheckupRule extends ScreeningRule {
   const DentalCheckupRule();
 
@@ -319,7 +325,25 @@ class DentalCheckupRule extends ScreeningRule {
   @override
   String get recordType => 'visit';
   @override
-  String get source => 'AAPD 2024 (children); WHO oral health';
+  String get source => childSource;
+
+  /// Under 18: the American Academy of Pediatric Dentistry's periodicity
+  /// schedule (a visit every 6–12 months from the first tooth or birthday).
+  static const childSource = 'AAPD 2024 (children); WHO oral health';
+
+  /// 18 and over: NICE CG19 sets adult recall between 3 and 24 months by the
+  /// dentist's judgement; yearly sits inside that. Needs the doctor's review.
+  static const adultSource =
+      'NICE CG19 (dental recall, adults); WHO oral health';
+
+  @override
+  String sourceFor(FollowUpSubject subject, DateTime today) {
+    final birth = subject.profile.birthDate;
+    if (birth == null) return source;
+    final adultFrom = dayOf(addMonths(birth, 12 * 18));
+    return dayOf(today).isBefore(adultFrom) ? childSource : adultSource;
+  }
+
   @override
   String title(AppLocalizations l) => l.fuDental;
   @override
