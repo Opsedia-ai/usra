@@ -137,8 +137,18 @@ ThemeData buildUsraTheme({
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(UsraRadius.button)),
         ),
-        foregroundColor: c.primary,
+        // Ink, not primary: dark mode's light-blue primary on an outline
+        // read as disabled. Ink is about 14:1 on the surface in both themes.
+        foregroundColor: c.ink,
         side: BorderSide(color: c.lineStrong),
+      ),
+    ),
+    // Ink on the selected segment: primary on its soft fill was too faint in
+    // dark mode (spending, language, reports, lock timeout, forms).
+    segmentedButtonTheme: SegmentedButtonThemeData(
+      style: SegmentedButton.styleFrom(
+        selectedForegroundColor: c.ink,
+        selectedBackgroundColor: c.primarySoft,
       ),
     ),
     textButtonTheme: TextButtonThemeData(
