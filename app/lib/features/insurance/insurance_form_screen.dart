@@ -219,7 +219,7 @@ class _InsuranceFormScreenState extends ConsumerState<InsuranceFormScreen> {
                       decoration: InputDecoration(
                         labelText: l.insuranceExpiry,
                         suffixIcon: _expiresOn == null
-                            ? const Icon(Icons.event_outlined)
+                            ? const Icon(Icons.calendar_today_outlined)
                             : IconButton(
                                 tooltip: l.clearDate,
                                 icon: const Icon(Icons.close),

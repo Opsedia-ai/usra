@@ -121,6 +121,8 @@ Future<void> logDoseTaken(
       content: Text(
         l.homeDoseLogged(medicineTitle(r.medicine), r.person.displayName),
       ),
+      duration: UsraDurations.undo,
+      persist: false,
       action: SnackBarAction(
         label: l.doseUndo,
         onPressed: () => db.clearDoseLog(r.medicine.id, dose.scheduledAt),

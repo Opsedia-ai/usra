@@ -20,22 +20,14 @@ class UsraPillButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final enabled = onPressed != null;
-    return DecoratedBox(
-      decoration: ShapeDecoration(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(UsraRadius.button)),
-        ),
-        shadows: enabled ? context.usra.shadowControl : null,
-      ),
-      child: icon == null
-          ? FilledButton(onPressed: onPressed, child: Text(label))
-          : FilledButton.icon(
-              onPressed: onPressed,
-              icon: Icon(icon),
-              label: Text(label),
-            ),
-    );
+    // Flat, as every button since the November 2026 polish: no shadow.
+    return icon == null
+        ? FilledButton(onPressed: onPressed, child: Text(label))
+        : FilledButton.icon(
+            onPressed: onPressed,
+            icon: Icon(icon),
+            label: Text(label),
+          );
   }
 }
 
@@ -84,12 +76,15 @@ class UsraRoundIconButton extends StatelessWidget {
             ?.width ??
         0;
     final size = designed > themed ? designed : themed;
+    // A hairline round the white one instead of a shadow; the coloured
+    // ones stand out on their own.
     return DecoratedBox(
       decoration: ShapeDecoration(
-        shape: const CircleBorder(),
-        shadows: style == UsraRoundIconStyle.surface
-            ? c.shadowControl
-            : c.shadowFloat,
+        shape: CircleBorder(
+          side: style == UsraRoundIconStyle.surface
+              ? BorderSide(color: c.line)
+              : BorderSide.none,
+        ),
       ),
       child: Tooltip(
         message: semanticLabel,

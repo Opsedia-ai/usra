@@ -18,6 +18,7 @@ import 'insurance_info.dart';
 import 'insurance_section.dart' show ExpiryLine;
 import 'watermark.dart';
 import 'insurance_providers.dart';
+import '../../core/design/dialog.dart';
 
 /// One insurance card: its photos, number and expiry, ready to send.
 class InsuranceCardScreen extends ConsumerWidget {
@@ -95,7 +96,7 @@ class InsuranceCardScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final yes = await showDialog<bool>(
       context: context,
-      builder: (dialog) => AlertDialog(
+      builder: (dialog) => UsraAlertDialog(
         content: Text(l.insuranceDeleteConfirm(card.label)),
         actions: [
           TextButton(

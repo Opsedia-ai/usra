@@ -14,6 +14,7 @@ import '../doctors/doctors_providers.dart';
 import 'dose_schedule.dart';
 import 'medicine_text.dart';
 import 'medicines_providers.dart';
+import '../../core/design/dialog.dart';
 
 /// "Prescription of 5 Nov 2026".
 String prescriptionTitle(BuildContext context, Prescription p) =>
@@ -84,7 +85,7 @@ class PrescriptionScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final yes = await showDialog<bool>(
       context: context,
-      builder: (dialog) => AlertDialog(
+      builder: (dialog) => UsraAlertDialog(
         content: Text(l.prescriptionDeleteConfirm),
         actions: [
           TextButton(

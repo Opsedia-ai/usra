@@ -287,11 +287,11 @@ class FollowUpTile extends ConsumerWidget {
             StatusDotText(key: const ValueKey('follow-up-when'), label: when),
           const SizedBox(height: UsraSpacing.s1),
           Text(f.reason(context), style: muted.copyWith(color: c.ink)),
-          // The source name is isolated (FSI ... PDI), so a Latin one such
-          // as "USPSTF 2021: ..." keeps its own order inside Arabic text.
+          // The source name is embedded left to right (LRE ... PDF): the sources are Latin,
+          // so "USPSTF 2021: ..." keeps its order inside the Arabic line.
           if (f.source != null)
             Text(
-              l.followUpSource('\u2068${f.source!}\u2069'),
+              l.followUpSource('\u202A${f.source!}\u202C'),
               key: const ValueKey('follow-up-source'),
               style: muted,
             ),
@@ -317,6 +317,8 @@ class FollowUpTile extends ConsumerWidget {
       ..showSnackBar(
         SnackBar(
           content: Text(l.followUpDismissed),
+          duration: UsraDurations.undo,
+          persist: false,
           action: SnackBarAction(
             label: l.followUpUndo,
             onPressed: () => dismissed.restore(key),

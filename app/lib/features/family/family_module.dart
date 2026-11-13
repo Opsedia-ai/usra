@@ -61,6 +61,10 @@ class FamilyModule extends FeatureModule {
             ),
             GoRoute(
               path: 'add/:type',
+              // Forms fill the screen with Save at the bottom and no tab bar,
+              // as the medicine form does: Save never hides under the bar,
+              // and a tab tapped by mistake can't lose what was typed.
+              name: '${noTabBarRoute}record-new',
               // Keyed by path, as go_router keeps a screen's State when only the
               // path's values change: a photo picked for one person must not
               // stay in the form when it opens for another. So are the others.
@@ -80,6 +84,7 @@ class FamilyModule extends FeatureModule {
               routes: [
                 GoRoute(
                   path: 'edit/:type',
+                  name: '${noTabBarRoute}record-edit',
                   builder: (_, s) => RecordFormScreen(
                     key: ValueKey(s.uri.path),
                     profileId: s.pathParameters['id']!,
@@ -111,6 +116,7 @@ class FamilyModule extends FeatureModule {
             ),
             GoRoute(
               path: 'insurance/new',
+              name: '${noTabBarRoute}insurance-new',
               builder: (_, s) => InsuranceFormScreen(
                 key: ValueKey(s.uri.path),
                 profileId: s.pathParameters['id']!,
@@ -125,6 +131,7 @@ class FamilyModule extends FeatureModule {
               routes: [
                 GoRoute(
                   path: 'edit',
+                  name: '${noTabBarRoute}insurance-edit',
                   builder: (_, s) => InsuranceFormScreen(
                     key: ValueKey(s.uri.path),
                     profileId: s.pathParameters['id']!,

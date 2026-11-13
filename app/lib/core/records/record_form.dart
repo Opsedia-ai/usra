@@ -9,6 +9,7 @@ import '../util/localized_numbers.dart';
 import 'record_type.dart';
 import '../util/date_picker.dart';
 import '../util/separator.dart';
+import '../design/tokens.dart';
 import '../providers.dart' show nowOf;
 
 /// Words the form needs, passed in so the core stays free of feature strings.
@@ -389,6 +390,10 @@ class _RecordFormState extends State<RecordForm> {
         );
       case FieldKind.choice:
         return DropdownButtonFormField<String>(
+          // A rounded menu with a hairline, as the polish asks (QA L8).
+          borderRadius: BorderRadius.circular(UsraRadius.md),
+          elevation: 1,
+          dropdownColor: context.usra.surface,
           key: ValueKey('field-${f.key}'),
           initialValue: _values[f.key] as String?,
           decoration: InputDecoration(labelText: label, errorText: error),
@@ -494,6 +499,10 @@ class _RecordFormState extends State<RecordForm> {
             if (f.key == widget.type.doctorField &&
                 widget.doctors.isNotEmpty) ...[
               DropdownButtonFormField<DoctorChoice>(
+                // A rounded menu with a hairline, as the polish asks (QA L8).
+                borderRadius: BorderRadius.circular(UsraRadius.md),
+                elevation: 1,
+                dropdownColor: context.usra.surface,
                 key: const ValueKey('field-doctorPick'),
                 initialValue: _doctor,
                 isExpanded: true,

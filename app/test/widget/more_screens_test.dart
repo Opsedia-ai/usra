@@ -97,6 +97,25 @@ void main() {
 
   Finder key(String k) => find.byKey(ValueKey(k));
 
+  testWidgets('pages opened from More have a way back (QA M5)', (tester) async {
+    tall(tester);
+    for (final link in [
+      'more-family',
+      'more-doctors',
+      'more-money',
+      'settings-backup',
+      'settings-about',
+    ]) {
+      await open(tester, '/settings');
+      await tester.tap(key(link));
+      await settle(tester);
+      expect(find.byType(BackButton), findsOneWidget, reason: link);
+      await tester.tap(find.byType(BackButton));
+      await settle(tester);
+      expect(key('more-doctors'), findsOneWidget, reason: link);
+    }
+  });
+
   testWidgets('More has its groups in order, with chevrons on links', (
     tester,
   ) async {

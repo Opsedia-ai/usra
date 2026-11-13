@@ -29,6 +29,7 @@ import '../../core/util/time_picker.dart';
 import 'prescription_parser.dart';
 import '../../core/util/date_picker.dart';
 import '../../core/util/separator.dart';
+import '../../core/design/dialog.dart';
 
 /// Times filled in by the "times a day" shortcut; the person can change
 /// them. Spread over waking hours; this is about reminders, not doses. For
@@ -454,7 +455,7 @@ class _PrescriptionFormScreenState
       final l = AppLocalizations.of(context);
       final answer = await showDialog<bool>(
         context: context,
-        builder: (dialog) => AlertDialog(
+        builder: (dialog) => UsraAlertDialog(
           title: Text(l.prescriptionMoveTitle),
           content: Text(l.prescriptionMoveBody),
           actions: [
@@ -493,7 +494,7 @@ class _PrescriptionFormScreenState
       final l = AppLocalizations.of(context);
       final yes = await showDialog<bool>(
         context: context,
-        builder: (dialog) => AlertDialog(
+        builder: (dialog) => UsraAlertDialog(
           content: Text(
             l.prescriptionRemoveConfirm(
               item.name.text.trim().isEmpty ? '' : item.name.text.trim(),
@@ -1237,7 +1238,7 @@ class _EveryHoursDialogState extends State<EveryHoursDialog> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    return AlertDialog(
+    return UsraAlertDialog(
       scrollable: true,
       title: Text(l.prescriptionEveryHours),
       content: Column(

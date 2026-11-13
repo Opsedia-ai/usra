@@ -13,6 +13,7 @@ import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
 import 'growth.dart';
+import '../../core/design/dialog.dart';
 
 /// Before saving a measurement: asks "is this number right?" when a value
 /// is one WHO flags as implausible for the child's age and sex, so a typing
@@ -50,7 +51,7 @@ Future<bool> confirmPlausibleGrowth(
   if (odd.isEmpty) return true;
   final keep = await showDialog<bool>(
     context: context,
-    builder: (c) => AlertDialog(
+    builder: (c) => UsraAlertDialog(
       key: const ValueKey('growth-implausible'),
       title: Text(l.growthImplausibleTitle),
       content: Text(l.growthImplausibleBody(odd.join('، '))),

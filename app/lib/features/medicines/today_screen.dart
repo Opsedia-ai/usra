@@ -464,9 +464,7 @@ class DoseCard extends ConsumerWidget {
   SnackBar _snackBar(Widget content, {SnackBarAction? action}) => SnackBar(
     content: content,
     action: action,
-    behavior: SnackBarBehavior.floating,
-    shape: const StadiumBorder(),
-    duration: const Duration(seconds: 6),
+    duration: UsraDurations.undo,
     persist: false,
   );
 

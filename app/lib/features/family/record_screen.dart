@@ -16,6 +16,7 @@ import 'family_screen.dart';
 import 'member_screen.dart';
 import 'record_display.dart';
 import '../../core/util/separator.dart';
+import '../../core/design/dialog.dart';
 
 /// One record: every field, and its photos to zoom into, send or delete.
 class RecordScreen extends ConsumerWidget {
@@ -292,7 +293,7 @@ Future<bool?> _confirm(
   final cancel = AppLocalizations.of(context).familyCancel;
   return showDialog<bool>(
     context: context,
-    builder: (dialog) => AlertDialog(
+    builder: (dialog) => UsraAlertDialog(
       content: Text(message),
       actions: [
         TextButton(

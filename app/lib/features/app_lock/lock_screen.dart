@@ -14,6 +14,7 @@ import '../../l10n/app_localizations.dart';
 import '../family/emergency_card_screen.dart';
 import '../family/family_screen.dart';
 import 'pin_pad.dart';
+import '../../core/design/dialog.dart';
 
 /// Covers the whole app while it's locked, so nothing behind it shows or
 /// takes taps, and locks again after the chosen time in the background.
@@ -374,7 +375,7 @@ Future<void> showForgotPin(BuildContext context) {
   final l = AppLocalizations.of(context);
   return showDialog<void>(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (context) => UsraAlertDialog(
       title: Text(l.lockForgotTitle),
       content: SingleChildScrollView(
         child: Text(l.lockForgotBody, key: const ValueKey('lock-forgot-body')),

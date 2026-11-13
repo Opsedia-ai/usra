@@ -137,8 +137,18 @@ ThemeData buildUsraTheme({
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(UsraRadius.button)),
         ),
-        foregroundColor: c.primary,
+        // Ink, not primary: dark mode's light-blue primary on an outline
+        // read as disabled. Ink is about 14:1 on the surface in both themes.
+        foregroundColor: c.ink,
         side: BorderSide(color: c.lineStrong),
+      ),
+    ),
+    // Ink on the selected segment: primary on its soft fill was too faint in
+    // dark mode (spending, language, reports, lock timeout, forms).
+    segmentedButtonTheme: SegmentedButtonThemeData(
+      style: SegmentedButton.styleFrom(
+        selectedForegroundColor: c.ink,
+        selectedBackgroundColor: c.primarySoft,
       ),
     ),
     textButtonTheme: TextButtonThemeData(
@@ -183,6 +193,28 @@ ThemeData buildUsraTheme({
     dialogTheme: DialogThemeData(
       backgroundColor: c.surface,
       surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(UsraRadius.card)),
+      ),
+    ),
+    // One look for every message: a floating pill above the bottom bar.
+    // Ones with Undo also pass [UsraDurations.undo] and persist: false.
+    snackBarTheme: const SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      shape: StadiumBorder(),
+    ),
+    // A dropdown's menu lines up with its field instead of spilling past it
+    // to the screen edge.
+    buttonTheme: const ButtonThemeData(alignedDropdown: true),
+    // Dropdown and popup menus: rounded, a hairline, no shadow.
+    popupMenuTheme: PopupMenuThemeData(
+      color: c.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(UsraRadius.md),
+        side: BorderSide(color: c.line),
+      ),
     ),
     listTileTheme: ListTileThemeData(
       minTileHeight: simple ? 72 : null,

@@ -32,6 +32,7 @@ import 'growth.dart' show isUnderFive;
 import 'vaccine_card_parser.dart';
 import '../../core/util/date_picker.dart';
 import '../../core/util/separator.dart';
+import '../../core/design/dialog.dart';
 
 /// [profile]'s vaccines today, once their records have loaded; null for
 /// anyone five or over.
@@ -88,7 +89,7 @@ Future<bool> confirmRemovingUserRecords(
   final l = AppLocalizations.of(context);
   final ok = await showDialog<bool>(
     context: context,
-    builder: (c) => AlertDialog(
+    builder: (c) => UsraAlertDialog(
       key: const ValueKey('vaccine-remove-confirm'),
       title: Text(l.vaccineRemoveRecordTitle),
       content: Text(l.vaccineRemoveRecordBody),
@@ -127,7 +128,7 @@ Future<List<DoseStatus>?> confirmMarkPast(
   final ok = await showDialog<bool>(
     context: context,
     builder: (c) => StatefulBuilder(
-      builder: (c, setState) => AlertDialog(
+      builder: (c, setState) => UsraAlertDialog(
         key: const ValueKey('vaccine-mark-past-dialog'),
         title: Text(l.vaccineMarkPastTitle),
         content: SingleChildScrollView(
@@ -217,6 +218,8 @@ Future<void> markPastDoses(
       content: Text(
         digitsIn(l.localeName, l.vaccineMarkPastDone(doses.length)),
       ),
+      duration: UsraDurations.undo,
+      persist: false,
       action: SnackBarAction(
         label: l.doseUndo,
         // Exactly the records just added.
@@ -1844,6 +1847,8 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
         content: Text(
           localizedDigitsIn(context, l.vaccineMarkPastDone(doses.length)),
         ),
+        duration: UsraDurations.undo,
+        persist: false,
         action: SnackBarAction(
           label: l.doseUndo,
           onPressed: () {

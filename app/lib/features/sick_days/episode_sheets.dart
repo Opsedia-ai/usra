@@ -14,6 +14,7 @@ import '../medicines/min_hours.dart';
 import '../../core/util/time_picker.dart';
 import '../../core/util/date_picker.dart';
 import '../../core/util/separator.dart';
+import '../../core/design/dialog.dart';
 
 /// A date and time row that opens the pickers.
 class _WhenField extends StatelessWidget {
@@ -180,7 +181,7 @@ class _ReadingSheetState extends ConsumerState<_ReadingSheet> {
         : l.readingCelsius;
     final ok = await showDialog<bool>(
       context: context,
-      builder: (c) => AlertDialog(
+      builder: (c) => UsraAlertDialog(
         title: Text(l.readingConfirmTitle),
         content: Text(
           l.readingConfirmBody(

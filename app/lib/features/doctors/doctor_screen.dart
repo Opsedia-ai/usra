@@ -12,6 +12,7 @@ import '../../l10n/app_localizations.dart';
 import 'call_buttons.dart';
 import 'doctors_providers.dart';
 import '../../core/util/separator.dart';
+import '../../core/design/dialog.dart';
 
 /// One doctor: how to reach them, their fee, and every family visit.
 class DoctorScreen extends ConsumerWidget {
@@ -98,7 +99,7 @@ class DoctorScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final yes = await showDialog<bool>(
       context: context,
-      builder: (dialog) => AlertDialog(
+      builder: (dialog) => UsraAlertDialog(
         content: Text(l.doctorDeleteConfirm(doctor.name)),
         actions: [
           TextButton(

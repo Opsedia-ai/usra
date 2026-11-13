@@ -24,6 +24,7 @@ import 'sick_days_providers.dart';
 import 'temperature_chart.dart';
 import 'warning_signs_card.dart';
 import '../../core/util/separator.dart';
+import '../../core/design/dialog.dart';
 
 /// One sick day on one calm screen: who and since when, the latest reading
 /// and its chart, what was given as recorded, then when to get help. The
@@ -79,7 +80,7 @@ class _Body extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final ok = await showDialog<bool>(
       context: context,
-      builder: (c) => AlertDialog(
+      builder: (c) => UsraAlertDialog(
         content: Text(l.sickDayDeleteConfirm),
         actions: [
           TextButton(
