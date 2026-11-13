@@ -431,6 +431,22 @@ void main() {
       ]);
       expect(f.dueOn, DateTime.utc(2027, 2, 1));
     });
+
+    test("dental: a child sees the children's guideline, an adult the "
+        "adults' (e2e #6)", () {
+      const rule = DentalCheckupRule();
+      final [child] = run(rule, person(birth: aged(8)));
+      expect(child.source, DentalCheckupRule.childSource);
+      expect(child.source, contains('AAPD'));
+      final [teen] = run(rule, person(birth: aged(17)));
+      expect(teen.source, DentalCheckupRule.childSource);
+      final [adult] = run(rule, person(birth: aged(35)));
+      expect(adult.source, DentalCheckupRule.adultSource);
+      expect(adult.source, isNot(contains('children')));
+      expect(adult.source, isNot(contains('AAPD')));
+      final [grandpa] = run(rule, person(birth: aged(61)));
+      expect(grandpa.source, DentalCheckupRule.adultSource);
+    });
   });
 
   group('ChildCheckupRule', () {
