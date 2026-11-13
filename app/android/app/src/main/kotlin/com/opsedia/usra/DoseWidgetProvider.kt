@@ -174,7 +174,7 @@ class DoseWidgetProvider : HomeWidgetProvider() {
                     continue
                 }
                 views.setViewVisibility(rows[i], View.VISIBLE)
-                views.setTextViewText(texts[i], "${dose.time} · ${dose.label}")
+                views.setTextViewText(texts[i], "${dose.time} – ${dose.label}")
                 // Only doses already due: a later one still has its
                 // reminder coming, which Taken here can't cancel.
                 if (dose.at <= now && dose.canMark) {
