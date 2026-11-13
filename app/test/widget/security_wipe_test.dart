@@ -136,6 +136,10 @@ void main() {
       await tester.tap(tile);
       await tester.pumpAndSettle();
 
+      // The list's bullets stand apart from the words, not "•كل الصور".
+      expect(find.text('كل الصور'), findsOneWidget);
+      expect(find.textContaining(RegExp(r'^\s*•\S')), findsNothing);
+
       final button = find.byKey(const ValueKey('wipe-confirm'));
       ButtonStyleButton widget() => tester.widget<ButtonStyleButton>(button);
       expect(widget().onPressed, isNull);

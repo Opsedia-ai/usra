@@ -79,6 +79,15 @@ void main() {
         findsNWidgets(2),
       );
       expect(find.textContaining('وبعده: Late'), findsOneWidget);
+      // As wide as the big buttons under it.
+      final card = find.descendant(
+        of: key('simple-doses'),
+        matching: find.byType(Card),
+      );
+      expect(
+        tester.getSize(card.first).width,
+        tester.getSize(key('simple-medicines')).width,
+      );
     });
 
     testWidgets('a dose missed earlier doesn\'t hide the one that\'s due', (

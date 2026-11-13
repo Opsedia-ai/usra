@@ -49,6 +49,7 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
     if (me == null || !mounted) return;
     setState(() {
       _name.text = me.displayName;
+      _nameMissing = false;
       _birthDate = me.birthDate;
       _sex = me.sex;
     });
@@ -159,6 +160,12 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
           controller: _name,
           textCapitalization: TextCapitalization.words,
           textInputAction: TextInputAction.done,
+          // Typing a name clears "required" straight away.
+          onChanged: (value) {
+            if (_nameMissing && value.trim().isNotEmpty) {
+              setState(() => _nameMissing = false);
+            }
+          },
           decoration: InputDecoration(
             labelText: l.familyNameLabel,
             errorText: _nameMissing ? l.fieldRequired : null,

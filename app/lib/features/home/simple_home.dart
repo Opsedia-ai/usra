@@ -276,6 +276,8 @@ class _SimpleDosesState extends ConsumerState<_SimpleDoses>
               '${d.at.millisecondsSinceEpoch}',
             ),
             dose: d,
+            // The page has its own 20 margins: as wide as the big buttons.
+            gutter: false,
           ),
         if (then != null)
           Text(
