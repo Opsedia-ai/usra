@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../l10n/app_localizations.dart';
@@ -115,7 +116,7 @@ class _SignInRequiredScreenState extends ConsumerState<SignInRequiredScreen> {
                     Text(
                       l.accountGateRecordsStay,
                       style: UsraType.body.copyWith(
-                        color: Severity.good.foregroundOf(context),
+                        color: c.ink,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -125,12 +126,10 @@ class _SignInRequiredScreenState extends ConsumerState<SignInRequiredScreen> {
             ),
             if (_error case final error?) ...[
               const SizedBox(height: UsraSpacing.s3),
-              Text(
-                error,
+              StatusDotText(
                 key: const ValueKey('sign-in-required-error'),
-                style: UsraType.body.copyWith(
-                  color: Severity.actSoon.foregroundOf(context),
-                ),
+                label: error,
+                style: UsraType.body,
               ),
             ],
             for (final method in methods) ...[

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/security/app_lock.dart';
 import '../../core/security/data_wipe.dart';
 import '../../l10n/app_localizations.dart';
@@ -73,7 +75,6 @@ class _DeleteDataScreenState extends ConsumerState<DeleteDataScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    final danger = Severity.actSoon;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.startFresh ? l.databaseStartFresh : l.wipeTitle),
@@ -95,16 +96,14 @@ class _DeleteDataScreenState extends ConsumerState<DeleteDataScreen> {
           const SizedBox(height: 16),
           Text(l.wipeKeeps, style: text.bodyMedium),
           const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: danger.backgroundOf(context),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              l.wipeNoUndo,
-              style: text.bodyMedium?.copyWith(
-                color: danger.foregroundOf(context),
+          Card(
+            key: const ValueKey('wipe-no-undo'),
+            child: Padding(
+              padding: const EdgeInsets.all(UsraSpacing.s4),
+              child: StatusDotText(
+                label: l.wipeNoUndo,
+                color: context.usra.ink,
+                style: UsraType.body,
               ),
             ),
           ),
