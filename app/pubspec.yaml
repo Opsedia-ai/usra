@@ -49,6 +49,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.8
   xml: ^7.0.1
+  shared_preferences_platform_interface: ^2.4.1
 
 flutter:
   # CocoaPods only. ML Kit has no Swift package and needs GTMSessionFetcher 3.x,
