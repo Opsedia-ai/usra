@@ -4,8 +4,9 @@ import 'reminders.dart';
 /// Asking for notifications, and what to do after a "no".
 ///
 /// The phone shows its prompt once: iOS never again, Android not after the
-/// second "no". From then on a button that only asks does nothing, so it
-/// opens the app's page in the phone's Settings instead, and the cards say so.
+/// second "no". After the first answer the cards open the app's page in the
+/// phone's Settings instead, and say so: one rule for both, and Android's page
+/// there turns notifications on with one switch.
 
 /// Shows the phone's prompt and remembers it was shown.
 Future<ReminderAccess> requestReminderAccess(
