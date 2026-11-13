@@ -92,7 +92,25 @@ class _DeleteDataScreenState extends ConsumerState<DeleteDataScreen> {
           ],
           Text(l.wipeIntro, style: text.bodyLarge),
           const SizedBox(height: 12),
-          Text(l.wipeList, style: text.bodyLarge),
+          // One row per line, with the bullet set apart: a "•" typed into
+          // the sentence ran into the Arabic word after it.
+          for (final item in l.wipeList.split('\n'))
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ExcludeSemantics(child: Text('•', style: text.bodyLarge)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      item.replaceFirst(RegExp(r'^\s*•\s*'), ''),
+                      style: text.bodyLarge,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: 16),
           Text(l.wipeKeeps, style: text.bodyMedium),
           const SizedBox(height: 16),

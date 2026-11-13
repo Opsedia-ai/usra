@@ -347,9 +347,13 @@ typedef _Mark = void Function(String status, _DoseMessage message);
 /// dose asks Taken or Not taken; one that's due, Taken or later; one still to
 /// come can only be logged as taken early. Every mark can be undone.
 class DoseCard extends ConsumerWidget {
-  const DoseCard({super.key, required this.dose});
+  const DoseCard({super.key, required this.dose, this.gutter = true});
 
   final PlannedDose dose;
+
+  /// Its own 20 side margins, as on the Medicines tab. Off where the page
+  /// already has them, such as Simple Mode's Home.
+  final bool gutter;
 
   String get _id =>
       '${dose.regimen.medicine.id}-${dose.at.millisecondsSinceEpoch}';
@@ -476,35 +480,34 @@ class DoseCard extends ConsumerWidget {
       DoseGroup.later => compact ? later : null,
       DoseGroup.done => _Done(dose: dose, id: _id),
     };
-    return _Gutter(
-      child: Padding(
-        padding: const EdgeInsets.only(top: UsraSpacing.s2),
-        child: Card(
-          key: ValueKey('dose-$_id'),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: UsraSpacing.s4,
-              vertical: UsraSpacing.s3,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _Summary(
-                  dose: dose,
-                  id: _id,
-                  group: group,
-                  trailing: group == DoseGroup.later && !compact ? later : null,
-                ),
-                if (actions != null) ...[
-                  const SizedBox(height: UsraSpacing.s2),
-                  actions,
-                ],
+    final card = Padding(
+      padding: const EdgeInsets.only(top: UsraSpacing.s2),
+      child: Card(
+        key: ValueKey('dose-$_id'),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: UsraSpacing.s4,
+            vertical: UsraSpacing.s3,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _Summary(
+                dose: dose,
+                id: _id,
+                group: group,
+                trailing: group == DoseGroup.later && !compact ? later : null,
+              ),
+              if (actions != null) ...[
+                const SizedBox(height: UsraSpacing.s2),
+                actions,
               ],
-            ),
+            ],
           ),
         ),
       ),
     );
+    return gutter ? _Gutter(child: card) : card;
   }
 }
 

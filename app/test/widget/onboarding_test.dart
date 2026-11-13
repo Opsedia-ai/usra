@@ -125,6 +125,9 @@ void main() {
     expect(key('about-sex-missing'), findsOneWidget);
     expect(find.text('مطلوب'), findsNWidgets(3));
     await tester.enterText(key('about-name'), 'آية');
+    await tester.pump();
+    // Filling the name clears its "required" at once (M13).
+    expect(find.text('مطلوب'), findsNWidgets(2));
     await tapKey(tester, 'about-done');
     expect(key('about-sex-missing'), findsOneWidget);
     expect((await tester.runAsync(() => db.watchProfiles().first))!, isEmpty);
