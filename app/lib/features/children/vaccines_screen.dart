@@ -5,8 +5,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/pill_chip.dart';
 import '../../core/design/status_chip.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
@@ -376,52 +378,31 @@ class HomeVaccines extends ConsumerWidget {
     ];
     if (children.isEmpty) return const SizedBox.shrink();
     final l = AppLocalizations.of(context);
-    final text = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Card(
+      child: UsraListCard(
         key: const ValueKey('home-vaccines'),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                child: Row(
-                  children: [
-                    Icon(Icons.vaccines_outlined, color: context.usra.primary),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(l.homeVaccinesTitle, style: text.titleMedium),
-                    ),
-                  ],
-                ),
-              ),
-              for (final c in children)
-                ListTile(
-                  key: ValueKey('home-vaccines-${c.profile.id}'),
-                  title: Text(c.profile.displayName, style: text.titleMedium),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: _HomeChips(child: c, today: today),
-                  ),
-                  trailing: Icon(
-                    Icons.chevron_right,
-                    color: context.usra.inkMuted,
-                  ),
-                  onTap: () => context.go('/family/${c.profile.id}/vaccines'),
-                ),
-            ],
-          ),
-        ),
+        children: [
+          for (final c in children)
+            UsraListRow(
+              key: ValueKey('home-vaccines-${c.profile.id}'),
+              leading: const IconBox(icon: Icons.vaccines_outlined),
+              title: l.vaccinesTitleOf(c.profile.displayName),
+              emphasized: true,
+              subtitle: _HomeVaccineLine(child: c, today: today),
+              onTap: () => context.go('/family/${c.profile.id}/vaccines'),
+            ),
+        ],
       ),
     );
   }
 }
 
-class _HomeChips extends StatelessWidget {
-  const _HomeChips({required this.child, required this.today});
+/// One line under a child on Home: what she's missing and what can be given
+/// now, beside an amber dot, once a dose is overdue; otherwise the next
+/// visit, in plain muted text.
+class _HomeVaccineLine extends StatelessWidget {
+  const _HomeVaccineLine({required this.child, required this.today});
 
   final ChildVaccines child;
   final DateTime today;
@@ -429,24 +410,34 @@ class _HomeChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final id = child.profile.id;
+    if (child.next.overdue.isNotEmpty) {
+      final missing = child.missing(today);
+      final now = child.givableNow(today);
+      final count = missing > child.next.overdue.length
+          ? l.vaccineMissingCount(missing)
+          : l.vaccineOverdueCount(child.next.overdue.length);
+      return StatusDotText(
+        key: ValueKey('vaccine-overdue-$id'),
+        label: digitsIn(
+          l.localeName,
+          now > 0 && now < missing
+              ? '$count · ${l.vaccineGivableNowCount(now)}'
+              : count,
+        ),
+      );
+    }
     final next = nextVisitChip(context, child, today);
-    return Wrap(
-      spacing: 8,
-      runSpacing: 6,
-      children: [
-        if (next != null)
-          StatusChip(
-            key: ValueKey('vaccine-next-${child.profile.id}'),
-            severity: next.$2,
-            label: next.$1,
-          ),
-        if (child.next.overdue.isNotEmpty)
-          StatusChip(
-            key: ValueKey('vaccine-overdue-${child.profile.id}'),
-            severity: Severity.actSoon,
-            label: l.vaccineOverdueCount(child.next.overdue.length),
-          ),
-      ],
+    if (next == null) return const SizedBox.shrink();
+    return KeyedSubtree(
+      key: ValueKey('vaccine-next-$id'),
+      child: Text(
+        next.$1,
+        style: UsraType.label.copyWith(
+          color: context.usra.inkMuted,
+          fontWeight: FontWeight.w400,
+        ),
+      ),
     );
   }
 }

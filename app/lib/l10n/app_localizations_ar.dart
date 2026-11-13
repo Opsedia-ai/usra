@@ -1807,7 +1807,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get backupDueNever =>
-      'لو الموبايل ضاع، السجلات هتضيع معاه. اعمل نسخة احتياطية متشفّرة واحفظها برّه الموبايل.';
+      'لو الموبايل ضاع، السجلات بتضيع معاه. النسخة متشفرة وبتتحفظ برّه الموبايل';
 
   @override
   String get backupDueOld => 'آخر نسخة احتياطية عملتها من أكتر من ٣٠ يوم.';
@@ -5605,4 +5605,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get growthImplausibleKeep => 'حفظ زي ما هو';
+
+  @override
+  String vaccineGivableNowCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString ممكن تتاخد دلوقتي';
+  }
+
+  @override
+  String get backupNoneTitle => 'لسه مفيش نسخة احتياطية';
+
+  @override
+  String get sickDayNoReadingsYet => 'مفيش قراءات لسه';
+
+  @override
+  String get sickDaysPastHere => 'أيام التعب اللي فاتت هتظهر هنا';
+
+  @override
+  String get warnEmergencyShort => 'اطلب الإسعاف فورًا لو ظهر';
+
+  @override
+  String get sickDayAllSigns => 'كل العلامات وإمتى نكلم الدكتور';
 }

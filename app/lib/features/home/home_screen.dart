@@ -179,14 +179,16 @@ class _Header extends ConsumerWidget {
         fontWeight: FontWeight.w600,
       ),
     );
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(UsraRadius.button),
+      side: BorderSide(color: c.line),
+    );
     final emergency = Material(
       color: c.surface,
-      shape: const StadiumBorder(),
-      elevation: 1,
-      shadowColor: c.ink.withValues(alpha: 0.2),
+      shape: shape,
       child: InkWell(
         key: const ValueKey('home-emergency'),
-        customBorder: const StadiumBorder(),
+        customBorder: shape,
         onTap: () => context.push('/family/${people.first.id}/emergency'),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: UsraSizes.touchTarget),
@@ -261,10 +263,10 @@ class _AttentionLine extends StatelessWidget {
                 child: Text(
                   p.displayName,
                   style: UsraType.body.copyWith(
-                    color: context.usra.primary,
-                    fontWeight: FontWeight.w600,
+                    color: context.usra.ink,
+                    fontWeight: FontWeight.w500,
                     decoration: TextDecoration.underline,
-                    decorationColor: context.usra.primary,
+                    decorationColor: context.usra.ink,
                   ),
                 ),
               ),
@@ -328,7 +330,7 @@ class _PersonPebble extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: UsraType.heading.copyWith(
                       color: context.usra.ink,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   if (current != null) PersonStatusLabel(status: current),

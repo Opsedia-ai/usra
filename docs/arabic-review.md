@@ -397,3 +397,17 @@ Medical strings in this list also go to the doctor, through `docs/medical-review
 | `homeSetupLockNote` | New | بعد أول نسخة احتياطية هنقترح قفل أسرة برقم سري. | After the first backup we'll suggest locking Usra with a PIN. |
 | `homeSetupHide` | New | إخفاء | Hide |
 | `simpleThenDoseFor` | New | وبعده: {medicine} لـ{name} الساعة {time} | Then: {medicine} for {name} at {time} |
+
+## Visual polish, November 2026
+
+Wording from the polish the founder approved on 13 Nov 2026 (`docs/design/polish-2026-11/`). The words follow the mock-ups. None of these changes medical meaning. Anything that would have done so was left as it was and listed for the doctor in the PR.
+
+| Key | | Arabic | English |
+|---|---|---|---|
+| `backupNoneTitle` | New | لسه مفيش نسخة احتياطية | No backup yet |
+| `backupDueNever` | Changed | لو الموبايل ضاع، السجلات بتضيع معاه. النسخة متشفرة وبتتحفظ برّه الموبايل | If this phone is lost, the records go with it. The backup is encrypted and kept off the phone |
+| `vaccineGivableNowCount` | New | {count} ممكن تتاخد دلوقتي | {count} can be given now |
+| `sickDayNoReadingsYet` | New | مفيش قراءات لسه | No readings yet |
+| `sickDaysPastHere` | New | أيام التعب اللي فاتت هتظهر هنا | Past sick days will show here |
+| `warnEmergencyShort` | New | اطلب الإسعاف فورًا لو ظهر | Call an ambulance at once if you see |
+| `sickDayAllSigns` | New | كل العلامات وإمتى نكلم الدكتور | All the signs, and when to call the doctor |
