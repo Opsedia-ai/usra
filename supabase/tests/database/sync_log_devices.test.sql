@@ -7,6 +7,8 @@
 -- Run with: supabase test db
 begin;
 select plan(238);
+-- Record sync is off by default (kill switch); these tests use it.
+update private.sync_switch set records_enabled = true;
 
 -- People: A owns family F; B joins as guardian and later resets their account;
 -- C is an outsider; D never enrolled.

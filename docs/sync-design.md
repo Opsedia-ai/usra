@@ -1008,8 +1008,13 @@ a slow transaction can never land behind a cursor. A pull returns
 `sync_id`, `revision`, `key_version`, `ciphertext`, `deleted_at`. The phone
 verifies, merges into the local tables in one transaction, updates its local
 clocks and stores the cursor. The family log (`seq > n`), head beacons and
-wraps for this device are pulled first, so new epochs are known before
+wraps for this device are applied first, so new epochs are known before
 records using them and a withholding server is noticed before writing.
+Since 2026-11-13 one `sync_pull` call returns all of them (section 22, rule
+11); on the server it reads the records **before** the log, epochs and wraps,
+so the returned log is at least as new as every returned record. The phone
+keeps paging the log (`log_more`) before it trusts a record under a key
+version the log hasn't shown yet.
 
 New phones and full resyncs page through everything; the first sync of a big
 family is resumable by the same cursor.
@@ -1584,7 +1589,13 @@ the E2EE design"** (section 18).
   - Revoked device rows are purged after 90 days unless a family log lists
     them; a rotation asks for a deleted member's `remove_member` entry first
     (`member_removal_pending`) instead of failing on the recipient set.
-- Still to build: B7's tombstone purge, B8, B10–B13.
+- **B7 (rest) and B12 for records** (2026-11-13):
+  `20261113000001_sync_records_limits.sql`: tombstone purge after a year,
+  base64 pulls, the one-call `sync_pull`, the record kill switch (off by
+  default), and per-phone call and per-family write and size limits in
+  Postgres (section 22).
+- Still to build: B8, B10, B11, B12 for the other endpoints (pairing,
+  recovery and invites have their own counters already), B13.
 
 ### SQL sketches
 

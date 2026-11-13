@@ -4,6 +4,8 @@
 -- Run with: supabase test db
 begin;
 select plan(113);
+-- Record sync is off by default (kill switch); these tests use it.
+update private.sync_switch set records_enabled = true;
 
 -- People: A owns family F, B is a guardian, D a viewer, C is invited later.
 -- Sessions: sA1 / sB1 / sC1 are bound to approved devices A1 / B1 / C1.
