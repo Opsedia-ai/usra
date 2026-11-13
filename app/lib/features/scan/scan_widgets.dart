@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/design/list_row.dart' show IconBox;
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -38,25 +40,47 @@ class DocumentScanCard extends StatelessWidget {
     final l = AppLocalizations.of(context);
     const tall = Size(0, 56);
     final scan = reading ? null : onScan;
+    final c = context.usra;
+    // Both outlined: the form around this card has its own filled Save.
+    final quiet = OutlinedButton.styleFrom(
+      minimumSize: tall,
+      foregroundColor: c.ink,
+      side: BorderSide(color: c.lineStrong),
+    );
     return Card(
-      color: context.usra.primarySoft,
-      elevation: 0,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 6),
-            Text(help),
+            Row(
+              children: [
+                const IconBox(icon: Icons.document_scanner_outlined),
+                const SizedBox(width: UsraSpacing.s3),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: UsraSpacing.s2),
+            Text(
+              help,
+              style: UsraType.label.copyWith(
+                color: c.inkMuted,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                FilledButton.icon(
+                OutlinedButton.icon(
                   key: ValueKey('$keyPrefix-camera'),
-                  style: FilledButton.styleFrom(minimumSize: tall),
+                  style: quiet,
                   onPressed: scan == null
                       ? null
                       : () => scan(ImageSource.camera),
@@ -65,7 +89,7 @@ class DocumentScanCard extends StatelessWidget {
                 ),
                 OutlinedButton.icon(
                   key: ValueKey('$keyPrefix-gallery'),
-                  style: OutlinedButton.styleFrom(minimumSize: tall),
+                  style: quiet,
                   onPressed: scan == null
                       ? null
                       : () => scan(ImageSource.gallery),
@@ -104,6 +128,13 @@ class DocumentScanCard extends StatelessWidget {
   }
 }
 
+/// The edge of a box the phone isn't sure of: 2 wide, in the attention
+/// colour, which passes 3:1 against the page in both themes.
+OutlineInputBorder unsureBorder(BuildContext context) => OutlineInputBorder(
+  borderRadius: BorderRadius.circular(UsraRadius.md),
+  borderSide: BorderSide(color: context.usra.attention, width: 2),
+);
+
 /// A box's look: marked (words, icon, colour) while the phone isn't sure
 /// of it, with a button to say it was checked against the paper.
 InputDecoration unsureDecoration(
@@ -122,20 +153,15 @@ InputDecoration unsureDecoration(
     errorText: error,
     helperText: unsure ? l.labCheckThis : null,
     helperMaxLines: 2,
-    helperStyle: unsure
-        ? TextStyle(color: Severity.headsUp.foregroundOf(context))
-        : null,
-    filled: unsure,
-    fillColor: unsure ? Severity.headsUp.backgroundOf(context) : null,
+    // No tinted fill: a stronger amber edge and amber words mark the box.
+    helperStyle: unsure ? TextStyle(color: context.usra.attention) : null,
+    enabledBorder: unsure ? unsureBorder(context) : null,
     suffixIcon: unsure
         ? IconButton(
             key: ValueKey(checkKey),
             tooltip: l.labCheckedIt,
             onPressed: onChecked,
-            icon: Icon(
-              Icons.task_alt,
-              color: Severity.headsUp.foregroundOf(context),
-            ),
+            icon: Icon(Icons.task_alt, color: context.usra.attention),
           )
         : null,
   );

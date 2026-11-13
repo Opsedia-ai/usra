@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/design/list_row.dart' show IconBox;
+import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/log.dart';
 import '../../core/ocr/medicine_name_extractor.dart';
@@ -156,24 +159,21 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
             Text(l.scanMedicineIntro, style: theme.textTheme.bodyLarge),
             const SizedBox(height: 12),
           ],
+          // What reading can and can't do, in full: a plain white card with
+          // an icon box instead of a tinted one. The words are unchanged.
           Card(
-            color: theme.colorScheme.secondaryContainer,
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(UsraSpacing.s4),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: theme.colorScheme.onSecondaryContainer,
-                  ),
-                  const SizedBox(width: 12),
+                  const IconBox(icon: Icons.info_outline),
+                  const SizedBox(width: UsraSpacing.s3),
                   Expanded(
                     child: Text(
                       '${l.scanMedicineLimits} ${l.scanMedicinePrivacy}',
                       key: const ValueKey('scan-limits'),
-                      style: TextStyle(
-                        color: theme.colorScheme.onSecondaryContainer,
-                      ),
+                      style: UsraType.body.copyWith(color: context.usra.ink),
                     ),
                   ),
                 ],
@@ -200,8 +200,10 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              FilledButton.tonalIcon(
+              // "Use this name" is the one filled button.
+              OutlinedButton.icon(
                 key: const ValueKey('scan-camera'),
+                style: _quiet(context),
                 onPressed: _reading ? null : () => _pick(ImageSource.camera),
                 icon: const Icon(Icons.photo_camera_outlined),
                 label: Text(
@@ -210,6 +212,7 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
               ),
               OutlinedButton.icon(
                 key: const ValueKey('scan-gallery'),
+                style: _quiet(context),
                 onPressed: _reading ? null : () => _pick(ImageSource.gallery),
                 icon: const Icon(Icons.photo_library_outlined),
                 label: Text(l.photoGallery),
@@ -296,6 +299,12 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
     );
   }
 }
+
+/// An outlined button in ink with a field-strength edge.
+ButtonStyle _quiet(BuildContext context) => OutlinedButton.styleFrom(
+  foregroundColor: context.usra.ink,
+  side: BorderSide(color: context.usra.lineStrong),
+);
 
 /// The photo with every line that was read outlined, and the chosen name
 /// filled in.
