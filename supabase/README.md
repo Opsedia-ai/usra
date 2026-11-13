@@ -248,8 +248,11 @@ against `device_sessions` itself.
   60 sync calls a minute (HTTP 429 `rate_limited` after that); a family may
   write 20,000 records a day (`daily_limit`) and keep 20,000 live records
   (`family_full`; edits and deletes still pass). Counters live in Postgres.
-  New SQL reads the caller only through `private.caller_user()` and
-  `private.caller_session()` (section 23, portability).
+  A sync page holds at most 4 MiB of ciphertext. Call `sync_pull`,
+  `pull_e2ee_changes` and `push_e2ee_records` with POST: they write the call
+  counter, so a read-only (GET) call fails. New SQL reads the caller through
+  `private.caller_user()` and `private.caller_session()` (section 23,
+  portability).
 - **Deleting.** `delete_family()` needs the owner role and an approved
   device. Deleting an account clears `families.created_by` instead of
   cascading; a family left with no members is removed with its ciphertext.

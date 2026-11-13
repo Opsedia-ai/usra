@@ -1008,8 +1008,13 @@ a slow transaction can never land behind a cursor. A pull returns
 `sync_id`, `revision`, `key_version`, `ciphertext`, `deleted_at`. The phone
 verifies, merges into the local tables in one transaction, updates its local
 clocks and stores the cursor. The family log (`seq > n`), head beacons and
-wraps for this device are pulled first, so new epochs are known before
+wraps for this device are applied first, so new epochs are known before
 records using them and a withholding server is noticed before writing.
+Since 2026-11-13 one `sync_pull` call returns all of them (section 22, rule
+11); on the server it reads the records **before** the log, epochs and wraps,
+so the returned log is at least as new as every returned record. The phone
+keeps paging the log (`log_more`) before it trusts a record under a key
+version the log hasn't shown yet.
 
 New phones and full resyncs page through everything; the first sync of a big
 family is resumable by the same cursor.

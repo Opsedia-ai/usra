@@ -12,9 +12,11 @@
 --   20,000 record writes a day and 20,000 live records per family.
 -- * Tombstones are purged after a year (B7); counters after two days.
 --
--- Portability (section 23): new code reads the caller only through
--- private.caller_user() / private.caller_session() and the existing device
--- helpers built on them, and uses no Supabase-only feature.
+-- Portability (section 23): new code reads the caller through
+-- private.caller_user() / private.caller_session() and uses no Supabase-only
+-- feature. The existing device helpers (device_ok, session_device,
+-- family_role) still call auth.uid() and the JWT directly; they move to the
+-- caller functions in one later migration if Supabase Auth goes.
 
 -- ---------------------------------------------------------------------------
 -- 1. The caller (the only place a different auth layer has to change)
@@ -112,6 +114,7 @@ create index if not exists e2ee_records_live_idx
 --               "deleted": bool, "expected_revision": int }]
 -- Whole-batch answers: sync_disabled, no_log, stale_log, rotation_pending,
 -- daily_limit, family_full. Per record: stale_key, revision_conflict.
+-- Call it with POST /rpc: it writes counters, so a read-only (GET) call fails.
 create or replace function public.push_e2ee_records(
   p_family    uuid,
   p_log_seq   integer,
@@ -134,8 +137,9 @@ declare
   v_revision  bigint;
   v_total     bigint := 0;
   v_written   integer := 0;
-  v_new_live  integer;
-  v_live      bigint;
+  v_live_delta integer := 0;
+  v_rows_delta integer := 0;
+  v_was_deleted boolean;
   v_today     integer;
   v_cur       public.e2ee_records%rowtype;
   v_results   jsonb := '[]'::jsonb;
@@ -174,78 +178,97 @@ begin
     return jsonb_build_object('ok', false, 'error', 'rotation_pending', 'head_seq', v_head);
   end if;
 
-  -- Daily writes and live records per family, checked for the whole batch.
+  -- Daily writes per family (UTC days, so a client's time zone can't open a
+  -- second bucket).
   select coalesce(sum(writes), 0) into v_today from private.family_write_counts
-  where family_id = p_family and day = current_date;
+  where family_id = p_family and day = (now() at time zone 'utc')::date;
   if v_today + jsonb_array_length(p_records) > 20000 then
     return jsonb_build_object('ok', false, 'error', 'daily_limit');
   end if;
-  select count(*) into v_new_live from jsonb_array_elements(p_records) e
-  where (e.value ->> 'expected_revision') = '0'
-    and coalesce((e.value ->> 'deleted')::boolean, false) = false;
-  if v_new_live > 0 then
-    select count(*) into v_live from public.e2ee_records r
-    where r.family_id = p_family and r.deleted_at is null;
-    if v_live + v_new_live > 20000 then
-      return jsonb_build_object('ok', false, 'error', 'family_full');
-    end if;
-  end if;
 
-  for v_rec in select value from jsonb_array_elements(p_records) loop
-    v_sync := (v_rec ->> 'sync_id')::uuid;
-    v_kv := (v_rec ->> 'key_version')::integer;
-    v_ct := decode(v_rec ->> 'ciphertext', 'base64');
-    v_deleted := coalesce((v_rec ->> 'deleted')::boolean, false);
-    v_expected := (v_rec ->> 'expected_revision')::bigint;
-    if v_sync is null or v_kv is null or v_ct is null or v_expected is null or v_expected < 0 then
-      raise exception 'bad_record' using errcode = '22023';
-    end if;
-    v_total := v_total + octet_length(v_ct);
-    if v_total > 2097152 then
-      raise exception 'batch_too_large' using errcode = '22023';
-    end if;
-    -- Bad sizes and non-v4 ids fail the table's checks (23514): a client bug.
+  -- The writes run in a block: if they leave the family over its size caps,
+  -- the block rolls back and the batch is answered family_full.
+  begin
+    for v_rec in select value from jsonb_array_elements(p_records) loop
+      v_sync := (v_rec ->> 'sync_id')::uuid;
+      v_kv := (v_rec ->> 'key_version')::integer;
+      v_ct := decode(v_rec ->> 'ciphertext', 'base64');
+      v_deleted := coalesce((v_rec ->> 'deleted')::boolean, false);
+      v_expected := (v_rec ->> 'expected_revision')::bigint;
+      if v_sync is null or v_kv is null or v_ct is null or v_expected is null or v_expected < 0 then
+        raise exception 'bad_record' using errcode = '22023';
+      end if;
+      v_total := v_total + octet_length(v_ct);
+      if v_total > 2097152 then
+        raise exception 'batch_too_large' using errcode = '22023';
+      end if;
+      -- Bad sizes and non-v4 ids fail the table's checks (23514): a client bug.
 
-    if v_kv <> v_family.current_key_version then
-      v_results := v_results || jsonb_build_object(
-        'sync_id', v_sync, 'ok', false, 'error', 'stale_key',
-        'current_key_version', v_family.current_key_version);
-      continue;
-    end if;
+      if v_kv <> v_family.current_key_version then
+        v_results := v_results || jsonb_build_object(
+          'sync_id', v_sync, 'ok', false, 'error', 'stale_key',
+          'current_key_version', v_family.current_key_version);
+        continue;
+      end if;
 
-    if v_expected = 0 then
-      insert into public.e2ee_records (family_id, sync_id, key_version, ciphertext, deleted_at)
-      values (p_family, v_sync, v_kv, v_ct, case when v_deleted then now() end)
-      on conflict (family_id, sync_id) do nothing
-      returning revision into v_revision;
-    else
-      update public.e2ee_records r
-         set key_version = v_kv,
-             ciphertext = v_ct,
-             deleted_at = case when v_deleted then coalesce(r.deleted_at, now()) end,
-             revision = r.revision + 1
-       where r.family_id = p_family and r.sync_id = v_sync and r.revision = v_expected
-      returning r.revision into v_revision;
-    end if;
+      if v_expected = 0 then
+        insert into public.e2ee_records (family_id, sync_id, key_version, ciphertext, deleted_at)
+        values (p_family, v_sync, v_kv, v_ct, case when v_deleted then now() end)
+        on conflict (family_id, sync_id) do nothing
+        returning revision into v_revision;
+        if found then
+          v_rows_delta := v_rows_delta + 1;
+          if not v_deleted then v_live_delta := v_live_delta + 1; end if;
+        end if;
+      else
+        update public.e2ee_records r
+           set key_version = v_kv,
+               ciphertext = v_ct,
+               deleted_at = case when v_deleted then coalesce(r.deleted_at, now()) end,
+               revision = r.revision + 1
+          from (select o.deleted_at is not null as was_deleted
+                from public.e2ee_records o
+                where o.family_id = p_family and o.sync_id = v_sync) old
+         where r.family_id = p_family and r.sync_id = v_sync and r.revision = v_expected
+        returning r.revision, old.was_deleted into v_revision, v_was_deleted;
+        if found and v_was_deleted <> v_deleted then
+          v_live_delta := v_live_delta + case when v_deleted then -1 else 1 end;
+        end if;
+      end if;
 
-    if found then
-      v_written := v_written + 1;
-      v_results := v_results || jsonb_build_object('sync_id', v_sync, 'ok', true, 'revision', v_revision);
-    else
-      select * into v_cur from public.e2ee_records r
-      where r.family_id = p_family and r.sync_id = v_sync;
-      v_results := v_results || jsonb_build_object(
-        'sync_id', v_sync, 'ok', false, 'error', 'revision_conflict',
-        'current', case when found then jsonb_build_object(
-          'revision', v_cur.revision, 'key_version', v_cur.key_version,
-          'ciphertext', private.b64(v_cur.ciphertext),
-          'deleted', v_cur.deleted_at is not null) end);
+      if found then
+        v_written := v_written + 1;
+        v_results := v_results || jsonb_build_object('sync_id', v_sync, 'ok', true, 'revision', v_revision);
+      else
+        select * into v_cur from public.e2ee_records r
+        where r.family_id = p_family and r.sync_id = v_sync;
+        v_results := v_results || jsonb_build_object(
+          'sync_id', v_sync, 'ok', false, 'error', 'revision_conflict',
+          'current', case when found then jsonb_build_object(
+            'revision', v_cur.revision, 'key_version', v_cur.key_version,
+            'ciphertext', private.b64(v_cur.ciphertext),
+            'deleted', v_cur.deleted_at is not null) end);
+      end if;
+    end loop;
+
+    -- Size caps, counted only when this batch grew the family: 20,000 live
+    -- records and 40,000 rows with tombstones. Edits and deletes always pass.
+    if v_live_delta > 0
+       and (select count(*) from public.e2ee_records r
+            where r.family_id = p_family and r.deleted_at is null) > 20000 then
+      raise exception 'family_full' using errcode = 'UF001';
     end if;
-  end loop;
+    if v_rows_delta > 0
+       and (select count(*) from public.e2ee_records r where r.family_id = p_family) > 40000 then
+      raise exception 'family_full' using errcode = 'UF001';
+    end if;
+  exception when sqlstate 'UF001' then
+    return jsonb_build_object('ok', false, 'error', 'family_full');
+  end;
 
   if v_written > 0 then
     insert into private.family_write_counts as c (family_id, day, writes)
-    values (p_family, current_date, v_written)
+    values (p_family, (now() at time zone 'utc')::date, v_written)
     on conflict (family_id, day) do update set writes = c.writes + excluded.writes;
   end if;
 
@@ -304,8 +327,10 @@ $$;
 -- Records are read first and the log, epochs and wraps after them, so every
 -- key version a returned record uses is already in the returned log and
 -- epochs (an append between the two reads only adds newer entries).
--- Binary values are base64. `records_more` / `log_more` say another page
--- waits: call again with the returned cursors.
+-- Binary values are base64. A page holds at most `limit` records and about
+-- 4 MiB of ciphertext. `records_more` / `log_more` say another page waits:
+-- call again with the returned cursors. Call it with POST /rpc: it writes
+-- the call counter, so a read-only (GET) call fails.
 create or replace function public.sync_pull(
   p_family      uuid,
   p_after_seq   integer default 0,
@@ -324,6 +349,7 @@ declare
   v_after    integer := greatest(coalesce(p_after_seq, 0), 0);
   v_records  jsonb;
   v_count    integer;
+  v_page_rows bigint;
   v_last     jsonb;
   v_log      jsonb;
   v_log_n    integer;
@@ -341,17 +367,25 @@ begin
            'sync_id', r.sync_id, 'revision', r.revision, 'key_version', r.key_version,
            'ciphertext', private.b64(r.ciphertext), 'deleted', r.deleted_at is not null,
            'txid', r.change_txid::text) order by r.change_txid, r.sync_id), '[]'::jsonb),
-         count(*)
-    into v_records, v_count
+         count(*), max(r.page_rows)
+    into v_records, v_count, v_page_rows
   from (
-    select r.* from public.e2ee_records r
-    where r.family_id = p_family
-      and r.change_txid < pg_snapshot_xmin(pg_current_snapshot())
-      and (r.change_txid > coalesce(p_after_txid, '0'::xid8)
-           or (r.change_txid = p_after_txid and p_after_sync is not null
-               and r.sync_id > p_after_sync))
-    order by r.change_txid, r.sync_id
-    limit v_limit
+    -- At most v_limit rows and about 4 MiB of ciphertext (always one row).
+    select p.* from (
+      select q.*, count(*) over () as page_rows,
+             sum(octet_length(q.ciphertext)) over (order by q.change_txid, q.sync_id) as running
+      from (
+        select r.* from public.e2ee_records r
+        where r.family_id = p_family
+          and r.change_txid < pg_snapshot_xmin(pg_current_snapshot())
+          and (r.change_txid > coalesce(p_after_txid, '0'::xid8)
+               or (r.change_txid = p_after_txid and p_after_sync is not null
+                   and r.sync_id > p_after_sync))
+        order by r.change_txid, r.sync_id
+        limit v_limit
+      ) q
+    ) p
+    where p.running - octet_length(p.ciphertext) < 4194304
   ) r;
   v_last := v_records -> -1;
 
@@ -394,7 +428,7 @@ begin
                 order by h.device_id), '[]'::jsonb)
               from public.family_heads h where h.family_id = p_family),
     'records', v_records,
-    'records_more', v_count = v_limit,
+    'records_more', v_count = v_limit or v_count < coalesce(v_page_rows, 0),
     'after_txid', coalesce(v_last ->> 'txid', coalesce(p_after_txid, '0'::xid8)::text),
     'after_sync', case when v_last is null then p_after_sync else (v_last ->> 'sync_id')::uuid end
   );
@@ -436,7 +470,7 @@ begin
   -- resync, section 12).
   delete from public.e2ee_records where deleted_at < now() - interval '1 year';
   delete from private.sync_call_counts where minute < now() - interval '2 days';
-  delete from private.family_write_counts where day < current_date - 2;
+  delete from private.family_write_counts where day < (now() at time zone 'utc')::date - 2;
 end;
 $$;
 

@@ -3,7 +3,7 @@
 -- docs/sync-design.md section 22 (migration 20261113000001).
 -- Run with: supabase test db
 begin;
-select plan(44);
+select plan(52);
 
 -- People: A owns family F, B is the second parent (guardian), D a viewer,
 -- C an outsider with an approved phone. Sessions s?1 are bound to phones ?1;
@@ -177,6 +177,8 @@ select is(public.sync_pull(pg_temp.f(), 0, '0', null, 1) ->> 'records_more', 'tr
 select is((select ciphertext from public.pull_e2ee_changes(pg_temp.f()) limit 1),
   replace(encode(pg_temp.ct('ce'), 'base64'), E'\n', ''), 'pull_e2ee_changes returns base64 too');
 
+select pg_temp.as_user('dddddddd-dddd-4ddd-8ddd-dddddddddddd', '5d000000-0000-4000-8000-0000000000d1');
+select is(public.sync_pull(pg_temp.f()) ->> 'ok', 'true', 'a viewer can pull');
 select pg_temp.as_user('cccccccc-cccc-4ccc-8ccc-cccccccccccc', '5c000000-0000-4000-8000-0000000000c1');
 select throws_ok($$ select public.sync_pull(pg_temp.f()) $$, '42501', 'forbidden',
   'an outsider''s approved phone cannot pull');
@@ -226,6 +228,15 @@ set local role authenticated;
 select pg_temp.as_b();
 select is(pg_temp.push(jsonb_build_array(pg_temp.rec('e0000000-0000-4000-8000-000000000006', 0))) ->> 'error',
   'family_full', 'a new record past 20,000 live records is refused');
+select is(pg_temp.push(jsonb_build_array(jsonb_set(pg_temp.rec('e0000000-0000-4000-8000-000000000006', 0),
+            '{expected_revision}', '"00"'))) ->> 'error',
+  'family_full', 'however "new" is spelled');
+select is(pg_temp.push(jsonb_build_array(pg_temp.rec('e0000000-0000-4000-8000-000000000007', 0, 'cd', true))) -> 'results' -> 0 ->> 'ok',
+  'true', 'a new tombstone still fits under the row cap');
+select is(pg_temp.push(jsonb_build_array(pg_temp.rec('e0000000-0000-4000-8000-000000000007', 1))) ->> 'error',
+  'family_full', 'undeleting it past 20,000 live records is refused');
+select is((select count(*)::int from public.e2ee_records where sync_id = 'e0000000-0000-4000-8000-000000000006'), 0,
+  'a refused batch writes nothing');
 select is(pg_temp.push(jsonb_build_array(pg_temp.rec('e0000000-0000-4000-8000-000000000001', 3))) -> 'results' -> 0 ->> 'ok',
   'true', 'edits to existing records still go through');
 select is(pg_temp.push(jsonb_build_array(pg_temp.rec('e0000000-0000-4000-8000-000000000002', 1, 'cd', true))) -> 'results' -> 0 ->> 'ok',
@@ -241,6 +252,19 @@ select public.sync_housekeeping();
 select is((select array_agg(sync_id::text order by sync_id) from public.e2ee_records
            where sync_id in ('e0000000-0000-4000-8000-0000000000aa', 'e0000000-0000-4000-8000-0000000000ab')),
   array['e0000000-0000-4000-8000-0000000000ab'], 'tombstones older than a year are purged, younger ones kept');
+select is((select count(*)::int from private.sync_call_counts where minute < now() - interval '2 days'), 0,
+  'old call counters are purged');
+
+-- A phone the family log revoked ------------------------------------------------
+update public.family_devices set revoked_seq = 2
+where family_id = pg_temp.f() and device_id = 'db000000-0000-4000-8000-0000000000b1';
+set local role authenticated;
+select pg_temp.as_b();
+select throws_ok($$ select public.sync_pull(pg_temp.f()) $$, '42501', 'forbidden',
+  'a revoked phone cannot pull');
+select throws_ok($$ select pg_temp.push(jsonb_build_array(pg_temp.rec('e0000000-0000-4000-8000-000000000008', 0))) $$,
+  '42501', 'device_not_in_family', 'or push');
+reset role;
 
 select * from finish();
 rollback;
