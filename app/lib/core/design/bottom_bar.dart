@@ -5,7 +5,8 @@ import '../modules/feature_module.dart';
 import 'tokens.dart';
 import 'type.dart';
 
-/// The regular bottom bar: labelled tabs and a raised middle button.
+/// The regular bottom bar: labelled tabs, the selected one on a soft
+/// primary-soft pill, and a raised orchid + button in the middle.
 class UsraBottomBar extends StatelessWidget {
   const UsraBottomBar({super.key, required this.tabs, required this.selected});
 
@@ -104,6 +105,9 @@ class _RaisedAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.usra;
+    // Orchid against the white bar is 2.71:1, so in light a 1 px orchid-ink
+    // ring (7.8:1) gives the circle a 3:1 edge. In dark orchid is 5.8:1.
+    final light = Theme.of(context).brightness == Brightness.light;
     return Semantics(
       button: true,
       child: InkWell(
@@ -118,11 +122,15 @@ class _RaisedAction extends StatelessWidget {
                 width: UsraSizes.touchTarget + 4,
                 height: UsraSizes.touchTarget + 4,
                 decoration: ShapeDecoration(
-                  color: c.primary,
-                  shape: const CircleBorder(),
+                  color: c.orchid,
+                  shape: CircleBorder(
+                    side: light
+                        ? BorderSide(color: c.orchidInk)
+                        : BorderSide.none,
+                  ),
                   shadows: c.shadowFloat,
                 ),
-                child: Icon(Icons.add, size: 28, color: c.onPrimary),
+                child: Icon(Icons.add, size: 28, color: c.onOrchid),
               ),
             ),
             const SizedBox(height: 2),
