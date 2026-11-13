@@ -52,9 +52,13 @@ DateTime birthDatePickerStart(String? relationship, DateTime today) =>
 
 /// Adds a person, or edits one when [profileId] is given.
 class ProfileFormScreen extends ConsumerStatefulWidget {
-  const ProfileFormScreen({super.key, this.profileId});
+  const ProfileFormScreen({super.key, this.profileId, this.fromHome = false});
 
   final String? profileId;
+
+  /// Opened from Home: once saved, back from the new person returns to Home,
+  /// not to the family list the parent never opened (e2e #20).
+  final bool fromHome;
 
   @override
   ConsumerState<ProfileFormScreen> createState() => _ProfileFormScreenState();
@@ -173,14 +177,19 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
       return;
     }
     if (mounted) {
-      context.go(
-        pathAfterProfileSave(
-          savedId,
-          isNew: id == null,
-          birthDate: _birthDate,
-          today: nowOf(context),
-        ),
+      final next = pathAfterProfileSave(
+        savedId,
+        isNew: id == null,
+        birthDate: _birthDate,
+        today: nowOf(context),
       );
+      if (id == null && widget.fromHome) {
+        GoRouter.of(context)
+          ..go('/home')
+          ..push(next);
+      } else {
+        context.go(next);
+      }
     }
   }
 

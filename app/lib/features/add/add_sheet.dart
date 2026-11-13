@@ -62,7 +62,8 @@ class _AddSheetState extends ConsumerState<AddSheet> {
       ('add/visit', Icons.medical_services_outlined, l.addVisit),
       ('labs', Icons.science_outlined, l.addLab),
       ('add/scan', Icons.document_scanner_outlined, l.addScan),
-      ('sick-days', Icons.thermostat, l.addFever),
+      // Straight to a reading (fever_reading_start.dart).
+      ('fever', Icons.thermostat, l.addFever),
       ('add/growth', Icons.monitor_weight_outlined, l.addGrowth),
       ('add/surgery', Icons.healing_outlined, l.addSurgery),
     ];

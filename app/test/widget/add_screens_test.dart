@@ -90,7 +90,7 @@ void main() {
       'add/visit',
       'labs',
       'add/scan',
-      'sick-days',
+      'fever',
       'add/growth',
       'add/surgery',
       'insurance/new',
@@ -220,6 +220,36 @@ void main() {
     final saved = await tester.runAsync(() => db.watchProfiles().first);
     expect(saved!.single.displayName, 'ليلى');
     expect(saved.single.simpleMode, isTrue);
+  });
+
+  testWidgets('a person added from Home: back from their page is Home again, '
+      'and the button says ضيف شخص as on the family page (e2e #20)', (
+    tester,
+  ) async {
+    tall(tester);
+    await tester.runAsync(() => db.addProfile('منى', sex: 'female'));
+    await open(tester, '/home');
+    expect(
+      find.descendant(
+        of: key('home-new-person'),
+        matching: find.text('ضيف شخص'),
+      ),
+      findsOneWidget,
+    );
+    await tester.ensureVisible(key('home-new-person'));
+    await tester.tap(key('home-new-person'));
+    await settle(tester);
+    await tester.tap(key('profile-relationship-father'));
+    await settle(tester);
+    await tester.enterText(key('profile-name'), 'حسن');
+    await settle(tester);
+    await tester.ensureVisible(key('profile-save'));
+    await tester.tap(key('profile-save'));
+    await settle(tester);
+    expect(key('member-back'), findsOneWidget);
+    await tester.tap(key('member-back'));
+    await settle(tester);
+    expect(key('home-greeting'), findsOneWidget);
   });
 
   testWidgets('changing a saved person shows everything already saved', (

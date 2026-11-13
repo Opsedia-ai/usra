@@ -42,7 +42,12 @@ class FamilyModule extends FeatureModule {
       path: '/family',
       builder: (_, _) => const FamilyScreen(),
       routes: [
-        GoRoute(path: 'new', builder: (_, _) => const ProfileFormScreen()),
+        GoRoute(
+          path: 'new',
+          builder: (_, s) => ProfileFormScreen(
+            fromHome: s.uri.queryParameters['from'] == 'home',
+          ),
+        ),
         GoRoute(
           path: ':id',
           name: '${noTabBarRoute}person',

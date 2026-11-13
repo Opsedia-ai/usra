@@ -141,10 +141,8 @@ class EpisodeListScreen extends ConsumerWidget {
                       ),
                   ],
                 ),
-              if (ongoing != null) ...[
-                const SizedBox(height: UsraSpacing.s4),
-                Center(child: start),
-              ],
+              // One sick day at a time: while one is going, its own page
+              // ends it, and starting another isn't offered (e2e #22).
             ],
           );
         },
@@ -293,9 +291,35 @@ class _AmbulanceCard extends StatelessWidget {
                 ),
               ),
             ),
-            Text(
-              signs.join(partSeparator),
-              style: UsraType.body.copyWith(color: c.inkMuted, height: 1.5),
+            // One sign a line, as on the sick day's page: a dense paragraph
+            // joined with dashes was hard to scan in a hurry (e2e #22).
+            Column(
+              key: const ValueKey('sick-days-ambulance-signs'),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: UsraSpacing.s1,
+              children: [
+                for (final s in signs)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ExcludeSemantics(
+                        child: Text(
+                          '•  ',
+                          style: UsraType.body.copyWith(color: c.urgent),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          s,
+                          style: UsraType.body.copyWith(
+                            color: c.ink,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
             ),
             OutlinedButton.icon(
               key: const ValueKey('sick-days-ambulance'),

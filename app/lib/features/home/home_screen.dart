@@ -120,7 +120,7 @@ class _EmptyHome extends StatelessWidget {
         const SizedBox(height: 24),
         FilledButton.icon(
           key: const ValueKey('home-add-first'),
-          onPressed: () => context.go('/family/new'),
+          onPressed: () => context.go('/family/new?from=home'),
           icon: const Icon(Icons.add),
           label: Text(l.familyAdd),
         ),
@@ -406,9 +406,9 @@ class _NewPersonButton extends StatelessWidget {
   Widget build(BuildContext context) => OutlinedButton.icon(
     key: const ValueKey('home-new-person'),
     style: OutlinedButton.styleFrom(foregroundColor: context.usra.orchidInk),
-    onPressed: () => context.go('/family/new'),
+    onPressed: () => context.go('/family/new?from=home'),
     icon: const Icon(Icons.add),
-    label: Text(AppLocalizations.of(context).homeNewPerson),
+    label: Text(AppLocalizations.of(context).familyAdd),
   );
 }
 
