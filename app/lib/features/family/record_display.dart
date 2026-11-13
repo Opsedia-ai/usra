@@ -113,3 +113,21 @@ class RecordRow extends StatelessWidget {
     );
   }
 }
+
+/// [events], newest first, split into runs of the same month.
+List<List<MedicalEvent>> recordsByMonth(
+  List<MedicalEvent> events,
+  DateFormat month,
+) {
+  final groups = <List<MedicalEvent>>[];
+  for (final e in events) {
+    if (groups.isEmpty ||
+        month.format(groups.last.first.occurredAt) !=
+            month.format(e.occurredAt)) {
+      groups.add([e]);
+    } else {
+      groups.last.add(e);
+    }
+  }
+  return groups;
+}

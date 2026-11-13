@@ -196,7 +196,7 @@ class AboutPrivacyScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             OutlinedButton(
               key: const ValueKey('privacy-delete-all'),
-              onPressed: () => context.go(deleteDataPath),
+              onPressed: () => context.push(deleteDataPath),
               child: Text(l.settingsDeleteAll),
             ),
           ],

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../consent.dart';
 import '../design/bottom_bar.dart';
+import '../design/tokens.dart';
+import '../modules/feature_module.dart';
 import '../modules/module_registry.dart';
 import '../preferences.dart';
 import '../providers.dart';
@@ -91,9 +93,31 @@ GoRouter buildRouter(ModuleRegistry registry, {GoRouterRedirect? redirect}) {
 /// by mistake there would lose what was typed.
 final _medicineForm = RegExp(r'^/family/[^/]+/medicines/(new|[^/]+/edit)$');
 
+/// Which tab [location] belongs to, or -1 for none. A tab's own path wins.
+/// A page another tab shares (a person's records, under Home's `/family`)
+/// stays with the tab it was opened from, [lastTab]. A tab of the other
+/// bar (More in Simple Mode) lights no tab.
+int selectedTab(
+  List<ModuleTab> tabs,
+  List<ModuleTab> allTabs,
+  String location,
+  String? lastTab,
+) {
+  bool under(String path) => location == path || location.startsWith('$path/');
+  final own = tabs.indexWhere((t) => t.action == null && under(t.path));
+  if (own >= 0) return own;
+  final last = tabs.indexWhere((t) => t.path == lastTab);
+  final shared = tabs.indexWhere(
+    (t) => t.action == null && t.alsoFor.any(under),
+  );
+  if (shared >= 0) return last >= 0 ? last : shared;
+  if (allTabs.any((t) => t.action == null && under(t.path))) return -1;
+  return last;
+}
+
 /// Bottom navigation built from the modules' tabs; fewer and bigger in
 /// Simple Mode.
-class AppShell extends ConsumerWidget {
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({
     super.key,
     required this.registry,
@@ -105,6 +129,14 @@ class AppShell extends ConsumerWidget {
   final String location;
   final Widget child;
 
+  @override
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+  /// The tab last opened by its own path, which shared pages stay under.
+  String? _lastTab;
+
   /// A pushed page isn't in this shell's own `location`, so this asks the
   /// router what's on top. Simple Mode keeps its big buttons everywhere.
   bool _noBar(BuildContext context) {
@@ -112,37 +144,74 @@ class AppShell extends ConsumerWidget {
     return top.route.name?.startsWith(noTabBarRoute) ?? false;
   }
 
+  /// Where the page on top is: a pushed page isn't in [AppShell.location].
+  String _topLocation(BuildContext context) {
+    final config = GoRouter.of(context).routerDelegate.currentConfiguration;
+    return config.isEmpty ? widget.location : config.last.matchedLocation;
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final registry = widget.registry;
+    final location = widget.location;
     final simple = ref.watch(simpleModeProvider);
     final tabs = simple ? registry.simpleTabs : registry.tabs;
-    final index = tabs.indexWhere(
-      (t) =>
-          t.action == null &&
-          [t.path, ...t.alsoFor].any((p) => location.startsWith(p)),
-    );
+    final all = [...registry.tabs, ...registry.simpleTabs];
+    final top = _topLocation(context);
+    final index = selectedTab(tabs, all, top, _lastTab);
+    if (index >= 0 &&
+        (top == tabs[index].path || top.startsWith('${tabs[index].path}/'))) {
+      _lastTab = tabs[index].path;
+    }
     return Scaffold(
-      body: SafeArea(child: child),
+      body: SafeArea(child: widget.child),
       bottomNavigationBar:
           tabs.length < 2 ||
               _medicineForm.hasMatch(location) ||
               (!simple && _noBar(context))
           ? null
           : !simple
-          ? UsraBottomBar(tabs: tabs, selected: index < 0 ? 0 : index)
-          : NavigationBar(
-              selectedIndex: index < 0 ? 0 : index,
-              onDestinationSelected: (i) => context.go(tabs[i].path),
-              destinations: [
-                for (final tab in tabs)
-                  NavigationDestination(
-                    icon: Icon(simple ? tab.simpleIcon ?? tab.icon : tab.icon),
-                    label: (simple ? tab.simpleLabel ?? tab.label : tab.label)(
-                      context,
+          ? UsraBottomBar(tabs: tabs, selected: index)
+          : _noneSelected(
+              context,
+              none: index < 0,
+              child: NavigationBar(
+                selectedIndex: index < 0 ? 0 : index,
+                onDestinationSelected: (i) => context.go(tabs[i].path),
+                destinations: [
+                  for (final tab in tabs)
+                    NavigationDestination(
+                      icon: Icon(tab.simpleIcon ?? tab.icon),
+                      label: (tab.simpleLabel ?? tab.label)(context),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
+    );
+  }
+
+  /// NavigationBar always has a selected tab; on a page of none, its
+  /// selected look is made the same as the others'.
+  Widget _noneSelected(
+    BuildContext context, {
+    required bool none,
+    required Widget child,
+  }) {
+    if (!none) return child;
+    final theme = NavigationBarTheme.of(context);
+    final muted = context.usra.inkMuted;
+    return NavigationBarTheme(
+      data: theme.copyWith(
+        indicatorColor: Colors.transparent,
+        iconTheme: WidgetStatePropertyAll(IconThemeData(color: muted)),
+        labelTextStyle: WidgetStatePropertyAll(
+          (theme.labelTextStyle?.resolve(const {}) ??
+                  Theme.of(context).textTheme.labelMedium ??
+                  const TextStyle())
+              .copyWith(color: muted),
+        ),
+      ),
+      child: child,
     );
   }
 }

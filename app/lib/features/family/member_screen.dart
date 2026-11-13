@@ -523,9 +523,13 @@ class _NextDose extends ConsumerWidget {
           Text(details, style: UsraType.body.copyWith(color: c.inkMuted)),
       ],
     );
-    final taken = FilledButton.icon(
+    // Outlined: "Add for Laila" is the page's one filled button.
+    final taken = OutlinedButton.icon(
       key: const ValueKey('person-dose-taken'),
-      style: FilledButton.styleFrom(minimumSize: _buttonSize(context)),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: c.ink,
+        minimumSize: _buttonSize(context),
+      ),
       onPressed: () => logDoseTaken(context, ref, dose),
       icon: const Icon(Icons.check),
       label: Text(l.doseTaken),
@@ -871,6 +875,9 @@ class _Timeline extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     final types = ref.watch(moduleRegistryProvider).recordTypes;
+    final month = DateFormat.yMMMM(
+      Localizations.localeOf(context).toLanguageTag(),
+    );
     final photos =
         ref.watch(attachmentCountsProvider(person.id)).value ?? const {};
     // Quick logs (feeds, diapers...) live on their own screens. Types this
@@ -916,13 +923,36 @@ class _Timeline extends ConsumerWidget {
                   ),
                 ]
               : [
-                  for (final e in events) ...[
-                    EventCard(
-                      event: e,
-                      type: types[e.type],
-                      photos: photos[e.id] ?? 0,
+                  // One card per month, as on the Records tab.
+                  for (final (i, group) in recordsByMonth(
+                    events,
+                    month,
+                  ).indexed) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: UsraSpacing.s2),
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          month.format(group.first.occurredAt),
+                          key: ValueKey('timeline-month-$i'),
+                          style: UsraType.label.copyWith(
+                            color: context.usra.inkMuted,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 10),
+                    UsraListCard(
+                      children: [
+                        for (final e in group)
+                          RecordRow(
+                            event: e,
+                            type: types[e.type],
+                            photos: photos[e.id] ?? 0,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: UsraSpacing.s3),
                   ],
                 ],
         ),
@@ -982,88 +1012,6 @@ class _PersonActions extends StatelessWidget {
         Expanded(child: add),
         summary,
       ],
-    );
-  }
-}
-
-class EventCard extends StatelessWidget {
-  const EventCard({
-    super.key,
-    required this.event,
-    required this.type,
-    required this.photos,
-    this.personName,
-    this.thumbnail,
-  });
-
-  final MedicalEvent event;
-  final RecordTypeDefinition? type;
-  final int photos;
-
-  /// Shown first, where records of several people are listed together.
-  final String? personName;
-
-  /// The record's first photo, in place of the photo icon.
-  final Widget? thumbnail;
-
-  @override
-  Widget build(BuildContext context) {
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    final l = AppLocalizations.of(context);
-    final data = decodeRecordData(event.dataJson);
-    final titleField = type?.titleField;
-    final title = titleField == null ? null : data[titleField.key];
-    final currency = event.currency;
-    final money = event.costMinor == null
-        ? null
-        : formatMoney(
-            event.costMinor!,
-            locale: locale,
-            currency: currency == null || currency == 'EGP'
-                ? l.currencyEgp
-                : currency,
-          );
-
-    return Card(
-      child: ListTile(
-        key: ValueKey('event-${event.id}'),
-        onTap: () =>
-            context.push('/family/${event.profileId}/record/${event.id}'),
-        leading: CircleAvatar(
-          backgroundColor: context.usra.primarySoft,
-          child: Icon(
-            type?.icon ?? Icons.description_outlined,
-            color: context.usra.primary,
-          ),
-        ),
-        title: Text(
-          [
-            type?.labelOf(context) ?? event.type,
-            if (title != null) displayFieldValue(context, titleField!, title),
-          ].join(partSeparator),
-        ),
-        subtitle: Text(
-          [
-            ?personName,
-            DateFormat.yMMMd(locale).format(event.occurredAt),
-            ?money,
-          ].join(partSeparator),
-        ),
-        trailing: photos == 0
-            ? null
-            : Semantics(
-                label: l.recordPhotoCount(photos),
-                excludeSemantics: true,
-                child: Badge(
-                  key: ValueKey('event-photos-${event.id}'),
-                  label: Text(localizedDigits(context, photos)),
-                  backgroundColor: context.usra.primary,
-                  child:
-                      thumbnail ??
-                      Icon(Icons.photo_outlined, color: context.usra.primary),
-                ),
-              ),
-      ),
     );
   }
 }

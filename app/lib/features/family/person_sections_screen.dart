@@ -21,22 +21,37 @@ bool isVisitOrLab(MedicalEvent e) =>
 /// What the Documents page lists, and what its tile counts.
 bool hasPhotos(MedicalEvent e, int photos) => photos > 0;
 
-/// A page opened from a person's hub, with their name on top so it's clear
-/// whose records these are.
+/// A page opened from a person's hub: what it lists in the app bar, and
+/// under it the person's name, so it's clear whose records these are.
 class _PersonPage extends ConsumerWidget {
-  const _PersonPage({required this.profileId, required this.children});
+  const _PersonPage({
+    required this.profileId,
+    required this.title,
+    required this.children,
+  });
 
   final String profileId;
+  final String title;
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final name = ref.watch(profileProvider(profileId)).value?.displayName;
     return Scaffold(
-      appBar: AppBar(title: Text(name ?? '')),
+      appBar: AppBar(title: Text(title)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-        children: children,
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: UsraSpacing.s3),
+            child: Text(
+              name ?? '',
+              key: const ValueKey('person-page-name'),
+              style: UsraType.body.copyWith(color: context.usra.inkMuted),
+            ),
+          ),
+          ...children,
+        ],
       ),
     );
   }
@@ -50,6 +65,7 @@ class PersonInsuranceScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _PersonPage(
     profileId: profileId,
+    title: AppLocalizations.of(context).insuranceTitle,
     children: [InsuranceSection(profileId: profileId)],
   );
 }
@@ -62,7 +78,8 @@ class PersonFollowUpsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _PersonPage(
     profileId: profileId,
-    children: [MemberFollowUps(profileId: profileId)],
+    title: AppLocalizations.of(context).followUpsTitle,
+    children: [MemberFollowUps(profileId: profileId, heading: false)],
   );
 }
 
@@ -77,12 +94,8 @@ class PersonVisitsScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     return _PersonPage(
       profileId: profileId,
+      title: l.personTileVisits,
       children: [
-        Text(
-          l.personTileVisits,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: UsraSpacing.s2),
         OutlinedButton.icon(
           key: const ValueKey('member-labs'),
           onPressed: () => context.push('/family/$profileId/labs'),
@@ -111,12 +124,8 @@ class PersonDocumentsScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     return _PersonPage(
       profileId: profileId,
+      title: l.personTileDocuments,
       children: [
-        Text(
-          l.personTileDocuments,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: UsraSpacing.s3),
         _RecordList(
           profileId: profileId,
           emptyText: l.personDocumentsEmpty,

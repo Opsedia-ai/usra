@@ -15,7 +15,7 @@ import 'insurance_info.dart';
 import '../medicines/medicines_providers.dart' show clockProvider;
 import 'insurance_providers.dart';
 
-/// A person's insurance cards, shown on their page.
+/// A person's insurance cards, under the page's "Insurance cards" title.
 class InsuranceSection extends ConsumerWidget {
   const InsuranceSection({super.key, required this.profileId});
 
@@ -28,14 +28,6 @@ class InsuranceSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Semantics(
-          header: true,
-          child: Text(
-            l.insuranceTitle,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ),
-        const SizedBox(height: UsraSpacing.s2),
         ...cards.when(
           loading: () => [const LinearProgressIndicator()],
           error: (e, _) => [Text('$e')],

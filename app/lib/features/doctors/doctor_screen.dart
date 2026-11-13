@@ -32,7 +32,7 @@ class DoctorScreen extends ConsumerWidget {
             IconButton(
               tooltip: l.doctorEdit,
               icon: const Icon(Icons.edit_outlined),
-              onPressed: () => context.go('/doctors/$doctorId/edit'),
+              onPressed: () => context.push('/doctors/$doctorId/edit'),
             ),
             IconButton(
               key: const ValueKey('doctor-delete'),
@@ -115,7 +115,8 @@ class DoctorScreen extends ConsumerWidget {
     );
     if (yes != true) return;
     await ref.read(databaseProvider).softDeleteDoctor(doctor.id);
-    if (context.mounted) context.go('/doctors');
+    if (!context.mounted) return;
+    context.canPop() ? context.pop() : context.go('/doctors');
   }
 }
 

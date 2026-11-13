@@ -111,7 +111,15 @@ class _DoctorFormScreenState extends ConsumerState<DoctorFormScreen> {
       );
       return;
     }
-    if (mounted) context.go('/doctors/$id');
+    if (!mounted) return;
+    // Back to where the form was opened from, so the way back to More stays.
+    if (widget.doctorId != null && context.canPop()) {
+      context.pop();
+    } else if (context.canPop()) {
+      context.pushReplacement('/doctors/$id');
+    } else {
+      context.go('/doctors/$id');
+    }
   }
 
   @override

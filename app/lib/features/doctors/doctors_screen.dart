@@ -31,7 +31,7 @@ class _DoctorRow extends StatelessWidget {
       title: d.name,
       emphasized: true,
       subtitleText: details.isEmpty ? null : details,
-      onTap: () => context.go('/doctors/${d.id}'),
+      onTap: () => context.push('/doctors/${d.id}'),
       trailing: number == null
           ? null
           : TextButton.icon(
@@ -61,7 +61,7 @@ class DoctorsScreen extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
           child: FilledButton.icon(
             key: const ValueKey('doctor-add'),
-            onPressed: () => context.go('/doctors/new'),
+            onPressed: () => context.push('/doctors/new'),
             icon: const Icon(Icons.person_add_alt_1),
             label: Text(l.doctorsAdd),
           ),
