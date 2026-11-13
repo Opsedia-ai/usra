@@ -6,8 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/database/app_database.dart';
-import '../../core/design/status_chip.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/providers.dart';
 import '../../core/util/dates.dart';
 import '../../l10n/app_localizations.dart';
@@ -92,17 +93,13 @@ class _Body extends StatelessWidget {
         Text(l.devIntro, style: text.bodyMedium),
         if (late.isNotEmpty) ...[
           const SizedBox(height: 12),
-          Container(
+          Card(
             key: const ValueKey('dev-late-banner'),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Severity.actSoon.backgroundOf(context),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              l.devLateBanner(milestoneAgeLabel(l, late.first.months)),
-              style: text.bodyMedium?.copyWith(
-                color: Severity.actSoon.foregroundOf(context),
+            child: Padding(
+              padding: const EdgeInsets.all(UsraSpacing.s4),
+              child: StatusDotText(
+                label: l.devLateBanner(milestoneAgeLabel(l, late.first.months)),
+                style: UsraType.body,
               ),
             ),
           ),
@@ -196,7 +193,16 @@ class _MilestoneTile extends ConsumerWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(milestoneAreaLabel(l, milestone.area)),
-            StatusChip(severity: state.severity, label: label),
+            if (state == MilestoneState.late)
+              StatusDotText(label: label)
+            else
+              Text(
+                label,
+                style: UsraType.label.copyWith(
+                  color: context.usra.inkMuted,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
           ],
         ),
       ),

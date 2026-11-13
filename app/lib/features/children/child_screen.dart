@@ -8,7 +8,7 @@ import 'package:intl/intl.dart' show DateFormat, NumberFormat;
 
 import '../../core/database/app_database.dart';
 import '../../core/design/pill_chip.dart';
-import '../../core/design/status_chip.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/records/record_type.dart' show decodeRecordData;
@@ -179,8 +179,7 @@ class _BodyState extends State<_Body> {
         const SizedBox(height: UsraSpacing.s3),
         _History(profileId: profile.id, events: events),
         const SizedBox(height: UsraSpacing.s4),
-        Text(l.vaccinesTitle, style: text.titleLarge),
-        const SizedBox(height: UsraSpacing.s2),
+        UsraGroupLabel(l.vaccinesTitle),
         VaccineSummaryCard(profile: profile),
       ],
     );
@@ -218,56 +217,31 @@ class _History extends StatelessWidget {
       ].join(' · ');
     }
 
-    return Card(
-      key: const ValueKey('growth-history'),
-      child: Padding(
-        padding: const EdgeInsets.all(UsraSpacing.s4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        UsraGroupLabel(l.growthHistoryTitle),
+        UsraListCard(
+          key: const ValueKey('growth-history'),
           children: [
-            Text(
-              l.growthHistoryTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
             if (rows.isEmpty)
               Padding(
-                padding: const EdgeInsets.only(top: UsraSpacing.s2),
-                child: Text(l.growthNoData),
+                padding: const EdgeInsets.all(UsraSpacing.s4),
+                child: Text(
+                  l.growthNoData,
+                  style: UsraType.body.copyWith(color: c.inkMuted),
+                ),
               ),
             for (final e in rows)
-              InkWell(
+              UsraListRow(
                 key: ValueKey('growth-history-${e.id}'),
+                title: line(e),
+                subtitleText: DateFormat.yMMMd(locale).format(e.occurredAt),
                 onTap: () => context.push('/family/$profileId/record/${e.id}'),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    minHeight: UsraSizes.touchTarget,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: UsraSpacing.s2,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          DateFormat.yMMMd(locale).format(e.occurredAt),
-                          style: UsraType.label.copyWith(color: c.inkMuted),
-                        ),
-                        Text(
-                          line(e),
-                          style: UsraType.body.copyWith(
-                            color: c.ink,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ),
           ],
         ),
-      ),
+      ],
     );
   }
 }
@@ -341,16 +315,9 @@ class _GrowthCard extends StatelessWidget {
               ),
               if (reading != null) ...[
                 const SizedBox(height: 6),
-                StatusChip(
+                GrowthStatusText(
                   key: ValueKey('growth-status-${indicator.name}'),
-                  severity: reading.severity,
-                  label: reading.withinUsualRange
-                      ? l.growthWithinRange(
-                          localizedDigitsIn(context, reading.percentileLabel),
-                        )
-                      : l.growthOutsideRange(
-                          localizedDigitsIn(context, reading.percentileLabel),
-                        ),
+                  reading: reading,
                 ),
               ],
             ],
