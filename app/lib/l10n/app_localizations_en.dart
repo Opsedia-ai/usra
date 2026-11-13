@@ -5500,13 +5500,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vaccineCatchUpShort => 'catch-up';
 
   @override
-  String get vaccineMarkPast => 'Mark everything due so far as given';
-
-  @override
   String get vaccineMarkPastTitle => 'Mark past doses as given?';
 
   @override
-  String vaccineMarkPastBody(int count, String upTo) {
+  String vaccineMarkPastAge(String sex, String age) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'female': 'She is $age now.',
+      'male': 'He is $age now.',
+      'other': 'Age now: $age.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineMarkPastBody(int count) {
     final intl.NumberFormat countNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
@@ -5514,35 +5521,41 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$countString required doses',
-      one: '1 required dose',
-    );
-    return '$_temp0 $upTo will be marked as given, each on its date on the schedule, not today. Check the vaccination card first: the card and the child\'s doctor are the reference. You can undo this, or untick any dose later.';
-  }
-
-  @override
-  String vaccineUpTo(int months) {
-    final intl.NumberFormat monthsNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String monthsString = monthsNumberFormat.format(months);
-
-    String _temp0 = intl.Intl.pluralLogic(
-      months,
-      locale: localeName,
-      other: 'up to $monthsString months',
-      one: 'up to 1 month',
-      zero: 'at birth',
+      other:
+          '$countString required doses due up to this age will be marked as given, each on its date on the schedule, not today.',
+      one: '1 required dose due up to this age will be marked as given, on its date on the schedule, not today.',
+      zero: 'No required dose is left to mark up to this age.',
     );
     return '$_temp0';
   }
 
   @override
-  String vaccineMarkPastOptional(int count) {
+  String get vaccineMarkPastSafety =>
+      'Check the vaccination card first: the card and the child\'s doctor are the reference. You can undo this, or untick any dose later.';
+
+  @override
+  String vaccineMarkPastOptional(int count, String names) {
     final intl.NumberFormat countNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
-    return 'Also the optional ones you follow ($countString)';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString doses',
+      one: '1 dose',
+    );
+    return 'Also the optional ones due by this age, each on its date: $names ($_temp0)';
+  }
+
+  @override
+  String vaccineMarkPastOptionalHint(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'female': 'she didn\'t',
+      'male': 'he didn\'t',
+      'other': 'the child didn\'t',
+    });
+    return 'The optional ones are the private, paid vaccines. Untick if $_temp0 have them.';
   }
 
   @override

@@ -543,6 +543,24 @@ Questions: `consentSaveFailed` uses جرّب and `consentDecline` uses مش مو
 
 `insuranceCopyShort` is the short action on the member-number row. A screen reader still hears `insuranceCopyNumber` (انسخ رقم العضوية). `insuranceDeleteCard` replaces the trash icon in the header with a text button at the end of the page. Both use the masculine imperative, as `insuranceDelete` (امسح) already does.
 
+### Mark everything due so far as given (founder's decision, 13 Nov 2026)
+
+One button, on the Vaccines page and in the vaccine setup checklist, marks every dose due by the child's age as given, optional (private, paid) vaccines included and ticked by default. The button keeps `vaccineMarkPastAsk`, unchanged; the setup checklist now uses it too instead of `vaccineMarkPast`.
+
+| Key | | Arabic | English |
+|---|---|---|---|
+| `vaccineMarkPastAge` | New | عندها {age} دلوقتي. / عنده {age} دلوقتي. / السن دلوقتي: {age}. | She is {age} now. / He is {age} now. / Age now: {age}. |
+| `vaccineMarkPastBody` | Changed | {count} جرعة إجبارية لحد السن ده هيتعلّم عليها إنها اتاخدت، كل واحدة في ميعادها على الجدول، مش النهارده. (=0: مفيش جرعات إجبارية فاضلة لحد السن ده. =1: جرعة إجبارية واحدة لحد السن ده هيتعلّم عليها إنها اتاخدت، في ميعادها على الجدول، مش النهارده. =2: جرعتين إجباريتين لحد السن ده هيتعلّم عليهم إنهم اتاخدوا، كل واحدة في ميعادها على الجدول، مش النهارده.) | {count} required doses due up to this age will be marked as given, each on its date on the schedule, not today. (=0: No required dose is left to mark up to this age.) |
+| `vaccineMarkPastSafety` | New (moved out of `vaccineMarkPastBody`, words unchanged) | راجع كارت التطعيم الأول: الكارت ودكتور الطفل هما المرجع. تقدر ترجع فيها، أو تشيل العلامة من أي جرعة بعدين. | Check the vaccination card first: the card and the child's doctor are the reference. You can undo this, or untick any dose later. |
+| `vaccineMarkPastOptional` | Changed | ومعاها الاختيارية اللي ميعادها جه لحد السن ده، كل واحدة في ميعادها: {names} ({count} جرعة) | Also the optional ones due by this age, each on its date: {names} ({count} doses) |
+| `vaccineMarkPastOptionalHint` | New | الاختيارية هي التطعيمات الخاصة اللي بفلوس. شيل العلامة لو ماخدتهاش. / لو ماخدهاش. / لو الطفل ماخدهاش. | The optional ones are the private, paid vaccines. Untick if she didn't / he didn't / the child didn't have them. |
+| `vaccineMarkPast` | Removed | علّم على كل اللي فات إنه اتاخد | Mark everything due so far as given |
+| `vaccineUpTo` | Removed | لحد سن {months} شهر | up to {months} months |
+
+Before, `vaccineMarkPastBody` said "{count} required doses {up to 18 months} will be marked…" and `vaccineMarkPastOptional` said "ومعاها الاختياري اللي ماشيين عليه ({count})" (only the optional vaccines the family had chosen, unticked).
+
+Questions: is "اللي بفلوس" natural for "paid", or is "بفلوس في الخاص" clearer? `vaccineMarkPastOptionalHint` addresses the reader with "شيل" (masculine), as `vaccineMarkPastSafety` already does with "راجع".
+
 ## Separator, November 2026 (QA H2)
 
 The middle dot "·" between parts of a line looked like the Arabic zero "٠" beside Arabic-Indic digits: "١٣ نوفمبر ٢٠٢٦ · ٣٥٠ ج.م" read as "٣٥٠٠", and "عند الولادة · ٠ من ٣" as "٠٠ من ٣". Every such line now uses a spaced en dash " – ", in both languages. The same change applies to lines the app builds in code (names, dates, amounts, record titles), through one shared constant, `partSeparator` in `app/lib/core/util/separator.dart`. Lists of times, such as the hours of a dose every 8 hours, use the comma "، " instead, because a dash between two times reads as a range. Only the separator changed; no words changed.

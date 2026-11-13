@@ -20,6 +20,7 @@ import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
 import '../family/family_screen.dart' show profilesProvider;
+import '../family/person_status.dart' show ageLabel;
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import '../follow_ups/follow_ups_providers.dart' show todayProvider;
 import '../medicines/medicines_providers.dart' show reminderSchedulerProvider;
@@ -109,56 +110,87 @@ Future<bool> confirmRemovingUserRecords(
   return ok ?? false;
 }
 
-/// From this many open past doses, the vaccine page offers to mark them
-/// all at once.
-const markPastFrom = 3;
-
-/// Asks before marking [required] (and, if ticked, [optional]) doses as
-/// given on their schedule days: how many, up to which age, and to check
-/// the card first. The doses to mark, or null when cancelled.
-Future<List<DoseStatus>?> confirmMarkPast(
+/// Asks before marking [doses] (from [dosesDueSoFar]) as given on their
+/// schedule days: the child's age now, how many required doses up to it,
+/// the optional ones (the private, paid vaccines, ticked to start with, one
+/// tick to leave them out), and to check the card first. The doses to
+/// mark, or null when cancelled.
+Future<List<DoseSoFar>?> confirmMarkPast(
   BuildContext context, {
-  required List<DoseStatus> required,
-  required List<DoseStatus> optional,
+  required Profile profile,
+  required DateTime today,
+  required List<DoseSoFar> doses,
 }) async {
   final l = AppLocalizations.of(context);
-  var withOptional = false;
-  final upTo = [for (final s in required) s.dose.ageMonths]
-      .fold(0, (a, b) => a > b ? a : b);
+  final sex = profile.sex ?? 'other';
+  final required = [
+    for (final d in doses)
+      if (d.dose.required) d,
+  ];
+  final optional = [
+    for (final d in doses)
+      if (!d.dose.required) d,
+  ];
+  final optionalKinds = {for (final d in optional) d.dose.kind};
+  final names = [
+    for (final k in optionalVaccines)
+      if (optionalKinds.contains(k)) vaccineName(l, k),
+  ].join(listComma(context));
+  final age = ageLabel(l, profile.birthDate, today);
+  var withOptional = true;
   final ok = await showDialog<bool>(
     context: context,
     builder: (c) => StatefulBuilder(
       builder: (c, setState) => UsraAlertDialog(
         key: const ValueKey('vaccine-mark-past-dialog'),
+        // Title and text scroll together: at large text the title alone
+        // takes much of a small phone.
+        scrollable: true,
         title: Text(l.vaccineMarkPastTitle),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (age != null) ...[
               Text(
-                localizedDigitsIn(
-                  context,
-                  l.vaccineMarkPastBody(required.length, l.vaccineUpTo(upTo)),
-                ),
-                key: const ValueKey('vaccine-mark-past-body'),
+                l.vaccineMarkPastAge(sex, age),
+                key: const ValueKey('vaccine-mark-past-age'),
+                style: Theme.of(c).textTheme.titleMedium,
               ),
-              if (optional.isNotEmpty)
-                CheckboxListTile(
-                  key: const ValueKey('vaccine-mark-past-optional'),
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  value: withOptional,
-                  onChanged: (v) => setState(() => withOptional = v == true),
-                  title: Text(
-                    localizedDigitsIn(
-                      context,
-                      l.vaccineMarkPastOptional(optional.length),
-                    ),
-                  ),
-                ),
+              const SizedBox(height: UsraSpacing.s2),
             ],
-          ),
+            Text(
+              localizedDigitsIn(
+                context,
+                l.vaccineMarkPastBody(required.length),
+              ),
+              key: const ValueKey('vaccine-mark-past-body'),
+            ),
+            if (optional.isNotEmpty)
+              CheckboxListTile(
+                key: const ValueKey('vaccine-mark-past-optional'),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                value: withOptional,
+                onChanged: (v) => setState(() => withOptional = v == true),
+                title: Text(
+                  localizedDigitsIn(
+                    context,
+                    l.vaccineMarkPastOptional(optional.length, names),
+                  ),
+                  key: const ValueKey('vaccine-mark-past-optional-title'),
+                ),
+                subtitle: Text(
+                  l.vaccineMarkPastOptionalHint(sex),
+                  key: const ValueKey('vaccine-mark-past-optional-hint'),
+                ),
+              ),
+            const SizedBox(height: UsraSpacing.s2),
+            Text(
+              l.vaccineMarkPastSafety,
+              key: const ValueKey('vaccine-mark-past-safety'),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -167,7 +199,9 @@ Future<List<DoseStatus>?> confirmMarkPast(
           ),
           FilledButton(
             key: const ValueKey('vaccine-mark-past-ok'),
-            onPressed: () => Navigator.of(c).pop(true),
+            onPressed: required.isEmpty && !withOptional
+                ? null
+                : () => Navigator.of(c).pop(true),
             child: Text(l.vaccineMarkPastOk),
           ),
         ],
@@ -178,8 +212,16 @@ Future<List<DoseStatus>?> confirmMarkPast(
   return [...required, if (withOptional) ...optional];
 }
 
+/// The optional vaccines among [doses], to add to the child's plan so
+/// they show from then on.
+Set<VaccineKind> optionalKindsIn(List<DoseSoFar> doses) => {
+  for (final d in doses)
+    if (!d.dose.required) d.dose.kind,
+};
+
 /// Marks every dose due so far as given, each on its schedule day, after
-/// asking; offers to undo. From the vaccine page.
+/// asking, and adds the optional vaccines marked to the plan; offers to
+/// undo both. From the vaccine page.
 Future<void> markPastDoses(
   BuildContext context,
   WidgetRef ref,
@@ -187,28 +229,67 @@ Future<void> markPastDoses(
 ) async {
   final l = AppLocalizations.of(context);
   final today = ref.read(todayProvider);
-  final required = pastDosesToMark(child.statuses, today);
-  final optional = [
-    for (final s in pastDosesToMark(child.statuses, today, withOptional: true))
-      if (!s.dose.required) s,
-  ];
+  final birth = child.profile.birthDate;
+  if (birth == null) return;
   final doses = await confirmMarkPast(
     context,
-    required: required,
-    optional: optional,
+    profile: child.profile,
+    today: today,
+    doses: dosesDueSoFar(
+      birthDate: birth,
+      records: child.records,
+      plan: child.plan,
+      today: today,
+      nameOf: (k) => vaccineName(l, k),
+    ),
   );
   if (doses == null || doses.isEmpty || !context.mounted) return;
   final messenger = ScaffoldMessenger.of(context);
   final db = ref.read(databaseProvider);
   final id = child.profile.id;
-  final changes = vaccineRecordChanges(l, child.statuses, {
-    for (final s in doses) s.dose.key: givenDateOn(s.plannedOn, today),
-  });
+  final before = child.plan;
+  final plan = before.copyWith(
+    optional: {...before.optional, ...optionalKindsIn(doses)},
+  );
   if (!await ref.read(saveGateProvider).allow()) return;
+  // The plan record this saved, and whether there was one before; undo
+  // puts it back as it was.
+  String? planId;
+  var hadPlan = true;
+  Future<void> restorePlan() async {
+    final saved = planId;
+    if (saved == null) return;
+    if (hadPlan) {
+      await db.saveSingletonEvent(
+        profileId: id,
+        type: VaccinePlanFields.type,
+        dataJson: before.toJson(),
+      );
+    } else {
+      await db.replaceEvents(profileId: id, remove: [saved]);
+    }
+  }
+
   final List<String> added;
   try {
-    added = await applyVaccineChanges(db, id, changes);
+    if (plan != before) {
+      hadPlan = await _hasVaccinePlan(db, id);
+      planId = await db.saveSingletonEvent(
+        profileId: id,
+        type: VaccinePlanFields.type,
+        dataJson: plan.toJson(),
+      );
+    }
+    added = await db.replaceEvents(
+      profileId: id,
+      add: [for (final d in doses) vaccineRecordFor(l, d.dose, d.date)],
+    );
   } catch (_) {
+    try {
+      await restorePlan();
+    } catch (_) {
+      // The plan only lists vaccines to follow; nothing was marked.
+    }
     messenger.showSnackBar(SnackBar(content: Text(l.saveFailed)));
     return;
   }
@@ -222,10 +303,11 @@ Future<void> markPastDoses(
       persist: false,
       action: SnackBarAction(
         label: l.doseUndo,
-        // Exactly the records just added.
+        // Exactly the records just added, and the plan as it was.
         onPressed: () async {
           try {
             await db.replaceEvents(profileId: id, remove: added);
+            await restorePlan();
           } catch (_) {
             messenger.showSnackBar(SnackBar(content: Text(l.saveFailed)));
           }
@@ -654,7 +736,14 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
         _ProgressCard(
           child: c,
           today: today,
-          markPast: pastDosesToMark(c.statuses, today).length >= markPastFrom
+          markPast:
+              dosesDueSoFar(
+                birthDate: c.profile.birthDate!,
+                records: c.records,
+                plan: c.plan,
+                today: today,
+                nameOf: (k) => vaccineName(l, k),
+              ).isNotEmpty
               ? OutlinedButton.icon(
                   key: const ValueKey('vaccine-mark-past'),
                   style: OutlinedButton.styleFrom(
@@ -1537,7 +1626,14 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
         });
       }
       _statuses = statuses;
-      body = _form(context, profile, plan, statuses, today);
+      body = _form(
+        context,
+        profile,
+        plan,
+        statuses,
+        vaccineRecords(events),
+        today,
+      );
     }
     return Scaffold(
       appBar: AppBar(
@@ -1553,10 +1649,12 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
     Profile profile,
     VaccinePlan plan,
     List<DoseStatus> statuses,
+    List<VaccineRecord> records,
     DateTime today,
   ) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
+    final toMark = _toMark(profile, plan, records, today);
     final muted = text.bodyMedium?.copyWith(color: context.usra.inkMuted);
     final soon = today.add(const Duration(days: dueSoonDays));
     final checklist = [
@@ -1646,6 +1744,21 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
         const SizedBox(height: 4),
         Text(l.vaccineSetupGivenHint, style: muted),
         const SizedBox(height: 12),
+        // At the top of "given", in sight: shown while any dose due so far
+        // is still unticked, however many were ticked by hand.
+        if (toMark.isNotEmpty) ...[
+          OutlinedButton.icon(
+            key: const ValueKey('setup-mark-past'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: context.usra.ink,
+              minimumSize: const Size.fromHeight(48),
+            ),
+            onPressed: _saving ? null : () => _markPast(profile, toMark, today),
+            icon: const Icon(Icons.done_all),
+            label: Text(l.vaccineMarkPastAsk(profile.sex ?? 'other')),
+          ),
+          const SizedBox(height: 12),
+        ],
         DocumentScanCard(
           keyPrefix: 'vaccine-scan',
           title: l.vaccineScanTitle,
@@ -1656,16 +1769,6 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
           onScan: _saving ? null : (source) => _scan(source, profile, statuses),
         ),
         const SizedBox(height: 8),
-        if (_toMark(statuses, today).length >= markPastFrom)
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: TextButton.icon(
-              key: const ValueKey('setup-mark-past'),
-              onPressed: _saving ? null : () => _markPast(statuses, today),
-              icon: const Icon(Icons.done_all),
-              label: Text(l.vaccineMarkPast),
-            ),
-          ),
         if (checklist.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1797,48 +1900,60 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
     );
   }
 
-  /// Doses "mark everything due so far" would tick here: due so far and
-  /// not ticked yet.
-  List<DoseStatus> _toMark(
-    List<DoseStatus> statuses,
-    DateTime today, {
-    bool withOptional = false,
-  }) => [
-    for (final s in pastDosesToMark(
-      statuses,
-      today,
-      withOptional: withOptional,
-    ))
-      if (!_ticked(s)) s,
-  ];
+  /// Doses "mark everything due so far" would tick here (see
+  /// [dosesDueSoFar]): due so far and not ticked yet.
+  List<DoseSoFar> _toMark(
+    Profile profile,
+    VaccinePlan plan,
+    List<VaccineRecord> records,
+    DateTime today,
+  ) {
+    final l = AppLocalizations.of(context);
+    return [
+      for (final d in dosesDueSoFar(
+        birthDate: profile.birthDate!,
+        records: records,
+        plan: plan,
+        today: today,
+        nameOf: (k) => vaccineName(l, k),
+      ))
+        if (_toggled[d.dose.key] != true) d,
+    ];
+  }
 
-  /// Ticks every dose due so far, after asking; nothing is saved until
-  /// Save, and the snack bar puts the ticks back as they were.
-  Future<void> _markPast(List<DoseStatus> statuses, DateTime today) async {
+  /// Ticks every dose due so far, after asking, and adds the optional
+  /// vaccines ticked to the plan; nothing is saved until Save, and the
+  /// snack bar puts the ticks and the plan back as they were.
+  Future<void> _markPast(
+    Profile profile,
+    List<DoseSoFar> toMark,
+    DateTime today,
+  ) async {
     final l = AppLocalizations.of(context);
     final doses = await confirmMarkPast(
       context,
-      required: _toMark(statuses, today),
-      optional: [
-        for (final s in _toMark(statuses, today, withOptional: true))
-          if (!s.dose.required) s,
-      ],
+      profile: profile,
+      today: today,
+      doses: toMark,
     );
     if (doses == null || doses.isEmpty || !mounted) return;
     final before = {
-      for (final s in doses)
-        s.dose.key: (
-          ticked: _toggled[s.dose.key],
-          date: _dates[s.dose.key],
-          card: _fromCard[s.dose.key],
+      for (final d in doses)
+        d.dose.key: (
+          ticked: _toggled[d.dose.key],
+          date: _dates[d.dose.key],
+          card: _fromCard[d.dose.key],
         ),
     };
+    final plan = _plan ?? VaccinePlan.standard;
+    final newKinds = optionalKindsIn(doses).difference(plan.optional);
     setState(() {
+      _plan = plan.copyWith(optional: {...plan.optional, ...newKinds});
       // On its schedule day: not a date chosen or read for it before.
-      for (final s in doses) {
-        _toggled[s.dose.key] = true;
-        _dates.remove(s.dose.key);
-        _fromCard.remove(s.dose.key);
+      for (final d in doses) {
+        _toggled[d.dose.key] = true;
+        _dates.remove(d.dose.key);
+        _fromCard.remove(d.dose.key);
       }
     });
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1854,6 +1969,11 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
           onPressed: () {
             if (!mounted) return;
             setState(() {
+              if (_plan case final now?) {
+                _plan = now.copyWith(
+                  optional: now.optional.difference(newKinds),
+                );
+              }
               for (final MapEntry(:key, :value) in before.entries) {
                 if (value.ticked case final t?) {
                   _toggled[key] = t;

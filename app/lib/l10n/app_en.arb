@@ -3162,35 +3162,45 @@
   "prescriptionStopped": "Stopped",
   "reminderExactOffTitle": "Reminders may be late",
   "vaccineCatchUpShort": "catch-up",
-  "vaccineMarkPast": "Mark everything due so far as given",
   "vaccineMarkPastTitle": "Mark past doses as given?",
-  "vaccineMarkPastBody": "{count, plural, =1{1 required dose} other{{count} required doses}} {upTo} will be marked as given, each on its date on the schedule, not today. Check the vaccination card first: the card and the child's doctor are the reference. You can undo this, or untick any dose later.",
+  "vaccineMarkPastAge": "{sex, select, female{She is {age} now.} male{He is {age} now.} other{Age now: {age}.}}",
+  "@vaccineMarkPastAge": {
+    "placeholders": {
+      "sex": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineMarkPastBody": "{count, plural, =0{No required dose is left to mark up to this age.} =1{1 required dose due up to this age will be marked as given, on its date on the schedule, not today.} other{{count} required doses due up to this age will be marked as given, each on its date on the schedule, not today.}}",
   "@vaccineMarkPastBody": {
     "placeholders": {
       "count": {
         "type": "int",
         "format": "decimalPattern"
-      },
-      "upTo": {
-        "type": "String"
       }
     }
   },
-  "vaccineUpTo": "{months, plural, =0{at birth} =1{up to 1 month} other{up to {months} months}}",
-  "@vaccineUpTo": {
-    "placeholders": {
-      "months": {
-        "type": "int",
-        "format": "decimalPattern"
-      }
-    }
-  },
-  "vaccineMarkPastOptional": "Also the optional ones you follow ({count})",
+  "vaccineMarkPastSafety": "Check the vaccination card first: the card and the child's doctor are the reference. You can undo this, or untick any dose later.",
+  "vaccineMarkPastOptional": "Also the optional ones due by this age, each on its date: {names} ({count, plural, =1{1 dose} other{{count} doses}})",
   "@vaccineMarkPastOptional": {
     "placeholders": {
       "count": {
         "type": "int",
         "format": "decimalPattern"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineMarkPastOptionalHint": "The optional ones are the private, paid vaccines. Untick if {sex, select, female{she didn't} male{he didn't} other{the child didn't}} have them.",
+  "@vaccineMarkPastOptionalHint": {
+    "placeholders": {
+      "sex": {
+        "type": "String"
       }
     }
   },

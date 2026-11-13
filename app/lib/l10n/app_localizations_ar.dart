@@ -5731,13 +5731,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get vaccineCatchUpShort => 'تعويضية';
 
   @override
-  String get vaccineMarkPast => 'علّم على كل اللي فات إنه اتاخد';
-
-  @override
   String get vaccineMarkPastTitle => 'تعلّم على الجرعات اللي فاتت؟';
 
   @override
-  String vaccineMarkPastBody(int count, String upTo) {
+  String vaccineMarkPastAge(String sex, String age) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'female': 'عندها $age دلوقتي.',
+      'male': 'عنده $age دلوقتي.',
+      'other': 'السن دلوقتي: $age.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineMarkPastBody(int count) {
     final intl.NumberFormat countNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
@@ -5745,39 +5752,46 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$countString جرعة إجبارية',
-      few: '$countString جرعات إجبارية',
-      two: 'جرعتين إجباريتين',
-      one: 'جرعة إجبارية واحدة',
-    );
-    return '$_temp0 $upTo هيتعلّم عليها إنها اتاخدت، كل واحدة في ميعادها على الجدول، مش النهارده. راجع كارت التطعيم الأول: الكارت ودكتور الطفل هما المرجع. تقدر ترجع فيها، أو تشيل العلامة من أي جرعة بعدين.';
-  }
-
-  @override
-  String vaccineUpTo(int months) {
-    final intl.NumberFormat monthsNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String monthsString = monthsNumberFormat.format(months);
-
-    String _temp0 = intl.Intl.pluralLogic(
-      months,
-      locale: localeName,
-      other: 'لحد سن $monthsString شهر',
-      few: 'لحد سن $monthsString شهور',
-      two: 'لحد سن شهرين',
-      one: 'لحد سن شهر',
-      zero: 'عند الولادة',
+      other:
+          '$countString جرعة إجبارية لحد السن ده هيتعلّم عليها إنها اتاخدت، كل واحدة في ميعادها على الجدول، مش النهارده.',
+      few:
+          '$countString جرعات إجبارية لحد السن ده هيتعلّم عليها إنها اتاخدت، كل واحدة في ميعادها على الجدول، مش النهارده.',
+      two: 'جرعتين إجباريتين لحد السن ده هيتعلّم عليهم إنهم اتاخدوا، كل واحدة في ميعادها على الجدول، مش النهارده.',
+      one: 'جرعة إجبارية واحدة لحد السن ده هيتعلّم عليها إنها اتاخدت، في ميعادها على الجدول، مش النهارده.',
+      zero: 'مفيش جرعات إجبارية فاضلة لحد السن ده.',
     );
     return '$_temp0';
   }
 
   @override
-  String vaccineMarkPastOptional(int count) {
+  String get vaccineMarkPastSafety =>
+      'راجع كارت التطعيم الأول: الكارت ودكتور الطفل هما المرجع. تقدر ترجع فيها، أو تشيل العلامة من أي جرعة بعدين.';
+
+  @override
+  String vaccineMarkPastOptional(int count, String names) {
     final intl.NumberFormat countNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
-    return 'ومعاها الاختياري اللي ماشيين عليه ($countString)';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString جرعة',
+      few: '$countString جرعات',
+      two: 'جرعتين',
+      one: 'جرعة واحدة',
+    );
+    return 'ومعاها الاختيارية اللي ميعادها جه لحد السن ده، كل واحدة في ميعادها: $names ($_temp0)';
+  }
+
+  @override
+  String vaccineMarkPastOptionalHint(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'female': 'ماخدتهاش',
+      'male': 'ماخدهاش',
+      'other': 'الطفل ماخدهاش',
+    });
+    return 'الاختيارية هي التطعيمات الخاصة اللي بفلوس. شيل العلامة لو $_temp0.';
   }
 
   @override
