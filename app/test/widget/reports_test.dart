@@ -179,6 +179,40 @@ void main() {
     expect(logs, isEmpty);
   });
 
+  for (final dark in [false, true]) {
+    testWidgets('doctor summary fits 320 px at text x2, '
+        '${dark ? 'dark' : 'light'}', (tester) async {
+      tester.view.devicePixelRatio = 2;
+      tester.view.physicalSize = const Size(640, 6000);
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      if (dark) {
+        tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+      }
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+      final id = (await tester.runAsync(
+        () => db.addProfile(
+          'هدى',
+          birthDate: DateTime.utc(1960, 3, 1),
+          allergies: 'بنسلين',
+          conditions: 'سكر',
+        ),
+      ))!;
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+      GoRouter.of(tester.element(find.byType(Scaffold).first))
+          .go('/family/$id/doctor-summary');
+      await tester.pumpAndSettle();
+      // The sections sit in one grouped card, right to left.
+      final section = find.byKey(const ValueKey('summary-section-allergies'));
+      expect(section, findsOneWidget);
+      expect(Directionality.of(tester.element(section)), TextDirection.rtl);
+      expect(find.byKey(const ValueKey('summary-share')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('cancelling the warning makes no file', (tester) async {
     tester.view.physicalSize = const Size(1170, 4000);
     tester.view.devicePixelRatio = 1.5;

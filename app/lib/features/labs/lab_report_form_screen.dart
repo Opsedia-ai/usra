@@ -9,7 +9,10 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
 import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart' show IconBox;
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/log.dart';
 import '../../core/ocr/ocr_service.dart';
@@ -636,12 +639,10 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
                 if (_needsCheck)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(
-                      l.labConfirmNeeded,
+                    child: StatusDotText(
                       key: const ValueKey('lab-confirm-needed'),
-                      style: TextStyle(
-                        color: Severity.headsUp.foregroundOf(context),
-                      ),
+                      label: l.labConfirmNeeded,
+                      style: UsraType.body,
                     ),
                   ),
                 FilledButton(
@@ -680,27 +681,46 @@ class _ScanCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     const tall = Size(0, 52);
+    final c = context.usra;
+    // Both outlined: Save is the form's one filled button.
+    final quiet = OutlinedButton.styleFrom(
+      minimumSize: tall,
+      foregroundColor: c.ink,
+      side: BorderSide(color: c.lineStrong),
+    );
     return Card(
-      color: context.usra.primarySoft,
-      elevation: 0,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              l.labScanTitle,
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              children: [
+                const IconBox(icon: Icons.document_scanner_outlined),
+                const SizedBox(width: UsraSpacing.s3),
+                Expanded(
+                  child: Text(
+                    l.labScanTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 6),
-            Text(l.labScanHelp),
+            const SizedBox(height: UsraSpacing.s2),
+            Text(
+              l.labScanHelp,
+              style: UsraType.label.copyWith(
+                color: c.inkMuted,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
-                  child: FilledButton.icon(
+                  child: OutlinedButton.icon(
                     key: const ValueKey('lab-scan-camera'),
-                    style: FilledButton.styleFrom(minimumSize: tall),
+                    style: quiet,
                     onPressed: onScan == null
                         ? null
                         : () => onScan!(ImageSource.camera),
@@ -712,7 +732,7 @@ class _ScanCard extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     key: const ValueKey('lab-scan-gallery'),
-                    style: OutlinedButton.styleFrom(minimumSize: tall),
+                    style: quiet,
                     onPressed: onScan == null
                         ? null
                         : () => onScan!(ImageSource.gallery),
@@ -1154,20 +1174,20 @@ InputDecoration _unsureDecoration(
     hintText: hint,
     errorText: error,
     helperText: unsure ? l.labCheckThis : null,
-    helperStyle: unsure
-        ? TextStyle(color: Severity.headsUp.foregroundOf(context))
+    // No tinted fill: a stronger amber edge and amber words mark the box.
+    helperStyle: unsure ? TextStyle(color: context.usra.attention) : null,
+    enabledBorder: unsure
+        ? OutlineInputBorder(
+            borderRadius: BorderRadius.circular(UsraRadius.md),
+            borderSide: BorderSide(color: context.usra.attention, width: 2),
+          )
         : null,
-    filled: unsure,
-    fillColor: unsure ? Severity.headsUp.backgroundOf(context) : null,
     suffixIcon: unsure
         ? IconButton(
             key: ValueKey(checkKey),
             tooltip: l.labCheckedIt,
             onPressed: onChecked,
-            icon: Icon(
-              Icons.task_alt,
-              color: Severity.headsUp.foregroundOf(context),
-            ),
+            icon: Icon(Icons.task_alt, color: context.usra.attention),
           )
         : null,
   );

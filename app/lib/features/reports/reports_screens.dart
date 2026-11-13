@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/preferences.dart' show simpleModeProvider;
@@ -204,7 +205,10 @@ class _SummaryPreview extends ConsumerWidget {
                 children: [
                   Text(
                     label,
-                    style: UsraType.label.copyWith(color: c.inkMuted),
+                    style: UsraType.label.copyWith(
+                      color: c.inkMuted,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                   Text(
                     value,
@@ -364,27 +368,27 @@ class _DoctorSummaryScreenState extends ConsumerState<DoctorSummaryScreen> {
                 ),
                 const SizedBox(height: 16),
                 if (!simple) ...[
-                  Text(
-                    l.reportChooseSections,
-                    style: Theme.of(context).textTheme.titleMedium,
+                  // Grouped rows with hairlines, like More.
+                  UsraGroupLabel(l.reportChooseSections),
+                  UsraListCard(
+                    children: [
+                      for (final s in offered)
+                        CheckboxListTile(
+                          key: ValueKey('summary-section-${s.name}'),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: UsraSpacing.s2,
+                          ),
+                          controlAffinity: ListTileControlAffinity.leading,
+                          value: !_off.contains(s),
+                          onChanged: (v) => setState(
+                            () => v == true ? _off.remove(s) : _off.add(s),
+                          ),
+                          title: Text(_label(l, s)),
+                        ),
+                    ],
                   ),
-                  for (final s in offered)
-                    CheckboxListTile(
-                      key: ValueKey('summary-section-${s.name}'),
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: !_off.contains(s),
-                      onChanged: (v) => setState(
-                        () => v == true ? _off.remove(s) : _off.add(s),
-                      ),
-                      title: Text(_label(l, s)),
-                    ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l.reportLanguage,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: UsraSpacing.s2),
+                  UsraGroupLabel(l.reportLanguage),
                   ReportLanguagePicker(
                     value: _language,
                     onChanged: (v) => setState(() => _language = v),
@@ -422,6 +426,10 @@ class _DoctorSummaryScreenState extends ConsumerState<DoctorSummaryScreen> {
                   Builder(
                     builder: (button) => OutlinedButton.icon(
                       key: const ValueKey('summary-vaccination-record'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: context.usra.ink,
+                        side: BorderSide(color: context.usra.lineStrong),
+                      ),
                       onPressed: () => shareVaccinationRecord(button, ref, id),
                       icon: const Icon(Icons.vaccines_outlined),
                       label: Text(l.reportVaccinationShare),

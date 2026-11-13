@@ -326,6 +326,47 @@ void main() {
     expect(find.text('أعلى من معدل المعمل'), findsOneWidget);
   });
 
+  testWidgets('the results list fits 320 px at text x2, in dark', (
+    tester,
+  ) async {
+    final dad = (await tester.runAsync(() => db.addProfile('محمد')))!;
+    await tester.runAsync(
+      () => db.addEvent(
+        profileId: dad,
+        type: 'lab',
+        occurredAt: DateTime(2026, 1, 1),
+        dataJson: jsonEncode(
+          const LabReport(
+            tests: [
+              LabTest(
+                name: 'FBS',
+                value: 110,
+                unit: 'mg/dL',
+                range: LabRange(low: 70, high: 100),
+              ),
+            ],
+          ).toData(),
+        ),
+      ),
+    );
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+    tester.view.physicalSize = const Size(640, 6000);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    GoRouter.of(tester.element(find.byType(Scaffold).first))
+        .go('/family/$dad/labs');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('lab-series-fbs|mg/dL')), findsOneWidget);
+    // Above the range: said in words, beside a dot, not a tinted chip.
+    expect(find.text('أعلى من معدل المعمل'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('nothing is saved without a test name', (tester) async {
     final mom = (await tester.runAsync(() => db.addProfile('فاطمة')))!;
     await start(tester, '/family/$mom/add/lab');
