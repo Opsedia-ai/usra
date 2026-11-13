@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
@@ -77,11 +78,17 @@ class RecordScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               // The date is in the line above; sharing keeps it with the rest.
-              for (final (label, value) in _lines(context, e, type).skip(1))
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _Line(label: label, value: value),
+              if (_lines(context, e, type).skip(1).toList() case final lines
+                  when lines.isNotEmpty) ...[
+                UsraListCard(
+                  key: const ValueKey('record-fields'),
+                  children: [
+                    for (final (label, value) in lines)
+                      _Line(label: label, value: value),
+                  ],
                 ),
+                const SizedBox(height: 12),
+              ],
               if (type?.screens.details case final details?) ...[
                 details(context, e),
                 const SizedBox(height: 12),
@@ -101,23 +108,33 @@ class RecordScreen extends ConsumerWidget {
                       if (!_isPdf(a)) a,
                   ],
                 ),
-                for (final (i, a) in [
-                  for (final a in photos)
-                    if (_isPdf(a)) a,
-                ].indexed)
-                  Builder(
-                    builder: (tile) => ListTile(
-                      key: ValueKey('record-pdf-$i'),
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(
-                        Icons.picture_as_pdf_outlined,
-                        color: context.usra.primary,
-                      ),
-                      title: Text(l.recordPdf(i + 1)),
-                      trailing: const Icon(Icons.share_outlined),
-                      onTap: () => sharePhotos(tile, ref, [a]),
-                    ),
+                if ([
+                      for (final a in photos)
+                        if (_isPdf(a)) a,
+                    ]
+                    case final pdfs when pdfs.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  UsraListCard(
+                    children: [
+                      for (final (i, a) in pdfs.indexed)
+                        Builder(
+                          builder: (tile) => UsraListRow(
+                            key: ValueKey('record-pdf-$i'),
+                            icon: Icons.picture_as_pdf_outlined,
+                            title: l.recordPdf(i + 1),
+                            trailing: ExcludeSemantics(
+                              child: Icon(
+                                Icons.share_outlined,
+                                size: 20,
+                                color: context.usra.inkMuted,
+                              ),
+                            ),
+                            onTap: () => sharePhotos(tile, ref, [a]),
+                          ),
+                        ),
+                    ],
                   ),
+                ],
               ],
               const SizedBox(height: 24),
               if (_editPath(e, type) case final edit?) ...[
@@ -316,16 +333,31 @@ class _Line extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: text.labelLarge?.copyWith(color: context.usra.inkMuted),
-        ),
-        SelectableText(value, style: text.titleMedium),
-      ],
+    final c = context.usra;
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: UsraSpacing.s4,
+        vertical: UsraSpacing.s3,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: UsraType.label.copyWith(
+              color: c.inkMuted,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          SelectableText(
+            value,
+            style: UsraType.body.copyWith(
+              color: c.ink,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -350,7 +382,7 @@ class _Thumbnails extends ConsumerWidget {
         for (final (i, a) in photos.indexed)
           InkWell(
             key: ValueKey('record-thumb-$i'),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(UsraRadius.md),
             onTap: () => Navigator.of(context, rootNavigator: true).push(
               MaterialPageRoute<void>(
                 fullscreenDialog: true,
@@ -359,7 +391,7 @@ class _Thumbnails extends ConsumerWidget {
               ),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(UsraRadius.md),
               child: PhotoImage(
                 image: store.image(a.path),
                 fit: BoxFit.cover,

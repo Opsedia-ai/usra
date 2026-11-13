@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' show Bidi;
 
 import '../../core/database/app_database.dart';
 import '../../core/design/buttons.dart';
+import '../../core/design/pill_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/records/record_type.dart' show decodeRecordData;
@@ -175,26 +176,12 @@ class _PersonChip extends StatelessWidget {
   final bool selected;
 
   @override
-  Widget build(BuildContext context) {
-    final c = context.usra;
-    return ChoiceChip(
-      key: ValueKey('emergency-person-${person.id}'),
-      label: Text(person.displayName),
-      selected: selected,
-      showCheckmark: false,
-      labelStyle: UsraType.body.copyWith(
-        color: selected ? c.onPrimary : c.ink,
-        fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-      ),
-      labelPadding: const EdgeInsets.symmetric(horizontal: 8),
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      backgroundColor: c.surface,
-      selectedColor: c.primary,
-      side: selected ? BorderSide.none : BorderSide(color: c.lineStrong),
-      shape: const StadiumBorder(),
-      onSelected: (_) => context.replace('/family/${person.id}/emergency'),
-    );
-  }
+  Widget build(BuildContext context) => UsraPill(
+    key: ValueKey('emergency-person-${person.id}'),
+    label: person.displayName,
+    selected: selected,
+    onTap: () => context.replace('/family/${person.id}/emergency'),
+  );
 }
 
 /// One tap: the phone's own dialer asks before calling.
@@ -205,28 +192,27 @@ class _AmbulanceButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final c = context.usra;
-    return DecoratedBox(
-      decoration: ShapeDecoration(
-        shape: const StadiumBorder(),
-        shadows: c.shadowFloat,
+    // Still red, still big: the one thing on this screen to find at a glance.
+    // Only the shape follows the polish: 14 corners, no shadow.
+    return FilledButton.icon(
+      key: const ValueKey('emergency-ambulance'),
+      style: FilledButton.styleFrom(
+        backgroundColor: c.urgent,
+        foregroundColor: c.onUrgent,
+        minimumSize: const Size.fromHeight(72),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(UsraRadius.button),
+        ),
+        textStyle: UsraType.heading.copyWith(fontSize: 22),
       ),
-      child: FilledButton.icon(
-        key: const ValueKey('emergency-ambulance'),
-        style: FilledButton.styleFrom(
-          backgroundColor: c.urgent,
-          foregroundColor: c.onUrgent,
-          minimumSize: const Size.fromHeight(72),
-          textStyle: UsraType.heading.copyWith(fontSize: 22),
+      onPressed: () =>
+          openContact(context, Uri(scheme: 'tel', path: ambulanceNumber)),
+      icon: const Icon(Icons.call, size: 28),
+      label: Text(
+        l.emergencyAmbulanceShort(
+          localizedDigits(context, int.parse(ambulanceNumber)),
         ),
-        onPressed: () =>
-            openContact(context, Uri(scheme: 'tel', path: ambulanceNumber)),
-        icon: const Icon(Icons.call, size: 28),
-        label: Text(
-          l.emergencyAmbulanceShort(
-            localizedDigits(context, int.parse(ambulanceNumber)),
-          ),
-          semanticsLabel: l.emergencyCallAmbulance(ambulanceNumber),
-        ),
+        semanticsLabel: l.emergencyCallAmbulance(ambulanceNumber),
       ),
     );
   }
@@ -258,7 +244,10 @@ class _EmergencyContact extends ConsumerWidget {
     final phone = person.emergencyPhone!;
     final holder = person.emergencyContactName;
     final name = holder ?? l.emergencyContactNoName;
-    const shape = StadiumBorder();
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(UsraRadius.card),
+      side: BorderSide(color: c.line),
+    );
     final nameText = Text(
       name,
       style: UsraType.body.copyWith(color: c.ink, fontWeight: FontWeight.w600),
@@ -282,8 +271,6 @@ class _EmergencyContact extends ConsumerWidget {
       child: Material(
         color: c.surface,
         shape: shape,
-        elevation: 1,
-        shadowColor: c.ink.withValues(alpha: 0.2),
         child: InkWell(
           key: const ValueKey('emergency-contact'),
           customBorder: shape,

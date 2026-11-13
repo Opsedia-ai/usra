@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/pebble.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/preferences.dart';
@@ -80,15 +82,8 @@ class FamilyScreen extends ConsumerWidget {
             : ListView(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                 children: [
-                  Card(
-                    child: Column(
-                      children: [
-                        for (final (i, p) in list.indexed) ...[
-                          if (i > 0) const Divider(height: 1),
-                          _FamilyRow(person: p),
-                        ],
-                      ],
-                    ),
+                  UsraListCard(
+                    children: [for (final p in list) _FamilyRow(person: p)],
                   ),
                 ],
               ),
@@ -117,9 +112,8 @@ class _FamilyRow extends ConsumerWidget {
       ),
     );
     final attention = status?.needsAttention ?? false;
-    return ListTile(
+    return UsraListRow(
       key: ValueKey('family-${person.id}'),
-      minTileHeight: 64,
       onTap: () => context.go('/family/${person.id}'),
       leading: Pebble(
         seed: pebbleSeed(person.id),
@@ -134,26 +128,25 @@ class _FamilyRow extends ConsumerWidget {
           ),
         ),
       ),
-      title: Text(
-        person.displayName,
-        style: UsraType.body.copyWith(
-          color: c.ink,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+      title: person.displayName,
+      emphasized: true,
+      // Needs attention: an amber dot and the words. Otherwise muted.
       subtitle: status == null
           ? null
+          : attention
+          ? StatusDotText(
+              key: ValueKey('family-status-${person.id}'),
+              label: status.label,
+              style: UsraType.label.copyWith(fontWeight: FontWeight.w400),
+            )
           : Text(
               status.label,
               key: ValueKey('family-status-${person.id}'),
               style: UsraType.label.copyWith(
-                color: attention
-                    ? status.severity.foregroundOf(context)
-                    : c.inkMuted,
-                fontWeight: attention ? FontWeight.w600 : FontWeight.w400,
+                color: c.inkMuted,
+                fontWeight: FontWeight.w400,
               ),
             ),
-      trailing: Icon(Icons.chevron_right, color: c.inkMuted),
     );
   }
 }
