@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/design/pill_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../l10n/app_localizations.dart';
@@ -64,8 +65,9 @@ class _AddSheetState extends ConsumerState<AddSheet> {
       ('sick-days', Icons.thermostat, l.addFever),
       ('add/growth', Icons.monitor_weight_outlined, l.addGrowth),
       ('add/surgery', Icons.healing_outlined, l.addSurgery),
-      ('insurance/new', Icons.badge_outlined, l.addInsurance),
     ];
+    // Less common: a text row under the tiles, not a ninth tile.
+    const insurancePath = 'insurance/new';
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -88,20 +90,25 @@ class _AddSheetState extends ConsumerState<AddSheet> {
                 label: Text(l.familyAdd),
               ),
             ] else ...[
-              Text(l.addSheetFor, style: text.labelLarge),
-              const SizedBox(height: UsraSpacing.s1),
               Wrap(
                 spacing: UsraSpacing.s2,
+                runSpacing: UsraSpacing.s2,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
+                  Text(
+                    l.addSheetFor,
+                    style: UsraType.body.copyWith(color: context.usra.inkMuted),
+                  ),
                   for (final p in people)
-                    ChoiceChip(
+                    UsraPill(
                       key: ValueKey('add-person-${p.id}'),
-                      label: Text(p.displayName),
+                      label: p.displayName,
                       selected: p.id == person,
-                      onSelected: (_) => setState(() => _person = p.id),
+                      onTap: () => setState(() => _person = p.id),
                     ),
                 ],
               ),
+              // Says why nothing opens yet: quiet, not a warning.
               if (person == null)
                 Padding(
                   padding: const EdgeInsets.only(top: UsraSpacing.s1),
@@ -109,7 +116,8 @@ class _AddSheetState extends ConsumerState<AddSheet> {
                     l.addSheetPickPerson,
                     key: const ValueKey('add-pick-person'),
                     style: UsraType.label.copyWith(
-                      color: Severity.headsUp.foregroundOf(context),
+                      color: context.usra.inkMuted,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ),
@@ -127,7 +135,7 @@ class _AddSheetState extends ConsumerState<AddSheet> {
                 builder: (context, box) {
                   final scale = MediaQuery.textScalerOf(context).scale(1);
                   // Big text gets fewer, wider tiles, never cut-off labels.
-                  final columns = (box.maxWidth / (76 * scale)).floor().clamp(
+                  final columns = (box.maxWidth / (72 * scale)).floor().clamp(
                     2,
                     4,
                   );
@@ -152,6 +160,21 @@ class _AddSheetState extends ConsumerState<AddSheet> {
                     ],
                   );
                 },
+              ),
+              const SizedBox(height: UsraSpacing.s2),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  key: const ValueKey('add-$insurancePath'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: context.usra.inkMuted,
+                  ),
+                  onPressed: person == null
+                      ? null
+                      : () => _open('/family/$person/$insurancePath'),
+                  icon: const Icon(Icons.badge_outlined, size: 20),
+                  label: Text(l.addInsurance),
+                ),
               ),
             ],
           ],
@@ -178,8 +201,8 @@ class _PhotoCard extends StatelessWidget {
     const tall = Size(0, UsraSizes.touchTarget);
     return Material(
       key: const ValueKey('add-photo'),
-      color: c.primarySoft,
-      borderRadius: BorderRadius.circular(UsraRadius.md),
+      color: c.surfaceSoft,
+      borderRadius: BorderRadius.circular(UsraRadius.button),
       child: Padding(
         padding: const EdgeInsets.all(UsraSpacing.s3),
         child: Column(
@@ -189,10 +212,7 @@ class _PhotoCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ExcludeSemantics(
-                  child: Icon(
-                    Icons.photo_camera_outlined,
-                    color: enabled ? c.primary : c.inkMuted,
-                  ),
+                  child: Icon(Icons.photo_camera_outlined, color: c.inkMuted),
                 ),
                 const SizedBox(width: UsraSpacing.s3),
                 Expanded(
@@ -209,7 +229,10 @@ class _PhotoCard extends StatelessWidget {
                       const SizedBox(height: UsraSpacing.s1),
                       Text(
                         l.addPhotoHint,
-                        style: UsraType.label.copyWith(color: c.inkMuted),
+                        style: UsraType.label.copyWith(
+                          color: c.inkMuted,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
                     ],
                   ),
@@ -217,21 +240,27 @@ class _PhotoCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: UsraSpacing.s2),
-            Wrap(
+            Row(
               spacing: UsraSpacing.s2,
-              runSpacing: UsraSpacing.s2,
               children: [
-                FilledButton(
-                  key: const ValueKey('add-photo-prescription'),
-                  style: FilledButton.styleFrom(minimumSize: tall),
-                  onPressed: onPrescription,
-                  child: Text(l.addPhotoPrescription),
+                Expanded(
+                  child: FilledButton(
+                    key: const ValueKey('add-photo-prescription'),
+                    style: FilledButton.styleFrom(minimumSize: tall),
+                    onPressed: onPrescription,
+                    child: Text(l.addPhotoPrescription),
+                  ),
                 ),
-                OutlinedButton(
-                  key: const ValueKey('add-photo-box'),
-                  style: OutlinedButton.styleFrom(minimumSize: tall),
-                  onPressed: onBox,
-                  child: Text(l.addPhotoBox),
+                Expanded(
+                  child: OutlinedButton(
+                    key: const ValueKey('add-photo-box'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: tall,
+                      foregroundColor: c.ink,
+                    ),
+                    onPressed: onBox,
+                    child: Text(l.addPhotoBox),
+                  ),
                 ),
               ],
             ),
@@ -262,12 +291,16 @@ class _AddTile extends StatelessWidget {
       button: true,
       enabled: enabled,
       child: Material(
-        color: c.surfaceSoft,
-        borderRadius: BorderRadius.circular(UsraRadius.md),
+        color: c.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(UsraRadius.button),
+          side: BorderSide(color: c.line),
+        ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(UsraRadius.md),
+          borderRadius: BorderRadius.circular(UsraRadius.button),
           onTap: onTap,
-          child: Padding(
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 76),
             padding: const EdgeInsets.symmetric(
               horizontal: UsraSpacing.s1,
               vertical: UsraSpacing.s2,
@@ -277,7 +310,7 @@ class _AddTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ExcludeSemantics(
-                  child: Icon(icon, color: enabled ? c.primary : c.inkMuted),
+                  child: Icon(icon, size: 22, color: c.inkMuted),
                 ),
                 const SizedBox(height: UsraSpacing.s1),
                 Text(

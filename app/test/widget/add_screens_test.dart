@@ -8,6 +8,7 @@ import 'package:usra/features/family/profile_form_screen.dart'
 import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
+import 'package:usra/core/design/pill_chip.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/features/add/add_sheet.dart';
@@ -122,6 +123,26 @@ void main() {
     await tester.tap(key('add-person-$laila'));
     await settle(tester);
     expect(key('add-pick-person'), findsNothing);
+  });
+
+  testWidgets('from a person\'s page that person is chosen, with no hint; '
+      'tiles sit four to a row and the insurance card is a text row', (
+    tester,
+  ) async {
+    tall(tester);
+    final laila = (await tester.runAsync(() => db.addProfile('ليلى')))!;
+    await tester.runAsync(() => db.addProfile('جدو'));
+    await open(tester, '/family/$laila');
+    await openSheet(tester);
+    expect(key('add-pick-person'), findsNothing);
+    expect(tester.widget<UsraPill>(key('add-person-$laila')).selected, isTrue);
+    // Four tiles in the first row.
+    final top = tester.getTopLeft(key('add-medicines/new')).dy;
+    for (final path in ['add/vaccine', 'add/visit', 'labs']) {
+      expect(tester.getTopLeft(key('add-$path')).dy, top, reason: path);
+    }
+    expect(tester.getTopLeft(key('add-add/scan')).dy, greaterThan(top));
+    expect(tester.widget(key('add-insurance/new')), isA<TextButton>());
   });
 
   testWidgets('a daughter is a girl, a son a boy, and her birth date picker '

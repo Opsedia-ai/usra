@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
+import 'package:usra/core/design/pill_chip.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/design/bottom_bar.dart';
 import 'package:usra/core/design/dr_usra.dart';
@@ -148,7 +149,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         tester
-            .widget<ChoiceChip>(find.byKey(ValueKey('add-person-$id')))
+            .widget<UsraPill>(find.byKey(ValueKey('add-person-$id')))
             .selected,
         isTrue,
       );
