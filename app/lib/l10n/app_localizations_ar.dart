@@ -22,7 +22,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navSettings => 'المزيد';
 
   @override
-  String get homeGreeting => 'أهلاً! أنا دكتور أسرة';
+  String get homeGreeting => 'أهلاً! أنا دليلك في أسرة';
 
   @override
   String get homeIntro =>
@@ -1131,7 +1131,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get tutorialWelcomeTitle => 'أهلاً، أنا دكتور أسرة';
+  String get tutorialWelcomeTitle => 'أهلاً، أنا دليلك في أسرة';
 
   @override
   String get tutorialWelcomeBody =>

@@ -38,7 +38,7 @@ These are borderline. None was changed: each needs a clinical decision, not a gr
 
 Also worth a look, but not a diagnosis:
 
-- `tutorialWelcomeTitle`: "Hi, I'm Dr. Usra" / "أهلاً، أنا دكتور أسرة". A mascot that calls itself a doctor may blur the "not a medical device" line for store review. It never gives advice.
+- `tutorialWelcomeTitle`: "Hi, I'm Dr. Usra" / "أهلاً، أنا دكتور أسرة". A mascot that calls itself a doctor may blur the "not a medical device" line for store review. It never gives advice. **Resolved 13 Nov 2026 (founder):** the mascot now introduces itself as a guide: "أهلاً، أنا دليلك في أسرة" / "Hi, I'm your guide in Usra"; `homeGreeting` changed the same way.
 - `bpHigh` / `bpVeryHigh`: thresholds of 140/90 and 160/110 with an action ("call your doctor today", "go to the hospital now"). These escalate, which the skill asks for. They are already on the doctor's list as warning text.
 
 ## How to keep it this way

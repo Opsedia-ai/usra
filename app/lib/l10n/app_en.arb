@@ -4,7 +4,7 @@
   "navHome": "Home",
   "navFamily": "Family",
   "navSettings": "More",
-  "homeGreeting": "Hello! I'm Dr. Usra",
+  "homeGreeting": "Hello! I'm your guide in Usra",
   "homeIntro": "Your family's health, in one safe place. Everything stays on this phone.",
   "homeColorGuide": "How colours work",
   "severityInfo": "Info",
@@ -576,7 +576,7 @@
       }
     }
   },
-  "tutorialWelcomeTitle": "Hi, I'm Dr. Usra",
+  "tutorialWelcomeTitle": "Hi, I'm your guide in Usra",
   "tutorialWelcomeBody": "Usra keeps your family's health in one place: doctor visits, tests, medicines and your doctors' numbers.",
   "tutorialPrivacyTitle": "Your data stays with you",
   "tutorialPrivacyBody": "Everything is saved on this phone, encrypted. No account needed.",

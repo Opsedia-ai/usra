@@ -125,7 +125,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeGreeting.
   ///
   /// In en, this message translates to:
-  /// **'Hello! I\'m Dr. Usra'**
+  /// **'Hello! I\'m your guide in Usra'**
   String get homeGreeting;
 
   /// No description provided for @homeIntro.
@@ -1895,7 +1895,7 @@ abstract class AppLocalizations {
   /// No description provided for @tutorialWelcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Hi, I\'m Dr. Usra'**
+  /// **'Hi, I\'m your guide in Usra'**
   String get tutorialWelcomeTitle;
 
   /// No description provided for @tutorialWelcomeBody.
