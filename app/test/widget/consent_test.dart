@@ -13,7 +13,6 @@ import 'package:usra/core/providers.dart';
 import 'package:usra/core/routing/app_router.dart';
 import 'package:usra/features/backup/backup_providers.dart';
 import 'package:usra/features/backup/backup_screen.dart';
-import 'package:usra/features/medicines/medicines_providers.dart';
 import 'package:usra/features/onboarding/consent_screen.dart';
 import 'package:usra/features/settings/about_privacy_screen.dart';
 import 'package:usra/features/settings/delete_data_screen.dart';

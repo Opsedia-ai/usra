@@ -9,9 +9,9 @@ import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/log.dart';
 import '../../core/preferences.dart';
+import '../../core/providers.dart' show clockProvider;
 import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
-import '../medicines/medicines_providers.dart' show clockProvider;
 import '../settings/about_privacy_screen.dart';
 
 /// Explicit consent (Egypt PDPL 151/2020: health data is sensitive), asked
