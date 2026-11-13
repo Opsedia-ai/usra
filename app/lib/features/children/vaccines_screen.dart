@@ -83,7 +83,6 @@ Future<void> askForReminderAccess(BuildContext context, WidgetRef ref) async {
     // Already allowed, or already refused: the phone won't ask again, and
     // the Medicines tab and More say how to turn them on.
     if (access.notifications || notificationsBlocked(access, prefs)) return;
-    if (prefs.getBool(PrefKeys.notificationsAsked) ?? false) return;
     if (!context.mounted) return;
     final l = AppLocalizations.of(context);
     final go = await showDialog<bool>(
