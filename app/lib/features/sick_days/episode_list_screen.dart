@@ -31,7 +31,10 @@ class EpisodeListScreen extends ConsumerWidget {
     final person = ref.watch(profileProvider(profileId)).value;
     final episodes = ref.watch(episodesProvider(profileId));
     final ongoing = episodes.value?.where((e) => e.endedAt == null).firstOrNull;
-    final start = _StartButton(onPressed: () => _start(context, ref));
+    final start = _StartButton(
+      onPressed: () => _start(context, ref),
+      outlined: ongoing == null,
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -40,16 +43,6 @@ class EpisodeListScreen extends ConsumerWidget {
               : '${l.sickDaysTitle} · ${person.displayName}',
         ),
       ),
-      // Only when nothing is going on: otherwise the reading button is the
-      // page's one main action, and starting another sits at the end.
-      floatingActionButton: ongoing == null
-          ? FloatingActionButton.extended(
-              key: const ValueKey('sick-day-start'),
-              onPressed: () => _start(context, ref),
-              icon: const Icon(Icons.add),
-              label: Text(l.sickDayStart),
-            )
-          : null,
       body: episodes.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
@@ -58,11 +51,18 @@ class EpisodeListScreen extends ConsumerWidget {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
-                child: Text(
-                  l.sickDaysEmpty,
-                  key: const ValueKey('sick-days-empty'),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l.sickDaysEmpty,
+                      key: const ValueKey('sick-days-empty'),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    const SizedBox(height: UsraSpacing.s4),
+                    start,
+                  ],
                 ),
               ),
             );
@@ -73,8 +73,13 @@ class EpisodeListScreen extends ConsumerWidget {
               if (e != ongoing) e,
           ];
           return ListView(
-            padding: EdgeInsets.fromLTRB(16, 8, 16, ongoing == null ? 96 : 24),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             children: [
+              // Nothing going on: starting one is the page's action, first.
+              if (ongoing == null) ...[
+                Center(child: start),
+                const SizedBox(height: UsraSpacing.s3),
+              ],
               if (ongoing != null) ...[
                 _OngoingCard(
                   episode: ongoing,
@@ -157,20 +162,36 @@ class EpisodeListScreen extends ConsumerWidget {
   }
 }
 
-/// Starting another sick day while one is going on: a quiet button at the
-/// end of the page, so the reading button stays the main action.
+/// Starting a sick day: a quiet button, as in the polished list. With one
+/// going on it sits at the end, so the reading button stays the main
+/// action; with none, at the top (or under the empty page's words).
 class _StartButton extends StatelessWidget {
-  const _StartButton({required this.onPressed});
+  const _StartButton({required this.onPressed, this.outlined = false});
 
   final VoidCallback onPressed;
 
+  /// Outlined when it's the page's only action, a text button otherwise.
+  final bool outlined;
+
   @override
-  Widget build(BuildContext context) => TextButton.icon(
-    key: const ValueKey('sick-day-start'),
-    onPressed: onPressed,
-    icon: const Icon(Icons.add),
-    label: Text(AppLocalizations.of(context).sickDayStart),
-  );
+  Widget build(BuildContext context) {
+    final label = Text(AppLocalizations.of(context).sickDayStart);
+    const icon = Icon(Icons.add);
+    const key = ValueKey('sick-day-start');
+    return outlined
+        ? OutlinedButton.icon(
+            key: key,
+            onPressed: onPressed,
+            icon: icon,
+            label: label,
+          )
+        : TextButton.icon(
+            key: key,
+            onPressed: onPressed,
+            icon: icon,
+            label: label,
+          );
+  }
 }
 
 /// The sick day going on now: since when, and the latest reading or that

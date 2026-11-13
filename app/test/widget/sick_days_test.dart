@@ -8,6 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
+import 'package:usra/core/design/list_row.dart';
+import 'package:usra/core/design/pill_chip.dart';
+import 'package:usra/core/design/tokens.dart';
 import 'package:usra/core/files/photo_store.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
@@ -440,5 +443,134 @@ void main() {
 
     await tapKey(tester, 'sick-days-add-reading');
     expect(find.byKey(const ValueKey('reading-value')), findsOneWidget);
+  });
+
+  group('polish (visual QA)', () {
+    for (final dark in [false, true]) {
+      testWidgets('a sick day: one filled button, the ambulance call red, '
+          'outlined and large, the medicine button in ink '
+          '(${dark ? 'dark' : 'light'}, large text)', (tester) async {
+        tallScreen(tester);
+        tester.platformDispatcher.textScaleFactorTestValue = 2;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        if (dark) {
+          tester.platformDispatcher.platformBrightnessTestValue =
+              Brightness.dark;
+          addTearDown(
+            tester.platformDispatcher.clearPlatformBrightnessTestValue,
+          );
+        }
+        final (kid, episode) = (await tester.runAsync(() async {
+          final id = await db.addProfile(
+            'Gamila',
+            birthDate: DateTime(2024, 11),
+          );
+          return (id, await db.saveEpisode(profileId: id, startedAt: now));
+        }))!;
+        await tester.pumpWidget(app());
+        await settle(tester);
+        go(tester, '/family/$kid/sick-days/$episode');
+        await settle(tester);
+        expect(tester.takeException(), isNull);
+
+        final colors = Theme.of(
+          tester.element(find.byKey(const ValueKey('sick-day-ambulance'))),
+        ).extension<UsraColors>()!;
+        expect(find.byType(FilledButton), findsOneWidget);
+        final call = tester.widget<OutlinedButton>(
+          find.byKey(const ValueKey('sick-day-ambulance')),
+        );
+        expect(call.style!.foregroundColor!.resolve({}), colors.urgent);
+        expect(call.style!.side!.resolve({})!.color, colors.urgent);
+        expect(
+          tester
+              .getSize(find.byKey(const ValueKey('sick-day-ambulance')))
+              .height,
+          greaterThanOrEqualTo(56),
+        );
+        final given = tester.widget<OutlinedButton>(
+          find.byKey(const ValueKey('sick-day-add-medicine')),
+        );
+        expect(given.style!.foregroundColor!.resolve({}), colors.ink);
+
+        // The thermometer site is a pill like everywhere else, and
+        // tapping the chosen one again clears it.
+        await tapKey(tester, 'sick-day-add-reading');
+        expect(find.byType(ChoiceChip), findsNothing);
+        await tapKey(tester, 'reading-site-armpit');
+        expect(
+          tester
+              .widget<UsraPill>(
+                find.byKey(const ValueKey('reading-site-armpit')),
+              )
+              .selected,
+          isTrue,
+        );
+        await tapKey(tester, 'reading-site-armpit');
+        expect(
+          tester
+              .widget<UsraPill>(
+                find.byKey(const ValueKey('reading-site-armpit')),
+              )
+              .selected,
+          isFalse,
+        );
+      });
+    }
+
+    testWidgets('an empty list has no floating button: an outlined start '
+        'under the words, with the same 20 side margins as elsewhere', (
+      tester,
+    ) async {
+      tallScreen(tester);
+      final kid = (await tester.runAsync(
+        () => db.addProfile('Gamila', birthDate: DateTime(2024, 11)),
+      ))!;
+      await tester.pumpWidget(app());
+      await settle(tester);
+      go(tester, '/family/$kid/sick-days');
+      await settle(tester);
+      expect(find.byType(FloatingActionButton), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(OutlinedButton),
+          matching: find.text('ابدأ يوم تعب'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byType(FilledButton), findsNothing);
+    });
+
+    testWidgets('past sick days only: start is outlined at the top, the list '
+        'sits 20 from the edges', (tester) async {
+      tallScreen(tester);
+      final kid = (await tester.runAsync(() async {
+        final id = await db.addProfile('Gamila', birthDate: DateTime(2024, 11));
+        final e = await db.saveEpisode(
+          profileId: id,
+          startedAt: now.subtract(const Duration(days: 9)),
+        );
+        await db.setEpisodeEnded(e, now.subtract(const Duration(days: 7)));
+        return id;
+      }))!;
+      await tester.pumpWidget(app());
+      await settle(tester);
+      go(tester, '/family/$kid/sick-days');
+      await settle(tester);
+      expect(find.byType(FloatingActionButton), findsNothing);
+      final start = find.byKey(const ValueKey('sick-day-start'));
+      expect(tester.widget(start), isA<OutlinedButton>());
+      final card = find.ancestor(
+        of: find.byType(UsraListRow).first,
+        matching: find.byType(Card),
+      );
+      final width = tester.getSize(find.byType(Scaffold).first).width;
+      expect(tester.getTopLeft(card.first).dx, 20);
+      expect(tester.getTopRight(card.first).dx, width - 20);
+      expect(
+        tester.getTopLeft(start).dy,
+        lessThan(tester.getTopLeft(card.first).dy),
+      );
+    });
   });
 }

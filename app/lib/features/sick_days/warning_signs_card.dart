@@ -130,12 +130,18 @@ class WarningSignsCard extends StatelessWidget {
             for (final s in signs)
               if (s.level == WarningLevel.emergency) bullet(s),
             const SizedBox(height: 8),
-            FilledButton.icon(
+            // Outlined, as on the sick days list, so the reading button stays
+            // the page's one filled action. Still red, full width, 56 tall,
+            // with a solid red edge, the phone icon and the number.
+            OutlinedButton.icon(
               key: const ValueKey('sick-day-ambulance'),
-              style: FilledButton.styleFrom(
-                backgroundColor: urgent,
-                foregroundColor: context.usra.onUrgent,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: urgent,
+                side: BorderSide(color: urgent, width: 1.5),
                 minimumSize: const Size.fromHeight(56),
+                textStyle: text.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               onPressed: () => openContact(
                 context,
