@@ -2,11 +2,49 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../l10n/app_localizations.dart';
 import 'call_buttons.dart';
 import 'contact_links.dart';
 import 'doctors_providers.dart';
+
+/// A doctor in the list, with a short "اتصل" when there's a number.
+class _DoctorRow extends StatelessWidget {
+  const _DoctorRow({required this.doctor, required this.call});
+
+  final Doctor doctor;
+  final Uri? call;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final d = doctor;
+    final number = call;
+    final details = [?d.specialty, ?d.clinic].join(' · ');
+    return UsraListRow(
+      key: ValueKey('doctor-${d.id}'),
+      leading: const IconBox(icon: Icons.medical_services_outlined),
+      title: d.name,
+      emphasized: true,
+      subtitleText: details.isEmpty ? null : details,
+      onTap: () => context.go('/doctors/${d.id}'),
+      trailing: number == null
+          ? null
+          : TextButton.icon(
+              key: ValueKey('doctor-call-${d.id}'),
+              onPressed: () => openContact(context, number),
+              icon: const Icon(Icons.call, size: 20),
+              label: Text(
+                l.doctorCall,
+                semanticsLabel: '${l.doctorCall} ${d.name}',
+              ),
+            ),
+    );
+  }
+}
 
 class DoctorsScreen extends ConsumerWidget {
   const DoctorsScreen({super.key});
@@ -36,49 +74,31 @@ class DoctorsScreen extends ConsumerWidget {
                 key: const ValueKey('doctors-empty'),
                 padding: const EdgeInsets.all(32),
                 children: [
-                  Icon(
-                    Icons.medical_services_outlined,
-                    size: 48,
-                    color: context.usra.primary,
+                  ExcludeSemantics(
+                    child: Icon(
+                      Icons.medical_services_outlined,
+                      size: 48,
+                      color: context.usra.inkMuted,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     l.doctorsEmpty,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    style: UsraType.body.copyWith(color: context.usra.inkMuted),
                   ),
                 ],
               )
-            : ListView.separated(
+            : ListView(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-                itemCount: list.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 10),
-                itemBuilder: (_, i) {
-                  final d = list[i];
-                  final call = callUri(d.phone);
-                  return Card(
-                    child: ListTile(
-                      onTap: () => context.go('/doctors/${d.id}'),
-                      leading: CircleAvatar(
-                        backgroundColor: context.usra.primarySoft,
-                        child: Icon(
-                          Icons.medical_services_outlined,
-                          color: context.usra.primary,
-                        ),
-                      ),
-                      title: Text(d.name),
-                      subtitle: Text([?d.specialty, ?d.clinic].join(' · ')),
-                      trailing: call == null
-                          ? const Icon(Icons.chevron_right)
-                          : IconButton.filledTonal(
-                              tooltip: l.doctorCall,
-                              iconSize: 28,
-                              icon: const Icon(Icons.call),
-                              onPressed: () => openContact(context, call),
-                            ),
-                    ),
-                  );
-                },
+                children: [
+                  UsraListCard(
+                    children: [
+                      for (final d in list)
+                        _DoctorRow(doctor: d, call: callUri(d.phone)),
+                    ],
+                  ),
+                ],
               ),
       ),
     );

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/design/tokens.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -311,7 +312,7 @@ class _PhotoSlot extends ConsumerWidget {
         const SizedBox(height: 8),
         if (image != null) ...[
           ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(UsraRadius.card),
             child: PhotoImage(
               key: ValueKey('insurance-$slot-preview'),
               image: image,

@@ -725,9 +725,9 @@ void main() {
   ) async {
     h.tall(tester);
     await family(tester);
-    // BUG: the expiry chip reads the phone's clock (DateTime.now), not the
-    // app's, so the dates here are relative to the real day.
-    final real = DateUtils.dateOnly(DateTime.now());
+    // The expiry line reads the app's clock, so the dates here are relative
+    // to the test's day.
+    final real = DateUtils.dateOnly(now);
     await h.open(tester, '/family/$gamilaId');
     taps = 0;
     await tap(tester, 'member-insurance');

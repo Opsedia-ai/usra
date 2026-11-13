@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../core/design/tokens.dart';
 import '../../core/security/app_lock.dart';
 import '../../l10n/app_localizations.dart';
 import 'contact_links.dart';
@@ -49,10 +48,7 @@ class CallButtons extends StatelessWidget {
           Expanded(
             child: OutlinedButton.icon(
               key: const ValueKey('doctor-whatsapp'),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 56),
-                foregroundColor: Severity.good.foregroundOf(context),
-              ),
+              style: OutlinedButton.styleFrom(minimumSize: const Size(0, 56)),
               onPressed: () => openContact(context, whatsapp),
               icon: const Icon(Icons.chat_outlined),
               label: Text(l.doctorWhatsapp),
