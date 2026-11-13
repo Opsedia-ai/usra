@@ -635,3 +635,15 @@ Questions:
 ## One label for adding a person, 13 November 2026 (end-to-end test #20)
 
 Home's button said "فرد جديد" and the family page's "ضيف شخص". Home now uses `familyAdd` ("ضيف شخص") too; `homeNewPerson` is no longer shown. No string changed. The new-person form's title stays "فرد جديد" (`familyNew`). Question: should the title also say "ضيف شخص", or is a noun right for a title?
+
+## Notifications refused, 13 November 2026 (end-to-end test #2)
+
+After a "no" to the phone's notification prompt, iOS never asks again and Android stops after the second "no", so "اسمح" did nothing. Now the first tap shows the prompt; once it has been answered "no", the Medicines card and the Home first-steps card say the notifications are off in the phone's settings, and the button opens the app's page there.
+
+| Key | | Arabic | English |
+|---|---|---|---|
+| `reminderBlockedBody` | New | الإشعارات مقفولة من إعدادات الموبايل. افتح الإعدادات وشغّلها علشان أسرة تفكرك بمواعيد الأدوية. | Notifications are off in your phone's Settings. Open Settings and turn them on so Usra can remind you at medicine times. |
+| `reminderOpenSettings` | New | افتح الإعدادات | Open Settings |
+| `homeSetupRemindersBlocked` | New | مقفولة من إعدادات الموبايل. دوس هنا علشان تفتحها. | Off in your phone's Settings. Tap to open them. |
+
+Question: "دوس هنا" and "افتح" address the reader as a man, like the existing "اسمح". Is that acceptable until the app knows who is reading?

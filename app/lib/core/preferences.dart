@@ -156,6 +156,10 @@ abstract final class PrefKeys {
   /// Home's first-steps cards were hidden. See `home_setup_cards.dart`.
   static const homeSetupHidden = 'homeSetupHidden';
 
+  /// The phone's notification prompt was shown once. After that a "no" can
+  /// only be undone in the phone's Settings. See `reminder_permission.dart`.
+  static const notificationsAsked = 'notifications_asked';
+
   /// This install has checked for account secrets left by an earlier one.
   static const accountInstalled = 'usra.account.installed.v1';
 
@@ -182,6 +186,7 @@ abstract final class PrefKeys {
     consentVersion,
     consentAt,
     homeSetupHidden,
+    notificationsAsked,
   };
 }
 

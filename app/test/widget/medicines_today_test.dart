@@ -41,17 +41,24 @@ void main() {
     dir.deleteSync(recursive: true);
   });
 
-  Widget app({bool simple = false, bool discreet = false}) => ProviderScope(
+  late MemoryKeyValueStore prefs;
+
+  Widget app({
+    bool simple = false,
+    bool discreet = false,
+    bool notificationsAsked = false,
+  }) => ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
       keyValueStoreProvider.overrideWithValue(
-        MemoryKeyValueStore({
+        prefs = MemoryKeyValueStore({
           if (simple) ...{
             PrefKeys.simpleMode: true,
             PrefKeys.elderTutorialSeen: true,
           },
           PrefKeys.tutorialSeen: true,
           PrefKeys.discreetNotifications: discreet,
+          if (notificationsAsked) PrefKeys.notificationsAsked: true,
         }),
       ),
       medicinePhotoStoreProvider.overrideWithValue(
@@ -110,8 +117,14 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
   }
 
-  Future<void> open(WidgetTester tester, {bool discreet = false}) async {
-    await tester.pumpWidget(app(discreet: discreet));
+  Future<void> open(
+    WidgetTester tester, {
+    bool discreet = false,
+    bool notificationsAsked = false,
+  }) async {
+    await tester.pumpWidget(
+      app(discreet: discreet, notificationsAsked: notificationsAsked),
+    );
     await tester.pump();
     await settleDb(tester);
     // The app opens on Home, which isn't what these tests are measuring: at
@@ -208,6 +221,43 @@ void main() {
     await tapKey(tester, 'medicines-filter-all');
     expect(find.text('شراب الحديد'), findsOneWidget);
     expect(find.text('كونكور ٥ مجم'), findsOneWidget);
+  });
+
+  testWidgets('notifications off: Allow asks the first time, then the card '
+      'opens the phone\'s Settings (e2e #2)', (tester) async {
+    phone(tester);
+    scheduler.granted = const ReminderAccess(notifications: false);
+    await seed(tester);
+    await open(tester);
+    expect(key('reminders-off'), findsOneWidget);
+
+    // Answered "no": nothing changes on the phone.
+    await tester.tap(find.text('اسمح'));
+    await settleDb(tester);
+    expect(scheduler.requests, 1);
+    expect(prefs.getBool(PrefKeys.notificationsAsked), isTrue);
+    expect(key('reminders-off'), findsNothing);
+    expect(key('reminders-blocked'), findsOneWidget);
+    expect(find.textContaining('مقفولة من إعدادات الموبايل'), findsOneWidget);
+
+    await tester.tap(find.text('افتح الإعدادات'));
+    await settleDb(tester);
+    expect(scheduler.requests, 1);
+    expect(scheduler.notificationSettingsOpened, 1);
+  });
+
+  testWidgets('a phone that was already asked shows Open Settings', (
+    tester,
+  ) async {
+    phone(tester);
+    scheduler.granted = const ReminderAccess(notifications: false);
+    await seed(tester);
+    await open(tester, notificationsAsked: true);
+    expect(key('reminders-blocked'), findsOneWidget);
+    await tester.tap(find.text('افتح الإعدادات'));
+    await settleDb(tester);
+    expect(scheduler.requests, 0);
+    expect(scheduler.notificationSettingsOpened, 1);
   });
 
   testWidgets('a person with nothing today says so', (tester) async {

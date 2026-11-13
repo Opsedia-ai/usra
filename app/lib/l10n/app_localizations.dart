@@ -2864,6 +2864,18 @@ abstract class AppLocalizations {
   /// **'Allow'**
   String get reminderAllow;
 
+  /// Medicines tab card after the phone's notification prompt was answered no: the phone won't ask again.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are off in your phone\'s Settings. Open Settings and turn them on so Usra can remind you at medicine times.'**
+  String get reminderBlockedBody;
+
+  /// Button that opens this app's page in the phone's Settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get reminderOpenSettings;
+
   /// No description provided for @reminderBatteryTitle.
   ///
   /// In en, this message translates to:
@@ -8154,6 +8166,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Permission is only asked for then'**
   String get homeSetupRemindersHint;
+
+  /// Home first-steps card hint once notifications were refused.
+  ///
+  /// In en, this message translates to:
+  /// **'Off in your phone\'s Settings. Tap to open them.'**
+  String get homeSetupRemindersBlocked;
 
   /// No description provided for @homeSetupEmergency.
   ///

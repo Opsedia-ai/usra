@@ -24,6 +24,7 @@ import '../family/person_status.dart' show ageLabel;
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import '../follow_ups/follow_ups_providers.dart' show todayProvider;
 import '../medicines/medicines_providers.dart' show reminderSchedulerProvider;
+import '../medicines/reminder_permission.dart';
 import '../reports/reports_screens.dart' show shareVaccinationRecord;
 import '../scan/scan_widgets.dart';
 import 'child_vaccines.dart';
@@ -74,7 +75,11 @@ Future<void> askForReminderAccess(WidgetRef ref) async {
   try {
     final scheduler = ref.read(reminderSchedulerProvider);
     if ((await scheduler.access()).notifications) return;
-    await scheduler.requestAccess(exactAlarms: false);
+    await requestReminderAccess(
+      scheduler,
+      ref.read(keyValueStoreProvider),
+      exactAlarms: false,
+    );
   } catch (_) {
     // No notifications on this phone; the vaccine page still works.
   }

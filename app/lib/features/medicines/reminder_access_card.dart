@@ -5,8 +5,10 @@ import '../../core/design/list_row.dart' show IconBox;
 import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
+import '../../core/preferences.dart';
 import '../../l10n/app_localizations.dart';
 import 'medicines_providers.dart';
+import 'reminder_permission.dart';
 
 /// Asks for what reminders need when something is missing: notifications,
 /// exact alarms (Android 12+), and battery optimisation switched off on
@@ -20,22 +22,29 @@ class ReminderAccessCard extends ConsumerWidget {
     final access = ref.watch(reminderAccessProvider).value;
     if (access == null) return const SizedBox.shrink();
     final scheduler = ref.read(reminderSchedulerProvider);
+    final prefs = ref.read(keyValueStoreProvider);
 
     Future<void> allow() async {
-      await scheduler.requestAccess();
+      await allowReminders(scheduler, prefs);
       ref.invalidate(reminderAccessProvider);
     }
 
     if (!access.complete) {
+      // After a "no" the phone won't ask again: the button opens Settings.
+      final blocked = notificationsBlocked(access, prefs);
       return _Banner(
-        key: const ValueKey('reminders-off'),
+        key: ValueKey(blocked ? 'reminders-blocked' : 'reminders-off'),
         icon: Icons.notifications_off_outlined,
         // Allowed, but without exact alarms: on, possibly late, not off.
         title: access.notifications
             ? l.reminderExactOffTitle
             : l.reminderOffTitle,
-        body: access.notifications ? l.reminderExactOff : l.reminderOffBody,
-        action: l.reminderAllow,
+        body: access.notifications
+            ? l.reminderExactOff
+            : blocked
+            ? l.reminderBlockedBody
+            : l.reminderOffBody,
+        action: blocked ? l.reminderOpenSettings : l.reminderAllow,
         onAction: allow,
       );
     }

@@ -15,6 +15,7 @@ import '../../core/files/photo_store.dart';
 import '../../core/log.dart';
 import '../../core/ocr/medicine_name_extractor.dart';
 import '../../core/ocr/ocr_service.dart';
+import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
@@ -25,6 +26,7 @@ import '../scan/scan_widgets.dart';
 import 'dose_schedule.dart';
 import 'medicine_text.dart';
 import 'medicines_providers.dart';
+import 'reminder_permission.dart';
 import '../../core/util/time_picker.dart';
 import 'prescription_parser.dart';
 import '../../core/util/date_picker.dart';
@@ -619,7 +621,11 @@ class _PrescriptionFormScreenState
     try {
       final scheduler = ref.read(reminderSchedulerProvider);
       if (!(await scheduler.access()).notifications) {
-        await scheduler.requestAccess(exactAlarms: false);
+        await requestReminderAccess(
+          scheduler,
+          ref.read(keyValueStoreProvider),
+          exactAlarms: false,
+        );
       }
       ref.invalidate(reminderAccessProvider);
     } catch (_) {

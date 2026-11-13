@@ -15,6 +15,7 @@ import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/ocr/medicine_name_extractor.dart';
+import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
@@ -27,6 +28,7 @@ import 'dose_schedule.dart';
 import 'medicine_text.dart';
 import 'min_hours.dart';
 import 'medicines_providers.dart';
+import 'reminder_permission.dart';
 import 'prescription_form_screen.dart' show EveryHoursDialog, presetTimes;
 import '../../core/util/time_picker.dart';
 import '../../core/util/date_picker.dart';
@@ -486,7 +488,11 @@ class _MedicineFormScreenState extends ConsumerState<MedicineFormScreen> {
     try {
       final scheduler = ref.read(reminderSchedulerProvider);
       if (!(await scheduler.access()).notifications) {
-        await scheduler.requestAccess(exactAlarms: false);
+        await requestReminderAccess(
+          scheduler,
+          ref.read(keyValueStoreProvider),
+          exactAlarms: false,
+        );
       }
       ref.invalidate(reminderAccessProvider);
     } catch (_) {

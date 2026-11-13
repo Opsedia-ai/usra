@@ -1766,6 +1766,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reminderAllow => 'اسمح';
 
   @override
+  String get reminderBlockedBody =>
+      'الإشعارات مقفولة من إعدادات الموبايل. افتح الإعدادات وشغّلها علشان أسرة تفكرك بمواعيد الأدوية.';
+
+  @override
+  String get reminderOpenSettings => 'افتح الإعدادات';
+
+  @override
   String get reminderBatteryTitle => 'خلّي التنبيهات مضمونة';
 
   @override
@@ -5720,6 +5727,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeSetupRemindersHint => 'الإذن بيتطلب وقتها بس';
+
+  @override
+  String get homeSetupRemindersBlocked =>
+      'مقفولة من إعدادات الموبايل. دوس هنا علشان تفتحها.';
 
   @override
   String get homeSetupEmergency => 'كارت الطوارئ';

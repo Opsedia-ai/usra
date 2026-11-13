@@ -1759,6 +1759,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderAllow => 'Allow';
 
   @override
+  String get reminderBlockedBody =>
+      'Notifications are off in your phone\'s Settings. Open Settings and turn them on so Usra can remind you at medicine times.';
+
+  @override
+  String get reminderOpenSettings => 'Open Settings';
+
+  @override
   String get reminderBatteryTitle => 'Make reminders reliable';
 
   @override
@@ -5471,6 +5478,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeSetupRemindersHint => 'Permission is only asked for then';
+
+  @override
+  String get homeSetupRemindersBlocked =>
+      'Off in your phone\'s Settings. Tap to open them.';
 
   @override
   String get homeSetupEmergency => 'Emergency card';

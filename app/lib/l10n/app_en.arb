@@ -983,6 +983,14 @@
   "reminderOffBody": "Allow notifications so Usra can remind you at medicine times.",
   "reminderExactOff": "Allow \"Alarms & reminders\" so doses ring on time, not a few minutes late.",
   "reminderAllow": "Allow",
+  "reminderBlockedBody": "Notifications are off in your phone's Settings. Open Settings and turn them on so Usra can remind you at medicine times.",
+  "@reminderBlockedBody": {
+    "description": "Medicines tab card after the phone's notification prompt was answered no: the phone won't ask again."
+  },
+  "reminderOpenSettings": "Open Settings",
+  "@reminderOpenSettings": {
+    "description": "Button that opens this app's page in the phone's Settings."
+  },
   "reminderBatteryTitle": "Make reminders reliable",
   "reminderBatteryBody": "Some phones stop apps in the background to save battery. Set Usra's battery use to \"Unrestricted\" so reminders always ring.",
   "reminderBatteryOpen": "Battery settings",
@@ -3147,6 +3155,10 @@
   "homeSetupFamilyHint": "Name, sex, date of birth and relationship",
   "homeSetupReminders": "Medicine and vaccine reminders",
   "homeSetupRemindersHint": "Permission is only asked for then",
+  "homeSetupRemindersBlocked": "Off in your phone's Settings. Tap to open them.",
+  "@homeSetupRemindersBlocked": {
+    "description": "Home first-steps card hint once notifications were refused."
+  },
   "homeSetupEmergency": "Emergency card",
   "homeSetupEmergencyHint": "Blood type, allergies and an emergency number",
   "homeSetupLockNote": "After the first backup we'll suggest locking Usra with a PIN.",
