@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/database/app_database.dart';
 import '../../core/design/buttons.dart';
+import '../../core/design/pill_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/providers.dart';
@@ -211,8 +212,11 @@ class _Body extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton(
                   key: const ValueKey('sick-day-add-medicine'),
+                  // Ink, not the theme's primary: in dark mode the primary
+                  // text read as a disabled button.
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(56),
+                    foregroundColor: context.usra.ink,
                   ),
                   onPressed: () => showGivenSheet(context, episode: episode),
                   child: Text(l.sickDayGivenShort),
@@ -557,14 +561,16 @@ class _Details extends ConsumerWidget {
             children: [
               Wrap(
                 spacing: 8,
-                runSpacing: 4,
+                runSpacing: 8,
                 children: [
                   for (final s in Symptom.all)
-                    FilterChip(
+                    UsraPill(
                       key: ValueKey('symptom-$s'),
-                      label: Text(l.symptomName(person.sex ?? 'other', s)),
+                      label: l.symptomName(person.sex ?? 'other', s),
                       selected: ticked.contains(s),
-                      onSelected: (on) async {
+                      icon: ticked.contains(s) ? Icons.check : null,
+                      onTap: () async {
+                        final on = !ticked.contains(s);
                         // Taking one off corrects what's there.
                         if (on && !await ref.read(saveGateProvider).allow()) {
                           return;

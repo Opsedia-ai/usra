@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/design/pill_chip.dart';
+import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
@@ -247,6 +249,11 @@ class _ReadingSheetState extends ConsumerState<_ReadingSheet> {
                 const SizedBox(width: 12),
                 SegmentedButton<String>(
                   key: const ValueKey('reading-unit'),
+                  // Ink on the selected unit: primary on its soft fill was
+                  // too faint in dark mode.
+                  style: SegmentedButton.styleFrom(
+                    selectedForegroundColor: context.usra.ink,
+                  ),
                   segments: [
                     ButtonSegment(
                       value: TemperatureUnit.celsius,
@@ -264,15 +271,18 @@ class _ReadingSheetState extends ConsumerState<_ReadingSheet> {
             ),
             const SizedBox(height: 16),
             Text(l.readingSite, style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: 8),
             Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: [
                 for (final s in TemperatureSite.all)
-                  ChoiceChip(
+                  UsraPill(
                     key: ValueKey('reading-site-$s'),
-                    label: Text(l.readingSiteName(s)),
+                    label: l.readingSiteName(s),
                     selected: _site == s,
-                    onSelected: (on) => setState(() => _site = on ? s : null),
+                    // Tapping the chosen one again clears it, as before.
+                    onTap: () => setState(() => _site = _site == s ? null : s),
                   ),
               ],
             ),
