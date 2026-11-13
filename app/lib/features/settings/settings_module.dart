@@ -82,19 +82,19 @@ class SettingsScreen extends ConsumerWidget {
                           people.length,
                           localizedDigits(context, people.length),
                         ),
-                  onTap: () => context.go('/family'),
+                  onTap: () => context.push('/family'),
                 ),
                 UsraListRow(
                   key: const ValueKey('more-doctors'),
                   icon: Icons.medical_services_outlined,
                   title: l.navDoctors,
-                  onTap: () => context.go('/doctors'),
+                  onTap: () => context.push('/doctors'),
                 ),
                 UsraListRow(
                   key: const ValueKey('more-money'),
                   icon: Icons.account_balance_wallet_outlined,
                   title: l.memberSpending,
-                  onTap: () => context.go('/money'),
+                  onTap: () => context.push('/money'),
                 ),
               ],
             ),
@@ -111,7 +111,7 @@ class SettingsScreen extends ConsumerWidget {
                 subtitleText: last == null
                     ? null
                     : l.backupLast(backupDay(context, last)),
-                onTap: () => context.go(backupPath),
+                onTap: () => context.push(backupPath),
               ),
               ListenableBuilder(
                 listenable: ref.watch(appLockProvider),
@@ -125,7 +125,7 @@ class SettingsScreen extends ConsumerWidget {
                   // The long form says what being off means.
                   semanticLabel:
                       '${l.settingsAppLock}، ${ref.read(appLockProvider).enabled ? l.settingsAppLockOn : l.settingsAppLockOff}',
-                  onTap: () => context.go(appLockSettingsPath),
+                  onTap: () => context.push(appLockSettingsPath),
                 ),
               ),
               _PreferenceSwitch(
@@ -240,7 +240,7 @@ class SettingsScreen extends ConsumerWidget {
                 icon: Icons.delete_forever_outlined,
                 title: l.settingsDeleteAll,
                 subtitleText: l.settingsDeleteAllHint,
-                onTap: () => context.go(deleteDataPath),
+                onTap: () => context.push(deleteDataPath),
               ),
             ],
           ),

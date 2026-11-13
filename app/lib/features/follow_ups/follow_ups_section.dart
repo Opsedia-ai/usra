@@ -129,9 +129,16 @@ class FollowUpsScreen extends ConsumerWidget {
 
 /// Everything coming up for one person, on their page.
 class MemberFollowUps extends ConsumerWidget {
-  const MemberFollowUps({super.key, required this.profileId});
+  const MemberFollowUps({
+    super.key,
+    required this.profileId,
+    this.heading = true,
+  });
 
   final String profileId;
+
+  /// False where the page's own title already says "Follow-ups".
+  final bool heading;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -141,6 +148,7 @@ class MemberFollowUps extends ConsumerWidget {
       key: const ValueKey('member-follow-ups'),
       items: items,
       showNames: false,
+      heading: heading,
     );
   }
 }
@@ -151,10 +159,12 @@ class _Section extends StatelessWidget {
     required this.items,
     required this.showNames,
     this.allLink = false,
+    this.heading = true,
   });
 
   final List<PersonFollowUp> items;
   final bool showNames;
+  final bool heading;
 
   /// There are more than shown here: a way to the whole list.
   final bool allLink;
@@ -166,11 +176,13 @@ class _Section extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Semantics(
-          header: true,
-          child: Text(l.followUpsTitle, style: text.titleMedium),
-        ),
-        const SizedBox(height: UsraSpacing.s2),
+        if (heading) ...[
+          Semantics(
+            header: true,
+            child: Text(l.followUpsTitle, style: text.titleMedium),
+          ),
+          const SizedBox(height: UsraSpacing.s2),
+        ],
         if (items.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: UsraSpacing.s2),
@@ -275,7 +287,14 @@ class FollowUpTile extends ConsumerWidget {
             StatusDotText(key: const ValueKey('follow-up-when'), label: when),
           const SizedBox(height: UsraSpacing.s1),
           Text(f.reason(context), style: muted.copyWith(color: c.ink)),
-          if (f.source != null) Text(l.followUpSource(f.source!), style: muted),
+          // The source name is isolated (FSI ... PDI), so a Latin one such
+          // as "USPSTF 2021: ..." keeps its own order inside Arabic text.
+          if (f.source != null)
+            Text(
+              l.followUpSource('\u2068${f.source!}\u2069'),
+              key: const ValueKey('follow-up-source'),
+              style: muted,
+            ),
           if (stacked && add != null)
             Align(alignment: AlignmentDirectional.centerStart, child: add),
         ],
