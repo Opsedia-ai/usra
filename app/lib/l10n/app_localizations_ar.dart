@@ -5645,4 +5645,67 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settingsBlockScreenshotsHintShort =>
       'مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق';
+
+  @override
+  String vaccineMarkPastAsk(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'female': 'خدت كل اللي فات؟ علّمها مرة واحدة',
+      'male': 'خد كل اللي فات؟ علّمها مرة واحدة',
+      'other': 'كل اللي فات اتاخد؟ علّمه مرة واحدة',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineGivableNowHeading(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'ممكن تتاخد دلوقتي · $countString';
+  }
+
+  @override
+  String vaccineWasDueAt(String age) {
+    return 'كان ميعادها $age';
+  }
+
+  @override
+  String get vaccineLogShort => 'تسجيل';
+
+  @override
+  String get vaccineDoctorDecides => 'الدكتور يحدد إمتى تتاخد.';
+
+  @override
+  String vaccineAndMore(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'و$countString كمان',
+      two: 'واتنين كمان',
+      one: 'وواحدة كمان',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineThenInOrder(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'بعدها $countString جرعة بالترتيب',
+      few: 'بعدها $countString جرعات بالترتيب',
+      two: 'بعدها جرعتين بالترتيب',
+      one: 'بعدها جرعة واحدة',
+    );
+    return '$_temp0';
+  }
 }

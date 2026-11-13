@@ -352,21 +352,19 @@ void main() {
     // Overdue (by hand, MoHP schedule, nothing given): Hep B 0, BCG, OPV 0
     // (birth), OPV 1, IPV 1, Penta 1 (2 months) and MMR 1 (12 months) = 7.
     // The later doses wait on these, so they are catch-up, not overdue.
-    expect(screenText(tester), contains('٧ جرعات متأخرة'));
-    // All 18 required doses are missing; 7 of them can be given now (F).
-    expect(
-      screenText(tester),
-      contains('١٨ جرعة ناقصة · ممكن تتاخد دلوقتي: ٧'),
-    );
-    // Only the first few are cards; the rest open from the count.
+    // 7 of the 18 missing doses can be given now (F): the list's heading.
+    expect(screenText(tester), contains('ممكن تتاخد دلوقتي · ٧'));
+    // Only the first few are rows; the rest open from the line under them,
+    // which also says how many follow in order.
     expect(key('vaccine-overdue-card-mmr-1'), findsNothing);
+    expect(screenText(tester), contains('و٣ كمان · بعدها ١١ جرعة بالترتيب'));
     await tap(tester, 'vaccine-overdue-all');
     final text = screenText(tester);
-    // MMR 1 at 12 months: 12 Nov 2025.
+    // MMR 1 at 12 months, BCG at birth: when each was due, by age.
     expect(key('vaccine-overdue-card-mmr-1'), findsOneWidget);
-    expect(text, contains('كان ميعادها ١٢ نوفمبر ٢٠٢٥'));
-    // BCG at birth: 12 Nov 2024.
-    expect(text, contains('كان ميعادها ١٢ نوفمبر ٢٠٢٤'));
+    expect(text, contains('كان ميعادها عند ١٢ شهر'));
+    expect(text, contains('كان ميعادها عند الولادة'));
+    expect(text, contains('الدكتور يحدد إمتى تتاخد'));
     // OPV 2 as catch-up: 28 days after OPV 1 given today = 10 Dec 2026.
     expect(text, contains('١٠ ديسمبر ٢٠٢٦'));
     await tap(tester, 'vaccine-log-mmr-1');

@@ -1484,5 +1484,12 @@
   "settingsStateOn": "شغّال",
   "settingsStateOff": "مش شغّال",
   "settingsDiscreetHintShort": "التنبيه يقول \"ميعاد الدوا\" بس",
-  "settingsBlockScreenshotsHintShort": "مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق"
+  "settingsBlockScreenshotsHintShort": "مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق",
+  "vaccineMarkPastAsk": "{sex, select, female{خدت كل اللي فات؟ علّمها مرة واحدة} male{خد كل اللي فات؟ علّمها مرة واحدة} other{كل اللي فات اتاخد؟ علّمه مرة واحدة}}",
+  "vaccineGivableNowHeading": "ممكن تتاخد دلوقتي · {count}",
+  "vaccineWasDueAt": "كان ميعادها {age}",
+  "vaccineLogShort": "تسجيل",
+  "vaccineDoctorDecides": "الدكتور يحدد إمتى تتاخد.",
+  "vaccineAndMore": "{count, plural, =1{وواحدة كمان} =2{واتنين كمان} other{و{count} كمان}}",
+  "vaccineThenInOrder": "{count, plural, =1{بعدها جرعة واحدة} =2{بعدها جرعتين بالترتيب} few{بعدها {count} جرعات بالترتيب} other{بعدها {count} جرعة بالترتيب}}"
 }
