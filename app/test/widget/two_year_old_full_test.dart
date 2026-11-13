@@ -475,18 +475,13 @@ void main() {
 
     // Latest reading.
     expect(tester.widget<Text>(key('sick-day-latest')).data, contains('٣٧٫٨'));
-    // Fever = 38.0 or more. First fever reading 08:00, last 12:00, and the
-    // latest (18:00) is no longer a fever: 4 hours logged.
+    // Fever = 38.0 or more. The highest reading (39.1 at 12:00) is on the
+    // card, and the fever readings run from 08:00 to 12:00 (bug 15: before,
+    // "سخونية متسجلة: ٤ ساعات" read like how long the fever lasted).
     expect(
       tester.widget<Text>(key('sick-day-fever-duration')).data,
-      'سخونية متسجلة: ٤ ساعات',
+      'أعلى قراءة: ٣٩٫١° · ١٢:٠٠ م\nسخونية متسجلة من ٨:٠٠ ص لـ ١٢:٠٠ م',
     );
-    // Highest: 39.1 (by eye from the three readings). BUG: the page never
-    // says it: the card shows the latest (37.8) and the chart, and 39.1 is
-    // only in "All readings", closed by default.
-    final text = screenText(tester);
-    expect(text, isNot(contains('٣٩٫١')));
-    expect(text, isNot(contains('أعلى')));
     await tapFinder(tester, find.text('كل القراءات'));
     expect(screenText(tester), contains('٣٩٫١'));
     // At exactly two she is in the 2+ group (AAP): "more than 3 days", not

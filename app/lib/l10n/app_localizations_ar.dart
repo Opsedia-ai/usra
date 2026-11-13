@@ -4066,37 +4066,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sickDayLatestReading => 'آخر قراءة';
 
   @override
-  String sickDayFeverLogged(String duration) {
-    return 'سخونية متسجلة: $duration';
+  String sickDayHighestReading(String reading, String time) {
+    return 'أعلى قراءة: $reading · $time';
   }
 
   @override
-  String get sickDayFeverUnderHour => 'أقل من ساعة';
-
-  @override
-  String sickDayFeverHours(int count, String shown) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$shown ساعة',
-      few: '$shown ساعات',
-      two: 'ساعتين',
-      one: 'ساعة',
-    );
-    return '$_temp0';
+  String sickDayFeverSpan(String from, String to) {
+    return 'سخونية متسجلة من $from لـ $to';
   }
 
   @override
-  String sickDayFeverDays(int count, String shown) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$shown يوم',
-      few: '$shown أيام',
-      two: 'يومين',
-      one: 'يوم',
-    );
-    return '$_temp0';
+  String sickDayFeverOnce(String time) {
+    return 'سخونية متسجلة: $time';
   }
 
   @override

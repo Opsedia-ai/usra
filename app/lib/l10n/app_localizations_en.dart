@@ -4033,33 +4033,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sickDayLatestReading => 'Latest reading';
 
   @override
-  String sickDayFeverLogged(String duration) {
-    return 'Fever logged: $duration';
+  String sickDayHighestReading(String reading, String time) {
+    return 'Highest reading: $reading · $time';
   }
 
   @override
-  String get sickDayFeverUnderHour => 'under an hour';
-
-  @override
-  String sickDayFeverHours(int count, String shown) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$shown hours',
-      one: '1 hour',
-    );
-    return '$_temp0';
+  String sickDayFeverSpan(String from, String to) {
+    return 'Fever readings from $from to $to';
   }
 
   @override
-  String sickDayFeverDays(int count, String shown) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$shown days',
-      one: '1 day',
-    );
-    return '$_temp0';
+  String sickDayFeverOnce(String time) {
+    return 'Fever reading: $time';
   }
 
   @override

@@ -427,3 +427,14 @@ Wording from the polish the founder approved on 13 Nov 2026 (`docs/design/polish
 | `vaccineThenInOrder` | New | بعدها {count} جرعة بالترتيب (جرعة واحدة، جرعتين، جرعات) | then {count} doses in order |
 | `vaccineMissingDosesTitle` | New | {count} جرعة تطعيم ناقصة (جرعة تطعيم ناقصة، جرعتين تطعيم ناقصين، جرعات تطعيم ناقصة) | {count} vaccine doses missing |
 | `sickDayReadingShort` | New | قراءة | Reading |
+
+## Bug fixes, 13 November 2026
+
+From the fixes for the two-year-old test report (`docs/test-reports/2026-11-12-two-year-old.md`). Medical strings here are also in `docs/medical-review-changes.md`.
+
+| Key | | Arabic | English |
+|---|---|---|---|
+| `sickDayHighestReading` | New | أعلى قراءة: {reading} · {time} | Highest reading: {reading} · {time} |
+| `sickDayFeverSpan` | New, replaces `sickDayFeverLogged` | سخونية متسجلة من {from} لـ {to} (was سخونية متسجلة: {duration}, e.g. ٤ ساعات) | Fever readings from {from} to {to} (was Fever logged: {duration}) |
+| `sickDayFeverOnce` | New | سخونية متسجلة: {time} | Fever reading: {time} |
+| `sickDayFeverUnderHour`, `sickDayFeverHours`, `sickDayFeverDays` | Removed | أقل من ساعة، {n} ساعة، {n} يوم | no longer shown |

@@ -16,6 +16,7 @@ import '../children/egypt_vaccines.dart' show fullMonths;
 import '../family/member_screen.dart' show profileProvider;
 import 'episode_sheets.dart';
 import 'fever.dart';
+import 'fever_summary.dart';
 import '../medicines/min_hours.dart' show formatHours;
 import 'next_dose.dart';
 import 'sick_days_providers.dart';
@@ -343,19 +344,12 @@ class _ReadingCard extends StatelessWidget {
         .format(local);
   }
 
-  String? _feverText(BuildContext context, AppLocalizations l) {
-    final lasted = feverDuration(episode, readings, now);
-    if (lasted == null) return null;
-    String shown(int n) => localizedDigits(context, n);
-    final days = lasted.inDays;
-    final hours = lasted.inHours;
-    final duration = hours < 1
-        ? l.sickDayFeverUnderHour
-        : hours < 48
-        ? l.sickDayFeverHours(hours, shown(hours))
-        : l.sickDayFeverDays(days, shown(days));
-    return l.sickDayFeverLogged(duration);
-  }
+  String? _feverText(BuildContext context, AppLocalizations l) => feverSummary(
+    l,
+    readings,
+    reading: (r) => readingText(context, r),
+    time: (at) => _time(context, at),
+  );
 
   @override
   Widget build(BuildContext context) {
