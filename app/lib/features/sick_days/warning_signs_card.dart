@@ -234,7 +234,12 @@ class _DoctorButton extends ConsumerWidget {
     final only = callable.length == 1 ? callable.single : null;
     return OutlinedButton.icon(
       key: const ValueKey('sick-day-doctors'),
-      style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+      // Ink, like the episode's other outlined buttons: the theme's primary
+      // read as disabled in dark mode.
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size.fromHeight(48),
+        foregroundColor: context.usra.ink,
+      ),
       onPressed: only != null
           ? () => openContact(context, callUri(only.phone)!)
           : callable.isEmpty

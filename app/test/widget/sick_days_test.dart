@@ -492,11 +492,25 @@ void main() {
           find.byKey(const ValueKey('sick-day-add-medicine')),
         );
         expect(given.style!.foregroundColor!.resolve({}), colors.ink);
+        final doctor = tester.widget<OutlinedButton>(
+          find.byKey(const ValueKey('sick-day-doctors')),
+        );
+        expect(doctor.style!.foregroundColor!.resolve({}), colors.ink);
 
         // The thermometer site is a pill like everywhere else, and
         // tapping the chosen one again clears it.
         await tapKey(tester, 'sick-day-add-reading');
         expect(find.byType(ChoiceChip), findsNothing);
+        expect(
+          tester
+              .widget<SegmentedButton<String>>(
+                find.byKey(const ValueKey('reading-unit')),
+              )
+              .style!
+              .foregroundColor!
+              .resolve({WidgetState.selected}),
+          colors.ink,
+        );
         await tapKey(tester, 'reading-site-armpit');
         expect(
           tester

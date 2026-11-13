@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/design/pill_chip.dart';
+import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
@@ -248,6 +249,11 @@ class _ReadingSheetState extends ConsumerState<_ReadingSheet> {
                 const SizedBox(width: 12),
                 SegmentedButton<String>(
                   key: const ValueKey('reading-unit'),
+                  // Ink on the selected unit: primary on its soft fill was
+                  // too faint in dark mode.
+                  style: SegmentedButton.styleFrom(
+                    selectedForegroundColor: context.usra.ink,
+                  ),
                   segments: [
                     ButtonSegment(
                       value: TemperatureUnit.celsius,
