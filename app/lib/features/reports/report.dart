@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../../core/design/usra_mark_svg.dart';
 import '../../core/util/localized_digits.dart';
 import '../../core/util/separator.dart';
 
@@ -409,7 +410,16 @@ Future<Uint8List> drawReportPdf(
         ],
       ),
       build: (context) => [
-        text(report.title, size: 20, bold: true, color: _accent),
+        // Dr. Usra's mark at the start of the title, as a vector.
+        pw.Row(
+          children: [
+            pw.SvgImage(svg: usraMarkSvg, width: 20, height: 20),
+            pw.SizedBox(width: 6),
+            pw.Expanded(
+              child: text(report.title, size: 20, bold: true, color: _accent),
+            ),
+          ],
+        ),
         pw.SizedBox(height: 2),
         text(
           '${report.appLine}$partSeparator${report.generated}',

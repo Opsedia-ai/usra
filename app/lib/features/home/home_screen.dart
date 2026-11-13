@@ -7,6 +7,7 @@ import '../../core/design/dr_usra.dart';
 import '../../core/design/pebble.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
+import '../../core/design/usra_mark.dart';
 import '../../core/preferences.dart';
 import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
@@ -162,9 +163,10 @@ class _Header extends ConsumerWidget {
       children: [
         Semantics(
           header: true,
-          child: Text(
+          // Dr. Usra's mark beside the greeting, as in the brand samples.
+          child: UsraMarkTitle(
             me == null ? greeting : l.homeGreetingNamed(greeting, me),
-            key: const ValueKey('home-greeting'),
+            textKey: const ValueKey('home-greeting'),
             style: text.headlineMedium,
           ),
         ),

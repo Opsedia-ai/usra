@@ -7,6 +7,7 @@ import '../../core/design/dr_usra.dart';
 import '../../core/design/pebble.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
+import '../../core/design/usra_mark.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../backup/backup_notices.dart';
@@ -61,6 +62,17 @@ class WelcomeScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    // The brand moment: Dr. Usra's mark and the app's name.
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: UsraMarkTitle(
+                        l.appTitle,
+                        key: const ValueKey('welcome-brand'),
+                        markSize: UsraMark.hero,
+                        style: UsraType.title.copyWith(color: c.primary),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     Semantics(
                       header: true,
                       child: Text(

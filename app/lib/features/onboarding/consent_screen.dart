@@ -7,6 +7,7 @@ import '../../core/design/buttons.dart';
 import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
+import '../../core/design/usra_mark.dart';
 import '../../core/log.dart';
 import '../../core/preferences.dart';
 import '../../core/providers.dart' show clockProvider;
@@ -108,9 +109,9 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
                     const SizedBox(height: UsraSpacing.s5),
                     Semantics(
                       header: true,
-                      child: Text(
+                      child: UsraMarkTitle(
                         l.consentTitle,
-                        key: const ValueKey('consent-title'),
+                        textKey: const ValueKey('consent-title'),
                         style: text.headlineMedium,
                       ),
                     ),

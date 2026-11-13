@@ -9,6 +9,7 @@ import '../../core/design/pill_chip.dart';
 import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
+import '../../core/design/usra_mark.dart';
 import '../../core/providers.dart';
 import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
@@ -151,13 +152,11 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
                     padding: const EdgeInsets.symmetric(
                       vertical: UsraSpacing.s7,
                     ),
-                    child: Text(
+                    child: UsraMarkedEmpty(
                       person == null
                           ? l.medicinesTodayEmpty
                           : l.medicinesTodayEmptyFor(person.displayName),
-                      key: const ValueKey('medicines-empty'),
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      textKey: const ValueKey('medicines-empty'),
                     ),
                   ),
                 ),
@@ -245,7 +244,7 @@ class _Header extends StatelessWidget {
       children: [
         Semantics(
           header: true,
-          child: Text(
+          child: UsraMarkTitle(
             l.navMedicines,
             style: Theme.of(context).textTheme.headlineMedium,
           ),

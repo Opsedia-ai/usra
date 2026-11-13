@@ -221,6 +221,8 @@ void main() {
       // Nothing about the person in the file's properties.
       expect(pdf, isNot(contains('/Author')));
       expect(pdf, isNot(contains('/Subject')));
+      // Dr. Usra's mark by the title, drawn as a vector: the orchid heart.
+      expect(pdf, contains(_orchidFill));
     });
   });
 
@@ -453,6 +455,8 @@ void main() {
       // Latin letters drawn, and the Arabic instructions too.
       expect(pdf, contains('<0048>')); // H
       expect(RegExp(r'<FE[89A-F][0-9A-F]>').hasMatch(pdf), isTrue);
+      // Dr. Usra's mark by the title, drawn as a vector: the orchid heart.
+      expect(pdf, contains(_orchidFill));
     });
   });
 
@@ -681,3 +685,6 @@ void main() {
     expect(records.events.map((e) => e.profileId).toSet(), {sami});
   });
 }
+
+/// The PDF fill operator for orchid #C48CB3, the mark's heart.
+const _orchidFill = '0.76863 0.54902 0.70196 rg';

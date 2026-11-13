@@ -15,6 +15,7 @@ import '../../core/design/list_row.dart';
 import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
+import '../../core/design/usra_mark.dart';
 import '../../core/providers.dart';
 import '../../core/screen_privacy.dart';
 import '../../l10n/app_localizations.dart';
@@ -77,6 +78,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   Future<void> _makeAndShare(RecoveryKey key, RenderBox? box) async {
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final scheme = Theme.of(context).colorScheme;
     final service = ref.read(backupServiceProvider);
     CreatedBackup? created;
     try {
@@ -105,13 +107,27 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               await _askSaved());
       if (saved) {
         await ref.read(lastBackupProvider.notifier).set(DateTime.now());
+        // A calm success: Dr. Usra's mark beside the words, in the snack
+        // bar's own colours.
         messenger.showSnackBar(
           SnackBar(
-            content: Text(
-              created.skippedPhotos == 0
-                  ? l.backupDone
-                  : l.backupDonePhotosSkipped(created.skippedPhotos),
-              key: const ValueKey('backup-done'),
+            content: Row(
+              children: [
+                UsraMark(
+                  size: UsraMark.medium,
+                  outline: scheme.onInverseSurface,
+                  background: scheme.inverseSurface,
+                ),
+                const SizedBox(width: UsraSpacing.s3),
+                Expanded(
+                  child: Text(
+                    created.skippedPhotos == 0
+                        ? l.backupDone
+                        : l.backupDonePhotosSkipped(created.skippedPhotos),
+                    key: const ValueKey('backup-done'),
+                  ),
+                ),
+              ],
             ),
           ),
         );
