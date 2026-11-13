@@ -224,7 +224,8 @@ class MainActivity : FlutterFragmentActivity() {
         super.configureFlutterEngine(flutterEngine)
         backupFolder = BackupFolderChannel(this, flutterEngine.dartExecutor.binaryMessenger)
         // Battery optimisation can stop medicine reminders on some phones;
-        // the Medicines tab explains it and opens the setting.
+        // the Medicines tab explains it and opens the setting. The same
+        // channel opens the app's notification settings.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "usra/battery")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -235,6 +236,25 @@ class MainActivity : FlutterFragmentActivity() {
                     "openSettings" -> {
                         try {
                             startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                            result.success(null)
+                        } catch (e: Exception) {
+                            result.error("unavailable", e.message, null)
+                        }
+                    }
+                    // After two "no"s Android stops asking: the app's own
+                    // notification settings are the only way back.
+                    "openNotificationSettings" -> {
+                        try {
+                            val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                    .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                            } else {
+                                Intent(
+                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    android.net.Uri.fromParts("package", packageName, null),
+                                )
+                            }
+                            startActivity(intent)
                             result.success(null)
                         } catch (e: Exception) {
                             result.error("unavailable", e.message, null)

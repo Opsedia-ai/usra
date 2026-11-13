@@ -5,6 +5,7 @@ import 'dart:ui' show DartPluginRegistrant, Locale;
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/security/app_lock.dart';
@@ -232,6 +233,24 @@ class LocalNotificationScheduler implements ReminderScheduler {
       // No such screen on this phone.
     } on MissingPluginException {
       // Not Android.
+    }
+  }
+
+  @override
+  Future<void> openNotificationSettings() async {
+    try {
+      if (_android != null) {
+        await whileInOtherApp(
+          () => _battery.invokeMethod<void>('openNotificationSettings'),
+        );
+      } else {
+        // UIApplication.openSettingsURLString: the app's own page.
+        await whileInOtherApp(() => launchUrl(Uri.parse('app-settings:')));
+      }
+    } on PlatformException {
+      // No such screen on this phone.
+    } on MissingPluginException {
+      // Not a phone.
     }
   }
 

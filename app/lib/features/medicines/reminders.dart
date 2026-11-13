@@ -659,6 +659,11 @@ abstract interface class ReminderScheduler {
   /// Opens the system screen where battery optimisation is switched off.
   Future<void> openBatterySettings();
 
+  /// Opens this app's page in the phone's Settings, where notifications are
+  /// switched back on. After a "no", iOS never shows its prompt again and
+  /// Android stops after the second, so this is the only way back.
+  Future<void> openNotificationSettings();
+
   /// Makes the planned reminders (not snoozes) exactly [reminders]:
   /// unchanged ones are left alone, so one about to ring is never lost.
   /// Snoozes in [doneSnoozes] are cancelled: their dose was marked since.
@@ -810,6 +815,9 @@ class UnavailableReminderScheduler implements ReminderScheduler {
 
   @override
   Future<void> openBatterySettings() async {}
+
+  @override
+  Future<void> openNotificationSettings() async {}
 
   @override
   Future<void> replaceAll(

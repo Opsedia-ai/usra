@@ -63,6 +63,7 @@ void main() {
       PrefKeys.consentVersion,
       PrefKeys.consentAt,
       PrefKeys.homeSetupHidden,
+      PrefKeys.notificationsAsked,
     });
   });
 }

@@ -11,6 +11,7 @@ class FakeReminderScheduler implements ReminderScheduler {
   var requests = 0;
   bool? lastRequestedExactAlarms;
   var batterySettingsOpened = 0;
+  var notificationSettingsOpened = 0;
 
   /// Planned reminders, as last replaced.
   List<PlannedReminder> planned = const [];
@@ -29,6 +30,9 @@ class FakeReminderScheduler implements ReminderScheduler {
 
   @override
   Future<void> openBatterySettings() async => batterySettingsOpened++;
+
+  @override
+  Future<void> openNotificationSettings() async => notificationSettingsOpened++;
 
   /// Snoozes cancelled at the last replace.
   Set<int> doneSnoozes = const {};

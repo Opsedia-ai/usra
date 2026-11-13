@@ -195,6 +195,30 @@ void main() {
       expect(h.prefs.getBool(PrefKeys.homeSetupHidden), isTrue);
     });
 
+    testWidgets('after a "no", the reminders card opens the phone\'s '
+        'Settings (e2e #2)', (tester) async {
+      h.tall(tester);
+      await seedOwner(tester);
+      // The phone's prompt answered "no": it won't be shown again.
+      scheduler.afterRequest = null;
+      await h.open(tester, '/home');
+      expect(find.text('الإذن بيتطلب وقتها بس'), findsOneWidget);
+
+      await h.tapKey(tester, 'setup-reminders');
+      expect(scheduler.requests, 1);
+      expect(scheduler.notificationSettingsOpened, 0);
+      expect(h.prefs.getBool(PrefKeys.notificationsAsked), isTrue);
+      // The card stays, and now says where to turn them on.
+      expect(
+        find.text('مقفولة من إعدادات الموبايل. دوس هنا علشان تفتحها.'),
+        findsOneWidget,
+      );
+
+      await h.tapKey(tester, 'setup-reminders');
+      expect(scheduler.requests, 1);
+      expect(scheduler.notificationSettingsOpened, 1);
+    });
+
     testWidgets('a card leaves when it\'s done', (tester) async {
       h.tall(tester);
       final id = await seedOwner(tester);

@@ -10,6 +10,7 @@ import '../../l10n/app_localizations.dart';
 import '../backup/backup_providers.dart' show lastBackupProvider;
 import '../medicines/medicines_providers.dart'
     show reminderAccessProvider, reminderSchedulerProvider;
+import '../medicines/reminder_permission.dart';
 
 /// Set once someone hides the cards.
 const homeSetupHiddenKey = PrefKeys.homeSetupHidden;
@@ -46,16 +47,13 @@ class _HomeSetupCardsState extends ConsumerState<HomeSetupCards> {
     super.dispose();
   }
 
+  /// The phone's prompt the first time; after a "no", the phone's Settings,
+  /// since it won't ask again. The card says which.
   Future<void> _askForReminders() async {
-    final messenger = ScaffoldMessenger.of(context);
-    final denied = AppLocalizations.of(context).reminderOffBody;
     final scheduler = ref.read(reminderSchedulerProvider);
+    final prefs = ref.read(keyValueStoreProvider);
     try {
-      await scheduler.requestAccess(exactAlarms: false);
-      // A phone that won't ask again shows nothing: say why nothing happened.
-      if (!(await scheduler.access()).notifications) {
-        messenger.showSnackBar(SnackBar(content: Text(denied)));
-      }
+      await allowReminders(scheduler, prefs, exactAlarms: false);
     } catch (_) {
       // No notifications on this phone: the card stays.
     }
@@ -67,8 +65,11 @@ class _HomeSetupCardsState extends ConsumerState<HomeSetupCards> {
     if (_hidden || widget.people.isEmpty) return const SizedBox.shrink();
     final l = AppLocalizations.of(context);
     final owner = widget.people.first;
-    final noReminders =
-        ref.watch(reminderAccessProvider).value?.notifications == false;
+    final access = ref.watch(reminderAccessProvider).value;
+    final noReminders = access?.notifications == false;
+    final remindersBlocked =
+        access != null &&
+        notificationsBlocked(access, ref.read(keyValueStoreProvider));
     final noEmergency =
         owner.bloodType == null &&
         owner.allergies == null &&
@@ -87,7 +88,9 @@ class _HomeSetupCardsState extends ConsumerState<HomeSetupCards> {
           key: const ValueKey('setup-reminders'),
           icon: Icons.notifications_outlined,
           title: l.homeSetupReminders,
-          hint: l.homeSetupRemindersHint,
+          hint: remindersBlocked
+              ? l.homeSetupRemindersBlocked
+              : l.homeSetupRemindersHint,
           onTap: _askForReminders,
         ),
       if (noEmergency)
