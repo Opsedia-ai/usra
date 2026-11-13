@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/database/app_database.dart';
-import '../../core/design/status_chip.dart';
+import '../../core/design/list_row.dart' show IconBox;
+import '../../core/design/status_dot.dart';
+import '../../core/design/type.dart';
 import '../../core/design/tokens.dart';
 import '../../core/follow_ups/follow_up.dart';
 import '../../l10n/app_localizations.dart';
@@ -46,18 +48,25 @@ class PregnancySummaryCard extends StatelessWidget {
     final locale = Localizations.localeOf(context).toLanguageTag();
     final age = pregnancy.ageOn(today);
     final left = pregnancy.daysLeft(today);
+    final c = context.usra;
+    final muted = UsraType.label.copyWith(
+      color: c.inkMuted,
+      fontWeight: FontWeight.w400,
+    );
+    final due = l.pregnancyDue(
+      DateFormat.yMMMd(locale).format(pregnancy.dueDate),
+    );
     return Card(
       key: ValueKey('pregnancy-summary-${profile.id}'),
-      color: context.usra.orchidSoft,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(UsraRadius.card),
         onTap: () => context.go('/family/${profile.id}/pregnancy'),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(UsraSpacing.s4),
           child: Row(
             children: [
-              Icon(Icons.pregnant_woman, size: 36, color: context.usra.primary),
-              const SizedBox(width: 12),
+              IconBox(icon: Icons.pregnant_woman, color: c.orchidInk),
+              const SizedBox(width: UsraSpacing.s3),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,29 +77,22 @@ class PregnancySummaryCard extends StatelessWidget {
                           : l.pregnancyWeek(age.weeks, age.days),
                       style: text.titleMedium,
                     ),
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: [
-                        StatusChip(
-                          severity: Severity.info,
-                          label: l.pregnancyTrimester(
-                            pregnancy.trimesterOn(today),
-                          ),
-                        ),
-                        StatusChip(
-                          severity: left < 0 ? Severity.headsUp : Severity.info,
-                          label: l.pregnancyDue(
-                            DateFormat.yMMMd(locale).format(pregnancy.dueDate),
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: UsraSpacing.s1),
+                    Text(
+                      l.pregnancyTrimester(pregnancy.trimesterOn(today)),
+                      style: muted,
                     ),
+                    // Past the due date is the one thing here to notice.
+                    if (left < 0)
+                      StatusDotText(label: due)
+                    else
+                      Text(due, style: muted),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: context.usra.inkMuted),
+              ExcludeSemantics(
+                child: Icon(Icons.chevron_right, size: 20, color: c.inkMuted),
+              ),
             ],
           ),
         ),
