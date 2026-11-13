@@ -13,6 +13,7 @@ import 'fever.dart';
 import '../medicines/min_hours.dart';
 import '../../core/util/time_picker.dart';
 import '../../core/util/date_picker.dart';
+import '../../core/util/separator.dart';
 
 /// A date and time row that opens the pickers.
 class _WhenField extends StatelessWidget {
@@ -412,7 +413,7 @@ class _GivenSheetState extends ConsumerState<_GivenSheet> {
       final name = [m.name, ?m.strength].join(' ');
       return rx == null
           ? name
-          : '$name · ${l.givenFromPrescription(DateFormat.yMMMd(locale).format(rx.prescribedOn))}';
+          : '$name$partSeparator${l.givenFromPrescription(DateFormat.yMMMd(locale).format(rx.prescribedOn))}';
     }
 
     return Padding(

@@ -16,6 +16,7 @@ import '../family/family_screen.dart' show profilesProvider;
 import '../family/member_screen.dart' show timelineProvider;
 import '../follow_ups/follow_ups_providers.dart' show todayProvider;
 import 'pregnancy.dart';
+import '../../core/util/separator.dart';
 
 /// [profile]'s pregnancy going on today, once their records have loaded.
 Pregnancy? watchActivePregnancy(WidgetRef ref, Profile profile) {
@@ -73,7 +74,7 @@ class PregnancySummaryCard extends StatelessWidget {
                   children: [
                     Text(
                       showName
-                          ? '${profile.displayName} · ${l.pregnancyWeek(age.weeks, age.days)}'
+                          ? '${profile.displayName}$partSeparator${l.pregnancyWeek(age.weeks, age.days)}'
                           : l.pregnancyWeek(age.weeks, age.days),
                       style: text.titleMedium,
                     ),

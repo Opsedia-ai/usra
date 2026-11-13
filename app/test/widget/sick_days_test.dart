@@ -370,7 +370,7 @@ void main() {
     expect(find.text('٩٩٫١ °ف'), findsOneWidget);
     // Listed as read, in °F; only 101.2 is a fever (38.4 °C).
     await tapKey(tester, 'sick-day-readings');
-    expect(find.text('١٠١٫٢ °ف · سخونية'), findsOneWidget);
+    expect(find.text('١٠١٫٢ °ف – سخونية'), findsOneWidget);
     expect(find.text('٩٩٫١ °ف'), findsNWidgets(2));
   });
 

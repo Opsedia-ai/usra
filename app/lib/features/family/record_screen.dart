@@ -15,6 +15,7 @@ import '../../l10n/app_localizations.dart';
 import 'family_screen.dart';
 import 'member_screen.dart';
 import 'record_display.dart';
+import '../../core/util/separator.dart';
 
 /// One record: every field, and its photos to zoom into, send or delete.
 class RecordScreen extends ConsumerWidget {
@@ -72,7 +73,7 @@ class RecordScreen extends ConsumerWidget {
                 [
                   ?person,
                   DateFormat.yMMMd(locale).format(e.occurredAt),
-                ].join(' · '),
+                ].join(partSeparator),
                 key: const ValueKey('record-person-date'),
                 style: UsraType.body.copyWith(color: context.usra.inkMuted),
               ),
@@ -175,7 +176,7 @@ class RecordScreen extends ConsumerWidget {
     return [
       type?.labelOf(context) ?? e.type,
       if (value != null) displayFieldValue(context, field!, value),
-    ].join(' · ');
+    ].join(partSeparator);
   }
 
   /// A type with its own form says where; every other type uses the generic

@@ -534,7 +534,7 @@ void main() {
       const DiabeticEyeExamRule(),
       person(birth: aged(50), sex: 'female', conditions: 'سكر'),
     );
-    expect(her.reason(ctx), 'لأن عندها سكر · مفيش واحد متسجل لسه');
+    expect(her.reason(ctx), 'لأن عندها سكر – مفيش واحد متسجل لسه');
     final [him] = run(
       const DiabeticEyeExamRule(),
       person(birth: aged(50), sex: 'male', conditions: 'سكر'),

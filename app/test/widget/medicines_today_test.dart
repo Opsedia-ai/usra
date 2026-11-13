@@ -155,9 +155,9 @@ void main() {
     await open(tester);
 
     expect(find.text('فاتت'), findsNWidgets(2)); // The heading and the chip.
-    expect(find.text('دلوقتي · ٢:٠٠ م'), findsOneWidget);
-    expect(find.text('بالليل · ٨:٠٠ م'), findsOneWidget);
-    expect(find.text('٨:٠٠ ص · حباية'), findsOneWidget);
+    expect(find.text('دلوقتي – ٢:٠٠ م'), findsOneWidget);
+    expect(find.text('بالليل – ٨:٠٠ م'), findsOneWidget);
+    expect(find.text('٨:٠٠ ص – حباية'), findsOneWidget);
     double top(String k) => tester.getTopLeft(key(k)).dy;
     final missed = id(ids.concor, eight);
     final due = id(ids.gluco, two);
@@ -568,7 +568,7 @@ void main() {
       await tester.tap(key('simple-medicines'));
       await settleDb(tester);
       await tester.pumpAndSettle();
-      expect(find.text('بالليل · ٨:٠٠ م'), findsOneWidget);
+      expect(find.text('بالليل – ٨:٠٠ م'), findsOneWidget);
       expect(
         tester.getSize(key('dose-taken-${id(ids.gluco, two)}')).height,
         greaterThanOrEqualTo(64),

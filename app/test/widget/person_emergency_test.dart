@@ -298,7 +298,7 @@ void main() {
             .value,
         isTrue,
       );
-      expect(find.textContaining('ليلى ·'), findsOneWidget);
+      expect(find.textContaining('ليلى –'), findsOneWidget);
       await tester.ensureVisible(find.byKey(const ValueKey('dose-save')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('dose-save')));
@@ -739,7 +739,7 @@ void main() {
       expect(find.text('بنسلين'), findsOneWidget);
       expect(find.text('O+'), findsOneWidget);
       expect(find.text('ضغط، سكر'), findsOneWidget);
-      expect(find.text('٦٨ سنة · ذكر'), findsOneWidget);
+      expect(find.text('٦٨ سنة – ذكر'), findsOneWidget);
       // Current medicines only, in their own direction.
       final medicine = find.text('Concor 5 mg');
       expect(medicine, findsOneWidget);
@@ -768,7 +768,7 @@ void main() {
       expect(find.text('Allergies'), findsOneWidget);
       expect(find.text('Blood type'), findsOneWidget);
       expect(find.text('Current medicines'), findsOneWidget);
-      expect(find.text('68 years · Male'), findsOneWidget);
+      expect(find.text('68 years – Male'), findsOneWidget);
       expect(find.text('بنسلين'), findsOneWidget);
       expect(find.byKey(const ValueKey('emergency-as-typed')), findsOneWidget);
       expect(find.text('عربي'), findsOneWidget);

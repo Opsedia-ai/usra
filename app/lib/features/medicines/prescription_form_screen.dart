@@ -28,6 +28,7 @@ import 'medicines_providers.dart';
 import '../../core/util/time_picker.dart';
 import 'prescription_parser.dart';
 import '../../core/util/date_picker.dart';
+import '../../core/util/separator.dart';
 
 /// Times filled in by the "times a day" shortcut; the person can change
 /// them. Spread over waking hours; this is about reminders, not doses. For
@@ -1282,7 +1283,7 @@ class _EveryHoursDialogState extends State<EveryHoursDialog> {
             everyHours(
               _first,
               _hours,
-            ).map((t) => formatDoseClock(context, t)).join(' · '),
+            ).map((t) => formatDoseClock(context, t)).join(listComma(context)),
             key: const ValueKey('rx-hours-preview'),
           ),
         ],

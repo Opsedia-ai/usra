@@ -29,6 +29,7 @@ import 'lab_report_parser.dart';
 import 'lab_tests.dart';
 import 'lab_widgets.dart';
 import '../../core/util/date_picker.dart';
+import '../../core/util/separator.dart';
 
 /// Adds or changes a lab report: date, lab, the doctor who asked for it,
 /// cost, any number of results, and photos or PDFs of the paper.
@@ -557,7 +558,7 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
                                 PopupMenuItem(
                                   value: d,
                                   child: Text(
-                                    [d.name, ?d.specialty].join(' · '),
+                                    [d.name, ?d.specialty].join(partSeparator),
                                   ),
                                 ),
                             ],

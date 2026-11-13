@@ -14,6 +14,7 @@ import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import 'infant_log.dart';
+import '../../core/util/separator.dart';
 
 /// Feeds, sleep and diapers for a baby under one, one tap each, with the
 /// day added up. A diary for the family and the pediatrician.
@@ -299,7 +300,8 @@ class _EntryTile extends ConsumerWidget {
       (InfantLog.feed, 'bottle') => (
         Icons.local_drink_outlined,
         switch (data[InfantLog.amountMl]) {
-          final num ml when ml > 0 => '${l.logBottle} · ${l.logMl(ml.round())}',
+          final num ml when ml > 0 =>
+            '${l.logBottle}$partSeparator${l.logMl(ml.round())}',
           _ => l.logBottle,
         },
       ),
@@ -308,7 +310,7 @@ class _EntryTile extends ConsumerWidget {
         Icons.bedtime_outlined,
         switch (data[InfantLog.minutes]) {
           final num m when m > 0 =>
-            '${l.logSleep} · ${_duration(l, m.round())}',
+            '${l.logSleep}$partSeparator${_duration(l, m.round())}',
           _ => l.logSleep,
         },
       ),

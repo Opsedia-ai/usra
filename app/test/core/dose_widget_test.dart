@@ -65,12 +65,12 @@ void main() {
     await medicine(mona, 'أوجمنتين', ['14:00']);
     final s = await snapshotAt(DateTime(2026, 11, 3, 7, 30));
     expect(
-      [for (final d in s.doses.take(4)) '${d.time} · ${d.label}'],
+      [for (final d in s.doses.take(4)) '${d.time} – ${d.label}'],
       [
-        '٨:٠٠ ص · ميعاد جرعة',
-        '٢:٠٠ م · ميعاد جرعة',
-        '٨:٠٠ م · ميعاد جرعة',
-        '٨:٠٠ ص · ميعاد جرعة',
+        '٨:٠٠ ص – ميعاد جرعة',
+        '٢:٠٠ م – ميعاد جرعة',
+        '٨:٠٠ م – ميعاد جرعة',
+        '٨:٠٠ ص – ميعاد جرعة',
       ],
     );
     // Today and tomorrow, so the widget rolls over at midnight alone.

@@ -11,6 +11,7 @@ import 'package:path_provider_foundation/path_provider_foundation.dart';
 import '../../core/database/app_database.dart';
 import '../../l10n/app_localizations.dart';
 import 'dose_schedule.dart';
+import '../../core/util/separator.dart';
 
 /// How long "Snooze" puts a reminder off.
 const snoozeDuration = Duration(minutes: 10);
@@ -377,7 +378,7 @@ class ReminderTexts {
     final parts = [?r.schedule.amount, ?r.medicine.instructions];
     return parts.isEmpty
         ? l.doseReminderBody(r.person.sex ?? 'other')
-        : parts.join(' · ');
+        : parts.join(partSeparator);
   }
 
   /// The reminder for [r]'s dose planned at [scheduledAt], ringing [at].

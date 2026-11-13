@@ -11,6 +11,7 @@ import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import 'call_buttons.dart';
 import 'doctors_providers.dart';
+import '../../core/util/separator.dart';
 
 /// One doctor: how to reach them, their fee, and every family visit.
 class DoctorScreen extends ConsumerWidget {
@@ -137,7 +138,7 @@ class _Details extends StatelessWidget {
       ?d.specialty,
       if (d.feeMinor != null)
         '${l.doctorFee}: ${_money(context, d.feeMinor!, l.currencyEgp)}',
-    ].join(' · ');
+    ].join(partSeparator);
     final rows = [
       for (final (icon, value) in [
         (Icons.phone_outlined, d.phone),
@@ -178,12 +179,12 @@ class _VisitTile extends ConsumerWidget {
     return UsraListRow(
       onTap: () => context.go('/family/${visit.person.id}'),
       title:
-          '${visit.person.displayName} · ${type?.labelOf(context) ?? e.type}',
+          '${visit.person.displayName}$partSeparator${type?.labelOf(context) ?? e.type}',
       subtitleText: [
         DateFormat.yMMMd(locale).format(e.occurredAt),
         if (e.costMinor != null)
           _money(context, e.costMinor!, e.currency ?? ''),
-      ].join(' · '),
+      ].join(partSeparator),
     );
   }
 }

@@ -12,6 +12,7 @@ import '../family/family_screen.dart' show profilesProvider;
 import '../family/member_screen.dart' show profileProvider;
 import 'medicine_text.dart';
 import 'medicines_providers.dart';
+import '../../core/util/separator.dart';
 import 'prescription_screen.dart' show prescriptionTitle;
 
 /// One person's prescriptions, newest first, then their medicines: the
@@ -180,7 +181,7 @@ class _PrescriptionTile extends ConsumerWidget {
         ?p.diagnosis,
         l.prescriptionCount(count),
         if (!p.active) l.prescriptionStopped,
-      ].join(' · '),
+      ].join(partSeparator),
     );
   }
 }

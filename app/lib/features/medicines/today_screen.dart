@@ -18,6 +18,7 @@ import 'dose_schedule.dart';
 import 'medicine_text.dart';
 import 'medicines_providers.dart';
 import 'reminder_access_card.dart';
+import '../../core/util/separator.dart';
 import 'reminders.dart' show snoozeIdFor;
 
 /// How long before its time a dose already counts as "now", so nobody is told
@@ -179,7 +180,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
         if (doseGroupOf(d, now) == g) d,
     ];
 
-    /// One heading per time: "دلوقتي · ٢:٠٠ م", "بالليل · ٨:٠٠ م".
+    /// One heading per time: "دلوقتي – ٢:٠٠ م", "بالليل – ٨:٠٠ م".
     Iterable<Widget> byTime(
       List<PlannedDose> doses,
       String Function(DateTime) part,
@@ -189,7 +190,9 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
         times.putIfAbsent(d.at, () => []).add(d);
       }
       for (final MapEntry(key: at, value: group) in times.entries) {
-        yield _GroupTitle('${part(at)} · ${formatDoseTime(context, at)}');
+        yield _GroupTitle(
+          '${part(at)}$partSeparator${formatDoseTime(context, at)}',
+        );
         for (final d in group) {
           yield DoseCard(dose: d);
         }
@@ -537,7 +540,7 @@ class _Summary extends StatelessWidget {
       if (missed) formatDoseTime(context, dose.at),
       ?r.schedule.amount,
       ?r.medicine.instructions,
-    ].join(' · ');
+    ].join(partSeparator);
     final nameBeside = nameGoesBesidePebble(context, r.person);
     // A quiet amber dot and words: a missed dose needs a look, but it isn't
     // an emergency.

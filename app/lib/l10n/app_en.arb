@@ -2158,7 +2158,7 @@
     }
   },
   "sickDayLatestReading": "Latest reading",
-  "sickDayHighestReading": "Highest reading: {reading} · {time}",
+  "sickDayHighestReading": "Highest reading: {reading} – {time}",
   "@sickDayHighestReading": {
     "placeholders": {
       "reading": {
@@ -2188,7 +2188,7 @@
       }
     }
   },
-  "sickDayRecordedGiven": "Recorded: {what} · {time}",
+  "sickDayRecordedGiven": "Recorded: {what} – {time}",
   "@sickDayRecordedGiven": {
     "placeholders": {
       "what": {
@@ -2637,7 +2637,7 @@
   "countryTitle": "Country",
   "countryHint": "So the vaccine schedule and the ambulance number are right.",
   "countryEgypt": "Egypt",
-  "countryEgyptDetail": "Ministry of Health and Population · Ambulance 123",
+  "countryEgyptDetail": "Ministry of Health and Population – Ambulance 123",
   "countrySaudi": "Saudi Arabia",
   "countryJordan": "Jordan",
   "countrySoon": "Coming soon",
@@ -2667,7 +2667,7 @@
   "personDoctorSummary": "Doctor summary",
   "personInsuranceOpen": "Open card",
   "personVaccineLog": "Given? Log it",
-  "personVaccineSource": "Reference: Egypt's vaccine schedule, {route} · checked {date}",
+  "personVaccineSource": "Reference: Egypt's vaccine schedule, {route} – checked {date}",
   "@personVaccineSource": {
     "placeholders": {
       "route": {
@@ -2678,7 +2678,7 @@
       }
     }
   },
-  "personVaccineSourceOptional": "Reference: pediatricians' usual schedules in Egypt · checked {date}",
+  "personVaccineSourceOptional": "Reference: pediatricians' usual schedules in Egypt – checked {date}",
   "@personVaccineSourceOptional": {
     "placeholders": {
       "date": {
@@ -2686,7 +2686,7 @@
       }
     }
   },
-  "personNextDose": "Next dose · {time}",
+  "personNextDose": "Next dose – {time}",
   "@personNextDose": {
     "placeholders": {
       "time": {
@@ -2708,7 +2708,7 @@
   "personTileVisits": "Visits and labs",
   "personTileInsurance": "Insurance",
   "personTileDocuments": "Documents and photos",
-  "personVaccinesSummary": "{done} of {total} · Egypt schedule",
+  "personVaccinesSummary": "{done} of {total} – Egypt schedule",
   "@personVaccinesSummary": {
     "placeholders": {
       "done": {
@@ -2719,7 +2719,7 @@
       }
     }
   },
-  "personGrowthWeight": "{value} kg · {date}",
+  "personGrowthWeight": "{value} kg – {date}",
   "@personGrowthWeight": {
     "placeholders": {
       "value": {
@@ -2730,7 +2730,7 @@
       }
     }
   },
-  "personGrowthHeight": "{value} cm · {date}",
+  "personGrowthHeight": "{value} cm – {date}",
   "@personGrowthHeight": {
     "placeholders": {
       "value": {
@@ -2991,7 +2991,7 @@
   },
   "vaccineNewTitle": "New vaccine",
   "vaccineDoneGroup": "Done",
-  "vaccineDoneGroupLast": "All given · the last on {date}",
+  "vaccineDoneGroupLast": "All given – the last on {date}",
   "@vaccineDoneGroupLast": {
     "placeholders": {
       "date": {
@@ -3032,7 +3032,7 @@
       }
     }
   },
-  "vaccineChoiceOverdue": "{dose} · overdue",
+  "vaccineChoiceOverdue": "{dose} – overdue",
   "@vaccineChoiceOverdue": {
     "placeholders": {
       "dose": {
@@ -3083,7 +3083,7 @@
   "followUpsThisWeek": "Today and this week",
   "followUpsLater": "Later",
   "followUpsAll": "All follow-ups",
-  "insuranceWatermark": "{name} · {date}",
+  "insuranceWatermark": "{name} – {date}",
   "@insuranceWatermark": {
     "placeholders": {
       "name": {
@@ -3140,7 +3140,7 @@
       }
     }
   },
-  "vaccineCatchUp": "Catch-up · due {date}",
+  "vaccineCatchUp": "Catch-up – due {date}",
   "@vaccineCatchUp": {
     "placeholders": {
       "date": {
@@ -3150,7 +3150,7 @@
   },
   "vaccineNextCatchUp": "Catch-up doses (past their age)",
   "vaccineDateAssumed": "The date on the schedule. Change it if it was given on another day.",
-  "vaccineOptionalWasDue": "Optional · was due {date}",
+  "vaccineOptionalWasDue": "Optional – was due {date}",
   "@vaccineOptionalWasDue": {
     "placeholders": {
       "date": {
@@ -3260,7 +3260,7 @@
       }
     }
   },
-  "vaccineGivableNowHeading": "Can be given now · {count}",
+  "vaccineGivableNowHeading": "Can be given now – {count}",
   "@vaccineGivableNowHeading": {
     "placeholders": {
       "count": {

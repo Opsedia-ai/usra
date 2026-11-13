@@ -101,7 +101,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('record-save')));
     await tester.pumpAndSettle();
 
-    expect(find.text('زيارة دكتور · د. هاني'), findsOneWidget);
+    expect(find.text('زيارة دكتور – د. هاني'), findsOneWidget);
     expect(find.textContaining('٦٠٠'), findsOneWidget);
   });
 
@@ -169,14 +169,14 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('record-save')));
     await tester.pumpAndSettle();
-    expect(find.text('زيارة دكتور · د. منى'), findsOneWidget);
+    expect(find.text('زيارة دكتور – د. منى'), findsOneWidget);
 
     // The doctor's page lists the visit, with who it was for.
     final doctors = (await tester.runAsync(() => db.watchDoctors().first))!;
     final doctorId = doctors.singleWhere((d) => d.name == 'د. منى').id;
     GoRouter.of(router).go('/doctors/$doctorId');
     await tester.pumpAndSettle();
-    expect(find.text('عمر · زيارة دكتور'), findsOneWidget);
+    expect(find.text('عمر – زيارة دكتور'), findsOneWidget);
   });
 
   testWidgets('the Money tab adds up spending for the family and a person', (
@@ -284,7 +284,7 @@ void main() {
     expect(find.text('كارت الطوارئ'), findsOneWidget);
     expect(find.text('B+'), findsOneWidget);
     expect(find.text('بنسلين'), findsOneWidget);
-    expect(find.text('مرارة · ٢٠١٩'), findsOneWidget);
+    expect(find.text('مرارة – ٢٠١٩'), findsOneWidget);
     // Conditions and medicines were never entered, so the card says so instead
     // of hiding them.
     expect(find.text('مفيش حاجة متسجلة'), findsNWidgets(2));

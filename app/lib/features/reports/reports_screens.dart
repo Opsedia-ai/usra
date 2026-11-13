@@ -18,6 +18,7 @@ import '../medicines/medicines_providers.dart' show medicinesProvider;
 import 'doctor_summary.dart';
 import 'report_share.dart';
 import 'vaccination_record.dart';
+import '../../core/util/separator.dart';
 
 /// The two languages a report can be made in, whatever the app's own.
 const reportLanguages = ['ar', 'en'];
@@ -251,7 +252,7 @@ class _SummaryPreview extends ConsumerWidget {
                   row(
                     'labs',
                     l.reportSectionLabs,
-                    [?labName, labDate!].join(' · '),
+                    [?labName, labDate!].join(partSeparator),
                   ),
                 Text(
                   l.reportSummaryNotOpinion,

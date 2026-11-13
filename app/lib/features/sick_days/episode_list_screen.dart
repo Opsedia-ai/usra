@@ -16,6 +16,7 @@ import '../family/member_screen.dart' show profileProvider;
 import 'episode_sheets.dart' show showReadingSheet;
 import 'fever.dart';
 import 'sick_days_providers.dart';
+import '../../core/util/separator.dart';
 
 /// A person's sick days, the latest first. While one is going on it comes
 /// first, with a reading button and when to call an ambulance.
@@ -40,7 +41,7 @@ class EpisodeListScreen extends ConsumerWidget {
         title: Text(
           person == null
               ? l.sickDaysTitle
-              : '${l.sickDaysTitle} · ${person.displayName}',
+              : '${l.sickDaysTitle}$partSeparator${person.displayName}',
         ),
       ),
       body: episodes.when(
@@ -222,7 +223,7 @@ class _OngoingCard extends ConsumerWidget {
         subtitleText: [
           l.sickDaySince(since),
           if (readings != null && readings.isEmpty) l.sickDayNoReadingsYet,
-        ].join(' · '),
+        ].join(partSeparator),
         onTap: onTap,
       ),
     );
@@ -293,7 +294,7 @@ class _AmbulanceCard extends StatelessWidget {
               ),
             ),
             Text(
-              signs.join(' · '),
+              signs.join(partSeparator),
               style: UsraType.body.copyWith(color: c.inkMuted, height: 1.5),
             ),
             OutlinedButton.icon(

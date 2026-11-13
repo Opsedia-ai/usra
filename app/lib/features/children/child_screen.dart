@@ -17,6 +17,7 @@ import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import 'growth.dart';
 import 'growth_check.dart';
+import '../../core/util/separator.dart';
 import 'vaccines_screen.dart' show VaccineSummaryCard;
 import '../../core/providers.dart' show nowOf;
 
@@ -215,7 +216,7 @@ class _History extends StatelessWidget {
         ?part(GrowthFields.weightKg, l.growthUnitKg),
         ?part(GrowthFields.heightCm, l.growthUnitCm),
         ?part(GrowthFields.headCm, l.growthUnitCm),
-      ].join(' · ');
+      ].join(partSeparator);
     }
 
     return Column(

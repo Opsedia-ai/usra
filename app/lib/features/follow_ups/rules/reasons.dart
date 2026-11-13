@@ -3,10 +3,11 @@ import 'package:flutter/widgets.dart';
 import '../../../core/follow_ups/follow_up.dart';
 import '../../../l10n/app_localizations.dart';
 import '../conditions.dart';
+import '../../../core/util/separator.dart';
 
 /// Reason parts joined into one line.
 String joinReasons(Iterable<String?> parts) =>
-    parts.whereType<String>().where((p) => p.isNotEmpty).join(' · ');
+    parts.whereType<String>().where((p) => p.isNotEmpty).join(partSeparator);
 
 String conditionName(AppLocalizations l, Condition condition) =>
     switch (condition) {

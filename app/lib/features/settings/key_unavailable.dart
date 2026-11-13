@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/security/data_wipe.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/util/separator.dart';
 
 /// Shown instead of the app when the records can't be reached: the database
 /// key can't be read (a Keystore error), or the database file can't be opened
@@ -79,7 +80,7 @@ class _DatabaseKeyUnavailableState extends State<DatabaseKeyUnavailable> {
 
   /// [text] in both languages, Arabic first, on one button or line.
   static String _both(String Function(AppLocalizations) text) =>
-      '${text(lookupAppLocalizations(const Locale('ar')))} · '
+      '${text(lookupAppLocalizations(const Locale('ar')))}$partSeparator'
       '${text(lookupAppLocalizations(const Locale('en')))}';
 
   Widget _inBoth(

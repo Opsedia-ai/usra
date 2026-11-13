@@ -8,6 +8,7 @@ import '../files/photo_store.dart';
 import '../util/localized_numbers.dart';
 import 'record_type.dart';
 import '../util/date_picker.dart';
+import '../util/separator.dart';
 import '../providers.dart' show nowOf;
 
 /// Words the form needs, passed in so the core stays free of feature strings.
@@ -505,7 +506,7 @@ class _RecordFormState extends State<RecordForm> {
                     DropdownMenuItem(
                       value: d,
                       child: Text(
-                        [d.name, ?d.specialty].join(' · '),
+                        [d.name, ?d.specialty].join(partSeparator),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),

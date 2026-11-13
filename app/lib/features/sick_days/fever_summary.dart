@@ -25,7 +25,7 @@ TemperatureReading? highestReading(List<TemperatureReading> readings) {
 
 /// The lines under the sick day's chart, as the family reads them:
 ///
-/// - "أعلى قراءة: ٣٩٫١° · ١٢:٠٠ م", when there's more than one reading (with
+/// - "أعلى قراءة: ٣٩٫١° – ١٢:٠٠ م", when there's more than one reading (with
 ///   one, it's the latest reading shown above);
 /// - "سخونية متسجلة من ٨:٠٠ ص لـ ١٢:٠٠ م", the first and last fever readings,
 ///   or "سخونية متسجلة: ٨:٠٠ ص" for one.

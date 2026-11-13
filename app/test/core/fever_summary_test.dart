@@ -30,11 +30,11 @@ void main() {
     final readings = [reading(8, 38.5), reading(12, 39.1), reading(18, 37.8)];
     expect(
       feverSummary(AppLocalizationsAr(), readings, reading: fmt, time: time),
-      'أعلى قراءة: 39.1c · 12:00\nسخونية متسجلة من 8:00 لـ 12:00',
+      'أعلى قراءة: 39.1c – 12:00\nسخونية متسجلة من 8:00 لـ 12:00',
     );
     expect(
       feverSummary(AppLocalizationsEn(), readings, reading: fmt, time: time),
-      'Highest reading: 39.1c · 12:00\nFever readings from 8:00 to 12:00',
+      'Highest reading: 39.1c – 12:00\nFever readings from 8:00 to 12:00',
     );
   });
 
@@ -42,7 +42,7 @@ void main() {
     final readings = [reading(8, 37.2), reading(12, 38.4)];
     expect(
       feverSummary(AppLocalizationsAr(), readings, reading: fmt, time: time),
-      'أعلى قراءة: 38.4c · 12:00\nسخونية متسجلة: 12:00',
+      'أعلى قراءة: 38.4c – 12:00\nسخونية متسجلة: 12:00',
     );
   });
 
@@ -71,7 +71,7 @@ void main() {
     final readings = [reading(8, 37.0), reading(12, 37.5)];
     expect(
       feverSummary(AppLocalizationsAr(), readings, reading: fmt, time: time),
-      'أعلى قراءة: 37.5c · 12:00',
+      'أعلى قراءة: 37.5c – 12:00',
     );
   });
 }

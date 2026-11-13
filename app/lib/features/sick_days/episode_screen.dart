@@ -23,6 +23,7 @@ import 'next_dose.dart';
 import 'sick_days_providers.dart';
 import 'temperature_chart.dart';
 import 'warning_signs_card.dart';
+import '../../core/util/separator.dart';
 
 /// One sick day on one calm screen: who and since when, the latest reading
 /// and its chart, what was given as recorded, then when to get help. The
@@ -232,7 +233,7 @@ class _Body extends ConsumerWidget {
 
 const _gutter = 20.0;
 
-/// Back, then "يوسف تعبان" and "من امبارح ٩ م · ٦ سنين".
+/// Back, then "يوسف تعبان" and "من امبارح ٩ م – ٦ سنين".
 class _Header extends StatelessWidget {
   const _Header({
     required this.person,
@@ -310,7 +311,10 @@ class _Header extends StatelessWidget {
                 ),
               ),
               Text(
-                [_since(context, l), if (age.isNotEmpty) age].join(' · '),
+                [
+                  _since(context, l),
+                  if (age.isNotEmpty) age,
+                ].join(partSeparator),
                 key: const ValueKey('sick-day-since'),
                 style: text.bodySmall,
               ),
@@ -390,7 +394,7 @@ class _ReadingCard extends StatelessWidget {
                       l.sickDayLatestReading,
                       _time(context, latest.takenAt),
                       if (latest.site != null) l.readingSiteName(latest.site!),
-                    ].join(' · '),
+                    ].join(partSeparator),
                     key: const ValueKey('sick-day-latest-meta'),
                     style: text.bodyLarge?.copyWith(
                       color: context.usra.inkMuted,
@@ -436,7 +440,7 @@ List<GivenMedicine> latestOfEach(List<GivenMedicine> given) {
   ];
 }
 
-/// "مسجل: باراسيتامول شراب ٧٫٥ مل · ١٠:٠٠ ص", in the family's own words, and
+/// "مسجل: باراسيتامول شراب ٧٫٥ مل – ١٠:٠٠ ص", in the family's own words, and
 /// when their own field says the next one may be given.
 class _RecordedLine extends StatelessWidget {
   const _RecordedLine({
@@ -599,13 +603,13 @@ class _Details extends ConsumerWidget {
                   title: Text(
                     '${localizedReading(context, r.value)} '
                     '${r.unit == TemperatureUnit.fahrenheit ? l.readingFahrenheit : l.readingCelsius}'
-                    '${isFever(r) ? ' · ${l.readingFever}' : ''}',
+                    '${isFever(r) ? '$partSeparator${l.readingFever}' : ''}',
                   ),
                   subtitle: Text(
                     [
                       dateTime.format(r.takenAt.toLocal()),
                       if (r.site != null) l.readingSiteName(r.site!),
-                    ].join(' · '),
+                    ].join(partSeparator),
                   ),
                   trailing: IconButton(
                     tooltip: l.readingDelete,
@@ -658,7 +662,7 @@ class _GivenTile extends ConsumerWidget {
             ? Icons.notifications_active_outlined
             : Icons.medication,
       ),
-      title: Text([given.name, ?given.amount].join(' · ')),
+      title: Text([given.name, ?given.amount].join(partSeparator)),
       subtitle: Text(dateTime.format(given.givenAt.toLocal())),
       trailing: IconButton(
         tooltip: l.givenDelete,

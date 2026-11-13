@@ -283,15 +283,15 @@ void main() {
       final id = await seed(tester);
       await h.open(tester, '/family/$id/vaccines');
       // PCV at 2 months: due 12 Jan 2025, not followed.
-      expect(chip(tester, 'pcv-1'), startsWith('اختياري · كان ميعادها'));
+      expect(chip(tester, 'pcv-1'), startsWith('اختياري – كان ميعادها'));
       expect(chip(tester, 'pcv-1'), contains('٢٠٢٥'));
       // A 2-year-old starting PCV needs one dose: the rest aren't needed.
-      expect(chip(tester, 'pcv-2'), 'اختياري · مش محتاجها في السن ده');
+      expect(chip(tester, 'pcv-2'), 'اختياري – مش محتاجها في السن ده');
       // Rotavirus is past its upper age.
-      expect(chip(tester, 'rota-1'), startsWith('اختياري · فات السن المسموح'));
-      expect(chip(tester, 'varicella-1'), startsWith('اختياري ·'));
+      expect(chip(tester, 'rota-1'), startsWith('اختياري – فات السن المسموح'));
+      expect(chip(tester, 'varicella-1'), startsWith('اختياري –'));
       // Its second dose's date assumes the first is given today: catch-up.
-      expect(chip(tester, 'varicella-2'), startsWith('اختياري · جرعة تعويضية'));
+      expect(chip(tester, 'varicella-2'), startsWith('اختياري – جرعة تعويضية'));
       expect(find.text('مش في خطتك'), findsNothing);
       expect(key('vaccine-overdue-card-pcv-1'), findsNothing);
       expect(text(tester, 'vaccine-progress-line'), contains('٠ من ١٨'));
@@ -505,7 +505,7 @@ void main() {
             ),
           )
           .data,
-      'ممكن تتاخد دلوقتي · ٧',
+      'ممكن تتاخد دلوقتي – ٧',
     );
   });
 }
