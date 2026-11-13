@@ -285,7 +285,7 @@ class _AttentionLine extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Text(
             people.length == 1
-                ? l.homeNeedsAttentionOne
+                ? l.homeNeedsAttentionOne(people.single.sex ?? 'other')
                 : l.homeNeedsAttentionMany,
             style: muted,
           ),

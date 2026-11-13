@@ -601,3 +601,19 @@ iPhone number pads have no return key, so the pad stayed over Save. A thin bar w
 | Key | | Arabic | English |
 |---|---|---|---|
 | `keyboardDone` | New | تم | Done |
+
+## Wording by sex, 13 November 2026 (end-to-end tests #10, #11)
+
+| Key | | Arabic | English |
+|---|---|---|---|
+| `homeNeedsAttentionOne` | Changed | {sex}: محتاجة انتباهك (girl, woman) / محتاج انتباهك (boy, man, not recorded) | needs your attention |
+| `vaccineOverdueCount` | Changed (2 only) | جرعتين متأخرتين (was متأخرين) | 2 doses overdue |
+| `vaccineMissingCount` | Changed (2 only) | جرعتين ناقصتين (was ناقصين) | 2 doses missing |
+| `vaccineMissingDosesTitle` | Changed (2 only) | جرعتين تطعيم ناقصتين (was ناقصين) | 2 vaccine doses missing |
+| `devIntro` | Changed | to a mother: علّمي على اللي بنتك/ابنك بتعمله/بيعمله، واختاري اليوم اللي لاحظتيه فيه أول مرة. To anyone else: علّم … واختار … لاحظته … (was always علّم على اللي طفلك بيعمله) | Tick what your child does, with the day you first noticed it. |
+| `milestone` m18_cognitive | Changed | بيقلد / بتقلد شغل البيت اللي بتعملوه، زي الكنس (was بيقلدك وانت بتعمل شغل البيت) | Copies you doing chores, like sweeping (unchanged) |
+
+Questions:
+1. "جرعتين متأخرين" agreed with the doses, not the child, and is common in Egyptian speech; the end-to-end test read it as masculine about a girl. The feminine dual "متأخرتين / ناقصتين" follows the rule that جرعة takes feminine agreement. Which reads better to you?
+2. `devIntro` uses the reader's sex from About you. A reader whose sex isn't known reads the masculine form, as elsewhere.
+3. Other milestones still address the parent as a man: m2_cognitive "وانت بتتحرك", m4_movement "وانت شايله / شايلها". Should these change too? They are medical text, so they go to the doctor as well.

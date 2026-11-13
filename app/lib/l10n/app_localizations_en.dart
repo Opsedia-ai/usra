@@ -2376,8 +2376,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'The milestones checklist is for children under 6 whose birth date is recorded.';
 
   @override
-  String get devIntro =>
-      'Tick what your child does, with the day you first noticed it.';
+  String devIntro(String parent, String child) {
+    String _temp0 = intl.Intl.selectLogic(child, {
+      'other': 'Tick what your child does, with the day you first noticed it.',
+    });
+    String _temp1 = intl.Intl.selectLogic(parent, {'other': '$_temp0'});
+    return '$_temp1';
+  }
 
   @override
   String devLateBanner(String age) {
@@ -4539,7 +4544,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNothingNeeded => 'Nothing needed';
 
   @override
-  String get homeNeedsAttentionOne => 'needs your attention';
+  String homeNeedsAttentionOne(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'other': 'needs your attention',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get homeNeedsAttentionMany => 'need your attention';

@@ -2392,8 +2392,29 @@ class AppLocalizationsAr extends AppLocalizations {
       'قايمة المهارات للأطفال أقل من ٦ سنين اللي تاريخ ميلادهم متسجل.';
 
   @override
-  String get devIntro =>
-      'علّم على اللي طفلك بيعمله، واختار اليوم اللي لاحظته فيه أول مرة.';
+  String devIntro(String parent, String child) {
+    String _temp0 = intl.Intl.selectLogic(child, {
+      'female':
+          'علّمي على اللي بنتك بتعمله، واختاري اليوم اللي لاحظتيه فيه أول مرة.',
+      'male':
+          'علّمي على اللي ابنك بيعمله، واختاري اليوم اللي لاحظتيه فيه أول مرة.',
+      'other':
+          'علّمي على اللي طفلك بيعمله، واختاري اليوم اللي لاحظتيه فيه أول مرة.',
+    });
+    String _temp1 = intl.Intl.selectLogic(child, {
+      'female':
+          'علّم على اللي بنتك بتعمله، واختار اليوم اللي لاحظته فيه أول مرة.',
+      'male':
+          'علّم على اللي ابنك بيعمله، واختار اليوم اللي لاحظته فيه أول مرة.',
+      'other':
+          'علّم على اللي طفلك بيعمله، واختار اليوم اللي لاحظته فيه أول مرة.',
+    });
+    String _temp2 = intl.Intl.selectLogic(parent, {
+      'female': '$_temp0',
+      'other': '$_temp1',
+    });
+    return '$_temp2';
+  }
 
   @override
   String devLateBanner(String age) {
@@ -2486,7 +2507,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'm15_movement': 'بتمشي كام خطوة لوحدها',
       'm18_social': 'بتشاور عشان توريك حاجة لفتت نظرها',
       'm18_language': 'بتحاول تقول ٣ كلمات أو أكتر غير «ماما» و«بابا»',
-      'm18_cognitive': 'بتقلدك وانت بتعمل شغل البيت، زي الكنس',
+      'm18_cognitive': 'بتقلد شغل البيت اللي بتعملوه، زي الكنس',
       'm18_movement': 'بتمشي من غير ما تسند على حد أو حاجة',
       'm24_social': 'بتاخد بالها لما حد يتعور أو يزعل',
       'm24_language': 'بتقول كلمتين مع بعض على الأقل، زي «عايزة لبن»',
@@ -2537,7 +2558,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'm15_movement': 'بيمشي كام خطوة لوحده',
       'm18_social': 'بيشاور عشان يوريك حاجة لفتت نظره',
       'm18_language': 'بيحاول يقول ٣ كلمات أو أكتر غير «ماما» و«بابا»',
-      'm18_cognitive': 'بيقلدك وانت بتعمل شغل البيت، زي الكنس',
+      'm18_cognitive': 'بيقلد شغل البيت اللي بتعملوه، زي الكنس',
       'm18_movement': 'بيمشي من غير ما يسند على حد أو حاجة',
       'm24_social': 'بياخد باله لما حد يتعور أو يزعل',
       'm24_language': 'بيقول كلمتين مع بعض على الأقل، زي «عايز لبن»',
@@ -2588,7 +2609,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'm15_movement': 'بيمشي كام خطوة لوحده',
       'm18_social': 'بيشاور عشان يوريك حاجة لفتت نظره',
       'm18_language': 'بيحاول يقول ٣ كلمات أو أكتر غير «ماما» و«بابا»',
-      'm18_cognitive': 'بيقلدك وانت بتعمل شغل البيت، زي الكنس',
+      'm18_cognitive': 'بيقلد شغل البيت اللي بتعملوه، زي الكنس',
       'm18_movement': 'بيمشي من غير ما يسند على حد أو حاجة',
       'm24_social': 'بياخد باله لما حد يتعور أو يزعل',
       'm24_language': 'بيقول كلمتين مع بعض على الأقل، زي «عايز لبن»',
@@ -3459,7 +3480,7 @@ class AppLocalizationsAr extends AppLocalizations {
       locale: localeName,
       other: '$countString جرعة متأخرة',
       few: '$countString جرعات متأخرة',
-      two: 'جرعتين متأخرين',
+      two: 'جرعتين متأخرتين',
       one: 'جرعة متأخرة',
     );
     return '$_temp0';
@@ -4767,7 +4788,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeNothingNeeded => 'مفيش حاجة مطلوبة';
 
   @override
-  String get homeNeedsAttentionOne => 'محتاج انتباهك';
+  String homeNeedsAttentionOne(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'female': 'محتاجة انتباهك',
+      'other': 'محتاج انتباهك',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get homeNeedsAttentionMany => 'محتاجين انتباهك';
@@ -5828,7 +5855,7 @@ class AppLocalizationsAr extends AppLocalizations {
       locale: localeName,
       other: '$countString جرعة ناقصة',
       few: '$countString جرعات ناقصة',
-      two: 'جرعتين ناقصين',
+      two: 'جرعتين ناقصتين',
       one: 'جرعة ناقصة',
     );
     return '$_temp0';
@@ -5971,7 +5998,7 @@ class AppLocalizationsAr extends AppLocalizations {
       locale: localeName,
       other: '$countString جرعة تطعيم ناقصة',
       few: '$countString جرعات تطعيم ناقصة',
-      two: 'جرعتين تطعيم ناقصين',
+      two: 'جرعتين تطعيم ناقصتين',
       one: 'جرعة تطعيم ناقصة',
     );
     return '$_temp0';

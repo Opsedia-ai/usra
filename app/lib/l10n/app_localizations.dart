@@ -3710,11 +3710,11 @@ abstract class AppLocalizations {
   /// **'The milestones checklist is for children under 6 whose birth date is recorded.'**
   String get devUnderSixOnly;
 
-  /// No description provided for @devIntro.
+  /// Milestones intro: to the reader (parent = the reader's sex from About you) about the child (child = the child's sex).
   ///
   /// In en, this message translates to:
-  /// **'Tick what your child does, with the day you first noticed it.'**
-  String get devIntro;
+  /// **'{parent, select, other{{child, select, other{Tick what your child does, with the day you first noticed it.}}}}'**
+  String devIntro(String parent, String child);
 
   /// No description provided for @devLateBanner.
   ///
@@ -6715,11 +6715,11 @@ abstract class AppLocalizations {
   /// **'Nothing needed'**
   String get homeNothingNeeded;
 
-  /// No description provided for @homeNeedsAttentionOne.
+  /// After one person's name on Home; follows that person's sex.
   ///
   /// In en, this message translates to:
-  /// **'needs your attention'**
-  String get homeNeedsAttentionOne;
+  /// **'{sex, select, other{needs your attention}}'**
+  String homeNeedsAttentionOne(String sex);
 
   /// No description provided for @homeNeedsAttentionMany.
   ///

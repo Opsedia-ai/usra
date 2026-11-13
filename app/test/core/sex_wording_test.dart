@@ -106,4 +106,36 @@ void main() {
       expect(en.milestone('female', m.id), en.milestone('other', m.id));
     }
   });
+
+  test(
+    "Home, dose counts and the milestones intro follow sex (e2e #10, #11)",
+    () {
+      expect(ar.homeNeedsAttentionOne('female'), 'محتاجة انتباهك');
+      expect(ar.homeNeedsAttentionOne('male'), 'محتاج انتباهك');
+      // جرعة is feminine: the dual agrees with it, not with the child.
+      expect(ar.vaccineOverdueCount(2), 'جرعتين متأخرتين');
+      expect(ar.vaccineMissingCount(2), 'جرعتين ناقصتين');
+      expect(ar.vaccineMissingDosesTitle(2), 'جرعتين تطعيم ناقصتين');
+      expect(
+        ar.devIntro('female', 'female'),
+        'علّمي على اللي بنتك بتعمله، واختاري اليوم اللي لاحظتيه فيه أول مرة.',
+      );
+      expect(
+        ar.devIntro('male', 'male'),
+        'علّم على اللي ابنك بيعمله، واختار اليوم اللي لاحظته فيه أول مرة.',
+      );
+      expect(ar.devIntro('female', 'male'), contains('ابنك بيعمله'));
+      expect(ar.devIntro('male', 'female'), startsWith('علّم على اللي بنتك'));
+      // No milestone addresses the reader as a man any more at 18 months.
+      expect(
+        ar.milestone('female', 'm18_cognitive'),
+        'بتقلد شغل البيت اللي بتعملوه، زي الكنس',
+      );
+      expect(
+        ar.milestone('male', 'm18_cognitive'),
+        'بيقلد شغل البيت اللي بتعملوه، زي الكنس',
+      );
+      expect(en.homeNeedsAttentionOne('female'), 'needs your attention');
+    },
+  );
 }

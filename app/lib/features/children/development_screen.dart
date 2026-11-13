@@ -9,6 +9,7 @@ import '../../core/database/app_database.dart';
 import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
+import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../core/util/dates.dart';
 import '../../l10n/app_localizations.dart';
@@ -61,14 +62,17 @@ String milestoneAgeLabel(AppLocalizations l, int months) =>
     ? l.ageYears(months ~/ 12)
     : l.fuAgeMonths(months);
 
-class _Body extends StatelessWidget {
+class _Body extends ConsumerWidget {
   const _Body({required this.profile, required this.events});
 
   final Profile profile;
   final List<MedicalEvent> events;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // The intro speaks to the reader (from About you) about the child.
+    final meId = ref.watch(meProfileIdProvider);
+    final reader = meId == null ? null : ref.watch(profileProvider(meId)).value;
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     final birth = profile.birthDate!;
@@ -91,7 +95,10 @@ class _Body extends StatelessWidget {
       children: [
         Text(profile.displayName, style: text.titleLarge),
         const SizedBox(height: 6),
-        Text(l.devIntro, style: text.bodyMedium),
+        Text(
+          l.devIntro(reader?.sex ?? 'other', profile.sex ?? 'other'),
+          style: text.bodyMedium,
+        ),
         if (late.isNotEmpty) ...[
           const SizedBox(height: 12),
           Card(
