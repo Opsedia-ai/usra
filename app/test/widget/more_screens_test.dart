@@ -97,9 +97,7 @@ void main() {
 
   Finder key(String k) => find.byKey(ValueKey(k));
 
-  testWidgets('pages opened from More have a way back (QA M5)', (
-    tester,
-  ) async {
+  testWidgets('pages opened from More have a way back (QA M5)', (tester) async {
     tall(tester);
     for (final link in [
       'more-family',
