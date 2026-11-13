@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/list_row.dart';
 import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/usra_mark.dart';
 import '../../core/design/type.dart';
 import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
@@ -59,7 +60,7 @@ class SettingsScreen extends ConsumerWidget {
     final last = ref.watch(lastBackupProvider);
     final people = ref.watch(profilesProvider).value;
     return Scaffold(
-      appBar: AppBar(title: Text(l.settingsTitle)),
+      appBar: AppBar(title: UsraMarkTitle(l.settingsTitle)),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [

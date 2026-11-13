@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/database/app_database.dart';
 import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/usra_mark.dart';
 import '../../core/design/type.dart';
 import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
@@ -43,7 +44,6 @@ class MedicineListScreen extends ConsumerWidget {
         data: (list) {
           final prescriptions =
               ref.watch(prescriptionsProvider(profileId)).value ?? const [];
-          final text = Theme.of(context).textTheme;
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
             children: [
@@ -74,11 +74,7 @@ class MedicineListScreen extends ConsumerWidget {
               if (list.isEmpty)
                 Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text(
-                    l.medicinesEmpty,
-                    textAlign: TextAlign.center,
-                    style: text.bodyLarge,
-                  ),
+                  child: UsraMarkedEmpty(l.medicinesEmpty),
                 )
               else
                 UsraListCard(
@@ -103,7 +99,6 @@ class AllMedicinesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
-    final text = Theme.of(context).textTheme;
     final people = ref.watch(profilesProvider).value ?? const <Profile>[];
     final all = [
       for (final p in people)
@@ -135,11 +130,7 @@ class AllMedicinesScreen extends ConsumerWidget {
                 if (byPerson.isEmpty)
                   Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Text(
-                      l.medicinesEmpty,
-                      textAlign: TextAlign.center,
-                      style: text.bodyLarge,
-                    ),
+                    child: UsraMarkedEmpty(l.medicinesEmpty),
                   ),
                 for (final (i, e) in byPerson.indexed) ...[
                   if (i > 0) const SizedBox(height: UsraSpacing.s2),

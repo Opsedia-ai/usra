@@ -7,6 +7,7 @@ import '../../core/design/list_row.dart';
 import '../../core/design/pebble.dart';
 import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/usra_mark.dart';
 import '../../core/design/type.dart';
 import '../../core/preferences.dart';
 import '../../core/providers.dart';
@@ -70,13 +71,10 @@ class FamilyScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('$e')),
         data: (list) => list.isEmpty
             ? Center(
-                child: Padding(
+                // Scrolls at very large text instead of overflowing.
+                child: SingleChildScrollView(
                   padding: const EdgeInsets.all(32),
-                  child: Text(
-                    l.familyEmpty,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
+                  child: UsraMarkedEmpty(l.familyEmpty),
                 ),
               )
             : ListView(

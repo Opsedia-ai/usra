@@ -7,6 +7,7 @@ import '../../core/design/list_row.dart';
 import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
+import '../../core/design/usra_mark.dart';
 import '../../l10n/app_localizations.dart';
 import '../backup/backup_providers.dart';
 import '../account/account_providers.dart';
@@ -85,7 +86,7 @@ class AboutPrivacyScreen extends ConsumerWidget {
     Future<void> open(Uri uri) => openLink(context, ref, uri);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.aboutTitle)),
+      appBar: AppBar(title: UsraMarkTitle(l.aboutTitle)),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [

@@ -7,6 +7,7 @@ import '../../core/design/list_row.dart';
 import '../../core/design/pill_chip.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
+import '../../core/design/usra_mark.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -98,7 +99,7 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
     final month = DateFormat.yMMMM(locale);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.recordsTitle)),
+      appBar: AppBar(title: UsraMarkTitle(l.recordsTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
         children: [
@@ -129,10 +130,9 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
           else if (events.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 48),
-              child: Text(
+              child: UsraMarkedEmpty(
                 l.recordsEmpty,
-                key: const ValueKey('records-empty'),
-                textAlign: TextAlign.center,
+                textKey: const ValueKey('records-empty'),
                 style: UsraType.body.copyWith(color: context.usra.inkMuted),
               ),
             ),
