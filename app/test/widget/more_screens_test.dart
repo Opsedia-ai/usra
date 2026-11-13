@@ -210,6 +210,13 @@ void main() {
         find.descendant(of: row, matching: find.text('قريبًا')),
         findsOneWidget,
       );
+      // A screen reader hears the title and "soon" together.
+      final semantics = tester.ensureSemantics();
+      expect(
+        find.bySemanticsLabel(RegExp(r'دكتور أسرة بالذكاء الاصطناعي\s+قريبًا')),
+        findsOneWidget,
+      );
+      semantics.dispose();
       // Just before About, in the App group.
       final about = tester.getTopLeft(key('settings-about')).dy;
       expect(tester.getTopLeft(row).dy, lessThan(about));

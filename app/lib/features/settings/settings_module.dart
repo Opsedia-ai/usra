@@ -237,7 +237,6 @@ class SettingsScreen extends ConsumerWidget {
                       child: ComingSoonPill(),
                     ),
                   ),
-                  semanticLabel: '${l.drAiTitle}، ${l.drAiSoon}',
                   onTap: () => context.push(drUsraAiPath),
                 ),
               UsraListRow(
