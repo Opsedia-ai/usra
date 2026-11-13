@@ -7,7 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat, NumberFormat;
 
 import '../../core/database/app_database.dart';
-import '../../core/design/status_chip.dart';
+import '../../core/design/list_row.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/follow_ups/follow_up.dart';
@@ -207,7 +208,10 @@ class _BodyState extends State<_Body> {
             key: const ValueKey('pregnancy-next'),
             style: text.titleMedium,
           ),
-          for (final s in open) _AncTile(status: s, today: today),
+          const SizedBox(height: UsraSpacing.s2),
+          UsraListCard(
+            children: [for (final s in open) _AncTile(status: s, today: today)],
+          ),
         ],
         if (past.isNotEmpty) ...[
           Semantics(
@@ -238,7 +242,11 @@ class _BodyState extends State<_Body> {
             ),
           ),
           if (_doneOpen)
-            for (final s in past) _AncTile(status: s, today: today),
+            UsraListCard(
+              children: [
+                for (final s in past) _AncTile(status: s, today: today),
+              ],
+            ),
         ],
         const SizedBox(height: 4),
         Text(l.pregnancyScheduleSource, style: muted),
@@ -308,7 +316,6 @@ class _BodyState extends State<_Body> {
     BuildContext context,
     List<PregnancyReading> readings,
   ) {
-    final l = AppLocalizations.of(context);
     final r = readings.reversed
         .where((r) => r.systolic != null || r.diastolic != null)
         .firstOrNull;
@@ -326,20 +333,46 @@ class _BodyState extends State<_Body> {
           r.date,
         ),
         const SizedBox(height: 6),
-        StatusChip(
-          key: const ValueKey('pregnancy-bp-status'),
-          severity: level.severity,
-          label: switch (level) {
-            BloodPressureLevel.usual => l.bpUsual,
-            BloodPressureLevel.high => l.bpHigh,
-            BloodPressureLevel.veryHigh => l.bpVeryHigh,
-          },
-        ),
+        _BpStatus(level: level),
       ],
     );
   }
 }
 
+/// How the latest blood pressure sits, in words. Usual is plain muted
+/// text; high takes the amber dot; very high stays red, the one emergency.
+class _BpStatus extends StatelessWidget {
+  const _BpStatus({required this.level});
+
+  final BloodPressureLevel level;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.usra;
+    const key = ValueKey('pregnancy-bp-status');
+    return switch (level) {
+      BloodPressureLevel.usual => Text(
+        l.bpUsual,
+        key: key,
+        style: UsraType.label.copyWith(
+          color: c.inkMuted,
+          fontWeight: FontWeight.w400,
+        ),
+      ),
+      BloodPressureLevel.high => StatusDotText(key: key, label: l.bpHigh),
+      BloodPressureLevel.veryHigh => StatusDotText(
+        key: key,
+        label: l.bpVeryHigh,
+        color: c.urgent,
+        dotColor: c.urgent,
+      ),
+    };
+  }
+}
+
+/// One antenatal check as a list row: what, why, and where it stands. Only
+/// an overdue check takes the amber dot.
 class _AncTile extends StatelessWidget {
   const _AncTile({required this.status, required this.today});
 
@@ -352,53 +385,41 @@ class _AncTile extends StatelessWidget {
     final locale = Localizations.localeOf(context).toLanguageTag();
     final item = status.item;
     final date = DateFormat.yMMMd(locale).format(status.dueOn);
-    final (severity, label) = switch (status.state) {
-      AncState.done => (Severity.good, l.ancDone),
-      AncState.missed => (Severity.info, l.ancMissed),
+    final (overdue, label) = switch (status.state) {
+      AncState.done => (false, l.ancDone),
+      AncState.missed => (false, l.ancMissed),
       AncState.open => switch (followUpSeverity(
         status.dueOn,
         today,
         graceDays: item.graceDays,
       )) {
-        Severity.actSoon => (Severity.actSoon, l.followUpOverdue(date)),
-        final s => (s, l.followUpDue(date)),
+        Severity.actSoon => (true, l.followUpOverdue(date)),
+        _ => (false, l.followUpDue(date)),
       },
     };
     final c = context.usra;
-    return Padding(
+    final muted = UsraType.label.copyWith(
+      color: c.inkMuted,
+      fontWeight: FontWeight.w400,
+    );
+    return UsraListRow(
       key: ValueKey('anc-${item.id}'),
-      padding: const EdgeInsets.symmetric(vertical: UsraSpacing.s2),
-      child: Row(
+      icon: switch (item.kind) {
+        AncKind.contact => Icons.medical_services_outlined,
+        AncKind.scan => Icons.image_outlined,
+        AncKind.lab => Icons.science_outlined,
+      },
+      title: ancTitle(l, item),
+      emphasized: overdue,
+      subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ExcludeSemantics(
-            child: Icon(switch (item.kind) {
-              AncKind.contact => Icons.medical_services_outlined,
-              AncKind.scan => Icons.image_outlined,
-              AncKind.lab => Icons.science_outlined,
-            }, color: c.primary),
-          ),
-          const SizedBox(width: UsraSpacing.s3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  ancTitle(l, item),
-                  style: UsraType.body.copyWith(
-                    color: c.ink,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  ancReason(l, item),
-                  style: UsraType.body.copyWith(color: c.inkMuted),
-                ),
-                const SizedBox(height: UsraSpacing.s1),
-                StatusChip(severity: severity, label: label),
-              ],
-            ),
-          ),
+          Text(ancReason(l, item), style: muted),
+          const SizedBox(height: UsraSpacing.s1),
+          if (overdue)
+            StatusDotText(label: label)
+          else
+            Text(label, style: muted),
         ],
       ),
     );
