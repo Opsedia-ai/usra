@@ -79,9 +79,10 @@ class RecordRow extends StatelessWidget {
       leading: IconBox(icon: type?.icon ?? Icons.description_outlined),
       title: [
         type?.labelOf(context) ?? event.type,
-        if (type?.rowTitle case final rowTitle?)
-          ?rowTitle(context, data)
-        else if (title != null)
+        if (type?.rowTitle case final rowTitle?) ...[
+          // Nothing measured: just the type, with no dangling separator.
+          if (rowTitle(context, data) case final t? when t.isNotEmpty) t,
+        ] else if (title != null)
           displayFieldValue(context, titleField!, title),
       ].join(partSeparator),
       subtitleText: [
