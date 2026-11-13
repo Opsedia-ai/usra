@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/design/buttons.dart';
 import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/usra_mark.dart';
@@ -28,15 +29,17 @@ class MedicineListScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final person = ref.watch(profileProvider(profileId)).value;
     final medicines = ref.watch(medicinesProvider(profileId));
+    final router = GoRouter.of(context);
     return Scaffold(
       appBar: AppBar(
+        // Reached after saving a medicine with nothing under it in the
+        // stack: back goes to the person's page then (e2e #5).
+        leading: BackButton(
+          key: const ValueKey('medicines-back'),
+          onPressed: () =>
+              router.canPop() ? router.pop() : router.go('/family/$profileId'),
+        ),
         title: Text(person == null ? '' : l.medicinesTitle(person.displayName)),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        key: const ValueKey('medicine-add'),
-        onPressed: () => context.go('/family/$profileId/medicines/new'),
-        icon: const Icon(Icons.add),
-        label: Text(l.medicineAdd),
       ),
       body: medicines.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -45,10 +48,18 @@ class MedicineListScreen extends ConsumerWidget {
           final prescriptions =
               ref.watch(prescriptionsProvider(profileId)).value ?? const [];
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+            // The same 20 side margins as the Medicines tab.
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
             children: [
-              // Adding a medicine is the page's one filled action (the
-              // floating button); a prescription is the outlined second.
+              // Adding a medicine is the page's one filled action; a
+              // prescription is the outlined second.
+              UsraPillButton(
+                key: const ValueKey('medicine-add'),
+                icon: Icons.add,
+                label: l.medicineAdd,
+                onPressed: () => context.go('/family/$profileId/medicines/new'),
+              ),
+              const SizedBox(height: UsraSpacing.s2),
               OutlinedButton.icon(
                 key: const ValueKey('prescription-add'),
                 style: OutlinedButton.styleFrom(
