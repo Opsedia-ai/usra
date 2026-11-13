@@ -5,8 +5,9 @@ import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/design/buttons.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/pebble.dart';
-import '../../core/design/status_chip.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/preferences.dart';
@@ -24,14 +25,16 @@ import '../children/milestones.dart' show showsMilestones;
 import '../children/vaccines_screen.dart'
     show showDoseSheet, watchChildVaccines;
 import '../follow_ups/follow_ups_providers.dart' show personFollowUpsProvider;
-import '../insurance/insurance_info.dart' show ExpiryChip, expirySeverity;
+import '../insurance/insurance_info.dart' show expiryDay, expirySeverity;
 import '../insurance/insurance_providers.dart' show insuranceCardsProvider;
 import '../medicines/dose_schedule.dart' show PlannedDose;
 import '../medicines/medicine_text.dart';
 import '../medicines/medicines_providers.dart';
 import '../pregnancy/pregnancy.dart' show canBePregnant;
 import '../pregnancy/pregnancy_widgets.dart';
-import '../sick_days/sick_days_providers.dart' show episodesProvider;
+import '../sick_days/episode_sheets.dart' show showReadingSheet;
+import '../sick_days/sick_days_providers.dart'
+    show episodesProvider, readingsProvider;
 import 'family_screen.dart';
 import 'person_sections_screen.dart' show hasPhotos, isVisitOrLab;
 import 'person_status.dart';
@@ -308,8 +311,9 @@ class _Identity extends ConsumerWidget {
   }
 }
 
-/// What needs attention. Silent when nothing does: the page never says all is
-/// well, because the app can't know that.
+/// What needs attention, as one card of rows with an amber dot. Silent when
+/// nothing does: the page never says all is well, because the app can't
+/// know that.
 class _Attention extends ConsumerWidget {
   const _Attention({required this.person});
 
@@ -319,8 +323,10 @@ class _Attention extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final episodes = ref.watch(episodesProvider(person.id)).value;
-    final overdue = watchChildVaccines(ref, person);
+    final sick = episodes?.where((e) => e.endedAt == null).firstOrNull;
+    final vaccines = watchChildVaccines(ref, person);
     final today = ref.watch(clockProvider)();
+    final locale = Localizations.localeOf(context).toLanguageTag();
     final cards = ref.watch(insuranceCardsProvider(person.id)).value;
     final expiring = [
       for (final c in cards ?? const <InsuranceCard>[])
@@ -328,85 +334,81 @@ class _Attention extends ConsumerWidget {
             case Severity.urgent || Severity.headsUp)
           c,
     ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (episodes?.any((e) => e.endedAt == null) ?? false)
-          Padding(
-            padding: const EdgeInsets.only(bottom: UsraSpacing.s3),
-            child: _AttentionCard(
-              key: const ValueKey('person-sick'),
-              chip: StatusChip(
-                severity: Severity.headsUp,
-                icon: Icons.thermostat,
-                label: person.sex == 'female'
-                    ? l.statusSickFemale
-                    : l.statusSick,
-              ),
-              children: [
-                OutlinedButton(
-                  key: const ValueKey('person-sick-open'),
-                  onPressed: () =>
-                      context.push('/family/${person.id}/sick-days'),
-                  child: Text(l.memberSickDays),
-                ),
-              ],
-            ),
-          ),
-        if (overdue != null && overdue.next.overdue.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: UsraSpacing.s3),
-            child: _OverdueVaccine(child: overdue),
-          ),
-        for (final c in expiring)
-          Padding(
-            padding: const EdgeInsets.only(bottom: UsraSpacing.s3),
-            child: _AttentionCard(
-              key: ValueKey('person-insurance-${c.id}'),
-              chip: ExpiryChip(expiresOn: c.expiresOn),
-              children: [
-                Text(
-                  c.label,
-                  style: UsraType.body.copyWith(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                    color: context.usra.ink,
-                  ),
-                ),
-                OutlinedButton(
-                  onPressed: () =>
-                      context.push('/family/${person.id}/insurance/${c.id}'),
-                  child: Text(l.personInsuranceOpen),
-                ),
-              ],
-            ),
-          ),
-      ],
+    final rows = [
+      if (sick != null) _SickRow(person: person, episode: sick),
+      if (vaccines != null && vaccines.next.overdue.isNotEmpty)
+        _OverdueVaccine(child: vaccines),
+      for (final c in expiring)
+        UsraListRow(
+          key: ValueKey('person-insurance-${c.id}'),
+          leading: const StatusDot(),
+          title: c.label,
+          emphasized: true,
+          subtitleText: switch ((
+            expirySeverity(c.expiresOn, today),
+            DateFormat.yMMMd(locale).format(expiryDay(c.expiresOn)!),
+          )) {
+            (Severity.urgent, final date) => l.insuranceExpired(date),
+            (_, final date) => l.insuranceExpiresSoon(date),
+          },
+          onTap: () => context.push('/family/${person.id}/insurance/${c.id}'),
+        ),
+    ];
+    if (rows.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: UsraSpacing.s3),
+      child: UsraListCard(
+        key: const ValueKey('person-attention'),
+        children: rows,
+      ),
     );
   }
 }
 
-class _AttentionCard extends StatelessWidget {
-  const _AttentionCard({super.key, required this.chip, required this.children});
+/// Unwell now: since when, and a reading in one tap.
+class _SickRow extends ConsumerWidget {
+  const _SickRow({required this.person, required this.episode});
 
-  final Widget chip;
-  final List<Widget> children;
+  final Profile person;
+  final SickEpisode episode;
 
   @override
-  Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(UsraSpacing.s4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 6,
-        children: [chip, ...children],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final readings = ref.watch(readingsProvider(episode.id)).value;
+    return UsraListRow(
+      key: const ValueKey('person-sick'),
+      leading: const StatusDot(),
+      title: person.sex == 'female' ? l.statusSickFemale : l.statusSick,
+      emphasized: true,
+      subtitleText: [
+        l.sickDaySince(
+          DateFormat.MMMd(locale).format(episode.startedAt.toLocal()),
+        ),
+        if (readings != null && readings.isEmpty) l.sickDayNoReadingsYet,
+      ].join(' · '),
+      onTap: () => context.push('/family/${person.id}/sick-days'),
+      trailing: OutlinedButton(
+        key: const ValueKey('person-sick-reading'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: context.usra.ink,
+          minimumSize: _buttonSize(context),
+        ),
+        onPressed: () => showReadingSheet(
+          context,
+          episode: episode,
+          last: readings == null || readings.isEmpty ? null : readings.last,
+        ),
+        child: Text(l.sickDayReadingShort),
       ),
-    ),
-  );
+    );
+  }
 }
 
-/// The earliest overdue dose. The dose and its date come from the schedule, so
-/// the reference is named under them; logging it is what the family records.
+/// Doses she's missing and how many can be given now, with the schedule
+/// they're counted against and the date it was checked. "تسجيل" logs the
+/// earliest overdue dose, as the old card did; the row opens the full list.
 class _OverdueVaccine extends ConsumerWidget {
   const _OverdueVaccine({required this.child});
 
@@ -415,86 +417,60 @@ class _OverdueVaccine extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
+    final code = l.localeName;
     final locale = Localizations.localeOf(context).toLanguageTag();
     final overdue = child.next.overdue;
     final first = overdue.first;
     final today = ref.watch(clockProvider)();
     final checked = DateFormat.yMMMd(locale)
         .format(DateTime.parse(egyptScheduleCheckedOn));
-    final due = first.dueOn.year == today.year
-        ? DateFormat.MMMMd(locale).format(first.dueOn)
-        : DateFormat.yMMMMd(locale).format(first.dueOn);
     // Everything she's missing, not only what's overdue now: a missing
     // earlier dose keeps the later ones waiting, but they're missing too.
     final missing = child.missing(today);
     final now = child.givableNow(today);
-    return _AttentionCard(
+    final muted = UsraType.label.copyWith(
+      color: context.usra.inkMuted,
+      fontWeight: FontWeight.w400,
+    );
+    return UsraListRow(
       key: const ValueKey('person-vaccine-overdue'),
-      chip: StatusChip(
-        key: const ValueKey('person-vaccine-count'),
-        severity: Severity.actSoon,
-        icon: Icons.warning_amber_rounded,
-        label: missing > overdue.length
-            ? l.vaccineMissingCount(missing)
-            : overdue.length == 1
-            ? l.statusVaccineOverdue
-            : digitsIn(
-                Localizations.localeOf(context).languageCode,
-                l.vaccineOverdueCount(overdue.length),
-              ),
+      leading: const StatusDot(),
+      title: digitsIn(
+        code,
+        l.vaccineMissingDosesTitle(
+          missing > overdue.length ? missing : overdue.length,
+        ),
       ),
-      children: [
-        if (missing > now)
-          Text(
-            l.vaccineGivableNow(now),
-            key: const ValueKey('person-vaccine-now'),
-            style: UsraType.body.copyWith(color: context.usra.ink),
-          ),
-        Text(
-          doseName(l, first.dose),
-          style: UsraType.body.copyWith(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: context.usra.ink,
-          ),
-        ),
-        Text(
-          l.personVaccineWasDue(due),
-          style: UsraType.body.copyWith(color: context.usra.inkMuted),
-        ),
-        Text(
-          first.dose.required
-              ? l.personVaccineSource(
-                  child.plan.route == VaccineRoute.government
-                      ? l.vaccineRouteGovernment
-                      : l.vaccineRouteHexavalent,
-                  checked,
-                )
-              : l.personVaccineSourceOptional(checked),
-          key: const ValueKey('person-vaccine-source'),
-          style: UsraType.label.copyWith(color: context.usra.inkMuted),
-        ),
-        Wrap(
-          spacing: UsraSpacing.s2,
-          runSpacing: UsraSpacing.s2,
-          children: [
-            FilledButton(
-              key: const ValueKey('person-vaccine-log'),
-              style: FilledButton.styleFrom(minimumSize: _buttonSize(context)),
-              onPressed: () =>
-                  showDoseSheet(context, ref, child, first, given: true),
-              child: Text(l.personVaccineLog),
+      emphasized: true,
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (now > 0)
+            Text(
+              digitsIn(code, l.vaccineGivableNowCount(now)),
+              key: const ValueKey('person-vaccine-now'),
+              style: muted,
             ),
-            if (overdue.length > 1)
-              OutlinedButton(
-                key: const ValueKey('person-vaccine-all'),
-                onPressed: () =>
-                    context.push('/family/${child.profile.id}/vaccines'),
-                child: Text(l.vaccineOpenAll),
-              ),
-          ],
-        ),
-      ],
+          Text(
+            first.dose.required
+                ? l.personVaccineSource(
+                    child.plan.route == VaccineRoute.government
+                        ? l.vaccineRouteGovernment
+                        : l.vaccineRouteHexavalent,
+                    checked,
+                  )
+                : l.personVaccineSourceOptional(checked),
+            key: const ValueKey('person-vaccine-source'),
+            style: muted,
+          ),
+        ],
+      ),
+      onTap: () => context.push('/family/${child.profile.id}/vaccines'),
+      trailing: TextButton(
+        key: const ValueKey('person-vaccine-log'),
+        onPressed: () => showDoseSheet(context, ref, child, first, given: true),
+        child: Text(l.vaccineLogShort),
+      ),
     );
   }
 }
@@ -525,11 +501,7 @@ class _NextDose extends ConsumerWidget {
         if (missed)
           Padding(
             padding: const EdgeInsets.only(bottom: UsraSpacing.s1),
-            child: StatusChip(
-              severity: Severity.actSoon,
-              icon: Icons.warning_amber_rounded,
-              label: l.statusDoseMissed,
-            ),
+            child: StatusDotText(label: l.statusDoseMissed),
           ),
         Text(
           missed ? l.personDoseWasAt(time) : l.personNextDose(time),
@@ -807,36 +779,36 @@ class _Tiles extends ConsumerWidget {
         ),
     ];
 
-    // One column when large text or Simple Mode would crowd two.
-    if (_textIsLarge(context)) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 10,
-        children: [for (final t in tiles) _Tile(data: t)],
-      );
-    }
-    return Column(
-      spacing: 10,
+    return UsraListCard(
+      key: const ValueKey('person-sections'),
       children: [
-        for (var i = 0; i < tiles.length; i += 2)
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 10,
-              children: [
-                Expanded(child: _Tile(data: tiles[i])),
-                Expanded(
-                  child: i + 1 < tiles.length
-                      ? _Tile(data: tiles[i + 1])
-                      : const SizedBox.shrink(),
-                ),
-              ],
-            ),
+        for (final t in tiles)
+          UsraListRow(
+            key: ValueKey(t.key),
+            icon: _tileIcons[t.key],
+            title: t.title,
+            subtitleText: t.subtitle,
+            onTap: t.onTap,
           ),
       ],
     );
   }
 }
+
+const _tileIcons = {
+  'member-vaccines': Icons.vaccines_outlined,
+  'member-growth': Icons.monitor_weight_outlined,
+  'member-visits': Icons.medical_services_outlined,
+  'member-insurance': Icons.badge_outlined,
+  'member-medicines': Icons.medication_outlined,
+  'member-sick-days': Icons.thermostat,
+  'member-pregnancy': Icons.pregnant_woman_outlined,
+  'member-development': Icons.child_care_outlined,
+  'member-baby-log': Icons.baby_changing_station_outlined,
+  'member-follow-ups-open': Icons.event_note_outlined,
+  'member-documents': Icons.folder_outlined,
+  'member-spending': Icons.account_balance_wallet_outlined,
+};
 
 class _TileData {
   const _TileData(this.key, this.title, this.subtitle, this.onTap);
@@ -845,54 +817,6 @@ class _TileData {
   final String title;
   final String? subtitle;
   final VoidCallback onTap;
-}
-
-class _Tile extends StatelessWidget {
-  const _Tile({required this.data});
-
-  final _TileData data;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.usra;
-    final subtitle = data.subtitle;
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(UsraRadius.lg),
-        side: Theme.of(context).brightness == Brightness.dark
-            ? BorderSide(color: c.line)
-            : BorderSide.none,
-      ),
-      child: InkWell(
-        key: ValueKey(data.key),
-        onTap: data.onTap,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 72),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  data.title,
-                  style: UsraType.body.copyWith(
-                    color: c.ink,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (subtitle != null)
-                  Text(
-                    subtitle,
-                    style: UsraType.label.copyWith(color: c.inkMuted),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// Every record, newest first, and the full list of record types to add.
@@ -1013,21 +937,14 @@ class _PersonActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final c = context.usra;
-    // Simple Mode's theme may ask for more than the design's 60.
-    final height = _buttonSize(context).height.clamp(60.0, double.infinity);
+    final height = _buttonSize(context).height;
     final add = DecoratedBox(
-      decoration: ShapeDecoration(
-        shape: const StadiumBorder(),
-        shadows: c.shadowFloat,
-      ),
+      decoration: const BoxDecoration(),
       child: FilledButton.icon(
         key: const ValueKey('person-add'),
         style: FilledButton.styleFrom(
           minimumSize: Size(0, height),
-          textStyle: UsraType.body.copyWith(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: UsraType.body.copyWith(fontWeight: FontWeight.w600),
         ),
         onPressed: () => showAddSheet(context, person: person.id),
         icon: const Icon(Icons.add),
@@ -1040,6 +957,7 @@ class _PersonActions extends StatelessWidget {
         minimumSize: Size(0, height),
         padding: const EdgeInsets.symmetric(horizontal: 18),
         backgroundColor: c.surface,
+        foregroundColor: c.ink,
         side: BorderSide(color: c.lineStrong),
         textStyle: UsraType.body.copyWith(fontWeight: FontWeight.w600),
       ),

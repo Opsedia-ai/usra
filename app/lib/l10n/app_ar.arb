@@ -1491,5 +1491,7 @@
   "vaccineLogShort": "تسجيل",
   "vaccineDoctorDecides": "الدكتور يحدد إمتى تتاخد.",
   "vaccineAndMore": "{count, plural, =1{وواحدة كمان} =2{واتنين كمان} other{و{count} كمان}}",
-  "vaccineThenInOrder": "{count, plural, =1{بعدها جرعة واحدة} =2{بعدها جرعتين بالترتيب} few{بعدها {count} جرعات بالترتيب} other{بعدها {count} جرعة بالترتيب}}"
+  "vaccineThenInOrder": "{count, plural, =1{بعدها جرعة واحدة} =2{بعدها جرعتين بالترتيب} few{بعدها {count} جرعات بالترتيب} other{بعدها {count} جرعة بالترتيب}}",
+  "vaccineMissingDosesTitle": "{count, plural, =1{جرعة تطعيم ناقصة} =2{جرعتين تطعيم ناقصين} few{{count} جرعات تطعيم ناقصة} other{{count} جرعة تطعيم ناقصة}}",
+  "sickDayReadingShort": "قراءة"
 }

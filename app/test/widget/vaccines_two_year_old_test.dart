@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:usra/core/design/status_chip.dart';
 import 'package:usra/features/children/child_vaccines.dart';
 import 'package:usra/features/children/egypt_vaccines.dart';
 import 'package:usra/features/follow_ups/follow_ups_providers.dart';
@@ -491,13 +490,11 @@ void main() {
     await h.open(tester, '/family/$id');
     // 18 required doses missing; 7 can be given today (birth, 2 months and
     // MMR 1), the rest wait for the doses before them.
-    expect(
-      tester.widget<StatusChip>(key('person-vaccine-count')).label,
-      '١٨ جرعة ناقصة',
-    );
-    expect(text(tester, 'person-vaccine-now'), 'ممكن تتاخد دلوقتي: ٧');
-    expect(find.textContaining('الدكتور يحدد إمتى تتاخد'), findsOneWidget);
+    // One dot row in the attention card.
+    expect(find.text('١٨ جرعة تطعيم ناقصة'), findsOneWidget);
+    expect(text(tester, 'person-vaccine-now'), '٧ ممكن تتاخد دلوقتي');
     await h.go(tester, '/family/$id/vaccines');
+    expect(find.textContaining('الدكتور يحدد إمتى تتاخد'), findsOneWidget);
     // The vaccine page lists the 7 under one heading.
     expect(
       tester

@@ -425,3 +425,5 @@ Wording from the polish the founder approved on 13 Nov 2026 (`docs/design/polish
 | `vaccineDoctorDecides` | New | الدكتور يحدد إمتى تتاخد. | The doctor decides when they are given. |
 | `vaccineAndMore` | New | و{count} كمان (وواحدة كمان، واتنين كمان) | and {count} more |
 | `vaccineThenInOrder` | New | بعدها {count} جرعة بالترتيب (جرعة واحدة، جرعتين، جرعات) | then {count} doses in order |
+| `vaccineMissingDosesTitle` | New | {count} جرعة تطعيم ناقصة (جرعة تطعيم ناقصة، جرعتين تطعيم ناقصين، جرعات تطعيم ناقصة) | {count} vaccine doses missing |
+| `sickDayReadingShort` | New | قراءة | Reading |

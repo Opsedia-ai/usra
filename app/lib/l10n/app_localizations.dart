@@ -8316,6 +8316,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{then 1 dose in order} other{then {count} doses in order}}'**
   String vaccineThenInOrder(int count);
+
+  /// No description provided for @vaccineMissingDosesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 vaccine dose missing} other{{count} vaccine doses missing}}'**
+  String vaccineMissingDosesTitle(int count);
+
+  /// No description provided for @sickDayReadingShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading'**
+  String get sickDayReadingShort;
 }
 
 class _AppLocalizationsDelegate
