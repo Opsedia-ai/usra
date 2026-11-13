@@ -32,7 +32,7 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
-    expect(find.text('أهلاً! أنا دكتور أسرة'), findsOneWidget);
+    expect(find.text('أهلاً! أنا دليلك في أسرة'), findsOneWidget);
     expect(find.byType(DrUsra), findsOneWidget);
     final direction = Directionality.of(tester.element(find.byType(DrUsra)));
     expect(direction, TextDirection.rtl);

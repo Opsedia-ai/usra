@@ -16,7 +16,7 @@ import 'package:usra/features/backup/backup_providers.dart';
 
 import '../support/fake_lock.dart';
 
-const home = 'أهلاً! أنا دكتور أسرة';
+const home = 'أهلاً! أنا دليلك في أسرة';
 
 void main() {
   late AppDatabase db;

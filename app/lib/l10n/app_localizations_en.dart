@@ -22,7 +22,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navSettings => 'More';
 
   @override
-  String get homeGreeting => 'Hello! I\'m Dr. Usra';
+  String get homeGreeting => 'Hello! I\'m your guide in Usra';
 
   @override
   String get homeIntro =>
@@ -1130,7 +1130,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tutorialWelcomeTitle => 'Hi, I\'m Dr. Usra';
+  String get tutorialWelcomeTitle => 'Hi, I\'m your guide in Usra';
 
   @override
   String get tutorialWelcomeBody =>

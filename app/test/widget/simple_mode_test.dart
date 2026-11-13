@@ -71,7 +71,7 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('tutorial-step')), findsNothing);
-    expect(find.text('أهلاً! أنا دكتور أسرة'), findsOneWidget);
+    expect(find.text('أهلاً! أنا دليلك في أسرة'), findsOneWidget);
 
     // Reopened from More, skipped, and back on More.
     await tester.tap(find.text('المزيد').last);

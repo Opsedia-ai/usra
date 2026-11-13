@@ -584,3 +584,12 @@ The middle dot "·" between parts of a line looked like the Arabic zero "٠" bes
 | `vaccineGivableNowHeading` | Changed | ممكن تتاخد دلوقتي – {count} | Can be given now – {count} |
 
 Question: does " – " read naturally to you between parts, for example "الجرعة الجاية – ٨:٠٠ م"? The Arabic comma "، " was the other option.
+
+## Mascot introduction, 13 November 2026 (founder decision)
+
+The mascot no longer calls itself a doctor, so it doesn't blur the "not a medical device" line.
+
+| Key | Arabic | English |
+|---|---|---|
+| `homeGreeting` | أهلاً! أنا دليلك في أسرة | Hello! I'm your guide in Usra |
+| `tutorialWelcomeTitle` | أهلاً، أنا دليلك في أسرة | Hi, I'm your guide in Usra |
