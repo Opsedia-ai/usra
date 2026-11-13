@@ -1766,6 +1766,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderOpenSettings => 'Open Settings';
 
   @override
+  String get reminderExplainTitle => 'Reminders for vaccine visits?';
+
+  @override
+  String get reminderExplainBody =>
+      'Usra can remind you on this phone before each vaccine is due, so a visit isn\'t missed. Reminders are made on this phone and nothing is sent anywhere. Your phone will ask you to allow notifications next.';
+
+  @override
+  String get reminderExplainOk => 'Continue';
+
+  @override
+  String get reminderExplainLater => 'Not now';
+
+  @override
+  String get settingsNotificationsOffPhone =>
+      'Notifications are off on this phone, so these reminders won\'t show.';
+
+  @override
   String get reminderBatteryTitle => 'Make reminders reliable';
 
   @override

@@ -2876,6 +2876,36 @@ abstract class AppLocalizations {
   /// **'Open Settings'**
   String get reminderOpenSettings;
 
+  /// Shown before the phone's own notification prompt, after saving a vaccine plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders for vaccine visits?'**
+  String get reminderExplainTitle;
+
+  /// Why the app asks for notifications, before the phone's prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra can remind you on this phone before each vaccine is due, so a visit isn\'t missed. Reminders are made on this phone and nothing is sent anywhere. Your phone will ask you to allow notifications next.'**
+  String get reminderExplainBody;
+
+  /// Goes on to the phone's notification prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get reminderExplainOk;
+
+  /// Closes without asking the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get reminderExplainLater;
+
+  /// Under More's vaccine reminders switch when the phone's notifications are off.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are off on this phone, so these reminders won\'t show.'**
+  String get settingsNotificationsOffPhone;
+
   /// No description provided for @reminderBatteryTitle.
   ///
   /// In en, this message translates to:

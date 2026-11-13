@@ -1773,6 +1773,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reminderOpenSettings => 'افتح الإعدادات';
 
   @override
+  String get reminderExplainTitle => 'نفكّرك بمواعيد التطعيم؟';
+
+  @override
+  String get reminderExplainBody =>
+      'أسرة ممكن تفكّرك على الموبايل ده قبل ميعاد كل تطعيم، علشان الزيارة ماتفوتش. التنبيهات بتتعمل على الموبايل نفسه ومفيش حاجة بتتبعت لأي مكان. بعد كده الموبايل هيسألك تسمح بالإشعارات.';
+
+  @override
+  String get reminderExplainOk => 'كمّل';
+
+  @override
+  String get reminderExplainLater => 'مش دلوقتي';
+
+  @override
+  String get settingsNotificationsOffPhone =>
+      'الإشعارات مقفولة على الموبايل ده، فالتنبيهات دي مش هتظهر.';
+
+  @override
   String get reminderBatteryTitle => 'خلّي التنبيهات مضمونة';
 
   @override

@@ -99,7 +99,18 @@ void main() {
     }
     expect(scheduler.requests, 0);
     await tapKey(tester, 'vaccine-setup-save');
-    // Vaccine reminders need notifications: asked for once the plan is saved.
+    // Vaccine reminders need notifications: once the plan is saved the app
+    // says why, then the phone asks (e2e #4).
+    expect(find.byKey(const ValueKey('reminder-explain')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('reminder-explain')),
+        matching: find.textContaining('مفيش حاجة بتتبعت'),
+      ),
+      findsOneWidget,
+    );
+    expect(scheduler.requests, 0);
+    await tapKey(tester, 'reminder-explain-ok');
     expect(scheduler.requests, 1);
     expect(scheduler.lastRequestedExactAlarms, isFalse);
 
@@ -269,7 +280,22 @@ void main() {
     expect(find.byKey(const ValueKey('settings-vaccine-time')), findsNothing);
     expect(scheduler.requests, 0);
     await tapKey(tester, 'settings-vaccine-reminders');
+    // "Not now" asks nothing; turning it on again explains again.
+    await tapKey(tester, 'reminder-explain-later');
+    expect(scheduler.requests, 0);
+    // On here but off on the phone: More says so, with a way to fix it (#24).
+    expect(
+      find.byKey(const ValueKey('settings-vaccine-blocked')),
+      findsOneWidget,
+    );
+    await tapKey(tester, 'settings-vaccine-reminders');
+    await tapKey(tester, 'settings-vaccine-reminders');
+    await tapKey(tester, 'reminder-explain-ok');
     expect(scheduler.requests, 1);
+    expect(
+      find.byKey(const ValueKey('settings-vaccine-blocked')),
+      findsNothing,
+    );
     // Already allowed: not asked again.
     await tapKey(tester, 'settings-vaccine-reminders');
     await tapKey(tester, 'settings-vaccine-reminders');
