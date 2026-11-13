@@ -16,6 +16,26 @@ Android only for now. The iOS app (with the dose widget extension) builds unsign
 | Signing | Upload key from `app/android/key.properties` or `USRA_UPLOAD_*` env vars; debug key otherwise |
 | Icon and splash | `app/assets/branding/`, from `tools/branding/render_icons.py` |
 
+## Toolchain versions
+
+Release builds are made with these exact versions. CI uses the same Flutter, so a build that passes CI is a build you can reproduce.
+
+| Tool | Version | Where it is set |
+| --- | --- | --- |
+| Flutter | 3.50.0 (Dart 3.14.0) | `FLUTTER_VERSION` in `.github/workflows/app-ci.yml` and `test-build.yml` |
+| Android Gradle Plugin | 9.1.1 | `app/android/settings.gradle.kts` |
+| Kotlin Gradle Plugin | 2.4.10 | `app/android/settings.gradle.kts` |
+| Gradle | 9.3.1 (checksum pinned) | `app/android/gradle/wrapper/gradle-wrapper.properties` |
+| Java | 17 (Temurin in CI) | `actions/setup-java` in the workflows |
+| CocoaPods | 1.17.0 | last line of `app/ios/Podfile.lock` |
+| Xcode | the `macos-latest` runner's default | not pinned |
+
+Flutter 3.50.0 refuses Android Gradle Plugin versions below 9.1.1, Kotlin below 2.4.10 and Gradle below 9.3.1, and warns below 9.3.1, 2.4.20 and 9.5.0. The versions above are those minimums, so a release build prints three "Flutter support … will soon be dropped" warnings. The template versions (9.3.1, 2.4.20, 9.5.0) were tried first and failed: Android Gradle Plugin 9.3.1's release lint (`lintVitalAnalyzeRelease`) crashes on the `image_picker_android` plugin with a `NoSuchMethodError` inside lint's Java parser (PR #88). Move to them when a newer plugin or Android Gradle Plugin fixes that, before the next Flutter release raises the minimums.
+
+Locally, use the same Flutter: `flutter --version` should say 3.50.0. To switch, install 3.50.0 with your version manager (`fvm install 3.50.0`), or run `git fetch --tags && git checkout 3.50.0` inside a git clone of Flutter; a Homebrew Flutter follows Homebrew's version instead. Flutter 3.50 marks `package:flutter/material.dart` as deprecated; `app/analysis_options.yaml` hides those notices until the move to `material_ui`.
+
+**Upgrading Flutter.** Change `FLUTTER_VERSION` in both workflows on purpose, in its own PR: read the new release's Android minimums (`DependencyVersionChecker.kt` in `flutter_tools`, or the error a release build prints), bump the versions above to match its app template, label the PR `release-build` so the release bundle builds, and update this table.
+
 ## 1. Create the upload key (once)
 
 Play App Signing keeps the real app signing key; we only hold an **upload key**. If it is lost, Play support can reset it, but keep it backed up in the team password manager.
@@ -101,6 +121,17 @@ zipalign -c -P 16 -v 4 build/app/outputs/flutter-apk/app-release.apk | tail -1
 
 The last line must say `Verification successful`. Play Console also shows a 16 KB warning on the bundle's page in App bundle explorer.
 
+### The two release files
+
+| | Command (from `app/`) | Output |
+| --- | --- | --- |
+| Android, for Play | `USRA_REQUIRE_UPLOAD_KEY=true flutter build appbundle --release --obfuscate --split-debug-info=build/symbols/<version>` | `build/app/outputs/bundle/release/app-release.aab` |
+| Android, debug-signed (CI, trying it out) | the same without `USRA_REQUIRE_UPLOAD_KEY` | the same file, signed with the debug key; Play rejects it |
+| iOS, unsigned (what CI proves) | `flutter build ios --release --no-codesign` | `build/ios/iphoneos/Runner.app` |
+| iOS, for the App Store | `flutter build ipa --release --obfuscate --split-debug-info=build/symbols/<version>` | `build/ios/ipa/*.ipa` |
+
+The iOS App Store build needs the Apple Developer account's signing set up in Xcode (team, bundle IDs for `Runner` and the `DoseWidget` extension, the App Group `group.com.opsedia.usra` registered for both; see `app/ios/DoseWidget/README.md`). That has not been done yet, so no `.ipa` has been made. Before an iOS build, `cd ios && pod install` must leave `Podfile.lock` unchanged; CI fails if it does not.
+
 ## 4. Upload to internal testing
 
 1. Play Console → the Usra app → **Testing → Internal testing → Create new release**.
@@ -146,7 +177,7 @@ The generators also rewrite `ios/Runner/Assets.xcassets/AppIcon.appiconset/Conte
 
 ### Saving CI minutes
 
-The debug Android build (`build-android`) runs on a PR only when it changes `app/android/`, `app/ios/`, `app/pubspec.yaml`/`pubspec.lock`, `tools/ci/` or the workflow itself; Dart-only and docs PRs run just the tests. Add the `android-build` label to force it. Main pushes skip the debug build because the release bundle job compiles the same code. The unsigned iOS build (`build-ios`, macOS runner) runs on PRs that change `app/ios/`, `app/pubspec.yaml`/`pubspec.lock` or the workflow, on PRs labelled `ios-build`, and on main pushes; it caches CocoaPods by `Podfile.lock` and fails if `pod install` changes committed files. A new push to a PR cancels that PR's older run.
+The debug Android build (`build-android`) runs on a PR only when it changes `app/android/`, `app/ios/`, `app/pubspec.yaml`/`pubspec.lock`, `tools/ci/` or the workflow itself; Dart-only and docs PRs run just the tests. Add the `android-build` label to force it. Main pushes skip the debug build because the release bundle job compiles the same code. The unsigned iOS release build (`build-ios`, macOS runner) runs on PRs that change `app/ios/`, `app/pubspec.yaml`/`pubspec.lock` or the workflow, on PRs labelled `ios-build`, and on main pushes; it caches CocoaPods by `Podfile.lock` and fails if `pod install` changes committed files. A new push to a PR cancels that PR's older run.
 
 ## App Store settings already in the project
 

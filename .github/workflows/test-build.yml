@@ -12,6 +12,13 @@ on:
 permissions:
   contents: read
 
+# One exact Flutter for every job, so a new stable release can't break CI
+# overnight (3.50.0 did on 12 Nov). Bump it on purpose, together with the
+# Android Gradle Plugin, Gradle and Kotlin versions Flutter asks for, and
+# update docs/release.md. Dependabot doesn't see this line.
+env:
+  FLUTTER_VERSION: 3.50.0
+
 concurrency:
   group: test-build
   cancel-in-progress: true
@@ -41,6 +48,7 @@ jobs:
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
       # Release mode, as people will run it. arm64 covers phones from the
       # last several years and keeps the file small.
