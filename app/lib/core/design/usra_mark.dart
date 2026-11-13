@@ -167,15 +167,21 @@ class UsraMarkTitle extends StatelessWidget {
   final Key? textKey;
 
   @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      UsraMark(size: markSize),
-      const SizedBox(width: UsraSpacing.s2),
-      Flexible(
-        child: Text(title, key: textKey, style: style),
-      ),
-    ],
+  // The title takes exactly the room left beside the mark. When there's
+  // hardly any room (very large text beside another control), the mark
+  // steps aside rather than push the title out.
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final text = Text(title, key: textKey, style: style);
+      if (box.maxWidth < markSize * 4) return text;
+      return Row(
+        children: [
+          UsraMark(size: markSize),
+          const SizedBox(width: UsraSpacing.s2),
+          Expanded(child: text),
+        ],
+      );
+    },
   );
 }
 

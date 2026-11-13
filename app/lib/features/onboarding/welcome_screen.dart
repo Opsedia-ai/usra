@@ -65,11 +65,21 @@ class WelcomeScreen extends ConsumerWidget {
                     // The brand moment: Dr. Usra's mark and the app's name.
                     Align(
                       alignment: AlignmentDirectional.centerStart,
-                      child: UsraMarkTitle(
-                        l.appTitle,
+                      // A plain row: the page measures its height
+                      // (IntrinsicHeight), and the short name always fits.
+                      child: Row(
                         key: const ValueKey('welcome-brand'),
-                        markSize: UsraMark.hero,
-                        style: UsraType.title.copyWith(color: c.primary),
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const UsraMark(size: UsraMark.hero),
+                          const SizedBox(width: UsraSpacing.s2),
+                          Flexible(
+                            child: Text(
+                              l.appTitle,
+                              style: UsraType.title.copyWith(color: c.primary),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 4),

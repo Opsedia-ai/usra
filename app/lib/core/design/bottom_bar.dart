@@ -56,6 +56,7 @@ class _Tab extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
+      label: tab.label(context),
       child: InkWell(
         key: ValueKey('tab-${tab.path}'),
         borderRadius: BorderRadius.circular(16),
@@ -79,7 +80,6 @@ class _Tab extends StatelessWidget {
                   child: Icon(tab.icon, size: 24, color: color),
                 ),
               ),
-              const SizedBox(height: 2),
               _BarLabel(
                 tab.label(context),
                 style: UsraType.label.copyWith(
@@ -108,6 +108,7 @@ class _RaisedAction extends StatelessWidget {
     final light = Theme.of(context).brightness == Brightness.light;
     return Semantics(
       button: true,
+      label: tab.label(context),
       child: InkWell(
         key: ValueKey('tab-action-${tab.path}'),
         borderRadius: BorderRadius.circular(16),
@@ -131,7 +132,6 @@ class _RaisedAction extends StatelessWidget {
                 child: Icon(Icons.add, size: 28, color: c.onOrchid),
               ),
             ),
-            const SizedBox(height: 2),
             _BarLabel(
               tab.label(context),
               style: UsraType.label.copyWith(
@@ -149,11 +149,17 @@ class _RaisedAction extends StatelessWidget {
 /// Most a tab label grows with the phone's text size. Five labels share a
 /// 320 px bar, so beyond this they'd be cut and run together; like the
 /// system tab bars, they stop growing here. The page's own text keeps
-/// growing, and screen readers read the whole label.
+/// growing.
 const barLabelMaxScale = 1.3;
 
+/// From this text size on, the bar shows icons only: the labels would have
+/// to shrink below a readable size. Screen readers still read every label,
+/// from the tab's own semantics.
+const barIconsOnlyScale = 1.6;
+
 /// A tab's label: grows up to [barLabelMaxScale], then shrinks to fit its
-/// slot instead of being cut off.
+/// slot instead of being cut off; hidden at [barIconsOnlyScale] and above.
+/// Screen readers get the label from the tab, not from this text.
 class _BarLabel extends StatelessWidget {
   const _BarLabel(this.label, {required this.style});
 
@@ -161,15 +167,23 @@ class _BarLabel extends StatelessWidget {
   final TextStyle style;
 
   @override
-  Widget build(BuildContext context) => FittedBox(
-    fit: BoxFit.scaleDown,
-    child: Text(
-      label,
-      maxLines: 1,
-      softWrap: false,
-      style: style,
-      textScaler: MediaQuery.textScalerOf(context)
-          .clamp(maxScaleFactor: barLabelMaxScale),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final scaler = MediaQuery.textScalerOf(context);
+    if (scaler.scale(1) >= barIconsOnlyScale) return const SizedBox.shrink();
+    return ExcludeSemantics(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 2),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            maxLines: 1,
+            softWrap: false,
+            style: style,
+            textScaler: scaler.clamp(maxScaleFactor: barLabelMaxScale),
+          ),
+        ),
+      ),
+    );
+  }
 }

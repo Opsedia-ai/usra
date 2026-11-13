@@ -217,25 +217,29 @@ void main() {
 
   // End-to-end findings 8 and 25.
   group('large text and filters', () {
+    const slots = [
+      'tab-/home',
+      'tab-/medicines',
+      'tab-action-/add',
+      'tab-/records',
+      'tab-/settings',
+    ];
+
     for (final locale in ['ar', 'en']) {
-      testWidgets('$locale: tab labels stay whole at 320 px and double text', (
-        tester,
-      ) async {
-        smallPhoneDoubleText(tester);
+      testWidgets('$locale: at 1.4 text the labels grow to 1.3 at most and '
+          'are never cut', (tester) async {
+        tester.view.devicePixelRatio = 2;
+        tester.view.physicalSize = const Size(640, 1280);
+        tester.platformDispatcher.textScaleFactorTestValue = 1.4;
+        addTearDown(tester.view.reset);
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
         await h.prefs.setString('language', locale);
         await seed(tester);
         await h.open(tester, '/home');
-        for (final key in [
-          'tab-/home',
-          'tab-/medicines',
-          'tab-action-/add',
-          'tab-/records',
-          'tab-/settings',
-        ]) {
+        for (final key in slots) {
           final slot = find.byKey(ValueKey(key));
           final label = find.descendant(of: slot, matching: find.byType(Text));
           final text = tester.widget<Text>(label);
-          // Grows to 1.3 at most, then shrinks to fit: never cut.
           expect(text.textScaler!.scale(10), closeTo(13, 0.01), reason: key);
           final paragraph = tester.renderObject<RenderParagraph>(
             find.descendant(of: label, matching: find.byType(RichText)),
@@ -247,6 +251,31 @@ void main() {
           expect(shown.right, lessThanOrEqualTo(room.right + 0.5));
         }
         expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('$locale: at double text the bar shows icons only, and '
+          'screen readers still hear every label', (tester) async {
+        smallPhoneDoubleText(tester);
+        final handle = tester.ensureSemantics();
+        await h.prefs.setString('language', locale);
+        await seed(tester);
+        await h.open(tester, '/home');
+        for (final key in slots) {
+          final slot = find.byKey(ValueKey(key));
+          expect(
+            find.descendant(of: slot, matching: find.byType(Text)),
+            findsNothing,
+            reason: key,
+          );
+        }
+        final labels = locale == 'ar'
+            ? ['الرئيسية', 'الأدوية', 'إضافة', 'السجلات', 'المزيد']
+            : ['Home', 'Medicines', 'Add', 'Records', 'More'];
+        for (final label in labels) {
+          expect(find.bySemanticsLabel(label), findsOneWidget, reason: label);
+        }
+        expect(tester.takeException(), isNull);
+        handle.dispose();
       });
     }
 
