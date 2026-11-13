@@ -78,7 +78,8 @@ class UsraColors extends ThemeExtension<UsraColors> {
   /// Background of the selected tab and of secondary buttons; primary text on it.
   final Color primarySoft;
 
-  /// The accent: the + button, Dr. Usra's heart, female avatars, one highlight per screen. A fill only; text on it is on-orchid. Too light for text on bg (2.5:1).
+  /// The accent: the + button (with an [orchidInk] ring in light, so the
+  /// circle reaches 3:1 on the white bar), Dr. Usra's heart, female avatars, one highlight per screen. A fill only; text on it is on-orchid. Too light for text on bg (2.5:1).
   final Color orchid;
 
   /// Text and icons on an orchid fill (6.4:1).
@@ -154,10 +155,11 @@ class UsraColors extends ThemeExtension<UsraColors> {
   /// Keyboard and switch-access focus ring.
   Color get focus => primary;
 
+  // The warm brand background of the November 2026 brand touch.
   static const light = UsraColors(
-    bg: Color(0xFFF4F5F9),
+    bg: Color(0xFFF7F4F8),
     surface: Color(0xFFFFFFFF),
-    surfaceSoft: Color(0xFFEEF2F8),
+    surfaceSoft: Color(0xFFF1ECF3),
     line: Color(0xFFE3E6EC),
     lineStrong: Color(0xFF8C8299),
     ink: Color(0xFF14263D),
@@ -184,7 +186,9 @@ class UsraColors extends ThemeExtension<UsraColors> {
     urgent: Color(0xFFB42318),
     onUrgent: Color(0xFFFFFFFF),
     urgentSoft: Color(0xFFFBE3E3),
-    attention: Color(0xFF9A6200),
+    // A hair darker than the polish's #9A6200 so it keeps 4.5:1 on the
+    // warmer surface-soft (#9A6200 would be 4.38:1 there).
+    attention: Color(0xFF945F00),
     attentionDot: Color(0xFFD49A2A),
     shadowCard: [],
     shadowFloat: [
@@ -200,9 +204,9 @@ class UsraColors extends ThemeExtension<UsraColors> {
   );
 
   static const dark = UsraColors(
-    bg: Color(0xFF0B1B32),
-    surface: Color(0xFF10234A),
-    surfaceSoft: Color(0xFF1B3156),
+    bg: Color(0xFF12182E),
+    surface: Color(0xFF1A2140),
+    surfaceSoft: Color(0xFF212A4A),
     line: Color(0xFF26415E),
     lineStrong: Color(0xFF6E86A6),
     ink: Color(0xFFEAF0F7),
@@ -210,7 +214,7 @@ class UsraColors extends ThemeExtension<UsraColors> {
     heading: Color(0xFFEAF0F7),
     primary: Color(0xFF83A6CE),
     onPrimary: Color(0xFF0B1B32),
-    primarySoft: Color(0xFF1E3555),
+    primarySoft: Color(0xFF26385A),
     orchid: Color(0xFFC48CB3),
     onOrchid: Color(0xFF0B1B32),
     orchidSoft: Color(0xFF4A3552),

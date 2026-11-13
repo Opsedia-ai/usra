@@ -75,6 +75,44 @@ void main() {
         );
       });
 
+      // The brand touch of 13 Nov 2026 (docs: brand-notes, contrast table).
+      test('brand touch: + button, tab pill and tinted boxes', () {
+        // The + icon on the orchid circle.
+        expect(
+          contrast(colors.onOrchid, colors.orchid),
+          greaterThanOrEqualTo(4.5),
+        );
+        // The selected tab's icon and label on its pill.
+        expect(
+          contrast(colors.primary, colors.primarySoft),
+          greaterThanOrEqualTo(4.5),
+        );
+        // The circle's edge on the bar: the ring in light, orchid in dark.
+        final edge = colors == UsraColors.light
+            ? colors.orchidInk
+            : colors.orchid;
+        expect(contrast(edge, colors.surface), greaterThanOrEqualTo(3));
+        // Vaccines and medicines icon boxes.
+        expect(
+          contrast(colors.orchidInk, colors.orchidSoft),
+          greaterThanOrEqualTo(3),
+        );
+        expect(
+          contrast(colors.skyInk, colors.skySoft),
+          greaterThanOrEqualTo(3),
+        );
+        // The relation word on the person page, in orchid-ink or sky-ink.
+        for (final bg in [colors.bg, colors.surface]) {
+          expect(contrast(colors.orchidInk, bg), greaterThanOrEqualTo(4.5));
+          expect(contrast(colors.skyInk, bg), greaterThanOrEqualTo(4.5));
+        }
+        // The avatar letter on orchid and on sky.
+        expect(
+          contrast(colors.onOrchid, colors.sky),
+          greaterThanOrEqualTo(4.5),
+        );
+      });
+
       test('the pregnancy card icon reaches 3:1 on orchid-soft', () {
         expect(
           contrast(colors.primary, colors.orchidSoft),
