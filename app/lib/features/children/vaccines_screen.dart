@@ -252,21 +252,29 @@ Future<void> markPastDoses(
     optional: {...before.optional, ...optionalKindsIn(doses)},
   );
   if (!await ref.read(saveGateProvider).allow()) return;
-  // The plan record this saved, and whether there was one before; undo
-  // puts it back as it was.
+  // The plan record this saved, and whether there was one before. Undo
+  // takes out only the vaccines this added, keeping any change made since
+  // (a note, a choice), and removes a plan record this created unchanged.
+  final newKinds = plan.optional.difference(before.optional);
   String? planId;
   var hadPlan = true;
   Future<void> restorePlan() async {
     final saved = planId;
     if (saved == null) return;
-    if (hadPlan) {
+    final events = await db.eventsOfTypes({VaccinePlanFields.type});
+    final now = vaccinePlanOf([
+      for (final e in events)
+        if (e.profileId == id) e,
+    ]);
+    final back = now.copyWith(optional: now.optional.difference(newKinds));
+    if (!hadPlan && now == plan) {
+      await db.replaceEvents(profileId: id, remove: [saved]);
+    } else {
       await db.saveSingletonEvent(
         profileId: id,
         type: VaccinePlanFields.type,
-        dataJson: before.toJson(),
+        dataJson: back.toJson(),
       );
-    } else {
-      await db.replaceEvents(profileId: id, remove: [saved]);
     }
   }
 
@@ -288,7 +296,8 @@ Future<void> markPastDoses(
     try {
       await restorePlan();
     } catch (_) {
-      // The plan only lists vaccines to follow; nothing was marked.
+      // Left with the optional vaccines added and no dose marked: the
+      // family can untick them in the plan.
     }
     messenger.showSnackBar(SnackBar(content: Text(l.saveFailed)));
     return;
@@ -1654,7 +1663,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
   ) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    final toMark = _toMark(profile, plan, records, today);
+    final toMark = _toMark(profile, plan, statuses, records, today);
     final muted = text.bodyMedium?.copyWith(color: context.usra.inkMuted);
     final soon = today.add(const Duration(days: dueSoonDays));
     final checklist = [
@@ -1905,6 +1914,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
   List<DoseSoFar> _toMark(
     Profile profile,
     VaccinePlan plan,
+    List<DoseStatus> statuses,
     List<VaccineRecord> records,
     DateTime today,
   ) {
@@ -1912,7 +1922,19 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
     return [
       for (final d in dosesDueSoFar(
         birthDate: profile.birthDate!,
-        records: records,
+        // Doses ticked here but not saved yet count too, on their dates:
+        // a dose ticked as given late moves the next one later.
+        records: [
+          ...records,
+          for (final s in statuses)
+            if (!s.done && _toggled[s.dose.key] == true)
+              (
+                id: null,
+                name: vaccineName(l, s.dose.kind),
+                dose: s.dose.dose,
+                date: _dateOf(s),
+              ),
+        ],
         plan: plan,
         today: today,
         nameOf: (k) => vaccineName(l, k),

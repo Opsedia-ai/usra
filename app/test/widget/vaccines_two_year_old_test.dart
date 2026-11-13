@@ -703,6 +703,28 @@ void main() {
       expect(key('vaccine-mark-past'), findsNothing);
     });
 
+    testWidgets('setup: a dose ticked by hand as given late moves the next '
+        'one, which is then not marked before its day', (tester) async {
+      veryTall(tester);
+      final id = await seed(tester);
+      await h.open(tester, '/family/$id/vaccines/setup');
+      await h.tapKey(tester, 'setup-mmr-1');
+      await h.tapKey(tester, 'setup-date-mmr-1');
+      Navigator.of(tester.element(find.byType(DatePickerDialog)))
+          .pop(d(2026, 11, 1));
+      await h.settle(tester);
+      await h.tapKey(tester, 'setup-mark-past');
+      // MMR 1 ticked; MMR 2 is 4 weeks after 1 Nov, after today.
+      expect(body(tester), contains('١٦ جرعة إجبارية'));
+      await h.tapKey(tester, 'vaccine-mark-past-optional');
+      await h.tapKey(tester, 'vaccine-mark-past-ok');
+      await h.tapKey(tester, 'vaccine-setup-save');
+      final dates = await given(tester, id);
+      expect(dates['mmr-1'], d(2026, 11, 1));
+      expect(dates.containsKey('mmr-2'), isFalse);
+      expect(dates.length, 17);
+    });
+
     testWidgets('a child of 4 years 11 months, from the setup with the '
         'optional ones unticked: the 18 required on the schedule', (
       tester,
