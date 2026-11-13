@@ -264,6 +264,51 @@ void main() {
     expect(find.byType(UsraBottomBar), findsOneWidget);
   });
 
+  testWidgets('someone past the first run with no consent on record (this '
+      'update) is asked before Home, with deleting still open', (tester) async {
+    phone(tester);
+    store = MemoryKeyValueStore({PrefKeys.tutorialSeen: true});
+    await tester.pumpWidget(app());
+    await settle(tester);
+    expect(find.byType(ConsentScreen), findsOneWidget);
+    expect(find.byType(UsraBottomBar), findsNothing);
+    expect(
+      find.text('أسرة بتحفظ معلومات صحية، فمحتاجين موافقتك الأول.'),
+      findsOneWidget,
+    );
+    expect(key('consent-back'), findsNothing);
+    expect(key('consent-delete'), findsOneWidget);
+    await tapKey(tester, 'consent-tick');
+    await tapKey(tester, 'consent-agree');
+    expect(find.byType(UsraBottomBar), findsOneWidget);
+    expect(store.getString(PrefKeys.consentVersion), consentPolicyVersion);
+  });
+
+  for (final (next, lands) in [
+    ('/settings', '/settings'),
+    ('//evil.example/x', '/home'),
+    ('https://evil.example', '/home'),
+    ('/consent?next=/consent', '/home'),
+  ]) {
+    testWidgets('after agreeing, next=$next goes to $lands', (tester) async {
+      phone(tester);
+      store = MemoryKeyValueStore({PrefKeys.tutorialSeen: true});
+      await tester.pumpWidget(app());
+      await settle(tester);
+      go(
+        tester,
+        Uri(path: consentPath, queryParameters: {'next': next}).toString(),
+      );
+      await settle(tester);
+      await tapKey(tester, 'consent-tick');
+      await tapKey(tester, 'consent-agree');
+      final router = ProviderScope.containerOf(
+        tester.element(find.byType(Navigator).first),
+      ).read(routerProvider);
+      expect(router.routerDelegate.currentConfiguration.uri.path, lands);
+    });
+  }
+
   testWidgets('a failed save says so and stays', (tester) async {
     phone(tester);
     store = _FailingStore();
