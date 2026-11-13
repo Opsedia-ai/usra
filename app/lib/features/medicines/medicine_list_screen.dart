@@ -212,7 +212,10 @@ class _MedicineTile extends ConsumerWidget {
     return UsraListRow(
       key: ValueKey('medicine-${medicine.id}'),
       onTap: () => context.push('/family/$profileId/medicines/${medicine.id}'),
-      leading: IconBox(icon: medicineFormIcon(medicine.form)),
+      leading: IconBox(
+        icon: medicineFormIcon(medicine.form),
+        tint: IconTint.medicines,
+      ),
       title: medicineTitle(medicine),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

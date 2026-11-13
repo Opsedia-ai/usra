@@ -264,23 +264,36 @@ class _Identity extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     final isMe = person.id == ref.watch(meProfileIdProvider);
+    final c = context.usra;
     final relationship = isMe ? null : person.relationship;
+    final age = ageLabel(l, person.birthDate, ref.watch(clockProvider)());
+    final relation = relationship == null
+        ? null
+        : l.relationshipYours(relationship);
     final details = [
-      ?ageLabel(l, person.birthDate, ref.watch(clockProvider)()),
-      if (relationship != null) l.relationshipYours(relationship),
+      ?age,
+      ?relation,
     ].where((part) => part.isNotEmpty).join(partSeparator);
+    // The person's colour (brand touch): the avatar in orchid or sky, and
+    // the relation word in that colour's ink. Unknown sex stays neutral.
+    final (avatar, onAvatar, relationInk) = switch (person.sex) {
+      'female' => (c.orchid, c.onOrchid, c.orchidInk),
+      'male' => (c.sky, c.onOrchid, c.skyInk),
+      _ => (personColor(context, person.sex), c.ink, c.inkMuted),
+    };
+    final muted = UsraType.body.copyWith(color: c.inkMuted);
     return Row(
       children: [
         Pebble(
           seed: pebbleSeed(person.id),
-          color: personColor(context, person.sex),
+          color: avatar,
           width: 72,
           height: 68,
           shadow: false,
           child: ExcludeSemantics(
             child: Text(
               initialOf(person.displayName),
-              style: UsraType.title.copyWith(color: context.usra.ink),
+              style: UsraType.title.copyWith(color: onAvatar),
               textScaler: TextScaler.noScaling,
             ),
           ),
@@ -299,10 +312,24 @@ class _Identity extends ConsumerWidget {
                 ),
               ),
               if (details.isNotEmpty)
-                Text(
-                  details,
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      if (age != null && age.isNotEmpty) TextSpan(text: age),
+                      if (age != null &&
+                          age.isNotEmpty &&
+                          relation != null &&
+                          relation.isNotEmpty)
+                        const TextSpan(text: partSeparator),
+                      if (relation != null && relation.isNotEmpty)
+                        TextSpan(
+                          text: relation,
+                          style: TextStyle(color: relationInk),
+                        ),
+                    ],
+                  ),
                   key: const ValueKey('member-details'),
-                  style: UsraType.body.copyWith(color: context.usra.inkMuted),
+                  style: muted,
                 ),
             ],
           ),
@@ -794,6 +821,7 @@ class _Tiles extends ConsumerWidget {
           UsraListRow(
             key: ValueKey(t.key),
             icon: _tileIcons[t.key],
+            iconTint: _tileTints[t.key] ?? IconTint.neutral,
             title: t.title,
             subtitleText: t.subtitle,
             onTap: t.onTap,
@@ -816,6 +844,14 @@ const _tileIcons = {
   'member-follow-ups-open': Icons.event_note_outlined,
   'member-documents': Icons.folder_outlined,
   'member-spending': Icons.account_balance_wallet_outlined,
+};
+
+/// Tinted by meaning; every other section, sick days included, stays
+/// neutral. Sick-day status is said by the row's words, never the box.
+const _tileTints = {
+  'member-vaccines': IconTint.vaccines,
+  'member-medicines': IconTint.medicines,
+  'member-pregnancy': IconTint.pregnancy,
 };
 
 class _TileData {
