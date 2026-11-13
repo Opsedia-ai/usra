@@ -23,6 +23,7 @@ class FakeServer implements SyncTransport {
   var _txid = 0;
   var enabled = true;
   var pushCalls = 0;
+  Exception? failPush;
   var pullCalls = 0;
   int pageSize = 500;
 
@@ -64,6 +65,7 @@ class FakeServer implements SyncTransport {
     required List<OutgoingRecord> records,
   }) async {
     pushCalls++;
+    if (failPush != null) throw failPush!;
     if (!enabled) return const PushResponse(ok: false, error: 'sync_disabled');
     expect(records.length, inInclusiveRange(1, 100));
     expect(
@@ -184,6 +186,7 @@ class MemoryStore implements SyncStore {
         ...values.keys,
         if (old == null) deletedGroup,
       },
+      baseClocks: old?.baseClocks ?? const {},
     );
     if (historyRecord) history.add(syncId);
   }
@@ -236,6 +239,7 @@ class MemoryStore implements SyncStore {
     required int revision,
     required Groups groups,
     required Set<String> stillChanged,
+    required Map<String, Hlc> baseClocks,
     required Groups held,
     required List<MergeConflict> conflicts,
   }) async {
@@ -245,6 +249,7 @@ class MemoryStore implements SyncStore {
       revision: revision,
       groups: groups,
       changedGroups: stillChanged,
+      baseClocks: {...?records[syncId]?.baseClocks, ...baseClocks},
     );
     this.conflicts.addAll(conflicts);
   }
@@ -261,6 +266,25 @@ class MemoryStore implements SyncStore {
         for (final g in now.changedGroups)
           if (now.groups[g] != change.record.groups[g]) g,
       },
+      baseClocks: {
+        ...now.baseClocks,
+        for (final e in change.record.groups.entries) e.key: e.value.clock,
+      },
+    );
+  }
+
+  final rejections = <String, String>{};
+
+  @override
+  Future<void> rejected(String f, LocalChange change, String reason) async {
+    rejections[change.record.recordId] = reason;
+    final now = records[change.syncId]!;
+    records[change.syncId] = LocalRecord(
+      recordId: now.recordId,
+      type: now.type,
+      revision: now.revision,
+      groups: now.groups,
+      baseClocks: now.baseClocks,
     );
   }
 }
@@ -361,6 +385,90 @@ void main() {
     expect(mona.store.visible('r-med')['dose'], '7.5 ml');
     expect(ahmed.store.visible('r-med')['dose'], '7.5 ml');
     expect(mona.store.conflicts.single.lost.value, '6 ml');
+  });
+
+  test(
+    'the parent whose newer dose overwrote a pushed one sees both values',
+    () async {
+      mona.store.edit('r-med', 'medicine', {'dose': '5 ml'});
+      await mona.sync();
+      await ahmed.sync();
+      now = now.add(const Duration(minutes: 1));
+      mona.store.edit('r-med', 'medicine', {'dose': '6 ml'});
+      await mona.sync(); // Mona's edit reaches the server first
+      now = now.add(const Duration(seconds: 1));
+      ahmed.store.edit('r-med', 'medicine', {'dose': '7.5 ml'});
+      await ahmed.sync(); // Ahmed's newer value wins the merge
+      await mona.sync();
+      expect(mona.store.visible('r-med')['dose'], '7.5 ml');
+      expect(ahmed.store.visible('r-med')['dose'], '7.5 ml');
+      expect(ahmed.store.conflicts.single.lost.value, '6 ml');
+    },
+  );
+
+  test('a deleted record goes up as a tombstone without its values', () async {
+    mona.store.edit('r-card', 'insurance_card', {
+      'card': {'insurer': 'Sample insurer', 'number': '0000-SAMPLE'},
+    });
+    await mona.sync();
+    mona.store.edit('r-card', 'insurance_card', {deletedGroup: true});
+    await mona.sync();
+    final row = server.rows.values.single;
+    expect(row.deleted, isTrue);
+    final body = await openRecord(
+      header: recordHeader(
+        familyId: kFamily,
+        syncId: server.rows.keys.single,
+        keyVersion: 1,
+      ),
+      stored: row.ct,
+      recordKey: mona.family.rk,
+      signerKey: mona.family.signerKey,
+    );
+    expect(body.groups.keys, [deletedGroup]);
+  });
+
+  test('a record too big to seal is set aside; the rest still go up', () async {
+    mona.store.edit('r-big', 'medical_event', {
+      'notes': List.generate(
+        70000,
+        (i) => String.fromCharCode(0x41 + i % 26),
+      ).join(),
+    });
+    mona.store.edit('r-ok', 'doctor', {'name': 'Doctor'});
+    final out = await mona.sync(SyncReason.edits);
+    expect(out.status, SyncStatus.done);
+    expect(out.pushed, 1);
+    expect(out.rejected, 1);
+    expect(mona.store.rejections['r-big'], isNotNull);
+    expect((await mona.sync(SyncReason.edits)).pushCalls, 0);
+  });
+
+  test('a transport failure becomes an outcome, not an exception', () async {
+    server.failPush = Exception('rate_limited');
+    mona.store.edit('r-1', 'doctor', {'name': 'Doctor'});
+    final out = await mona.sync(SyncReason.edits);
+    expect(out.status, SyncStatus.offline);
+    server.failPush = null;
+    expect((await mona.sync(SyncReason.edits)).pushed, 1);
+  });
+
+  test('a server that never moves its cursor stops the pull', () async {
+    final stuck = _StuckServer();
+    final engine = SyncEngine(
+      transport: stuck,
+      store: mona.store,
+      clock: mona.store.clock,
+      isClinical: (_, _) => false,
+    );
+    final out = await engine.sync(mona.family, SyncReason.open);
+    expect(out.status, SyncStatus.warning);
+    expect(out.detail, 'no_progress');
+    expect(
+      stuck.calls,
+      2,
+      reason: "stops as soon as the log head stops moving",
+    );
   });
 
   test('a delete wins over an older concurrent edit', () async {
@@ -563,4 +671,20 @@ class _FakeTimer implements Timer {
 
   @override
   int get tick => 0;
+}
+
+class _StuckServer implements SyncTransport {
+  var calls = 0;
+  @override
+  Future<PullPage> pull(PullRequest r) async {
+    calls++;
+    return const PullPage(ok: true, logMore: true);
+  }
+
+  @override
+  Future<PushResponse> push({
+    required String familyId,
+    required int logSeq,
+    required List<OutgoingRecord> records,
+  }) async => const PushResponse(ok: true);
 }

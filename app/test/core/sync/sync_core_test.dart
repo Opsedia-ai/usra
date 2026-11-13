@@ -20,12 +20,17 @@ void main() {
       for (final hex in [
         '0000000000000000',
         '019300f8a1b20003',
-        'ffffffffffffffff',
+        '7fffffffffffffff',
       ]) {
         expect(Hlc.parse(hex).toHex(), hex);
       }
       expect(() => Hlc.parse('019300F8A1B20003'), throwsFormatException);
       expect(() => Hlc.parse('19300f8a1b20003'), throwsFormatException);
+      expect(
+        () => Hlc.parse('8000000000000000'),
+        throwsFormatException,
+        reason: 'top bit set',
+      );
     });
 
     test('ticks past the wall clock and every clock seen', () {
@@ -109,41 +114,51 @@ void main() {
       expect(ab['dose']!.value, '7.5 ml');
     });
 
-    test(
-      'a clinical group changed on both phones is flagged on the losing side',
-      () {
-        final local = {'dose': g('5 ml', 5)};
-        final remote = {'dose': g('7.5 ml', 6)};
-        final r = mergeGroups(
+    test('a clinical group changed on both phones is flagged on both', () {
+      final base = {'dose': Hlc.at(1)};
+      final local = {'dose': g('5 ml', 5)};
+      final remote = {'dose': g('7.5 ml', 6)};
+      final lost = mergeGroups(
+        local,
+        remote,
+        baseClocks: base,
+        isClinical: (_) => true,
+      );
+      expect(lost.groups['dose']!.value, '7.5 ml');
+      expect(lost.conflicts.single.lost.value, '5 ml');
+      final won = mergeGroups(
+        remote,
+        local,
+        baseClocks: base,
+        isClinical: (_) => true,
+      );
+      expect(won.conflicts.single.kept.value, '7.5 ml');
+      expect(
+        won.conflicts.single.lost.value,
+        '5 ml',
+        reason: 'the phone whose value won sees it too',
+      );
+      expect(
+        mergeGroups(local, remote, baseClocks: base).conflicts,
+        isEmpty,
+        reason: 'not clinical: merged silently',
+      );
+      expect(
+        mergeGroups(
           local,
           remote,
-          locallyChanged: {'dose'},
+          baseClocks: {'dose': Hlc.at(5)},
           isClinical: (_) => true,
-        );
-        expect(r.groups['dose']!.value, '7.5 ml');
-        expect(r.conflicts.single.lost.value, '5 ml');
-        expect(
-          mergeGroups(local, remote, locallyChanged: {'dose'}).conflicts,
-          isEmpty,
-          reason: 'not clinical: merged silently',
-        );
-        expect(
-          mergeGroups(local, remote, isClinical: (_) => true).conflicts,
-          isEmpty,
-          reason: 'not changed here: nothing to flag',
-        );
-      },
-    );
+        ).conflicts,
+        isEmpty,
+        reason: 'not changed here since the last sync: nothing to flag',
+      );
+    });
 
     test('a delete drops concurrent edits until a newer restore', () {
       final deleted = {deletedGroup: g(true, 5)};
       final edited = {'name': g('x', 6), deletedGroup: g(false, 1)};
-      final merged = mergeGroups(
-        edited,
-        deleted,
-        locallyChanged: {'name'},
-        isClinical: (_) => true,
-      );
+      final merged = mergeGroups(edited, deleted, isClinical: (_) => true);
       expect(isDeleted(merged.groups), isTrue);
       expect(merged.conflicts, isEmpty);
       expect(tombstone(merged.groups).keys, [deletedGroup]);

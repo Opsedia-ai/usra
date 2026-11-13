@@ -5,7 +5,9 @@
 /// digits (a 64-bit number would lose precision in JavaScript).
 library;
 
-final _hex16 = RegExp(r'^[0-9a-f]{16}$');
+// The top bit stays clear (ms below 2^47, year 6429), so clocks compare the
+// same as unsigned 64-bit numbers in every language.
+final _hex16 = RegExp(r'^[0-7][0-9a-f]{15}$');
 
 /// One clock value. Compares by its 64-bit value.
 final class Hlc implements Comparable<Hlc> {

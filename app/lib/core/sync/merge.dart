@@ -89,9 +89,12 @@ final class MergeResult {
 
 /// Merges [remote] into [local] group by group.
 ///
-/// [locallyChanged] names the groups this phone changed since its last sync;
-/// when the remote side wins one of them and [isClinical] says it is a
-/// clinical group with a different value, the result lists a conflict.
+/// [baseClocks] are each group's clock in the last server version this phone
+/// merged or pushed. When both the local and the remote clock of a group
+/// differ from it, two phones changed the group; if [isClinical] says it is
+/// a clinical group and the values differ, the result lists a conflict,
+/// **whichever side wins**, so the phone whose value overwrote the other's
+/// shows it too.
 ///
 /// Every group merges on its own, `_deleted` included, so the result is the
 /// same whatever order versions arrive in. A deleted record is a view: the
@@ -101,7 +104,7 @@ final class MergeResult {
 MergeResult mergeGroups(
   Groups local,
   Groups remote, {
-  Set<String> locallyChanged = const {},
+  Map<String, Hlc> baseClocks = const {},
   bool Function(String group) isClinical = _never,
 }) {
   final merged = <String, GroupEntry>{};
@@ -119,12 +122,15 @@ MergeResult mergeGroups(
     }
     final w = winner(l, r);
     merged[name] = w;
-    if (identical(w, r) &&
-        w != l &&
-        locallyChanged.contains(name) &&
+    final base = baseClocks[name];
+    if (l.clock != base &&
+        r.clock != base &&
+        l.clock != r.clock &&
         isClinical(name) &&
         canonicalJson(l.value) != canonicalJson(r.value)) {
-      conflicts.add(MergeConflict(group: name, kept: r, lost: l));
+      conflicts.add(
+        MergeConflict(group: name, kept: w, lost: identical(w, r) ? l : r),
+      );
     }
   }
   if (isDeleted(merged)) return MergeResult(merged, const []);
