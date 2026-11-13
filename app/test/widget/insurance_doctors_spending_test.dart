@@ -111,6 +111,7 @@ void main() {
         find.descendant(of: details, matching: key('insurance-copy')),
         findsOneWidget,
       );
+      expect(find.bySemanticsLabel('انسخ رقم العضوية'), findsOneWidget);
       expect(find.byType(FilledButton), findsOneWidget);
       expect(key('insurance-share'), findsOneWidget);
       // Delete is a quiet text button at the end, not an app bar icon.

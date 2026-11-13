@@ -191,28 +191,25 @@ class _Details extends ConsumerWidget {
               textDirection: TextDirection.ltr,
               textAlign: TextAlign.start,
             ),
-            trailing: Semantics(
-              label: l.insuranceCopyNumber,
-              button: true,
-              excludeSemantics: true,
-              child: TextButton(
-                key: const ValueKey('insurance-copy'),
-                onPressed: () async {
-                  final messenger = ScaffoldMessenger.of(context);
-                  final copied = await ref
-                      .read(sensitiveClipboardProvider)
-                      .copy(number);
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        copied
-                            ? l.insuranceNumberCopied
-                            : l.insuranceCopyFailed,
-                      ),
+            trailing: TextButton(
+              key: const ValueKey('insurance-copy'),
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final copied = await ref
+                    .read(sensitiveClipboardProvider)
+                    .copy(number);
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      copied ? l.insuranceNumberCopied : l.insuranceCopyFailed,
                     ),
-                  );
-                },
-                child: Text(l.insuranceCopyShort),
+                  ),
+                );
+              },
+              // Short on screen; a screen reader hears what it copies.
+              child: Text(
+                l.insuranceCopyShort,
+                semanticsLabel: l.insuranceCopyNumber,
               ),
             ),
           ),
