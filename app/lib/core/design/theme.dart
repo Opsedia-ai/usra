@@ -203,6 +203,9 @@ ThemeData buildUsraTheme({
       behavior: SnackBarBehavior.floating,
       shape: StadiumBorder(),
     ),
+    // A dropdown's menu lines up with its field instead of spilling past it
+    // to the screen edge.
+    buttonTheme: const ButtonThemeData(alignedDropdown: true),
     // Dropdown and popup menus: rounded, a hairline, no shadow.
     popupMenuTheme: PopupMenuThemeData(
       color: c.surface,
