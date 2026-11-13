@@ -13,6 +13,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appTitle => 'أسرة';
 
   @override
+  String get keyboardDone => 'تم';
+
+  @override
   String get navHome => 'الرئيسية';
 
   @override

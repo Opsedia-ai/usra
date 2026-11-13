@@ -13,6 +13,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Usra';
 
   @override
+  String get keyboardDone => 'Done';
+
+  @override
   String get navHome => 'Home';
 
   @override

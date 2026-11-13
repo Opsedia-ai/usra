@@ -1,6 +1,10 @@
 {
   "@@locale": "en",
   "appTitle": "Usra",
+  "keyboardDone": "Done",
+  "@keyboardDone": {
+    "description": "Button on a bar above the iPhone number pad that closes the keyboard."
+  },
   "navHome": "Home",
   "navFamily": "Family",
   "navSettings": "More",

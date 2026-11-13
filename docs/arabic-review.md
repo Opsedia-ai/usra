@@ -593,3 +593,11 @@ The mascot no longer calls itself a doctor, so it doesn't blur the "not a medica
 |---|---|---|
 | `homeGreeting` | أهلاً! أنا دليلك في أسرة | Hello! I'm your guide in Usra |
 | `tutorialWelcomeTitle` | أهلاً، أنا دليلك في أسرة | Hi, I'm your guide in Usra |
+
+## Keyboard Done, 13 November 2026 (end-to-end test #9)
+
+iPhone number pads have no return key, so the pad stayed over Save. A thin bar with "تم" now sits on the number pad on iPhones and closes it.
+
+| Key | | Arabic | English |
+|---|---|---|---|
+| `keyboardDone` | New | تم | Done |
