@@ -37,10 +37,14 @@ class EpisodeScreen extends ConsumerWidget {
     super.key,
     required this.profileId,
     required this.episodeId,
+    this.openReading = false,
   });
 
   final String profileId;
   final String episodeId;
+
+  /// Opens with the reading sheet up, as from the Add sheet.
+  final bool openReading;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -65,9 +69,38 @@ class EpisodeScreen extends ConsumerWidget {
       error: (_, _) => bare(Text(AppLocalizations.of(context).homeLoadError)),
       data: (e) => e == null || person == null
           ? bare(waiting)
+          : openReading
+          ? _OpenReadingOnce(
+              episode: e,
+              child: _Body(person: person, episode: e),
+            )
           : _Body(person: person, episode: e),
     );
   }
+}
+
+/// Shows the reading sheet once, over [child], when the page first opens.
+class _OpenReadingOnce extends StatefulWidget {
+  const _OpenReadingOnce({required this.episode, required this.child});
+
+  final SickEpisode episode;
+  final Widget child;
+
+  @override
+  State<_OpenReadingOnce> createState() => _OpenReadingOnceState();
+}
+
+class _OpenReadingOnceState extends State<_OpenReadingOnce> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) showReadingSheet(context, episode: widget.episode);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class _Body extends ConsumerWidget {
@@ -134,7 +167,12 @@ class _Body extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _Header(person: person, episode: episode, now: now),
+              _Header(
+                person: person,
+                episode: episode,
+                now: now,
+                readings: readings,
+              ),
               const SizedBox(height: 12),
               // Anything logged that is a warning sign comes first.
               if (matched.isNotEmpty) ...[warnings, const SizedBox(height: 12)],
@@ -240,11 +278,15 @@ class _Header extends StatelessWidget {
     required this.person,
     required this.episode,
     required this.now,
+    this.readings = const [],
   });
 
   final Profile person;
   final SickEpisode episode;
   final DateTime now;
+
+  /// A reading dated earlier than the day was started moves its start back.
+  final List<TemperatureReading> readings;
 
   String _age(BuildContext context, AppLocalizations l) {
     final birth = person.birthDate;
@@ -261,7 +303,7 @@ class _Header extends StatelessWidget {
 
   String _since(BuildContext context, AppLocalizations l) {
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final started = episode.startedAt.toLocal();
+    final started = sickDayStart(episode, readings).toLocal();
     final ended = episode.endedAt?.toLocal();
     final dateTime = DateFormat.MMMd(locale).add_jm();
     if (ended != null) {
@@ -741,4 +783,15 @@ class _NotesState extends ConsumerState<_Notes> {
       ],
     );
   }
+}
+
+/// When a sick day began: when it was started, or its earliest reading if
+/// that was dated earlier (a 10:47 reading added at 12:46 started it at 10:47,
+/// end-to-end test #26).
+DateTime sickDayStart(SickEpisode episode, List<TemperatureReading> readings) {
+  var start = episode.startedAt;
+  for (final r in readings) {
+    if (r.takenAt.isBefore(start)) start = r.takenAt;
+  }
+  return start;
 }

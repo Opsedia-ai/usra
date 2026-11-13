@@ -631,3 +631,7 @@ Questions:
 | `recordFor` | New | السجل ده ل{name} | This record is for {name} |
 
 `recordFor` sits under the title of every record form (visit, lab, scan, growth, surgery) so it's clear whose record it is (#16), like the medicine form's "الدوا ده ل{name}". Question: is "السجل ده لحسن" natural, or would "ده لحسن" alone read better under a title like "زيارة دكتور"?
+
+## One label for adding a person, 13 November 2026 (end-to-end test #20)
+
+Home's button said "فرد جديد" and the family page's "ضيف شخص". Home now uses `familyAdd` ("ضيف شخص") too; `homeNewPerson` is no longer shown. No string changed. The new-person form's title stays "فرد جديد" (`familyNew`). Question: should the title also say "ضيف شخص", or is a noun right for a title?

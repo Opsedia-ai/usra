@@ -439,11 +439,68 @@ void main() {
     );
     expect(find.byKey(const ValueKey('sick-days-ambulance')), findsOneWidget);
     expect(find.byKey(const ValueKey('sick-days-past-empty')), findsOneWidget);
-    expect(find.byKey(const ValueKey('sick-day-start')), findsOneWidget);
+    // One sick day at a time (e2e #22); the signs are a list, one a line.
+    expect(find.byKey(const ValueKey('sick-day-start')), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('sick-days-ambulance-signs')),
+        matching: find.byType(Row),
+      ),
+      findsWidgets,
+    );
 
     await tapKey(tester, 'sick-days-add-reading');
     expect(find.byKey(const ValueKey('reading-value')), findsOneWidget);
   });
+
+  testWidgets('the Add sheet'
+      's fever opens a reading on the sick day going on, '
+      'or starts one (e2e #21)', (tester) async {
+    tallScreen(tester);
+    final kid = (await tester.runAsync(
+      () => db.addProfile('Gamila', birthDate: DateTime(2024, 11)),
+    ))!;
+    await tester.pumpWidget(app());
+    await settle(tester);
+    go(tester, '/family/$kid/fever');
+    await settle(tester);
+    expect(find.byKey(const ValueKey('reading-value')), findsOneWidget);
+    final first = (await tester.runAsync(() => db.watchEpisodes(kid).first))!;
+    expect(first, hasLength(1));
+
+    // Again: the same sick day, no second one.
+    go(tester, '/family/$kid/fever');
+    await settle(tester);
+    expect(find.byKey(const ValueKey('reading-value')), findsOneWidget);
+    final again = (await tester.runAsync(() => db.watchEpisodes(kid).first))!;
+    expect(again.single.id, first.single.id);
+  });
+
+  testWidgets(
+    'a reading dated before the start moves the start back (e2e #26)',
+    (tester) async {
+      tallScreen(tester);
+      final ids = (await tester.runAsync(() async {
+        final id = await db.addProfile('Gamila', birthDate: DateTime(2024, 11));
+        final e = await db.saveEpisode(profileId: id, startedAt: now);
+        await db.saveReading(
+          episodeId: e,
+          takenAt: DateTime(2026, 11, 4, 7, 47),
+          value: 38.5,
+          unit: 'c',
+        );
+        return (kid: id, episode: e);
+      }))!;
+      await tester.pumpWidget(app());
+      await settle(tester);
+      go(tester, '/family/${ids.kid}/sick-days/${ids.episode}');
+      await settle(tester);
+      final since = tester.widget<Text>(
+        find.byKey(const ValueKey('sick-day-since')),
+      );
+      expect(since.data, contains('٧:٤٧'));
+    },
+  );
 
   group('polish (visual QA)', () {
     for (final dark in [false, true]) {

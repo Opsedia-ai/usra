@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/modules/feature_module.dart';
 import 'episode_list_screen.dart';
 import 'episode_screen.dart';
+import 'fever_reading_start.dart';
 
 /// Fever and sick days (C8): temperatures, symptoms, medicines given as
 /// the family wrote them, and sourced warning signs. No dose advice.
@@ -29,7 +30,13 @@ class SickDaysModule extends FeatureModule {
       builder: (_, s) => EpisodeScreen(
         profileId: s.pathParameters['id']!,
         episodeId: s.pathParameters['episodeId']!,
+        openReading: s.uri.queryParameters['reading'] == '1',
       ),
+    ),
+    // The Add sheet's temperature: a reading on the sick day going on.
+    GoRoute(
+      path: '/family/:id/fever',
+      builder: (_, s) => FeverReadingStart(profileId: s.pathParameters['id']!),
     ),
   ];
 }
