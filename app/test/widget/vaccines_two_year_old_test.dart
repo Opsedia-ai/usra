@@ -445,6 +445,25 @@ void main() {
       }
     });
 
+    test('hexavalent route with pentavalent from the health office: the '
+        'positions it covers are not marked again', () {
+      final l = lookupAppLocalizations(const Locale('ar'));
+      final doses = dosesDueSoFar(
+        birthDate: birth,
+        records: [
+          (id: 'p1', name: 'Pentavalent', dose: 1, date: today),
+          (id: 'i1', name: 'IPV', dose: 1, date: today),
+        ],
+        plan: const VaccinePlan(route: VaccineRoute.hexavalent),
+        today: today,
+        nameOf: (k) => vaccineName(l, k),
+      );
+      final keys = {for (final x in doses) x.dose.key};
+      expect(keys, isNot(contains('hexa-1')));
+      expect(keys, isNot(contains('penta-1')));
+      expect(keys, contains('hexa-2'));
+    });
+
     test('a 3-month-old: rotavirus within its age, nothing due later', () {
       final l = lookupAppLocalizations(const Locale('ar'));
       final doses = dosesDueSoFar(

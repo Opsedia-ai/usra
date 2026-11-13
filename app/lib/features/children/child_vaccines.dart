@@ -232,7 +232,19 @@ List<DoseSoFar> dosesDueSoFar({
     return out;
   }
 
-  final known = <VaccineRecord>[];
+  // The real records, each moved to its dose's day on the plan: they keep
+  // their place (and a mixed hexavalent route its shape), but a date ticked
+  // by hand doesn't time the doses after it.
+  final known = <VaccineRecord>[
+    for (final s in real)
+      if (s.givenOn != null)
+        (
+          id: null,
+          name: nameOf(s.dose.kind),
+          dose: s.dose.dose,
+          date: noonOn(s.dose.dueOn(birthDate)),
+        ),
+  ];
   final out = <DoseSoFar>[];
   final taken = <String>{};
   var on = DateTime(birthDate.year, birthDate.month, birthDate.day);
@@ -367,3 +379,6 @@ VaccineRecordChanges vaccineRecordChanges(
 
 bool _sameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
+
+/// [day] at noon, as the vaccine records are dated.
+DateTime noonOn(DateTime day) => DateTime(day.year, day.month, day.day, 12);
