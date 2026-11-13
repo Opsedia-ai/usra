@@ -1257,8 +1257,9 @@ class _ScanCard extends StatelessWidget {
                           read
                               ? l.medicineScanReview
                               : l.medicineScanOptionBody,
+                          // "Check what was read" stays in ink.
                           style: UsraType.label.copyWith(
-                            color: c.inkMuted,
+                            color: read ? c.ink : c.inkMuted,
                             fontWeight: FontWeight.w400,
                           ),
                         ),
