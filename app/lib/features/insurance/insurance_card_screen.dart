@@ -280,7 +280,7 @@ class _ShareButtonState extends ConsumerState<_ShareButton> {
     final failed = l.shareFailed;
     final box = context.findRenderObject() as RenderBox?;
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final date = DateFormat.yMMMd(locale).format(DateTime.now());
+    final date = DateFormat.yMMMd(locale).format(nowOf(context));
     // No insurer: only the date. The card's own name may be a private
     // nickname ("Work 2") and shouldn't go on a picture sent to someone.
     final mark = card.insurer == null

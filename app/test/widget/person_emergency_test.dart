@@ -17,7 +17,6 @@ import 'package:usra/core/security/app_lock.dart';
 import 'package:usra/features/doctors/contact_links.dart';
 import 'package:usra/features/family/profile_form_screen.dart'
     show relationships;
-import 'package:usra/features/medicines/medicines_providers.dart';
 import 'package:usra/l10n/app_localizations.dart';
 
 import '../support/fake_lock.dart';

@@ -826,7 +826,7 @@ class _Timeline extends ConsumerWidget {
   final Profile person;
 
   void _chooseType(BuildContext context, RecordTypeRegistry types) {
-    final today = DateTime.now();
+    final today = nowOf(context);
     final l = AppLocalizations.of(context);
     showModalBottomSheet<void>(
       context: context,

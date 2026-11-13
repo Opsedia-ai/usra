@@ -18,6 +18,7 @@ import '../family/member_screen.dart' show profileProvider, timelineProvider;
 import 'growth.dart';
 import 'growth_check.dart';
 import 'vaccines_screen.dart' show VaccineSummaryCard;
+import '../../core/providers.dart' show nowOf;
 
 /// One measurement on a chart: age in months and the value.
 typedef GrowthPoint = ({double months, double value, DateTime date});
@@ -79,7 +80,7 @@ class ChildScreen extends ConsumerWidget {
         (_, AsyncError(:final error)) => Center(child: Text('$error')),
         // `.value` keeps the last data while a stream reloads.
         (AsyncValue(value: final p?), AsyncValue(value: final events?)) =>
-          isUnderFive(p.birthDate, DateTime.now())
+          isUnderFive(p.birthDate, nowOf(context))
               ? _Body(profile: p, events: events)
               : Center(child: Text(l.growthUnderFiveOnly)),
         (AsyncData(value: null), _) => Center(child: Text(l.profileNotFound)),
@@ -124,7 +125,7 @@ class _BodyState extends State<_Body> {
     final events = widget.events;
     final birth = profile.birthDate!;
     final sex = profile.sex;
-    final now = DateTime.now();
+    final now = nowOf(context);
     final text = Theme.of(context).textTheme;
     final known = sex == 'male' || sex == 'female';
     final outside = known

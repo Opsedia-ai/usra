@@ -13,7 +13,6 @@ import '../../l10n/app_localizations.dart';
 import '../doctors/call_buttons.dart' show openContact;
 import '../family/emergency_card_screen.dart' show ambulanceNumber;
 import '../family/member_screen.dart' show profileProvider;
-import '../medicines/medicines_providers.dart' show clockProvider;
 import 'episode_sheets.dart' show showReadingSheet;
 import 'fever.dart';
 import 'sick_days_providers.dart';

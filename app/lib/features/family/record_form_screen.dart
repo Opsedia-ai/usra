@@ -91,7 +91,7 @@ class RecordFormScreen extends ConsumerWidget {
         doctors: doctors,
         strings: recordFormStrings(l),
         // A vaccine record says what was given: it can't be in the future.
-        lastOccurredAt: typeKey == 'vaccine' ? DateTime.now() : null,
+        lastOccurredAt: typeKey == 'vaccine' ? nowOf(context) : null,
         pickPhotos: (source) => pickRecordPhotos(context, ref, source),
         onSubmit: (result) async {
           // A growth value WHO flags as implausible: likely a typing mistake.

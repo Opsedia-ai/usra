@@ -8,7 +8,6 @@ import 'package:usra/core/design/pill_chip.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/features/family/record_form_screen.dart';
-import 'package:usra/features/medicines/medicines_providers.dart';
 
 void main() {
   late AppDatabase db;

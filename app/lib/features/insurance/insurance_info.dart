@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/status_chip.dart';
-import '../../core/design/tokens.dart';
+import '../../core/design/tokens.dart' show Severity;
 import '../../core/util/dates.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -38,28 +36,4 @@ String insuranceShareText(String personName, InsuranceCard card) {
     if (card.memberNumber != null)
       '${l.insuranceMemberNumber}: ${card.memberNumber}',
   ].join('\n');
-}
-
-/// "Expired", "Expires soon" or "Valid until", coloured by urgency.
-class ExpiryChip extends StatelessWidget {
-  const ExpiryChip({super.key, required this.expiresOn});
-
-  final DateTime? expiresOn;
-
-  @override
-  Widget build(BuildContext context) {
-    final severity = expirySeverity(expiresOn, DateTime.now());
-    if (severity == null) return const SizedBox.shrink();
-    final l = AppLocalizations.of(context);
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    final date = DateFormat.yMMMd(locale).format(expiryDay(expiresOn)!);
-    return StatusChip(
-      severity: severity,
-      label: switch (severity) {
-        Severity.urgent => l.insuranceExpired(date),
-        Severity.headsUp => l.insuranceExpiresSoon(date),
-        _ => l.insuranceValidUntil(date),
-      },
-    );
-  }
 }

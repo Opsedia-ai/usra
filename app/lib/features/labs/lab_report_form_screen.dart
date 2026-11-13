@@ -139,7 +139,7 @@ class _TestRow {
 }
 
 class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
-  late DateTime _date = DateUtils.dateOnly(DateTime.now());
+  late DateTime _date = DateUtils.dateOnly(nowOf(context));
   bool _dateTouched = false;
   final _lab = TextEditingController();
   final _doctor = TextEditingController();
@@ -506,7 +506,7 @@ class _LabReportFormScreenState extends ConsumerState<LabReportFormScreen> {
                       context,
                       initialDate: _date,
                       firstDate: DateTime(1900),
-                      lastDate: DateTime(DateTime.now().year + 1, 12, 31),
+                      lastDate: DateTime(nowOf(context).year + 1, 12, 31),
                     );
                     if (picked != null) {
                       setState(() {

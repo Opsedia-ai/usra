@@ -432,7 +432,7 @@ class _PrescriptionFormScreenState
   }
 
   Future<void> _pickDate() async {
-    final now = DateTime.now();
+    final now = nowOf(context);
     final first = DateTime(now.year - 30);
     final last = DateTime(now.year + 10, 12, 31);
     final picked = await pickDate(

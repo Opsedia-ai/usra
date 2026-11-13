@@ -63,11 +63,11 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
   /// Today's end is the limit: no date of birth is in the future, including
   /// one saved earlier (a phone's clock can be wrong).
   bool _isFuture(DateTime date) =>
-      DateUtils.dateOnly(date).isAfter(DateUtils.dateOnly(DateTime.now()));
+      DateUtils.dateOnly(date).isAfter(DateUtils.dateOnly(nowOf(context)));
 
   Future<void> _pickBirthDate() async {
     FocusManager.instance.primaryFocus?.unfocus();
-    final now = DateTime.now();
+    final now = nowOf(context);
     final current = _birthDate;
     final picked = await pickDate(
       context,

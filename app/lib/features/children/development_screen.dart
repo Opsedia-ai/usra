@@ -39,7 +39,7 @@ class DevelopmentScreen extends ConsumerWidget {
         (AsyncError(:final error), _) ||
         (_, AsyncError(:final error)) => Center(child: Text('$error')),
         (AsyncValue(value: final p?), AsyncValue(value: final events?)) =>
-          showsMilestones(p.birthDate, DateTime.now())
+          showsMilestones(p.birthDate, nowOf(context))
               ? _Body(profile: p, events: events)
               : Center(
                   child: Padding(
@@ -71,7 +71,7 @@ class _Body extends StatelessWidget {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     final birth = profile.birthDate!;
-    final age = ageInMonths(birth, DateTime.now());
+    final age = ageInMonths(birth, nowOf(context));
     final ticked = tickedMilestones(events);
     final current = currentMilestoneAge(age);
     final next = milestoneAges.firstWhere(
@@ -240,7 +240,7 @@ class _MilestoneTile extends ConsumerWidget {
         }
         return;
       }
-      final today = DateUtils.dateOnly(DateTime.now());
+      final today = DateUtils.dateOnly(nowOf(context));
       final birth = storedDay(profile.birthDate!);
       final picked = await pickDate(
         context,
