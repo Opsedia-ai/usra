@@ -399,8 +399,7 @@ void main() {
       }
     });
 
-    test('a dose already recorded stays; the ones after it follow its '
-        'real date', () {
+    test('a dose already recorded stays; the ones after it go by her age', () {
       final l = lookupAppLocalizations(const Locale('ar'));
       final doses = dosesDueSoFar(
         birthDate: birth,
@@ -411,8 +410,58 @@ void main() {
       );
       final byKey = {for (final x in doses) x.dose.key: x.date};
       expect(byKey.containsKey('penta-1'), isFalse);
-      // 4 weeks after the real dose 1, later than 4 months (12 March).
-      expect(byKey['penta-2'], d(2025, 3, 29));
+      expect(byKey['penta-2'], scheduleDay['penta-2']);
+    });
+
+    test('doses ticked by hand today don\'t push the rest past today '
+        '(founder, 13 Nov 2026)', () {
+      final l = lookupAppLocalizations(const Locale('ar'));
+      // Ticked by hand, so dated today: OPV 1-3 and MMR 1.
+      final doses = dosesDueSoFar(
+        birthDate: birth,
+        records: [
+          for (var n = 1; n <= 3; n++)
+            (id: 'o$n', name: 'OPV', dose: n, date: today),
+          (id: 'm1', name: 'MMR', dose: 1, date: today),
+        ],
+        plan: VaccinePlan.standard,
+        today: today,
+        nameOf: (k) => vaccineName(l, k),
+      );
+      final byKey = {for (final x in doses) x.dose.key: x.date};
+      for (final k in ['opv-1', 'opv-2', 'opv-3', 'mmr-1']) {
+        expect(byKey.containsKey(k), isFalse, reason: k);
+      }
+      // Every other required dose by two: on its own day, except that a
+      // later OPV or MMR dose is never dated before the ones ticked today.
+      for (final e in scheduleDay.entries) {
+        if (['opv-1', 'opv-2', 'opv-3', 'mmr-1'].contains(e.key)) continue;
+        final later = ['opv-4', 'opv-5', 'opv-6', 'mmr-2'].contains(e.key);
+        expect(
+          byKey[e.key],
+          later ? DateUtils.dateOnly(today) : e.value,
+          reason: e.key,
+        );
+      }
+    });
+
+    test('hexavalent route with pentavalent from the health office: the '
+        'positions it covers are not marked again', () {
+      final l = lookupAppLocalizations(const Locale('ar'));
+      final doses = dosesDueSoFar(
+        birthDate: birth,
+        records: [
+          (id: 'p1', name: 'Pentavalent', dose: 1, date: today),
+          (id: 'i1', name: 'IPV', dose: 1, date: today),
+        ],
+        plan: const VaccinePlan(route: VaccineRoute.hexavalent),
+        today: today,
+        nameOf: (k) => vaccineName(l, k),
+      );
+      final keys = {for (final x in doses) x.dose.key};
+      expect(keys, isNot(contains('hexa-1')));
+      expect(keys, isNot(contains('penta-1')));
+      expect(keys, contains('hexa-2'));
     });
 
     test('a 3-month-old: rotavirus within its age, nothing due later', () {
@@ -703,8 +752,10 @@ void main() {
       expect(key('vaccine-mark-past'), findsNothing);
     });
 
-    testWidgets('setup: a dose ticked by hand as given late moves the next '
-        'one, which is then not marked before its day', (tester) async {
+    testWidgets('setup: a dose ticked by hand as given late: the next one is '
+        'still marked, never dated before it (founder, 13 Nov 2026)', (
+      tester,
+    ) async {
       veryTall(tester);
       final id = await seed(tester);
       await h.open(tester, '/family/$id/vaccines/setup');
@@ -714,15 +765,17 @@ void main() {
           .pop(d(2026, 11, 1));
       await h.settle(tester);
       await h.tapKey(tester, 'setup-mark-past');
-      // MMR 1 ticked; MMR 2 is 4 weeks after 1 Nov, after today.
-      expect(body(tester), contains('١٦ جرعة إجبارية'));
+      // MMR 1 ticked; MMR 2 is marked too, dated 1 Nov at the earliest.
+      expect(body(tester), contains('١٧ جرعة إجبارية'));
       await h.tapKey(tester, 'vaccine-mark-past-optional');
       await h.tapKey(tester, 'vaccine-mark-past-ok');
       await h.tapKey(tester, 'vaccine-setup-save');
       final dates = await given(tester, id);
       expect(dates['mmr-1'], d(2026, 11, 1));
-      expect(dates.containsKey('mmr-2'), isFalse);
-      expect(dates.length, 17);
+      // Never before MMR 1, never after today.
+      expect(dates['mmr-2']!.isBefore(d(2026, 11, 1)), isFalse);
+      expect(dates['mmr-2']!.isAfter(today), isFalse);
+      expect(dates.length, 18);
     });
 
     testWidgets('a child of 4 years 11 months, from the setup with the '

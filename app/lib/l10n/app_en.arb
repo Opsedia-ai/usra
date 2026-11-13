@@ -52,7 +52,7 @@
   "aboutPrivacyPolicy": "Privacy policy",
   "aboutTerms": "Terms of use",
   "aboutLinkFailed": "Couldn't open the page. Check your internet connection.",
-  "familyNew": "New person",
+  "familyNew": "Add a person",
   "familyEdit": "Edit",
   "profileBirthDate": "Date of birth",
   "profileSex": "Sex",
@@ -1038,17 +1038,6 @@
   "recoveryKeyShowIntro": "This is the key that opens your backups. Check it matches the one you wrote down.",
   "recoveryKeyLoseWarning": "Without this key nobody can open your backups, not even us. If it's lost, we can't get it back.",
   "recoveryKeyWrittenDown": "I wrote it down, continue",
-  "recoveryKeyConfirmIntro": "To be sure it's written correctly, type these two groups from your paper.",
-  "recoveryKeyGroupLabel": "Group {number}",
-  "@recoveryKeyGroupLabel": {
-    "placeholders": {
-      "number": {
-        "type": "int"
-      }
-    }
-  },
-  "recoveryKeyConfirm": "Confirm",
-  "recoveryKeyShowAgain": "Show the key again",
   "recoveryKeyCopy": "Copy the key",
   "recoveryKeyCopied": "Copied. It's cleared from the clipboard in a minute: paste it into your password manager now.",
   "shareWarningTitle": "Share outside Usra?",
@@ -1101,14 +1090,6 @@
       "count": {
         "type": "int",
         "format": "decimalPattern"
-      }
-    }
-  },
-  "recoveryKeyMismatch": "Group {groups} doesn't match. Check your paper.",
-  "@recoveryKeyMismatch": {
-    "placeholders": {
-      "groups": {
-        "type": "String"
       }
     }
   },
@@ -1295,8 +1276,12 @@
   "@devIntro": {
     "description": "Milestones intro: to the reader (parent = the reader's sex from About you) about the child (child = the child's sex).",
     "placeholders": {
-      "parent": {"type": "String"},
-      "child": {"type": "String"}
+      "parent": {
+        "type": "String"
+      },
+      "child": {
+        "type": "String"
+      }
     }
   },
   "devLateBanner": "Some milestones for {age} aren't ticked yet. Talk to your pediatrician about them; there's no need to wait.",
@@ -2519,7 +2504,9 @@
   "@homeNeedsAttentionOne": {
     "description": "After one person's name on Home; follows that person's sex.",
     "placeholders": {
-      "sex": {"type": "String"}
+      "sex": {
+        "type": "String"
+      }
     }
   },
   "homeNeedsAttentionMany": "need your attention",

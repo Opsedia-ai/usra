@@ -7,7 +7,7 @@ import '../../core/security/app_lock.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Number keys for a 4–6 digit PIN, with dots for what's typed. Bigger in
-/// Simple Mode. Clears itself after each [onSubmit].
+/// Simple Mode. Submits at the last digit (or ✓), then clears itself.
 class PinPad extends ConsumerStatefulWidget {
   const PinPad({
     super.key,
@@ -36,6 +36,9 @@ class _PinPadState extends ConsumerState<PinPad> {
   void _type(String digit) {
     if (!_active || _pin.length >= pinLength) return;
     setState(() => _pin += digit);
+    // Goes on by itself at the last digit, like the phone's own passcode:
+    // parents filled all six dots and waited (13 Nov 2026).
+    if (_pin.length == pinLength) _submit();
   }
 
   void _delete() {

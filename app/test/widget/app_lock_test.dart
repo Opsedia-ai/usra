@@ -87,7 +87,6 @@ void main() {
       await tester.tap(find.byKey(ValueKey('pin-$d')));
       await tester.pump();
     }
-    await tester.tap(find.byKey(const ValueKey('pin-ok')));
     await tester.pump();
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 300)),

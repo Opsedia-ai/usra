@@ -262,19 +262,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('backup-auto-key-continue')));
     await tester.pumpAndSettle();
 
-    final groups = [
-      for (var n = 1; n <= 6; n++)
-        tester.widget<Text>(find.byKey(ValueKey('recovery-group-$n'))).data!,
-    ];
     await tester.tap(find.byKey(const ValueKey('recovery-key-written')));
-    await tester.pumpAndSettle();
-    for (var n = 1; n <= 6; n++) {
-      final field = find.byKey(ValueKey('recovery-confirm-$n'));
-      if (field.evaluate().isNotEmpty) {
-        await tester.enterText(field, groups[n - 1]);
-      }
-    }
-    await tester.tap(find.byKey(const ValueKey('recovery-confirm')));
     await settleBackup(tester);
 
     expect(await keys.read(), isNotNull);

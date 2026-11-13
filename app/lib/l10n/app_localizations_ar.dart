@@ -150,7 +150,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get aboutLinkFailed => 'مقدرناش نفتح الصفحة. اتأكد من النت.';
 
   @override
-  String get familyNew => 'فرد جديد';
+  String get familyNew => 'ضيف شخص';
 
   @override
   String get familyEdit => 'تعديل';
@@ -1858,21 +1858,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recoveryKeyWrittenDown => 'كتبته، كمّل';
 
   @override
-  String get recoveryKeyConfirmIntro =>
-      'علشان نتأكد إنه مكتوب صح: المجموعتين دول من الورقة.';
-
-  @override
-  String recoveryKeyGroupLabel(int number) {
-    return 'المجموعة $number';
-  }
-
-  @override
-  String get recoveryKeyConfirm => 'تأكيد';
-
-  @override
-  String get recoveryKeyShowAgain => 'عرض المفتاح تاني';
-
-  @override
   String get recoveryKeyCopy => 'نسخ المفتاح';
 
   @override
@@ -2022,11 +2007,6 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'رقم سري غلط كمان واحد يمسح كل حاجة',
     );
     return '$_temp0';
-  }
-
-  @override
-  String recoveryKeyMismatch(String groups) {
-    return 'المجموعة $groups مش مطابقة. راجع الورقة.';
   }
 
   @override

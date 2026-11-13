@@ -82,8 +82,6 @@ Medical strings in this list also go to the doctor, through `docs/medical-review
 | `recoveryKeyIntro` | Changed | ده مفتاح الاسترجاع. مكانه ورقة في مكان أمين بعيد عن الموبايل. فتح النسخ الاحتياطية على موبايل جديد محتاجه. | This is your recovery key. Write it on paper and keep it somewhere safe, away from this phone. You'll need it to open your backups on a new phone. |
 | `recoveryKeyShowIntro` | Changed | ده المفتاح اللي بيفتح النسخ الاحتياطية. لازم يكون زي اللي مكتوب على الورقة. | This is the key that opens your backups. Check it matches the one you wrote down. |
 | `recoveryKeyWrittenDown` | Changed (13 Nov: read as an instruction, not a next step) | كتبته، كمّل | I wrote it down, continue |
-| `recoveryKeyConfirmIntro` | Changed | علشان نتأكد إنه مكتوب صح: المجموعتين دول من الورقة. | To be sure it's written correctly, type these two groups from your paper. |
-| `recoveryKeyShowAgain` | Changed | عرض المفتاح تاني | Show the key again |
 | `recoveryKeyCopy` | Changed | نسخ المفتاح | Copy the key |
 | `rootWarningTitle` | Changed | حماية الموبايل ده مش شغّالة | This phone's protections are switched off |
 | `databaseOpenFailed` | New | أسرة مقدرتش تفتح سجلاتك دلوقتي. سجلاتك لسه موجودة ومتمسحتش. اتأكد إن الموبايل فيه مساحة فاضية، وبعدين جرّب تاني أو اقفل الموبايل وافتحه. لو المشكلة فضلت، كلمنا قبل ما تمسح التطبيق. | Usra can't open your records right now. Your records are still here and nothing was deleted. Check that your phone has free storage, then try again or restart your phone. If this keeps happening, contact us before deleting the app. |

@@ -152,7 +152,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t open the page. Check your internet connection.';
 
   @override
-  String get familyNew => 'New person';
+  String get familyNew => 'Add a person';
 
   @override
   String get familyEdit => 'Edit';
@@ -1852,21 +1852,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recoveryKeyWrittenDown => 'I wrote it down, continue';
 
   @override
-  String get recoveryKeyConfirmIntro =>
-      'To be sure it\'s written correctly, type these two groups from your paper.';
-
-  @override
-  String recoveryKeyGroupLabel(int number) {
-    return 'Group $number';
-  }
-
-  @override
-  String get recoveryKeyConfirm => 'Confirm';
-
-  @override
-  String get recoveryKeyShowAgain => 'Show the key again';
-
-  @override
   String get recoveryKeyCopy => 'Copy the key';
 
   @override
@@ -2016,11 +2001,6 @@ class AppLocalizationsEn extends AppLocalizations {
       one: '1 more wrong PIN erases everything',
     );
     return '$_temp0';
-  }
-
-  @override
-  String recoveryKeyMismatch(String groups) {
-    return 'Group $groups doesn\'t match. Check your paper.';
   }
 
   @override

@@ -217,7 +217,7 @@ class SimpleModeController extends Notifier<bool> {
   }
 }
 
-/// Follow the phone (default), or always light or dark.
+/// Light by default (founder, 13 Nov 2026); or follow the phone, or dark.
 final themeModeProvider = NotifierProvider<ThemeModeController, ThemeMode>(
   ThemeModeController.new,
 );
@@ -236,7 +236,7 @@ class ThemeModeController extends Notifier<ThemeMode> {
     return _saved.entries
         .firstWhere(
           (e) => e.value == saved,
-          orElse: () => const MapEntry(ThemeMode.system, 0),
+          orElse: () => const MapEntry(ThemeMode.light, 1),
         )
         .key;
   }

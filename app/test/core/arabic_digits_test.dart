@@ -100,10 +100,9 @@ void main() {
             .readAsStringSync();
         final bare = <String>[
           for (final m in method.allMatches(generated))
-            if (m[1] != 'recoveryKeyGroupLabel')
-              for (final int in RegExp(r'int (\w+)').allMatches(m[2]!))
-                if (RegExp('\\\$${int[1]}\\b').hasMatch(m[3]!))
-                  '${m[1]}.${int[1]}',
+            for (final int in RegExp(r'int (\w+)').allMatches(m[2]!))
+              if (RegExp('\\\$${int[1]}\\b').hasMatch(m[3]!))
+                '${m[1]}.${int[1]}',
         ];
         expect(bare, isEmpty, reason: language);
       }

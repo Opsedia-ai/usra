@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+import 'package:usra/core/preferences.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/design/list_row.dart';
@@ -31,10 +32,12 @@ void main() {
   });
   tearDown(() => db.close());
 
-  Widget app() => ProviderScope(
+  Widget app({bool dark = false}) => ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(db),
       dismissalStoreProvider.overrideWithValue(store),
+      // Light by default since 13 Nov 2026, whatever the phone says.
+      if (dark) themeModeProvider.overrideWith(_Dark.new),
     ],
     child: const UsraApp(),
   );
@@ -160,7 +163,6 @@ void main() {
     tester.view.physicalSize = const Size(1170, 12000);
     tester.view.devicePixelRatio = 3;
     tester.platformDispatcher.textScaleFactorTestValue = 2;
-    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
     addTearDown(tester.view.reset);
     addTearDown(tester.platformDispatcher.clearAllTestValues);
     final today = DateUtils.dateOnly(DateTime.now());
@@ -183,7 +185,7 @@ void main() {
       return mona;
     }))!;
 
-    await tester.pumpWidget(app());
+    await tester.pumpWidget(app(dark: true));
     await tester.pumpAndSettle();
     final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
     router.go('/family/$mona/follow-ups');
@@ -201,4 +203,9 @@ void main() {
       greaterThan(tester.getTopLeft(reason).dy),
     );
   });
+}
+
+class _Dark extends ThemeModeController {
+  @override
+  ThemeMode build() => ThemeMode.dark;
 }
