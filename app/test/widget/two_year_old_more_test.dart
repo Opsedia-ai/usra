@@ -356,13 +356,10 @@ void main() {
         // What is on screen at the top of the page (no scrolling).
         expect(passed['textContrast'], isTrue);
         expect(passed['androidTapTarget'], isTrue);
-        // BUG: on every page the whole screen is a tappable node with no
-        // label (DismissKeyboard's GestureDetector, lib/core/design/
-        // dismiss_keyboard.dart), and on her page, the sick day and the
-        // emergency card a 48x48 round icon button's tap node has no label
-        // (UsraRoundIconButton puts its label on a Semantics around the
-        // IconButton, not on the button's own node).
-        expect(passed['labeledTapTarget'], isFalse);
+        // Every tap target has a label (bug 16): DismissKeyboard's gesture
+        // detector is hidden from screen readers, and UsraRoundIconButton's
+        // label is merged into the button's own tap node.
+        expect(passed['labeledTapTarget'], isTrue);
         // Layout too: nothing overflows top to bottom.
         await walkScreen(tester);
       });
