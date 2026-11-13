@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/design/list_row.dart' show IconBox;
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../l10n/app_localizations.dart';
 import 'medicines_providers.dart';
 
@@ -26,7 +29,6 @@ class ReminderAccessCard extends ConsumerWidget {
     if (!access.complete) {
       return _Banner(
         key: const ValueKey('reminders-off'),
-        severity: Severity.actSoon,
         icon: Icons.notifications_off_outlined,
         // Allowed, but without exact alarms: on, possibly late, not off.
         title: access.notifications
@@ -40,7 +42,6 @@ class ReminderAccessCard extends ConsumerWidget {
     if (access.batteryUnrestricted == false) {
       return _Banner(
         key: const ValueKey('reminders-battery'),
-        severity: Severity.headsUp,
         icon: Icons.battery_alert_outlined,
         title: l.reminderBatteryTitle,
         body: l.reminderBatteryBody,
@@ -55,10 +56,11 @@ class ReminderAccessCard extends ConsumerWidget {
   }
 }
 
+/// A white card with an icon box, an amber dot before the title, quiet body
+/// text and an outlined button, like the backup notices on Home.
 class _Banner extends StatelessWidget {
   const _Banner({
     super.key,
-    required this.severity,
     required this.icon,
     required this.title,
     required this.body,
@@ -66,7 +68,6 @@ class _Banner extends StatelessWidget {
     required this.onAction,
   });
 
-  final Severity severity;
   final IconData icon;
   final String title;
   final String body;
@@ -75,34 +76,51 @@ class _Banner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    final c = context.usra;
     return Card(
-      color: severity.backgroundOf(context),
       child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        padding: const EdgeInsets.all(UsraSpacing.s4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(icon, color: severity.foregroundOf(context)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: text.titleMedium?.copyWith(
-                      color: severity.foregroundOf(context),
+            IconBox(icon: icon),
+            const SizedBox(width: UsraSpacing.s3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: UsraSpacing.s1,
+                children: [
+                  Semantics(
+                    header: true,
+                    child: StatusDotText(
+                      label: title,
+                      color: c.ink,
+                      style: UsraType.body.copyWith(
+                        fontWeight: FontWeight.w600,
+                        height: 24 / 16,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(body, style: text.bodyMedium),
-            const SizedBox(height: 12),
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: FilledButton(onPressed: onAction, child: Text(action)),
+                  Text(
+                    body,
+                    style: UsraType.label.copyWith(
+                      color: c.inkMuted,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: UsraSpacing.s2),
+                    child: OutlinedButton(
+                      onPressed: onAction,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: c.ink,
+                        side: BorderSide(color: c.lineStrong),
+                      ),
+                      child: Text(action),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
