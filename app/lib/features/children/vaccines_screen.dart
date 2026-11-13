@@ -70,16 +70,45 @@ Future<DateTime?> pickGivenDate(
 /// Vaccine reminders need notifications, which until now were only asked
 /// for from the Medicines tab: ask once the family has a vaccine plan (the
 /// phone shows its prompt only the first time). Never blocks saving.
-Future<void> askForReminderAccess(WidgetRef ref) async {
+///
+/// The app says why first (end-to-end test #4: the phone's prompt appeared
+/// with no word from the app): what the reminders are, and that they're made
+/// on this phone with nothing sent anywhere. "Not now" asks nothing.
+Future<void> askForReminderAccess(BuildContext context, WidgetRef ref) async {
   if (!ref.read(vaccineRemindersProvider)) return;
   try {
     final scheduler = ref.read(reminderSchedulerProvider);
-    if ((await scheduler.access()).notifications) return;
-    await requestReminderAccess(
-      scheduler,
-      ref.read(keyValueStoreProvider),
-      exactAlarms: false,
+    final prefs = ref.read(keyValueStoreProvider);
+    final access = await scheduler.access();
+    // Already allowed, or already refused: the phone won't ask again, and
+    // the Medicines tab and More say how to turn them on.
+    if (access.notifications || notificationsBlocked(access, prefs)) return;
+    if (prefs.getBool(PrefKeys.notificationsAsked) ?? false) return;
+    if (!context.mounted) return;
+    final l = AppLocalizations.of(context);
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (c) => UsraAlertDialog(
+        key: const ValueKey('reminder-explain'),
+        scrollable: true,
+        title: Text(l.reminderExplainTitle),
+        content: Text(l.reminderExplainBody),
+        actions: [
+          TextButton(
+            key: const ValueKey('reminder-explain-later'),
+            onPressed: () => Navigator.of(c).pop(false),
+            child: Text(l.reminderExplainLater),
+          ),
+          FilledButton(
+            key: const ValueKey('reminder-explain-ok'),
+            onPressed: () => Navigator.of(c).pop(true),
+            child: Text(l.reminderExplainOk),
+          ),
+        ],
+      ),
     );
+    if (go != true) return;
+    await requestReminderAccess(scheduler, prefs, exactAlarms: false);
   } catch (_) {
     // No notifications on this phone; the vaccine page still works.
   }
@@ -2091,7 +2120,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
       return;
     }
     if (!mounted) return;
-    await askForReminderAccess(ref);
+    await askForReminderAccess(context, ref);
     if (!mounted) return;
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(l.vaccineSetupSaved)));

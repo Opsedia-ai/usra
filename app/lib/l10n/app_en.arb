@@ -991,6 +991,26 @@
   "@reminderOpenSettings": {
     "description": "Button that opens this app's page in the phone's Settings."
   },
+  "reminderExplainTitle": "Reminders for vaccine visits?",
+  "@reminderExplainTitle": {
+    "description": "Shown before the phone's own notification prompt, after saving a vaccine plan."
+  },
+  "reminderExplainBody": "Usra can remind you on this phone before each vaccine is due, so a visit isn't missed. Reminders are made on this phone and nothing is sent anywhere. Your phone will ask you to allow notifications next.",
+  "@reminderExplainBody": {
+    "description": "Why the app asks for notifications, before the phone's prompt."
+  },
+  "reminderExplainOk": "Continue",
+  "@reminderExplainOk": {
+    "description": "Goes on to the phone's notification prompt."
+  },
+  "reminderExplainLater": "Not now",
+  "@reminderExplainLater": {
+    "description": "Closes without asking the phone."
+  },
+  "settingsNotificationsOffPhone": "Notifications are off on this phone, so these reminders won't show.",
+  "@settingsNotificationsOffPhone": {
+    "description": "Under More's vaccine reminders switch when the phone's notifications are off."
+  },
   "reminderBatteryTitle": "Make reminders reliable",
   "reminderBatteryBody": "Some phones stop apps in the background to save battery. Set Usra's battery use to \"Unrestricted\" so reminders always ring.",
   "reminderBatteryOpen": "Battery settings",

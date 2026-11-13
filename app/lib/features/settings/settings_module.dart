@@ -20,6 +20,9 @@ import '../backup/backup_providers.dart';
 import '../family/family_screen.dart' show profilesProvider;
 import '../backup/backup_screen.dart';
 import '../children/vaccines_screen.dart' show askForReminderAccess;
+import '../medicines/medicines_providers.dart'
+    show reminderAccessProvider, reminderSchedulerProvider;
+import '../medicines/reminder_permission.dart';
 import 'about_privacy_screen.dart';
 import 'delete_data_screen.dart';
 import '../home/simple_home.dart' show leaveSimpleMode;
@@ -381,6 +384,11 @@ class _VaccineReminderSettings extends ConsumerWidget {
     final minutes = ref.watch(vaccineReminderMinutesProvider);
     final time = TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60);
     final on = ref.watch(vaccineRemindersProvider);
+    final access = ref.watch(reminderAccessProvider).value;
+    final noNotifications = access?.notifications == false;
+    final blocked =
+        access != null &&
+        notificationsBlocked(access, ref.read(keyValueStoreProvider));
     Future<void> guarded(Future<void> Function() save) async {
       try {
         await save();
@@ -398,12 +406,41 @@ class _VaccineReminderSettings extends ConsumerWidget {
           value: on,
           onChanged: (v) => guarded(() async {
             await ref.read(vaccineRemindersProvider.notifier).set(v);
-            if (v) await askForReminderAccess(ref);
+            if (v && context.mounted) await askForReminderAccess(context, ref);
+            ref.invalidate(reminderAccessProvider);
           }),
           secondary: const Icon(Icons.vaccines_outlined),
           title: Text(l.settingsVaccineReminders),
           subtitle: Text(l.settingsVaccineRemindersHint(time.format(context))),
         ),
+        // On here, but off on the phone: say so, with the way to fix it,
+        // rather than a switch that looks on (e2e #24).
+        if (on && noNotifications)
+          Padding(
+            key: const ValueKey('settings-vaccine-blocked'),
+            padding: const EdgeInsetsDirectional.fromSTEB(72, 0, 16, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                StatusDotText(label: l.settingsNotificationsOffPhone),
+                TextButton(
+                  key: const ValueKey('settings-vaccine-allow'),
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  onPressed: () async {
+                    await allowReminders(
+                      ref.read(reminderSchedulerProvider),
+                      ref.read(keyValueStoreProvider),
+                      exactAlarms: false,
+                    );
+                    ref.invalidate(reminderAccessProvider);
+                  },
+                  child: Text(
+                    blocked ? l.reminderOpenSettings : l.reminderAllow,
+                  ),
+                ),
+              ],
+            ),
+          ),
         if (on)
           ListTile(
             key: const ValueKey('settings-vaccine-time'),

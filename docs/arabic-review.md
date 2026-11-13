@@ -647,3 +647,15 @@ After a "no" to the phone's notification prompt, iOS never asks again and Androi
 | `homeSetupRemindersBlocked` | New | مقفولة من إعدادات الموبايل. دوس هنا علشان تفتحها. | Off in your phone's Settings. Tap to open them. |
 
 Question: "دوس هنا" and "افتح" address the reader as a man, like the existing "اسمح". Is that acceptable until the app knows who is reading?
+
+## Before the phone asks for notifications, 13 November 2026 (end-to-end tests #4, #24)
+
+After saving a vaccine plan (or turning vaccine reminders on in More) the phone's prompt appeared with no word from the app. The app now explains first; "مش دلوقتي" asks nothing. In More, when vaccine reminders are on but the phone's notifications are off, a line under the switch says so, with "اسمح" or "افتح الإعدادات".
+
+| Key | | Arabic | English |
+|---|---|---|---|
+| `reminderExplainTitle` | New | نفكّرك بمواعيد التطعيم؟ | Reminders for vaccine visits? |
+| `reminderExplainBody` | New | أسرة ممكن تفكّرك على الموبايل ده قبل ميعاد كل تطعيم، علشان الزيارة ماتفوتش. التنبيهات بتتعمل على الموبايل نفسه ومفيش حاجة بتتبعت لأي مكان. بعد كده الموبايل هيسألك تسمح بالإشعارات. | Usra can remind you on this phone before each vaccine is due, so a visit isn't missed. Reminders are made on this phone and nothing is sent anywhere. Your phone will ask you to allow notifications next. |
+| `reminderExplainOk` | New | كمّل | Continue |
+| `reminderExplainLater` | New | مش دلوقتي | Not now |
+| `settingsNotificationsOffPhone` | New | الإشعارات مقفولة على الموبايل ده، فالتنبيهات دي مش هتظهر. | Notifications are off on this phone, so these reminders won't show. |
