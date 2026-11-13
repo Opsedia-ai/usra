@@ -100,6 +100,8 @@ class _Body extends StatelessWidget {
               child: StatusDotText(
                 label: l.devLateBanner(milestoneAgeLabel(l, late.first.months)),
                 style: UsraType.body,
+                // The amber dot marks it; the sentence reads as normal text.
+                color: context.usra.ink,
               ),
             ),
           ),
