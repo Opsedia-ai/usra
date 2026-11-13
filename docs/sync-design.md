@@ -7,6 +7,18 @@ be merged before this design has been reviewed by an external cryptography
 reviewer (security plan S14), the open questions in section 18 are answered,
 and the backend blockers in section 20 (B0) are closed.
 
+**Revised 2026-11-13 (founder decision).** The first family release is **two
+parents who both write**: an owner and a guardian in one family, sharing
+records and insurance cards (with their photos), and either can send a PDF to
+a doctor (PDFs are made on the phone, nothing new on the server). This
+replaces Phase 1's read-only caregiver view (section 17), brings the group
+merge rules of section 12 forward for those record types, and adds cost rules
+the founder approved (section 22). The security goals are unchanged: the
+server can't read or change records. Code for it is built in Phase 0 behind a
+flag that is off in store builds, as the backend functions were before the
+external review; the gates in section 17 still decide when a real family uses
+it.
+
 This document says how a family shares health records across phones through
 Supabase without the server ever being able to read them. It replaces the
 short sync notes in the technical design (`docs/pdf/04-technical-design.pdf`,
@@ -39,6 +51,7 @@ default unless a reviewer finds a reason not to.
 19. Changes to earlier notes
 20. Backend follow-ups (board cards)
 21. Review findings and where they are addressed
+22. Cost rules (2026-11-13)
 
 ## 1. Summary
 
@@ -106,6 +119,13 @@ default unless a reviewer finds a reason not to.
    connection; no step needs more than a few seconds of CPU.
 9. **Reviewable.** Standard primitives, test vectors, small number of
    constructions; nothing home-made where a standard exists.
+10. **Two parents, one family (first release).** Both parents read **and
+    write** the family's records and insurance cards: either can tick a
+    vaccine, log a fever or a dose, or edit an insurance card, and either
+    can make a PDF for a doctor on their own phone (added 2026-11-13).
+11. **Cheap to run.** The beta fits the free Supabase plan and 5,000 users fit
+    Supabase Pro (about 25 dollars a month) with no other paid service.
+    Section 22 holds the rules and the numbers.
 
 ### Non-goals (v2.0)
 
@@ -141,9 +161,9 @@ default unless a reviewer finds a reason not to.
 | Role | Read | Write records | Change membership | Notes |
 | --- | --- | --- | --- | --- |
 | `owner` | all | all | add, remove, change role, transfer ownership | One per family in v2.0 (section 18, Q8) |
-| `guardian` | all | all | no | Parent, adult child caring for a parent |
+| `guardian` | all | all | no | Parent, adult child caring for a parent. The second parent in the first release |
 | `cared_for` | all | Phase 2: only dose logs for the profile linked to them | no | An elderly parent with their own phone |
-| `viewer` | all | no | no | A relative who follows along; the Phase 1 caregiver |
+| `viewer` | all | no | no | A relative who follows along (after the first release; section 17) |
 
 Any member may leave a family, manage their own devices, and rotate the
 family key (rotation gives no new access; section 10).
@@ -416,7 +436,9 @@ Rules every phone checks while replaying:
 
 ### Head beacons (required)
 
-Every device publishes, on every sync, a signed beacon for each family:
+Every device publishes a signed beacon for each family when its log head
+changes and at least every 3 days (section 22, rule 7; Q19), and reads every
+other beacon on every sync:
 
 ```
 beacon_bytes = UTF-8 JSON { "v": 1, "family", "device", "seq", "h": <head hash>, "at": <HLC string> }
@@ -776,6 +798,18 @@ Every row of a synced local table (`profiles`, `medical_events`, `doctors`,
 and later tables) is one record. Its columns are merged in groups (see
 Merge below); `medical_events.data_json` is merged by its top-level keys.
 
+**First release (2026-11-13).** Only records and insurance cards sync:
+profiles, medical events (visits, vaccines, labs and the rest), doctors,
+medicines, prescriptions, dose schedules, dose logs, sick days with their
+temperatures and given medicines, and insurance cards with their two photos.
+`attachments` rows and the photos of medicines and prescriptions don't sync
+yet; the phone-local file paths in those columns never leave the phone.
+Values the phone can work out again (vaccine due dates and statuses, missed
+or due doses, growth z-scores, follow-up suggestions, spending totals,
+reminders) are never synced; each phone computes them from the synced
+records. Append-only history rows (dose logs, temperatures, given medicines)
+are packed into weekly bundle records (section 22, rule 6).
+
 ### Sync ids
 
 On the server a record is known by a **random sync id** (UUID v4), not by
@@ -821,7 +855,8 @@ body (UTF-8 JSON, signed, strict parse):
   }
 }
 
-plaintext = sig (64) | u32 body_length | body | zero padding
+plaintext = sig (64) | u8 flags | u32 stored_length | stored_body | zero padding
+              (flags bit 0: stored_body = raw DEFLATE (RFC 1951) of body; other bits 0)
 sig       = Ed25519(dsig, "usra/v1/record-sig" || 0x00 || header || body)
 stored    = nonce (24) | XChaCha20-Poly1305(RK_v, nonce, aad = header, plaintext)
 ```
@@ -834,6 +869,12 @@ Padding: the plaintext is padded to the next power of two, at least 256
 bytes and at most 64 KiB. The server checks that `octet_length(ciphertext) − 40`
 is one of those sizes, so a buggy client can't leak exact sizes. Anything
 bigger than 64 KiB goes into an attachment blob.
+
+Compression (section 22, rule 5; Q18): a body over 1 KiB is deflated before
+padding and encryption, and flag bit 0 says so. The signature is always over
+the uncompressed body, so a reader inflates first (refusing to inflate past
+64 KiB) and verifies the exact bytes it then parses. Unknown flag bits make
+the record fail rule 1.
 
 ### Reader rules
 
@@ -957,7 +998,8 @@ family is resumable by the same cursor.
 
 A data-only push ("sync", with an opaque collapse key that is not the family
 id, at most one per minute per family) tells other phones to pull. No push
-contains ids or content.
+contains ids or content. Not in the first release (section 22): phones pull
+when the app opens and push after edits.
 
 ### Attachments
 
@@ -987,8 +1029,12 @@ contains ids or content.
   Deleting a family or account must delete its Storage objects explicitly:
   they are not covered by `on delete cascade` (B8).
 - Photos are downloaded on demand (when opened), not with the first sync, to
-  save data on budget plans; insurance cards and emergency-card photos are
-  fetched eagerly.
+  save data on budget plans, and then kept on the phone, encrypted. This
+  includes insurance card photos (section 22, rule 9; revised 2026-11-13,
+  they used to be fetched eagerly). A card opened without a network shows its
+  details and says the photo will appear once the phone is online.
+- In the first release only insurance card photos sync. Each is shrunk to
+  about 200–300 KB on the phone before it is encrypted (section 22, rule 3).
 
 ### Size and rate limits
 
@@ -1226,7 +1272,8 @@ happens on the server, so no AEAD or HPKE code is deployed there.
   delete `family_members` or `family_invites` directly, can't write
   `e2ee_records` except through `push_e2ee_records`; deleting the family's
   creator after an ownership transfer doesn't delete the family.
-- Viewers and cared-for can't write records (Phase 1: only the owner can);
+- Viewers and cared-for can't write records (Phase 1: the owner and the
+  guardian can);
   pending and removed members read nothing; revoked devices lose access.
 - `push_e2ee_records`: compare-and-set, stale key, size buckets, clock bounds.
 - `accept_family_invite` only with the lookup hash; one use; expiry.
@@ -1250,17 +1297,41 @@ reaches users; included in the S22 pen test scope.
 
 ## 17. Phased rollout
 
+Revised 2026-11-13 by the founder's decision (first release: two parents who
+both write). The earlier Phase 1 was a read-only caregiver view with only the
+owner writing; that order is replaced, and its "Phase 1 has run a month with
+no integrity warnings" gate for guardian writes no longer applies.
+
 | Phase | Who can do what | Gate |
 | --- | --- | --- |
-| **0. Foundations** (no user-visible change) | Crypto core, vectors, backend tables and functions (B1–B13) behind a server flag; internal builds only | B0 closed; this design reviewed; test vectors pass; benchmark on a budget phone |
-| **1. Caregiver view (read-only)** | The owner's phones write (multi-device for the owner); everyone else joins as a read-only member (viewer). Records and attachments sync; phones sync down. Feature flag, closed beta in Egypt first | External review answered; implementation reviewed; legal gate for health data on the server (S25); privacy policy and data safety form updated |
-| **2. Shared care** | Guardians write (group merge); cared-for writes dose logs for their own profile; caregiver alerts when a dose is missed | Phase 1 has run a month with no integrity warnings; version history decision (Q7) |
+| **0. Foundations** (no user-visible change) | Crypto core, vectors, backend tables and functions (B1–B13); the phone's sync engine, the second parent's invite and join, and insurance card photos, all behind a flag that is **off in store builds**; internal builds and the local Supabase only | B0 closed; this design reviewed; test vectors pass; benchmark on a budget phone |
+| **1. Two parents** | One family, two members: the **owner** and one **guardian**, each with their own phones. Both read and write every synced record type of section 12 (Units) and insurance cards with their photos, with the group merge and conflict flags of section 12. Sync on app open and after edits (section 22). Either parent makes PDFs on their own phone | External review answered (including Q16–Q20); implementation reviewed; legal gate for health data on the server (S25) and the Egyptian lawyer's answer before any real family signs in; privacy policy and data safety form updated; the founder turns the flag on. Closed beta in Egypt first |
+| **2. Wider family** | More guardians; viewers (a relative who follows along); cared-for adults who write dose logs for their own profile; record photos and lab photos (B8 quotas); caregiver alerts when a dose is missed; optional push to tell the other phones to sync (B11) | Phase 1 has run a month with no integrity warnings; version history decision (Q7); a cost check for photos and push |
 | **3. Later** | Per-profile private scopes (Q9), co-owners (Q8), post-quantum wraps (Q6), web view | Separate design notes |
 
-Phase 1 limits risk: one writer account means few conflicts. A bug in merge
-or signatures can still make the owner's two phones overwrite each other's
-recent edits, but those edits are still on the phone that made them, and
-clinical conflicts are flagged rather than merged silently.
+What Phase 1 needs from later phases, brought forward:
+
+- **Group merge** (section 12, Merge) for every synced record type, with the
+  conflict flag for clinical groups. Two parents editing the same medicine,
+  allergy or lab value at once see "changed by two people, please check" with
+  both values; nothing clinical is merged silently.
+- **Reader rule 3 for guardians:** a guardian's device may write every
+  synced record type; a viewer's or cared-for's may not. Phase 1 has neither,
+  but phones still check the writer's role at the writer's log head.
+- **Insurance card photos** as encrypted blobs (section 12, Attachments, and
+  section 22): the only photos that sync in Phase 1. B8 is built only as far
+  as these need: the private bucket, RLS, a per-family size cap and deletion
+  with the family.
+- **Invites** (section 9) stay owner-only: the owner invites the second
+  parent, who joins as `guardian`. Inviting more people is Phase 2.
+
+Phase 1 risk: two writers make concurrent edits likelier than one owner with
+two phones. The merge is per group, so most concurrent edits (one parent
+ticks a vaccine while the other logs a fever) touch different records or
+groups and both survive. Edits to the same group keep the later clock and
+flag clinical groups. The overwritten value stays visible on the phone that
+lost the merge (the conflict flag shows both), but the server keeps only the
+latest version (Q7, Q16).
 
 Kill switch: a server flag stops all sync pushes and pulls without touching
 local data; turning sync off on a phone keeps its records.
@@ -1316,6 +1387,40 @@ local data; turning sync off on a phone keeps its records.
     between phones at the same state, so how should they be scoped
     (per epoch, per month of uploads)?
 
+16. **Two writers from the first release.** The founder's decision moves
+    guardian writes (group merge, conflict flags) from Phase 2 into Phase 1,
+    without the month of single-writer running that was the old gate. Is the
+    merge's property-test coverage (section 16) enough on its own, or should
+    Phase 1 also keep the last few versions of each clinical group on the
+    phone (local undo), short of server version history (Q7)?
+17. **Keyed content addressing for photos.** To upload an insurance card
+    photo once, the blob id could be derived from the family key and the
+    photo's hash: `blob_id = UUIDv4-shaped(HMAC-SHA256(HKDF(RK_v, info =
+    "usra/v1/blob-id"), SHA-256(plaintext)))`. The server could then tell
+    that one family uploaded the same photo twice (which it then doesn't),
+    but not across families or epochs. Acceptable, or keep random blob ids?
+    Until this is answered, section 22 rule 9 keeps random blob ids and
+    dedupes on the phone only (by plaintext hash).
+18. **Compression before encryption.** Section 22, rule 5, deflates a record
+    body above 1 KiB before padding and encrypting. Only family members can
+    put text into a body, and they can already read it, so a compression
+    oracle (CRIME-style) has no outside attacker, and the padding buckets
+    hide most of the size change. Agreed?
+19. **Head beacons less often.** Section 22, rule 7, publishes a beacon when
+    the device's log head changes or its last beacon is older than 3 days,
+    not on every sync, which keeps Edge Function calls well inside the free
+    plan. With the 7-day write stop that leaves at least 4 days of margin. Is
+    that enough, or should beacons move to a database RPC that stores them
+    unverified (every phone checks the signature anyway) so they can be
+    published on every sync at no cost?
+20. **Weekly bundles.** Dose logs, temperatures and given medicines are
+    packed into one record per profile, kind and ISO week, whose groups are
+    the individual entries (each with its own clock, so the group merge of
+    section 12 applies unchanged and two parents logging at once both
+    survive). The server sees one upload per batch instead of one row per
+    tap, which also helps Q10. Does this weaken any reader rule? (It doesn't
+    change them.)
+
 ## 19. Changes to earlier notes
 
 | Earlier note | Now | Why |
@@ -1363,7 +1468,7 @@ only as strong as these grants:
 | B4 | `pairing_sessions` relay for the comparison code (commit, reveal, 10-minute TTL, one try, cleanup job) | Sync backend: device approval and session binding |
 | B5 | `family_log(family_id, seq, prev_hash, entry bytea, sig bytea, hash, created_at)` with unique `(family_id, seq)`, `hash = sha256(entry)`; `append-family-log` function that verifies (strict Ed25519, strict JSON) and mirrors into `family_members` / `devices`; `family_heads` beacon table (one row per device, signature checked, newest only); drop the direct `update (role)` grant; `family_members.status` (`pending` / `active` / `reset`); ownership transfer; leave family through the log; lifts the `409 family_has_members` guard once hand-over exists | Sync backend: signed family log, invites and key wraps |
 | B6 | `family_key_wraps(family_id, key_version, recipient_device_id, enc, ct, sender_device_id, sig)`; `family_key_history(family_id, key_version, ciphertext)` (its hash committed in `rotate_key`); `families.current_key_version`, `families.rotation_pending`; `rotate_family_key` RPC (one transaction); delete wraps of revoked devices | Sync backend: signed family log, invites and key wraps |
-| B7 | `e2ee_records`: `record_id` becomes the random sync id (v4); add `revision bigint`, `format smallint`; no clock column; `ciphertext` `NOT NULL` (drop `e2ee_tombstone`'s null case); size check (power of two + 40, ≤ 64 KiB + 40); `push_e2ee_records` batch RPC with compare-and-set and stale-key checks, the only write path; `pull_e2ee_changes` returns `revision`; RLS through `device_ok()` and role (Phase 1: owner only writes); tombstone purge after 1 year | Sync backend: encrypted record push/pull and limits |
+| B7 | `e2ee_records`: `record_id` becomes the random sync id (v4); add `revision bigint`, `format smallint`; no clock column; `ciphertext` `NOT NULL` (drop `e2ee_tombstone`'s null case); size check (power of two + 40, ≤ 64 KiB + 40); `push_e2ee_records` batch RPC with compare-and-set and stale-key checks, the only write path; `pull_e2ee_changes` returns `revision`; RLS through `device_ok()` and role (Phase 1: owner and guardian write); tombstone purge after 1 year; base64 ciphertext in pulls, a one-call `sync_pull`, per-family record caps and per-device call limits in Postgres (section 22) | Sync backend: encrypted record push/pull and limits |
 | B8 | Storage bucket `e2ee-blobs` (private), RLS on `storage.objects` by path family id + `device_ok()`, delete for writer roles only; size limit; quota per family; delete objects when a family or account is deleted | Sync backend: encrypted attachment storage |
 | B9 | `accept_family_invite` takes the lookup hash; invitee key + MAC upload; pending until `add_member` | Sync backend: signed family log, invites and key wraps |
 | B10 | `delete-account`, deleting a family, leaving a family and removing other devices require an approved-device session | Sync backend: account takeover protections and notifications |
@@ -1570,3 +1675,107 @@ From the crypto and threat review posted on PR #3 (2026-11-06).
 | Low: forward secrecy | New §14 row |
 | Low: libraries | HPKE from `Hmac`-built labelled extract/expand, RFC 9180 A.2 vectors, `pyhpke` for the cross-check, pure-Dart X25519/Ed25519 and Argon2 timing (§15, §16) |
 | Low: §17 wording | Phase 1 text corrected for an owner with two phones |
+
+## 22. Cost rules (2026-11-13)
+
+The founder approved these rules with the two-parent decision. They hold for
+every sync PR, and each PR's cost check (`usra-cost-check`) uses the numbers
+below. Prices are from supabase.com/pricing, checked 2026-11-13: Free has
+50,000 MAU, 500 MB database, 1 GB files, 5 GB egress, 500,000 Edge Function
+calls and pauses after a week without activity; Pro (25 dollars a month) has
+100,000 MAU, 8 GB database, 100 GB files, 250 GB egress and 2 million Edge
+Function calls. Both have **unlimited API requests**, so database RPC calls
+through PostgREST cost nothing per call; only their bytes (egress) and the
+database's CPU count.
+
+### Rules
+
+Rules 1–4 are the founder's; 5–13 were added with this revision.
+
+| # | Rule | Saving |
+| --- | --- | --- |
+| 1 | **Sync when the app opens and after edits, never on a timer, never polling.** Open (or back to the foreground) runs one pull and pushes anything waiting. An edit starts a 20-second debounce: more edits restart it, and the batch goes up when it ends or when the app goes to the background. Pull-to-refresh is the only other trigger. No Realtime subscription | Polling every 5 minutes would be about 8,600 calls per user a month (43 million at 5,000 users) and keeps the radio awake; opens and edits are about 270 calls per user a month |
+| 2 | **Send edits in batches.** One `push_e2ee_records` call carries every waiting record of a family (up to 100 records, 2 MiB), dose logs included, never one call per edit | About 20 edits a day become about 5 calls: three quarters fewer calls and response bytes |
+| 3 | **Shrink insurance card photos to about 200–300 KB before encrypting.** JPEG, longest side 1,600 px, quality lowered in steps until the file is at most 300 KB | A phone photo is 2–4 MB: about 12 times less storage and egress (60 GB instead of 5 GB at 5,000 users) |
+| 4 | **Records and insurance cards only.** Record photos, lab photos and medicine photos don't sync until a later cost check | Keeps files at about 2 MB a family instead of tens of MB |
+| 5 | **Compress before encrypting.** A record body over 1 KiB is deflated before padding and encryption (a flag in the body's format says so). Encrypted bytes don't compress, so it has to happen first. Q18 | Weekly bundles drop from the 4 KiB to the 1 KiB padding bucket: about 70% of their bytes |
+| 6 | **Pack append-only history into weekly bundles.** Dose logs, temperatures and given medicines go into one record per profile, kind and ISO week; each entry is its own merge group, keyed by its local id (Q20) | About 1,560 rows a family a year become about 70: the database grows about 0.2 MB a family a year instead of 0.75 MB |
+| 7 | **Head beacons only when needed.** A device publishes its beacon when its log head changes or its last one is older than 3 days, not on every sync. Q19 | `publish-head` is the only Edge Function on the regular path: 600,000 calls a month at 5,000 users (over the free 500,000) become about 72,000 |
+| 8 | **Database RPCs, not Edge Functions, for records.** Push and pull are Postgres functions behind PostgREST, which are free per call. Edge Functions stay only where a signature must be checked by the server (device binding, approvals, recovery, log appends, beacons) | No Edge Function call for any record traffic |
+| 9 | **Upload a photo once; download it only when opened.** The phone remembers each uploaded photo by its plaintext SHA-256 and reuses the blob when a card is saved again with the same photo. The other parent's phone downloads a card's photo the first time it's opened and keeps it, encrypted, like local photos. Random blob ids until Q17 is answered | No re-upload on every card edit; a photo nobody opens is never downloaded |
+| 10 | **Pull only what changed.** `pull_e2ee_changes` pages by the transaction-id cursor the phone stores; an open with nothing new returns an empty page | A full pull of 0.2 MB a family on every open would be about 120 GB a month at 5,000 users |
+| 11 | **One round trip per open.** `sync_pull` returns, in one call, the family log after the phone's `seq`, the beacons, the wraps for this device and the first page of records | Four requests become one: about 75% fewer request headers and less waiting on a slow network |
+| 12 | **Ciphertext as bytea, base64 on the wire.** The table stores raw bytes; push sends base64 and pull returns base64 text, never PostgREST's default hex for bytea | Hex is twice the size; base64 is 1.33 times: a third less download for every record |
+| 13 | **Don't sync what the phone can work out.** Vaccine due dates and statuses, due and missed doses, growth z-scores, follow-up suggestions, spending totals and reminders are computed on each phone from the synced records | Fewer records and no edits that only restate a computed value |
+
+Not in the first release, for cost: a push to the other parent's phone after
+an edit (B11). Through an Edge Function it would be about 450,000 calls a
+month at 5,000 users (with rule 7's beacons, over the free plan) and about
+4.5 million at 50,000 (about 5 dollars a month on Pro). The free alternative
+for Phase 2: the push RPC sends the FCM message with `pg_net`, using an access
+token that one scheduled Edge Function call an hour refreshes into Vault
+(about 720 calls a month). FCM itself is free.
+
+Limits that protect the plan (B7, B12, enforced in Postgres, so no Edge
+Function call): 100 records and 2 MiB per push; 60 sync calls a minute per
+device; 20,000 record writes a day per family; 20,000 live records per family;
+20 MB of photos per family in Phase 1 (enough for 80 card photos); tombstones
+removed after a year.
+
+### Numbers
+
+Assumptions, at the high end: every user syncs, two users per family (so
+5,000 users are 2,500 families), each phone opened 4 times a day. A family
+after a year has about 300 ordinary records (four profiles, about 150 medical
+events, 20 medicines and schedules, doctors, prescriptions, sick days, four
+insurance cards) and about 1,560 history rows (two medicines twice a day,
+plus temperatures). A small record is 296 bytes of ciphertext plus about 120
+bytes of row and index. Each family has four insurance cards with front and
+back photos at 250 KB. The other parent downloads about 10 changed records a
+day.
+
+| Item | 5,000 users | Free plan | Pro plan | 50,000 users (Pro) |
+| --- | --- | --- | --- | --- |
+| Database, after a year | 0.5 GB with bundles (1.9 GB without) | 100% (60% at about 3,000 users) | 6% | 5 GB: 63% after a year, TIGHT; over 8 GB in year two costs under 1 dollar a month |
+| Files (card photos) | 5.3 GB (60 GB without shrinking) | Over (60% at about 580 users) | 5% | 53 GB: 53% |
+| Egress a month | 2.1 GB: 0.4 opens, 1.1 changed records, 0.1 first syncs, 0.5 card photos | 42% | 0.8% | 21 GB: 8% |
+| Edge Function calls a month | 77,000: 72,000 beacons, 5,000 sign-in bindings, a few log appends | 15% | 4% | 770,000: 39% |
+| API requests a month | about 1.4 million (opens, pushes) | unlimited | unlimited | about 14 million, unlimited |
+| MAU | 5,000 | 10% | 5% | 50% |
+
+Verdict:
+
+- **5,000 users on Supabase Pro: FREE** beyond the approved 25 dollars a
+  month; every Pro limit stays under 10%.
+- **Beta on the free plan: FREE up to about 500 syncing users.** Card photos
+  are the first limit to get tight (60% of 1 GB at about 580 users), then the
+  database (60% of 500 MB at about 3,000 users after a year). The free plan
+  also pauses after a week without activity and has no backups; synced records
+  are also on the phones, but a family that lost its only phone during the
+  beta would lose what only the server held. The beta should move to Pro
+  before it passes about 500 syncing users, as already approved for real
+  member numbers.
+- **50,000 users on Pro: TIGHT on the database after the first year** (63%),
+  under 1 dollar a month of overage in year two; everything else under 60%.
+  Without rules 3 and 6 it would be about 19 GB of database and 600 GB of
+  files at 50,000 users, about 12 dollars a month more.
+
+### Open questions for the founder
+
+1. **A frozen family.** If the owner parent loses every phone and the
+   recovery key, the family is frozen (section 11): the guardian keeps
+   reading and writing but can't invite or remove anyone. With two parents
+   this is the likeliest way to get stuck. Bring co-owners (Q8) into the
+   first release, or accept it and tell owners to keep the recovery key safe?
+2. **Parents who separate.** Either parent can leave, and the owner can
+   remove the guardian. Both keep a copy of everything synced before that on
+   their own phone (section 10), and nobody can take it back. Is that the
+   behaviour you want, and should the lawyer look at it (custody disputes)?
+3. **Inviting others.** Only the owner invites, and only one guardian in the
+   first release. Grandparents and other relatives wait for Phase 2: agreed?
+4. **When to move the beta to Pro.** The free plan holds about 500 syncing
+   users (card photos are the first limit) and pauses after a week with no
+   activity. Move to Pro before that, or when the first real family syncs?
+5. **Push to the other phone.** Without it, the other parent sees an edit the
+   next time they open the app. A push is free through FCM but costs Edge
+   Function calls (above). Phase 2 with its own cost check: agreed?

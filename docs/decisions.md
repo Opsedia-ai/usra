@@ -78,6 +78,14 @@ These replace older rows above. `docs/prd-v1.md` holds them too, under "Decided 
 | Medical wording | The founder reports that the doctor accepted the app's full wording (7 November). Later changes to medical text go back to them | Name, specialty and date to be added |
 | Database check at start | No full check at every start | Keeps starts fast. Damage deeper in the file won't reach the Restore screen; see D10 in `docs/risks.md` |
 
+## Founder decision (13 Nov 2026): two parents share one family
+
+| Area | Decision | Why / notes |
+| --- | --- | --- |
+| Family sync | The first family release is two parents in one family, an owner and a guardian, who both see **and edit** records and insurance cards (for example both can tick a vaccine or log a fever), and either can send a PDF to a doctor. Records and insurance cards only; other photos later | Replaces the sync design's read-only caregiver view as Phase 1 (`docs/sync-design.md`, sections 17 and 22). **Changes the v1 row "No family sync in v1, and no photo sync"** for this release: insurance card photos sync, nothing else. Built behind a flag that is off in store builds until the founder turns it on; the legal gate (no real family signs in before the lawyer's answer) still applies |
+| Sync cost rules | Sync when the app opens and after edits (debounced), never on a timer or by polling; send edits in batches; shrink insurance card photos to about 200–300 KB before encrypting; records and insurance cards only | Keeps the beta on the free Supabase plan and 5,000 users on Pro (about 25 dollars a month). Section 22 of the sync design adds nine more rules and the numbers: FREE at 5,000 users on Pro; the free plan holds a beta of about 500 syncing users |
+| Security | Unchanged: end-to-end encrypted, the server can't read or change records | Two writers use the design's group merge and conflict flags (section 12), brought forward from Phase 2. New questions for the external reviewer: Q16–Q20 |
+
 ## Open questions
 
 The current list is in `docs/prd-v1.md`, under "Still open".
