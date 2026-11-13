@@ -383,7 +383,13 @@ void main() {
 
     await tester.tap(find.text('المزيد').last);
     await tester.pumpAndSettle();
-    expect(find.text('مش شغّال: أي حد معاه الموبايل يقدر يفتح أسرة'), findsOne);
+    // One short line on screen; a screen reader hears what "off" means.
+    final row = find.byKey(const ValueKey('settings-app-lock'));
+    expect(find.descendant(of: row, matching: find.text('مش شغّال')), findsOne);
+    expect(
+      find.bySemanticsLabel(RegExp('أي حد معاه الموبايل يقدر يفتح أسرة')),
+      findsOne,
+    );
     await tester.tap(find.byKey(const ValueKey('settings-app-lock')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('app-lock-switch')));

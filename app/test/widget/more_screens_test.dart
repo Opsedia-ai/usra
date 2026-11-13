@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
+import 'package:usra/core/design/status_dot.dart';
 import 'package:usra/core/design/tokens.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
@@ -126,6 +127,32 @@ void main() {
     // Not built, so not offered.
     expect(find.textContaining('كود'), findsNothing);
     expect(key('settings-account'), findsNothing);
+    // One-line rows: no backup is an amber status, the lock just says off.
+    expect(
+      find.descendant(
+        of: key('settings-backup'),
+        matching: find.byType(StatusDot),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: key('settings-backup'),
+        matching: find.text('لسه مفيش نسخة'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: key('settings-app-lock'),
+        matching: find.text('مش شغّال'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: key('more-money'), matching: find.text('المصاريف')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Dr. Usra says "soon" and nothing about what it will do', (

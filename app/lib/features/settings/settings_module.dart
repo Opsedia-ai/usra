@@ -3,16 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design/list_row.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
 import '../../core/providers.dart';
 import '../../core/security/app_lock.dart';
+import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/account_providers.dart';
 import '../account/account_screen.dart';
 import '../backup/backup_providers.dart';
+import '../family/family_screen.dart' show profilesProvider;
 import '../backup/backup_screen.dart';
 import '../children/vaccines_screen.dart' show askForReminderAccess;
 import 'about_privacy_screen.dart';
@@ -53,6 +57,7 @@ class SettingsScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final locale = ref.watch(localeProvider);
     final last = ref.watch(lastBackupProvider);
+    final people = ref.watch(profilesProvider).value;
     return Scaffold(
       appBar: AppBar(title: Text(l.settingsTitle)),
       body: ListView(
@@ -67,25 +72,28 @@ class SettingsScreen extends ConsumerWidget {
             _Group(
               title: l.moreGroupFamily,
               children: [
-                ListTile(
+                UsraListRow(
                   key: const ValueKey('more-family'),
-                  leading: const Icon(Icons.groups_outlined),
-                  title: Text(l.moreFamily),
-                  trailing: const Icon(Icons.chevron_right),
+                  icon: Icons.groups_outlined,
+                  title: l.moreFamily,
+                  subtitleText: people == null
+                      ? null
+                      : l.familyCount(
+                          people.length,
+                          localizedDigits(context, people.length),
+                        ),
                   onTap: () => context.go('/family'),
                 ),
-                ListTile(
+                UsraListRow(
                   key: const ValueKey('more-doctors'),
-                  leading: const Icon(Icons.medical_services_outlined),
-                  title: Text(l.navDoctors),
-                  trailing: const Icon(Icons.chevron_right),
+                  icon: Icons.medical_services_outlined,
+                  title: l.navDoctors,
                   onTap: () => context.go('/doctors'),
                 ),
-                ListTile(
+                UsraListRow(
                   key: const ValueKey('more-money'),
-                  leading: const Icon(Icons.account_balance_wallet_outlined),
-                  title: Text(l.navMoney),
-                  trailing: const Icon(Icons.chevron_right),
+                  icon: Icons.account_balance_wallet_outlined,
+                  title: l.memberSpending,
                   onTap: () => context.go('/money'),
                 ),
               ],
@@ -93,30 +101,30 @@ class SettingsScreen extends ConsumerWidget {
           _Group(
             title: l.moreGroupSafety,
             children: [
-              ListTile(
+              UsraListRow(
                 key: const ValueKey('settings-backup'),
-                leading: const Icon(Icons.backup_outlined),
-                title: Text(l.backupTitle),
-                subtitle: Text(
-                  last == null
-                      ? l.backupNever
-                      : l.backupLast(backupDay(context, last)),
-                ),
-                trailing: const Icon(Icons.chevron_right),
+                icon: Icons.cloud_outlined,
+                title: l.backupTitle,
+                subtitle: last == null
+                    ? StatusDotText(label: l.backupNeverShort)
+                    : null,
+                subtitleText: last == null
+                    ? null
+                    : l.backupLast(backupDay(context, last)),
                 onTap: () => context.go(backupPath),
               ),
               ListenableBuilder(
                 listenable: ref.watch(appLockProvider),
-                builder: (context, _) => ListTile(
+                builder: (context, _) => UsraListRow(
                   key: const ValueKey('settings-app-lock'),
-                  leading: const Icon(Icons.lock_outline),
-                  title: Text(l.settingsAppLock),
-                  subtitle: Text(
-                    ref.read(appLockProvider).enabled
-                        ? l.settingsAppLockOn
-                        : l.settingsAppLockOff,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
+                  icon: Icons.lock_outline,
+                  title: l.settingsAppLock,
+                  subtitleText: ref.read(appLockProvider).enabled
+                      ? l.settingsStateOn
+                      : l.settingsStateOff,
+                  // The long form says what being off means.
+                  semanticLabel:
+                      '${l.settingsAppLock}، ${ref.read(appLockProvider).enabled ? l.settingsAppLockOn : l.settingsAppLockOff}',
                   onTap: () => context.go(appLockSettingsPath),
                 ),
               ),
@@ -125,7 +133,7 @@ class SettingsScreen extends ConsumerWidget {
                 preference: discreetNotificationsProvider,
                 icon: Icons.notifications_off_outlined,
                 title: l.settingsDiscreet,
-                subtitle: l.settingsDiscreetHint,
+                subtitle: l.settingsDiscreetHintShort,
               ),
               const _VaccineReminderSettings(),
               // iOS can't block screenshots; the switcher is covered on both.
@@ -135,7 +143,7 @@ class SettingsScreen extends ConsumerWidget {
                   preference: blockScreenshotsProvider,
                   icon: Icons.screenshot_monitor_outlined,
                   title: l.settingsBlockScreenshots,
-                  subtitle: l.settingsBlockScreenshotsHint,
+                  subtitle: l.settingsBlockScreenshotsHintShort,
                 ),
             ],
           ),
@@ -161,7 +169,11 @@ class SettingsScreen extends ConsumerWidget {
                 },
                 secondary: const Icon(Icons.accessibility_new),
                 title: Text(l.settingsSimpleMode),
-                subtitle: Text(l.settingsSimpleModeHint),
+                subtitle: Text(
+                  ref.watch(simpleModeProvider)
+                      ? l.settingsStateOn
+                      : l.settingsStateOff,
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.all(UsraSpacing.s4),
@@ -193,11 +205,10 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
               const _ThemeModeTile(),
-              ListTile(
+              UsraListRow(
                 key: const ValueKey('settings-tutorial'),
-                leading: const Icon(Icons.school_outlined),
-                title: Text(l.settingsTutorial),
-                trailing: const Icon(Icons.chevron_right),
+                icon: Icons.school_outlined,
+                title: l.settingsTutorial,
                 onTap: ref.read(tutorialProvider.notifier).reopen,
               ),
               ListTile(
@@ -207,31 +218,25 @@ class SettingsScreen extends ConsumerWidget {
                 title: Text(l.settingsAiTitle),
                 subtitle: Text(l.settingsAiSoon),
               ),
-              ListTile(
+              UsraListRow(
                 key: const ValueKey('settings-about'),
-                leading: const Icon(Icons.privacy_tip_outlined),
-                title: Text(l.aboutTitle),
-                subtitle: Text(l.aboutHint),
-                trailing: const Icon(Icons.chevron_right),
+                icon: Icons.privacy_tip_outlined,
+                title: l.aboutTitle,
+                subtitleText: l.aboutHint,
                 onTap: () => context.push(aboutPath),
               ),
             ],
           ),
-          Card(
-            child: ListTile(
-              key: const ValueKey('settings-delete-all'),
-              leading: Icon(
-                Icons.delete_forever_outlined,
-                color: Severity.actSoon.foregroundOf(context),
+          UsraListCard(
+            children: [
+              UsraListRow(
+                key: const ValueKey('settings-delete-all'),
+                icon: Icons.delete_forever_outlined,
+                title: l.settingsDeleteAll,
+                subtitleText: l.settingsDeleteAllHint,
+                onTap: () => context.go(deleteDataPath),
               ),
-              title: Text(
-                l.settingsDeleteAll,
-                style: TextStyle(color: Severity.actSoon.foregroundOf(context)),
-              ),
-              subtitle: Text(l.settingsDeleteAllHint),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.go(deleteDataPath),
-            ),
+            ],
           ),
           const SizedBox(height: UsraSpacing.s5),
           Text(
@@ -246,7 +251,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-/// A heading and its rows in one card, with lines between them.
+/// A heading and its rows in one card, with hairlines between them.
 class _Group extends StatelessWidget {
   const _Group({required this.title, required this.children});
 
@@ -255,34 +260,12 @@ class _Group extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: UsraSpacing.s4),
+    padding: const EdgeInsets.only(bottom: UsraSpacing.s2),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Semantics(
-          header: true,
-          child: Padding(
-            padding: const EdgeInsetsDirectional.only(
-              start: UsraSpacing.s1,
-              bottom: UsraSpacing.s2,
-            ),
-            child: Text(
-              title,
-              style: UsraType.label.copyWith(color: context.usra.inkMuted),
-            ),
-          ),
-        ),
-        Card(
-          margin: EdgeInsets.zero,
-          child: Column(
-            children: [
-              for (final (i, row) in children.indexed) ...[
-                if (i > 0) const Divider(height: 1),
-                row,
-              ],
-            ],
-          ),
-        ),
+        UsraGroupLabel(title),
+        UsraListCard(children: children),
       ],
     ),
   );

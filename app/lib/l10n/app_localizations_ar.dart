@@ -5629,4 +5629,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sickDayAllSigns => 'كل العلامات وإمتى نكلم الدكتور';
+
+  @override
+  String get backupNeverShort => 'لسه مفيش نسخة';
+
+  @override
+  String get settingsStateOn => 'شغّال';
+
+  @override
+  String get settingsStateOff => 'مش شغّال';
+
+  @override
+  String get settingsDiscreetHintShort => 'التنبيه يقول \"ميعاد الدوا\" بس';
+
+  @override
+  String get settingsBlockScreenshotsHintShort =>
+      'مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق';
 }

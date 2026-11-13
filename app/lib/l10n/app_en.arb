@@ -3216,5 +3216,10 @@
   "sickDayNoReadingsYet": "No readings yet",
   "sickDaysPastHere": "Past sick days will show here",
   "warnEmergencyShort": "Call an ambulance at once if you see",
-  "sickDayAllSigns": "All the signs, and when to call the doctor"
+  "sickDayAllSigns": "All the signs, and when to call the doctor",
+  "backupNeverShort": "No backup yet",
+  "settingsStateOn": "On",
+  "settingsStateOff": "Off",
+  "settingsDiscreetHintShort": "Reminders just say \"Your medicine time\"",
+  "settingsBlockScreenshotsHintShort": "No screenshots or screen recording in the app"
 }

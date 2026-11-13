@@ -1479,5 +1479,10 @@
   "sickDayNoReadingsYet": "مفيش قراءات لسه",
   "sickDaysPastHere": "أيام التعب اللي فاتت هتظهر هنا",
   "warnEmergencyShort": "اطلب الإسعاف فورًا لو ظهر",
-  "sickDayAllSigns": "كل العلامات وإمتى نكلم الدكتور"
+  "sickDayAllSigns": "كل العلامات وإمتى نكلم الدكتور",
+  "backupNeverShort": "لسه مفيش نسخة",
+  "settingsStateOn": "شغّال",
+  "settingsStateOff": "مش شغّال",
+  "settingsDiscreetHintShort": "التنبيه يقول \"ميعاد الدوا\" بس",
+  "settingsBlockScreenshotsHintShort": "مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق"
 }

@@ -8244,6 +8244,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All the signs, and when to call the doctor'**
   String get sickDayAllSigns;
+
+  /// No description provided for @backupNeverShort.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup yet'**
+  String get backupNeverShort;
+
+  /// No description provided for @settingsStateOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get settingsStateOn;
+
+  /// No description provided for @settingsStateOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get settingsStateOff;
+
+  /// No description provided for @settingsDiscreetHintShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders just say \"Your medicine time\"'**
+  String get settingsDiscreetHintShort;
+
+  /// No description provided for @settingsBlockScreenshotsHintShort.
+  ///
+  /// In en, this message translates to:
+  /// **'No screenshots or screen recording in the app'**
+  String get settingsBlockScreenshotsHintShort;
 }
 
 class _AppLocalizationsDelegate

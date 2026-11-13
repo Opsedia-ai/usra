@@ -411,3 +411,10 @@ Wording from the polish the founder approved on 13 Nov 2026 (`docs/design/polish
 | `sickDaysPastHere` | New | أيام التعب اللي فاتت هتظهر هنا | Past sick days will show here |
 | `warnEmergencyShort` | New | اطلب الإسعاف فورًا لو ظهر | Call an ambulance at once if you see |
 | `sickDayAllSigns` | New | كل العلامات وإمتى نكلم الدكتور | All the signs, and when to call the doctor |
+| `backupNeverShort` | New | لسه مفيش نسخة | No backup yet |
+| `settingsStateOn` | New | شغّال | On |
+| `settingsStateOff` | New | مش شغّال | Off |
+| `settingsDiscreetHintShort` | New | التنبيه يقول "ميعاد الدوا" بس | Reminders just say "Your medicine time" |
+| `settingsBlockScreenshotsHintShort` | New | مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق | No screenshots or screen recording in the app |
+| More: money row | Changed | المصاريف (was الفلوس, now uses `memberSpending`) | Spending (was Money) |
+| More: family row | Changed | adds `familyCount` under كل العيلة, e.g. فردين | adds the number of people |
