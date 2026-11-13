@@ -170,9 +170,8 @@ class _LanguagePill extends StatelessWidget {
     final c = context.usra;
     return Material(
       color: c.surface,
-      shape: const StadiumBorder(),
-      elevation: 1,
-      shadowColor: c.ink.withValues(alpha: 0.2),
+      // A hairline, not a shadow, as on every card since the polish.
+      shape: StadiumBorder(side: BorderSide(color: c.line)),
       child: InkWell(
         key: const ValueKey('welcome-language'),
         customBorder: const StadiumBorder(),

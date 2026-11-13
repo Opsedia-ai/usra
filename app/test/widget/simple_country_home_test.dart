@@ -221,6 +221,24 @@ void main() {
       });
     });
 
+    group('welcome', () {
+      forEachSmallLayout(() => h, (tester) async {
+        await h.prefs.setBool(PrefKeys.tutorialSeen, false);
+        await h.open(tester, '/welcome');
+        expect(key('welcome-start'), findsOneWidget);
+        await walkScreen(tester);
+      });
+    });
+
+    group('about you', () {
+      forEachSmallLayout(() => h, (tester) async {
+        await h.prefs.setBool(PrefKeys.tutorialSeen, false);
+        await h.open(tester, '/welcome/country/about');
+        expect(key('about-sex-female'), findsOneWidget);
+        await walkScreen(tester);
+      });
+    });
+
     testWidgets('new family Home', (tester) async {
       smallPhoneDoubleText(tester);
       await tester.runAsync(

@@ -130,7 +130,7 @@ class ChoiceCard extends StatelessWidget {
     final c = context.usra;
     final text = Theme.of(context).textTheme;
     final enabled = onTap != null;
-    final radius = BorderRadius.circular(UsraRadius.lg);
+    final radius = BorderRadius.circular(UsraRadius.button);
     return Semantics(
       button: true,
       selected: selected,
@@ -165,7 +165,7 @@ class ChoiceCard extends StatelessWidget {
                         Text(
                           title,
                           style: text.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                             color: enabled ? c.ink : c.inkMuted,
                           ),
                         ),
