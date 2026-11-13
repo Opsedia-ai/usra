@@ -62,7 +62,13 @@ class RecordTypeDefinition {
     this.appliesTo,
     this.inTimeline = true,
     this.screens = const RecordTypeScreens(),
+    this.rowTitle,
   });
+
+  /// What a row in a list says after the type's name, when one field isn't
+  /// enough (a growth row: "١٢ كجم – ٨٦ سم"). Null uses [titleField].
+  final String? Function(BuildContext context, Map<String, Object?> data)?
+  rowTitle;
 
   final String key;
   final IconData icon;

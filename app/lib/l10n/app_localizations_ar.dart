@@ -4782,6 +4782,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeMorning => 'صباح الخير';
 
   @override
+  String get homeAfternoon => 'مساء الخير';
+
+  @override
   String get homeEvening => 'مساء الخير';
 
   @override
@@ -5410,6 +5413,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String medicineFor(String name) {
     return 'الدوا ده ل$name';
+  }
+
+  @override
+  String recordFor(Object name) {
+    return 'السجل ده ل$name';
   }
 
   @override

@@ -147,7 +147,13 @@ class _Header extends ConsumerWidget {
     final c = context.usra;
     final text = Theme.of(context).textTheme;
     final hour = ref.watch(clockProvider)().hour;
-    final greeting = hour >= 4 && hour < 12 ? l.homeMorning : l.homeEvening;
+    // Morning until 1 pm (12:41 read "good evening", e2e #12), then the
+    // afternoon until 5 pm, then the evening. Arabic says مساء الخير for both.
+    final greeting = hour >= 4 && hour < 13
+        ? l.homeMorning
+        : hour >= 13 && hour < 17
+        ? l.homeAfternoon
+        : l.homeEvening;
     final meId = ref.watch(meProfileIdProvider);
     // The whole name as written: "عبد الرحمن" has no usable first word.
     final me = [

@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../core/records/record_form.dart';
@@ -76,8 +78,34 @@ class RecordFormScreen extends ConsumerWidget {
                 feeMinor: d.feeMinor,
               ),
           ];
+    // Whose record it is, like the medicine form's "الدوا ده لحسن" (e2e #16).
+    final person = ref.watch(profileProvider(profileId)).value;
     return Scaffold(
-      appBar: AppBar(title: Text(type.labelOf(context))),
+      appBar: AppBar(
+        title: Text(type.labelOf(context)),
+        bottom: person == null
+            ? null
+            : PreferredSize(
+                preferredSize: Size.fromHeight(
+                  MediaQuery.textScalerOf(context).scale(28),
+                ),
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 8),
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      l.recordFor(person.displayName),
+                      key: const ValueKey('record-form-for'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: UsraType.body.copyWith(
+                        color: context.usra.inkMuted,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+      ),
       body: RecordForm(
         type: type,
         initialDate: saved?.occurredAt,

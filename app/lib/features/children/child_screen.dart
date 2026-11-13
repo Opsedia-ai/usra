@@ -41,6 +41,24 @@ List<GrowthPoint> growthPoints(
   ];
 }
 
+/// A growth record's measures with their units, in the app's digits:
+/// "١٢ كجم – ٨٦ سم". Also the record's row in timelines and Records.
+String growthLine(BuildContext context, Map<String, Object?> data) {
+  final l = AppLocalizations.of(context);
+  final locale = Localizations.localeOf(context).toLanguageTag();
+  final number = NumberFormat.decimalPattern(locale);
+  String? part(String key, String unit) => switch (data[key]) {
+    final num v when v > 0 =>
+      '${localizedDigitsIn(context, number.format(v))} $unit',
+    _ => null,
+  };
+  return [
+    ?part(GrowthFields.weightKg, l.growthUnitKg),
+    ?part(GrowthFields.heightCm, l.growthUnitCm),
+    ?part(GrowthFields.headCm, l.growthUnitCm),
+  ].join(partSeparator);
+}
+
 /// Growth charts and the vaccination schedule for a child under five.
 ///
 /// Informational only: it places measurements on the WHO curves and lists
@@ -200,24 +218,12 @@ class _History extends StatelessWidget {
     final l = AppLocalizations.of(context);
     final c = context.usra;
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final number = NumberFormat.decimalPattern(locale);
     final rows = [
       for (final e in events)
         if (e.type == 'growth') e,
     ]..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
-    String line(MedicalEvent e) {
-      final data = decodeRecordData(e.dataJson);
-      String? part(String key, String unit) => switch (data[key]) {
-        final num v when v > 0 =>
-          '${localizedDigitsIn(context, number.format(v))} $unit',
-        _ => null,
-      };
-      return [
-        ?part(GrowthFields.weightKg, l.growthUnitKg),
-        ?part(GrowthFields.heightCm, l.growthUnitCm),
-        ?part(GrowthFields.headCm, l.growthUnitCm),
-      ].join(partSeparator);
-    }
+    String line(MedicalEvent e) =>
+        growthLine(context, decodeRecordData(e.dataJson));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -516,9 +522,15 @@ class _ChartPainter extends CustomPainter {
       );
     }
     final yStep = _niceStep((high - low) / 5);
+    // The unit sits above the axis labels; one that would run into it is
+    // left out, its grid line kept (end-to-end test #14: "سم" over "١٠٠").
+    final unitPainter = _painter(unit);
+    final unitBottom = unitPainter.height + 2;
+    unitPainter.dispose();
     for (var v = (low / yStep).ceil() * yStep; v <= high; v += yStep) {
       final y = at(0, v).dy;
       canvas.drawLine(Offset(chart.left, y), Offset(chart.right, y), grid);
+      if (y - 9 < unitBottom) continue;
       _label(canvas, digitsIn(language, _number(v)), Offset(2, y - 9));
     }
     _label(canvas, unit, const Offset(2, 0));

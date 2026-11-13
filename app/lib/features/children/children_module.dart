@@ -81,6 +81,8 @@ class ChildrenModule extends FeatureModule {
         GrowthFields.heightCm,
         GrowthFields.headCm,
       ],
+      // Every measure with its unit, not the weight's bare number.
+      rowTitle: growthLine,
       fields: [
         FieldSpec(
           key: GrowthFields.weightKg,

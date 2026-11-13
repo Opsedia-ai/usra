@@ -85,7 +85,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('النسخة 0.1.0+1'), findsOneWidget);
+      expect(find.text('النسخة \u20660.1.0+1\u2069'), findsOneWidget);
     },
   );
 
@@ -174,7 +174,7 @@ void main() {
 
     expect(find.text('Privacy and terms'), findsOneWidget);
     expect(find.text('Medical disclaimer'), findsOneWidget);
-    expect(find.text('Version 0.1.0+1'), findsOneWidget);
+    expect(find.text('Version \u20660.1.0+1\u2069'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('about-privacy-policy')));
     await tester.pumpAndSettle();
