@@ -114,7 +114,7 @@ class ChildrenModule extends FeatureModule {
           required: true,
           choices: [for (final m in cdcMilestones) m.id],
           label: (c) => _l(c).recordMilestone,
-          choiceLabel: (c, id) => _l(c).milestone(id),
+          choiceLabel: (c, id) => _l(c).milestone('other', id),
         ),
       ],
     ),

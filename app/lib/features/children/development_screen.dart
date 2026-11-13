@@ -184,7 +184,7 @@ class _MilestoneTile extends ConsumerWidget {
         value: ticked != null,
         onChanged: (_) => _toggle(context, ref),
       ),
-      title: Text(l.milestone(milestone.id)),
+      title: Text(l.milestone(profile.sex ?? 'other', milestone.id)),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 4),
         child: Wrap(

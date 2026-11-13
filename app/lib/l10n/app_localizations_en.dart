@@ -2439,7 +2439,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordMilestone => 'Milestone';
 
   @override
-  String milestone(String id) {
+  String milestone(String sex, String id) {
     String _temp0 = intl.Intl.selectLogic(id, {
       'm2_social': 'Smiles when you talk to or smile at them',
       'm2_language': 'Makes sounds other than crying',
@@ -2494,7 +2494,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'm60_movement': 'Hops on one foot',
       'other': '',
     });
-    return '$_temp0';
+    String _temp1 = intl.Intl.selectLogic(sex, {'other': '$_temp0'});
+    return '$_temp1';
   }
 
   @override
@@ -4180,7 +4181,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String symptomName(String symptom) {
+  String symptomName(String sex, String symptom) {
     String _temp0 = intl.Intl.selectLogic(symptom, {
       'cough': 'Cough',
       'runnyNose': 'Runny nose',
@@ -4200,7 +4201,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'stiffNeck': 'Stiff neck',
       'other': 'Other',
     });
-    return '$_temp0';
+    String _temp1 = intl.Intl.selectLogic(sex, {'other': '$_temp0'});
+    return '$_temp1';
   }
 
   @override
@@ -4216,7 +4218,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get warnDoctorNow => 'Contact a doctor now if:';
 
   @override
-  String warnSign(String sign) {
+  String warnSign(String sex, String sign) {
     String _temp0 = intl.Intl.selectLogic(sign, {
       'breathing': 'Hard to breathe, breathing very fast or breathless',
       'seizure': 'A fit (seizure)',
@@ -4243,7 +4245,8 @@ class AppLocalizationsEn extends AppLocalizations {
           'Under 3 months old with a temperature below 36 °C (96.8 °F)',
       'other': '',
     });
-    return '$_temp0';
+    String _temp1 = intl.Intl.selectLogic(sex, {'other': '$_temp0'});
+    return '$_temp1';
   }
 
   @override
