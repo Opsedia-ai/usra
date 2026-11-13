@@ -916,7 +916,7 @@ record type in code with the record type's schema:
 | --- | --- |
 | `medicines` | amount + unit + form + route; frequency + times + duration; name + strength |
 | `dose_schedules` | the whole schedule (times, interval, days, start, end) |
-| `insurance_cards` | the whole card (insurer, number, holder, validity) |
+| `insurance_cards` | the whole card (insurer, number, holder, validity); the front photo reference and the back photo reference each on its own (section 22, rule 9) |
 | `profiles` | each field on its own (name, birth date, blood type, allergies, conditions) |
 | `medical_events` | type + occurred_at; each top-level `data_json` key on its own unless the record type groups keys (for example a lab result's value + unit + reference range) |
 
@@ -931,8 +931,25 @@ at once), the phone keeps the winner but marks the record "changed by two
 people, please check" and shows both values. Clinical groups (medicines,
 schedules, allergies, lab values) never merge silently.
 
-Dose logs and other history rows are written once and never edited, so they
-never conflict.
+Dose logs and other history rows used to be written once and never edited.
+In the first release they live as entries of weekly bundles (section 22,
+rule 6), and an entry can be changed (a dose marked taken by mistake is
+cleared). So each bundle entry is its own group, and a dose-log entry counts
+as a **clinical group**: if both parents change the same dose at once, the
+conflict flag shows both. Removing an entry sets it to a signed `null` with a
+newer clock (an entry tombstone); the bundle record itself is deleted only
+when its profile is.
+
+**Bundles.** A bundle's body carries its key `{ "profile", "kind", "week" }`
+(ISO week, for example `2026-W46`) as a group that never changes. Sync ids
+stay random, so two phones that start the same week's bundle before seeing
+each other's (offline, or both inside the debounce window) create two
+records with the same key. Readers treat every live bundle with the same key
+as **one**: they merge the entries of all of them by the usual group rule. A
+writer appends to the bundle with the lowest sync id it knows for that key,
+and once it sees a second one it moves the entries of the higher one into
+the lower one and deletes the higher one (tombstone), so duplicates heal and
+stay rare. Q20.
 
 ### Deletes and tombstones
 
@@ -1101,7 +1118,12 @@ Weeks offline are fine; more than a year means a full resync (tombstones).
   should be uploaded in batches at jittered times (for example the next sync
   window after 10–40 minutes), except when caregiver alerts (Phase 2) need
   them sooner. Since the clock and the local id are inside the ciphertext,
-  batching now actually hides the tap time. Section 18, Q10.
+  batching now actually hides the tap time. Section 18, Q10. In the first
+  release (section 22, rule 1), changes to dose-log, temperature and
+  given-medicine bundles wait for a random 10–40 minutes before they join a
+  push, or for the next app open if the app is closed first; other edits
+  (a vaccine tick, an insurance card) go up after the 20-second debounce.
+  Q21.
 - Push messages are data-only "sync" with an opaque collapse key, rate
   limited, so Google sees little more than "this phone uses Usra".
 
@@ -1291,6 +1313,25 @@ happens on the server, so no AEAD or HPKE code is deployed there.
 - Fuzzing of envelope and log parsers (malformed JSON, huge lengths).
 - A budget-phone benchmark run before Phase 1.
 
+**First release additions (2026-11-13).**
+
+- Compression: a compressed envelope among the Usra vectors; the signature is
+  over the uncompressed body; unknown flag bits, a stored body that inflates
+  past 64 KiB, and truncated DEFLATE data are rejected.
+- Bundles: two phones creating the same week's bundle offline end with the
+  same merged entries on both, and the duplicate heals; entry tombstones;
+  concurrent changes to one dose entry set the conflict flag.
+- Beacons: a phone publishes on head change and after 3 days only; the write
+  stop still triggers at 7 days for a withheld head, and an honest phone
+  opened every 3 days never trips it.
+- Two writers: both parents edit different groups of one record (both
+  survive) and the same clinical group (conflict flag), online and offline.
+- Card photos: shrinking keeps a 12-megapixel test image at or under 300 KB;
+  the same photo saved twice uploads one blob; a deleted card's blob is not
+  reused.
+- Debounce and timing: one push per batch; bundle changes wait 10–40 minutes
+  or the next open; nothing runs on a timer while the app is closed.
+
 **Review.** External cryptography review of this design (questions in
 section 18) before Phase 1 code, and of the implementation before Phase 1
 reaches users; included in the S22 pen test scope.
@@ -1305,7 +1346,7 @@ no integrity warnings" gate for guardian writes no longer applies.
 | Phase | Who can do what | Gate |
 | --- | --- | --- |
 | **0. Foundations** (no user-visible change) | Crypto core, vectors, backend tables and functions (B1–B13); the phone's sync engine, the second parent's invite and join, and insurance card photos, all behind a flag that is **off in store builds**; internal builds and the local Supabase only | B0 closed; this design reviewed; test vectors pass; benchmark on a budget phone |
-| **1. Two parents** | One family, two members: the **owner** and one **guardian**, each with their own phones. Both read and write every synced record type of section 12 (Units) and insurance cards with their photos, with the group merge and conflict flags of section 12. Sync on app open and after edits (section 22). Either parent makes PDFs on their own phone | External review answered (including Q16–Q20); implementation reviewed; legal gate for health data on the server (S25) and the Egyptian lawyer's answer before any real family signs in; privacy policy and data safety form updated; the founder turns the flag on. Closed beta in Egypt first |
+| **1. Two parents** | One family, two members: the **owner** and one **guardian**, each with their own phones. Both read and write every synced record type of section 12 (Units) and insurance cards with their photos, with the group merge and conflict flags of section 12. Sync on app open and after edits (section 22). Either parent makes PDFs on their own phone | External review answered (including Q16–Q21); implementation reviewed; legal gate for health data on the server (S25) and the Egyptian lawyer's answer before any real family signs in; privacy policy and data safety form updated; the founder turns the flag on. Closed beta in Egypt first |
 | **2. Wider family** | More guardians; viewers (a relative who follows along); cared-for adults who write dose logs for their own profile; record photos and lab photos (B8 quotas); caregiver alerts when a dose is missed; optional push to tell the other phones to sync (B11) | Phase 1 has run a month with no integrity warnings; version history decision (Q7); a cost check for photos and push |
 | **3. Later** | Per-profile private scopes (Q9), co-owners (Q8), post-quantum wraps (Q6), web view | Separate design notes |
 
@@ -1372,10 +1413,10 @@ local data; turning sync off on a phone keeps its records.
     alerts?
 11. **Quotas.** Family storage quota (free vs Plus) and per-file size limits:
     product decisions that affect padding cost.
-12. **Fork detection.** *Answered:* not enough; signed head beacons on every
-    sync and the write-stop rule are now required (section 7). Open: is 7
-    days the right staleness bound for families where some members rarely
-    open the app?
+12. **Fork detection.** *Answered:* not enough; signed head beacons and the
+    write-stop rule are now required (section 7; since 2026-11-13 published
+    on head changes and every 3 days, Q19). Open: is 7 days the right
+    staleness bound for families where some members rarely open the app?
 13. **Account reset delay.** Is 7 days right for the region (people
     sometimes lose their phone and their Google or Apple password at the same time)?
 14. **The server checks.** Are there server-side checks here that create a
@@ -1409,17 +1450,31 @@ local data; turning sync off on a phone keeps its records.
 19. **Head beacons less often.** Section 22, rule 7, publishes a beacon when
     the device's log head changes or its last beacon is older than 3 days,
     not on every sync, which keeps Edge Function calls well inside the free
-    plan. With the 7-day write stop that leaves at least 4 days of margin. Is
-    that enough, or should beacons move to a database RPC that stores them
-    unverified (every phone checks the signature anyway) so they can be
-    published on every sync at no cost?
+    plan. This is already the rule in section 7, pending this answer. It
+    can't make a replayed old beacon look fresher (an old beacon goes stale
+    sooner), so the write stop is as strong as before; what can get worse is
+    a false write stop for an honest phone that opens the app less than every
+    4 days. Is that acceptable, or should beacons move to a database RPC that
+    stores them unverified (every phone checks the signature anyway) so they
+    can be published on every sync at no cost?
 20. **Weekly bundles.** Dose logs, temperatures and given medicines are
     packed into one record per profile, kind and ISO week, whose groups are
     the individual entries (each with its own clock, so the group merge of
     section 12 applies unchanged and two parents logging at once both
-    survive). The server sees one upload per batch instead of one row per
-    tap, which also helps Q10. Does this weaken any reader rule? (It doesn't
-    change them.)
+    survive; section 12, Merge, says how duplicates and entry deletes work).
+    Two points for review: (a) any writer re-signs the whole bundle, so a
+    parent's phone can change the other parent's entries with a newer clock,
+    exactly as it can edit any other record (dose entries are clinical groups,
+    so a concurrent change is flagged); (b) duplicates are merged by key
+    instead of using a keyed, deterministic sync id, which would tell the
+    server that two uploads are the same week (the same trade-off as Q17).
+    Does either weaken a reader rule? (The rules themselves don't change.)
+21. **Upload timing with two parents.** Section 13 wants dose-log uploads
+    batched and jittered to hide medicine times (Q10). The first release
+    pushes ordinary edits 20 seconds after the last one, but holds bundle
+    changes for a random 10–40 minutes or until the next app open (section
+    13, Write timing). Is that jitter enough, given that the other parent
+    then sees a dose up to 40 minutes later?
 
 ## 19. Changes to earlier notes
 
@@ -1684,9 +1739,10 @@ below. Prices are from supabase.com/pricing, checked 2026-11-13: Free has
 50,000 MAU, 500 MB database, 1 GB files, 5 GB egress, 500,000 Edge Function
 calls and pauses after a week without activity; Pro (25 dollars a month) has
 100,000 MAU, 8 GB database, 100 GB files, 250 GB egress and 2 million Edge
-Function calls. Both have **unlimited API requests**, so database RPC calls
-through PostgREST cost nothing per call; only their bytes (egress) and the
-database's CPU count.
+Function calls, then 0.125 dollars per GB of database, 0.0213 per GB of files,
+0.09 per GB of egress and 2 dollars per million Edge Function calls. Both
+have **unlimited API requests**, so database RPC calls through PostgREST cost
+nothing per call; only their bytes (egress) and the database's CPU count.
 
 ### Rules
 
@@ -1694,71 +1750,76 @@ Rules 1–4 are the founder's; 5–13 were added with this revision.
 
 | # | Rule | Saving |
 | --- | --- | --- |
-| 1 | **Sync when the app opens and after edits, never on a timer, never polling.** Open (or back to the foreground) runs one pull and pushes anything waiting. An edit starts a 20-second debounce: more edits restart it, and the batch goes up when it ends or when the app goes to the background. Pull-to-refresh is the only other trigger. No Realtime subscription | Polling every 5 minutes would be about 8,600 calls per user a month (43 million at 5,000 users) and keeps the radio awake; opens and edits are about 270 calls per user a month |
+| 1 | **Sync when the app opens and after edits, never on a timer, never polling.** Opening the app (or bringing it back to the foreground) runs one pull and pushes anything waiting. An edit starts a 20-second debounce: more edits restart it, and the batch goes up when it ends or when the app goes to the background. Changes to history bundles (rule 6) wait a random 10–40 minutes first, or for the next open (section 13, Write timing; Q21). Pull-to-refresh is the only other trigger. No Realtime subscription | Polling every 5 minutes would be about 8,600 calls per user a month (43 million at 5,000 users) and keeps the radio awake; opens and edits are about 270 calls per user a month |
 | 2 | **Send edits in batches.** One `push_e2ee_records` call carries every waiting record of a family (up to 100 records, 2 MiB), dose logs included, never one call per edit | About 20 edits a day become about 5 calls: three quarters fewer calls and response bytes |
-| 3 | **Shrink insurance card photos to about 200–300 KB before encrypting.** JPEG, longest side 1,600 px, quality lowered in steps until the file is at most 300 KB | A phone photo is 2–4 MB: about 12 times less storage and egress (60 GB instead of 5 GB at 5,000 users) |
+| 3 | **Shrink insurance card photos to about 200–300 KB before encrypting.** JPEG, longest side 1,600 px, quality lowered in steps until the file is at most 300 KB | A phone photo is 2–4 MB: about 12 times less storage and egress (5 GB instead of 60 GB at 5,000 users) |
 | 4 | **Records and insurance cards only.** Record photos, lab photos and medicine photos don't sync until a later cost check | Keeps files at about 2 MB a family instead of tens of MB |
-| 5 | **Compress before encrypting.** A record body over 1 KiB is deflated before padding and encryption (a flag in the body's format says so). Encrypted bytes don't compress, so it has to happen first. Q18 | Weekly bundles drop from the 4 KiB to the 1 KiB padding bucket: about 70% of their bytes |
-| 6 | **Pack append-only history into weekly bundles.** Dose logs, temperatures and given medicines go into one record per profile, kind and ISO week; each entry is its own merge group, keyed by its local id (Q20) | About 1,560 rows a family a year become about 70: the database grows about 0.2 MB a family a year instead of 0.75 MB |
-| 7 | **Head beacons only when needed.** A device publishes its beacon when its log head changes or its last one is older than 3 days, not on every sync. Q19 | `publish-head` is the only Edge Function on the regular path: 600,000 calls a month at 5,000 users (over the free 500,000) become about 72,000 |
+| 5 | **Compress before encrypting.** A record body over 1 KiB is deflated before padding and encryption (flag bit 0 of the plaintext's flags byte, section 12). Encrypted bytes don't compress, so it has to happen first. The 64 KiB limit applies to the uncompressed body. Q18 | A week's bundle drops from the 4 KiB to the 2 KiB padding bucket: about half its bytes |
+| 6 | **Pack append-only history into weekly bundles.** Dose logs, temperatures and given medicines go into one record per profile, kind and ISO week; each entry is its own merge group, keyed by its local id (section 12, Merge; Q20) | About 1,560 rows a family a year become about 70: the database grows about 0.35 MB a family a year instead of 0.85 MB |
+| 7 | **Head beacons only when needed.** A device publishes its beacon when its log head changes, and on its first sync once its last beacon is more than 3 days old, not on every sync (section 7). Q19 | `publish-head` is the only Edge Function on the regular path: 600,000 calls a month at 5,000 users (over the free 500,000) become about 50,000 |
 | 8 | **Database RPCs, not Edge Functions, for records.** Push and pull are Postgres functions behind PostgREST, which are free per call. Edge Functions stay only where a signature must be checked by the server (device binding, approvals, recovery, log appends, beacons) | No Edge Function call for any record traffic |
-| 9 | **Upload a photo once; download it only when opened.** The phone remembers each uploaded photo by its plaintext SHA-256 and reuses the blob when a card is saved again with the same photo. The other parent's phone downloads a card's photo the first time it's opened and keeps it, encrypted, like local photos. Random blob ids until Q17 is answered | No re-upload on every card edit; a photo nobody opens is never downloaded |
-| 10 | **Pull only what changed.** `pull_e2ee_changes` pages by the transaction-id cursor the phone stores; an open with nothing new returns an empty page | A full pull of 0.2 MB a family on every open would be about 120 GB a month at 5,000 users |
+| 9 | **Upload a photo once; download it only when opened.** A card's front and back photo references (blob id, file key, nonce prefix, chunk count, length, SHA-256, media type) live inside the `insurance_cards` record, each as its own merge group. The phone remembers each blob it uploaded by the photo's SHA-256 and reuses it when a card is saved again with the same photo, but only while a live record on the phone still references that blob (a deleted card's blob may already be gone, section 12). The other parent's phone downloads a photo the first time the card is opened and then keeps it, encrypted, like local photos. Random blob ids until Q17 is answered | No re-upload on every card edit; a photo nobody opens is never downloaded |
+| 10 | **Pull only what changed.** `pull_e2ee_changes` pages by the transaction-id cursor the phone stores; an open with nothing new returns an empty page | A full pull of 0.35 MB a family on every open would be about 200 GB a month at 5,000 users |
 | 11 | **One round trip per open.** `sync_pull` returns, in one call, the family log after the phone's `seq`, the beacons, the wraps for this device and the first page of records | Four requests become one: about 75% fewer request headers and less waiting on a slow network |
 | 12 | **Ciphertext as bytea, base64 on the wire.** The table stores raw bytes; push sends base64 and pull returns base64 text, never PostgREST's default hex for bytea | Hex is twice the size; base64 is 1.33 times: a third less download for every record |
 | 13 | **Don't sync what the phone can work out.** Vaccine due dates and statuses, due and missed doses, growth z-scores, follow-up suggestions, spending totals and reminders are computed on each phone from the synced records | Fewer records and no edits that only restate a computed value |
 
 Not in the first release, for cost: a push to the other parent's phone after
-an edit (B11). Through an Edge Function it would be about 450,000 calls a
-month at 5,000 users (with rule 7's beacons, over the free plan) and about
-4.5 million at 50,000 (about 5 dollars a month on Pro). The free alternative
-for Phase 2: the push RPC sends the FCM message with `pg_net`, using an access
-token that one scheduled Edge Function call an hour refreshes into Vault
-(about 720 calls a month). FCM itself is free.
+an edit (B11). Through an Edge Function, one push per batch (rule 2) would be
+up to 750,000 calls a month at 5,000 users (over the free plan on its own)
+and about 7.5 million at 50,000 (with the beacons, about 12 dollars a month
+over Pro). The free alternative for Phase 2: the push RPC sends the FCM
+message with `pg_net`, using an access token that one scheduled Edge Function
+call an hour refreshes into Vault (about 720 calls a month). FCM itself is
+free.
 
-Limits that protect the plan (B7, B12, enforced in Postgres, so no Edge
-Function call): 100 records and 2 MiB per push; 60 sync calls a minute per
-device; 20,000 record writes a day per family; 20,000 live records per family;
-20 MB of photos per family in Phase 1 (enough for 80 card photos); tombstones
-removed after a year.
+Limits that protect the plan (B7, B12), kept in Postgres tables, which is
+the shared store S17 asks for, so no Edge Function call is needed: 100
+records and 2 MiB per push; 60 sync calls a minute per device; 20,000 record
+writes a day per family; 20,000 live records per family; 20 MB of photos per
+family in Phase 1 (enough for 80 card photos); tombstones removed after a
+year.
 
 ### Numbers
 
-Assumptions, at the high end: every user syncs, two users per family (so
-5,000 users are 2,500 families), each phone opened 4 times a day. A family
-after a year has about 300 ordinary records (four profiles, about 150 medical
-events, 20 medicines and schedules, doctors, prescriptions, sick days, four
-insurance cards) and about 1,560 history rows (two medicines twice a day,
-plus temperatures). A small record is 296 bytes of ciphertext plus about 120
-bytes of row and index. Each family has four insurance cards with front and
-back photos at 250 KB. The other parent downloads about 10 changed records a
-day.
+Assumptions, at the high end: every user syncs, with one phone each, and two
+users share a family (so 5,000 users are 2,500 families). Each phone is
+opened 4 times a day and downloads about 10 records a day changed by the
+other parent. A family after a year has about 300 ordinary records (four
+profiles, about 150 medical events, 20 medicines and schedules, doctors,
+prescriptions, sick days, four insurance cards) and about 1,560 history rows
+(two medicines twice a day, plus temperatures), which bundles turn into about
+70 records. An ordinary record lands in the 512-byte padding bucket (552
+bytes of ciphertext), a bundle in the 2 KiB bucket after compression, and
+each row adds about 120 bytes of row and index. Each family has four
+insurance cards with front and back photos at 250 KB.
 
 | Item | 5,000 users | Free plan | Pro plan | 50,000 users (Pro) |
 | --- | --- | --- | --- | --- |
-| Database, after a year | 0.5 GB with bundles (1.9 GB without) | 100% (60% at about 3,000 users) | 6% | 5 GB: 63% after a year, TIGHT; over 8 GB in year two costs under 1 dollar a month |
-| Files (card photos) | 5.3 GB (60 GB without shrinking) | Over (60% at about 580 users) | 5% | 53 GB: 53% |
-| Egress a month | 2.1 GB: 0.4 opens, 1.1 changed records, 0.1 first syncs, 0.5 card photos | 42% | 0.8% | 21 GB: 8% |
-| Edge Function calls a month | 77,000: 72,000 beacons, 5,000 sign-in bindings, a few log appends | 15% | 4% | 770,000: 39% |
+| Database, after a year | 0.9 GB with bundles (2.1 GB without) | Over (60% at about 1,700 users) | 11% | 9 GB: over 8 GB near the end of year one; about 1.25 dollars a month of overage by the end of year two (21 GB a year without bundles) |
+| Files (card photos) | 5 GB (60 GB without shrinking) | Over (60% at about 580 users) | 5% | 50 GB: 50% |
+| Egress a month | 2.6 GB: 0.6 opens, 1.35 changed records, 0.1 first syncs, 0.5 card photos | 52% | 1% | 26 GB: 10% |
+| Edge Function calls a month | 55,000: 50,000 beacons, 5,000 sign-in bindings, a few log appends | 11% | 3% | 550,000: 28% |
 | API requests a month | about 1.4 million (opens, pushes) | unlimited | unlimited | about 14 million, unlimited |
 | MAU | 5,000 | 10% | 5% | 50% |
 
 Verdict:
 
 - **5,000 users on Supabase Pro: FREE** beyond the approved 25 dollars a
-  month; every Pro limit stays under 10%.
+  month; every Pro limit stays under 15%.
 - **Beta on the free plan: FREE up to about 500 syncing users.** Card photos
   are the first limit to get tight (60% of 1 GB at about 580 users), then the
-  database (60% of 500 MB at about 3,000 users after a year). The free plan
+  database (60% of 500 MB at about 1,700 users after a year). The free plan
   also pauses after a week without activity and has no backups; synced records
   are also on the phones, but a family that lost its only phone during the
   beta would lose what only the server held. The beta should move to Pro
   before it passes about 500 syncing users, as already approved for real
   member numbers.
-- **50,000 users on Pro: TIGHT on the database after the first year** (63%),
-  under 1 dollar a month of overage in year two; everything else under 60%.
-  Without rules 3 and 6 it would be about 19 GB of database and 600 GB of
-  files at 50,000 users, about 12 dollars a month more.
+- **50,000 users on Pro: COSTS MONEY, a little, from the end of year one:**
+  the database passes 8 GB, about 1.25 dollars a month by the end of year two.
+  Everything else stays under 60%. Without rules 3 and 6 it would be about
+  21 GB of database a year and 600 GB of files at 50,000 users, about 12
+  dollars a month more.
 
 ### Open questions for the founder
 
@@ -1779,6 +1840,12 @@ Verdict:
 5. **Push to the other phone.** Without it, the other parent sees an edit the
    next time they open the app. A push is free through FCM but costs Edge
    Function calls (above). Phase 2 with its own cost check: agreed?
+7. **Card photos without a network.** You asked for photos to download only
+   when opened. The other parent's phone therefore has no photo of a card
+   until it has been opened once online; at a pharmacy without signal it
+   shows the card's details only. Once opened, the photo stays on the phone.
+   Keep it so, or download card photos (only card photos, about 2 MB a family
+   once) right after joining?
 6. **A parent who rarely opens the app.** Phones sync only when the app is
    opened (rule 1), so a parent who doesn't open Usra for 7 days publishes no
    beacon, and the security rule in section 7 then stops the other parent's
