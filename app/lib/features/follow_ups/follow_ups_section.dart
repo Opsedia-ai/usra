@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/design/status_chip.dart';
+import '../../core/design/list_row.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/follow_ups/follow_up.dart' show dayOf;
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -98,12 +100,18 @@ class FollowUpsScreen extends ConsumerWidget {
               if (group.isNotEmpty) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(title, style: text.titleLarge),
+                  child: Semantics(
+                    header: true,
+                    child: Text(title, style: text.titleMedium),
+                  ),
                 ),
-                for (final item in group) ...[
-                  FollowUpTile(item: item, showName: true),
-                  const SizedBox(height: 8),
-                ],
+                UsraListCard(
+                  children: [
+                    for (final item in group)
+                      FollowUpTile(item: item, showName: true),
+                  ],
+                ),
+                const SizedBox(height: UsraSpacing.s2),
               ],
             const SizedBox(height: 8),
             Text(
@@ -157,24 +165,26 @@ class _Section extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Icon(Icons.event_repeat_outlined, color: context.usra.primary),
-            const SizedBox(width: 8),
-            Expanded(child: Text(l.followUpsTitle, style: text.titleLarge)),
-          ],
+        Semantics(
+          header: true,
+          child: Text(l.followUpsTitle, style: text.titleMedium),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: UsraSpacing.s2),
         if (items.isEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(l.followUpsEmpty, style: text.bodyMedium),
+            padding: const EdgeInsets.symmetric(vertical: UsraSpacing.s2),
+            child: Text(
+              l.followUpsEmpty,
+              style: UsraType.body.copyWith(color: context.usra.inkMuted),
+            ),
           )
         else
-          for (final item in items) ...[
-            FollowUpTile(item: item, showName: showNames),
-            const SizedBox(height: 8),
-          ],
+          UsraListCard(
+            children: [
+              for (final item in items)
+                FollowUpTile(item: item, showName: showNames),
+            ],
+          ),
         if (allLink)
           Align(
             alignment: AlignmentDirectional.centerStart,
@@ -183,18 +193,24 @@ class _Section extends StatelessWidget {
               onPressed: () => context.push('/follow-ups'),
               child: Text(l.followUpsAll),
             ),
-          ),
+          )
+        else
+          const SizedBox(height: UsraSpacing.s2),
         Text(
           l.followUpsDisclaimer,
-          style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
+          style: UsraType.label.copyWith(
+            color: context.usra.inkMuted,
+            fontWeight: FontWeight.w400,
+          ),
         ),
       ],
     );
   }
 }
 
-/// One follow-up: what, for whom, when (coloured by urgency) and why, with
-/// a shortcut to record it and a way to hide it until next time.
+/// One follow-up as a row of a [UsraListCard]: what, for whom, when (with an
+/// amber dot once it's due soon or late) and why, with a short "تسجيل" to
+/// record it and a way to hide it until next time.
 class FollowUpTile extends ConsumerWidget {
   const FollowUpTile({super.key, required this.item, this.showName = false});
 
@@ -204,86 +220,69 @@ class FollowUpTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
-    final text = Theme.of(context).textTheme;
+    final c = context.usra;
     final locale = Localizations.localeOf(context).toLanguageTag();
     final f = item.followUp;
     final profile = item.profile;
     final severity = f.severityOn(ref.watch(todayProvider));
     final date = DateFormat.yMMMd(locale).format(f.dueOn);
-    final overdue = severity == Severity.actSoon;
+    final when = severity == Severity.actSoon
+        ? l.followUpOverdue(date)
+        : l.followUpDue(date);
     final type = f.recordType == null
         ? null
         : ref.watch(moduleRegistryProvider).recordTypes[f.recordType!];
+    final muted = UsraType.label.copyWith(
+      color: c.inkMuted,
+      fontWeight: FontWeight.w400,
+    );
 
-    return Card(
+    final add = type == null
+        ? null
+        : TextButton(
+            key: ValueKey('follow-up-add-${f.cycleKey}'),
+            onPressed: () =>
+                context.go('/family/${profile.id}/add/${type.key}'),
+            child: Text(
+              l.vaccineLogShort,
+              semanticsLabel: l.followUpAdd(type.labelOf(context)),
+            ),
+          );
+    final dismiss = IconButton(
+      key: ValueKey('dismiss-${f.cycleKey}'),
+      tooltip: l.followUpDismiss,
+      color: c.inkMuted,
+      icon: const Icon(Icons.close, size: 20),
+      onPressed: () => _dismiss(context, ref),
+    );
+    // Beside the words normally; under them at large text, where two
+    // actions would squeeze the reason into a narrow column.
+    final stacked = MediaQuery.textScalerOf(context).scale(1) > 1.3;
+
+    return UsraListRow(
       key: ValueKey('follow-up-${f.cycleKey}'),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: severity.foregroundOf(context), width: 1.5),
+      title: showName
+          ? '${profile.displayName} · ${f.title(context)}'
+          : f.title(context),
+      emphasized: true,
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (severity == Severity.info)
+            Text(when, key: const ValueKey('follow-up-when'), style: muted)
+          else
+            StatusDotText(key: const ValueKey('follow-up-when'), label: when),
+          const SizedBox(height: UsraSpacing.s1),
+          Text(f.reason(context), style: muted.copyWith(color: c.ink)),
+          if (f.source != null) Text(l.followUpSource(f.source!), style: muted),
+          if (stacked && add != null)
+            Align(alignment: AlignmentDirectional.centerStart, child: add),
+        ],
       ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: showName ? () => context.go('/family/${profile.id}') : null,
-        child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 4, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          showName
-                              ? '${profile.displayName} · ${f.title(context)}'
-                              : f.title(context),
-                          style: text.titleMedium,
-                        ),
-                        const SizedBox(height: 6),
-                        StatusChip(
-                          severity: severity,
-                          label: overdue
-                              ? l.followUpOverdue(date)
-                              : l.followUpDue(date),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    key: ValueKey('dismiss-${f.cycleKey}'),
-                    tooltip: l.followUpDismiss,
-                    icon: const Icon(Icons.close),
-                    onPressed: () => _dismiss(context, ref),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Padding(
-                padding: const EdgeInsetsDirectional.only(end: 12),
-                child: Text(f.reason(context), style: text.bodyMedium),
-              ),
-              if (f.source != null)
-                Text(
-                  l.followUpSource(f.source!),
-                  style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
-                ),
-              if (type != null)
-                Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: TextButton.icon(
-                    key: ValueKey('follow-up-add-${f.cycleKey}'),
-                    onPressed: () =>
-                        context.go('/family/${profile.id}/add/${type.key}'),
-                    icon: Icon(type.icon),
-                    label: Text(l.followUpAdd(type.labelOf(context))),
-                  ),
-                ),
-            ],
-          ),
-        ),
+      onTap: showName ? () => context.go('/family/${profile.id}') : null,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [if (!stacked) ?add, dismiss],
       ),
     );
   }
