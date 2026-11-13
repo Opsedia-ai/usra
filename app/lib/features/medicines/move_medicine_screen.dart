@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/log.dart';
@@ -189,19 +190,12 @@ class _MoveMedicineScreenState extends ConsumerState<MoveMedicineScreen> {
         ],
         if (picked != null) ...[
           const SizedBox(height: 16),
-          Container(
+          // An amber dot and words instead of a tinted box.
+          StatusDotText(
             key: const ValueKey('move-warning'),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Severity.headsUp.backgroundOf(context),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              l.medicineMoveReminder(picked.displayName, from.displayName),
-              style: text.bodyMedium?.copyWith(
-                color: Severity.headsUp.foregroundOf(context),
-              ),
-            ),
+            label: l.medicineMoveReminder(picked.displayName, from.displayName),
+            color: context.usra.ink,
+            style: text.bodyMedium,
           ),
         ],
         const SizedBox(height: 24),

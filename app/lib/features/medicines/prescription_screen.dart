@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
-import '../../core/design/status_chip.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -139,6 +140,10 @@ class _Details extends ConsumerWidget {
     final store = ref.watch(medicinePhotoStoreProvider);
     final now = ref.watch(clockProvider)();
 
+    final muted = UsraType.label.copyWith(
+      color: context.usra.inkMuted,
+      fontWeight: FontWeight.w400,
+    );
     final rows = <(String, String)>[
       if (doctor != null) (l.medicineDoctor, doctor.name),
       if (p.diagnosis != null) (l.prescriptionDiagnosis, p.diagnosis!),
@@ -162,7 +167,7 @@ class _Details extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: text.labelLarge),
+                Text(label, style: muted),
                 Text(value, style: text.bodyLarge),
               ],
             ),
@@ -170,8 +175,13 @@ class _Details extends ConsumerWidget {
         const SizedBox(height: 8),
         Text(l.prescriptionMedicines, style: text.titleMedium),
         const SizedBox(height: 8),
-        for (final m in medicines)
-          _MedicineTile(profileId: profileId, medicine: m, now: now),
+        if (medicines.isNotEmpty)
+          UsraListCard(
+            children: [
+              for (final m in medicines)
+                _MedicineTile(profileId: profileId, medicine: m, now: now),
+            ],
+          ),
         if (photos.isNotEmpty) ...[
           const SizedBox(height: 20),
           Text(l.prescriptionPhotos, style: text.titleSmall),
@@ -218,7 +228,11 @@ class _Details extends ConsumerWidget {
         if (p.active || medicines.any((m) => m.stoppedWithPrescription))
           OutlinedButton.icon(
             key: const ValueKey('rx-toggle-active'),
-            style: OutlinedButton.styleFrom(minimumSize: const Size(0, 56)),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(0, 56),
+              foregroundColor: context.usra.ink,
+              side: BorderSide(color: context.usra.lineStrong),
+            ),
             onPressed: () async {
               try {
                 await ref
@@ -259,37 +273,40 @@ class _MedicineTile extends ConsumerWidget {
     final schedule = ref.watch(doseScheduleProvider(m.id)).value;
     final course = courseLabel(l, m, now);
     final running = m.active && !medicineEnded(m, now);
-    return Card(
-      child: ListTile(
-        key: ValueKey('rx-medicine-${m.id}'),
-        onTap: () => context.go('/family/$profileId/medicines/${m.id}'),
-        leading: CircleAvatar(
-          backgroundColor: context.usra.primarySoft,
-          child: Icon(medicineFormIcon(m.form), color: context.usra.primary),
-        ),
-        title: Text(medicineTitle(m)),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (m.instructions != null) Text(m.instructions!),
-            Text(
-              schedule == null
-                  ? l.medicineAsNeeded
-                  : scheduleSummary(context, schedule),
-            ),
-            if (courseDays(m) case final days? when course == null)
-              Text(l.prescriptionDaysCount(days)),
-            if (course != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: StatusChip(
-                  key: ValueKey('rx-course-${m.id}'),
-                  severity: running ? Severity.good : Severity.info,
-                  label: course,
-                ),
+    final muted = UsraType.label.copyWith(
+      color: context.usra.inkMuted,
+      fontWeight: FontWeight.w400,
+    );
+    return UsraListRow(
+      key: ValueKey('rx-medicine-${m.id}'),
+      onTap: () => context.go('/family/$profileId/medicines/${m.id}'),
+      leading: IconBox(icon: medicineFormIcon(m.form)),
+      title: medicineTitle(m),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (m.instructions != null) Text(m.instructions!, style: muted),
+          Text(
+            schedule == null
+                ? l.medicineAsNeeded
+                : scheduleSummary(context, schedule),
+            style: muted,
+          ),
+          if (courseDays(m) case final days? when course == null)
+            Text(l.prescriptionDaysCount(days), style: muted),
+          // Plain words, no tinted chip: a running course in ink, a finished
+          // one muted.
+          if (course != null)
+            KeyedSubtree(
+              key: ValueKey('rx-course-${m.id}'),
+              child: Text(
+                course,
+                style: running
+                    ? muted.copyWith(color: context.usra.ink)
+                    : muted,
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
