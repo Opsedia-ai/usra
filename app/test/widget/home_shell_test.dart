@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:usra/app.dart';
+import 'package:usra/core/design/pill_chip.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/features/family/record_form_screen.dart';
@@ -245,7 +246,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('person-add')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('add-pick-person')), findsNothing);
-    final chip = tester.widget<ChoiceChip>(
+    final chip = tester.widget<UsraPill>(
       find.byKey(ValueKey('add-person-${ids[1]}')),
     );
     expect(chip.selected, isTrue);
