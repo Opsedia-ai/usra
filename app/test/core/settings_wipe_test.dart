@@ -62,6 +62,7 @@ void main() {
       PrefKeys.meProfileId,
       PrefKeys.consentVersion,
       PrefKeys.consentAt,
+      PrefKeys.homeSetupHidden,
     });
   });
 }

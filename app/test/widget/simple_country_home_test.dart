@@ -192,7 +192,7 @@ void main() {
 
       await h.tapKey(tester, 'setup-hide');
       expect(key('home-setup'), findsNothing);
-      expect(h.prefs.getBool('homeSetupHidden'), isTrue);
+      expect(h.prefs.getBool(PrefKeys.homeSetupHidden), isTrue);
     });
 
     testWidgets('a card leaves when it\'s done', (tester) async {

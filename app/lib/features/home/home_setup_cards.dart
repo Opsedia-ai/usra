@@ -12,7 +12,7 @@ import '../medicines/medicines_providers.dart'
     show reminderAccessProvider, reminderSchedulerProvider;
 
 /// Set once someone hides the cards.
-const homeSetupHiddenKey = 'homeSetupHidden';
+const homeSetupHiddenKey = PrefKeys.homeSetupHidden;
 
 /// A new family's next steps, each only until it's done, and none required.
 /// Each permission is asked for when its card is tapped, not before.
