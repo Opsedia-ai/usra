@@ -491,13 +491,11 @@ void main() {
     await h.open(tester, '/family/$id');
     // 18 required doses missing; 7 can be given today (birth, 2 months and
     // MMR 1), the rest wait for the doses before them.
-    expect(
-      tester.widget<StatusChip>(key('person-vaccine-count')).label,
-      '١٨ جرعة ناقصة',
-    );
-    expect(text(tester, 'person-vaccine-now'), 'ممكن تتاخد دلوقتي: ٧');
-    expect(find.textContaining('الدكتور يحدد إمتى تتاخد'), findsOneWidget);
+    // One dot row in the attention card.
+    expect(find.text('١٨ جرعة تطعيم ناقصة'), findsOneWidget);
+    expect(text(tester, 'person-vaccine-now'), '٧ ممكن تتاخد دلوقتي');
     await h.go(tester, '/family/$id/vaccines');
+    expect(find.textContaining('الدكتور يحدد إمتى تتاخد'), findsOneWidget);
     // The vaccine page lists the 7 under one heading.
     expect(
       tester

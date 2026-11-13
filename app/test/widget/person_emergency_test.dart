@@ -272,6 +272,15 @@ void main() {
 
       final card = find.byKey(const ValueKey('person-vaccine-overdue'));
       expect(card, findsOneWidget);
+      // A dot row in the one "needs attention" card; sections are a list.
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('person-attention')),
+          matching: card,
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('person-sections')), findsOneWidget);
       // What the app concludes shows its reference and the date it was checked.
       final source = tester.widget<Text>(
         find.byKey(const ValueKey('person-vaccine-source')),

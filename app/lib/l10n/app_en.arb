@@ -3266,5 +3266,15 @@
         "format": "decimalPattern"
       }
     }
-  }
+  },
+  "vaccineMissingDosesTitle": "{count, plural, =1{1 vaccine dose missing} other{{count} vaccine doses missing}}",
+  "@vaccineMissingDosesTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "sickDayReadingShort": "Reading"
 }

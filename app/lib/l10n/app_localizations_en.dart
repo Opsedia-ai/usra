@@ -5659,4 +5659,22 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String vaccineMissingDosesTitle(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString vaccine doses missing',
+      one: '1 vaccine dose missing',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sickDayReadingShort => 'Reading';
 }
