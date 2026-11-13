@@ -360,7 +360,7 @@ void main() {
       ]);
       expect(planned.map((r) => r.id), [1, 2, 3]);
       expect(planned.first.title, 'ميعاد دوا عمر: باراسيتامول 500 مجم');
-      expect(planned.first.body, 'قرص واحد · بعد الأكل');
+      expect(planned.first.body, 'قرص واحد – بعد الأكل');
       expect(planned.first.takenLabel, 'اتاخد');
       expect(planned.first.scheduledAt, DateTime(2026, 11, 4, 8).toUtc());
     });

@@ -6011,7 +6011,7 @@ abstract class AppLocalizations {
   /// No description provided for @sickDayHighestReading.
   ///
   /// In en, this message translates to:
-  /// **'Highest reading: {reading} · {time}'**
+  /// **'Highest reading: {reading} – {time}'**
   String sickDayHighestReading(String reading, String time);
 
   /// No description provided for @sickDayFeverSpan.
@@ -6029,7 +6029,7 @@ abstract class AppLocalizations {
   /// No description provided for @sickDayRecordedGiven.
   ///
   /// In en, this message translates to:
-  /// **'Recorded: {what} · {time}'**
+  /// **'Recorded: {what} – {time}'**
   String sickDayRecordedGiven(String what, String time);
 
   /// No description provided for @sickDayChartSemantics.
@@ -7234,7 +7234,7 @@ abstract class AppLocalizations {
   /// No description provided for @countryEgyptDetail.
   ///
   /// In en, this message translates to:
-  /// **'Ministry of Health and Population · Ambulance 123'**
+  /// **'Ministry of Health and Population – Ambulance 123'**
   String get countryEgyptDetail;
 
   /// No description provided for @countrySaudi.
@@ -7330,19 +7330,19 @@ abstract class AppLocalizations {
   /// No description provided for @personVaccineSource.
   ///
   /// In en, this message translates to:
-  /// **'Reference: Egypt\'s vaccine schedule, {route} · checked {date}'**
+  /// **'Reference: Egypt\'s vaccine schedule, {route} – checked {date}'**
   String personVaccineSource(String route, String date);
 
   /// No description provided for @personVaccineSourceOptional.
   ///
   /// In en, this message translates to:
-  /// **'Reference: pediatricians\' usual schedules in Egypt · checked {date}'**
+  /// **'Reference: pediatricians\' usual schedules in Egypt – checked {date}'**
   String personVaccineSourceOptional(String date);
 
   /// No description provided for @personNextDose.
   ///
   /// In en, this message translates to:
-  /// **'Next dose · {time}'**
+  /// **'Next dose – {time}'**
   String personNextDose(String time);
 
   /// No description provided for @personDoseWasAt.
@@ -7390,19 +7390,19 @@ abstract class AppLocalizations {
   /// No description provided for @personVaccinesSummary.
   ///
   /// In en, this message translates to:
-  /// **'{done} of {total} · Egypt schedule'**
+  /// **'{done} of {total} – Egypt schedule'**
   String personVaccinesSummary(String done, String total);
 
   /// No description provided for @personGrowthWeight.
   ///
   /// In en, this message translates to:
-  /// **'{value} kg · {date}'**
+  /// **'{value} kg – {date}'**
   String personGrowthWeight(String value, String date);
 
   /// No description provided for @personGrowthHeight.
   ///
   /// In en, this message translates to:
-  /// **'{value} cm · {date}'**
+  /// **'{value} cm – {date}'**
   String personGrowthHeight(String value, String date);
 
   /// No description provided for @personLatestOn.
@@ -7816,7 +7816,7 @@ abstract class AppLocalizations {
   /// No description provided for @vaccineDoneGroupLast.
   ///
   /// In en, this message translates to:
-  /// **'All given · the last on {date}'**
+  /// **'All given – the last on {date}'**
   String vaccineDoneGroupLast(String date);
 
   /// No description provided for @vaccineGroupCount.
@@ -7888,7 +7888,7 @@ abstract class AppLocalizations {
   /// No description provided for @vaccineChoiceOverdue.
   ///
   /// In en, this message translates to:
-  /// **'{dose} · overdue'**
+  /// **'{dose} – overdue'**
   String vaccineChoiceOverdue(String dose);
 
   /// No description provided for @growthTitleOf.
@@ -8026,7 +8026,7 @@ abstract class AppLocalizations {
   /// No description provided for @insuranceWatermark.
   ///
   /// In en, this message translates to:
-  /// **'{name} · {date}'**
+  /// **'{name} – {date}'**
   String insuranceWatermark(String name, String date);
 
   /// No description provided for @insuranceShareWarning.
@@ -8170,7 +8170,7 @@ abstract class AppLocalizations {
   /// No description provided for @vaccineCatchUp.
   ///
   /// In en, this message translates to:
-  /// **'Catch-up · due {date}'**
+  /// **'Catch-up – due {date}'**
   String vaccineCatchUp(String date);
 
   /// No description provided for @vaccineNextCatchUp.
@@ -8188,7 +8188,7 @@ abstract class AppLocalizations {
   /// No description provided for @vaccineOptionalWasDue.
   ///
   /// In en, this message translates to:
-  /// **'Optional · was due {date}'**
+  /// **'Optional – was due {date}'**
   String vaccineOptionalWasDue(String date);
 
   /// No description provided for @vaccineDoseNotGiven.
@@ -8368,7 +8368,7 @@ abstract class AppLocalizations {
   /// No description provided for @vaccineGivableNowHeading.
   ///
   /// In en, this message translates to:
-  /// **'Can be given now · {count}'**
+  /// **'Can be given now – {count}'**
   String vaccineGivableNowHeading(int count);
 
   /// No description provided for @vaccineWasDueAt.

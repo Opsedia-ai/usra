@@ -155,7 +155,7 @@ Medical strings in this list also go to the doctor, through `docs/medical-review
 | `sickDayFeverUnderHour` | New | أقل من ساعة | under an hour |
 | `sickDayFeverHours` | New | {count, plural, =1{ساعة} =2{ساعتين} few{{shown} ساعات} other{{shown} ساعة}} | {count, plural, =1{1 hour} other{{shown} hours}} |
 | `sickDayFeverDays` | New | {count, plural, =1{يوم} =2{يومين} few{{shown} أيام} other{{shown} يوم}} | {count, plural, =1{1 day} other{{shown} days}} |
-| `sickDayRecordedGiven` | New | مسجل: {what} · {time} | Recorded: {what} · {time} |
+| `sickDayRecordedGiven` | New | مسجل: {what} – {time} | Recorded: {what} – {time} |
 | `sickDayChartSemantics` | New | القراءات من {start} لحد {end}: {values}. الخط المتقطع عند {fever}، من عندها تبقى سخونية. | Readings from {start} to {end}: {values}. The dashed line is at {fever}, where a fever starts. |
 | `sickDayChartThen` | New |  ثم  | , then  |
 | `sickDayAddReadingShort` | New | قراءة حرارة | Add reading |
@@ -246,7 +246,7 @@ Medical strings in this list also go to the doctor, through `docs/medical-review
 | `countryTitle` | New | البلد | Country |
 | `countryHint` | New | علشان جدول التطعيمات ورقم الإسعاف يبقوا صح. | So the vaccine schedule and the ambulance number are right. |
 | `countryEgypt` | New | مصر | Egypt |
-| `countryEgyptDetail` | New | وزارة الصحة والسكان · الإسعاف ١٢٣ | Ministry of Health and Population · Ambulance 123 |
+| `countryEgyptDetail` | New | وزارة الصحة والسكان – الإسعاف ١٢٣ | Ministry of Health and Population – Ambulance 123 |
 | `countrySaudi` | New | السعودية | Saudi Arabia |
 | `countryJordan` | New | الأردن | Jordan |
 | `countrySoon` | New | قريب | Coming soon |
@@ -262,9 +262,9 @@ Medical strings in this list also go to the doctor, through `docs/medical-review
 | `personDoctorSummary` | New | ملخص للدكتور | Doctor summary |
 | `personInsuranceOpen` | New | افتح الكارت | Open card |
 | `personVaccineLog` | New | اتاخدت؟ سجّلها | Given? Log it |
-| `personVaccineSource` | New | المرجع: جدول التطعيمات في مصر، {route} · اتراجع {date} | Reference: Egypt's vaccine schedule, {route} · checked {date} |
-| `personVaccineSourceOptional` | New | المرجع: الجداول المعتادة عند دكاترة الأطفال في مصر · اتراجع {date} | Reference: pediatricians' usual schedules in Egypt · checked {date} |
-| `personNextDose` | New | الجرعة الجاية · {time} | Next dose · {time} |
+| `personVaccineSource` | New | المرجع: جدول التطعيمات في مصر، {route} – اتراجع {date} | Reference: Egypt's vaccine schedule, {route} – checked {date} |
+| `personVaccineSourceOptional` | New | المرجع: الجداول المعتادة عند دكاترة الأطفال في مصر – اتراجع {date} | Reference: pediatricians' usual schedules in Egypt – checked {date} |
+| `personNextDose` | New | الجرعة الجاية – {time} | Next dose – {time} |
 | `personDoseWasAt` | New | كان ميعادها {time} | Was due at {time} |
 | `personRecordedTitle` | New | اللي العيلة سجّلته | Recorded by the family |
 | `personTimelineTitle` | New | كل السجلات | All records |
@@ -272,9 +272,9 @@ Medical strings in this list also go to the doctor, through `docs/medical-review
 | `personTileVisits` | New | الزيارات والتحاليل | Visits and labs |
 | `personTileInsurance` | New | التأمين | Insurance |
 | `personTileDocuments` | New | الورق والصور | Documents and photos |
-| `personVaccinesSummary` | New | {done} من {total} · جدول مصر | {done} of {total} · Egypt schedule |
-| `personGrowthWeight` | New | {value} كجم · {date} | {value} kg · {date} |
-| `personGrowthHeight` | New | {value} سم · {date} | {value} cm · {date} |
+| `personVaccinesSummary` | New | {done} من {total} – جدول مصر | {done} of {total} – Egypt schedule |
+| `personGrowthWeight` | New | {value} كجم – {date} | {value} kg – {date} |
+| `personGrowthHeight` | New | {value} سم – {date} | {value} cm – {date} |
 | `personLatestOn` | New | آخرها {date} | Latest {date} |
 | `personInsuranceCount` | New | {count, plural, =0{لسه مفيش} =1{كارت واحد} =2{كارتين} few{{shown} كروت} other{{shown} كارت}} | {count, plural, =0{None yet} =1{1 card} other{{shown} cards}} |
 | `personMedicinesCount` | New | {count, plural, =0{مفيش أدوية حالية} =1{دوا واحد} =2{دوايين} few{{shown} أدوية} other{{shown} دوا}} | {count, plural, =0{None current} =1{1 current} other{{shown} current}} |
@@ -342,7 +342,7 @@ Medical strings in this list also go to the doctor, through `docs/medical-review
 | `vaccineProgressLine` | New | {done} من {total} جرعة اتاخدت | {done} of {total} doses given |
 | `vaccineNewTitle` | New | تطعيم جديد | New vaccine |
 | `vaccineDoneGroup` | New | اللي خلص | Done |
-| `vaccineDoneGroupLast` | New | اتاخدت كلها · آخرها {date} | All given · the last on {date} |
+| `vaccineDoneGroupLast` | New | اتاخدت كلها – آخرها {date} | All given – the last on {date} |
 | `vaccineGroupCount` | New | {done} من {total} | {done} of {total} |
 | `vaccineTickAll` | New | تحديد الكل | Tick all |
 | `vaccineSetupSkipNow` | New | تخطي التطعيمات دلوقتي | Skip vaccines for now |
@@ -352,7 +352,7 @@ Medical strings in this list also go to the doctor, through `docs/medical-review
 | `vaccineOtherChoice` | New | تطعيم تاني | Another vaccine |
 | `vaccineWhoFor` | New | لمين؟ | For whom? |
 | `vaccineSavedFor` | New | اتحفظ: {vaccine} لـ{name} | Saved: {vaccine} for {name} |
-| `vaccineChoiceOverdue` | New | {dose} · متأخر | {dose} · overdue |
+| `vaccineChoiceOverdue` | New | {dose} – متأخر | {dose} – overdue |
 | `growthTitleOf` | New | نمو {name} | {name}'s growth |
 | `growthNew` | New | قياس جديد | New measurement |
 | `growthTabWeight` | New | الوزن | Weight |
@@ -375,7 +375,7 @@ Medical strings in this list also go to the doctor, through `docs/medical-review
 | `followUpsThisWeek` | New | النهارده والأسبوع ده | Today and this week |
 | `followUpsLater` | New | بعد كده | Later |
 | `followUpsAll` | New | كل المتابعات | All follow-ups |
-| `insuranceWatermark` | New | {name} · {date} | {name} · {date} |
+| `insuranceWatermark` | New | {name} – {date} | {name} – {date} |
 | `insuranceShareWarning` | New | قبل ما تبعت: الكارت فيه بيانات شخصية، واللي هيستلمه ممكن يبعته لغيره. هنكتب على الصورة التاريخ واسم شركة التأمين لو متسجل. | Before you send it: the card holds personal details, and whoever gets it could pass it on. We'll write the date and the insurer's name, if saved, across the picture. |
 | `insuranceShareWarningNoPhoto` | New | قبل ما تبعت: رقم العضوية بيانات شخصية، واللي هيستلمه ممكن يبعته لغيره. | Before you send it: the member number is personal, and whoever gets it could pass it on. |
 | `simpleNextDose` | New | الدوا الجاي | Next medicine |
@@ -419,7 +419,7 @@ Wording from the polish the founder approved on 13 Nov 2026 (`docs/design/polish
 | More: money row | Changed | المصاريف (was الفلوس, now uses `memberSpending`) | Spending (was Money) |
 | More: family row | Changed | adds `familyCount` under كل العيلة, e.g. فردين | adds the number of people |
 | `vaccineMarkPastAsk` | New | girl: خدت كل اللي فات؟ علّمها مرة واحدة · boy: خد كل اللي فات؟ علّمها مرة واحدة · other: كل اللي فات اتاخد؟ علّمه مرة واحدة | Had everything due so far? Mark it all at once |
-| `vaccineGivableNowHeading` | New | ممكن تتاخد دلوقتي · {count} | Can be given now · {count} |
+| `vaccineGivableNowHeading` | New | ممكن تتاخد دلوقتي – {count} | Can be given now – {count} |
 | `vaccineWasDueAt` | New | كان ميعادها {age} | Was due {age} |
 | `vaccineLogShort` | New | تسجيل | Log |
 | `vaccineDoctorDecides` | New | الدكتور يحدد إمتى تتاخد. | The doctor decides when they are given. |
@@ -434,7 +434,7 @@ From the fixes for the two-year-old test report (`docs/test-reports/2026-11-12-t
 
 | Key | | Arabic | English |
 |---|---|---|---|
-| `sickDayHighestReading` | New | أعلى قراءة: {reading} · {time} | Highest reading: {reading} · {time} |
+| `sickDayHighestReading` | New | أعلى قراءة: {reading} – {time} | Highest reading: {reading} – {time} |
 | `sickDayFeverSpan` | New, replaces `sickDayFeverLogged` | سخونية متسجلة من {from} لـ {to} (was سخونية متسجلة: {duration}, e.g. ٤ ساعات) | Fever readings from {from} to {to} (was Fever logged: {duration}) |
 | `sickDayFeverOnce` | New | سخونية متسجلة: {time} | Fever reading: {time} |
 | `sickDayFeverUnderHour`, `sickDayFeverHours`, `sickDayFeverDays` | Removed | أقل من ساعة، {n} ساعة، {n} يوم | no longer shown |
@@ -542,3 +542,27 @@ Questions: `consentSaveFailed` uses جرّب and `consentDecline` uses مش مو
 | `insuranceDeleteCard` | New | امسح الكارت | Delete card |
 
 `insuranceCopyShort` is the short action on the member-number row. A screen reader still hears `insuranceCopyNumber` (انسخ رقم العضوية). `insuranceDeleteCard` replaces the trash icon in the header with a text button at the end of the page. Both use the masculine imperative, as `insuranceDelete` (امسح) already does.
+
+## Separator, November 2026 (QA H2)
+
+The middle dot "·" between parts of a line looked like the Arabic zero "٠" beside Arabic-Indic digits: "١٣ نوفمبر ٢٠٢٦ · ٣٥٠ ج.م" read as "٣٥٠٠", and "عند الولادة · ٠ من ٣" as "٠٠ من ٣". Every such line now uses a spaced en dash " – ", in both languages. The same change applies to lines the app builds in code (names, dates, amounts, record titles), through one shared constant, `partSeparator` in `app/lib/core/util/separator.dart`. Lists of times, such as the hours of a dose every 8 hours, use the comma "، " instead, because a dash between two times reads as a range. Only the separator changed; no words changed.
+
+| Key | | Arabic | English |
+|---|---|---|---|
+| `sickDayHighestReading` | Changed | أعلى قراءة: {reading} – {time} | Highest reading: {reading} – {time} |
+| `sickDayRecordedGiven` | Changed | مسجل: {what} – {time} | Recorded: {what} – {time} |
+| `countryEgyptDetail` | Changed | وزارة الصحة والسكان – الإسعاف ١٢٣ | Ministry of Health and Population – Ambulance 123 |
+| `personVaccineSource` | Changed | المرجع: جدول التطعيمات في مصر، {route} – اتراجع {date} | Reference: Egypt's vaccine schedule, {route} – checked {date} |
+| `personVaccineSourceOptional` | Changed | المرجع: الجداول المعتادة عند دكاترة الأطفال في مصر – اتراجع {date} | Reference: pediatricians' usual schedules in Egypt – checked {date} |
+| `personNextDose` | Changed | الجرعة الجاية – {time} | Next dose – {time} |
+| `personVaccinesSummary` | Changed | {done} من {total} – جدول مصر | {done} of {total} – Egypt schedule |
+| `personGrowthWeight` | Changed | {value} كجم – {date} | {value} kg – {date} |
+| `personGrowthHeight` | Changed | {value} سم – {date} | {value} cm – {date} |
+| `vaccineDoneGroupLast` | Changed | اتاخدت كلها – آخرها {date} | All given – the last on {date} |
+| `vaccineChoiceOverdue` | Changed | {dose} – متأخرة | {dose} – overdue |
+| `insuranceWatermark` | Changed | {name} – {date} | {name} – {date} |
+| `vaccineCatchUp` | Changed | جرعة تعويضية – ميعادها {date} | Catch-up – due {date} |
+| `vaccineOptionalWasDue` | Changed | اختياري – كان ميعادها {date} | Optional – was due {date} |
+| `vaccineGivableNowHeading` | Changed | ممكن تتاخد دلوقتي – {count} | Can be given now – {count} |
+
+Question: does " – " read naturally to you between parts, for example "الجرعة الجاية – ٨:٠٠ م"? The Arabic comma "، " was the other option.

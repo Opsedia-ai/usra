@@ -13,6 +13,7 @@ import '../../l10n/app_localizations.dart';
 import '../family/family_screen.dart' show profilesProvider;
 import 'dismissals.dart';
 import 'follow_ups_providers.dart';
+import '../../core/util/separator.dart';
 
 /// How many follow-ups Home shows across the family.
 const homeFollowUpCount = 3;
@@ -262,7 +263,7 @@ class FollowUpTile extends ConsumerWidget {
     return UsraListRow(
       key: ValueKey('follow-up-${f.cycleKey}'),
       title: showName
-          ? '${profile.displayName} · ${f.title(context)}'
+          ? '${profile.displayName}$partSeparator${f.title(context)}'
           : f.title(context),
       emphasized: true,
       subtitle: Column(

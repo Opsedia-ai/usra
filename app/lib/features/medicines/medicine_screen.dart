@@ -16,6 +16,7 @@ import 'dose_schedule.dart';
 import 'medicine_text.dart';
 import 'min_hours.dart';
 import 'medicines_providers.dart';
+import '../../core/util/separator.dart';
 import 'prescription_screen.dart' show prescriptionTitle;
 
 /// One medicine: what the doctor prescribed, its photos, schedule and the
@@ -226,7 +227,7 @@ class _Details extends ConsumerWidget {
                   subtitleText: [
                     prescriptionTitle(context, prescription),
                     ?prescription.diagnosis,
-                  ].join(' · '),
+                  ].join(partSeparator),
                   onTap: () => context.go(
                     '/family/${m.profileId}/prescriptions/${prescription.id}',
                   ),

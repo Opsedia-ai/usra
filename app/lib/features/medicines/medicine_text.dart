@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/database/app_database.dart';
 import '../../l10n/app_localizations.dart';
 import 'dose_schedule.dart';
+import '../../core/util/separator.dart';
 
 /// Medicine forms, as stored in `Medicines.form`.
 const medicineForms = [
@@ -54,7 +55,7 @@ List<String> weekdayNames(BuildContext context) {
   return [for (var i = 0; i < 7; i++) format.format(DateTime(2024, 1, 1 + i))];
 }
 
-/// "Every day · 8:00 AM, 8:00 PM · 1 tablet".
+/// "Every day – 8:00 AM, 8:00 PM – 1 tablet".
 String scheduleSummary(BuildContext context, DoseSchedule s) =>
     scheduleSummaryIn(AppLocalizations.of(context), s);
 
@@ -82,7 +83,7 @@ String scheduleSummaryIn(
   final times = DoseTime.parseList(s.times)
       .map((t) => clock.format(t.on(DateTime(2000))))
       .join(comma);
-  return [days, times, if (withAmount) ?s.amount].join(' · ');
+  return [days, times, if (withAmount) ?s.amount].join(partSeparator);
 }
 
 /// Past its last day.

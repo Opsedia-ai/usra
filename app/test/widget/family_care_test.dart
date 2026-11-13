@@ -90,7 +90,7 @@ void main() {
 
     // Home shows the pregnancy, and the visits due feed the follow-ups.
     expect(find.byKey(ValueKey('pregnancy-summary-$mona')), findsOneWidget);
-    expect(find.textContaining('منى · ٢٥ أسبوع'), findsOneWidget);
+    expect(find.textContaining('منى – ٢٥ أسبوع'), findsOneWidget);
 
     // Men get no pregnancy button or record type.
     router.go('/family/$ali');

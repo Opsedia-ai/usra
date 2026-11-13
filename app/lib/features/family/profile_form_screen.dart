@@ -13,6 +13,7 @@ import 'person_status.dart';
 import '../children/growth.dart' show isUnderFive;
 import '../doctors/contact_links.dart' show isCallablePhone;
 import '../../core/util/date_picker.dart';
+import '../../core/util/separator.dart';
 
 const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -284,7 +285,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                                 _birthDate,
                                 ref.read(clockProvider)(),
                               ),
-                            ].join(' · '),
+                            ].join(partSeparator),
                       key: const ValueKey('profile-birthDate-text'),
                     ),
                   ),

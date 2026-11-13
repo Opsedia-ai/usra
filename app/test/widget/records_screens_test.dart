@@ -120,7 +120,7 @@ void main() {
       await h.open(tester, '/follow-ups');
       expect(find.text('النهارده والأسبوع ده'), findsOneWidget);
       expect(find.text('بعد كده'), findsOneWidget);
-      expect(find.textContaining('جدو ·'), findsWidgets);
+      expect(find.textContaining('جدو –'), findsWidgets);
     });
   });
 

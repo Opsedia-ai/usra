@@ -4035,7 +4035,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sickDayHighestReading(String reading, String time) {
-    return 'Highest reading: $reading · $time';
+    return 'Highest reading: $reading – $time';
   }
 
   @override
@@ -4050,7 +4050,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sickDayRecordedGiven(String what, String time) {
-    return 'Recorded: $what · $time';
+    return 'Recorded: $what – $time';
   }
 
   @override
@@ -4848,7 +4848,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get countryEgyptDetail =>
-      'Ministry of Health and Population · Ambulance 123';
+      'Ministry of Health and Population – Ambulance 123';
 
   @override
   String get countrySaudi => 'Saudi Arabia';
@@ -4902,17 +4902,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String personVaccineSource(String route, String date) {
-    return 'Reference: Egypt\'s vaccine schedule, $route · checked $date';
+    return 'Reference: Egypt\'s vaccine schedule, $route – checked $date';
   }
 
   @override
   String personVaccineSourceOptional(String date) {
-    return 'Reference: pediatricians\' usual schedules in Egypt · checked $date';
+    return 'Reference: pediatricians\' usual schedules in Egypt – checked $date';
   }
 
   @override
   String personNextDose(String time) {
-    return 'Next dose · $time';
+    return 'Next dose – $time';
   }
 
   @override
@@ -4940,17 +4940,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String personVaccinesSummary(String done, String total) {
-    return '$done of $total · Egypt schedule';
+    return '$done of $total – Egypt schedule';
   }
 
   @override
   String personGrowthWeight(String value, String date) {
-    return '$value kg · $date';
+    return '$value kg – $date';
   }
 
   @override
   String personGrowthHeight(String value, String date) {
-    return '$value cm · $date';
+    return '$value cm – $date';
   }
 
   @override
@@ -5259,7 +5259,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String vaccineDoneGroupLast(String date) {
-    return 'All given · the last on $date';
+    return 'All given – the last on $date';
   }
 
   @override
@@ -5310,7 +5310,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String vaccineChoiceOverdue(String dose) {
-    return '$dose · overdue';
+    return '$dose – overdue';
   }
 
   @override
@@ -5388,7 +5388,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String insuranceWatermark(String name, String date) {
-    return '$name · $date';
+    return '$name – $date';
   }
 
   @override
@@ -5472,7 +5472,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String vaccineCatchUp(String date) {
-    return 'Catch-up · due $date';
+    return 'Catch-up – due $date';
   }
 
   @override
@@ -5484,7 +5484,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String vaccineOptionalWasDue(String date) {
-    return 'Optional · was due $date';
+    return 'Optional – was due $date';
   }
 
   @override
@@ -5658,7 +5658,7 @@ class AppLocalizationsEn extends AppLocalizations {
         intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
-    return 'Can be given now · $countString';
+    return 'Can be given now – $countString';
   }
 
   @override

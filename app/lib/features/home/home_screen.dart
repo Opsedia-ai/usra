@@ -23,6 +23,7 @@ import '../medicines/medicines_providers.dart';
 import '../pregnancy/pregnancy_widgets.dart';
 import 'home_setup_cards.dart';
 import 'simple_home.dart';
+import '../../core/util/separator.dart';
 
 /// Up to this many people, everyone fits on Home without swiping.
 const _flowingLimit = 4;
@@ -528,7 +529,7 @@ class _DoseRow extends ConsumerWidget {
           ),
         ),
         Text(
-          amount == null ? time : '$time · $amount',
+          amount == null ? time : '$time$partSeparator$amount',
           style: UsraType.body.copyWith(color: context.usra.inkMuted),
         ),
       ],

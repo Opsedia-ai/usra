@@ -10,6 +10,7 @@ import '../../core/records/record_type.dart';
 import '../../core/util/localized_digits.dart';
 import '../../core/util/localized_numbers.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/util/separator.dart';
 
 /// A stored field value as people read it: choice labels, dates and numbers
 /// in the app's language, yes or no. Typed text stays as typed.
@@ -79,12 +80,12 @@ class RecordRow extends StatelessWidget {
       title: [
         type?.labelOf(context) ?? event.type,
         if (title != null) displayFieldValue(context, titleField!, title),
-      ].join(' · '),
+      ].join(partSeparator),
       subtitleText: [
         ?personName,
         DateFormat.yMMMd(locale).format(event.occurredAt),
         ?money,
-      ].join(' · '),
+      ].join(partSeparator),
       onTap: () =>
           context.push('/family/${event.profileId}/record/${event.id}'),
       trailing: photos == 0

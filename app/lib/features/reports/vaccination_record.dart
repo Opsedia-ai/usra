@@ -7,6 +7,7 @@ import '../children/child_vaccines.dart';
 import '../children/egypt_vaccines.dart';
 import '../children/growth.dart' show isUnderFive;
 import 'report.dart';
+import '../../core/util/separator.dart';
 
 /// The vaccination record (C4) for [profile] in [l]'s language: name, date
 /// of birth, route, every dose given with its date (and the family's note
@@ -50,7 +51,8 @@ Report? vaccinationRecord({
         [
           doseName(l, s.dose),
           switch (s.state) {
-            DoseState.overdue => '${date(s.dueOn)} · ${l.reportOverdue}',
+            DoseState.overdue =>
+              '${date(s.dueOn)}$partSeparator${l.reportOverdue}',
             // Past the age it may be given (rotavirus): not "upcoming",
             // and not something to just catch up on.
             DoseState.tooLate => l.reportTooLate,

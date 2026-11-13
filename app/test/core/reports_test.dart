@@ -307,11 +307,11 @@ void main() {
       final visits = r.sections.firstWhere((s) => s.id == 'visits');
       expect(visits.rows, hasLength(1));
       expect(visits.rows.single, contains('Dr. Samir'));
-      expect(visits.rows.single.last, 'Check-up · Stable');
+      expect(visits.rows.single.last, 'Check-up – Stable');
       final labs = r.sections.firstWhere((s) => s.id == 'labs');
       expect(labs.rows.map((row) => row[1]), ['HbA1c', 'Urine', 'Glucose']);
       // The lab's flag, from the printed range only.
-      expect(labs.rows.first[2], '7.2 % · High');
+      expect(labs.rows.first[2], '7.2 % – High');
       expect(labs.rows.first[3], '4 - 5.6');
       expect(labs.rows[1][2], 'Clear');
       expect(labs.rows[2][2], '140 mg/dL');
@@ -499,8 +499,8 @@ void main() {
         now: _now,
       );
       final rows = r.sections.single.rows;
-      expect(rows[0].sublist(1), ['LDL', '210 mg/dL · عالي', '< 200']);
-      expect(rows[1].sublist(1), ['Vit D', '12 ng/mL · واطي', '>= 30']);
+      expect(rows[0].sublist(1), ['LDL', '210 mg/dL – عالي', '< 200']);
+      expect(rows[1].sublist(1), ['Vit D', '12 ng/mL – واطي', '>= 30']);
       expect(rows[2].sublist(1), ['CRP', '<0.5', '< 5']);
       expect(rows[3].sublist(1), ['CBC', '', '']);
     });
@@ -546,10 +546,10 @@ void main() {
       expect(await ar('بنادول 500 mg'), '500 mg ع');
       expect(await ar('قرص 2.5 ml كل 8 ساعات'), 'ع 8 ع 2.5 ml ع');
       expect(await ar('حرارة 38.5°C'), '38.5°C ع');
-      expect(await ar('5 أبريل 2026 · متأخرة'), 'ع · 2026 ع 5');
+      expect(await ar('5 أبريل 2026 – متأخرة'), 'ع – 2026 ع 5');
       expect(
-        await en('1 tablet · قرص بعد الفطار · Since Oct 1, 2026'),
-        '1 tablet · ع ع ع · Since Oct 1, 2026',
+        await en('1 tablet – قرص بعد الفطار – Since Oct 1, 2026'),
+        '1 tablet – ع ع ع – Since Oct 1, 2026',
       );
       expect(await en('Panadol 500 mg'), 'Panadol 500 mg');
     });

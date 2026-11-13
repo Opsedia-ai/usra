@@ -39,6 +39,7 @@ import 'family_screen.dart';
 import 'person_sections_screen.dart' show hasPhotos, isVisitOrLab;
 import 'person_status.dart';
 import 'record_display.dart';
+import '../../core/util/separator.dart';
 
 final profileProvider = StreamProvider.family<Profile?, String>(
   (ref, id) => ref.watch(databaseProvider).watchProfile(id),
@@ -267,7 +268,7 @@ class _Identity extends ConsumerWidget {
     final details = [
       ?ageLabel(l, person.birthDate, ref.watch(clockProvider)()),
       if (relationship != null) l.relationshipYours(relationship),
-    ].where((part) => part.isNotEmpty).join(' · ');
+    ].where((part) => part.isNotEmpty).join(partSeparator);
     return Row(
       children: [
         Pebble(
@@ -387,7 +388,7 @@ class _SickRow extends ConsumerWidget {
           DateFormat.MMMd(locale).format(episode.startedAt.toLocal()),
         ),
         if (readings != null && readings.isEmpty) l.sickDayNoReadingsYet,
-      ].join(' · '),
+      ].join(partSeparator),
       onTap: () => context.push('/family/${person.id}/sick-days'),
       trailing: OutlinedButton(
         key: const ValueKey('person-sick-reading'),
@@ -494,7 +495,10 @@ class _NextDose extends ConsumerWidget {
     final r = dose.regimen;
     final time = formatDoseTime(context, dose.at);
     final missed = isDoseMissed(dose, ref.watch(clockProvider)());
-    final details = [?r.schedule.amount, ?r.medicine.instructions].join(' · ');
+    final details = [
+      ?r.schedule.amount,
+      ?r.medicine.instructions,
+    ].join(partSeparator);
     final words = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1036,14 +1040,14 @@ class EventCard extends StatelessWidget {
           [
             type?.labelOf(context) ?? event.type,
             if (title != null) displayFieldValue(context, titleField!, title),
-          ].join(' · '),
+          ].join(partSeparator),
         ),
         subtitle: Text(
           [
             ?personName,
             DateFormat.yMMMd(locale).format(event.occurredAt),
             ?money,
-          ].join(' · '),
+          ].join(partSeparator),
         ),
         trailing: photos == 0
             ? null

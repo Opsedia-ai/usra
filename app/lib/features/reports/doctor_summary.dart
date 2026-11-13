@@ -12,6 +12,7 @@ import '../family/family_screen.dart' show ageInYears;
 import '../labs/lab_report.dart';
 import '../medicines/medicine_text.dart' show medicineEnded, scheduleSummaryIn;
 import 'report.dart';
+import '../../core/util/separator.dart';
 import 'vaccination_record.dart' show givenDoses;
 
 /// What the family can put in the doctor summary (C10).
@@ -173,7 +174,7 @@ Report doctorSummary({
         if (schedule == null)
           l.reportAsNeeded
         else ...[
-          // Amount first: "1 tablet · Every day · 8:00 AM".
+          // Amount first: "1 tablet – Every day – 8:00 AM".
           ?schedule.amount,
           scheduleSummaryIn(l, schedule, withAmount: false),
         ],
@@ -185,7 +186,7 @@ Report doctorSummary({
       ];
       rows.add([
         [m.name, ?m.strength].join(' '),
-        how.where((s) => s.trim().isNotEmpty).join(' · '),
+        how.where((s) => s.trim().isNotEmpty).join(partSeparator),
       ]);
     }
     return ReportSection(
@@ -208,7 +209,7 @@ Report doctorSummary({
       rows.add([
         date(e.occurredAt),
         doctor ?? '',
-        [?_text(data['reason']), ?_text(data['diagnosis'])].join(' · '),
+        [?_text(data['reason']), ?_text(data['diagnosis'])].join(partSeparator),
       ]);
     }
     return ReportSection(
@@ -240,7 +241,7 @@ Report doctorSummary({
           [
             [t.shownValue, ?t.unit].where((s) => s.isNotEmpty).join(' '),
             ?flag,
-          ].join(' · '),
+          ].join(partSeparator),
           labRangeText(t.range),
         ]);
       }

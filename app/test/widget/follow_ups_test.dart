@@ -80,7 +80,7 @@ void main() {
     expect(tiles('home-follow-ups'), findsNWidgets(homeFollowUpCount));
     final first = find.byKey(ValueKey('follow-up-$dueKey'));
     expect(
-      find.descendant(of: first, matching: find.text('منى · زيارة متابعة')),
+      find.descendant(of: first, matching: find.text('منى – زيارة متابعة')),
       findsOneWidget,
     );
     expect(

@@ -224,7 +224,7 @@ void main() {
       // Her page: two years old (24 months 0 days: 12 Nov 2024 to
       // 12 Nov 2026), and "your daughter".
       expect(find.text('جميلة'), findsWidgets);
-      expect(tester.widget<Text>(key('member-details')).data, 'سنتين · بنتك');
+      expect(tester.widget<Text>(key('member-details')).data, 'سنتين – بنتك');
 
       // Home shows her.
       GoRouter.of(tester.element(find.byType(Scaffold).first)).go('/home');
@@ -316,7 +316,7 @@ void main() {
     await family(tester);
     await h.open(tester, '/family/$gamilaId');
     // 12 Nov 2024 -> 12 Nov 2026: 24 completed months, 0 days = 2 years.
-    expect(tester.widget<Text>(key('member-details')).data, 'سنتين · بنتك');
+    expect(tester.widget<Text>(key('member-details')).data, 'سنتين – بنتك');
     await h.go(tester, '/family/$gamilaId/emergency');
     expect(
       tester.widget<Text>(key('emergency-details')).data,
@@ -326,7 +326,7 @@ void main() {
     now = DateTime(2026, 11, 11, 10);
     await h.go(tester, '/family/$meId');
     await h.go(tester, '/family/$gamilaId');
-    expect(tester.widget<Text>(key('member-details')).data, '٢٣ شهر · بنتك');
+    expect(tester.widget<Text>(key('member-details')).data, '٢٣ شهر – بنتك');
   });
 
   // ---------------------------------------------------------------------
@@ -350,11 +350,11 @@ void main() {
     // (birth), OPV 1, IPV 1, Penta 1 (2 months) and MMR 1 (12 months) = 7.
     // The later doses wait on these, so they are catch-up, not overdue.
     // 7 of the 18 missing doses can be given now (F): the list's heading.
-    expect(screenText(tester), contains('ممكن تتاخد دلوقتي · ٧'));
+    expect(screenText(tester), contains('ممكن تتاخد دلوقتي – ٧'));
     // Only the first few are rows; the rest open from the line under them,
     // which also says how many follow in order.
     expect(key('vaccine-overdue-card-mmr-1'), findsNothing);
-    expect(screenText(tester), contains('و٣ كمان · بعدها ١١ جرعة بالترتيب'));
+    expect(screenText(tester), contains('و٣ كمان – بعدها ١١ جرعة بالترتيب'));
     await tap(tester, 'vaccine-overdue-all');
     final text = screenText(tester);
     // MMR 1 at 12 months, BCG at birth: when each was due, by age.
@@ -480,7 +480,7 @@ void main() {
     // "سخونية متسجلة: ٤ ساعات" read like how long the fever lasted).
     expect(
       tester.widget<Text>(key('sick-day-fever-duration')).data,
-      'أعلى قراءة: ٣٩٫١° · ١٢:٠٠ م\nسخونية متسجلة من ٨:٠٠ ص لـ ١٢:٠٠ م',
+      'أعلى قراءة: ٣٩٫١° – ١٢:٠٠ م\nسخونية متسجلة من ٨:٠٠ ص لـ ١٢:٠٠ م',
     );
     await tapFinder(tester, find.text('كل القراءات'));
     expect(screenText(tester), contains('٣٩٫١'));
@@ -577,8 +577,8 @@ void main() {
       // 07:50: 08:00 is within 15 minutes, so "now"; 20:00 is "later".
       expect(key(card(eight)), findsOneWidget);
       expect(key(card(twenty)), findsOneWidget);
-      expect(t(), contains('${ar.doseGroupNow} · ٨:٠٠ ص'));
-      expect(t(), contains('${ar.dayPartNight} · ٨:٠٠ م'));
+      expect(t(), contains('${ar.doseGroupNow} – ٨:٠٠ ص'));
+      expect(t(), contains('${ar.dayPartNight} – ٨:٠٠ م'));
       expect(t(), isNot(contains(ar.doseGroupMissed)));
 
       taps = 0;
@@ -596,7 +596,7 @@ void main() {
       expect(doseMissedAfter, const Duration(hours: 1));
       await at(DateTime(2026, 11, 12, 20, 59));
       expect(t(), isNot(contains(ar.doseGroupMissed)));
-      expect(t(), contains('${ar.doseGroupNow} · ٨:٠٠ م'));
+      expect(t(), contains('${ar.doseGroupNow} – ٨:٠٠ م'));
       await at(DateTime(2026, 11, 12, 21));
       expect(t(), isNot(contains(ar.doseGroupMissed)));
       await at(DateTime(2026, 11, 12, 21, 1));

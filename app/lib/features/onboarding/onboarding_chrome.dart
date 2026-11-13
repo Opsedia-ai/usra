@@ -5,6 +5,7 @@ import '../../core/design/buttons.dart';
 import '../../core/design/tokens.dart';
 import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/util/separator.dart';
 
 /// The steps after Welcome.
 const onboardingSteps = 2;
@@ -137,7 +138,7 @@ class ChoiceCard extends StatelessWidget {
       enabled: enabled,
       inMutuallyExclusiveGroup: true,
       excludeSemantics: true,
-      label: [title, ?detail].join(' · '),
+      label: [title, ?detail].join(partSeparator),
       onTap: onTap,
       child: Material(
         color: selected ? c.primarySoft : c.surface,

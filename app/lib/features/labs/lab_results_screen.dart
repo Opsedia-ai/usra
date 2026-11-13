@@ -13,6 +13,7 @@ import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show timelineProvider, profileProvider;
 import 'lab_report.dart';
 import 'lab_widgets.dart';
+import '../../core/util/separator.dart';
 
 /// A person's lab results by test: the latest of each, and its flag.
 class LabResultsScreen extends ConsumerWidget {
@@ -27,7 +28,7 @@ class LabResultsScreen extends ConsumerWidget {
     final name = ref.watch(profileProvider(profileId)).value?.displayName;
     final events = ref.watch(timelineProvider(profileId));
     return Scaffold(
-      appBar: AppBar(title: Text([l.memberLabs, ?name].join(' · '))),
+      appBar: AppBar(title: Text([l.memberLabs, ?name].join(partSeparator))),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
@@ -213,7 +214,7 @@ class _SeriesCard extends StatelessWidget {
                     if (!p.range.isEmpty)
                       l.labRangeLine('\u2066${p.range.format()}\u2069'),
                     labFlagLabel(l, p.flag),
-                  ].join(' · '),
+                  ].join(partSeparator),
                 ),
               ),
           ],

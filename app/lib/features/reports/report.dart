@@ -6,6 +6,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../../core/util/localized_digits.dart';
+import '../../core/util/separator.dart';
 
 /// A report to print or share as a PDF (vaccination record, doctor
 /// summary), already in its language. Built on the phone from the
@@ -400,7 +401,7 @@ Future<Uint8List> drawReportPdf(
           text(report.disclaimer, size: 8.5, color: _muted),
           pw.SizedBox(height: 2),
           text(
-            '${report.appLine} · ${report.generated} · '
+            '${report.appLine}$partSeparator${report.generated}$partSeparator'
             '${report.pageLabel(context.pageNumber, context.pagesCount)}',
             size: 8,
             color: _muted,
@@ -410,7 +411,10 @@ Future<Uint8List> drawReportPdf(
       build: (context) => [
         text(report.title, size: 20, bold: true, color: _accent),
         pw.SizedBox(height: 2),
-        text('${report.appLine} · ${report.generated}', color: _muted),
+        text(
+          '${report.appLine}$partSeparator${report.generated}',
+          color: _muted,
+        ),
         pw.SizedBox(height: 10),
         if (report.fields.isNotEmpty) fieldTable(report.fields),
         for (final s in report.sections) ...[

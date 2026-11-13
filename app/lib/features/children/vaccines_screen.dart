@@ -31,6 +31,7 @@ import 'egypt_vaccines.dart';
 import 'growth.dart' show isUnderFive;
 import 'vaccine_card_parser.dart';
 import '../../core/util/date_picker.dart';
+import '../../core/util/separator.dart';
 
 /// [profile]'s vaccines today, once their records have loaded; null for
 /// anyone five or over.
@@ -267,7 +268,7 @@ Future<List<String>> applyVaccineChanges(
   }
   final when = days >= 0 ? l.vaccineInDays(days) : l.vaccineDaysAgo(-days);
   return (
-    '$when · ${_fmt(context, c.next.date!)}',
+    '$when$partSeparator${_fmt(context, c.next.date!)}',
     days <= dueSoonDays ? Severity.headsUp : Severity.info,
   );
 }
@@ -422,7 +423,7 @@ class _HomeVaccineLine extends StatelessWidget {
         label: digitsIn(
           l.localeName,
           now > 0 && now < missing
-              ? '$count · ${l.vaccineGivableNowCount(now)}'
+              ? '$count$partSeparator${l.vaccineGivableNowCount(now)}'
               : count,
         ),
       );
@@ -534,7 +535,7 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
     );
   }
 
-  /// "Can be given now · N": a compact list of the doses whose day, after
+  /// "Can be given now – N": a compact list of the doses whose day, after
   /// the gap from the dose before, has come, each with a text action to log
   /// it. A few rows, then one line for the rest and what follows.
   List<Widget> _givableNow(
@@ -613,7 +614,7 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
                 [
                   if (more > 0) l.vaccineAndMore(more),
                   if (later > 0) l.vaccineThenInOrder(later),
-                ].join(' · '),
+                ].join(partSeparator),
               ),
             ),
           ),
@@ -826,7 +827,7 @@ class _ProgressCard extends StatelessWidget {
                   KeyedSubtree(
                     key: ValueKey('vaccine-optional-${child.profile.id}'),
                     child: Text(
-                      '· ${localizedDigitsIn(context, l.vaccineOptionalDone(p.optionalDone, p.optionalTotal))}',
+                      '${partSeparator.trimLeft()}${localizedDigitsIn(context, l.vaccineOptionalDone(p.optionalDone, p.optionalTotal))}',
                       style: muted,
                     ),
                   ),
@@ -1077,7 +1078,7 @@ class DoseTile extends StatelessWidget {
               ),
             ),
             Text(
-              '${doseAge(l, dose)} · '
+              '${doseAge(l, dose)}$partSeparator'
               '${dose.required ? l.vaccineRequired : l.vaccineOptional}',
               style: UsraType.label.copyWith(color: c.inkMuted),
             ),
@@ -1095,7 +1096,7 @@ class DoseTile extends StatelessWidget {
                       status.done ||
                       status.state == DoseState.overdue
                   ? label
-                  : '${l.vaccineOptional} · $label',
+                  : '${l.vaccineOptional}$partSeparator$label',
             ),
           ],
         ),
@@ -1251,7 +1252,7 @@ class _DoseSheetState extends ConsumerState<_DoseSheet> {
             Text(doseName(l, s.dose), style: text.titleLarge),
             const SizedBox(height: 4),
             Text(
-              '${widget.child.profile.displayName} · ${doseAge(l, s.dose)} · '
+              '${widget.child.profile.displayName}$partSeparator${doseAge(l, s.dose)}$partSeparator'
               '${l.vaccineDueOn(_fmtc(s.dueOn))}',
               style: text.bodyMedium?.copyWith(color: context.usra.inkMuted),
             ),
@@ -1682,7 +1683,7 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
                 spacing: UsraSpacing.s2,
                 children: [
                   Text(
-                    '${doseAge(l, group.first.dose)} · '
+                    '${doseAge(l, group.first.dose)}$partSeparator'
                     '${localizedDigitsIn(context, l.vaccineGroupCount(done, group.length))}',
                     key: ValueKey('setup-group-$age'),
                     style: text.titleMedium,
@@ -1721,9 +1722,9 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
                       setState(() => _toggled[s.dose.key] = on == true),
                   title: Text(doseName(l, s.dose)),
                   subtitle: Text(
-                    '${doseAge(l, s.dose)} · '
+                    '${doseAge(l, s.dose)}$partSeparator'
                     '${s.dose.required ? l.vaccineRequired : l.vaccineOptional}'
-                    '${ticked(s) ? ' · ${_fmt(context, _dateOf(s))}' : ''}',
+                    '${ticked(s) ? '$partSeparator${_fmt(context, _dateOf(s))}' : ''}',
                   ),
                   secondary: ticked(s) && !s.done
                       ? IconButton(
@@ -2060,7 +2061,7 @@ class _UnknownRow extends StatelessWidget {
                   DropdownMenuItem(
                     value: s.dose.key,
                     child: Text(
-                      '${doseName(l, s.dose)} · ${doseAge(l, s.dose)}',
+                      '${doseName(l, s.dose)}$partSeparator${doseAge(l, s.dose)}',
                     ),
                   ),
               ],

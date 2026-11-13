@@ -161,7 +161,7 @@ void main() {
         return data!.buffer.asUint8List();
       }))!;
       final marked = (await tester.runAsync(
-        () => watermarkPhoto(original, 'نقابة · ٧ نوفمبر'),
+        () => watermarkPhoto(original, 'نقابة – ٧ نوفمبر'),
       ))!;
       expect(marked, isNot(equals(original)));
       final size = (await tester.runAsync(() async {
@@ -217,7 +217,7 @@ void main() {
       expect(find.byType(StatusChip), findsNothing);
       expect(
         tester.widget<Text>(key('doctor-summary')).data,
-        startsWith('باطنة · '),
+        startsWith('باطنة – '),
       );
       // One filled button: the call.
       expect(key('doctor-call'), findsOneWidget);

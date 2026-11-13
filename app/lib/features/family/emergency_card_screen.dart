@@ -20,6 +20,7 @@ import '../medicines/medicines_providers.dart';
 import 'family_screen.dart';
 import 'member_screen.dart';
 import 'person_status.dart';
+import '../../core/util/separator.dart';
 
 /// Ambulance number shown on the emergency card. Egypt first; the app is
 /// Egypt-only until the UAE and KSA launches.
@@ -319,12 +320,12 @@ class _CardBody extends ConsumerWidget {
 
   final Profile profile;
 
-  /// "Appendix removal · 2019", from the surgery record's procedure field.
+  /// "Appendix removal – 2019", from the surgery record's procedure field.
   static String _surgeryLine(MedicalEvent e, String language) {
     return [
       ?decodeRecordData(e.dataJson)['procedure']?.toString(),
       digitsIn(language, '${e.occurredAt.year}'),
-    ].join(' · ');
+    ].join(partSeparator);
   }
 
   @override
@@ -361,7 +362,7 @@ class _CardBody extends ConsumerWidget {
       ?ageLabel(l, profile.birthDate, now),
       if (profile.sex == 'female') l.sexFemale,
       if (profile.sex == 'male') l.sexMale,
-    ].join(' · ');
+    ].join(partSeparator);
     final allergy = _Fact(
       key: const ValueKey('emergency-allergies'),
       label: l.profileAllergies,

@@ -10,6 +10,7 @@ import '../../l10n/app_localizations.dart';
 import 'call_buttons.dart';
 import 'contact_links.dart';
 import 'doctors_providers.dart';
+import '../../core/util/separator.dart';
 
 /// A doctor in the list, with a short "اتصل" when there's a number.
 class _DoctorRow extends StatelessWidget {
@@ -23,7 +24,7 @@ class _DoctorRow extends StatelessWidget {
     final l = AppLocalizations.of(context);
     final d = doctor;
     final number = call;
-    final details = [?d.specialty, ?d.clinic].join(' · ');
+    final details = [?d.specialty, ?d.clinic].join(partSeparator);
     return UsraListRow(
       key: ValueKey('doctor-${d.id}'),
       leading: const IconBox(icon: Icons.medical_services_outlined),
