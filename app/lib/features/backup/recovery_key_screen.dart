@@ -6,7 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/backup/recovery_key.dart';
+import '../../core/design/list_row.dart' show IconBox;
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/screen_privacy.dart';
 import '../../core/security/sensitive_clipboard.dart';
 import '../../l10n/app_localizations.dart';
@@ -159,12 +162,10 @@ class _RecoveryKeyScreenState extends ConsumerState<RecoveryKeyScreen> {
           const SizedBox(height: 12),
         ],
         if (_error != null) ...[
-          Text(
-            _error!,
+          StatusDotText(
             key: const ValueKey('recovery-confirm-error'),
-            style: text.bodyMedium?.copyWith(
-              color: Severity.actSoon.foregroundOf(context),
-            ),
+            label: _error!,
+            style: UsraType.body,
           ),
           const SizedBox(height: 12),
         ],
@@ -267,34 +268,31 @@ class RecoveryKeyGroups extends StatelessWidget {
   }
 }
 
+/// Losing the key loses the backup: a white card with a key icon and the
+/// quiet amber dot, as the backup notices are since the polish.
 class _Warning extends StatelessWidget {
   const _Warning({required this.text});
 
   final String text;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: Severity.actSoon.backgroundOf(context),
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          Icons.key_off_outlined,
-          color: Severity.actSoon.foregroundOf(context),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: Theme.of(context).textTheme.bodyMedium
-                ?.copyWith(color: Severity.actSoon.foregroundOf(context)),
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(UsraSpacing.s4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const IconBox(icon: Icons.key_off_outlined),
+          const SizedBox(width: UsraSpacing.s3),
+          Expanded(
+            child: StatusDotText(
+              label: text,
+              color: context.usra.ink,
+              style: UsraType.body,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     ),
   );
 }

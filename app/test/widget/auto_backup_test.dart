@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:usra/core/design/list_row.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/backup/auto_backup.dart';
 import 'package:usra/core/backup/auto_backup_runner.dart';
@@ -411,7 +412,10 @@ void main() {
     // The run saves its own copy of the settings when it ends, so nothing
     // that changes them can be open during one.
     for (final row in ['backup-auto-frequency', 'backup-auto-folder']) {
-      expect(tester.widget<ListTile>(find.byKey(ValueKey(row))).onTap, isNull);
+      expect(
+        tester.widget<UsraListRow>(find.byKey(ValueKey(row))).onTap,
+        isNull,
+      );
     }
     // No sharing or restoring underneath a backup.
     final send = tester.widget<ButtonStyleButton>(
