@@ -277,8 +277,8 @@ void main() {
     final missed = id(ids.concor, eight);
     await tapKey(tester, 'dose-taken-$missed');
     await settleDb(tester);
-    // Past the snackbar's six seconds.
-    await tester.pump(const Duration(seconds: 7));
+    // Past the snackbar's ten seconds.
+    await tester.pump(const Duration(seconds: 11));
     await tester.pumpAndSettle();
     expect(find.text('اتسجل: كونكور ٥ مجم لـجدو'), findsNothing);
 
@@ -372,6 +372,28 @@ void main() {
     await settleDb(tester);
     expect(await logOf(tester, ids.gluco), isNull);
     expect(find.text('حصلت مشكلة في الحفظ، جرّب تاني'), findsOneWidget);
+  });
+
+  testWidgets("the snackbar's own Undo clears the mark (e2e #1)", (
+    tester,
+  ) async {
+    phone(tester);
+    final ids = await seed(tester);
+    await open(tester);
+    final later = id(ids.iron, night);
+
+    await tapKey(tester, 'dose-early-$later');
+    expect((await logOf(tester, ids.iron))!.status, DoseOutcome.taken);
+    await settleDb(tester);
+    // Eight seconds on, still there to tap: six was too short.
+    await tester.pump(const Duration(seconds: 8));
+    final snackUndo = key('dose-snack-undo-$later');
+    expect(snackUndo, findsOneWidget);
+    await tester.tap(snackUndo);
+    await settleDb(tester);
+    expect(await logOf(tester, ids.iron), isNull);
+    await settleDb(tester);
+    expect(key('dose-early-$later'), findsOneWidget);
   });
 
   testWidgets('Taken early is logged at the real time, labelled, and undone', (
