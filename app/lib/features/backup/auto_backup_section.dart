@@ -7,7 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show NumberFormat;
 
 import '../../core/backup/auto_backup.dart';
+import '../../core/design/list_row.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
 import 'backup_providers.dart';
@@ -260,13 +263,11 @@ class AutoBackupSection extends ConsumerWidget {
           if (paused)
             _Message(
               key: const ValueKey('backup-auto-paused'),
-              severity: Severity.headsUp,
               text: l.backupAutoPaused,
             ),
           if (settings.contentDropped && !status.running) ...[
             _Message(
               key: const ValueKey('backup-content-dropped'),
-              severity: Severity.actSoon,
               text: l.backupContentDroppedBody,
             ),
             Padding(
@@ -281,7 +282,7 @@ class AutoBackupSection extends ConsumerWidget {
                     onPressed: controller.acceptContentChange,
                     child: Text(l.backupContentDroppedAccept),
                   ),
-                  FilledButton.tonal(
+                  OutlinedButton(
                     key: const ValueKey('backup-content-restore'),
                     onPressed: () => context.push(restorePath),
                     child: Text(l.restoreTitle),
@@ -292,57 +293,55 @@ class AutoBackupSection extends ConsumerWidget {
           ],
           if (settings.enabled) ...[
             const Divider(height: 1),
-            ListTile(
+            UsraListRow(
               key: const ValueKey('backup-auto-folder'),
-              leading: const Icon(Icons.folder_outlined),
-              title: Text(l.backupAutoFolder),
-              subtitle: Text(
-                folder == null
-                    ? l.backupAutoChooseFolder
-                    : folder.name.isEmpty
-                    ? l.backupAutoFolderTop
-                    : folder.name,
-              ),
+              icon: Icons.folder_outlined,
+              title: l.backupAutoFolder,
+              subtitleText: folder == null
+                  ? l.backupAutoChooseFolder
+                  : folder.name.isEmpty
+                  ? l.backupAutoFolderTop
+                  : folder.name,
               onTap: status.running ? null : () => _changeFolder(context, ref),
             ),
             if (folder?.onThisPhone == true)
               _Message(
                 key: const ValueKey('backup-auto-on-phone'),
-                severity: Severity.headsUp,
                 text: l.backupAutoOnPhone,
               ),
             const _PlatformHint(),
-            ListTile(
+            UsraListRow(
               key: const ValueKey('backup-auto-frequency'),
-              leading: const Icon(Icons.event_repeat),
-              title: Text(l.backupAutoFrequency),
-              subtitle: Text(_frequencyText(l, settings.frequency)),
+              icon: Icons.event_repeat,
+              title: l.backupAutoFrequency,
+              subtitleText: _frequencyText(l, settings.frequency),
               onTap: status.running
                   ? null
                   : () => _pickFrequency(context, ref, settings.frequency),
             ),
-            ListTile(
+            UsraListRow(
               key: const ValueKey('backup-auto-last'),
-              leading: const Icon(Icons.history),
-              title: Text(
-                last == null
-                    ? l.backupAutoNever
-                    : l.backupAutoLast(
-                        backupDay(context, last),
-                        formatBackupSize(context, settings.lastSize ?? 0),
-                      ),
-              ),
+              icon: Icons.history,
+              title: last == null
+                  ? l.backupAutoNever
+                  : l.backupAutoLast(
+                      backupDay(context, last),
+                      formatBackupSize(context, settings.lastSize ?? 0),
+                    ),
               subtitle: settings.lastSkippedPhotos > 0
                   ? Text(
                       l.backupAutoPhotosSkipped(settings.lastSkippedPhotos),
                       key: const ValueKey('backup-auto-photos-skipped'),
+                      style: UsraType.label.copyWith(
+                        color: context.usra.inkMuted,
+                        fontWeight: FontWeight.w400,
+                      ),
                     )
                   : null,
             ),
             if (failure != null)
               _Message(
                 key: const ValueKey('backup-auto-failure'),
-                severity: Severity.actSoon,
                 text: autoBackupFailureText(l, failure),
               ),
             Padding(
@@ -398,24 +397,20 @@ class _PlatformHint extends StatelessWidget {
   }
 }
 
+/// Something about automatic backup that needs attention: the quiet amber
+/// dot and plain words, inside the section's card.
 class _Message extends StatelessWidget {
-  const _Message({super.key, required this.severity, required this.text});
+  const _Message({super.key, required this.text});
 
-  final Severity severity;
   final String text;
 
   @override
-  Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: severity.backgroundOf(context),
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Text(
-      text,
-      style: Theme.of(context).textTheme.bodyMedium
-          ?.copyWith(color: severity.foregroundOf(context)),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+    child: StatusDotText(
+      label: text,
+      color: context.usra.ink,
+      style: UsraType.body,
     ),
   );
 }

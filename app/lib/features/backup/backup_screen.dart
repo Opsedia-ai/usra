@@ -11,7 +11,10 @@ import '../../core/backup/backup_crypto.dart';
 import '../../core/backup/backup_service.dart';
 import '../../core/backup/recovery_key.dart';
 import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/providers.dart';
 import '../../core/screen_privacy.dart';
 import '../../l10n/app_localizations.dart';
@@ -171,21 +174,23 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           // With automatic backup on, its own date is in the section below:
           // this one is only about a copy sent somewhere else.
           if (!autoOn || last != null) ...[
-            Card(
-              color: ref.watch(backupDueProvider)
-                  ? Severity.headsUp.backgroundOf(context)
-                  : null,
-              child: ListTile(
-                key: const ValueKey('backup-last'),
-                leading: const Icon(Icons.history),
-                title: Text(
-                  last == null
+            UsraListCard(
+              children: [
+                UsraListRow(
+                  key: const ValueKey('backup-last'),
+                  // Due: the quiet amber dot instead of a tinted card.
+                  leading: ref.watch(backupDueProvider)
+                      ? const StatusDot()
+                      : null,
+                  icon: Icons.history,
+                  emphasized: ref.watch(backupDueProvider),
+                  title: last == null
                       ? l.backupNever
                       : autoOn
                       ? l.backupLastCopy(backupDay(context, last))
                       : l.backupLast(backupDay(context, last)),
                 ),
-              ),
+              ],
             ),
             const SizedBox(height: 16),
           ],
@@ -206,32 +211,24 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           const SizedBox(height: 16),
           const AutoBackupSection(),
           const SizedBox(height: 16),
-          Card(
-            child: Column(
-              children: [
-                if (hasKey) ...[
-                  ListTile(
-                    key: const ValueKey('backup-show-key'),
-                    minTileHeight: UsraSizes.touchTarget,
-                    leading: const Icon(Icons.key_outlined),
-                    title: Text(l.recoveryKeyTitle),
-                    subtitle: Text(l.recoveryKeyRowHint),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => context.push(recoveryKeyPath),
-                  ),
-                  const Divider(height: 1),
-                ],
-                ListTile(
-                  key: const ValueKey('backup-restore'),
-                  minTileHeight: UsraSizes.touchTarget,
-                  leading: const Icon(Icons.settings_backup_restore),
-                  title: Text(l.restoreTitle),
-                  subtitle: Text(l.restoreHint),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: busy ? null : () => context.push(restorePath),
+          UsraListCard(
+            children: [
+              if (hasKey)
+                UsraListRow(
+                  key: const ValueKey('backup-show-key'),
+                  icon: Icons.key_outlined,
+                  title: l.recoveryKeyTitle,
+                  subtitleText: l.recoveryKeyRowHint,
+                  onTap: () => context.push(recoveryKeyPath),
                 ),
-              ],
-            ),
+              UsraListRow(
+                key: const ValueKey('backup-restore'),
+                icon: Icons.settings_backup_restore,
+                title: l.restoreTitle,
+                subtitleText: l.restoreHint,
+                onTap: busy ? null : () => context.push(restorePath),
+              ),
+            ],
           ),
         ],
       ),
@@ -400,12 +397,10 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
           ],
           if (_error != null) ...[
             const SizedBox(height: 16),
-            Text(
-              _error!,
+            StatusDotText(
               key: const ValueKey('restore-error'),
-              style: text.bodyMedium?.copyWith(
-                color: Severity.actSoon.foregroundOf(context),
-              ),
+              label: _error!,
+              style: UsraType.body,
             ),
           ],
           if (staged != null) ...[
@@ -444,16 +439,14 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Severity.actSoon.backgroundOf(context),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                l.restoreReplaceWarning,
-                style: text.bodyMedium?.copyWith(
-                  color: Severity.actSoon.foregroundOf(context),
+            Card(
+              key: const ValueKey('restore-warning'),
+              child: Padding(
+                padding: const EdgeInsets.all(UsraSpacing.s4),
+                child: StatusDotText(
+                  label: l.restoreReplaceWarning,
+                  color: context.usra.ink,
+                  style: UsraType.body,
                 ),
               ),
             ),
