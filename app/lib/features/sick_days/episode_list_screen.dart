@@ -80,7 +80,13 @@ class EpisodeListScreen extends ConsumerWidget {
                 _OngoingCard(
                   episode: ongoing,
                   sex: person?.sex ?? 'other',
-                  since: date.format(ongoing.startedAt.toLocal()),
+                  // This year's days without the year, as on the person page.
+                  since:
+                      ongoing.startedAt.toLocal().year ==
+                          ref.watch(clockProvider)().year
+                      ? DateFormat.MMMd(locale)
+                            .format(ongoing.startedAt.toLocal())
+                      : date.format(ongoing.startedAt.toLocal()),
                   onTap: () => context.push(
                     '/family/$profileId/sick-days/${ongoing.id}',
                   ),
