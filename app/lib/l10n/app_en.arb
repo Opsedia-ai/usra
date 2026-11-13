@@ -1005,7 +1005,7 @@
   "recoveryKeyIntro": "This is your recovery key. Write it on paper and keep it somewhere safe, away from this phone. You'll need it to open your backups on a new phone.",
   "recoveryKeyShowIntro": "This is the key that opens your backups. Check it matches the one you wrote down.",
   "recoveryKeyLoseWarning": "Without this key nobody can open your backups, not even us. If it's lost, we can't get it back.",
-  "recoveryKeyWrittenDown": "I wrote it down",
+  "recoveryKeyWrittenDown": "I wrote it down, continue",
   "recoveryKeyConfirmIntro": "To be sure it's written correctly, type these two groups from your paper.",
   "recoveryKeyGroupLabel": "Group {number}",
   "@recoveryKeyGroupLabel": {

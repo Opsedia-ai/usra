@@ -132,7 +132,7 @@ class _RecoveryKeyScreenState extends ConsumerState<RecoveryKeyScreen> {
           FilledButton.icon(
             key: const ValueKey('recovery-key-written'),
             onPressed: () => setState(() => _confirming = true),
-            icon: const Icon(Icons.edit_note),
+            icon: const Icon(Icons.arrow_forward),
             label: Text(l.recoveryKeyWrittenDown),
           ),
         ],

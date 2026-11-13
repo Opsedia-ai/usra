@@ -1822,7 +1822,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Without this key nobody can open your backups, not even us. If it\'s lost, we can\'t get it back.';
 
   @override
-  String get recoveryKeyWrittenDown => 'I wrote it down';
+  String get recoveryKeyWrittenDown => 'I wrote it down, continue';
 
   @override
   String get recoveryKeyConfirmIntro =>

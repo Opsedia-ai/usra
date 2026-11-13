@@ -558,7 +558,7 @@
   "recoveryKeyIntro": "ده مفتاح الاسترجاع. مكانه ورقة في مكان أمين بعيد عن الموبايل. فتح النسخ الاحتياطية على موبايل جديد محتاجه.",
   "recoveryKeyShowIntro": "ده المفتاح اللي بيفتح النسخ الاحتياطية. لازم يكون زي اللي مكتوب على الورقة.",
   "recoveryKeyLoseWarning": "من غير المفتاح ده محدش يقدر يفتح نسخك الاحتياطية، ولا حتى إحنا. ولو ضاع مش هنقدر نرجّعه.",
-  "recoveryKeyWrittenDown": "اتكتب على الورقة",
+  "recoveryKeyWrittenDown": "كتبته، كمّل",
   "recoveryKeyConfirmIntro": "علشان نتأكد إنه مكتوب صح: المجموعتين دول من الورقة.",
   "recoveryKeyGroupLabel": "المجموعة {number}",
   "recoveryKeyConfirm": "تأكيد",
