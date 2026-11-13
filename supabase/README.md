@@ -233,13 +233,30 @@ against `device_sessions` itself.
   (`revision_conflict`, with the current row). Ciphertext is padded plaintext
   of 256 B–64 KiB (power of two) + 40 bytes; sync ids are random UUID v4.
   `pull_e2ee_changes(family, after_txid, after_sync, limit)` pages by
-  transaction id.
+  transaction id and returns ciphertext as base64 text (PostgREST would send
+  bytea as hex, twice the size). The owner and the guardian both write (the
+  two-parent first release, `docs/sync-design.md` sections 17 and 22).
+- **One call per app open.** `sync_pull(family, after_seq, after_txid,
+  after_sync, limit)` returns a page of records (base64) and then, read after
+  them, the log entries after `after_seq` (100 at most, `log_more`), the
+  epochs added since, this phone's wraps, every head beacon, the head, the key
+  version and `rotation_pending`, with the next record cursor
+  (`after_txid`, `after_sync`, `records_more`).
+- **Kill switch and limits** (migration `20261113000001`). Record push and
+  pull answer `sync_disabled` (pulls: HTTP 503) until an admin runs
+  `update private.sync_switch set records_enabled = true;`. Each phone may make
+  60 sync calls a minute (HTTP 429 `rate_limited` after that); a family may
+  write 20,000 records a day (`daily_limit`) and keep 20,000 live records
+  (`family_full`; edits and deletes still pass). Counters live in Postgres.
+  New SQL reads the caller only through `private.caller_user()` and
+  `private.caller_session()` (section 23, portability).
 - **Deleting.** `delete_family()` needs the owner role and an approved
   device. Deleting an account clears `families.created_by` instead of
   cascading; a family left with no members is removed with its ciphertext.
 - **Housekeeping.** `sync_housekeeping()` (pg_cron, every 15 minutes)
   completes due resets and purges old nonces, pairing state, attempt counters
-  and pending phones nobody approved within a week.
+  and pending phones nobody approved within a week, tombstones older than a
+  year, and sync call and write counters older than two days.
 
 ## Edge Functions
 

@@ -1584,7 +1584,13 @@ the E2EE design"** (section 18).
   - Revoked device rows are purged after 90 days unless a family log lists
     them; a rotation asks for a deleted member's `remove_member` entry first
     (`member_removal_pending`) instead of failing on the recipient set.
-- Still to build: B7's tombstone purge, B8, B10–B13.
+- **B7 (rest) and B12 for records** (2026-11-13):
+  `20261113000001_sync_records_limits.sql`: tombstone purge after a year,
+  base64 pulls, the one-call `sync_pull`, the record kill switch (off by
+  default), and per-phone call and per-family write and size limits in
+  Postgres (section 22).
+- Still to build: B8, B10, B11, B12 for the other endpoints (pairing,
+  recovery and invites have their own counters already), B13.
 
 ### SQL sketches
 
