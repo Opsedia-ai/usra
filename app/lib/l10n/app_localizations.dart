@@ -7123,6 +7123,84 @@ abstract class AppLocalizations {
   /// **'العربية'**
   String get welcomeLanguageOther;
 
+  /// No description provided for @consentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Before you start'**
+  String get consentTitle;
+
+  /// No description provided for @consentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra keeps health information, so it needs your agreement first.'**
+  String get consentHint;
+
+  /// No description provided for @consentUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'The privacy policy has changed. Usra needs your agreement again before going on.'**
+  String get consentUpdated;
+
+  /// No description provided for @consentPointLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family\'s health data stays on this phone, encrypted. We can\'t see it.'**
+  String get consentPointLocal;
+
+  /// No description provided for @consentPointGuardian.
+  ///
+  /// In en, this message translates to:
+  /// **'You add family members\' information as their parent or guardian, or with their agreement.'**
+  String get consentPointGuardian;
+
+  /// No description provided for @consentPointDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Usra doesn\'t diagnose or treat. Always check with a doctor.'**
+  String get consentPointDoctor;
+
+  /// No description provided for @consentPrivacyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get consentPrivacyLink;
+
+  /// No description provided for @consentTermsLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of use'**
+  String get consentTermsLink;
+
+  /// No description provided for @consentVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy version {version}'**
+  String consentVersion(String version);
+
+  /// No description provided for @consentCheckbox.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve read the privacy policy and the terms, and I agree to Usra keeping my family\'s health data on this phone.'**
+  String get consentCheckbox;
+
+  /// No description provided for @consentAgree.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree'**
+  String get consentAgree;
+
+  /// No description provided for @consentSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your agreement couldn\'t be saved. Try again.'**
+  String get consentSaveFailed;
+
+  /// No description provided for @consentDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t agree? Delete all my data'**
+  String get consentDecline;
+
   /// No description provided for @onboardingStep.
   ///
   /// In en, this message translates to:

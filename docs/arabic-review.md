@@ -511,3 +511,25 @@ For a person whose sex isn't recorded, danger signs and symptoms use a neutral f
 | `milestone` | `m60_language` | بيحكي حكاية سمعها أو ألّفها فيها حدثين على الأقل | بتحكي حكاية سمعتها أو ألّفتها فيها حدثين على الأقل | same as boy |
 | `milestone` | `m60_cognitive` | بيعد لحد ١٠ | بتعد لحد ١٠ | same as boy |
 | `milestone` | `m60_movement` | بينط على رجل واحدة | بتنط على رجل واحدة | same as boy |
+
+## Consent screen, November 2026
+
+The consent screen asked before any health data is saved (Egypt PDPL 151/2020). It follows the live privacy policy, version 1.0 (https://opsedia.ai/usra/en/privacy), section 1. All the text is neutral, so it suits a man or a woman. `consentPointDoctor` is a disclaimer, so it also goes to the doctor.
+
+| Key | | Arabic | English |
+|---|---|---|---|
+| `consentTitle` | New | قبل ما نبدأ | Before you start |
+| `consentHint` | New | أسرة بتحفظ معلومات صحية، فمحتاجين موافقتك الأول. | Usra keeps health information, so it needs your agreement first. |
+| `consentUpdated` | New | سياسة الخصوصية اتغيّرت. محتاجين موافقتك تاني قبل ما نكمّل. | The privacy policy has changed. Usra needs your agreement again before going on. |
+| `consentPointLocal` | New | بيانات عيلتك الصحية بتفضل على الموبايل ده ومتشفرة، وإحنا مش بنشوفها. | Your family's health data stays on this phone, encrypted. We can't see it. |
+| `consentPointGuardian` | New | معلومات أفراد العيلة بتتضاف بصفتك وليّ أمرهم، أو بموافقتهم. | You add family members' information as their parent or guardian, or with their agreement. |
+| `consentPointDoctor` | New | أسرة مش بتشخّص ولا بتعالج. الرأي دايماً للدكتور. | Usra doesn't diagnose or treat. Always check with a doctor. |
+| `consentPrivacyLink` | New | سياسة الخصوصية | Privacy policy |
+| `consentTermsLink` | New | شروط الاستخدام | Terms of use |
+| `consentVersion` | New | سياسة الخصوصية، إصدار {version} | Privacy policy version {version} |
+| `consentCheckbox` | New | قريت سياسة الخصوصية والشروط، وأوافق إن أسرة تحفظ بيانات عيلتي الصحية على الموبايل ده. | I've read the privacy policy and the terms, and I agree to Usra keeping my family's health data on this phone. |
+| `consentAgree` | New | أوافق | I agree |
+| `consentSaveFailed` | New | الموافقة متحفظتش. جرّب تاني. | Your agreement couldn't be saved. Try again. |
+| `consentDecline` | New | مش موافق؟ امسح كل بياناتي | Don't agree? Delete all my data |
+
+Questions: `consentSaveFailed` uses جرّب and `consentDecline` uses مش موافق, which are the masculine forms the app already uses (as in `settingsDeleteAll`). Should they be neutral? Is "الرأي دايماً للدكتور" a natural way to say "always check with a doctor"?

@@ -5012,6 +5012,52 @@ class AppLocalizationsAr extends AppLocalizations {
   String get welcomeLanguageOther => 'English';
 
   @override
+  String get consentTitle => 'قبل ما نبدأ';
+
+  @override
+  String get consentHint => 'أسرة بتحفظ معلومات صحية، فمحتاجين موافقتك الأول.';
+
+  @override
+  String get consentUpdated =>
+      'سياسة الخصوصية اتغيّرت. محتاجين موافقتك تاني قبل ما نكمّل.';
+
+  @override
+  String get consentPointLocal =>
+      'بيانات عيلتك الصحية بتفضل على الموبايل ده ومتشفرة، وإحنا مش بنشوفها.';
+
+  @override
+  String get consentPointGuardian =>
+      'معلومات أفراد العيلة بتتضاف بصفتك وليّ أمرهم، أو بموافقتهم.';
+
+  @override
+  String get consentPointDoctor =>
+      'أسرة مش بتشخّص ولا بتعالج. الرأي دايماً للدكتور.';
+
+  @override
+  String get consentPrivacyLink => 'سياسة الخصوصية';
+
+  @override
+  String get consentTermsLink => 'شروط الاستخدام';
+
+  @override
+  String consentVersion(String version) {
+    return 'سياسة الخصوصية، إصدار $version';
+  }
+
+  @override
+  String get consentCheckbox =>
+      'قريت سياسة الخصوصية والشروط، وأوافق إن أسرة تحفظ بيانات عيلتي الصحية على الموبايل ده.';
+
+  @override
+  String get consentAgree => 'أوافق';
+
+  @override
+  String get consentSaveFailed => 'الموافقة متحفظتش. جرّب تاني.';
+
+  @override
+  String get consentDecline => 'مش موافق؟ امسح كل بياناتي';
+
+  @override
   String onboardingStep(String current, String total) {
     return 'خطوة $current من $total';
   }

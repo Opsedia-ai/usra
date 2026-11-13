@@ -1,13 +1,15 @@
 import 'package:go_router/go_router.dart';
 
+import '../../core/consent.dart';
 import '../../core/modules/feature_module.dart';
 import '../../core/preferences.dart';
 import '../backup/backup_screen.dart';
 import 'about_you_screen.dart';
+import 'consent_screen.dart';
 import 'country_screen.dart';
 import 'welcome_screen.dart';
 
-/// The first run: Welcome, country, About you, then Home. Family, vaccines,
+/// The first run: Welcome, consent, country, About you, then Home. Family, vaccines,
 /// reminders, backup and the emergency card wait until someone wants them,
 /// and permissions are asked for when they're needed.
 class OnboardingModule extends FeatureModule {
@@ -18,6 +20,12 @@ class OnboardingModule extends FeatureModule {
 
   @override
   List<RouteBase> get fullScreenRoutes => [
+    // Outside Welcome, so it can also be asked again after the first run.
+    GoRoute(
+      path: consentPath,
+      builder: (_, state) =>
+          ConsentScreen(next: state.uri.queryParameters['next']),
+    ),
     GoRoute(
       path: welcomePath,
       builder: (_, _) => const WelcomeScreen(),

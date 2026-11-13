@@ -4781,6 +4781,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeLanguageOther => 'العربية';
 
   @override
+  String get consentTitle => 'Before you start';
+
+  @override
+  String get consentHint =>
+      'Usra keeps health information, so it needs your agreement first.';
+
+  @override
+  String get consentUpdated =>
+      'The privacy policy has changed. Usra needs your agreement again before going on.';
+
+  @override
+  String get consentPointLocal =>
+      'Your family\'s health data stays on this phone, encrypted. We can\'t see it.';
+
+  @override
+  String get consentPointGuardian =>
+      'You add family members\' information as their parent or guardian, or with their agreement.';
+
+  @override
+  String get consentPointDoctor =>
+      'Usra doesn\'t diagnose or treat. Always check with a doctor.';
+
+  @override
+  String get consentPrivacyLink => 'Privacy policy';
+
+  @override
+  String get consentTermsLink => 'Terms of use';
+
+  @override
+  String consentVersion(String version) {
+    return 'Privacy policy version $version';
+  }
+
+  @override
+  String get consentCheckbox =>
+      'I\'ve read the privacy policy and the terms, and I agree to Usra keeping my family\'s health data on this phone.';
+
+  @override
+  String get consentAgree => 'I agree';
+
+  @override
+  String get consentSaveFailed =>
+      'Your agreement couldn\'t be saved. Try again.';
+
+  @override
+  String get consentDecline => 'Don\'t agree? Delete all my data';
+
+  @override
   String onboardingStep(String current, String total) {
     return 'Step $current of $total';
   }
