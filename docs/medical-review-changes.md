@@ -46,6 +46,25 @@ The founder reports that the doctor accepted the app's full wording on 7 Novembe
 
 Grammar only: the feminine and neutral forms must say exactly what the boy's form says. Please check each one, with the Arabic reader. The full table, with every string for a girl, a boy and a person whose sex isn't recorded, is in `docs/arabic-review.md` under "Text that follows the person's sex (item I)". That's 13 danger signs, 3 symptoms and 48 milestones.
 
+## Mark everything due so far as given (founder's decision, 13 Nov 2026)
+
+What the button does now: one tap, after a confirmation, records every vaccine dose due by the child's age today as given, each on the day the schedule would have given it (never after today). It covers the required doses and every optional vaccine in the app's list (pneumococcal, rotavirus, chickenpox, hepatitis A, meningococcal, flu), whether or not the family chose it before. The optional ones are ticked by default, under one tick the parent can clear. The optional vaccines marked are added to the child's plan. Undo removes the records and puts the plan back.
+
+The doses are worked out as if each came on time: from birth forward, a dose counts once its day has come, by the existing rules on that day. So rotavirus counts for a 2-year-old (dose 1 at 2 months and dose 2 at 4 months are within its upper age), and so do all four PCV doses. A dose whose day is after today never counts.
+
+| Where | Before | Now |
+|---|---|---|
+| Dialog, count | {count} جرعة إجبارية لحد سن ١٨ شهر هيتعلّم عليها إنها اتاخدت، كل واحدة في ميعادها على الجدول، مش النهارده. راجع كارت التطعيم الأول: الكارت ودكتور الطفل هما المرجع. تقدر ترجع فيها، أو تشيل العلامة من أي جرعة بعدين. | عندها سنتين دلوقتي. {count} جرعة إجبارية لحد السن ده هيتعلّم عليها إنها اتاخدت، كل واحدة في ميعادها على الجدول، مش النهارده. (the card sentence unchanged, now its own line) |
+| Dialog, optional | ومعاها الاختياري اللي ماشيين عليه ({count}) — unticked, only vaccines already chosen | ومعاها الاختيارية اللي ميعادها جه لحد السن ده، كل واحدة في ميعادها: {names} ({count} جرعة) — ticked, every optional vaccine |
+| Dialog, optional (new) | — | الاختيارية هي التطعيمات الخاصة اللي بفلوس. شيل العلامة لو ماخدتهاش. |
+| English | {count} required doses up to 18 months will be marked as given… | She is 2 years now. {count} required doses due up to this age will be marked as given, each on its date on the schedule, not today. Also the optional ones due by this age, each on its date: {names} ({count} doses). The optional ones are the private, paid vaccines. Untick if she didn't have them. |
+
+### For the doctor
+
+1. Pre-ticking the optional (paid) vaccines may record doses a child never had, if the parent doesn't untick them. The reminders for those doses then stop, and the doctor summary and the vaccination record list them as given. This is the founder's decision for simplicity; the dialog says to check the card first and to untick if she didn't have them, and it can be undone. Is that acceptable, or should optional vaccines start unticked? (Hazard HZ-M12.)
+2. Rotavirus for a child now past its upper age (from about 6 months) is recorded as given at 2 and 4 months when the optional ones stay ticked. Is that right, given that a missed rotavirus dose can't be caught up anyway?
+3. The button now shows whenever even one dose due so far is unrecorded, required or optional. A family that skipped the paid vaccines will keep seeing it. Is that acceptable?
+
 ## Questions for the doctor
 
 1. Growth now says "المعدل المرجعي" when a value is in range and "برّه المدى المعتاد" when it isn't. Should these use one term?

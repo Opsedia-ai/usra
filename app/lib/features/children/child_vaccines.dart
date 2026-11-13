@@ -47,13 +47,15 @@ ChildVaccines? childVaccines(
   final birth = profile.birthDate;
   if (!isUnderFive(birth, now)) return null;
   final plan = vaccinePlanOf(events);
+  final records = vaccineRecords(events);
   return ChildVaccines(
     profile: profile,
     plan: plan,
+    records: records,
     userRecordIds: userVaccineRecordIds(events),
     statuses: matchSchedule(
       birthDate: birth!,
-      records: vaccineRecords(events),
+      records: records,
       now: now,
       plan: plan,
     ),
@@ -65,8 +67,12 @@ class ChildVaccines {
     required this.profile,
     required this.plan,
     required this.statuses,
+    this.records = const [],
     this.userRecordIds = const {},
   });
+
+  /// The child's vaccine records, as [statuses] were matched from.
+  final List<VaccineRecord> records;
 
   /// The family's own vaccine records; see [userVaccineRecordIds].
   final Set<String> userRecordIds;
@@ -166,6 +172,77 @@ List<DoseStatus> pastDosesToMark(
           ).isAfter(day))
         s,
   ];
+}
+
+/// One dose "mark everything due so far as given" records, and its day.
+typedef DoseSoFar = ({ScheduledDose dose, DateTime date});
+
+/// What "mark everything due so far as given" records, by the founder's
+/// decision of 13 Nov 2026: every dose a child of her age would have had
+/// had each come on time, required and optional (every vaccine in
+/// [optionalVaccines], whether or not the family chose it), each on the
+/// day the plan would have given it, never after [today].
+///
+/// Worked forward from birth, one schedule day at a time, as if each dose
+/// came on its day: a dose is taken only once its day has come, by the
+/// rules of [pastDosesToMark] on that day. So a dose past its upper age on
+/// its day (rotavirus) or not needed then (PCV) is never taken, and
+/// neither is one whose day is after [today]. Doses already in [records]
+/// stay as they are; the ones after them follow from their real dates.
+List<DoseSoFar> dosesDueSoFar({
+  required DateTime birthDate,
+  required List<VaccineRecord> records,
+  required VaccinePlan plan,
+  required DateTime today,
+  required String Function(VaccineKind kind) nameOf,
+}) {
+  final everything = plan.copyWith(optional: {...optionalVaccines});
+  final last = DateTime(today.year, today.month, today.day);
+  final known = [...records];
+  final out = <DoseSoFar>[];
+  final taken = <String>{};
+  var on = DateTime(birthDate.year, birthDate.month, birthDate.day);
+  // Each pass either takes a dose or moves to a later day: bounded by the
+  // schedule's length twice over.
+  for (var pass = 0; pass < 200; pass++) {
+    final statuses = matchSchedule(
+      birthDate: birthDate,
+      records: known,
+      now: on,
+      plan: everything,
+    );
+    final due = [
+      for (final s in pastDosesToMark(statuses, on, withOptional: true))
+        if (!taken.contains(s.dose.key)) s,
+    ];
+    if (due.isNotEmpty) {
+      for (final s in due) {
+        taken.add(s.dose.key);
+        final date = givenDateOn(s.plannedOn, today);
+        out.add((dose: s.dose, date: date));
+        known.add((
+          id: null,
+          name: nameOf(s.dose.kind),
+          dose: s.dose.dose,
+          date: DateTime(date.year, date.month, date.day, 12),
+        ));
+      }
+      continue;
+    }
+    DateTime? next;
+    for (final s in statuses) {
+      if (!s.open || taken.contains(s.dose.key)) continue;
+      final day = DateTime(
+        s.plannedOn.year,
+        s.plannedOn.month,
+        s.plannedOn.day,
+      );
+      if (day.isAfter(on) && (next == null || day.isBefore(next))) next = day;
+    }
+    if (next == null || next.isAfter(last)) break;
+    on = next;
+  }
+  return out;
 }
 
 /// A record the vaccine screens add.

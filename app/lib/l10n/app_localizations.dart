@@ -8215,35 +8215,41 @@ abstract class AppLocalizations {
   /// **'catch-up'**
   String get vaccineCatchUpShort;
 
-  /// No description provided for @vaccineMarkPast.
-  ///
-  /// In en, this message translates to:
-  /// **'Mark everything due so far as given'**
-  String get vaccineMarkPast;
-
   /// No description provided for @vaccineMarkPastTitle.
   ///
   /// In en, this message translates to:
   /// **'Mark past doses as given?'**
   String get vaccineMarkPastTitle;
 
+  /// No description provided for @vaccineMarkPastAge.
+  ///
+  /// In en, this message translates to:
+  /// **'{sex, select, female{She is {age} now.} male{He is {age} now.} other{Age now: {age}.}}'**
+  String vaccineMarkPastAge(String sex, String age);
+
   /// No description provided for @vaccineMarkPastBody.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 required dose} other{{count} required doses}} {upTo} will be marked as given, each on its date on the schedule, not today. Check the vaccination card first: the card and the child\'s doctor are the reference. You can undo this, or untick any dose later.'**
-  String vaccineMarkPastBody(int count, String upTo);
+  /// **'{count, plural, =0{No required dose is left to mark up to this age.} =1{1 required dose due up to this age will be marked as given, on its date on the schedule, not today.} other{{count} required doses due up to this age will be marked as given, each on its date on the schedule, not today.}}'**
+  String vaccineMarkPastBody(int count);
 
-  /// No description provided for @vaccineUpTo.
+  /// No description provided for @vaccineMarkPastSafety.
   ///
   /// In en, this message translates to:
-  /// **'{months, plural, =0{at birth} =1{up to 1 month} other{up to {months} months}}'**
-  String vaccineUpTo(int months);
+  /// **'Check the vaccination card first: the card and the child\'s doctor are the reference. You can undo this, or untick any dose later.'**
+  String get vaccineMarkPastSafety;
 
   /// No description provided for @vaccineMarkPastOptional.
   ///
   /// In en, this message translates to:
-  /// **'Also the optional ones you follow ({count})'**
-  String vaccineMarkPastOptional(int count);
+  /// **'Also the optional ones due by this age, each on its date: {names} ({count, plural, =1{1 dose} other{{count} doses}})'**
+  String vaccineMarkPastOptional(int count, String names);
+
+  /// No description provided for @vaccineMarkPastOptionalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The optional ones are the private, paid vaccines. Untick if {sex, select, female{she didn\'t} male{he didn\'t} other{the child didn\'t}} have them.'**
+  String vaccineMarkPastOptionalHint(String sex);
 
   /// No description provided for @vaccineMarkPastOk.
   ///
