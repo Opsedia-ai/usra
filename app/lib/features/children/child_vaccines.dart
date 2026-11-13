@@ -187,8 +187,14 @@ typedef DoseSoFar = ({ScheduledDose dose, DateTime date});
 /// came on its day: a dose is taken only once its day has come, by the
 /// rules of [pastDosesToMark] on that day. So a dose past its upper age on
 /// its day (rotavirus) or not needed then (PCV) is never taken, and
-/// neither is one whose day is after [today]. Doses already in [records]
-/// stay as they are; the ones after them follow from their real dates.
+/// neither is one whose day is after [today].
+///
+/// The days come from the child's age alone, not from doses already in
+/// [records]: a dose ticked by hand is dated the day it was ticked, and
+/// timing from it pushed the doses after it past today, so the button
+/// left them (founder, 13 Nov 2026). A dose [records] already has is left
+/// out, and a marked dose is never dated before an earlier dose of the same
+/// vaccine in [records], nor after [today].
 List<DoseSoFar> dosesDueSoFar({
   required DateTime birthDate,
   required List<VaccineRecord> records,
@@ -198,7 +204,35 @@ List<DoseSoFar> dosesDueSoFar({
 }) {
   final everything = plan.copyWith(optional: {...optionalVaccines});
   final last = DateTime(today.year, today.month, today.day);
-  final known = [...records];
+  // Already in the real records: left as they are.
+  final real = matchSchedule(
+    birthDate: birthDate,
+    records: records,
+    now: last,
+    plan: everything,
+  );
+  final recorded = {
+    for (final s in real)
+      if (s.givenOn != null) s.dose.key,
+  };
+  // Never dated before an earlier dose of the same vaccine in the records
+  // (a dose ticked by hand is often dated the day it was ticked).
+  DateTime notBeforeEarlier(ScheduledDose dose, DateTime date) {
+    var out = date;
+    for (final s in real) {
+      final given = s.givenOn;
+      if (given == null ||
+          s.dose.kind != dose.kind ||
+          s.dose.dose >= dose.dose) {
+        continue;
+      }
+      final day = DateTime(given.year, given.month, given.day);
+      if (day.isAfter(out)) out = day;
+    }
+    return out;
+  }
+
+  final known = <VaccineRecord>[];
   final out = <DoseSoFar>[];
   final taken = <String>{};
   var on = DateTime(birthDate.year, birthDate.month, birthDate.day);
@@ -219,7 +253,12 @@ List<DoseSoFar> dosesDueSoFar({
       for (final s in due) {
         taken.add(s.dose.key);
         final date = givenDateOn(s.plannedOn, today);
-        out.add((dose: s.dose, date: date));
+        if (!recorded.contains(s.dose.key)) {
+          out.add((
+            dose: s.dose,
+            date: givenDateOn(notBeforeEarlier(s.dose, date), today),
+          ));
+        }
         known.add((
           id: null,
           name: nameOf(s.dose.kind),

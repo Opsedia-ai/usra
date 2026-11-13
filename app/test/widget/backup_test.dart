@@ -161,41 +161,10 @@ void main() {
       expect(key, isNotNull);
       expect(find.textContaining('ولا حتى إحنا'), findsOneWidget);
 
-      await tester.tap(find.byKey(const ValueKey('recovery-key-written')));
-      await tester.pumpAndSettle();
-      final asked = [
-        for (var n = 1; n <= 6; n++)
-          if (find.byKey(ValueKey('recovery-confirm-$n')).evaluate().isNotEmpty)
-            n,
-      ];
-      expect(asked, hasLength(2));
-
-      // A wrong group is caught, and nothing is saved.
-      final wrong = groups[asked[0] - 1] == '000000' ? '111111' : '000000';
-      await tester.enterText(
-        find.byKey(ValueKey('recovery-confirm-${asked[0]}')),
-        wrong,
-      );
-      await tester.enterText(
-        find.byKey(ValueKey('recovery-confirm-${asked[1]}')),
-        groups[asked[1] - 1],
-      );
-      await tester.tap(find.byKey(const ValueKey('recovery-confirm')));
-      await tester.pumpAndSettle();
-      expect(
-        find.byKey(const ValueKey('recovery-confirm-error')),
-        findsOneWidget,
-      );
-      expect(find.textContaining('المجموعة ${asked[0]}'), findsWidgets);
+      // Nothing is saved until they say it's written down; no typing back.
       expect(await keys.read(), isNull);
-
-      // Typed right, with Arabic digits: saved, and the backup goes ahead.
-      const arabic = '٠١٢٣٤٥٦٧٨٩';
-      await tester.enterText(
-        find.byKey(ValueKey('recovery-confirm-${asked[0]}')),
-        groups[asked[0] - 1].split('').map((d) => arabic[int.parse(d)]).join(),
-      );
-      await tester.tap(find.byKey(const ValueKey('recovery-confirm')));
+      expect(find.byType(TextField), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('recovery-key-written')));
       await tester.pumpAndSettle();
 
       expect(await keys.read(), key);

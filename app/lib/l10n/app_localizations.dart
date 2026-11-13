@@ -353,7 +353,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyNew.
   ///
   /// In en, this message translates to:
-  /// **'New person'**
+  /// **'Add a person'**
   String get familyNew;
 
   /// No description provided for @familyEdit.
@@ -3026,30 +3026,6 @@ abstract class AppLocalizations {
   /// **'I wrote it down, continue'**
   String get recoveryKeyWrittenDown;
 
-  /// No description provided for @recoveryKeyConfirmIntro.
-  ///
-  /// In en, this message translates to:
-  /// **'To be sure it\'s written correctly, type these two groups from your paper.'**
-  String get recoveryKeyConfirmIntro;
-
-  /// No description provided for @recoveryKeyGroupLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Group {number}'**
-  String recoveryKeyGroupLabel(int number);
-
-  /// No description provided for @recoveryKeyConfirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirm'**
-  String get recoveryKeyConfirm;
-
-  /// No description provided for @recoveryKeyShowAgain.
-  ///
-  /// In en, this message translates to:
-  /// **'Show the key again'**
-  String get recoveryKeyShowAgain;
-
   /// No description provided for @recoveryKeyCopy.
   ///
   /// In en, this message translates to:
@@ -3289,12 +3265,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 more wrong PIN erases everything} other{{count} more wrong PINs erase everything}}'**
   String lockTriesBeforeWipe(int count);
-
-  /// No description provided for @recoveryKeyMismatch.
-  ///
-  /// In en, this message translates to:
-  /// **'Group {groups} doesn\'t match. Check your paper.'**
-  String recoveryKeyMismatch(String groups);
 
   /// No description provided for @restoreTitle.
   ///

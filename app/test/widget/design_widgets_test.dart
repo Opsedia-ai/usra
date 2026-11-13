@@ -303,10 +303,10 @@ void main() {
           ],
         );
 
-    test('follows the phone until something is saved', () async {
+    test('light until something else is saved', () async {
       final c = await make({});
       addTearDown(c.dispose);
-      expect(c.read(themeModeProvider), ThemeMode.system);
+      expect(c.read(themeModeProvider), ThemeMode.light);
     });
 
     test(
@@ -326,7 +326,7 @@ void main() {
 
         final odd = await make({PrefKeys.themeMode: 9});
         addTearDown(odd.dispose);
-        expect(odd.read(themeModeProvider), ThemeMode.system);
+        expect(odd.read(themeModeProvider), ThemeMode.light);
       },
     );
   });
