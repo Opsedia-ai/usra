@@ -877,6 +877,16 @@ the uncompressed body, so a reader inflates first (refusing to inflate past
 64 KiB) and verifies the exact bytes it then parses. Unknown flag bits make
 the record fail rule 1.
 
+Implementation notes (2026-11-13, PR #143): multi-byte integers in headers and
+the plaintext are **big-endian**. The reader parses the body (strictly)
+before checking the signature, because the signer `by` is inside the body;
+the body has already passed the AEAD, so only a family member could have
+written it. "Strict parse" is implemented as **canonical JSON**: writers
+encode with sorted keys and no whitespace, and readers accept a body only if
+re-encoding it gives back exactly the bytes they hold, which rejects
+duplicate keys and every other spelling. Clocks keep their top bit clear
+(milliseconds below 2^47), so they compare alike as signed or unsigned.
+
 ### Reader rules
 
 A reader applies a record only if all of these hold (each is a property test,
@@ -930,7 +940,11 @@ order changes arrive in. Replaying an older version changes nothing.
 also changed since the last sync (two people edited the same medicine's dose
 at once), the phone keeps the winner but marks the record "changed by two
 people, please check" and shows both values. Clinical groups (medicines,
-schedules, allergies, lab values) never merge silently.
+schedules, allergies, lab values) never merge silently. Each phone keeps, per
+group, the clock of the last server version it merged or pushed (its base);
+when both the local and the remote clock differ from the base, both phones
+changed the group, and the flag is raised **whichever side wins**, so the
+parent whose newer value overwrote an already-uploaded one sees it too.
 
 Dose logs and other history rows used to be written once and never edited.
 In the first release they live as entries of weekly bundles (section 22,
@@ -959,7 +973,11 @@ group's value** before upload (the tombstone body keeps only `_deleted`).
 Once `_deleted` is true, writers drop any other values that arrive from a
 concurrent edit; the record stays deleted unless someone restores it from
 their phone's local trash (`_deleted = false` with a newer clock and the
-values). The writer also sets the row's `deleted_at` as a plain hint for the
+values). On the phone the merge itself keeps every group, `_deleted`
+included (dropping values mid-merge would make the result depend on the
+order versions arrive in); a deleted record is shown as deleted and its
+values are never uploaded again. A restore therefore re-sends **every** group
+with a new clock. The writer also sets the row's `deleted_at` as a plain hint for the
 server's cleanup below, but readers trust only the signed `_deleted` group.
 `ciphertext` is **required** on every row, tombstones included (B7), so
 there is no unsigned way to "delete".
