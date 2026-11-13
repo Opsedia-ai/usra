@@ -52,6 +52,7 @@ default unless a reviewer finds a reason not to.
 20. Backend follow-ups (board cards)
 21. Review findings and where they are addressed
 22. Cost rules (2026-11-13)
+23. Hosting portability (2026-11-13)
 
 ## 1. Summary
 
@@ -1853,3 +1854,72 @@ Verdict:
    until it is opened again. Their records stay on their own phone meanwhile.
    This is a security rule (Q12 asks the reviewer about the 7 days); is the
    behaviour acceptable for the beta?
+
+## 23. Hosting portability (2026-11-13)
+
+The founder plans to move Usra to a VPS (likely Oracle Cloud's free ARM
+machine, in the Gulf) with a self-hosted database, either self-hosted
+Supabase or no Supabase at all; that isn't decided yet. Until it is, sync is
+built so that it runs on **plain PostgreSQL plus a small HTTPS API**, on ARM64
+(aarch64) as well as x86.
+
+### Rules for new sync work
+
+1. **Server logic lives in PostgreSQL**: tables, constraints and SQL or
+   PL/pgSQL functions. An Edge Function is used only where the design needs
+   code the database doesn't have (today: Ed25519 verification), and then it
+   is a thin wrapper that checks the signature and calls one SQL function
+   holding the rule.
+2. **The caller's identity comes through one small function.** New SQL takes
+   the user and the session from `private.caller_user()` and
+   `private.caller_session()`, which read Supabase Auth's JWT today and are
+   the only thing a different auth layer replaces. No new direct
+   `auth.uid()` or `auth.jwt()` calls in new functions or RLS.
+3. **No new Supabase-only pieces**: no Realtime, no Supabase Storage API
+   calls from SQL. Photos assume **S3-compatible object storage** (Supabase
+   Storage, MinIO or Oracle Object Storage all speak it): encrypted chunks
+   under `<family_id>/<blob_id>/<chunk>`, with upload and download allowed
+   through short-lived presigned URLs that a SQL function authorises
+   (membership, approved device, per-family cap) and a thin API signs.
+4. **On the phone, sync talks to a transport interface**, not to the
+   Supabase client. The sync engine calls `SyncTransport` (push a batch, pull
+   a page, `sync_pull`, upload and download a blob); the first
+   implementation calls PostgREST through the Supabase client, and a plain
+   HTTPS API can replace it without touching the engine.
+5. Every image or binary the server needs must have an ARM64 build.
+
+### What runs on plain Postgres plus a small API
+
+| Piece | Today | Without Supabase |
+| --- | --- | --- |
+| Records: `push_e2ee_records`, `pull_e2ee_changes`, `sync_pull`, limits, kill switch | SQL functions behind PostgREST | Same SQL. PostgREST runs on its own (ARM64 images exist), or a small API calls the functions |
+| Family log, invites, key wraps, epochs, head beacons, device approval, recovery, account reset: the state and rules | SQL functions (`append_family_log`, `accept_family_invite`, `put_family_key_wraps`, `rotate`, `*_signed`) | Same SQL |
+| Ed25519 checks for bind, approve, recover, log append, beacons | Deno Edge Functions (`supabase/functions/_shared/sync_handlers.ts`) | The same TypeScript as a small Deno server, or Ed25519 in Postgres (an extension such as pgsodium, if it is maintained by then) |
+| Housekeeping (resets, purges, counters) | `pg_cron` | `pg_cron` is a plain Postgres extension; or a system timer that runs `select public.sync_housekeeping()` |
+| Row-level security | Policies on `auth.uid()` and the JWT's `session_id` | Unchanged if the API sets the same JWT claims (PostgREST does this with any JWT issuer); otherwise replace the caller functions |
+
+### What would need replacing without Supabase
+
+- **Sign-in (Supabase Auth / GoTrue).** Google and Apple ID-token sign-in,
+  sessions and refresh tokens, and the `auth.users`, `auth.sessions` and
+  `auth.refresh_tokens` tables that `delete_account`, device revocation
+  (`private.end_auth_sessions`) and the invite emails use. Options: run
+  GoTrue on its own (it is open source and builds for ARM64), or a small
+  sign-in service that verifies the Google or Apple ID token and issues our
+  own JWT with `sub` and `session_id`.
+- **Existing functions that call `auth.uid()` directly** (about 70 places in
+  the current migrations: invites, key wraps, device approval, pairing,
+  recovery, reset, RLS policies). They keep working with any JWT that
+  PostgREST accepts; without PostgREST they move to the caller functions of
+  rule 2 in one migration.
+- **Edge Function hosting** for the Ed25519 checks above, `delete-account`
+  and the later notification sender (B11).
+- **Storage** for card photos: an S3-compatible bucket and a presigning
+  endpoint (rule 3).
+- **Backups**: Supabase Pro's daily backups become our own job
+  (`pg_dump` or WAL archiving to object storage), with the restore runbook of
+  section 13 unchanged.
+
+Cost note: a free VPS removes the Supabase limits of section 22 but brings
+its own (disk, bandwidth, no managed backups); the cost check is redone when
+the host is chosen.
