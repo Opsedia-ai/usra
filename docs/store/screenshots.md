@@ -20,7 +20,8 @@ person's records. The Arabic set shows the app in Arabic (RTL); the English set 
 | 7 | Insurance cards + doctors | كروت التأمين والدكاترة معاك دايماً | Insurance cards and doctors, always with you |
 | 8 | Backup / privacy | بياناتك على موبايلك، مش على سيرفرات | Your data stays on your phone, not our servers |
 
-Optional feature graphic (Play, 1024×500): Dr. Usra with the line
+Feature graphic (Play, 1024×500, JPEG or 24-bit PNG, no transparency; required
+before the app can be published): Dr. Usra with the line
 "ملف صحة العيلة" / "The family's health file".
 
 Caption rules: no medical claims ("diagnose", "treat", "prevent"), no prices,
