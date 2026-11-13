@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -130,6 +132,10 @@ class _Details extends ConsumerWidget {
     final locale = Localizations.localeOf(context).toLanguageTag();
     final date = DateFormat.yMMMd(locale);
     final m = medicine;
+    final muted = UsraType.label.copyWith(
+      color: context.usra.inkMuted,
+      fontWeight: FontWeight.w400,
+    );
     final schedule = ref.watch(doseScheduleProvider(m.id)).value;
     final logs = ref.watch(medicineDoseLogsProvider(m.id)).value ?? const [];
     final doctor = m.doctorId == null
@@ -186,39 +192,46 @@ class _Details extends ConsumerWidget {
               style: text.titleLarge,
             ),
           ),
+        // A plain white card with an icon box, no tint.
         if (next != null)
           Card(
-            color: context.usra.primarySoft,
             child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                l.medicineNextDose(
-                  '${DateFormat.MMMEd(locale).format(next)} '
-                  '${formatDoseTime(context, next)}',
-                ),
-                style: text.titleMedium,
+              padding: const EdgeInsets.all(UsraSpacing.s4),
+              child: Row(
+                children: [
+                  const IconBox(icon: Icons.schedule),
+                  const SizedBox(width: UsraSpacing.s3),
+                  Expanded(
+                    child: Text(
+                      l.medicineNextDose(
+                        '${DateFormat.MMMEd(locale).format(next)} '
+                        '${formatDoseTime(context, next)}',
+                      ),
+                      style: text.titleMedium,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         if (prescription != null)
           Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Card(
-              child: ListTile(
-                key: const ValueKey('medicine-prescription'),
-                leading: const Icon(Icons.receipt_long_outlined),
-                title: Text(l.prescriptionLink),
-                subtitle: Text(
-                  [
+            padding: const EdgeInsets.only(top: UsraSpacing.s3),
+            child: UsraListCard(
+              children: [
+                UsraListRow(
+                  key: const ValueKey('medicine-prescription'),
+                  leading: const IconBox(icon: Icons.receipt_long_outlined),
+                  title: l.prescriptionLink,
+                  subtitleText: [
                     prescriptionTitle(context, prescription),
                     ?prescription.diagnosis,
                   ].join(' · '),
+                  onTap: () => context.go(
+                    '/family/${m.profileId}/prescriptions/${prescription.id}',
+                  ),
                 ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.go(
-                  '/family/${m.profileId}/prescriptions/${prescription.id}',
-                ),
-              ),
+              ],
             ),
           ),
         for (final (label, value) in rows)
@@ -227,7 +240,7 @@ class _Details extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: text.labelLarge),
+                Text(label, style: muted),
                 Text(value, style: text.bodyLarge),
               ],
             ),
@@ -275,7 +288,11 @@ class _Details extends ConsumerWidget {
         const SizedBox(height: 20),
         OutlinedButton.icon(
           key: const ValueKey('medicine-toggle-active'),
-          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 56)),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(0, 56),
+            foregroundColor: context.usra.ink,
+            side: BorderSide(color: context.usra.lineStrong),
+          ),
           onPressed: () =>
               ref.read(databaseProvider).setMedicineActive(m.id, !m.active),
           icon: Icon(
@@ -289,7 +306,9 @@ class _Details extends ConsumerWidget {
         if (logs.isEmpty)
           Text(l.medicineHistoryEmpty, style: text.bodyLarge)
         else
-          for (final log in logs) _HistoryRow(log: log),
+          UsraListCard(
+            children: [for (final log in logs) _HistoryRow(log: log)],
+          ),
       ],
     );
   }
@@ -313,20 +332,19 @@ class _HistoryRow extends StatelessWidget {
       ),
       DoseOutcome.snoozed => (
         Icons.snooze,
-        Severity.headsUp.foregroundOf(context),
+        context.usra.inkMuted,
         l.doseSnoozed,
       ),
       _ => (Icons.remove_circle_outline, context.usra.inkMuted, l.doseSkipped),
     };
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: color),
-      title: Text(
-        '${DateFormat.MMMEd(locale).format(planned)} '
-        '${formatDoseTime(context, planned)}',
-      ),
-      subtitle: Text(
-        l.doseMarkedAt(label, formatDoseTime(context, log.at.toLocal())),
+    return UsraListRow(
+      leading: ExcludeSemantics(child: Icon(icon, size: 20, color: color)),
+      title:
+          '${DateFormat.MMMEd(locale).format(planned)} '
+          '${formatDoseTime(context, planned)}',
+      subtitleText: l.doseMarkedAt(
+        label,
+        formatDoseTime(context, log.at.toLocal()),
       ),
     );
   }
