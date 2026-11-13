@@ -23,14 +23,14 @@ Release builds are made with these exact versions. CI uses the same Flutter, so 
 | Tool | Version | Where it is set |
 | --- | --- | --- |
 | Flutter | 3.50.0 (Dart 3.14.0) | `FLUTTER_VERSION` in `.github/workflows/app-ci.yml` and `test-build.yml` |
-| Android Gradle Plugin | 9.3.1 | `app/android/settings.gradle.kts` |
-| Kotlin Gradle Plugin | 2.4.20 | `app/android/settings.gradle.kts` |
-| Gradle | 9.5.0 (checksum pinned) | `app/android/gradle/wrapper/gradle-wrapper.properties` |
+| Android Gradle Plugin | 9.1.1 | `app/android/settings.gradle.kts` |
+| Kotlin Gradle Plugin | 2.4.10 | `app/android/settings.gradle.kts` |
+| Gradle | 9.3.1 (checksum pinned) | `app/android/gradle/wrapper/gradle-wrapper.properties` |
 | Java | 17 (Temurin in CI) | `actions/setup-java` in the workflows |
 | CocoaPods | 1.17.0 | last line of `app/ios/Podfile.lock` |
 | Xcode | the `macos-latest` runner's default | not pinned |
 
-Flutter 3.50.0 refuses Android Gradle Plugin versions below 9.1.1, Kotlin below 2.4.10 and Gradle below 9.3.1, and warns below 9.3.1, 2.4.20 and 9.5.0. The versions above are the ones Flutter 3.50.0's own app template uses, so there are no warnings.
+Flutter 3.50.0 refuses Android Gradle Plugin versions below 9.1.1, Kotlin below 2.4.10 and Gradle below 9.3.1, and warns below 9.3.1, 2.4.20 and 9.5.0. The versions above are those minimums, so a release build prints three "Flutter support … will soon be dropped" warnings. The template versions (9.3.1, 2.4.20, 9.5.0) were tried first and failed: Android Gradle Plugin 9.3.1's release lint (`lintVitalAnalyzeRelease`) crashes on the `image_picker_android` plugin with a `NoSuchMethodError` inside lint's Java parser (PR #88). Move to them when a newer plugin or Android Gradle Plugin fixes that, before the next Flutter release raises the minimums.
 
 Locally, use the same Flutter: `flutter --version` should say 3.50.0. To switch, install 3.50.0 with your version manager (`fvm install 3.50.0`), or run `git fetch --tags && git checkout 3.50.0` inside a git clone of Flutter; a Homebrew Flutter follows Homebrew's version instead. Flutter 3.50 marks `package:flutter/material.dart` as deprecated; `app/analysis_options.yaml` hides those notices until the move to `material_ui`.
 
