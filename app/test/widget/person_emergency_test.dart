@@ -10,6 +10,7 @@ import 'package:usra/core/design/pill_chip.dart';
 import 'package:usra/core/database/app_database.dart';
 import 'package:usra/core/design/bottom_bar.dart';
 import 'package:usra/core/design/dr_usra.dart';
+import 'package:usra/core/design/tokens.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/core/security/app_lock.dart';
@@ -721,6 +722,12 @@ void main() {
       final ambulance = find.byKey(const ValueKey('emergency-ambulance'));
       expect(find.text('الإسعاف ١٢٣'), findsOneWidget);
       expect(tester.getSize(ambulance).height, greaterThanOrEqualTo(72));
+      // Red stays for the emergency call, whatever the polish does elsewhere.
+      final button = tester.widget<ButtonStyleButton>(ambulance);
+      expect(
+        button.style?.backgroundColor?.resolve(const {}),
+        tester.element(ambulance).usra.urgent,
+      );
       expect(
         tester.getTopLeft(ambulance).dy,
         lessThan(

@@ -3,12 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../core/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../follow_ups/follow_ups_section.dart';
 import '../insurance/insurance_section.dart';
-import 'member_screen.dart';
+import 'member_screen.dart'
+    show attachmentCountsProvider, profileProvider, timelineProvider;
+import 'record_display.dart';
 
 /// What the Visits and labs page lists, and what its tile dates.
 bool isVisitOrLab(MedicalEvent e) =>
@@ -157,16 +161,14 @@ class _RecordList extends ConsumerWidget {
                 child: Text(
                   emptyText,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: UsraType.body.copyWith(color: context.usra.inkMuted),
                 ),
               );
             }
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 10,
+            return UsraListCard(
               children: [
                 for (final e in events)
-                  EventCard(
+                  RecordRow(
                     event: e,
                     type: types[e.type],
                     photos: photos[e.id] ?? 0,

@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
+import 'package:usra/core/design/list_row.dart';
 import 'package:usra/core/files/photo_store.dart';
 import 'package:usra/core/preferences.dart';
 import 'package:usra/core/providers.dart';
@@ -117,6 +118,12 @@ void main() {
     expect(find.text('سجل جديد'), findsOneWidget);
     expect(key('records-month-0'), findsOneWidget);
     expect(key('records-month-1'), findsOneWidget);
+    // One list card per month, a row per record.
+    expect(find.byType(UsraListCard), findsNWidgets(2));
+    expect(
+      find.ancestor(of: key('event-$visit'), matching: find.byType(Card)),
+      findsOneWidget,
+    );
 
     await tester.tap(key('records-type-visit'));
     await settle(tester);
