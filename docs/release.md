@@ -119,3 +119,9 @@ The generators also rewrite `ios/Runner/Assets.xcassets/AppIcon.appiconset/Conte
 ### Saving CI minutes
 
 The debug Android build (`build-android`) runs on a PR only when it changes `app/android/`, `app/ios/`, `app/pubspec.yaml`/`pubspec.lock`, `tools/ci/` or the workflow itself; Dart-only and docs PRs run just the tests. Add the `android-build` label to force it. Main pushes skip the debug build because the release bundle job compiles the same code. The unsigned iOS build (`build-ios`, macOS runner) runs on PRs that change `app/ios/`, `app/pubspec.yaml`/`pubspec.lock` or the workflow, on PRs labelled `ios-build`, and on main pushes; it caches CocoaPods by `Podfile.lock` and fails if `pod install` changes committed files. A new push to a PR cancels that PR's older run.
+
+## App Store settings already in the project
+
+- **iPhone only.** `TARGETED_DEVICE_FAMILY = 1` for the app and the widget. iPads run it in iPhone mode, so the store needs no iPad screenshots. Turn iPad on only after its layouts are checked.
+- **Export compliance.** `ITSAppUsesNonExemptEncryption = false` in `Runner/Info.plist`: Usra uses only standard encryption (the encrypted SQLite3 Multiple Ciphers database, XChaCha20-Poly1305 for photos and backups, HTTPS), so App Store Connect doesn't ask on each upload. Revisit if any custom or non-standard cryptography is added.
+- **Privacy manifests.** `Runner/PrivacyInfo.xcprivacy` and `DoseWidget/PrivacyInfo.xcprivacy`, see `docs/store/data-safety.md`.
