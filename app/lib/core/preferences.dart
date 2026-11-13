@@ -12,30 +12,52 @@ abstract class KeyValueStore {
   Future<void> setString(String key, String value);
 }
 
-/// Kept only while the app runs; what tests use.
+/// Kept only while the app runs; what tests use. Like the real store, it
+/// throws for a key missing from [PrefKeys.all], so a test catches a new key
+/// that was not added there.
 class MemoryKeyValueStore implements KeyValueStore {
-  MemoryKeyValueStore([Map<String, Object>? values]) : _values = {...?values};
+  MemoryKeyValueStore([Map<String, Object>? values]) : _values = {...?values} {
+    _values.keys.forEach(_check);
+  }
 
   final Map<String, Object> _values;
 
-  @override
-  bool? getBool(String key) => _values[key] as bool?;
+  static void _check(String key) {
+    if (!PrefKeys.all.contains(key)) {
+      throw ArgumentError(
+        '$key is not included in PrefKeys.all, the shared preferences '
+        'allowlist',
+      );
+    }
+  }
+
+  Object? _get(String key) {
+    _check(key);
+    return _values[key];
+  }
+
+  Future<void> _set(String key, Object value) async {
+    _check(key);
+    _values[key] = value;
+  }
 
   @override
-  Future<void> setBool(String key, bool value) async => _values[key] = value;
+  bool? getBool(String key) => _get(key) as bool?;
 
   @override
-  int? getInt(String key) => _values[key] as int?;
+  Future<void> setBool(String key, bool value) => _set(key, value);
 
   @override
-  Future<void> setInt(String key, int value) async => _values[key] = value;
+  int? getInt(String key) => _get(key) as int?;
 
   @override
-  String? getString(String key) => _values[key] as String?;
+  Future<void> setInt(String key, int value) => _set(key, value);
 
   @override
-  Future<void> setString(String key, String value) async =>
-      _values[key] = value;
+  String? getString(String key) => _get(key) as String?;
+
+  @override
+  Future<void> setString(String key, String value) => _set(key, value);
 }
 
 /// Saved on the phone with shared_preferences.
@@ -131,8 +153,14 @@ abstract final class PrefKeys {
   static const consentVersion = 'consent_policy_version';
   static const consentAt = 'consent_at';
 
+  /// Home's first-steps cards were hidden. See `home_setup_cards.dart`.
+  static const homeSetupHidden = 'homeSetupHidden';
+
   /// This install has checked for account secrets left by an earlier one.
   static const accountInstalled = 'usra.account.installed.v1';
+
+  /// Every key the app reads or writes. Shared preferences refuses (throws on)
+  /// any other key, and so does [MemoryKeyValueStore] in tests.
   static const all = {
     accountInstalled,
     simpleMode,
@@ -153,6 +181,7 @@ abstract final class PrefKeys {
     meProfileId,
     consentVersion,
     consentAt,
+    homeSetupHidden,
   };
 }
 
