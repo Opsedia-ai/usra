@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/design/list_row.dart';
+import '../../core/design/status_dot.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../l10n/app_localizations.dart';
 import '../backup/backup_providers.dart';
 import '../account/account_providers.dart';
@@ -122,67 +125,72 @@ class AboutPrivacyScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           Text(l.aboutPrivacyHeading, style: text.titleMedium),
           const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                _Point(Icons.phone_android, l.aboutPrivacyOnPhone),
-                _Point(
-                  Icons.block,
-                  ref.watch(supabaseConfigProvider).isConfigured
-                      ? l.aboutPrivacyOptionalAccount
-                      : l.aboutPrivacyNoAccount,
-                ),
-                _Point(Icons.backup_outlined, l.aboutPrivacyBackup),
-                _Point(Icons.schedule, l.aboutPrivacyBackupAuto),
-                _Point(Icons.photo_camera_outlined, l.aboutPrivacyPhotos),
-                _Point(Icons.notifications_none, l.aboutPrivacyReminders),
-                _Point(Icons.text_fields, l.aboutPrivacyGoogle),
-                _Point(Icons.delete_forever_outlined, l.aboutPrivacyDelete),
-              ],
-            ),
+          UsraListCard(
+            children: [
+              _Point(Icons.phone_android, l.aboutPrivacyOnPhone),
+              _Point(
+                Icons.block,
+                ref.watch(supabaseConfigProvider).isConfigured
+                    ? l.aboutPrivacyOptionalAccount
+                    : l.aboutPrivacyNoAccount,
+              ),
+              _Point(Icons.backup_outlined, l.aboutPrivacyBackup),
+              _Point(Icons.schedule, l.aboutPrivacyBackupAuto),
+              _Point(Icons.photo_camera_outlined, l.aboutPrivacyPhotos),
+              _Point(Icons.notifications_none, l.aboutPrivacyReminders),
+              _Point(Icons.text_fields, l.aboutPrivacyGoogle),
+              _Point(Icons.delete_forever_outlined, l.aboutPrivacyDelete),
+            ],
           ),
           const SizedBox(height: 24),
           Card(
             key: const ValueKey('about-medical'),
-            color: Severity.headsUp.backgroundOf(context),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(UsraSpacing.s4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    l.aboutMedicalHeading,
-                    style: text.titleMedium?.copyWith(
-                      color: Severity.headsUp.foregroundOf(context),
-                    ),
+                  StatusDotText(
+                    label: l.aboutMedicalHeading,
+                    color: context.usra.ink,
+                    style: UsraType.body.copyWith(fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: UsraSpacing.s2),
                   Text(l.aboutMedicalBody, style: text.bodyMedium),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 24),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  key: const ValueKey('about-privacy-policy'),
-                  leading: const Icon(Icons.privacy_tip_outlined),
-                  title: Text(l.aboutPrivacyPolicy),
-                  trailing: const Icon(Icons.open_in_new),
-                  onTap: () => open(privacyPolicyUrl(language)),
+          UsraListCard(
+            children: [
+              UsraListRow(
+                key: const ValueKey('about-privacy-policy'),
+                icon: Icons.privacy_tip_outlined,
+                title: l.aboutPrivacyPolicy,
+                trailing: ExcludeSemantics(
+                  child: Icon(
+                    Icons.open_in_new,
+                    size: 20,
+                    color: context.usra.inkMuted,
+                  ),
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  key: const ValueKey('about-terms'),
-                  leading: const Icon(Icons.description_outlined),
-                  title: Text(l.aboutTerms),
-                  trailing: const Icon(Icons.open_in_new),
-                  onTap: () => open(termsUrl(language)),
+                onTap: () => open(privacyPolicyUrl(language)),
+              ),
+              UsraListRow(
+                key: const ValueKey('about-terms'),
+                icon: Icons.description_outlined,
+                title: l.aboutTerms,
+                trailing: ExcludeSemantics(
+                  child: Icon(
+                    Icons.open_in_new,
+                    size: 20,
+                    color: context.usra.inkMuted,
+                  ),
                 ),
-              ],
-            ),
+                onTap: () => open(termsUrl(language)),
+              ),
+            ],
           ),
           if (canDelete) ...[
             const SizedBox(height: 16),
@@ -213,8 +221,5 @@ class _Point extends StatelessWidget {
   final String text;
 
   @override
-  Widget build(BuildContext context) => ListTile(
-    leading: Icon(icon, color: context.usra.primary),
-    title: Text(text),
-  );
+  Widget build(BuildContext context) => UsraListRow(icon: icon, title: text);
 }

@@ -144,7 +144,7 @@ class _DatabaseKeyUnavailableState extends State<DatabaseKeyUnavailable> {
           ),
           if (onRestore != null) ...[
             const SizedBox(height: 12),
-            FilledButton.tonal(
+            OutlinedButton(
               key: const ValueKey('database-restore'),
               onPressed: _retrying ? null : () => unawaited(onRestore()),
               child: Text(
