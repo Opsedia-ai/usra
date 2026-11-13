@@ -94,20 +94,24 @@ class UsraRoundIconButton extends StatelessWidget {
       child: Tooltip(
         message: semanticLabel,
         excludeFromSemantics: true,
-        child: Semantics(
-          label: semanticLabel,
-          child: IconButton(
-            onPressed: onPressed,
-            iconSize: large ? 28 : 22,
-            icon: Icon(icon),
-            style: IconButton.styleFrom(
-              fixedSize: Size.square(size),
-              minimumSize: Size.square(size),
-              backgroundColor: background,
-              foregroundColor: foreground,
-              disabledBackgroundColor: c.surfaceSoft,
-              disabledForegroundColor: c.inkMuted,
-              shape: const CircleBorder(),
+        // Merged, so the label is on the button's own tap node: a screen
+        // reader reads "Back, button", not an unlabelled button.
+        child: MergeSemantics(
+          child: Semantics(
+            label: semanticLabel,
+            child: IconButton(
+              onPressed: onPressed,
+              iconSize: large ? 28 : 22,
+              icon: Icon(icon),
+              style: IconButton.styleFrom(
+                fixedSize: Size.square(size),
+                minimumSize: Size.square(size),
+                backgroundColor: background,
+                foregroundColor: foreground,
+                disabledBackgroundColor: c.surfaceSoft,
+                disabledForegroundColor: c.inkMuted,
+                shape: const CircleBorder(),
+              ),
             ),
           ),
         ),
