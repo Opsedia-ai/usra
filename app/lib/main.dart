@@ -22,6 +22,7 @@ import 'core/database/connection.dart';
 import 'core/files/photo_integrity.dart';
 import 'core/files/photo_store.dart';
 import 'core/log.dart';
+import 'core/consent.dart';
 import 'core/preferences.dart';
 import 'core/providers.dart';
 import 'core/routing/app_router.dart';
@@ -507,6 +508,7 @@ Future<void> main() async {
         overrides: [
           databaseProvider.overrideWithValue(database),
           keyValueStoreProvider.overrideWithValue(preferences),
+          consentStoreProvider.overrideWithValue(preferences),
           appLockProvider.overrideWithValue(lock),
           cardPhotoStoreProvider.overrideWithValue(cardPhotos),
           attachmentStoreProvider.overrideWithValue(attachments),

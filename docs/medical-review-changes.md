@@ -40,6 +40,7 @@ The founder reports that the doctor accepted the app's full wording on 7 Novembe
 | Simple Mode | مفيش جرعات فاضلة النهارده. |
 | Sick day (bug 15) | أعلى قراءة: ٣٩٫١° · ١٢:٠٠ م (the highest reading of the sick day, shown when there are two or more) |
 | Sick day, English (bug 15) | Highest reading: 39.1° · 12:00 PM |
+| Consent (first run) | أسرة مش بتشخّص ولا بتعالج. الرأي دايماً للدكتور. (Usra doesn't diagnose or treat. Always check with a doctor.) |
 
 ## Danger signs, symptoms and milestones by sex (item I)
 

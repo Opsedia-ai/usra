@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../consent.dart';
 import '../design/bottom_bar.dart';
 import '../modules/module_registry.dart';
 import '../preferences.dart';
@@ -19,17 +20,38 @@ final routerProvider = Provider<GoRouter>((ref) {
   final hasWelcome = registry.fullScreenRoutes.any(
     (r) => r is GoRoute && r.path == welcomePath,
   );
+  final hasConsent = registry.fullScreenRoutes.any(
+    (r) => r is GoRoute && r.path == consentPath,
+  );
   final router = buildRouter(
     registry,
     // While the first run is pending, every page leads to it. Then, while the
     // Dr. Usra tour is pending, every page leads to that; it goes back to
     // where the user was once finished.
+    //
+    // Consent comes before any health data is saved: Welcome itself saves
+    // nothing, but each step after it (country, About you, restoring a
+    // backup) waits for it, and so does every page once the first run is
+    // done (an older policy agreed to, or none on record).
     redirect: (_, state) {
+      final path = state.uri.path;
+      if (hasConsent && path == consentPath) return null;
+      final needsConsent = hasConsent && ref.read(consentNeededProvider);
+      String toConsent() => Uri(
+        path: consentPath,
+        queryParameters: {'next': state.uri.toString()},
+      ).toString();
       if (hasWelcome) {
-        final onWelcome = state.uri.path.startsWith(welcomePath);
-        if (ref.read(onboardingProvider)) return onWelcome ? null : welcomePath;
+        final onWelcome = path.startsWith(welcomePath);
+        if (ref.read(onboardingProvider)) {
+          if (!onWelcome) return welcomePath;
+          return needsConsent && path != welcomePath ? toConsent() : null;
+        }
         if (onWelcome) return '/home';
       }
+      // Declining an updated policy leaves deleting everything, which needs
+      // no consent to reach.
+      if (needsConsent && path != consentDeletePath) return toConsent();
       if (!hasTutorial || state.uri.path == tutorialPath) return null;
       if (!ref.read(tutorialProvider)) return null;
       return Uri(
@@ -40,6 +62,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
   ref.listen(tutorialProvider, (_, _) => router.refresh());
   ref.listen(onboardingProvider, (_, _) => router.refresh());
+  ref.listen(consentNeededProvider, (_, _) => router.refresh());
   ref.onDispose(router.dispose);
   return router;
 });

@@ -2602,6 +2602,26 @@
   "welcomePrivacy": "Privacy",
   "welcomeTerms": "Terms",
   "welcomeLanguageOther": "العربية",
+  "consentTitle": "Before you start",
+  "consentHint": "Usra keeps health information, so it needs your agreement first.",
+  "consentUpdated": "The privacy policy has changed. Usra needs your agreement again before going on.",
+  "consentPointLocal": "Your family's health data stays on this phone, encrypted. We can't see it.",
+  "consentPointGuardian": "You add family members' information as their parent or guardian, or with their agreement.",
+  "consentPointDoctor": "Usra doesn't diagnose or treat. Always check with a doctor.",
+  "consentPrivacyLink": "Privacy policy",
+  "consentTermsLink": "Terms of use",
+  "consentVersion": "Privacy policy version {version}",
+  "@consentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "consentCheckbox": "I've read the privacy policy and the terms, and I agree to Usra keeping my family's health data on this phone.",
+  "consentAgree": "I agree",
+  "consentSaveFailed": "Your agreement couldn't be saved. Try again.",
+  "consentDecline": "Don't agree? Delete all my data",
   "onboardingStep": "Step {current} of {total}",
   "@onboardingStep": {
     "placeholders": {

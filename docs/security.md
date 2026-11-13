@@ -272,6 +272,21 @@ the [roadmap board](https://github.com/orgs/Opsedia-ai/projects/2) (Area
   it closes, anything a killed app left is cleared at the next start, and
   the wipe empties `tmp/` too. `lib/core/security/file_protection.dart`.
   Not yet checked on a device.
+- **Consent (Egypt PDPL 151/2020)**: health data is sensitive, so the first
+  run asks for explicit consent after Welcome and before anything is saved
+  (country, About you, or a restore): three plain points, links to the policy
+  and terms, an unticked box and "I agree". The policy version and the time
+  (UTC) are saved in settings (`consent_policy_version`, `consent_at`).
+  Changing `consentPolicyVersion` asks everyone again before any page opens;
+  someone who doesn't agree can still reach "Delete all my data". The wipe
+  clears the record, so the next first run asks again. `lib/core/consent.dart`,
+  `test/widget/consent_test.dart`. The gate is in the router, so two paths
+  that don't go through it aren't held: Taken / Skip on a reminder (and the
+  widget's Taken) for someone who already used the app before consent
+  existed, which only logs a dose they set up themselves; and Restore on the
+  "records won't open" screen, which shows before the app's pages. On a fresh
+  install that screen needs a Keystore / Keychain error, and after such a
+  restore the app asks for consent before any page opens.
 - **Delete all my data (S10)**: Settings › Delete all my data, after
   typing a word (and the PIN when the app lock is on): signs out of the
   account (best effort, cut off after 10 s; whatever it managed, the local

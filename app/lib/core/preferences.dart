@@ -126,6 +126,11 @@ abstract final class PrefKeys {
   /// is treated as none.
   static const meProfileId = 'me_profile_id';
 
+  /// The privacy policy version agreed to on the consent screen, and when
+  /// (UTC, ISO 8601). See `core/consent.dart`.
+  static const consentVersion = 'consent_policy_version';
+  static const consentAt = 'consent_at';
+
   /// This install has checked for account secrets left by an earlier one.
   static const accountInstalled = 'usra.account.installed.v1';
   static const all = {
@@ -146,6 +151,8 @@ abstract final class PrefKeys {
     language,
     country,
     meProfileId,
+    consentVersion,
+    consentAt,
   };
 }
 
