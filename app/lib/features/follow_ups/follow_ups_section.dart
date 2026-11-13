@@ -198,7 +198,10 @@ class _Section extends StatelessWidget {
           const SizedBox(height: UsraSpacing.s2),
         Text(
           l.followUpsDisclaimer,
-          style: UsraType.caption.copyWith(color: context.usra.inkMuted),
+          style: UsraType.label.copyWith(
+            color: context.usra.inkMuted,
+            fontWeight: FontWeight.w400,
+          ),
         ),
       ],
     );
@@ -271,11 +274,7 @@ class FollowUpTile extends ConsumerWidget {
             StatusDotText(key: const ValueKey('follow-up-when'), label: when),
           const SizedBox(height: UsraSpacing.s1),
           Text(f.reason(context), style: muted.copyWith(color: c.ink)),
-          if (f.source != null)
-            Text(
-              l.followUpSource(f.source!),
-              style: UsraType.caption.copyWith(color: c.inkMuted),
-            ),
+          if (f.source != null) Text(l.followUpSource(f.source!), style: muted),
           if (stacked && add != null)
             Align(alignment: AlignmentDirectional.centerStart, child: add),
         ],
