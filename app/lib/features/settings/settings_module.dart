@@ -227,7 +227,8 @@ class SettingsScreen extends ConsumerWidget {
               if (!ref.watch(simpleModeProvider))
                 UsraListRow(
                   key: const ValueKey('settings-dr-ai'),
-                  leading: const UsraMark(),
+                  // On the card, so the heart's edge is judged on its colour.
+                  leading: UsraMark(background: context.usra.surface),
                   title: l.drAiTitle,
                   subtitle: const Padding(
                     padding: EdgeInsets.only(top: UsraSpacing.s1),
