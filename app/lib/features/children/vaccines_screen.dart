@@ -473,7 +473,7 @@ class VaccinesScreen extends ConsumerStatefulWidget {
 }
 
 class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
-  static const _overdueCards = 3;
+  static const _overdueCards = 4;
 
   var _filter = VaccineFilter.all;
 
@@ -534,6 +534,93 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
     );
   }
 
+  /// "Can be given now · N": a compact list of the doses whose day, after
+  /// the gap from the dose before, has come, each with a text action to log
+  /// it. A few rows, then one line for the rest and what follows.
+  List<Widget> _givableNow(
+    BuildContext context,
+    ChildVaccines c,
+    DateTime today,
+  ) {
+    final l = AppLocalizations.of(context);
+    final day = DateTime(today.year, today.month, today.day);
+    bool reached(DoseStatus s) =>
+        !DateTime(s.dueOn.year, s.dueOn.month, s.dueOn.day).isAfter(day);
+    final now = [
+      for (final s in c.statuses)
+        if (s.open && reached(s)) s,
+    ];
+    if (now.isEmpty) return const [];
+    final later = c.statuses.where((s) => s.open && !reached(s)).length;
+    final shown = _allOverdue ? now : now.take(_overdueCards).toList();
+    final more = now.length - shown.length;
+    final code = l.localeName;
+    return [
+      const SizedBox(height: UsraSpacing.s4),
+      Semantics(
+        header: true,
+        child: StatusDotText(
+          key: const ValueKey('vaccine-now-heading'),
+          label: digitsIn(code, l.vaccineGivableNowHeading(now.length)),
+          style: UsraType.body.copyWith(
+            fontWeight: FontWeight.w600,
+            height: 24 / 16,
+          ),
+        ),
+      ),
+      const SizedBox(height: UsraSpacing.s2),
+      UsraListCard(
+        children: [
+          for (final s in shown)
+            UsraListRow(
+              // The old card's key: tests and the two-year-old walk use it.
+              key: ValueKey('vaccine-overdue-card-${s.dose.key}'),
+              leading: const StatusDot(),
+              title: doseName(l, s.dose),
+              subtitleText: l.vaccineWasDueAt(doseAge(l, s.dose)),
+              trailing: TextButton(
+                key: ValueKey('vaccine-log-${s.dose.key}'),
+                onPressed: () => showDoseSheet(context, ref, c, s, given: true),
+                child: Text(l.vaccineLogShort),
+              ),
+            ),
+        ],
+      ),
+      const SizedBox(height: UsraSpacing.s2),
+      Text(
+        l.vaccineDoctorDecides,
+        key: const ValueKey('vaccine-doctor-decides'),
+        style: UsraType.label.copyWith(
+          color: context.usra.inkMuted,
+          fontWeight: FontWeight.w400,
+        ),
+      ),
+      if (more > 0 || later > 0)
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton(
+            key: const ValueKey('vaccine-overdue-all'),
+            style: TextButton.styleFrom(
+              foregroundColor: context.usra.inkMuted,
+              padding: EdgeInsets.zero,
+            ),
+            onPressed: more > 0
+                ? () => setState(() => _allOverdue = true)
+                : null,
+            child: Text(
+              digitsIn(
+                code,
+                [
+                  if (more > 0) l.vaccineAndMore(more),
+                  if (later > 0) l.vaccineThenInOrder(later),
+                ].join(' · '),
+              ),
+            ),
+          ),
+        ),
+    ];
+  }
+
   Widget _body(BuildContext context, ChildVaccines c) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
@@ -560,48 +647,31 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
-        _ProgressCard(child: c, today: today),
-        // A few cards, so a child with no records yet doesn't push everything
-        // else away; the rest open from the count under them.
-        for (final s
-            in _allOverdue
-                ? c.next.overdue
-                : c.next.overdue.take(_overdueCards)) ...[
-          const SizedBox(height: UsraSpacing.s3),
-          _OverdueCard(
-            status: s,
-            onLog: () => showDoseSheet(context, ref, c, s, given: true),
-          ),
-        ],
-        if (!_allOverdue && c.next.overdue.length > _overdueCards)
-          TextButton(
-            key: const ValueKey('vaccine-overdue-all'),
-            onPressed: () => setState(() => _allOverdue = true),
-            child: Text(
-              localizedDigitsIn(
-                context,
-                l.vaccineOverdueCount(c.next.overdue.length),
-              ),
-            ),
-          ),
-        if (pastDosesToMark(c.statuses, today).length >= markPastFrom) ...[
-          const SizedBox(height: UsraSpacing.s2),
-          OutlinedButton.icon(
-            key: const ValueKey('vaccine-mark-past'),
-            onPressed: _marking
-                ? null
-                : () async {
-                    setState(() => _marking = true);
-                    try {
-                      await markPastDoses(context, ref, c);
-                    } finally {
-                      if (mounted) setState(() => _marking = false);
-                    }
-                  },
-            icon: const Icon(Icons.done_all),
-            label: Text(l.vaccineMarkPast),
-          ),
-        ],
+        _ProgressCard(
+          child: c,
+          today: today,
+          markPast: pastDosesToMark(c.statuses, today).length >= markPastFrom
+              ? OutlinedButton.icon(
+                  key: const ValueKey('vaccine-mark-past'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: context.usra.ink,
+                  ),
+                  onPressed: _marking
+                      ? null
+                      : () async {
+                          setState(() => _marking = true);
+                          try {
+                            await markPastDoses(context, ref, c);
+                          } finally {
+                            if (mounted) setState(() => _marking = false);
+                          }
+                        },
+                  icon: const Icon(Icons.check),
+                  label: Text(l.vaccineMarkPastAsk(c.profile.sex ?? 'other')),
+                )
+              : null,
+        ),
+        ..._givableNow(context, c, today),
         const SizedBox(height: UsraSpacing.s3),
         _NextCard(child: c, today: today),
         const SizedBox(height: UsraSpacing.s3),
@@ -678,12 +748,18 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
 String _listComma(AppLocalizations l) =>
     l.localeName.startsWith('ar') ? '، ' : ', ';
 
-/// How far along, as a bar, and which schedule that's counted against.
+/// How far along, as a thin bar, which schedule that's counted against,
+/// and the quick catch-up button when there's a lot to mark.
 class _ProgressCard extends StatelessWidget {
-  const _ProgressCard({required this.child, required this.today});
+  const _ProgressCard({
+    required this.child,
+    required this.today,
+    required this.markPast,
+  });
 
   final ChildVaccines child;
   final DateTime today;
+  final Widget? markPast;
 
   @override
   Widget build(BuildContext context) {
@@ -696,12 +772,17 @@ class _ProgressCard extends StatelessWidget {
     final locale = Localizations.localeOf(context).toLanguageTag();
     final checked = DateFormat.yMMMd(locale)
         .format(DateTime.parse(egyptScheduleCheckedOn));
+    final muted = UsraType.label.copyWith(
+      color: c.inkMuted,
+      fontWeight: FontWeight.w400,
+    );
     return Card(
       key: const ValueKey('vaccine-progress'),
       child: Padding(
         padding: const EdgeInsets.all(UsraSpacing.s4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: UsraSpacing.s2,
           children: [
             Text(
               line,
@@ -711,53 +792,40 @@ class _ProgressCard extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: UsraSpacing.s2),
             ClipRRect(
               borderRadius: BorderRadius.circular(UsraRadius.pill),
               child: LinearProgressIndicator(
                 key: const ValueKey('vaccine-progress-bar'),
-                minHeight: 10,
+                minHeight: 6,
                 value: total == 0 ? 0 : done / total,
                 color: c.primary,
                 backgroundColor: c.surfaceSoft,
                 semanticsLabel: line,
               ),
             ),
-            const SizedBox(height: UsraSpacing.s2),
             Wrap(
-              spacing: UsraSpacing.s2,
-              runSpacing: UsraSpacing.s1,
+              spacing: UsraSpacing.s1,
               children: [
-                StatusChip(
+                KeyedSubtree(
                   key: ValueKey('vaccine-required-${child.profile.id}'),
-                  severity: p.requiredDone == p.requiredTotal
-                      ? Severity.good
-                      : Severity.info,
-                  label: localizedDigitsIn(
-                    context,
-                    l.vaccineRequiredDone(p.requiredDone, p.requiredTotal),
+                  child: Text(
+                    localizedDigitsIn(
+                      context,
+                      l.vaccineRequiredDone(p.requiredDone, p.requiredTotal),
+                    ),
+                    style: muted,
                   ),
                 ),
-                if (child.missing(today) case final missing when missing > 0)
-                  StatusChip(
-                    key: ValueKey('vaccine-missing-${child.profile.id}'),
-                    severity: Severity.actSoon,
-                    label:
-                        '${l.vaccineMissingCount(missing)} · '
-                        '${l.vaccineGivableNow(child.givableNow(today))}',
-                  ),
                 if (p.optionalTotal > 0)
-                  StatusChip(
+                  KeyedSubtree(
                     key: ValueKey('vaccine-optional-${child.profile.id}'),
-                    severity: Severity.info,
-                    label: localizedDigitsIn(
-                      context,
-                      l.vaccineOptionalDone(p.optionalDone, p.optionalTotal),
+                    child: Text(
+                      '· ${localizedDigitsIn(context, l.vaccineOptionalDone(p.optionalDone, p.optionalTotal))}',
+                      style: muted,
                     ),
                   ),
               ],
             ),
-            const SizedBox(height: UsraSpacing.s2),
             Text(
               l.personVaccineSource(
                 child.plan.route == VaccineRoute.government
@@ -766,56 +834,13 @@ class _ProgressCard extends StatelessWidget {
                 checked,
               ),
               key: const ValueKey('vaccine-schedule-source'),
-              style: UsraType.label.copyWith(color: c.inkMuted),
+              style: muted,
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// A dose past its date, and the way to say it was given after all.
-class _OverdueCard extends StatelessWidget {
-  const _OverdueCard({required this.status, required this.onLog});
-
-  final DoseStatus status;
-  final VoidCallback onLog;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final c = context.usra;
-    return Card(
-      key: ValueKey('vaccine-overdue-card-${status.dose.key}'),
-      child: Padding(
-        padding: const EdgeInsets.all(UsraSpacing.s4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            StatusChip(
-              severity: Severity.actSoon,
-              label: l.statusVaccineOverdue,
-            ),
-            const SizedBox(height: UsraSpacing.s2),
-            Text(
-              doseName(l, status.dose),
-              style: UsraType.body.copyWith(
-                color: c.ink,
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
+            if (markPast case final button?)
+              Padding(
+                padding: const EdgeInsets.only(top: UsraSpacing.s1),
+                child: button,
               ),
-            ),
-            Text(
-              l.personVaccineWasDue(_fmt(context, status.dueOn)),
-              style: UsraType.body.copyWith(color: c.inkMuted),
-            ),
-            const SizedBox(height: UsraSpacing.s2),
-            FilledButton(
-              key: ValueKey('vaccine-log-${status.dose.key}'),
-              onPressed: onLog,
-              child: Text(l.personVaccineLog),
-            ),
           ],
         ),
       ),
@@ -857,16 +882,25 @@ class _NextCard extends StatelessWidget {
                 style: UsraType.body.copyWith(color: c.ink),
               ),
             ],
-            const SizedBox(height: UsraSpacing.s2),
-            StatusChip(
+            const SizedBox(height: UsraSpacing.s1),
+            KeyedSubtree(
               key: ValueKey('vaccine-next-${child.profile.id}'),
-              severity: next?.$2 ?? Severity.info,
-              label:
-                  next?.$1 ??
-                  localizedDigitsIn(
-                    context,
-                    l.vaccineOverdueCount(child.next.overdue.length),
-                  ),
+              child: next == null || next.$2 == Severity.headsUp
+                  ? StatusDotText(
+                      label:
+                          next?.$1 ??
+                          localizedDigitsIn(
+                            context,
+                            l.vaccineOverdueCount(child.next.overdue.length),
+                          ),
+                    )
+                  : Text(
+                      next.$1,
+                      style: UsraType.label.copyWith(
+                        color: c.inkMuted,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
             ),
           ],
         ),
@@ -1044,7 +1078,7 @@ class DoseTile extends StatelessWidget {
             if (note != null)
               Text(note!, style: UsraType.label.copyWith(color: c.inkMuted)),
             const SizedBox(height: UsraSpacing.s1),
-            StatusChip(
+            _DoseState(
               key: ValueKey('dose-state-${dose.key}'),
               // Not followed: shown for its dates, never as something to do.
               severity: status.followed || status.done
@@ -1061,6 +1095,27 @@ class DoseTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// A dose's state as a dot and words: amber when it needs doing, green
+/// when given, muted otherwise.
+class _DoseState extends StatelessWidget {
+  const _DoseState({super.key, required this.severity, required this.label});
+
+  final Severity severity;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.usra;
+    final (dot, text) = switch (severity) {
+      Severity.good => (c.good, c.inkMuted),
+      Severity.headsUp || Severity.actSoon => (c.attentionDot, c.attention),
+      Severity.urgent => (c.urgent, c.urgent),
+      Severity.info => (c.lineStrong, c.inkMuted),
+    };
+    return StatusDotText(label: label, color: text, dotColor: dot);
   }
 }
 

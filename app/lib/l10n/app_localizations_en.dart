@@ -5599,4 +5599,64 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsBlockScreenshotsHintShort =>
       'No screenshots or screen recording in the app';
+
+  @override
+  String vaccineMarkPastAsk(String sex) {
+    String _temp0 = intl.Intl.selectLogic(sex, {
+      'female': 'Had everything due so far? Mark it all at once',
+      'male': 'Had everything due so far? Mark it all at once',
+      'other': 'Everything due so far given? Mark it all at once',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineGivableNowHeading(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'Can be given now · $countString';
+  }
+
+  @override
+  String vaccineWasDueAt(String age) {
+    return 'Was due $age';
+  }
+
+  @override
+  String get vaccineLogShort => 'Log';
+
+  @override
+  String get vaccineDoctorDecides => 'The doctor decides when they\'re given.';
+
+  @override
+  String vaccineAndMore(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'and $countString more',
+      one: 'and 1 more',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineThenInOrder(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'then $countString doses in order',
+      one: 'then 1 dose in order',
+    );
+    return '$_temp0';
+  }
 }

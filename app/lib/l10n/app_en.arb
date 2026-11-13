@@ -3221,5 +3221,50 @@
   "settingsStateOn": "On",
   "settingsStateOff": "Off",
   "settingsDiscreetHintShort": "Reminders just say \"Your medicine time\"",
-  "settingsBlockScreenshotsHintShort": "No screenshots or screen recording in the app"
+  "settingsBlockScreenshotsHintShort": "No screenshots or screen recording in the app",
+  "vaccineMarkPastAsk": "{sex, select, female{Had everything due so far? Mark it all at once} male{Had everything due so far? Mark it all at once} other{Everything due so far given? Mark it all at once}}",
+  "@vaccineMarkPastAsk": {
+    "placeholders": {
+      "sex": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineGivableNowHeading": "Can be given now · {count}",
+  "@vaccineGivableNowHeading": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "vaccineWasDueAt": "Was due {age}",
+  "@vaccineWasDueAt": {
+    "placeholders": {
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineLogShort": "Log",
+  "vaccineDoctorDecides": "The doctor decides when they're given.",
+  "vaccineAndMore": "{count, plural, =1{and 1 more} other{and {count} more}}",
+  "@vaccineAndMore": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "vaccineThenInOrder": "{count, plural, =1{then 1 dose in order} other{then {count} doses in order}}",
+  "@vaccineThenInOrder": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  }
 }

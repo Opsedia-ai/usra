@@ -8274,6 +8274,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No screenshots or screen recording in the app'**
   String get settingsBlockScreenshotsHintShort;
+
+  /// No description provided for @vaccineMarkPastAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'{sex, select, female{Had everything due so far? Mark it all at once} male{Had everything due so far? Mark it all at once} other{Everything due so far given? Mark it all at once}}'**
+  String vaccineMarkPastAsk(String sex);
+
+  /// No description provided for @vaccineGivableNowHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Can be given now · {count}'**
+  String vaccineGivableNowHeading(int count);
+
+  /// No description provided for @vaccineWasDueAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Was due {age}'**
+  String vaccineWasDueAt(String age);
+
+  /// No description provided for @vaccineLogShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get vaccineLogShort;
+
+  /// No description provided for @vaccineDoctorDecides.
+  ///
+  /// In en, this message translates to:
+  /// **'The doctor decides when they\'re given.'**
+  String get vaccineDoctorDecides;
+
+  /// No description provided for @vaccineAndMore.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{and 1 more} other{and {count} more}}'**
+  String vaccineAndMore(int count);
+
+  /// No description provided for @vaccineThenInOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{then 1 dose in order} other{then {count} doses in order}}'**
+  String vaccineThenInOrder(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -418,3 +418,10 @@ Wording from the polish the founder approved on 13 Nov 2026 (`docs/design/polish
 | `settingsBlockScreenshotsHintShort` | New | مفيش سكرين شوت ولا تسجيل للشاشة في التطبيق | No screenshots or screen recording in the app |
 | More: money row | Changed | المصاريف (was الفلوس, now uses `memberSpending`) | Spending (was Money) |
 | More: family row | Changed | adds `familyCount` under كل العيلة, e.g. فردين | adds the number of people |
+| `vaccineMarkPastAsk` | New | girl: خدت كل اللي فات؟ علّمها مرة واحدة · boy: خد كل اللي فات؟ علّمها مرة واحدة · other: كل اللي فات اتاخد؟ علّمه مرة واحدة | Had everything due so far? Mark it all at once |
+| `vaccineGivableNowHeading` | New | ممكن تتاخد دلوقتي · {count} | Can be given now · {count} |
+| `vaccineWasDueAt` | New | كان ميعادها {age} | Was due {age} |
+| `vaccineLogShort` | New | تسجيل | Log |
+| `vaccineDoctorDecides` | New | الدكتور يحدد إمتى تتاخد. | The doctor decides when they are given. |
+| `vaccineAndMore` | New | و{count} كمان (وواحدة كمان، واتنين كمان) | and {count} more |
+| `vaccineThenInOrder` | New | بعدها {count} جرعة بالترتيب (جرعة واحدة، جرعتين، جرعات) | then {count} doses in order |

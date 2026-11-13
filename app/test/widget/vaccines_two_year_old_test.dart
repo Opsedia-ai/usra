@@ -270,8 +270,13 @@ void main() {
 
   group('optional vaccines (bug B)', () {
     String chip(WidgetTester tester, String key) => tester
-        .widget<StatusChip>(find.byKey(ValueKey('dose-state-$key')))
-        .label;
+        .widget<Text>(
+          find.descendant(
+            of: find.byKey(ValueKey('dose-state-$key')),
+            matching: find.byType(Text),
+          ),
+        )
+        .data!;
 
     testWidgets('always listed with their dates and state, marked optional, '
         'never counted or on a card', (tester) async {
@@ -493,9 +498,17 @@ void main() {
     expect(text(tester, 'person-vaccine-now'), 'ممكن تتاخد دلوقتي: ٧');
     expect(find.textContaining('الدكتور يحدد إمتى تتاخد'), findsOneWidget);
     await h.go(tester, '/family/$id/vaccines');
+    // The vaccine page lists the 7 under one heading.
     expect(
-      tester.widget<StatusChip>(key('vaccine-missing-$id')).label,
-      '١٨ جرعة ناقصة · ممكن تتاخد دلوقتي: ٧',
+      tester
+          .widget<Text>(
+            find.descendant(
+              of: key('vaccine-now-heading'),
+              matching: find.byType(Text),
+            ),
+          )
+          .data,
+      'ممكن تتاخد دلوقتي · ٧',
     );
   });
 }

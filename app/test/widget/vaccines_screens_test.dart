@@ -45,7 +45,7 @@ void main() {
       contains('جدول التطعيمات في مصر'),
     );
     expect(key('vaccine-overdue-card-bcg-1'), findsOneWidget);
-    expect(find.text('اتاخدت؟ سجّلها'), findsWidgets);
+    expect(find.text('تسجيل'), findsWidgets);
     final bar = tester.widget<LinearProgressIndicator>(
       key('vaccine-progress-bar'),
     );
@@ -220,7 +220,7 @@ void main() {
       smallPhoneDoubleText(tester);
       final id = await seed(tester);
       await h.open(tester, '/family/$id/vaccines');
-      final log = find.text('اتاخدت؟ سجّلها');
+      final log = find.text('تسجيل');
       for (var i = 0; i < 10 && log.evaluate().isEmpty; i++) {
         await tester.drag(find.byType(ListView).first, const Offset(0, -300));
         await tester.pumpAndSettle();
