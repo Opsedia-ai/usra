@@ -353,7 +353,7 @@ class _GrowthCard extends StatelessWidget {
               spacing: UsraSpacing.s3,
               runSpacing: UsraSpacing.s1,
               children: [
-                _Legend(color: c.primary, label: l.growthLegendOwn(name)),
+                _Legend(color: c.heading, label: l.growthLegendOwn(name)),
                 _Legend(
                   color: Severity.good.backgroundOf(context),
                   border: Severity.good.foregroundOf(context),
@@ -422,10 +422,17 @@ const growthAxisFontSize = 14.0;
 /// label went. Tests check each label sits on its own curve.
 typedef PercentileLabel = ({int percentile, double curveY, Rect label});
 
-/// What the growth chart painted last: its labels, and where every curve
-/// ends. For tests only.
+/// What the growth chart painted last: its labels, where every curve
+/// ends, where the curves stop on the right and the chart's width. For
+/// tests only.
 @visibleForTesting
-({List<PercentileLabel> labels, List<double> curveEnds})? lastGrowthChart;
+({
+  List<PercentileLabel> labels,
+  List<double> curveEnds,
+  double curvesRight,
+  double width,
+})?
+lastGrowthChart;
 
 class _ChartPainter extends CustomPainter {
   _ChartPainter({
@@ -478,10 +485,13 @@ class _ChartPainter extends CustomPainter {
     low = (low - pad).floorToDouble();
     high = (high + pad).ceilToDouble();
 
+    // The percentile labels sit in their own strip right of the curves'
+    // ends, so they cover no curve and nothing is cut at the edge.
+    final gutter = _labelWidth(digitsIn(language, '97')) + 8;
     final chart = Rect.fromLTRB(
       _left,
       _top,
-      size.width - 4,
+      size.width - gutter,
       size.height - _bottom,
     );
     Offset at(double months, double value) => Offset(
@@ -546,7 +556,7 @@ class _ChartPainter extends CustomPainter {
               : colors.inkMuted,
       );
       // At 14 px all five would run together: the outer two and the middle.
-      // Each sits just left of its curve's end, centred on it: placed above
+      // Each sits just right of its curve's end, centred on it: placed above
       // the end, as before, it read as the next curve's label.
       if (i == 0 || median || i == curves.length - 1) {
         final (end, endValue) = curves[i].last;
@@ -555,7 +565,7 @@ class _ChartPainter extends CustomPainter {
           canvas,
           digitsIn(language, '${chartPercentiles[i].$1}'),
           tip,
-          endCentred: true,
+          afterEnd: true,
         );
         labels.add((
           percentile: chartPercentiles[i].$1,
@@ -567,6 +577,8 @@ class _ChartPainter extends CustomPainter {
     lastGrowthChart = (
       labels: labels,
       curveEnds: [for (final c in curves) at(c.last.$1, c.last.$2).dy],
+      curvesRight: chart.right,
+      width: size.width,
     );
 
     // The child's measurements, joined in time order.
@@ -580,14 +592,16 @@ class _ChartPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2
-          ..color = colors.primary,
+          ..color = colors.heading,
       );
     }
+    // Heading colour, not primary: in dark mode the primary blue was hard
+    // to see on the green band. A surface ring keeps it off the curves.
     for (final o in shown) {
-      canvas.drawCircle(o, 4.5, Paint()..color = colors.primary);
+      canvas.drawCircle(o, 5, Paint()..color = colors.heading);
       canvas.drawCircle(
         o,
-        4.5,
+        5,
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.5
@@ -606,33 +620,38 @@ class _ChartPainter extends CustomPainter {
   static String _number(double v) =>
       v == v.roundToDouble() ? '${v.round()}' : v.toStringAsFixed(1);
 
+  TextPainter _painter(String text) => TextPainter(
+    text: TextSpan(
+      text: text,
+      style: TextStyle(fontSize: growthAxisFontSize, color: colors.inkMuted),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  double _labelWidth(String text) {
+    final painter = _painter(text);
+    final width = painter.width;
+    painter.dispose();
+    return width;
+  }
+
   /// Paints [text] at [at] (its top left, or top centre with [center]); with
-  /// [endCentred], ending a little left of [at] and centred on it
-  /// vertically, on a patch of the chart's background so the curve doesn't
-  /// run through it. Where it went.
+  /// [afterEnd], starting a little right of [at] and centred on it
+  /// vertically, in the strip beside the curves. Where it went.
   Rect _label(
     Canvas canvas,
     String text,
     Offset at, {
     bool center = false,
-    bool endCentred = false,
+    bool afterEnd = false,
   }) {
-    final painter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: TextStyle(fontSize: growthAxisFontSize, color: colors.inkMuted),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    final topLeft = endCentred
-        ? at - Offset(painter.width + 4, painter.height / 2)
+    final painter = _painter(text);
+    final topLeft = afterEnd
+        ? at + Offset(4, -painter.height / 2)
         : center
         ? at - Offset(painter.width / 2, 0)
         : at;
     final rect = topLeft & painter.size;
-    if (endCentred) {
-      canvas.drawRect(rect.inflate(1), Paint()..color = colors.surface);
-    }
     painter.paint(canvas, topLeft);
     painter.dispose();
     return rect;

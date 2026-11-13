@@ -102,8 +102,9 @@ void main() {
             : b,
       );
       expect(nearest, l.curveY, reason: '${l.percentile}');
-      // Left of the curve's end, inside the chart.
-      expect(l.label.left, greaterThan(0));
+      // Right of the curves' ends, so it covers none, and not cut off.
+      expect(l.label.left, greaterThan(chart.curvesRight));
+      expect(l.label.right, lessThanOrEqualTo(chart.width));
     }
   });
 

@@ -84,8 +84,13 @@ void main() {
     await tapKey(tester, 'vaccine-route-hexavalent');
     expect(find.byKey(const ValueKey('setup-penta-1')), findsNothing);
     expect(find.byKey(const ValueKey('setup-hexa-1')), findsOneWidget);
+    // A pill like the others, not a Material chip; tapping again clears.
+    expect(find.byType(FilterChip), findsNothing);
     await tapKey(tester, 'vaccine-optional-pcv');
     expect(find.byKey(const ValueKey('setup-pcv-1')), findsOneWidget);
+    await tapKey(tester, 'vaccine-optional-pcv');
+    expect(find.byKey(const ValueKey('setup-pcv-1')), findsNothing);
+    await tapKey(tester, 'vaccine-optional-pcv');
     // Not due yet (12 months): not in the "already given" list.
     expect(find.byKey(const ValueKey('setup-opv-5')), findsNothing);
 
@@ -100,6 +105,10 @@ void main() {
 
     // The vaccine page, with the counter.
     expect(find.text('تطعيمات ليلى'), findsWidgets);
+    // The schedule's date in the footnote is an Arabic date, not 2026-11-04.
+    final note = tester.widget<Text>(find.textContaining('اتراجعت'));
+    expect(note.data, isNot(contains(RegExp('[0-9]'))));
+    expect(note.data, contains('نوفمبر'));
     expect(inKey('vaccine-required-$kid', '٤/١٥'), findsOneWidget);
     expect(inKey('vaccine-optional-$kid', '١/٤'), findsOneWidget);
     expect(inKey('dose-hexa-1', 'اتاخد'), findsOneWidget);

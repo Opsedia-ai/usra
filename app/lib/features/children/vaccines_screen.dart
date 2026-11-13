@@ -736,7 +736,13 @@ class _VaccinesScreenState extends ConsumerState<VaccinesScreen> {
           ),
         const SizedBox(height: UsraSpacing.s4),
         Text(
-          l.vaccinesDisclaimer(egyptScheduleCheckedOn),
+          l.vaccinesDisclaimer(
+            localizedDigitsIn(
+              context,
+              DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag())
+                  .format(DateTime.parse(egyptScheduleCheckedOn)),
+            ),
+          ),
           style: text.bodySmall?.copyWith(color: context.usra.inkMuted),
         ),
         const _Sources(),
@@ -1616,15 +1622,16 @@ class _VaccineSetupScreenState extends ConsumerState<VaccineSetupScreen> {
           runSpacing: 8,
           children: [
             for (final k in optionalVaccines)
-              FilterChip(
+              UsraPill(
                 key: ValueKey('vaccine-optional-${k.name}'),
                 selected: plan.optional.contains(k),
-                label: Text(vaccineName(l, k)),
-                onSelected: (on) => setState(
+                icon: plan.optional.contains(k) ? Icons.check : null,
+                label: vaccineName(l, k),
+                onTap: () => setState(
                   () => _plan = plan.copyWith(
-                    optional: on
-                        ? {...plan.optional, k}
-                        : ({...plan.optional}..remove(k)),
+                    optional: plan.optional.contains(k)
+                        ? ({...plan.optional}..remove(k))
+                        : {...plan.optional, k},
                   ),
                 ),
               ),

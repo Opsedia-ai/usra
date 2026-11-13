@@ -8,6 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:usra/app.dart';
 import 'package:usra/core/database/app_database.dart';
+import 'package:usra/core/design/status_dot.dart';
+import 'package:usra/core/design/tokens.dart';
 import 'package:usra/core/providers.dart';
 import 'package:usra/features/children/growth.dart';
 
@@ -220,6 +222,19 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('member-development')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('dev-late-banner')), findsOneWidget);
+    // An amber dot, then the sentence in the normal text colour.
+    final banner = tester.widget<StatusDotText>(
+      find.descendant(
+        of: find.byKey(const ValueKey('dev-late-banner')),
+        matching: find.byType(StatusDotText),
+      ),
+    );
+    expect(
+      banner.color,
+      Theme.of(tester.element(find.byKey(const ValueKey('dev-late-banner'))))
+          .extension<UsraColors>()!
+          .ink,
+    );
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('milestone-m2_social')),
