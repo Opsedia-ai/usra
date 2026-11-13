@@ -1828,7 +1828,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'من غير المفتاح ده محدش يقدر يفتح نسخك الاحتياطية، ولا حتى إحنا. ولو ضاع مش هنقدر نرجّعه.';
 
   @override
-  String get recoveryKeyWrittenDown => 'اتكتب على الورقة';
+  String get recoveryKeyWrittenDown => 'كتبته، كمّل';
 
   @override
   String get recoveryKeyConfirmIntro =>

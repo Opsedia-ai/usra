@@ -81,7 +81,7 @@ Medical strings in this list also go to the doctor, through `docs/medical-review
 | `backupNow` | Changed | نسخة احتياطية دلوقتي | Back up now |
 | `recoveryKeyIntro` | Changed | ده مفتاح الاسترجاع. مكانه ورقة في مكان أمين بعيد عن الموبايل. فتح النسخ الاحتياطية على موبايل جديد محتاجه. | This is your recovery key. Write it on paper and keep it somewhere safe, away from this phone. You'll need it to open your backups on a new phone. |
 | `recoveryKeyShowIntro` | Changed | ده المفتاح اللي بيفتح النسخ الاحتياطية. لازم يكون زي اللي مكتوب على الورقة. | This is the key that opens your backups. Check it matches the one you wrote down. |
-| `recoveryKeyWrittenDown` | Changed | اتكتب على الورقة | I wrote it down |
+| `recoveryKeyWrittenDown` | Changed (13 Nov: read as an instruction, not a next step) | كتبته، كمّل | I wrote it down, continue |
 | `recoveryKeyConfirmIntro` | Changed | علشان نتأكد إنه مكتوب صح: المجموعتين دول من الورقة. | To be sure it's written correctly, type these two groups from your paper. |
 | `recoveryKeyShowAgain` | Changed | عرض المفتاح تاني | Show the key again |
 | `recoveryKeyCopy` | Changed | نسخ المفتاح | Copy the key |

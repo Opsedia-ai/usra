@@ -2975,7 +2975,7 @@ abstract class AppLocalizations {
   /// No description provided for @recoveryKeyWrittenDown.
   ///
   /// In en, this message translates to:
-  /// **'I wrote it down'**
+  /// **'I wrote it down, continue'**
   String get recoveryKeyWrittenDown;
 
   /// No description provided for @recoveryKeyConfirmIntro.
