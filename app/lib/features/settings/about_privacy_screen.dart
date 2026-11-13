@@ -204,7 +204,8 @@ class AboutPrivacyScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           Center(
             child: Text(
-              l.aboutVersion(ref.watch(appVersionProvider)),
+              // Left to right inside Arabic, or "0.1.0+1" reads backwards.
+              l.aboutVersion('\u2066${ref.watch(appVersionProvider)}\u2069'),
               key: const ValueKey('about-version'),
               style: text.bodySmall,
             ),

@@ -6703,6 +6703,12 @@ abstract class AppLocalizations {
   /// **'Good morning'**
   String get homeMorning;
 
+  /// Home greeting from 1 pm to 5 pm.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get homeAfternoon;
+
   /// No description provided for @homeEvening.
   ///
   /// In en, this message translates to:
@@ -7644,6 +7650,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This medicine is for {name}'**
   String medicineFor(String name);
+
+  /// Top of a record form: whose record it is, like the medicine form's line.
+  ///
+  /// In en, this message translates to:
+  /// **'This record is for {name}'**
+  String recordFor(Object name);
 
   /// No description provided for @medicineForChange.
   ///

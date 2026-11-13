@@ -617,3 +617,17 @@ Questions:
 1. "جرعتين متأخرين" agreed with the doses, not the child, and is common in Egyptian speech; the end-to-end test read it as masculine about a girl. The feminine dual "متأخرتين / ناقصتين" follows the rule that جرعة takes feminine agreement. Which reads better to you?
 2. `devIntro` uses the reader's sex from About you. A reader whose sex isn't known reads the masculine form, as elsewhere.
 3. Other milestones still address the parent as a man: m2_cognitive "وانت بتتحرك", m4_movement "وانت شايله / شايلها". Should these change too? They are medical text, so they go to the doctor as well.
+
+## Small text fixes, 13 November 2026 (end-to-end tests #12, #14–#17, #19)
+
+- Full stops: text the app writes in Arabic digits turned every "." into the Arabic decimal sign "٫", which looks like a comma, so sentences in the "mark everything" dialog ended in commas. Only a point between two digits becomes "٫" now (#17).
+- Greeting: صباح الخير until 1 pm, then مساء الخير; in English "Good afternoon" from 1 to 5 pm (#12).
+- Growth rows in a person's timeline and Records read "قياس نمو – ١٢ كجم – ٨٦ سم" instead of "قياس نمو – ١٢" (#15).
+- The version on the privacy page is kept left to right, "النسخة 0.1.0+1" (#19).
+
+| Key | | Arabic | English |
+|---|---|---|---|
+| `homeAfternoon` | New | مساء الخير | Good afternoon |
+| `recordFor` | New | السجل ده ل{name} | This record is for {name} |
+
+`recordFor` sits under the title of every record form (visit, lab, scan, growth, surgery) so it's clear whose record it is (#16), like the medicine form's "الدوا ده ل{name}". Question: is "السجل ده لحسن" natural, or would "ده لحسن" alone read better under a title like "زيارة دكتور"?

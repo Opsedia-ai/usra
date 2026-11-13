@@ -26,15 +26,24 @@ String localizedDigitsIn(BuildContext context, String text) =>
 /// The same for [languageCode], for text in a language other than the app's.
 String digitsIn(String languageCode, String text) {
   if (languageCode != 'ar') return text;
-  return String.fromCharCodes(
-    text.codeUnits.map(
-      (u) => u >= 0x30 && u <= 0x39
-          ? u + 0x0660 - 0x30
-          : u == 0x2E
-          ? 0x066B
-          : u,
-    ),
-  );
+  final units = text.codeUnits;
+  bool latinAt(int i) =>
+      i >= 0 && i < units.length && units[i] >= 0x30 && units[i] <= 0x39;
+  bool digitAt(int i) =>
+      latinAt(i) ||
+      (i >= 0 && i < units.length && units[i] >= 0x660 && units[i] <= 0x669);
+  return String.fromCharCodes([
+    for (var i = 0; i < units.length; i++)
+      if (latinAt(i))
+        units[i] + 0x0660 - 0x30
+      // A decimal point only between two digits: a full stop ending a
+      // sentence stays a full stop, not ٫, which reads as a comma
+      // (end-to-end test #17).
+      else if (units[i] == 0x2E && digitAt(i - 1) && digitAt(i + 1))
+        0x066B
+      else
+        units[i],
+  ]);
 }
 
 /// A reading to one decimal, like a thermometer shows.

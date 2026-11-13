@@ -4538,6 +4538,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeMorning => 'Good morning';
 
   @override
+  String get homeAfternoon => 'Good afternoon';
+
+  @override
   String get homeEvening => 'Good evening';
 
   @override
@@ -5156,6 +5159,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String medicineFor(String name) {
     return 'This medicine is for $name';
+  }
+
+  @override
+  String recordFor(Object name) {
+    return 'This record is for $name';
   }
 
   @override

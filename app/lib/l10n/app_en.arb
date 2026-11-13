@@ -2481,6 +2481,10 @@
   "navRecords": "Records",
   "navAdd": "Add",
   "homeMorning": "Good morning",
+  "homeAfternoon": "Good afternoon",
+  "@homeAfternoon": {
+    "description": "Home greeting from 1 pm to 5 pm."
+  },
   "homeEvening": "Good evening",
   "homeNothingNeeded": "Nothing needed",
   "homeNeedsAttentionOne": "{sex, select, other{needs your attention}}",
@@ -2928,6 +2932,10 @@
         "type": "String"
       }
     }
+  },
+  "recordFor": "This record is for {name}",
+  "@recordFor": {
+    "description": "Top of a record form: whose record it is, like the medicine form's line."
   },
   "medicineForChange": "Change",
   "medicineForPick": "Who is this medicine for?",
