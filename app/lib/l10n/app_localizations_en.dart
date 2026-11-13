@@ -5582,4 +5582,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sickDayAllSigns => 'All the signs, and when to call the doctor';
+
+  @override
+  String get backupNeverShort => 'No backup yet';
+
+  @override
+  String get settingsStateOn => 'On';
+
+  @override
+  String get settingsStateOff => 'Off';
+
+  @override
+  String get settingsDiscreetHintShort =>
+      'Reminders just say \"Your medicine time\"';
+
+  @override
+  String get settingsBlockScreenshotsHintShort =>
+      'No screenshots or screen recording in the app';
 }
