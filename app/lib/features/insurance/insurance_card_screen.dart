@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
 import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
@@ -45,12 +46,6 @@ class InsuranceCardScreen extends ConsumerWidget {
               onPressed: () =>
                   context.go('/family/$profileId/insurance/$cardId/edit'),
             ),
-            IconButton(
-              key: const ValueKey('insurance-delete'),
-              tooltip: l.insuranceDelete,
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () => _confirmDelete(context, ref, c),
-            ),
           ],
         ],
       ),
@@ -75,33 +70,16 @@ class InsuranceCardScreen extends ConsumerWidget {
                 ],
               _Details(card: c),
               const SizedBox(height: 24),
+              // The page's one main action.
               _ShareButton(profileId: profileId, card: c),
-              if (c.memberNumber case final number?) ...[
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  key: const ValueKey('insurance-copy'),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(UsraSizes.touchTarget),
-                  ),
-                  onPressed: () async {
-                    final messenger = ScaffoldMessenger.of(context);
-                    final copied = await ref
-                        .read(sensitiveClipboardProvider)
-                        .copy(number);
-                    messenger.showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          copied
-                              ? l.insuranceNumberCopied
-                              : l.insuranceCopyFailed,
-                        ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.copy_outlined),
-                  label: Text(l.insuranceCopyNumber),
+              const SizedBox(height: UsraSpacing.s3),
+              Center(
+                child: TextButton(
+                  key: const ValueKey('insurance-delete'),
+                  onPressed: () => _confirmDelete(context, ref, c),
+                  child: Text(l.insuranceDeleteCard),
                 ),
-              ],
+              ),
             ],
           );
         },
@@ -186,57 +164,122 @@ class _Photo extends StatelessWidget {
   }
 }
 
-class _Details extends StatelessWidget {
+/// What was saved on the card, one row each, as in the other polished
+/// lists: the card's name always, then the insurer, the member number (with
+/// a short copy action), the expiry and the notes when there are any.
+class _Details extends ConsumerWidget {
   const _Details({required this.card});
 
   final InsuranceCard card;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final number = card.memberNumber;
+    return UsraListCard(
       children: [
-        if (card.expiresOn != null) ExpiryLine(expiresOn: card.expiresOn),
-        for (final (label, value) in [
-          (l.insuranceInsurer, card.insurer),
-          (l.insuranceMemberNumber, card.memberNumber),
-          (l.insuranceNotes, card.notes),
-        ])
-          if (value != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
+        _Field(label: l.insuranceCard, value: Text(card.label)),
+        if (card.insurer case final insurer?)
+          _Field(label: l.insuranceInsurer, value: Text(insurer)),
+        if (number != null)
+          _Field(
+            label: l.insuranceMemberNumber,
+            // Numbers read left to right even in an Arabic sentence.
+            value: SelectableText(
+              number,
+              key: const ValueKey('insurance-number'),
+              textDirection: TextDirection.ltr,
+              textAlign: TextAlign.start,
+            ),
+            trailing: Semantics(
+              label: l.insuranceCopyNumber,
+              button: true,
+              excludeSemantics: true,
+              child: TextButton(
+                key: const ValueKey('insurance-copy'),
+                onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final copied = await ref
+                      .read(sensitiveClipboardProvider)
+                      .copy(number);
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        copied
+                            ? l.insuranceNumberCopied
+                            : l.insuranceCopyFailed,
+                      ),
+                    ),
+                  );
+                },
+                child: Text(l.insuranceCopyShort),
+              ),
+            ),
+          ),
+        if (card.expiresOn != null)
+          _Field(
+            label: l.insuranceExpiry,
+            value: ExpiryLine(expiresOn: card.expiresOn),
+          ),
+        if (card.notes case final notes?)
+          _Field(label: l.insuranceNotes, value: Text(notes)),
+      ],
+    );
+  }
+}
+
+/// One saved field: its name, muted and small, over its value.
+class _Field extends StatelessWidget {
+  const _Field({required this.label, required this.value, this.trailing});
+
+  final String label;
+  final Widget value;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.usra;
+    final minHeight =
+        Theme.of(context).listTileTheme.minTileHeight ?? listRowMinHeight;
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: minHeight),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: UsraSpacing.s4,
+          vertical: UsraSpacing.s2,
+        ),
+        child: Row(
+          children: [
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     label,
                     style: UsraType.label.copyWith(
-                      color: context.usra.inkMuted,
+                      color: c.inkMuted,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
-                  // Numbers read left to right even in an Arabic sentence.
-                  SelectableText(
-                    value,
-                    key: label == l.insuranceMemberNumber
-                        ? const ValueKey('insurance-number')
-                        : null,
-                    style: UsraType.bodyLg.copyWith(
-                      color: context.usra.ink,
+                  DefaultTextStyle.merge(
+                    style: UsraType.body.copyWith(
+                      color: c.ink,
+                      height: 24 / 16,
                       fontWeight: FontWeight.w500,
                     ),
-                    textDirection: label == l.insuranceMemberNumber
-                        ? TextDirection.ltr
-                        : null,
-                    textAlign: label == l.insuranceMemberNumber
-                        ? TextAlign.start
-                        : null,
+                    child: value,
                   ),
                 ],
               ),
             ),
-      ],
+            if (trailing case final t?) ...[
+              const SizedBox(width: UsraSpacing.s3),
+              t,
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

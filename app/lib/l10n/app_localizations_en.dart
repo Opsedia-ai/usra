@@ -5400,6 +5400,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Before you send it: the member number is personal, and whoever gets it could pass it on.';
 
   @override
+  String get insuranceCopyShort => 'Copy';
+
+  @override
+  String get insuranceDeleteCard => 'Delete card';
+
+  @override
   String get simpleNextDose => 'Next medicine';
 
   @override

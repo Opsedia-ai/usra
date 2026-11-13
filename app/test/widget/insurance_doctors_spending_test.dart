@@ -6,8 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:usra/core/design/list_row.dart';
 import 'package:usra/core/design/status_chip.dart';
 import 'package:usra/core/design/status_dot.dart';
+import 'package:usra/core/design/tokens.dart';
 import 'package:usra/core/files/photo_store.dart';
 import 'package:usra/features/insurance/watermark.dart';
+import 'package:usra/core/util/periods.dart';
 
 import '../support/fits.dart';
 import '../support/screen_harness.dart';
@@ -81,6 +83,58 @@ void main() {
       final number = tester.widget<SelectableText>(key('insurance-number'));
       expect(number.textDirection, TextDirection.ltr);
       expect(number.data, '1234 5678');
+    });
+
+    testWidgets('the saved fields are rows, with one filled button', (
+      tester,
+    ) async {
+      h.tall(tester);
+      final (id, card) = await seedCard(tester);
+      await h.open(tester, '/family/$id/insurance/$card');
+      final details = find.byType(UsraListCard);
+      expect(details, findsOneWidget);
+      for (final text in [
+        'الكارت',
+        'نقابة المهندسين',
+        'شركة التأمين',
+        'نقابة',
+        'رقم العضوية',
+      ]) {
+        expect(
+          find.descendant(of: details, matching: find.text(text)),
+          findsWidgets,
+          reason: text,
+        );
+      }
+      // Copy is a short text action on the number's row.
+      expect(
+        find.descendant(of: details, matching: key('insurance-copy')),
+        findsOneWidget,
+      );
+      expect(find.byType(FilledButton), findsOneWidget);
+      expect(key('insurance-share'), findsOneWidget);
+      // Delete is a quiet text button at the end, not an app bar icon.
+      expect(tester.widget(key('insurance-delete')), isA<TextButton>());
+      expect(find.byIcon(Icons.delete_outline), findsNothing);
+    });
+
+    testWidgets('a card with only its name still shows it', (tester) async {
+      h.tall(tester);
+      final (id, card) = (await tester.runAsync(() async {
+        final id = await h.db.addProfile('فاطمة', sex: 'female');
+        return (
+          id,
+          await h.db.saveInsuranceCard(profileId: id, label: 'نقابة'),
+        );
+      }))!;
+      await h.open(tester, '/family/$id/insurance/$card');
+      expect(
+        find.descendant(
+          of: find.byType(UsraListCard),
+          matching: find.text('نقابة'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('warns before sharing; cancel sends nothing', (tester) async {
@@ -185,6 +239,40 @@ void main() {
         findsOneWidget,
       );
     });
+  });
+
+  group('Selected segments read in ink', () {
+    for (final mode in const [ThemeMode.light, ThemeMode.dark]) {
+      testWidgets('spending period and the language toggle, ${mode.name}', (
+        tester,
+      ) async {
+        h.tall(tester);
+        h.theme = mode;
+        final id = await seedSpending(tester);
+        await h.open(tester, '/money?person=$id');
+        UsraColors colors(Finder f) =>
+            Theme.of(tester.element(f)).extension<UsraColors>()!;
+        final period = key('spending-period');
+        expect(
+          tester
+              .widget<SegmentedButton<SpendingPeriod>>(period)
+              .style!
+              .foregroundColor!
+              .resolve({WidgetState.selected}),
+          colors(period).ink,
+        );
+        await h.go(tester, '/settings');
+        final language = key('settings-language');
+        expect(
+          tester
+              .widget<SegmentedButton<String>>(language)
+              .style!
+              .foregroundColor!
+              .resolve({WidgetState.selected}),
+          colors(language).ink,
+        );
+      });
+    }
   });
 
   group('fits 320 px at double text', () {

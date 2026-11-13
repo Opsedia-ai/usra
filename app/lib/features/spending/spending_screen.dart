@@ -83,6 +83,11 @@ class _SpendingScreenState extends ConsumerState<SpendingScreen> {
           SegmentedButton<SpendingPeriod>(
             key: const ValueKey('spending-period'),
             showSelectedIcon: false,
+            // Ink on the selected segment: the theme's primary on its soft
+            // fill was too faint in dark mode.
+            style: SegmentedButton.styleFrom(
+              selectedForegroundColor: context.usra.ink,
+            ),
             segments: [
               ButtonSegment(
                 value: SpendingPeriod.week,
@@ -296,7 +301,7 @@ class _TrendBars extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   onTap: () => onTap(starts[i]),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -321,11 +326,14 @@ class _TrendBars extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          label.format(starts[i]),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall,
+                        // Shrinks to fit rather than cutting "أغسطس" short.
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            label.format(starts[i]),
+                            maxLines: 1,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
                         ),
                       ],
                     ),

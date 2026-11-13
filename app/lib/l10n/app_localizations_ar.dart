@@ -5633,6 +5633,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'قبل ما تبعت: رقم العضوية بيانات شخصية، واللي هيستلمه ممكن يبعته لغيره.';
 
   @override
+  String get insuranceCopyShort => 'انسخ';
+
+  @override
+  String get insuranceDeleteCard => 'امسح الكارت';
+
+  @override
   String get simpleNextDose => 'الدوا الجاي';
 
   @override

@@ -533,3 +533,12 @@ The consent screen asked before any health data is saved (Egypt PDPL 151/2020). 
 | `consentDecline` | New | مش موافق؟ امسح كل بياناتي | Don't agree? Delete all my data |
 
 Questions: `consentSaveFailed` uses جرّب and `consentDecline` uses مش موافق, which are the masculine forms the app already uses (as in `settingsDeleteAll`). Should they be neutral? Is "الرأي دايماً للدكتور" a natural way to say "always check with a doctor"?
+
+### Insurance card page (visual QA, 13 Nov)
+
+| Key | | Arabic | English |
+|---|---|---|---|
+| `insuranceCopyShort` | New | انسخ | Copy |
+| `insuranceDeleteCard` | New | امسح الكارت | Delete card |
+
+`insuranceCopyShort` is the short action on the member-number row. A screen reader still hears `insuranceCopyNumber` (انسخ رقم العضوية). `insuranceDeleteCard` replaces the trash icon in the header with a text button at the end of the page. Both use the masculine imperative, as `insuranceDelete` (امسح) already does.
