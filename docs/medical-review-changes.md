@@ -99,3 +99,12 @@ Questions for the doctor:
    - Diabetic eye exam (`screening.eyeExam`) applies from birth to anyone with diabetes and cites ADA Standards of Care 2025 §12, the adult section. ADA §14 (children and adolescents) starts the first eye exam at age 11 or puberty, after 3 to 5 years of diabetes. Should a child with diabetes see this follow-up, and with which source?
    - HbA1c, lipid profile and kidney check (`chronic.*`) have no age limits and cite adult ADA sections, KDIGO and WHO HEARTS. Do they apply to children with these conditions as written?
    - Blood pressure (from 18, USPSTF adults), diabetes screening (35–70), breast (women 40–74) and colorectal (45–75) screening are adult-only and cite adult sources. These look right.
+
+## Milestone wording that addressed the reader as a man (end-to-end test #11, 13 Nov 2026)
+
+- 18 months, thinking: "بيقلدك وانت بتعمل شغل البيت، زي الكنس" (girl: "بتقلدك…") is now "بيقلد شغل البيت اللي بتعملوه، زي الكنس" (girl: "بتقلد…"). The meaning is the same as CDC's "Copies you doing chores, like sweeping": "you" is now plural, so it fits a mother or a father. The English is unchanged.
+- The milestones intro now follows the reader's sex and the child's ("علّمي على اللي بنتك بتعمله…"). It's not medical text, but it's on the same screen.
+
+Questions for the doctor:
+1. Is "بيقلد شغل البيت اللي بتعملوه" faithful to the CDC milestone?
+2. Two more milestones address the parent as a man: 2 months "بيتابعك بعينه وانت بتتحرك" and 4 months "بيثبّت راسه لوحده وانت شايله". Should they be reworded the same way, or follow the reader's sex?

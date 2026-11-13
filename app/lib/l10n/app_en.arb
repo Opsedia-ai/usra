@@ -1263,7 +1263,14 @@
   "pregnancyBpSource": "Levels from WHO: 140/90 and above is high in pregnancy, 160/110 and above is very high. One reading isn't a diagnosis; ask your doctor.",
   "devTitle": "Development milestones",
   "devUnderSixOnly": "The milestones checklist is for children under 6 whose birth date is recorded.",
-  "devIntro": "Tick what your child does, with the day you first noticed it.",
+  "devIntro": "{parent, select, other{{child, select, other{Tick what your child does, with the day you first noticed it.}}}}",
+  "@devIntro": {
+    "description": "Milestones intro: to the reader (parent = the reader's sex from About you) about the child (child = the child's sex).",
+    "placeholders": {
+      "parent": {"type": "String"},
+      "child": {"type": "String"}
+    }
+  },
   "devLateBanner": "Some milestones for {age} aren't ticked yet. Talk to your pediatrician about them; there's no need to wait.",
   "@devLateBanner": {
     "placeholders": {
@@ -2476,7 +2483,13 @@
   "homeMorning": "Good morning",
   "homeEvening": "Good evening",
   "homeNothingNeeded": "Nothing needed",
-  "homeNeedsAttentionOne": "needs your attention",
+  "homeNeedsAttentionOne": "{sex, select, other{needs your attention}}",
+  "@homeNeedsAttentionOne": {
+    "description": "After one person's name on Home; follows that person's sex.",
+    "placeholders": {
+      "sex": {"type": "String"}
+    }
+  },
   "homeNeedsAttentionMany": "need your attention",
   "homeNamesJoin": "and",
   "homeFamily": "Family",
