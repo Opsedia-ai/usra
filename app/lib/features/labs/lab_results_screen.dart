@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
+import '../../core/design/list_row.dart';
 import '../../core/design/tokens.dart';
+import '../../core/design/type.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show timelineProvider, profileProvider;
 import 'lab_report.dart';
@@ -60,33 +62,36 @@ class LabResultsScreen extends ConsumerWidget {
             children: [
               const LabInfoNote(),
               const SizedBox(height: 12),
-              for (final s in series)
-                Card(
-                  key: ValueKey('lab-series-${s.testKey}|${s.unit ?? ''}'),
-                  child: ListTile(
-                    onTap: () => context.go(labTrendPath(profileId, s.name)),
-                    title: Text(
-                      [s.name, if (s.unit != null) '(${s.unit})'].join(' '),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l.labLatest(
-                            '\u2066${formatLabNumber(s.latest.value)}\u2069',
-                            DateFormat.yMMMd(locale).format(s.latest.date),
+              UsraListCard(
+                children: [
+                  for (final s in series)
+                    UsraListRow(
+                      key: ValueKey('lab-series-${s.testKey}|${s.unit ?? ''}'),
+                      onTap: () => context.go(labTrendPath(profileId, s.name)),
+                      leading: const IconBox(icon: Icons.show_chart),
+                      title: [
+                        s.name,
+                        if (s.unit != null) '(${s.unit})',
+                      ].join(' '),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l.labLatest(
+                              '\u2066${formatLabNumber(s.latest.value)}\u2069',
+                              DateFormat.yMMMd(locale).format(s.latest.date),
+                            ),
+                            style: UsraType.label.copyWith(
+                              color: context.usra.inkMuted,
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        LabFlagChip(flag: s.latest.flag),
-                      ],
+                          LabFlagChip(flag: s.latest.flag),
+                        ],
+                      ),
                     ),
-                    trailing: Icon(
-                      Icons.show_chart,
-                      color: context.usra.primary,
-                    ),
-                  ),
-                ),
+                ],
+              ),
             ],
           );
         },
