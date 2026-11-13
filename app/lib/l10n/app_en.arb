@@ -2155,33 +2155,32 @@
     }
   },
   "sickDayLatestReading": "Latest reading",
-  "sickDayFeverLogged": "Fever logged: {duration}",
-  "@sickDayFeverLogged": {
+  "sickDayHighestReading": "Highest reading: {reading} · {time}",
+  "@sickDayHighestReading": {
     "placeholders": {
-      "duration": {
+      "reading": {
+        "type": "String"
+      },
+      "time": {
         "type": "String"
       }
     }
   },
-  "sickDayFeverUnderHour": "under an hour",
-  "sickDayFeverHours": "{count, plural, =1{1 hour} other{{shown} hours}}",
-  "@sickDayFeverHours": {
+  "sickDayFeverSpan": "Fever readings from {from} to {to}",
+  "@sickDayFeverSpan": {
     "placeholders": {
-      "count": {
-        "type": "int"
+      "from": {
+        "type": "String"
       },
-      "shown": {
+      "to": {
         "type": "String"
       }
     }
   },
-  "sickDayFeverDays": "{count, plural, =1{1 day} other{{shown} days}}",
-  "@sickDayFeverDays": {
+  "sickDayFeverOnce": "Fever reading: {time}",
+  "@sickDayFeverOnce": {
     "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "shown": {
+      "time": {
         "type": "String"
       }
     }

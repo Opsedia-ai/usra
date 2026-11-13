@@ -6008,29 +6008,23 @@ abstract class AppLocalizations {
   /// **'Latest reading'**
   String get sickDayLatestReading;
 
-  /// No description provided for @sickDayFeverLogged.
+  /// No description provided for @sickDayHighestReading.
   ///
   /// In en, this message translates to:
-  /// **'Fever logged: {duration}'**
-  String sickDayFeverLogged(String duration);
+  /// **'Highest reading: {reading} · {time}'**
+  String sickDayHighestReading(String reading, String time);
 
-  /// No description provided for @sickDayFeverUnderHour.
+  /// No description provided for @sickDayFeverSpan.
   ///
   /// In en, this message translates to:
-  /// **'under an hour'**
-  String get sickDayFeverUnderHour;
+  /// **'Fever readings from {from} to {to}'**
+  String sickDayFeverSpan(String from, String to);
 
-  /// No description provided for @sickDayFeverHours.
+  /// No description provided for @sickDayFeverOnce.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 hour} other{{shown} hours}}'**
-  String sickDayFeverHours(int count, String shown);
-
-  /// No description provided for @sickDayFeverDays.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 day} other{{shown} days}}'**
-  String sickDayFeverDays(int count, String shown);
+  /// **'Fever reading: {time}'**
+  String sickDayFeverOnce(String time);
 
   /// No description provided for @sickDayRecordedGiven.
   ///

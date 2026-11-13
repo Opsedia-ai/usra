@@ -175,15 +175,21 @@ void main() {
     expect(find.byKey(const ValueKey('warning-source-nhs')), findsOneWidget);
   });
 
-  testWidgets('how long a fever is logged runs from the first reading of 38 '
-      'to the last, and ends when the latest is under the line', (
-    tester,
-  ) async {
+  testWidgets('under the chart: the highest reading, and the first and last '
+      'fever readings as times, not a duration (bug 15)', (tester) async {
     phone(tester);
     final (person, episode) = await seed(tester);
     await open(tester, person, episode);
-    // 21:00 to 09:00: the 14:00 reading of 37.6 ended it.
-    expect(textOf(tester, 'sick-day-fever-duration'), contains('١٢ ساعة'));
+    final lines = textOf(tester, 'sick-day-fever-duration').split('\n');
+    // 38.9 at 03:00 is the highest of the four; the latest is 37.6.
+    expect(lines.first, startsWith('أعلى قراءة: ٣٨٫٩°'));
+    expect(lines.first, contains('٣:٠٠'));
+    // Fever readings from 21:00 yesterday (with its date) to 09:00 today; the
+    // 14:00 reading of 37.6 is under the line.
+    expect(lines.last, startsWith('سخونية متسجلة من '));
+    expect(lines.last, contains('٩:٠٠ م'));
+    expect(lines.last, endsWith('لـ ٩:٠٠ ص'));
+    expect(lines.last, isNot(contains('ساعة')));
   });
 
   testWidgets('what was given shows as recorded, in the family\'s words', (
