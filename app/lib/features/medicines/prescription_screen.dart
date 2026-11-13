@@ -57,7 +57,7 @@ class PrescriptionScreen extends ConsumerWidget {
             IconButton(
               key: const ValueKey('rx-edit'),
               tooltip: l.prescriptionEdit,
-              icon: const Icon(Icons.edit_outlined),
+              icon: const Icon(Icons.mode_edit_outline_outlined),
               onPressed: () => context.go(
                 '/family/$profileId/prescriptions/$prescriptionId/edit',
               ),

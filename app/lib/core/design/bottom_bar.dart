@@ -80,10 +80,8 @@ class _Tab extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
+              _BarLabel(
                 tab.label(context),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: UsraType.label.copyWith(
                   color: color,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
@@ -134,10 +132,8 @@ class _RaisedAction extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 2),
-            Text(
+            _BarLabel(
               tab.label(context),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: UsraType.label.copyWith(
                 color: c.ink,
                 fontWeight: FontWeight.w600,
@@ -148,4 +144,32 @@ class _RaisedAction extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Most a tab label grows with the phone's text size. Five labels share a
+/// 320 px bar, so beyond this they'd be cut and run together; like the
+/// system tab bars, they stop growing here. The page's own text keeps
+/// growing, and screen readers read the whole label.
+const barLabelMaxScale = 1.3;
+
+/// A tab's label: grows up to [barLabelMaxScale], then shrinks to fit its
+/// slot instead of being cut off.
+class _BarLabel extends StatelessWidget {
+  const _BarLabel(this.label, {required this.style});
+
+  final String label;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) => FittedBox(
+    fit: BoxFit.scaleDown,
+    child: Text(
+      label,
+      maxLines: 1,
+      softWrap: false,
+      style: style,
+      textScaler: MediaQuery.textScalerOf(context)
+          .clamp(maxScaleFactor: barLabelMaxScale),
+    ),
+  );
 }

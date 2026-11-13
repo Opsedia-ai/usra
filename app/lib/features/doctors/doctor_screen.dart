@@ -32,7 +32,7 @@ class DoctorScreen extends ConsumerWidget {
           if (doctor.value != null) ...[
             IconButton(
               tooltip: l.doctorEdit,
-              icon: const Icon(Icons.edit_outlined),
+              icon: const Icon(Icons.mode_edit_outline_outlined),
               onPressed: () => context.push('/doctors/$doctorId/edit'),
             ),
             IconButton(

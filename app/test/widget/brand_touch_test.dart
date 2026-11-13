@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:usra/core/design/list_row.dart';
 import 'package:usra/core/design/pebble.dart';
+import 'package:usra/core/design/pill_chip.dart';
 import 'package:usra/core/design/tokens.dart';
 import 'package:usra/features/children/growth.dart' show addMonths;
 
@@ -210,6 +212,62 @@ void main() {
         await h.open(tester, '/family/$id');
         await walkScreen(tester);
       });
+    });
+  });
+
+  // End-to-end findings 8 and 25.
+  group('large text and filters', () {
+    for (final locale in ['ar', 'en']) {
+      testWidgets('$locale: tab labels stay whole at 320 px and double text', (
+        tester,
+      ) async {
+        smallPhoneDoubleText(tester);
+        await h.prefs.setString('language', locale);
+        await seed(tester);
+        await h.open(tester, '/home');
+        for (final key in [
+          'tab-/home',
+          'tab-/medicines',
+          'tab-action-/add',
+          'tab-/records',
+          'tab-/settings',
+        ]) {
+          final slot = find.byKey(ValueKey(key));
+          final label = find.descendant(of: slot, matching: find.byType(Text));
+          final text = tester.widget<Text>(label);
+          // Grows to 1.3 at most, then shrinks to fit: never cut.
+          expect(text.textScaler!.scale(10), closeTo(13, 0.01), reason: key);
+          final paragraph = tester.renderObject<RenderParagraph>(
+            find.descendant(of: label, matching: find.byType(RichText)),
+          );
+          expect(paragraph.didExceedMaxLines, isFalse, reason: key);
+          final shown = tester.getRect(label);
+          final room = tester.getRect(slot);
+          expect(shown.left, greaterThanOrEqualTo(room.left - 0.5));
+          expect(shown.right, lessThanOrEqualTo(room.right + 0.5));
+        }
+        expect(tester.takeException(), isNull);
+      });
+    }
+
+    testWidgets('Records: the selected filter is a soft pill', (tester) async {
+      await tester.runAsync(() async {
+        await h.db.addProfile('منى', sex: 'female');
+        await h.db.addProfile('جميلة', sex: 'female');
+      });
+      await h.open(tester, '/records');
+      final pill = tester.widget<UsraPill>(
+        find.byKey(const ValueKey('records-filter-all')),
+      );
+      expect(pill.selected, isTrue);
+      expect(pill.soft, isTrue);
+      final material = tester.widget<Material>(
+        find.descendant(
+          of: find.byKey(const ValueKey('records-filter-all')),
+          matching: find.byType(Material),
+        ),
+      );
+      expect(material.color, UsraColors.light.primarySoft);
     });
   });
 }
