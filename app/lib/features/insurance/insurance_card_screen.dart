@@ -14,6 +14,7 @@ import '../../core/security/sensitive_clipboard.dart';
 import '../../l10n/app_localizations.dart';
 import '../family/member_screen.dart' show profileProvider;
 import 'insurance_info.dart';
+import 'insurance_section.dart' show ExpiryLine;
 import 'watermark.dart';
 import 'insurance_providers.dart';
 
@@ -156,7 +157,13 @@ class _Photo extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: Theme.of(context).textTheme.labelLarge),
+        Text(
+          label,
+          style: UsraType.label.copyWith(
+            color: context.usra.inkMuted,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
         const SizedBox(height: 6),
         InkWell(
           // Full screen, to hold the phone up to a receptionist.
@@ -170,7 +177,7 @@ class _Photo extends StatelessWidget {
             ),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(UsraRadius.card),
             child: photo,
           ),
         ),
@@ -187,11 +194,10 @@ class _Details extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final text = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (card.expiresOn != null) ExpiryChip(expiresOn: card.expiresOn),
+        if (card.expiresOn != null) ExpiryLine(expiresOn: card.expiresOn),
         for (final (label, value) in [
           (l.insuranceInsurer, card.insurer),
           (l.insuranceMemberNumber, card.memberNumber),
@@ -205,8 +211,9 @@ class _Details extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: text.labelLarge?.copyWith(
+                    style: UsraType.label.copyWith(
                       color: context.usra.inkMuted,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                   // Numbers read left to right even in an Arabic sentence.
@@ -215,7 +222,10 @@ class _Details extends StatelessWidget {
                     key: label == l.insuranceMemberNumber
                         ? const ValueKey('insurance-number')
                         : null,
-                    style: text.titleLarge,
+                    style: UsraType.bodyLg.copyWith(
+                      color: context.usra.ink,
+                      fontWeight: FontWeight.w500,
+                    ),
                     textDirection: label == l.insuranceMemberNumber
                         ? TextDirection.ltr
                         : null,

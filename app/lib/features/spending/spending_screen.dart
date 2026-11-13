@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/design/list_row.dart';
+import '../../core/design/pill_chip.dart';
+import '../../core/design/type.dart';
 import '../../core/design/tokens.dart';
 import '../../core/providers.dart';
 import '../../core/util/localized_numbers.dart';
@@ -146,13 +149,16 @@ class _SpendingScreenState extends ConsumerState<SpendingScreen> {
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.displaySmall?.copyWith(
                         color: context.usra.primary,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 20),
                     Text(
                       l.spendingRecent,
-                      style: Theme.of(context).textTheme.labelLarge,
+                      style: UsraType.label.copyWith(
+                        color: context.usra.inkMuted,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     _TrendBars(
@@ -175,7 +181,7 @@ class _SpendingScreenState extends ConsumerState<SpendingScreen> {
               child: Text(
                 l.spendingEmpty,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge,
+                style: UsraType.body.copyWith(color: context.usra.inkMuted),
               ),
             )
           else ...[
@@ -238,11 +244,11 @@ class _PersonFilter extends StatelessWidget {
           ])
             Padding(
               padding: const EdgeInsetsDirectional.only(end: 8),
-              child: ChoiceChip(
+              child: UsraPill(
                 key: ValueKey('spending-person-${id ?? 'all'}'),
-                label: Text(name),
+                label: name,
                 selected: selected == id,
-                onSelected: (_) => onSelected(id),
+                onTap: () => onSelected(id),
               ),
             ),
         ],
@@ -373,61 +379,73 @@ class _SplitState extends ConsumerState<_Split> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(switch (group) {
-            SpendingGroup.type => l.spendingByType,
-            SpendingGroup.person => l.spendingByPerson,
-            SpendingGroup.doctor => l.spendingByDoctor,
-          }, style: Theme.of(context).textTheme.titleMedium),
+          Semantics(
+            header: true,
+            child: Text(switch (group) {
+              SpendingGroup.type => l.spendingByType,
+              SpendingGroup.person => l.spendingByPerson,
+              SpendingGroup.doctor => l.spendingByDoctor,
+            }, style: Theme.of(context).textTheme.titleMedium),
+          ),
           const SizedBox(height: 8),
-          Card(
+          UsraListCard(
             key: ValueKey('spending-by-${group.name}'),
-            child: Column(
-              children: [
-                for (final s in slices)
-                  Padding(
-                    key: ValueKey('spending-row-${group.name}-${s.key}'),
-                    padding: const EdgeInsets.all(UsraSpacing.s3),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Amount drops under the name at large text.
-                        Wrap(
-                          alignment: WrapAlignment.spaceBetween,
-                          spacing: UsraSpacing.s2,
-                          children: [
-                            Text(
-                              group == SpendingGroup.type
-                                  ? (types[s.key]?.labelOf(context) ?? s.key)
-                                  : (s.label ?? '—'),
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            Text(
-                              _money(context, s.totalMinor),
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: UsraSpacing.s1),
-                        LinearProgressIndicator(
-                          value: whole == 0
-                              ? 0
-                              : (s.totalMinor / whole).clamp(0, 1),
-                          minHeight: 10,
-                          borderRadius: BorderRadius.circular(5),
-                          color: context.usra.primary,
-                          backgroundColor: context.usra.primarySoft,
-                          semanticsLabel: _money(context, s.totalMinor),
-                        ),
-                        const SizedBox(height: UsraSpacing.s1),
-                        Text(
-                          l.spendingRecords(s.count),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
+            children: [
+              for (final s in slices)
+                Padding(
+                  key: ValueKey('spending-row-${group.name}-${s.key}'),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: UsraSpacing.s4,
+                    vertical: UsraSpacing.s3,
                   ),
-              ],
-            ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Amount drops under the name at large text.
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        spacing: UsraSpacing.s2,
+                        children: [
+                          Text(
+                            group == SpendingGroup.type
+                                ? (types[s.key]?.labelOf(context) ?? s.key)
+                                : (s.label ?? '—'),
+                            style: UsraType.body.copyWith(
+                              color: context.usra.ink,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            _money(context, s.totalMinor),
+                            style: UsraType.numeral.copyWith(
+                              color: context.usra.ink,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: UsraSpacing.s1),
+                      LinearProgressIndicator(
+                        value: whole == 0
+                            ? 0
+                            : (s.totalMinor / whole).clamp(0, 1),
+                        minHeight: 6,
+                        borderRadius: BorderRadius.circular(3),
+                        color: context.usra.primary,
+                        backgroundColor: context.usra.primarySoft,
+                        semanticsLabel: _money(context, s.totalMinor),
+                      ),
+                      const SizedBox(height: UsraSpacing.s1),
+                      Text(
+                        l.spendingRecords(s.count),
+                        style: UsraType.label.copyWith(
+                          color: context.usra.inkMuted,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
         ],
       ),
