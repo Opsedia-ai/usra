@@ -89,7 +89,7 @@ void main() {
     },
   );
 
-  testWidgets('Dr. Usra AI shows as coming soon and can\'t be opened', (
+  testWidgets('Dr. Usra AI shows as coming soon and opens its info page', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1170, 3000);
@@ -102,13 +102,19 @@ void main() {
     await tester.tap(find.text('English'));
     await tester.pumpAndSettle();
 
-    final tile = tester.widget<ListTile>(
-      find.byKey(const ValueKey('settings-ai-soon')),
+    final row = find.byKey(const ValueKey('settings-dr-ai'));
+    expect(
+      find.descendant(of: row, matching: find.text('Dr. Usra, powered by AI')),
+      findsOneWidget,
     );
-    expect(tile.enabled, isFalse);
-    expect(tile.onTap, isNull);
-    expect(find.text('Dr. Usra AI'), findsOneWidget);
-    expect(find.text('Coming soon'), findsOneWidget);
+    expect(
+      find.descendant(of: row, matching: find.text('Coming soon')),
+      findsOneWidget,
+    );
+    await tester.ensureVisible(row);
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('dr-ai-page')), findsOneWidget);
   });
 
   testWidgets('the back arrow returns to More', (tester) async {

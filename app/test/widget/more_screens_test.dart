@@ -105,6 +105,7 @@ void main() {
       'more-money',
       'settings-backup',
       'settings-about',
+      'settings-dr-ai',
     ]) {
       await open(tester, '/settings');
       await tester.tap(key(link));
@@ -174,15 +175,167 @@ void main() {
     );
   });
 
-  testWidgets('Dr. Usra says "soon" and nothing about what it will do', (
-    tester,
-  ) async {
-    tall(tester);
-    await open(tester, '/settings');
-    final tile = tester.widget<ListTile>(key('settings-ai-soon'));
-    expect(tile.enabled, isFalse);
-    expect((tile.subtitle! as Text).data, 'قريب');
-    expect(find.textContaining('تحليل'), findsNothing);
+  group('Dr. Usra AI, coming soon', () {
+    const arFeatures = [
+      'يقرا الروشتة أو التحليل من صورة',
+      'يشرح نتيجة التحليل بكلام بسيط',
+      'يحضّر لزيارة الدكتور',
+      'أسئلة عن سجلات العيلة بالعربي',
+      'التسجيل بالصوت، بالمصري',
+      'يشرح الدوا ببساطة',
+      'يقرا كارت التأمين من صورة',
+      'ملخص أسبوعي للعيلة',
+      'في الوضع البسيط',
+    ];
+    const arLimits = [
+      'بيساعد تفهم وتنظّم، وبس.',
+      'عمره ما هيشخّص ولا هيكتب علاج.',
+      'دايمًا بيرجّعك لدكتورك.',
+      'في الطوارئ هيقول: اتصل بالإسعاف ١٢٣.',
+    ];
+
+    testWidgets('More shows the row with its "soon" pill, and it opens the '
+        'page with every feature and limit, right to left', (tester) async {
+      tall(tester);
+      await open(tester, '/settings');
+      final row = key('settings-dr-ai');
+      expect(
+        find.descendant(
+          of: row,
+          matching: find.text('دكتور أسرة بالذكاء الاصطناعي'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: row, matching: find.text('قريبًا')),
+        findsOneWidget,
+      );
+      // A screen reader hears the title and "soon" together.
+      final semantics = tester.ensureSemantics();
+      expect(
+        find.bySemanticsLabel(RegExp(r'دكتور أسرة بالذكاء الاصطناعي\s+قريبًا')),
+        findsOneWidget,
+      );
+      semantics.dispose();
+      // Just before About, in the App group.
+      final about = tester.getTopLeft(key('settings-about')).dy;
+      expect(tester.getTopLeft(row).dy, lessThan(about));
+
+      await tester.tap(row);
+      await settle(tester);
+      expect(key('dr-ai-page'), findsOneWidget);
+      expect(
+        Directionality.of(tester.element(key('dr-ai-page'))),
+        TextDirection.rtl,
+      );
+      expect(
+        find.text('هيكون موجود في تحديث جاي. لسه مش شغّال.'),
+        findsOneWidget,
+      );
+      for (final t in [...arFeatures, ...arLimits]) {
+        expect(find.text(t), findsOneWidget, reason: t);
+      }
+      expect(key('dr-ai-optional'), findsOneWidget);
+      // Informational only: nothing that pretends to work.
+      for (final type in [
+        FilledButton,
+        ElevatedButton,
+        OutlinedButton,
+        TextButton,
+        TextField,
+        Switch,
+        InkWell,
+      ]) {
+        expect(
+          find.descendant(of: key('dr-ai-page'), matching: find.byType(type)),
+          findsNothing,
+          reason: '$type',
+        );
+      }
+    });
+
+    testWidgets('the page in English, left to right', (tester) async {
+      tall(tester);
+      await prefs.setString(PrefKeys.language, 'en');
+      await open(tester, '/settings/dr-usra-ai');
+      expect(
+        Directionality.of(tester.element(key('dr-ai-page'))),
+        TextDirection.ltr,
+      );
+      for (final t in const [
+        'Dr. Usra, powered by AI',
+        'Coming soon',
+        'Reads a prescription or lab report photo',
+        'Explains a lab result in simple words',
+        'Prepares a doctor visit',
+        "Questions about your family's records, in Arabic",
+        'Log by voice, in Egyptian Arabic',
+        'Explains a medicine simply',
+        'Reads an insurance card photo',
+        'A weekly family summary',
+        'In Simple Mode',
+        "It helps you understand and organise. That's all.",
+        'It never diagnoses or prescribes.',
+        'It always points you to your doctor.',
+        'In an emergency it says: call the ambulance on 123.',
+      ]) {
+        expect(find.text(t), findsOneWidget, reason: t);
+      }
+    });
+
+    testWidgets('Simple Mode leaves it out of More', (tester) async {
+      tall(tester);
+      await prefs.setBool(PrefKeys.simpleMode, true);
+      await open(tester, '/settings');
+      expect(key('settings-about'), findsOneWidget);
+      expect(key('settings-dr-ai'), findsNothing);
+    });
+
+    test('no feature line promises a diagnosis, in either language', () {
+      for (final locale in const [Locale('ar'), Locale('en')]) {
+        final l = lookupAppLocalizations(locale);
+        final lines = [
+          l.drAiTitle,
+          l.drAiIntro,
+          l.drAiOptional,
+          l.drAiPhotoTitle,
+          l.drAiPhotoBody,
+          l.drAiLabTitle,
+          l.drAiLabBody,
+          l.drAiVisitTitle,
+          l.drAiVisitBody,
+          l.drAiAskTitle,
+          l.drAiAskBody,
+          l.drAiVoiceTitle,
+          l.drAiVoiceBody,
+          l.drAiMedicineTitle,
+          l.drAiMedicineBody,
+          l.drAiInsuranceTitle,
+          l.drAiInsuranceBody,
+          l.drAiWeeklyTitle,
+          l.drAiWeeklyBody,
+          l.drAiSimpleTitle,
+          l.drAiSimpleBody,
+        ];
+        for (final line in lines) {
+          for (final word in const [
+            'diagnos',
+            'detect',
+            'sick',
+            'safe',
+            'interact',
+            'شخّص',
+            'تشخيص',
+            'يكتشف',
+            'تفاعل',
+            'آمن',
+          ]) {
+            expect(line.toLowerCase(), isNot(contains(word)), reason: line);
+          }
+        }
+        expect(l.drAiLimitEmergency('123'), contains('123'));
+      }
+    });
   });
 
   testWidgets('with login on, More leads to the account, which says what it '
@@ -310,6 +463,7 @@ void main() {
             '/settings/account',
             '/settings/about',
             '/settings/app-lock',
+            '/settings/dr-usra-ai',
           ]) {
             GoRouter.of(tester.element(find.byType(Scaffold).first)).go(path);
             await settle(tester);

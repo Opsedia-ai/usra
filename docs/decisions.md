@@ -86,6 +86,35 @@ These replace older rows above. `docs/prd-v1.md` holds them too, under "Decided 
 | Sync cost rules | Sync when the app opens and after edits (debounced), never on a timer or by polling; send edits in batches; shrink insurance card photos to about 200–300 KB before encrypting; records and insurance cards only | Keeps the beta on the free Supabase plan and 5,000 users on Pro (about 25 dollars a month). Section 22 of the sync design adds nine more rules and the numbers: FREE at 5,000 users on Pro; the free plan holds a beta of about 500 syncing users |
 | Security | The security goals are unchanged: end-to-end encrypted, the server can't read or change records | Some mechanisms change and go to the external reviewer as Q16–Q21: two writers use the group merge and conflict flags (section 12) brought forward from Phase 2; record bodies over 1 KiB are compressed before encryption; head beacons are published on head changes and every 3 days instead of every sync; history rows are packed into weekly bundles; upload timing |
 
+## Dr. Usra AI (planned), founder request 13 Nov 2026
+
+Shown in the app as **coming soon only**: a row in More (App group, hidden in Simple Mode) opens an information page (`app/lib/features/settings/dr_usra_ai_screen.dart`). Nothing works yet: no AI call, no network, no SDK, no API key, no sign-up or "notify me". Still off in v1 (PRD F26). Cost of the page: FREE.
+
+**Features listed on the page**
+
+1. Read a prescription or lab report photo and fill in the medicine or result, for the family to check before saving.
+2. Explain a lab result in simple words, next to the lab's own normal range, with questions to ask the doctor.
+3. Prepare a doctor visit: a short summary of the last months and the family's questions.
+4. Answer questions about the family's records in Arabic ("When was Gamila's last vaccine?").
+5. Log by voice in Egyptian Arabic ("Gamila's temperature is 38.5").
+6. Explain a medicine simply (what it's for, how to take it), and gather the family's medicines worth asking the pharmacist about together.
+7. Read an insurance card photo and fill in its details.
+8. A weekly family summary: doses taken, vaccines coming, follow-ups due.
+9. In Simple Mode, read things aloud and answer "Did I take my pill?".
+
+**Guardrails promised on the page:** it helps the family understand and organise; it never diagnoses or prescribes; it always points to the doctor; in an emergency it says call 123. It will be optional, and it will only see the records the family chooses.
+
+**Open before anything is built**
+
+| Item | Notes |
+| --- | --- |
+| Opt-in consent | Off by default; a separate consent that names what is sent and to whom; can be turned off and the data deleted |
+| What leaves the phone, and to which provider | Health data sent to an AI provider needs the Egyptian lawyer (PDPL, cross-border transfer) and a privacy policy update; App Store 5.1.1, 5.1.2 and 5.1.3 disclosures; Data safety form on Google Play. KSA stays behind SFDA MDS-G27 |
+| Cost per use | Run `usra-cost-check` before building. AI is never free (about 130 dollars a month at 5,000 users on earlier assumptions, see the v1 row above); needs the founder's yes and a credits or subscription model |
+| On-device first | Photo reading (OCR with on-device ML Kit, family confirms every value), voice (on-device speech where Egyptian Arabic is good enough) and read-aloud (phone text-to-speech) should run on the phone, free and private, with the cloud only where needed |
+| Medical device boundary | Explaining results and medicines is close to the line (`usra-clinical-safety`, `samd-boundary.md`): no interpretation of the person's own values, no "safe together" or interaction judgement (item 6 only lists medicines to ask about), always ends with the doctor or 123. Needs a regulatory opinion, a new hazard analysis and the doctor before building; risk P10 |
+| Store review | Apple can reject placeholder features (guideline 2.1). The page is informational only. If review objects, hide the row and route in store builds with the existing `USRA_RELEASE` flag |
+
 ## Open questions
 
 The current list is in `docs/prd-v1.md`, under "Still open".

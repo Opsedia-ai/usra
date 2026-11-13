@@ -1065,10 +1065,95 @@ class AppLocalizationsAr extends AppLocalizations {
       'كلام وزراير أكبر وتابات أقل. مناسب للجدّ والجدّة لما يستخدموا الموبايل لوحدهم.';
 
   @override
-  String get settingsAiTitle => 'دكتور أسرة الذكي';
+  String get drAiTitle => 'دكتور أسرة بالذكاء الاصطناعي';
 
   @override
-  String get settingsAiSoon => 'قريب';
+  String get drAiSoon => 'قريبًا';
+
+  @override
+  String get drAiIntro => 'هيكون موجود في تحديث جاي. لسه مش شغّال.';
+
+  @override
+  String get drAiFeaturesHeading => 'اللي هيساعد فيه';
+
+  @override
+  String get drAiPhotoTitle => 'يقرا الروشتة أو التحليل من صورة';
+
+  @override
+  String get drAiPhotoBody =>
+      'ويكتب الدوا أو النتيجة، جاهزة تراجعها قبل الحفظ.';
+
+  @override
+  String get drAiLabTitle => 'يشرح نتيجة التحليل بكلام بسيط';
+
+  @override
+  String get drAiLabBody =>
+      'جنب المعدل الطبيعي اللي المعمل نفسه كاتبه، ومعاها أسئلة للدكتور.';
+
+  @override
+  String get drAiVisitTitle => 'يحضّر لزيارة الدكتور';
+
+  @override
+  String get drAiVisitBody => 'ملخص قصير لآخر كام شهر، وأسئلتك.';
+
+  @override
+  String get drAiAskTitle => 'أسئلة عن سجلات العيلة بالعربي';
+
+  @override
+  String get drAiAskBody => 'زي: «آخر تطعيم لجميلة كان إمتى؟»';
+
+  @override
+  String get drAiVoiceTitle => 'التسجيل بالصوت، بالمصري';
+
+  @override
+  String get drAiVoiceBody => 'زي: «حرارة جميلة ٣٨٫٥»';
+
+  @override
+  String get drAiMedicineTitle => 'يشرح الدوا ببساطة';
+
+  @override
+  String get drAiMedicineBody =>
+      'بيتاخد لإيه وإزاي، ويجمع أدوية العيلة اللي تستاهل تتسأل عنها عند الصيدلي مع بعض.';
+
+  @override
+  String get drAiInsuranceTitle => 'يقرا كارت التأمين من صورة';
+
+  @override
+  String get drAiInsuranceBody => 'ويكتب بياناته، جاهزة تراجعها قبل الحفظ.';
+
+  @override
+  String get drAiWeeklyTitle => 'ملخص أسبوعي للعيلة';
+
+  @override
+  String get drAiWeeklyBody =>
+      'الجرعات اللي اتاخدت، والتطعيمات الجاية، والمتابعات اللي ميعادها جه.';
+
+  @override
+  String get drAiSimpleTitle => 'في الوضع البسيط';
+
+  @override
+  String get drAiSimpleBody => 'يقرا الكلام بصوت عالي، ويرد على «خدت حبايتي؟»';
+
+  @override
+  String get drAiLimitsHeading => 'حدوده';
+
+  @override
+  String get drAiLimitHelps => 'بيساعد تفهم وتنظّم، وبس.';
+
+  @override
+  String get drAiLimitNever => 'عمره ما هيشخّص ولا هيكتب علاج.';
+
+  @override
+  String get drAiLimitDoctor => 'دايمًا بيرجّعك لدكتورك.';
+
+  @override
+  String drAiLimitEmergency(String number) {
+    return 'في الطوارئ هيقول: اتصل بالإسعاف $number.';
+  }
+
+  @override
+  String get drAiOptional =>
+      'هيكون اختياري، ومش هيشوف من سجلات العيلة غير اللي تختاره.';
 
   @override
   String get settingsTutorial => 'اعرض الشرح تاني';

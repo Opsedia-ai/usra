@@ -108,3 +108,18 @@ Questions for the doctor:
 Questions for the doctor:
 1. Is "بيقلد شغل البيت اللي بتعملوه" faithful to the CDC milestone?
 2. Two more milestones address the parent as a man: 2 months "بيتابعك بعينه وانت بتتحرك" and 4 months "بيثبّت راسه لوحده وانت شايله". Should they be reworded the same way, or follow the reader's sex?
+
+## Dr. Usra AI, coming soon (founder request, 13 Nov 2026)
+
+An information page in More about the planned AI assistant. It does nothing yet. Please check the feature lines don't promise more than the limits allow, and the limits themselves. The full table is in `docs/arabic-review.md` under "Dr. Usra AI, coming soon".
+
+| Text | English |
+|---|---|
+| بيساعد تفهم وتنظّم، وبس. | It helps you understand and organise. That's all. |
+| عمره ما هيشخّص ولا هيكتب علاج. | It never diagnoses or prescribes. |
+| دايمًا بيرجّعك لدكتورك. | It always points you to your doctor. |
+| في الطوارئ هيقول: اتصل بالإسعاف ١٢٣. | In an emergency it says: call the ambulance on 123. |
+| يشرح نتيجة التحليل بكلام بسيط · جنب المعدل الطبيعي اللي المعمل نفسه كاتبه، ومعاها أسئلة للدكتور. | Explains a lab result in simple words · Next to the lab's own normal range, with questions to ask your doctor. |
+| يشرح الدوا ببساطة · بيتاخد لإيه وإزاي، ويجمع أدوية العيلة اللي تستاهل تتسأل عنها عند الصيدلي مع بعض. | Explains a medicine simply · What it's for and how to take it, and gathers the family's medicines worth asking the pharmacist about together. |
+
+Question for the doctor: the medicine line lists medicines to ask the pharmacist about together. It deliberately says nothing about whether they are safe together, since an interaction checker would make Usra a medical device. Is the line acceptable, or should it go?

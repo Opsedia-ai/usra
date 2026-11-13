@@ -657,3 +657,44 @@ After saving a vaccine plan (or turning vaccine reminders on in More) the phone'
 | `reminderExplainOk` | New | كمّل | Continue |
 | `reminderExplainLater` | New | مش دلوقتي | Not now |
 | `settingsNotificationsOffPhone` | New | الإشعارات مقفولة على الموبايل ده، فالتنبيهات دي مش هتظهر. | Notifications are off on this phone, so these reminders won't show. |
+
+## Dr. Usra AI, coming soon, 13 November 2026 (founder request)
+
+A row in More (App group, just before Privacy and terms) opens an information page about the planned AI assistant. Nothing on it works yet: no buttons, no sign-up. The old row (`settingsAiTitle` دكتور أسرة الذكي, `settingsAiSoon` قريب) is replaced. Hidden in Simple Mode. The limits lines are safety text, so they also go to the doctor (`docs/medical-review-changes.md`).
+
+| Key | | Arabic | English |
+|---|---|---|---|
+| `drAiTitle` | New (replaces `settingsAiTitle`) | دكتور أسرة بالذكاء الاصطناعي | Dr. Usra, powered by AI |
+| `drAiSoon` | New (replaces `settingsAiSoon`) | قريبًا | Coming soon |
+| `drAiIntro` | New | هيكون موجود في تحديث جاي. لسه مش شغّال. | Coming in a future update. It doesn't work yet. |
+| `drAiFeaturesHeading` | New | اللي هيساعد فيه | What it will help with |
+| `drAiPhotoTitle` | New | يقرا الروشتة أو التحليل من صورة | Reads a prescription or lab report photo |
+| `drAiPhotoBody` | New | ويكتب الدوا أو النتيجة، جاهزة تراجعها قبل الحفظ. | And fills in the medicine or result, for you to check before saving. |
+| `drAiLabTitle` | New | يشرح نتيجة التحليل بكلام بسيط | Explains a lab result in simple words |
+| `drAiLabBody` | New | جنب المعدل الطبيعي اللي المعمل نفسه كاتبه، ومعاها أسئلة للدكتور. | Next to the lab's own normal range, with questions to ask your doctor. |
+| `drAiVisitTitle` | New | يحضّر لزيارة الدكتور | Prepares a doctor visit |
+| `drAiVisitBody` | New | ملخص قصير لآخر كام شهر، وأسئلتك. | A short summary of the last few months, and your questions. |
+| `drAiAskTitle` | New | أسئلة عن سجلات العيلة بالعربي | Questions about your family's records, in Arabic |
+| `drAiAskBody` | New | زي: «آخر تطعيم لجميلة كان إمتى؟» | Like: "When was Gamila's last vaccine?" |
+| `drAiVoiceTitle` | New | التسجيل بالصوت، بالمصري | Log by voice, in Egyptian Arabic |
+| `drAiVoiceBody` | New | زي: «حرارة جميلة ٣٨٫٥» | Like: "Gamila's temperature is 38.5" |
+| `drAiMedicineTitle` | New | يشرح الدوا ببساطة | Explains a medicine simply |
+| `drAiMedicineBody` | New | بيتاخد لإيه وإزاي، ويجمع أدوية العيلة اللي تستاهل تتسأل عنها عند الصيدلي مع بعض. | What it's for and how to take it, and gathers the family's medicines worth asking the pharmacist about together. |
+| `drAiInsuranceTitle` | New | يقرا كارت التأمين من صورة | Reads an insurance card photo |
+| `drAiInsuranceBody` | New | ويكتب بياناته، جاهزة تراجعها قبل الحفظ. | And fills in its details, for you to check before saving. |
+| `drAiWeeklyTitle` | New | ملخص أسبوعي للعيلة | A weekly family summary |
+| `drAiWeeklyBody` | New | الجرعات اللي اتاخدت، والتطعيمات الجاية، والمتابعات اللي ميعادها جه. | Doses taken, vaccines coming up, and follow-ups due. |
+| `drAiSimpleTitle` | New | في الوضع البسيط | In Simple Mode |
+| `drAiSimpleBody` | New | يقرا الكلام بصوت عالي، ويرد على «خدت حبايتي؟» | Reads things aloud, and answers "Did I take my pill?" |
+| `drAiLimitsHeading` | New | حدوده | Its limits |
+| `drAiLimitHelps` | New | بيساعد تفهم وتنظّم، وبس. | It helps you understand and organise. That's all. |
+| `drAiLimitNever` | New | عمره ما هيشخّص ولا هيكتب علاج. | It never diagnoses or prescribes. |
+| `drAiLimitDoctor` | New | دايمًا بيرجّعك لدكتورك. | It always points you to your doctor. |
+| `drAiLimitEmergency` | New | في الطوارئ هيقول: اتصل بالإسعاف {number}. (١٢٣) | In an emergency it says: call the ambulance on {number}. (123) |
+| `drAiOptional` | New | هيكون اختياري، ومش هيشوف من سجلات العيلة غير اللي تختاره. | It will be optional, and it will only see the family records you choose. |
+
+Questions:
+
+- "تراجعها" and "تختاره" address the reader as a man, like the rest of the app. Acceptable until the app knows who is reading?
+- "بيساعد تفهم" leaves out the object (بيساعدك). Natural, or should it be "بيساعدك تفهم وتنظّم"?
+- Is "جميلة" a good example name, and is «حرارة جميلة ٣٨٫٥» how a parent would say it?
