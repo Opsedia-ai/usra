@@ -15,6 +15,7 @@ class UsraListRow extends StatelessWidget {
     required this.title,
     this.leading,
     this.icon,
+    this.iconTint,
     this.subtitle,
     this.subtitleText,
     this.trailing,
@@ -30,6 +31,10 @@ class UsraListRow extends StatelessWidget {
 
   /// A muted line icon at the start.
   final IconData? icon;
+
+  /// Draws [icon] in a small box: neutral, or tinted by the section's
+  /// meaning (see [IconTint]). Null keeps the bare muted icon.
+  final IconTint? iconTint;
 
   /// A custom second line, such as a [StatusDotText].
   final Widget? subtitle;
@@ -58,7 +63,9 @@ class UsraListRow extends StatelessWidget {
         leading ??
         (icon == null
             ? null
-            : ExcludeSemantics(child: Icon(icon, size: 20, color: c.inkMuted)));
+            : iconTint == null
+            ? ExcludeSemantics(child: Icon(icon, size: 20, color: c.inkMuted))
+            : IconBox(icon: icon!, tint: iconTint, size: 32));
     final end =
         trailing ??
         (onTap == null
@@ -175,27 +182,68 @@ class UsraGroupLabel extends StatelessWidget {
   );
 }
 
+/// A section's icon-box colours, by meaning (brand touch, 13 Nov 2026):
+/// vaccines and pregnancy orchid, medicines sky, everything else neutral.
+/// Never for a box that shows a status: those keep [IconBox.color], such as
+/// amber for someone who's unwell.
+enum IconTint {
+  neutral,
+  vaccines,
+  medicines,
+  pregnancy;
+
+  /// The box's fill.
+  Color fillIn(UsraColors c) => switch (this) {
+    IconTint.neutral => c.surfaceSoft,
+    IconTint.vaccines || IconTint.pregnancy => c.orchidSoft,
+    IconTint.medicines => c.skySoft,
+  };
+
+  /// The icon's colour on [fillIn]: 3:1 or more in both themes.
+  Color inkIn(UsraColors c) => switch (this) {
+    IconTint.neutral => c.inkMuted,
+    IconTint.vaccines || IconTint.pregnancy => c.orchidInk,
+    IconTint.medicines => c.skyInk,
+  };
+}
+
 /// A 36 square with 10 corners holding a muted icon, at the start of a card
-/// or row. [color] tints it, such as amber for someone who's unwell.
+/// or row. [color] tints it for a status, such as amber for someone who's
+/// unwell; [tint] colours it by the section's meaning instead.
 class IconBox extends StatelessWidget {
-  const IconBox({super.key, required this.icon, this.color});
+  const IconBox({
+    super.key,
+    required this.icon,
+    this.color,
+    this.tint,
+    this.size = 36,
+  });
 
   final IconData icon;
   final Color? color;
+  final IconTint? tint;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
     final c = context.usra;
-    final tint = color;
+    final status = color;
+    final section = tint;
     return ExcludeSemantics(
       child: Container(
-        width: 36,
-        height: 36,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
-          color: tint == null ? c.surfaceSoft : tint.withValues(alpha: 0.14),
+          color: status != null
+              ? status.withValues(alpha: 0.14)
+              : section?.fillIn(c) ?? c.surfaceSoft,
           borderRadius: BorderRadius.circular(UsraRadius.iconBox),
         ),
-        child: Icon(icon, size: 20, color: tint ?? c.inkMuted),
+        child: Icon(
+          icon,
+          size: size * 5 / 9,
+          color: status ?? section?.inkIn(c) ?? c.inkMuted,
+        ),
       ),
     );
   }

@@ -396,8 +396,10 @@ class _NewPersonButton extends StatelessWidget {
   const _NewPersonButton();
 
   @override
+  // A small orchid-ink accent: a secondary action, not the screen's main one.
   Widget build(BuildContext context) => OutlinedButton.icon(
     key: const ValueKey('home-new-person'),
+    style: OutlinedButton.styleFrom(foregroundColor: context.usra.orchidInk),
     onPressed: () => context.go('/family/new'),
     icon: const Icon(Icons.add),
     label: Text(AppLocalizations.of(context).homeNewPerson),

@@ -480,7 +480,10 @@ class HomeVaccines extends ConsumerWidget {
           for (final c in children)
             UsraListRow(
               key: ValueKey('home-vaccines-${c.profile.id}'),
-              leading: const IconBox(icon: Icons.vaccines_outlined),
+              leading: const IconBox(
+                icon: Icons.vaccines_outlined,
+                tint: IconTint.vaccines,
+              ),
               title: l.vaccinesTitleOf(c.profile.displayName),
               emphasized: true,
               subtitle: _HomeVaccineLine(child: c, today: today),

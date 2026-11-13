@@ -224,7 +224,10 @@ void main() {
       // Her page: two years old (24 months 0 days: 12 Nov 2024 to
       // 12 Nov 2026), and "your daughter".
       expect(find.text('جميلة'), findsWidgets);
-      expect(tester.widget<Text>(key('member-details')).data, 'سنتين – بنتك');
+      expect(
+        tester.widget<Text>(key('member-details')).textSpan!.toPlainText(),
+        'سنتين – بنتك',
+      );
 
       // Home shows her.
       GoRouter.of(tester.element(find.byType(Scaffold).first)).go('/home');
@@ -316,7 +319,10 @@ void main() {
     await family(tester);
     await h.open(tester, '/family/$gamilaId');
     // 12 Nov 2024 -> 12 Nov 2026: 24 completed months, 0 days = 2 years.
-    expect(tester.widget<Text>(key('member-details')).data, 'سنتين – بنتك');
+    expect(
+      tester.widget<Text>(key('member-details')).textSpan!.toPlainText(),
+      'سنتين – بنتك',
+    );
     await h.go(tester, '/family/$gamilaId/emergency');
     expect(
       tester.widget<Text>(key('emergency-details')).data,
@@ -326,7 +332,10 @@ void main() {
     now = DateTime(2026, 11, 11, 10);
     await h.go(tester, '/family/$meId');
     await h.go(tester, '/family/$gamilaId');
-    expect(tester.widget<Text>(key('member-details')).data, '٢٣ شهر – بنتك');
+    expect(
+      tester.widget<Text>(key('member-details')).textSpan!.toPlainText(),
+      '٢٣ شهر – بنتك',
+    );
   });
 
   // ---------------------------------------------------------------------
