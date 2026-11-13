@@ -83,7 +83,8 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(root ?? app());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('المزيد').last);
+    // By key: at double text the bar shows icons only.
+    await tester.tap(find.byKey(const ValueKey('tab-/settings')));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const ValueKey('settings-account')));
     await tester.pumpAndSettle();
@@ -96,7 +97,8 @@ void main() {
   ) async {
     await tester.pumpWidget(app(configured: false));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('المزيد').last);
+    // By key: at double text the bar shows icons only.
+    await tester.tap(find.byKey(const ValueKey('tab-/settings')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('settings-backup')), findsOneWidget);
     expect(find.byKey(const ValueKey('settings-account')), findsNothing);
@@ -108,7 +110,8 @@ void main() {
   ) async {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('المزيد').last);
+    // By key: at double text the bar shows icons only.
+    await tester.tap(find.byKey(const ValueKey('tab-/settings')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('settings-account')), findsOneWidget);
     expect(gateway.restores, 0);

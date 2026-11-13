@@ -16,6 +16,7 @@ class UsraPill extends StatelessWidget {
     required this.onTap,
     this.selected = false,
     this.dashed = false,
+    this.soft = false,
     this.icon,
   });
 
@@ -23,13 +24,18 @@ class UsraPill extends StatelessWidget {
   final VoidCallback? onTap;
   final bool selected;
   final bool dashed;
+
+  /// When selected, a soft primary-soft pill with a primary edge instead of
+  /// a filled one, for filters that sit beside the screen's filled main
+  /// button (one filled accent per screen).
+  final bool soft;
   final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     final c = context.usra;
     final foreground = selected
-        ? c.onPrimary
+        ? (soft ? c.primary : c.onPrimary)
         : dashed
         ? c.primary
         : c.ink;
@@ -73,12 +79,14 @@ class UsraPill extends StatelessWidget {
         foregroundPainter: dashed ? _DashedPill(c.lineStrong) : null,
         child: Material(
           color: selected
-              ? c.primary
+              ? (soft ? c.primarySoft : c.primary)
               : dashed
               ? Colors.transparent
               : c.surface,
           shape: StadiumBorder(
-            side: selected || dashed
+            side: selected && soft
+                ? BorderSide(color: c.primary)
+                : selected || dashed
                 ? BorderSide.none
                 : BorderSide(color: c.lineStrong),
           ),

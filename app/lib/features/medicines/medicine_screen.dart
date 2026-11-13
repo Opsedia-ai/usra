@@ -45,7 +45,7 @@ class MedicineScreen extends ConsumerWidget {
             IconButton(
               key: const ValueKey('medicine-edit'),
               tooltip: l.medicineEdit,
-              icon: const Icon(Icons.edit_outlined),
+              icon: const Icon(Icons.mode_edit_outline_outlined),
               onPressed: () =>
                   context.go('/family/$profileId/medicines/$medicineId/edit'),
             ),

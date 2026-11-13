@@ -49,6 +49,8 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
               key: ValueKey('records-$prefix-${id ?? 'all'}'),
               label: name,
               selected: selected == id,
+              // Soft: the filled accent here is "سجل جديد".
+              soft: true,
               onTap: () => onSelected(id),
             ),
           ),
