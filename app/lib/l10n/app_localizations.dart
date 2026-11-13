@@ -104,6 +104,12 @@ abstract class AppLocalizations {
   /// **'Usra'**
   String get appTitle;
 
+  /// Button on a bar above the iPhone number pad that closes the keyboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get keyboardDone;
+
   /// No description provided for @navHome.
   ///
   /// In en, this message translates to:
