@@ -5424,6 +5424,45 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get vaccineMoreDetails => 'More details (place, photo, cost)';
+
+  @override
+  String vaccineSaveCount(int count, String countText) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Save $countText vaccines',
+      two: 'Save both vaccines',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vaccineSavedManyFor(int count, String countText, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Saved $countText vaccines for $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get vaccineSomethingElse => 'Something else';
+
+  @override
+  String get vaccineTetanus => 'Tetanus (Td)';
+
+  @override
+  String get vaccineHpv => 'HPV';
+
+  @override
+  String get vaccineTyphoid => 'Typhoid';
+
+  @override
+  String get vaccineCovid => 'COVID-19';
+
+  @override
   String vaccineChoiceOverdue(String dose) {
     return '$dose – overdue';
   }

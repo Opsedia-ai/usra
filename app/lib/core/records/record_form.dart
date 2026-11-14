@@ -31,6 +31,7 @@ class RecordFormStrings {
     this.photoCamera = '',
     this.photoGallery = '',
     this.photoRemove = '',
+    this.moreDetails = '',
   });
 
   final String date;
@@ -44,22 +45,29 @@ class RecordFormStrings {
   /// Label of the "pick from your doctors" menu on types with a doctor field.
   final String chooseDoctor;
 
-  RecordFormStrings copyWith({String? save, String? photos}) =>
-      RecordFormStrings(
-        clearDate: clearDate,
-        date: date,
-        cost: cost,
-        currency: currency,
-        save: save ?? this.save,
-        required: required,
-        invalid: invalid,
-        pickDate: pickDate,
-        chooseDoctor: chooseDoctor,
-        photos: photos ?? this.photos,
-        photoCamera: photoCamera,
-        photoGallery: photoGallery,
-        photoRemove: photoRemove,
-      );
+  /// The fold that holds [RecordForm.foldedFields], photos and cost.
+  final String moreDetails;
+
+  RecordFormStrings copyWith({
+    String? save,
+    String? photos,
+    String? moreDetails,
+  }) => RecordFormStrings(
+    clearDate: clearDate,
+    date: date,
+    cost: cost,
+    currency: currency,
+    save: save ?? this.save,
+    required: required,
+    invalid: invalid,
+    pickDate: pickDate,
+    chooseDoctor: chooseDoctor,
+    photos: photos ?? this.photos,
+    photoCamera: photoCamera,
+    photoGallery: photoGallery,
+    photoRemove: photoRemove,
+    moreDetails: moreDetails ?? this.moreDetails,
+  );
 
   /// The "Add photos" row, shown when the form is given a photo picker.
   final String photos;
@@ -134,7 +142,16 @@ class RecordForm extends StatefulWidget {
     this.photosFirst = false,
     this.firstOccurredAt,
     this.lastOccurredAt,
+    this.foldedFields = const {},
+    this.foldExtras = false,
   });
+
+  /// Fields shown only after "more details" is opened, to keep a short form
+  /// short. Opens by itself when one of them holds a value or a problem.
+  final Set<String> foldedFields;
+
+  /// Photos and cost go in the same fold.
+  final bool foldExtras;
 
   /// The earliest and latest days the record's own date can be picked; a date
   /// already saved outside them stays pickable. Null: the usual wide range.
@@ -194,6 +211,14 @@ class _RecordFormState extends State<RecordForm> {
   bool _submitting = false;
   DoctorChoice? _doctor;
   final _photos = <String>[];
+
+  /// "More details" opened.
+  late bool _detailsOpen =
+      widget.foldedFields.any((k) {
+        final v = widget.initialData[k];
+        return v != null && v.toString().trim().isNotEmpty;
+      }) ||
+      (widget.foldExtras && (widget.initialCostText ?? '').trim().isNotEmpty);
 
   String? _doctorNameAtStart;
 
@@ -320,6 +345,11 @@ class _RecordFormState extends State<RecordForm> {
     setState(() {
       _problems = problems;
       _costInvalid = costInvalid;
+      // A problem inside the fold must be seen.
+      if (problems.any(widget.foldedFields.contains) ||
+          (costInvalid && widget.foldExtras)) {
+        _detailsOpen = true;
+      }
     });
     if (problems.isNotEmpty || costInvalid) return;
 
@@ -456,6 +486,13 @@ class _RecordFormState extends State<RecordForm> {
             onAdd: _submitting ? null : _addPhotos,
             onRemove: _submitting ? null : _removePhoto,
           );
+    final hasFold =
+        widget.foldExtras ||
+        widget.type.fields.any(
+          (f) =>
+              widget.foldedFields.contains(f.key) &&
+              !widget.hiddenFields.contains(f.key),
+        );
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
@@ -463,7 +500,7 @@ class _RecordFormState extends State<RecordForm> {
           header,
           const SizedBox(height: 16),
         ],
-        if (widget.photosFirst && photos != null) ...[
+        if (widget.photosFirst && !widget.foldExtras && photos != null) ...[
           photos,
           const SizedBox(height: 16),
         ],
@@ -494,7 +531,8 @@ class _RecordFormState extends State<RecordForm> {
           ),
         ),
         for (final f in widget.type.fields)
-          if (!widget.hiddenFields.contains(f.key)) ...[
+          if (!widget.hiddenFields.contains(f.key) &&
+              !widget.foldedFields.contains(f.key)) ...[
             const SizedBox(height: 16),
             if (f.key == widget.type.doctorField &&
                 widget.doctors.isNotEmpty) ...[
@@ -526,7 +564,7 @@ class _RecordFormState extends State<RecordForm> {
             ],
             _field(f),
           ],
-        if (widget.type.hasCost) ...[
+        if (widget.type.hasCost && !widget.foldExtras) ...[
           const SizedBox(height: 16),
           TextFormField(
             key: const ValueKey('field-cost'),
@@ -539,7 +577,74 @@ class _RecordFormState extends State<RecordForm> {
             ),
           ),
         ],
-        if (!widget.photosFirst && photos != null) ...[
+        if (hasFold) ...[
+          const SizedBox(height: 12),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              key: const ValueKey('record-more-details'),
+              onPressed: () => setState(() => _detailsOpen = !_detailsOpen),
+              icon: Icon(_detailsOpen ? Icons.expand_less : Icons.expand_more),
+              label: Text(widget.strings.moreDetails),
+            ),
+          ),
+          if (_detailsOpen) ...[
+            for (final f in widget.type.fields)
+              if (!widget.hiddenFields.contains(f.key) &&
+                  widget.foldedFields.contains(f.key)) ...[
+                const SizedBox(height: 16),
+                if (f.key == widget.type.doctorField &&
+                    widget.doctors.isNotEmpty) ...[
+                  DropdownButtonFormField<DoctorChoice>(
+                    // A rounded menu with a hairline, as the polish asks (QA L8).
+                    borderRadius: BorderRadius.circular(UsraRadius.md),
+                    elevation: 1,
+                    dropdownColor: context.usra.surface,
+                    key: const ValueKey('field-doctorPick'),
+                    initialValue: _doctor,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: widget.strings.chooseDoctor,
+                      prefixIcon: const Icon(Icons.contacts_outlined),
+                    ),
+                    items: [
+                      for (final d in widget.doctors)
+                        DropdownMenuItem(
+                          value: d,
+                          child: Text(
+                            [d.name, ?d.specialty].join(partSeparator),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
+                    onChanged: _pickDoctor,
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                _field(f),
+              ],
+            if (widget.type.hasCost && widget.foldExtras) ...[
+              const SizedBox(height: 16),
+              TextFormField(
+                key: const ValueKey('field-cost'),
+                controller: _cost,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: InputDecoration(
+                  labelText: widget.strings.cost,
+                  suffixText: widget.strings.currency,
+                  errorText: _costInvalid ? widget.strings.invalid : null,
+                ),
+              ),
+            ],
+            if (widget.foldExtras && photos != null) ...[
+              const SizedBox(height: 20),
+              photos,
+            ],
+          ],
+        ],
+        if (!widget.photosFirst && !widget.foldExtras && photos != null) ...[
           const SizedBox(height: 20),
           photos,
         ],

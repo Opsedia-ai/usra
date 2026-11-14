@@ -8071,6 +8071,54 @@ abstract class AppLocalizations {
   /// **'Saved: {vaccine} for {name}'**
   String vaccineSavedFor(String vaccine, String name);
 
+  /// Opens the folded fields of the new-vaccine form.
+  ///
+  /// In en, this message translates to:
+  /// **'More details (place, photo, cost)'**
+  String get vaccineMoreDetails;
+
+  /// Save button when several doses are ticked (2 or more).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =2{Save both vaccines} other{Save {countText} vaccines}}'**
+  String vaccineSaveCount(int count, String countText);
+
+  /// No description provided for @vaccineSavedManyFor.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{Saved {countText} vaccines for {name}}}'**
+  String vaccineSavedManyFor(int count, String countText, String name);
+
+  /// Shows the typed vaccine-name field when the vaccine isn't in the list.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get vaccineSomethingElse;
+
+  /// No description provided for @vaccineTetanus.
+  ///
+  /// In en, this message translates to:
+  /// **'Tetanus (Td)'**
+  String get vaccineTetanus;
+
+  /// No description provided for @vaccineHpv.
+  ///
+  /// In en, this message translates to:
+  /// **'HPV'**
+  String get vaccineHpv;
+
+  /// No description provided for @vaccineTyphoid.
+  ///
+  /// In en, this message translates to:
+  /// **'Typhoid'**
+  String get vaccineTyphoid;
+
+  /// No description provided for @vaccineCovid.
+  ///
+  /// In en, this message translates to:
+  /// **'COVID-19'**
+  String get vaccineCovid;
+
   /// No description provided for @vaccineChoiceOverdue.
   ///
   /// In en, this message translates to:

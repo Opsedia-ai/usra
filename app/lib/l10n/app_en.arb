@@ -3105,6 +3105,44 @@
       }
     }
   },
+  "vaccineMoreDetails": "More details (place, photo, cost)",
+  "@vaccineMoreDetails": {
+    "description": "Opens the folded fields of the new-vaccine form."
+  },
+  "vaccineSaveCount": "{count, plural, =2{Save both vaccines} other{Save {countText} vaccines}}",
+  "@vaccineSaveCount": {
+    "description": "Save button when several doses are ticked (2 or more).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "countText": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineSavedManyFor": "{count, plural, other{Saved {countText} vaccines for {name}}}",
+  "@vaccineSavedManyFor": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "countText": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "vaccineSomethingElse": "Something else",
+  "@vaccineSomethingElse": {
+    "description": "Shows the typed vaccine-name field when the vaccine isn't in the list."
+  },
+  "vaccineTetanus": "Tetanus (Td)",
+  "vaccineHpv": "HPV",
+  "vaccineTyphoid": "Typhoid",
+  "vaccineCovid": "COVID-19",
   "vaccineChoiceOverdue": "{dose} – overdue",
   "@vaccineChoiceOverdue": {
     "placeholders": {

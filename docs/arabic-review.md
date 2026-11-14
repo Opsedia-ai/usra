@@ -698,3 +698,24 @@ Questions:
 - "تراجعها" and "تختاره" address the reader as a man, like the rest of the app. Acceptable until the app knows who is reading?
 - "بيساعد تفهم" leaves out the object (بيساعدك). Natural, or should it be "بيساعدك تفهم وتنظّم"?
 - Is "جميلة" a good example name, and is «حرارة جميلة ٣٨٫٥» how a parent would say it?
+
+## Simpler new-vaccine form, 14 November 2026 (founder request)
+
+| Key | Status | Arabic | Meaning |
+| --- | --- | --- | --- |
+| `vaccineMoreDetails` | New | تفاصيل أكتر (المكان، الصورة، السعر) | More details (place, photo, cost) |
+| `vaccineSaveCount` | New | احفظ التطعيمين / احفظ {count} تطعيمات / احفظ {count} تطعيم | Save both vaccines / Save {count} vaccines |
+| `vaccineSavedManyFor` | New | اتحفظ تطعيمين لـ{name} / اتحفظ {count} تطعيمات لـ{name} / اتحفظ {count} تطعيم لـ{name} | Saved {count} vaccines for {name} |
+| `vaccineSomethingElse` | New | حاجة تانية | Something else (type the name) |
+| `vaccineTetanus` | New | التيتانوس | Tetanus (Td) |
+| `vaccineHpv` | New | فيروس الورم الحليمي (HPV) | HPV |
+| `vaccineTyphoid` | New | التيفود | Typhoid |
+| `vaccineCovid` | New | كورونا | COVID-19 |
+
+Questions:
+
+- Is "التيتانوس" what parents say, or "تطعيم التيتانوس" / "الثنائي"? The Td shot for older children and adults is often called "الثنائي".
+- "كورونا" or "كوفيد"?
+- "لـ{name}" before a name that starts with "ال" (rule 4 above).
+
+The new vaccine names also go to the doctor (`docs/medical-review-changes.md`).

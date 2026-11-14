@@ -12,6 +12,7 @@ import '../../core/design/type.dart';
 import '../../core/files/photo_store.dart';
 import '../../core/providers.dart';
 import '../../core/records/record_form.dart';
+import '../../core/util/localized_digits.dart';
 import '../../l10n/app_localizations.dart';
 import '../account/save_gate.dart';
 import '../family/family_screen.dart' show profilesProvider;
@@ -22,10 +23,12 @@ import 'child_vaccines.dart';
 import 'egypt_vaccines.dart';
 import 'growth.dart' show isUnderFive;
 
-/// Logs one vaccine: whose it is, which (a dose the schedule is waiting for, or
-/// anything else), when and where. A dose from the list counts towards the
-/// schedule exactly as the checklist's do, but it's the family's own record: it
-/// can hold a photo and a cost, so unticking it later warns first.
+/// Logs vaccines given at one visit: whose, which (the doses the schedule is
+/// waiting for, ticked, or one picked from a list), and when. Place, photo,
+/// note and cost wait under "more details" so the form stays short
+/// (founder, 14 Nov 2026). A dose from the list counts towards the schedule
+/// exactly as the checklist's do, but it's the family's own record: it can
+/// hold a photo and a cost, so unticking it later warns first.
 class NewVaccineScreen extends ConsumerStatefulWidget {
   const NewVaccineScreen({super.key, required this.profileId});
 
@@ -37,12 +40,35 @@ class NewVaccineScreen extends ConsumerStatefulWidget {
 
 const _other = 'other';
 
+/// Vaccines offered by name for "another vaccine" and for anyone without a
+/// schedule, so the name is picked rather than typed.
+List<String> commonVaccineNames(AppLocalizations l) => [
+  for (final k in VaccineKind.values)
+    // One name each: hexavalent and pentavalent stay, as cards print them.
+    vaccineName(l, k),
+  l.vaccineTetanus,
+  l.vaccineHpv,
+  l.vaccineTyphoid,
+  l.vaccineCovid,
+];
+
 class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
   late String _person = widget.profileId;
 
-  /// A dose's key or [_other]; null until the family picks, which starts on
-  /// the first dose waiting.
-  String? _choice;
+  /// Ticked doses' keys, or just [_other]; null until the family picks, which
+  /// starts on the doses due now.
+  Set<String>? _picked;
+
+  /// For another vaccine: the name picked from the list (null: typed) and
+  /// the dose number tapped.
+  String? _otherName;
+  int? _otherDose;
+
+  void _reset() {
+    _picked = null;
+    _otherName = null;
+    _otherDose = null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,131 +93,197 @@ class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
                   child.next.doses.contains(s.dose))
                 s,
           ];
-    // Never starts on a dose that isn't due yet: someone logging a travel or
-    // private vaccine could save it as that dose without noticing.
-    final choice =
-        _choice ??
-        waiting
-            .where(
-              (s) =>
-                  s.followed &&
-                  (s.state == DoseState.overdue || s.state == DoseState.due),
-            )
-            .firstOrNull
-            ?.dose
-            .key ??
-        _other;
-    final chosen = waiting.where((s) => s.dose.key == choice).firstOrNull;
+    final picked = _picked ?? _startingPick(waiting);
+    final doses = [
+      for (final s in waiting)
+        if (picked.contains(s.dose.key)) s,
+    ];
+    final other = doses.isEmpty;
     final name = person?.displayName ?? '';
     final strings = recordFormStrings(l);
+    final heading = UsraType.body.copyWith(
+      color: c.ink,
+      fontWeight: FontWeight.w600,
+    );
+    final save = name.isEmpty
+        ? null
+        : doses.length > 1
+        ? l.vaccineSaveCount(
+            doses.length,
+            localizedDigits(context, doses.length),
+          )
+        : l.medicineSaveFor(name);
     return Scaffold(
       appBar: AppBar(title: Text(l.vaccineNewTitle)),
       body: RecordForm(
         type: type,
         strings: strings.copyWith(
-          save: name.isEmpty ? null : l.medicineSaveFor(name),
+          save: save,
           photos: l.vaccineCardPhoto,
+          moreDetails: l.vaccineMoreDetails,
         ),
         lastOccurredAt: nowOf(context),
         firstOccurredAt: person?.birthDate,
-        photosFirst: true,
-        hiddenFields: chosen == null
-            ? const {}
-            : const {'vaccine', 'dose', 'nextDue'},
-        presetData: chosen == null
-            ? const {}
-            : {
-                'vaccine': vaccineName(l, chosen.dose.kind),
-                'dose': chosen.dose.dose,
-              },
+        foldedFields: const {'nextDue', 'place', 'note'},
+        foldExtras: true,
+        hiddenFields: !other
+            ? const {'vaccine', 'dose', 'nextDue'}
+            : _otherName != null
+            ? const {'vaccine', 'dose'}
+            : const {'dose'},
+        presetData: !other
+            ? {
+                'vaccine': vaccineName(l, doses.first.dose.kind),
+                'dose': doses.first.dose.dose,
+              }
+            : {'vaccine': ?_otherName, 'dose': ?_otherDose},
         header: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              l.vaccineWhoFor,
-              style: UsraType.body.copyWith(
-                color: c.ink,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: UsraSpacing.s1),
-            Wrap(
-              spacing: UsraSpacing.s2,
-              runSpacing: UsraSpacing.s2,
-              children: [
-                for (final p in people)
-                  UsraPill(
-                    key: ValueKey('new-vaccine-person-${p.id}'),
-                    label: p.displayName,
-                    selected: p.id == _person,
-                    onTap: () => setState(() {
-                      _person = p.id;
-                      // The other person's schedule has other doses.
-                      _choice = null;
-                    }),
-                  ),
-              ],
-            ),
-            // The checklist, not this form: a card holds many doses, and each
-            // one needs its own check. Only a child has a schedule to read to.
-            if (child != null) ...[
-              const SizedBox(height: UsraSpacing.s3),
-              _CardScanLink(
-                onTap: () =>
-                    context.push('/family/$_person/vaccines/setup?scan=1'),
-              ),
-            ],
-            if (waiting.isNotEmpty) ...[
-              const SizedBox(height: UsraSpacing.s3),
-              Text(
-                l.vaccineWhich,
-                style: UsraType.body.copyWith(
-                  color: c.ink,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+            if (people.length > 1) ...[
+              Text(l.vaccineWhoFor, style: heading),
               const SizedBox(height: UsraSpacing.s1),
               Wrap(
                 spacing: UsraSpacing.s2,
                 runSpacing: UsraSpacing.s2,
                 children: [
-                  for (final s in waiting)
+                  for (final p in people)
                     UsraPill(
-                      key: ValueKey('new-vaccine-${s.dose.key}'),
-                      label: s.state == DoseState.overdue
-                          ? l.vaccineChoiceOverdue(doseName(l, s.dose))
-                          : doseName(l, s.dose),
-                      selected: s.dose.key == choice,
-                      onTap: () => setState(() => _choice = s.dose.key),
+                      key: ValueKey('new-vaccine-person-${p.id}'),
+                      label: p.displayName,
+                      selected: p.id == _person,
+                      onTap: () => setState(() {
+                        _person = p.id;
+                        // The other person's schedule has other doses.
+                        _reset();
+                      }),
                     ),
-                  UsraPill(
+                ],
+              ),
+              const SizedBox(height: UsraSpacing.s3),
+            ],
+            Text(l.vaccineWhich, style: heading),
+            const SizedBox(height: UsraSpacing.s1),
+            if (waiting.isNotEmpty)
+              UsraListCard(
+                children: [
+                  for (final s in waiting)
+                    CheckboxListTile(
+                      key: ValueKey('new-vaccine-${s.dose.key}'),
+                      value: picked.contains(s.dose.key),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      title: Text(
+                        s.state == DoseState.overdue
+                            ? l.vaccineChoiceOverdue(doseName(l, s.dose))
+                            : doseName(l, s.dose),
+                      ),
+                      onChanged: (on) => setState(() {
+                        final next = {...picked}..remove(_other);
+                        on == true
+                            ? next.add(s.dose.key)
+                            : next.remove(s.dose.key);
+                        _picked = next.isEmpty ? {_other} : next;
+                      }),
+                    ),
+                  CheckboxListTile(
                     key: const ValueKey('new-vaccine-other'),
-                    label: l.vaccineOtherChoice,
-                    selected: choice == _other,
-                    onTap: () => setState(() => _choice = _other),
+                    value: other,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    title: Text(l.vaccineOtherChoice),
+                    onChanged: (_) => setState(() => _picked = {_other}),
                   ),
                 ],
               ),
+            if (other) ...[
+              if (waiting.isNotEmpty) const SizedBox(height: UsraSpacing.s3),
+              Wrap(
+                spacing: UsraSpacing.s2,
+                runSpacing: UsraSpacing.s2,
+                children: [
+                  for (final (i, n) in commonVaccineNames(l).indexed)
+                    UsraPill(
+                      key: ValueKey('new-vaccine-name-$i'),
+                      label: n,
+                      selected: _otherName == n,
+                      onTap: () => setState(() => _otherName = n),
+                    ),
+                  UsraPill(
+                    key: const ValueKey('new-vaccine-name-typed'),
+                    label: l.vaccineSomethingElse,
+                    selected: _otherName == null,
+                    onTap: () => setState(() => _otherName = null),
+                  ),
+                ],
+              ),
+              const SizedBox(height: UsraSpacing.s3),
+              Text(l.fieldDose, style: heading),
+              const SizedBox(height: UsraSpacing.s1),
+              Wrap(
+                spacing: UsraSpacing.s2,
+                runSpacing: UsraSpacing.s2,
+                children: [
+                  for (final n in [1, 2, 3, 4])
+                    UsraPill(
+                      key: ValueKey('new-vaccine-dose-$n'),
+                      label: localizedDigits(context, n),
+                      selected: _otherDose == n,
+                      // Tapping it again clears it: the number is optional.
+                      onTap: () => setState(
+                        () => _otherDose = _otherDose == n ? null : n,
+                      ),
+                    ),
+                ],
+              ),
             ],
+            // The checklist, not this form: a card holds many doses, and each
+            // one needs its own check. Only a child has a schedule to read to.
+            if (child != null)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  key: const ValueKey('new-vaccine-scan'),
+                  onPressed: () =>
+                      context.push('/family/$_person/vaccines/setup?scan=1'),
+                  icon: const Icon(Icons.photo_camera_outlined),
+                  label: Text(l.vaccineCardScanTitle),
+                ),
+              ),
           ],
         ),
         pickPhotos: (source) => pickRecordPhotos(context, ref, source),
-        onSubmit: (result) => _save(result, name, child, chosen),
+        onSubmit: (result) => _save(result, name, child, doses),
       ),
     );
+  }
+
+  /// Starts on the doses due now that the family follows; with none, on the
+  /// first overdue one. Never on a dose that isn't due yet: someone logging a
+  /// travel or private vaccine could save it as that dose without noticing.
+  Set<String> _startingPick(List<DoseStatus> waiting) {
+    final followed = waiting.where((s) => s.followed);
+    final due = {
+      for (final s in followed)
+        if (s.state == DoseState.due) s.dose.key,
+    };
+    if (due.isNotEmpty) return due;
+    final late = followed
+        .where((s) => s.state == DoseState.overdue)
+        .firstOrNull;
+    return late == null ? {_other} : {late.dose.key};
   }
 
   Future<void> _save(
     RecordFormResult result,
     String name,
     ChildVaccines? child,
-    DoseStatus? chosen,
+    List<DoseStatus> doses,
   ) async {
     if (!await ref.read(saveGateProvider).allow()) return;
     if (!mounted) return;
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
+    final countText = localizedDigits(context, doses.length);
     final db = ref.read(databaseProvider);
     final store = result.photos.isEmpty
         ? null
@@ -208,28 +300,47 @@ class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
       today,
     );
     // A scheduled dose's note lives on the plan, where the schedule shows it.
-    final note = chosen == null ? null : result.data['note'] as String?;
-    final data = {...result.data};
-    if (note != null) data.remove('note');
+    final note = doses.isEmpty ? null : result.data['note'] as String?;
+    final base = {...result.data};
+    if (note != null) base.remove('note');
+    // One record for each dose ticked; with none, the one typed or picked.
+    final records = doses.isEmpty
+        ? [base]
+        : [
+            for (final s in doses)
+              {
+                ...base,
+                'vaccine': vaccineName(l, s.dose.kind),
+                'dose': s.dose.dose,
+              },
+          ];
     try {
-      // Copied in first; the form deletes the picked originals.
-      final photos = <String>[
-        for (final path in result.photos) await store!.import(path),
-      ];
-      await db.addEvent(
-        profileId: person,
-        type: 'vaccine',
-        occurredAt: result.occurredAt,
-        dataJson: jsonEncode(data),
-        costMinor: result.costMinor,
-        currency: result.costMinor == null ? null : 'EGP',
-        photos: photos,
-      );
-      if (note != null && chosen != null && child != null) {
+      for (final (i, data) in records.indexed) {
+        // Copied in first; the form deletes the picked originals. Each record
+        // keeps its own copy, so deleting one never takes another's photo.
+        final photos = <String>[
+          for (final path in result.photos) await store!.import(path),
+        ];
+        await db.addEvent(
+          profileId: person,
+          type: 'vaccine',
+          occurredAt: result.occurredAt,
+          dataJson: jsonEncode(data),
+          // The visit's cost once, not once per shot.
+          costMinor: i == 0 ? result.costMinor : null,
+          currency: i == 0 && result.costMinor != null ? 'EGP' : null,
+          photos: photos,
+        );
+      }
+      if (note != null && child != null) {
+        var plan = child.plan;
+        for (final s in doses) {
+          plan = plan.withNote(s.dose.key, note);
+        }
         await db.saveSingletonEvent(
           profileId: person,
           type: VaccinePlanFields.type,
-          dataJson: child.plan.withNote(chosen.dose.key, note).toJson(),
+          dataJson: plan.toJson(),
         );
       }
     } catch (_) {
@@ -245,34 +356,13 @@ class _NewVaccineScreenState extends ConsumerState<NewVaccineScreen> {
       SnackBar(
         key: const ValueKey('new-vaccine-saved'),
         content: Text(
-          l.vaccineSavedFor(result.data['vaccine'].toString(), name),
+          records.length > 1
+              ? l.vaccineSavedManyFor(records.length, countText, name)
+              : l.vaccineSavedFor(records.single['vaccine'].toString(), name),
         ),
       ),
     );
     if (!mounted) return;
     router.go(young ? '/family/$person/vaccines' : '/family/$person');
-  }
-}
-
-/// The way in to reading a whole vaccination card.
-class _CardScanLink extends StatelessWidget {
-  const _CardScanLink({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    return UsraListCard(
-      children: [
-        UsraListRow(
-          key: const ValueKey('new-vaccine-scan'),
-          icon: Icons.photo_camera_outlined,
-          title: l.vaccineCardScanTitle,
-          subtitleText: l.vaccineCardScanBody,
-          onTap: onTap,
-        ),
-      ],
-    );
   }
 }
