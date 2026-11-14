@@ -7603,12 +7603,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, =0{None current} =1{1 current} other{{shown} current}}'**
   String personMedicinesCount(int count, String shown);
 
-  /// No description provided for @personFollowUpsCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =0{None for now} =1{1 follow-up} other{{shown} follow-ups}}'**
-  String personFollowUpsCount(int count, String shown);
-
   /// No description provided for @personDocumentsCount.
   ///
   /// In en, this message translates to:
