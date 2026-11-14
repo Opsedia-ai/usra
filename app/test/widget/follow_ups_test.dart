@@ -79,8 +79,14 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
-    // Home: the next three across the family, most urgent first, by name.
-    expect(tiles('home-follow-ups'), findsNWidgets(homeFollowUpCount));
+    // Home: only each person's most urgent one, by name (founder, 14 Nov).
+    final homeTiles = tester
+        .widgetList<FollowUpTile>(tiles('home-follow-ups'))
+        .toList();
+    expect(homeTiles, isNotEmpty);
+    final names = [for (final t in homeTiles) t.item.profile.id];
+    expect(names.toSet().length, names.length, reason: 'one per person');
+    expect(names.length, lessThanOrEqualTo(2));
     final first = find.byKey(ValueKey('follow-up-$dueKey'));
     expect(
       find.descendant(of: first, matching: find.text('منى – زيارة متابعة')),
@@ -117,10 +123,26 @@ void main() {
       ),
       findsOneWidget,
     );
+    // Home stays short: the "not a diagnosis" note is on the lists.
+    expect(find.textContaining('مش تشخيص'), findsNothing);
+    // Mona has more than one, so the rest wait behind "All follow-ups".
+    expect(find.byKey(const ValueKey('follow-ups-all')), findsOneWidget);
+
+    // Tapping her row opens her page, with all of hers near the top.
+    await tester.tap(first);
+    await tester.pumpAndSettle();
+    final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
+    expect(
+      router.routerDelegate.currentConfiguration.uri.path,
+      '/family/$mona',
+    );
+    expect(
+      tester.widgetList(tiles('member-follow-ups')).length,
+      greaterThan(1),
+    );
     expect(find.textContaining('مش تشخيص'), findsOneWidget);
 
-    // Her page: everything, each saying why.
-    final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
+    // Her follow-ups page: everything, each saying why.
     router.go('/family/$mona/follow-ups');
     await tester.pumpAndSettle();
     final section = find.byKey(const ValueKey('member-follow-ups'));

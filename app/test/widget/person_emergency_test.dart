@@ -80,9 +80,28 @@ void main() {
     await settleDb(tester);
   }
 
+  // The person page is a lazy list: scroll until a section is built.
+  Future<void> reveal(
+    WidgetTester tester,
+    Finder f, {
+    double delta = 200,
+  }) async {
+    await tester.scrollUntilVisible(
+      f,
+      delta,
+      scrollable: find
+          .descendant(
+            of: find.byType(ListView).first,
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.pumpAndSettle();
+  }
+
   Future<void> tapKey(WidgetTester tester, String key) async {
     final f = find.byKey(ValueKey(key));
-    await tester.ensureVisible(f);
+    await reveal(tester, f);
     await tester.pumpAndSettle();
     await tester.tap(f);
     await settleDb(tester);
@@ -168,7 +187,6 @@ void main() {
         'member-sick-days',
         'member-development',
         'member-baby-log',
-        'member-follow-ups-open',
         'member-documents',
         'member-spending',
         'add-record',
@@ -252,7 +270,7 @@ void main() {
         await open(tester, '/family/$id');
 
         final recorded = find.byKey(const ValueKey('person-recorded'));
-        await tester.ensureVisible(recorded);
+        await reveal(tester, recorded);
         await tester.pumpAndSettle();
         Finder inside(String text) =>
             find.descendant(of: recorded, matching: find.textContaining(text));
@@ -281,7 +299,6 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.byKey(const ValueKey('person-sections')), findsOneWidget);
       // What the app concludes shows its reference and the date it was checked.
       final source = tester.widget<Text>(
         find.byKey(const ValueKey('person-vaccine-source')),
@@ -289,6 +306,14 @@ void main() {
       expect(source.data, contains('جدول التطعيمات في مصر'));
       expect(source.data, contains('اتراجع'));
       expect(source.data, contains('٢٠٢٦'));
+      await reveal(tester, find.byKey(const ValueKey('person-sections')));
+      expect(find.byKey(const ValueKey('person-sections')), findsOneWidget);
+      // Back up to the attention card.
+      await reveal(
+        tester,
+        find.byKey(const ValueKey('person-vaccine-log')),
+        delta: -200,
+      );
 
       await tapKey(tester, 'person-vaccine-log');
       // Opened to log it: "given" is already on, and it says whose it is.
@@ -449,9 +474,6 @@ void main() {
       expect(find.byKey(const ValueKey('insurance-add')), findsOneWidget);
       await tester.tap(find.byType(BackButton));
       await settleDb(tester);
-
-      await tapKey(tester, 'member-follow-ups-open');
-      expect(find.byKey(const ValueKey('member-follow-ups')), findsOneWidget);
     });
 
     testWidgets('no overflow at 320 px with 200% text', (tester) async {

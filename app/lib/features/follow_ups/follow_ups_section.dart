@@ -16,14 +16,16 @@ import 'follow_ups_providers.dart';
 import '../../core/util/separator.dart';
 import '../../core/design/undo_snack_bar.dart';
 
-/// How many follow-ups Home shows across the family.
-const homeFollowUpCount = 3;
+/// How many follow-ups Home shows for each person: the most urgent one.
+/// The rest are on that person's page (founder, 14 Nov 2026).
+const homeFollowUpsPerPerson = 1;
 
 /// The children module's schedule rule (`EgyptVaccineRule`), whose
 /// follow-ups Home leaves to its vaccine card.
 const homeVaccineRulePrefix = 'vaccines.egypt.';
 
-/// The family's next follow-ups on Home. Hidden until someone is added.
+/// Each person's most urgent follow-up on Home, soonest first. Hidden until
+/// someone is added. Tapping a row opens that person's page with all of them.
 class HomeFollowUps extends ConsumerWidget {
   const HomeFollowUps({super.key});
 
@@ -34,10 +36,17 @@ class HomeFollowUps extends ConsumerWidget {
     final people = ref.watch(profilesProvider).value ?? const [];
     if (people.isEmpty) return const SizedBox.shrink();
     // Home has its own vaccine card with the countdown.
-    final shown = items
+    final rest = items
         .where((i) => !i.followUp.ruleId.startsWith(homeVaccineRulePrefix))
-        .take(homeFollowUpCount)
         .toList();
+    // The list is soonest first, so each person's first is their most urgent.
+    final perPerson = <String, int>{};
+    final shown = [
+      for (final i in rest)
+        if ((perPerson[i.profile.id] = (perPerson[i.profile.id] ?? 0) + 1) <=
+            homeFollowUpsPerPerson)
+          i,
+    ];
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: _Section(
@@ -45,7 +54,9 @@ class HomeFollowUps extends ConsumerWidget {
         items: shown,
         showNames: true,
         // Not when Home says there's nothing: its vaccine card covers those.
-        allLink: shown.isNotEmpty && items.length > shown.length,
+        allLink: shown.isNotEmpty && rest.length > shown.length,
+        // Home stays short; the note is on the full list and person pages.
+        disclaimer: false,
       ),
     );
   }
@@ -134,9 +145,13 @@ class MemberFollowUps extends ConsumerWidget {
     super.key,
     required this.profileId,
     this.heading = true,
+    this.hideWhenEmpty = false,
   });
 
   final String profileId;
+
+  /// On the person's page, say nothing when nothing is coming up.
+  final bool hideWhenEmpty;
 
   /// False where the page's own title already says "Follow-ups".
   final bool heading;
@@ -144,12 +159,19 @@ class MemberFollowUps extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final items = ref.watch(personFollowUpsProvider(profileId)).value;
-    if (items == null) return const SizedBox.shrink();
-    return _Section(
+    if (items == null || (hideWhenEmpty && items.isEmpty)) {
+      return const SizedBox.shrink();
+    }
+    final section = _Section(
       key: const ValueKey('member-follow-ups'),
       items: items,
       showNames: false,
       heading: heading,
+    );
+    if (!hideWhenEmpty) return section;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: UsraSpacing.s3),
+      child: section,
     );
   }
 }
@@ -161,11 +183,15 @@ class _Section extends StatelessWidget {
     required this.showNames,
     this.allLink = false,
     this.heading = true,
+    this.disclaimer = true,
   });
 
   final List<PersonFollowUp> items;
   final bool showNames;
   final bool heading;
+
+  /// The "not a diagnosis" note under the list.
+  final bool disclaimer;
 
   /// There are more than shown here: a way to the whole list.
   final bool allLink;
@@ -210,13 +236,14 @@ class _Section extends StatelessWidget {
           )
         else
           const SizedBox(height: UsraSpacing.s2),
-        Text(
-          l.followUpsDisclaimer,
-          style: UsraType.label.copyWith(
-            color: context.usra.inkMuted,
-            fontWeight: FontWeight.w400,
+        if (disclaimer)
+          Text(
+            l.followUpsDisclaimer,
+            style: UsraType.label.copyWith(
+              color: context.usra.inkMuted,
+              fontWeight: FontWeight.w400,
+            ),
           ),
-        ),
       ],
     );
   }

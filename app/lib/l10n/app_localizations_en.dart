@@ -5093,18 +5093,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String personFollowUpsCount(int count, String shown) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$shown follow-ups',
-      one: '1 follow-up',
-      zero: 'None for now',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String personDocumentsCount(int count, String shown) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

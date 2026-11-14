@@ -5336,20 +5336,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String personFollowUpsCount(int count, String shown) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$shown متابعة',
-      few: '$shown متابعات',
-      two: 'متابعتين',
-      one: 'متابعة واحدة',
-      zero: 'مفيش دلوقتي',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String personDocumentsCount(int count, String shown) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
