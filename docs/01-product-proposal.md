@@ -2,7 +2,7 @@
 
 Nov 2, 2026 · @Aya Nasser
 
-> **Note, 7 Nov 2026:** this is the original proposal, kept as history. [`prd-v1.md`](prd-v1.md) and [`product-definition.md`](product-definition.md) override it wherever they differ. For example: only the first 5,000 founding members are free for life; v1 has no dose calculator, family linking, caregiver alerts or cloud OCR; and the launch order is Egypt, then Saudi Arabia and Jordan, with UAE later.
+> **Note, 7 Nov 2026:** this is the original proposal, kept as history. [`prd-v1.md`](prd-v1.md) and [`product-definition.md`](product-definition.md) override it wherever they differ. For example: everything on the phone is free, the paid plan unlocks family sync, and the first 3,000 founding members get a free year of it; v1 has no dose calculator, family linking, caregiver alerts or cloud OCR; and the launch order is Egypt, then Saudi Arabia and Jordan, with UAE later.
 
 ## Executive summary
 

@@ -415,7 +415,7 @@ supabase functions deploy delete-account
 The rest are not part of v1. Deploy them only when their feature is turned on:
 
 ```bash
-# With the paywall, after it's changed for the 1-year pass and Lifetime:
+# With the paywall (Usra Family: Monthly, Yearly and Lifetime), together with v2 sync:
 supabase functions deploy revenuecat-webhook --no-verify-jwt
 # v2 sync:
 supabase functions deploy bind-device approve-device recover-device append-family-log publish-head

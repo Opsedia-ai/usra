@@ -44,6 +44,7 @@ All decisions as of 2 Nov 2026, kept as history. Details and sources are in the 
 | Cloud photo reading | Off in v1. On-device reading only | Costs per photo, and the photo would leave the phone |
 | Purchases | Nothing to buy in v1, so no RevenueCat | Only needed for AI credits. **Replaced:** Monthly and Yearly subscriptions and Lifetime through RevenueCat (`docs/prd-v1.md`, F24) |
 | Plans (14 Nov 2026) | Monthly 59.99 EGP and Yearly 499.99 EGP auto-renewing subscriptions, plus Lifetime 1,249.99 EGP; one price per family; 14-day trial | Founder approved. Monthly suits Egyptians who pay by phone bill or Google Play cards; Yearly is about 30% cheaper. Replaces the non-renewing 1-year pass |
+| Founders and paywall (14 Nov 2026) | First 3,000 founding members get Usra Free forever, the first year of Usra Family free and a badge. The paid plan, Usra Family, unlocks family sync; Usra Free never stops and has no record limit. When a plan ends, only sync stops | Founder approved. Locking new records felt like holding a family's health hostage; sync is what costs a server and what couples ask for. 3,000 instead of 5,000 raises income by about 40% at 10,000 users. Replaces 5,000 free for life |
 
 ## Founder decisions (7 Nov 2026)
 
@@ -56,7 +57,7 @@ These replace older rows above. `docs/prd-v1.md` holds them too, under "Decided 
 | Legal review | Egypt, Saudi Arabia, Jordan | Jordan research is in `reports/Jordan rules for Usra.md` in the founder's notes |
 | Markets | Beta and first public launch in Egypt only, then Saudi Arabia and Jordan. UAE later | Replaces "then KSA... then UAE" |
 | Seats | Taken when a signed-in user saves their first record, not at sign-up | Stops idle sign-ups taking seats |
-| Trial ends or subscription lapses | People can still read, export, back up and delete records and use the emergency card, and reminders keep ringing. Only adding new records stops | Nobody is locked out of their records |
+| Trial ends or subscription lapses | People can still read, export, back up and delete records and use the emergency card, and reminders keep ringing. Only adding new records stops. **Changed 14 Nov 2026:** only sync stops | Nobody is locked out of their records |
 | Discreet mode | On by default, with neutral text plus Taken | `docs/security.md` says when Taken shows |
 | Addressing the user | By the sex asked in "About you". Text about a family member uses that member's sex | Covers Arabic wording |
 | Backup wording | Automatic backup goes to "a folder you choose". Drive stays available manually through the share sheet | Don't promise Drive until tested on a real phone |
@@ -64,7 +65,7 @@ These replace older rows above. `docs/prd-v1.md` holds them too, under "Decided 
 | Navigation | Bottom bar: Home, Medicines, Add, Records, More. Home shows the family, one person on their own page | **Changes the PRD:** replaces the person switcher and four tabs |
 | First run | Shorter: language and country, about you, then Home. The rest becomes optional cards on Home | **Changes the PRD** |
 | Sign-in | Google or Apple sign-in is required to save the first record, add family, back up, take a seat or pay. Before that, people can look around and read the guides. The rule only applies once login is on | **Changes the PRD:** sign-in was optional until the paywall. Apple 5.1.1(v) only allows a required login with significant account-based features, so this has some review risk: the account carries the seat, the pass and later AI payment across phones. If Apple objects, the fallback is the old optional sign-in |
-| Seats and paywall | With sign-in required, everyone who saves a record has an account, so there is no "saved first, signed in later" case. After seats run out, adding records needs sign-in plus the trial or a paid plan | Closes both open seat questions |
+| Seats and paywall | With sign-in required, everyone who saves a record has an account, so there is no "saved first, signed in later" case. After seats run out, adding records needs sign-in plus the trial or a paid plan. **Changed 14 Nov 2026:** records stay free; the paid plan is for sync | Closes both open seat questions |
 | PIN | Turning on the PIN requires a backup first, not only a recovery key | A forgotten PIN with no backup loses everything |
 | App lock offer | An optional Home card after the first backup, and always in More | Follows the PIN rule |
 | Discreet Taken | Shown only when no other dose is due within an hour | Avoids marking the wrong person's dose |
