@@ -2840,17 +2840,6 @@
       }
     }
   },
-  "personFollowUpsCount": "{count, plural, =0{None for now} =1{1 follow-up} other{{shown} follow-ups}}",
-  "@personFollowUpsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "shown": {
-        "type": "String"
-      }
-    }
-  },
   "personDocumentsCount": "{count, plural, =0{None yet} =1{1 record with photos} other{{shown} records with photos}}",
   "@personDocumentsCount": {
     "placeholders": {

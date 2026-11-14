@@ -24,7 +24,7 @@ import '../children/infant_log.dart' show isUnderOne;
 import '../children/milestones.dart' show showsMilestones;
 import '../children/vaccines_screen.dart'
     show showDoseSheet, watchChildVaccines;
-import '../follow_ups/follow_ups_providers.dart' show personFollowUpsProvider;
+import '../follow_ups/follow_ups_section.dart' show MemberFollowUps;
 import '../insurance/insurance_info.dart' show expiryDay, expirySeverity;
 import '../insurance/insurance_providers.dart' show insuranceCardsProvider;
 import '../medicines/dose_schedule.dart' show PlannedDose;
@@ -153,6 +153,9 @@ class _MemberScreenState extends ConsumerState<MemberScreen>
                           ],
                           _Attention(person: p),
                           _NextDose(person: p),
+                          // All of this person's follow-ups, near the top:
+                          // Home shows only the most urgent one.
+                          MemberFollowUps(profileId: p.id, hideWhenEmpty: true),
                           _RecordedFacts(person: p),
                           MemberPregnancy(profile: p),
                           _Tiles(person: p),
@@ -688,7 +691,6 @@ class _Tiles extends ConsumerWidget {
     final events = ref.watch(timelineProvider(id)).value;
     final photos = ref.watch(attachmentCountsProvider(id)).value;
     final cards = ref.watch(insuranceCardsProvider(id)).value;
-    final followUps = ref.watch(personFollowUpsProvider(id)).value;
     final medicines = ref.watch(medicinesProvider(id)).value;
     final sick =
         ref.watch(episodesProvider(id)).value?.any((e) => e.endedAt == null) ??
@@ -789,14 +791,6 @@ class _Tiles extends ConsumerWidget {
           () => open('/baby-log'),
         ),
       _TileData(
-        'member-follow-ups-open',
-        l.followUpsTitle,
-        followUps == null
-            ? null
-            : l.personFollowUpsCount(followUps.length, count(followUps.length)),
-        () => open('/follow-ups'),
-      ),
-      _TileData(
         'member-documents',
         l.personTileDocuments,
         documents == null
@@ -841,7 +835,6 @@ const _tileIcons = {
   'member-pregnancy': Icons.pregnant_woman_outlined,
   'member-development': Icons.child_care_outlined,
   'member-baby-log': Icons.baby_changing_station_outlined,
-  'member-follow-ups-open': Icons.event_note_outlined,
   'member-documents': Icons.folder_outlined,
   'member-spending': Icons.account_balance_wallet_outlined,
 };
