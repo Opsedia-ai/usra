@@ -33,8 +33,8 @@ v1 keeps all health data on the phone. The only server use is sign-in, the found
 | --- | --- | --- | --- |
 | Sign in with Google or Apple (no SMS), once an Egyptian lawyer has answered | Dr. Usra AI | End-to-end encrypted family sync (records only, no photos) | SMS / phone-number login |
 | Country chosen first: Egypt at beta and first public launch; Saudi Arabia and Jordan after | | Caregiver missed-dose alerts | Backups or photos on Usra's servers |
-| Founding members: first 5,000 signed-in users to save a record, free for life | | Multi-device and change phone | Photo sync |
-| Subscription for everyone after 5,000, behind a remote switch | | Cloud photo reading (Arabic, handwriting) | Dose calculator |
+| Founding members: first 3,000 signed-in users to save a record get Usra Free forever, a year of Usra Family free and a badge | | Multi-device and change phone | Photo sync |
+| Usra Family plans and paywall, behind a remote switch; switched on with family sync. Usra Free never stops | | Cloud photo reading (Arabic, handwriting) | Dose calculator |
 | Promo codes (store offer codes) | | Clinic portal and verified records | Health data in iCloud |
 | Family profiles with sex and date of birth | | Sponsored listings (labelled) | Ads targeted by health data, selling data |
 | Records: visits, labs, scans, surgeries, admissions, vaccines, vitals, allergies, conditions | | | Desktop app |
@@ -150,7 +150,7 @@ The rest moved out of the first run to shorten it, and is offered from Home as o
 | F21 | Simple Mode | Three big buttons: My medicines today, Call my caregiver/doctor, Scan. Suggested when an owner profile is 65+; the user decides and can switch any time. |
 | F22 | Language | Egyptian Arabic (default) and English; Arabic or Latin digits; Hijri and Gregorian dates. Text addressed to the user follows the sex given in "About you"; text about a family member follows that member's sex. |
 | F23 | Account | No real family signs in until an Egyptian lawyer has answered (see Compliance). Then: required sign-in with Google or Apple through Supabase Auth (Frankfurt region) (Sign in with Apple required on iOS when Google is offered). Stores only name, email, country, member number and subscription status; no health data. Delete account in the app. Required to save the first record, add family, back up, take a seat, subscribe or redeem a code. Looking around and reading the guides need no account, and a signed-in phone keeps working offline. |
-| F24 | Founding members and subscription | A signed-in user gets a member number when they save their first record, not at sign-up. Numbers 1 to 5,000, one pool across all countries, are founding members, free for life. From number 5,001 adding new records needs a paid plan, one price for the whole family: Monthly (59.99 EGP, 14.99 SAR, JOD price to set; auto-renewing subscription), Yearly (499.99 EGP, 99.99 SAR, 11 JOD; auto-renewing subscription, about 30% less than 12 months) or Lifetime (1,249.99 EGP, 249.99 SAR, 37.99 JOD; one payment), sold through Google Play Billing and Apple in-app purchase via RevenueCat, after a 14-day free trial. Before purchase the paywall shows the price with VAT, the renewal period and how to cancel, with links to the Terms and Privacy Policy (Apple 3.1.2, Egypt Consumer Law 181/2018); people cancel in the store's subscription settings. When a trial ends or a subscription lapses, people can still read, export, back up and delete their records and use the emergency card, and medicine reminders keep ringing; only adding new records stops. Plan status comes from RevenueCat and is mirrored on the account in Supabase. The 14-day trial is the stores' introductory free trial on Monthly and Yearly (once per person); Lifetime has no trial of its own. The limit and an on/off switch live in a remote config table, changeable without an app update. |
+| F24 | Usra Free, Usra Family and founding members | **Usra Free** is every feature on the phone, for everyone, forever: records, medicines and reminders, vaccines, growth, PDFs, emergency card, backup and restore. It never stops and has no record limit. **Usra Family** is the paid plan, one price for the whole family: end-to-end encrypted family sync (two parents who both see and edit, then up to 2 more carers such as a grandparent or nanny), insurance card photos synced, and the Dr. Usra AI allowance once it ships. Plans: Monthly (59.99 EGP, 14.99 SAR, JOD price to set; auto-renewing subscription), Yearly (499.99 EGP, 99.99 SAR, 11 JOD; auto-renewing subscription, about 30% less than 12 months) or Lifetime (1,249.99 EGP, 249.99 SAR, 37.99 JOD; one payment), sold through Google Play Billing and Apple in-app purchase via RevenueCat. The 14-day free trial is the stores' introductory free trial on Monthly and Yearly (once per person), so both parents feel sync before paying; Lifetime has no trial of its own. The paywall appears when a parent invites the other parent or turns on card photo sync, and once in Settings under "Usra Family"; it switches on with family sync, so a v1 build without sync has nothing to pay for. **Founding members:** a signed-in user gets a member number when they save their first record, not at sign-up. Numbers 1 to 3,000, one pool across all countries, are founding members: Usra Free forever like everyone, plus their first year of Usra Family free and a founding badge, granted by our server with no code typed. The free year starts when the member first turns on family sync, so it isn't used up before sync ships. Before purchase the paywall shows the price with VAT, the renewal period and how to cancel, with links to the Terms and Privacy Policy (Apple 3.1.2, Egypt Consumer Law 181/2018); people cancel in the store's subscription settings. When a trial, a founding year or a subscription ends, only sync stops: each phone keeps its full copy of the family's records and keeps working as Usra Free, and nothing is deleted. Plan status comes from RevenueCat and is mirrored on the account in Supabase. The founding limit and an on/off switch live in a remote config table, changeable without an app update. |
 | F25 | Promo codes | Apple offer codes and Google Play subscription promo codes for Monthly and Yearly, and Apple offer codes and Google Play one-time promo codes (500 a quarter) for Lifetime, created in the store consoles and tracked in RevenueCat; free time can also be granted to a signed-in account from the RevenueCat dashboard. A "Redeem code" row in More. |
 | F26 | Dr. Usra AI | Off in v1. A "Coming soon" card in More with Dr. Usra; no network call, no purchase. |
 
@@ -210,7 +210,7 @@ Usra is not a medical device: it records, reminds and cites, and every medical s
 
 Accounts in v1 change three things:
 
-- **Sign-in review risk.** Apple asks apps without significant account-based features to work without a login. Usra's account carries the founding membership and subscription across Android and iPhone, promo codes and the profile name. Sign-in is required from the first saved record (founder's decision, 7 November). App Review may still question this, so the review notes must explain what the account does and give a demo account. The fallback is optional sign-in until the paywall.
+- **Sign-in review risk.** Apple asks apps without significant account-based features to work without a login. Usra's account carries the founding membership, the subscription and family sync across Android and iPhone, promo codes and the profile name. Sign-in is required from the first saved record (founder's decision, 7 November). App Review may still question this, so the review notes must explain what the account does and give a demo account. The fallback is optional sign-in until the paywall.
 - **Sign in with Apple** must be offered on iOS whenever Google sign-in is, and the account must be deletable inside the app.
 - **Privacy texts** (policy, Play Data safety, Apple privacy label) must add name, email and user ID, collected for the account only.
 
@@ -228,6 +228,14 @@ The closed beta reaches 50 families on 31 December 2026, on Android and iOS; pub
 
 ## Open questions
 
+Decided on 14 November 2026 (these win over the older tables below):
+
+| Topic | Decision |
+| --- | --- |
+| Founding members | First 3,000 accounts, one pool across all countries: Usra Free forever, the first year of Usra Family free (starting when they first turn on sync) and a founding badge. Replaces 5,000 free for life |
+| What the paywall locks | Family sync (Usra Family). Usra Free, everything on the phone, never stops and has no record limit. Replaces locking new records after the trial |
+| When a trial, founding year or subscription ends | Only sync stops. Each phone keeps its full copy and works as Usra Free; nothing is deleted |
+
 Decided on 7 November 2026 (where these differ from the 6 November table or older text, these win):
 
 | Topic | Decision |
@@ -237,7 +245,7 @@ Decided on 7 November 2026 (where these differ from the 6 November table or olde
 | Legal review list | Egypt, Saudi Arabia, Jordan |
 | Launch order | Beta and first public launch in Egypt only, then Saudi Arabia and Jordan. UAE later |
 | Seats | A founding seat is taken when a signed-in user saves their first record, not at sign-up |
-| When a trial ends or a subscription lapses | People can still read, export, back up and delete their records and use the emergency card, and medicine reminders keep ringing. Only adding new records stops |
+| When a trial ends or a subscription lapses | People can still read, export, back up and delete their records and use the emergency card, and medicine reminders keep ringing. Only adding new records stops. Changed on 14 November: only sync stops |
 | Discreet mode | Stays on by default, with neutral text plus Taken. `docs/security.md` says when Taken shows |
 | How the app addresses the user | By the sex asked in "About you". Text about a family member uses that member's sex |
 | Backup wording | Automatic backup goes to "a folder you choose". Don't promise Google Drive until tested on a real phone; Drive stays available manually through the share sheet |
@@ -250,7 +258,7 @@ Decided on 6 November 2026:
 | Topic | Decision |
 | --- | --- |
 | Login | Required from the first saved record, once login is on. Changed on 7 November |
-| Founding members | First 5,000 accounts, one pool across all countries, free for life. How a seat is taken changed on 7 November |
+| Founding members | First 5,000 accounts, one pool across all countries, free for life. How a seat is taken changed on 7 November. Changed on 14 November: 3,000, with Usra Free plus one free year of Usra Family |
 | Plans | Monthly and Yearly (auto-renewing subscriptions) and Lifetime (one payment), one price for the whole family; 14-day free trial; store billing only (no card, Fawry or Paymob for unlocking the app). Changed on 14 November: Monthly added, and the non-renewing 1-year pass became the renewing Yearly subscription |
 | Prices | Monthly 59.99 EGP · 14.99 SAR · JOD to set; Yearly 499.99 EGP · 99.99 SAR · 11 JOD; Lifetime 1,249.99 EGP · 249.99 SAR · 37.99 JOD. Changed on 14 November |
 | Today | One person at a time; no all-family view. Replaced on 7 November: Home shows the family |
@@ -278,10 +286,11 @@ Still open:
 - [ ] Whether Simple Mode keeps an emergency button
 - [ ] Lifetime price ratio in JOD: 3.45x the Yearly price, against 2.5x in EGP and SAR
 - [ ] Exact store price points for Monthly (59.99 EGP, 14.99 SAR) and a JOD Monthly price, checked in App Store Connect and Play Console
-- [ ] Founding members (5,000 free for life here, against the business plan's 3,000 with one free year of the family plan) and what the paywall locks (adding records, or two-parent sync): founder decisions still open
+- [x] Founding members and what the paywall locks: decided 14 November (3,000 founders; the paywall locks family sync)
+- [ ] Founders who leave sync off: whether their free year should also end on a fixed date, so it can't wait forever
 - [ ] RevenueCat and iOS 16.3 for one-time code redemption, against the app's target of iOS 15.5
 - [ ] What happens to a seat when an account is deleted
 - [ ] Family link: give a family member their own copy on their phone, proposal awaiting the founder
 - [ ] Dr. Usra "Coming soon" card list, draft with the founder
 - [ ] Whether F23's list of what an account stores should match the privacy draft, which also lists language, device information, profile photo link and account ID
-- [ ] How paywall checks behave with no internet
+- [ ] How paywall checks behave with no internet (with sync as the paid feature, a failed check must never touch records on the phone)

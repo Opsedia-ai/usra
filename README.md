@@ -35,7 +35,7 @@ The live documents are the most up to date. The files here are snapshots taken o
 ## Key decisions (short)
 
 - **First market:** Egypt only for the beta and first public launch. Arabic-first. Saudi Arabia and Jordan follow; UAE later.
-- **Business model:** the first 5,000 signed-in users to save a record are founding members, free for life; after that a 1-year pass or Lifetime, through the stores. Clinic partnerships later.
+- **Business model:** Usra Free (everything on the phone) is free for everyone forever. Usra Family, the paid plan (Monthly, Yearly or Lifetime through the stores), unlocks family sync. The first 3,000 signed-in users to save a record are founding members with a free year of Usra Family. Business editions and clinic partnerships later.
 - **Mobile:** Flutter, one codebase for Android and iOS.
 - **Backend:** Supabase (Auth, Postgres, Edge Functions), on Pro from the moment real member numbers exist; until then nothing runs. Health data stays on the phone in v1; end-to-end encrypted sync later.
 - **Design:** Twilight palette (navy and orchid), plus a 5-level severity scale (blue, green, yellow, orange, red).

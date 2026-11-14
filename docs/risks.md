@@ -95,7 +95,7 @@ Last updated: 7 November 2026. Update this when a risk changes, closes or appear
 | P6 | Family link with a server | Needs a family table and health data on a server, adding legal risk and cost | Medium | Not recommended for v1 | Founder |
 | P7 | Hide My Email | A relay address becomes a separate account, which can split a seat | Low | Known | Build |
 | P8 | Seat on deleted account | Unclear what happens to a seat when its account is deleted | Medium | Open in the PRD | Founder |
-| P9 | Paywall with no internet | Unclear how checks behave, which could wrongly block adding records | Medium | Open in the PRD | Founder, Build |
+| P9 | Paywall with no internet | Unclear how checks behave, which could wrongly stop sync; records on the phone must never depend on them | Medium | Open in the PRD | Founder, Build |
 | P10 | Dr. Usra card promises too much | Items imply medical advice, and most would send health data to an AI | Medium | Founder chose the list (13 Nov 2026); informational coming-soon page only, with its limits; wording with the doctor (`docs/medical-review-changes.md`); see "Dr. Usra AI (planned)" in `docs/decisions.md` | Founder |
 | P11 | Simple Mode lock offer | It shows only after a backup, and Simple Mode never prompts for one, so most of these users won't see it | Medium | Known | Founder |
 | P12 | Relationship wording after a restore | Words like "بنتك" depend on who uses the phone, so another relative may see the wrong one | Low | Known | Founder |

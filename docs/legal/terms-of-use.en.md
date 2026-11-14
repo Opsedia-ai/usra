@@ -87,18 +87,20 @@ right to use its courts. [Legal review: KSA and Jordan users.]
   family's shared records.
 - **AI Doctor**: informational findings only, not a diagnosis; it may be unavailable
   in some countries.
-- **Founding members and paid plans**: the first 5,000 signed-in users to save
-  a record would use Usra free for life. After that, adding new records would need a
-  paid plan, one price for the whole family: a Monthly or Yearly subscription, or
-  Lifetime, bought through Google Play or the App Store after a 14-day free trial.
-  Monthly and Yearly renew automatically at the price shown, VAT included, until you
-  cancel. Cancel at least 24 hours before the renewal date in your Google Play or App
-  Store subscription settings; you keep the plan until the end of the period you paid
-  for. Lifetime is one payment. Refunds follow the store's rules and local law. When a
-  trial ends or a subscription lapses you could still read, export, back up and delete
-  your records and use the emergency card, and medicine reminders would keep ringing;
-  only adding new records would stop.
-  [Legal review: wording of "free for life".]
+- **Usra Free, Usra Family and founding members**: everything that works on your
+  phone (records, medicines and reminders, vaccines, PDFs, the emergency card, backup)
+  would stay free, with no limit on records. Usra Family, the paid plan, would unlock
+  family sync and synced insurance card photos, one price for the whole family: a
+  Monthly or Yearly subscription, or Lifetime, bought through Google Play or the App
+  Store after a 14-day free trial. The first 3,000 signed-in users to save a record
+  would be founding members and get their first year of Usra Family free, starting when
+  they first turn on sync. Monthly and Yearly renew automatically at the price shown, VAT
+  included, until you cancel. Cancel at least 24 hours before the renewal date in your
+  Google Play or App Store subscription settings; you keep the plan until the end of the
+  period you paid for. Lifetime is one payment. Refunds follow the store's rules and local
+  law. When a trial, a founding year or a subscription ends, only sync would stop: each
+  phone keeps its own full copy of your records, and nothing is deleted.
+  [Legal review: wording of "Lifetime" and "free".]
 - **Cloud text reading**: only with your consent for each photo.
 
 ## 10. Contact
