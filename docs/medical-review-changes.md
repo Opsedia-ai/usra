@@ -123,3 +123,16 @@ An information page in More about the planned AI assistant. It does nothing yet.
 | يشرح الدوا ببساطة · بيتاخد لإيه وإزاي، ويجمع أدوية العيلة اللي تستاهل تتسأل عنها عند الصيدلي مع بعض. | Explains a medicine simply · What it's for and how to take it, and gathers the family's medicines worth asking the pharmacist about together. |
 
 Question for the doctor: the medicine line lists medicines to ask the pharmacist about together. It deliberately says nothing about whether they are safe together, since an interaction checker would make Usra a medical device. Is the line acceptable, or should it go?
+
+## Simpler new-vaccine form (founder request, 14 Nov 2026)
+
+Logging a vaccine is now mostly taps. The doses the schedule is waiting for are ticked boxes: those due now start ticked, and the overdue ones are offered but not pre-ticked. Several doses given at one visit are saved as one record each. For "another vaccine", or anyone without a schedule, the name is picked from a list and the dose number is tapped. Please check the four new names:
+
+| Text | English |
+|---|---|
+| التيتانوس | Tetanus (Td) |
+| فيروس الورم الحليمي (HPV) | HPV |
+| التيفود | Typhoid |
+| كورونا | COVID-19 |
+
+Question for the doctor: should overdue doses also start ticked when they're due at the same visit, or is leaving them for the parent to tick the safer default?

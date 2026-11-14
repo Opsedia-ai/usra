@@ -120,6 +120,10 @@ void main() {
     await h.tapKey(tester, 'vaccine-new');
     expect(find.text('تطعيم جديد'), findsWidgets);
     expect(key('field-vaccine'), findsNothing);
+    // Place, note, photo and cost wait under "more details".
+    expect(key('field-place'), findsNothing);
+    expect(key('field-cost'), findsNothing);
+    await h.tapKey(tester, 'record-more-details');
     await tester.enterText(key('field-place'), 'مكتب الصحة');
     await tester.enterText(key('field-note'), 'سخونية خفيفة بعدها');
     await h.tapKey(tester, 'record-save');
@@ -154,6 +158,7 @@ void main() {
     await h.open(tester, '/family/$id/add/vaccine');
     await h.tapKey(tester, 'new-vaccine-other');
     expect(key('field-vaccine'), findsOneWidget);
+    await h.tapKey(tester, 'record-more-details');
     await tester.enterText(key('field-note'), 'ملاحظتي');
     await h.tapKey(tester, 'new-vaccine-person-$adult');
     // No schedule for him: straight to the name, what was typed still there.
@@ -173,6 +178,70 @@ void main() {
     expect(saved.single.type, 'vaccine');
     final hers = (await tester.runAsync(() => h.db.watchTimeline(id).first))!;
     expect(hers, isEmpty);
+  });
+
+  testWidgets('doses given together are ticked and saved as one record each', (
+    tester,
+  ) async {
+    h.tall(tester);
+    final id = await seed(tester);
+    await h.open(tester, '/family/$id/add/vaccine');
+    final ticked = [
+      for (final t in tester.widgetList<CheckboxListTile>(
+        find.byType(CheckboxListTile),
+      ))
+        if (t.value == true) t.key,
+    ];
+    // Tick one more, so at least two are saved.
+    if (ticked.length < 2) {
+      final next = tester
+          .widgetList<CheckboxListTile>(find.byType(CheckboxListTile))
+          .firstWhere(
+            (t) =>
+                t.value != true && t.key != const ValueKey('new-vaccine-other'),
+          );
+      await tester.tap(find.byKey(next.key!));
+      await tester.pumpAndSettle();
+    }
+    final count = tester
+        .widgetList<CheckboxListTile>(find.byType(CheckboxListTile))
+        .where((t) => t.value == true)
+        .length;
+    expect(count, greaterThanOrEqualTo(2));
+    await h.tapKey(tester, 'record-more-details');
+    await tester.enterText(key('field-cost'), '300');
+    await h.tapKey(tester, 'record-save');
+    final events = (await tester.runAsync(() => h.db.watchTimeline(id).first))!;
+    final saved = events.where((e) => e.type == 'vaccine').toList();
+    expect(saved, hasLength(count));
+    // One visit, one cost.
+    expect(saved.where((e) => e.costMinor != null), hasLength(1));
+    expect({
+      for (final e in saved) (jsonDecode(e.dataJson) as Map)['vaccine'],
+    }, hasLength(greaterThanOrEqualTo(1)));
+  });
+
+  testWidgets('without a schedule the vaccine and dose are tapped, not typed', (
+    tester,
+  ) async {
+    h.tall(tester);
+    await seed(tester);
+    final adult = (await tester.runAsync(
+      () => h.db.addProfile('جدو', birthDate: DateTime(1950), sex: 'male'),
+    ))!;
+    await h.open(tester, '/family/$adult/add/vaccine');
+    expect(key('field-vaccine'), findsOneWidget);
+    await h.tapKey(tester, 'new-vaccine-name-13');
+    // Picked from the list: nothing to type.
+    expect(key('field-vaccine'), findsNothing);
+    await h.tapKey(tester, 'new-vaccine-dose-2');
+    await h.tapKey(tester, 'record-save');
+    final saved = (await tester.runAsync(
+      () => h.db.watchTimeline(adult).first,
+    ))!;
+    final data = jsonDecode(saved.single.dataJson) as Map<String, dynamic>;
+    expect(data['vaccine'], 'الإنفلونزا');
+    expect(data['dose'], 2);
   });
 
   testWidgets('never starts on a dose that isn\'t due yet', (tester) async {
