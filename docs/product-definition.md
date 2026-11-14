@@ -106,12 +106,12 @@ Severity colours stay separate from the brand: blue info · green good · yellow
 
 ## Business model and markets
 
-The first 5,000 signed-in users to save a record are founding members and use Usra free for life; after that, adding new records is paid (a 1-year pass or Lifetime), switched on automatically by a remote setting. When a trial or pass ends, people can still read, export, back up and delete their records and use the emergency card, and medicine reminders keep ringing.
+The first 5,000 signed-in users to save a record are founding members and use Usra free for life; after that, adding new records is paid (a Monthly or Yearly subscription, or Lifetime), switched on automatically by a remote setting. When a trial ends or a subscription lapses, people can still read, export, back up and delete their records and use the emergency card, and medicine reminders keep ringing.
 
 | Phase | Revenue | Rule |
 | --- | --- | --- |
 | 1 · Founding members | None. Member numbers 1–5,000 free for life | One pool across all countries, counted by member number in Supabase; a seat is taken when a signed-in user saves their first record; sign-in required from the first saved record, once an Egyptian lawyer has answered; limit changeable without an app update |
-| 2 · Subscription | 1-year pass (499 EGP, 99.99 SAR, 11 JOD) or Lifetime (1,249 EGP, 249.99 SAR, 37.99 JOD), each a single payment, after a 14-day free trial, from member number 5,001 | Store billing only, through RevenueCat (no card, Fawry or Paymob for unlocking the app); promo codes via Apple offer codes and Google Play promo codes |
+| 2 · Subscription | Monthly (59.99 EGP, 14.99 SAR) or Yearly (499.99 EGP, 99.99 SAR, 11 JOD) auto-renewing subscription, or Lifetime (1,249.99 EGP, 249.99 SAR, 37.99 JOD) in one payment; one price for the whole family; 14-day free trial; from member number 5,001 | Store billing only, through RevenueCat (no card, Fawry or Paymob for unlocking the app); promo codes via Apple offer codes and Google Play promo codes |
 | 3 · Dr. Usra AI | Included in the subscription or as credits (to decide) | Shown as "coming soon" in v1; behind regulatory gates (SFDA MDS-G27 in KSA, Egypt PDPL transfer licence) |
 | 4 · Partners | Clinic partnerships: labelled sponsored listings, appointment reminders | Matched by city and specialty only, never by health data (Apple 5.1.3, Google Play user data policy) |
 

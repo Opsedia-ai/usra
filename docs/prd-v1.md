@@ -150,8 +150,8 @@ The rest moved out of the first run to shorten it, and is offered from Home as o
 | F21 | Simple Mode | Three big buttons: My medicines today, Call my caregiver/doctor, Scan. Suggested when an owner profile is 65+; the user decides and can switch any time. |
 | F22 | Language | Egyptian Arabic (default) and English; Arabic or Latin digits; Hijri and Gregorian dates. Text addressed to the user follows the sex given in "About you"; text about a family member follows that member's sex. |
 | F23 | Account | No real family signs in until an Egyptian lawyer has answered (see Compliance). Then: required sign-in with Google or Apple through Supabase Auth (Frankfurt region) (Sign in with Apple required on iOS when Google is offered). Stores only name, email, country, member number and subscription status; no health data. Delete account in the app. Required to save the first record, add family, back up, take a seat, subscribe or redeem a code. Looking around and reading the guides need no account, and a signed-in phone keeps working offline. |
-| F24 | Founding members and subscription | A signed-in user gets a member number when they save their first record, not at sign-up. Numbers 1 to 5,000, one pool across all countries, are founding members, free for life. From number 5,001 adding new records needs a 1-year pass (499 EGP, 99.99 SAR, 11 JOD; pay once, no auto-renewal) or Lifetime (1,249 EGP, 249.99 SAR, 37.99 JOD; pay once), sold through Google Play Billing and Apple in-app purchase via RevenueCat, after a 14-day free trial. When a trial or pass ends, people can still read, export, back up and delete their records and use the emergency card, and medicine reminders keep ringing; only adding new records stops. The trial and the pass end date are tracked on the account in Supabase; on iOS the trial is a free in-app item, as Apple asks for non-subscription apps. The limit and an on/off switch live in a remote config table, changeable without an app update. |
-| F25 | Promo codes | Google Play promo codes and Apple offer codes (check that Apple offers them for one-time purchases) for the 1-year pass and Lifetime, created in the store consoles and tracked in RevenueCat; free time can also be granted to a signed-in account from the RevenueCat dashboard. A "Redeem code" row in More. |
+| F24 | Founding members and subscription | A signed-in user gets a member number when they save their first record, not at sign-up. Numbers 1 to 5,000, one pool across all countries, are founding members, free for life. From number 5,001 adding new records needs a paid plan, one price for the whole family: Monthly (59.99 EGP, 14.99 SAR, JOD price to set; auto-renewing subscription), Yearly (499.99 EGP, 99.99 SAR, 11 JOD; auto-renewing subscription, about 30% less than 12 months) or Lifetime (1,249.99 EGP, 249.99 SAR, 37.99 JOD; one payment), sold through Google Play Billing and Apple in-app purchase via RevenueCat, after a 14-day free trial. Before purchase the paywall shows the price with VAT, the renewal period and how to cancel, with links to the Terms and Privacy Policy (Apple 3.1.2, Egypt Consumer Law 181/2018); people cancel in the store's subscription settings. When a trial ends or a subscription lapses, people can still read, export, back up and delete their records and use the emergency card, and medicine reminders keep ringing; only adding new records stops. Plan status comes from RevenueCat and is mirrored on the account in Supabase. The 14-day trial is the stores' introductory free trial on Monthly and Yearly (once per person); Lifetime has no trial of its own. The limit and an on/off switch live in a remote config table, changeable without an app update. |
+| F25 | Promo codes | Apple offer codes and Google Play subscription promo codes for Monthly and Yearly, and Apple offer codes and Google Play one-time promo codes (500 a quarter) for Lifetime, created in the store consoles and tracked in RevenueCat; free time can also be granted to a signed-in account from the RevenueCat dashboard. A "Redeem code" row in More. |
 | F26 | Dr. Usra AI | Off in v1. A "Coming soon" card in More with Dr. Usra; no network call, no purchase. |
 
 ### Vaccine schedules by country
@@ -237,7 +237,7 @@ Decided on 7 November 2026 (where these differ from the 6 November table or olde
 | Legal review list | Egypt, Saudi Arabia, Jordan |
 | Launch order | Beta and first public launch in Egypt only, then Saudi Arabia and Jordan. UAE later |
 | Seats | A founding seat is taken when a signed-in user saves their first record, not at sign-up |
-| When a trial or pass ends | People can still read, export, back up and delete their records and use the emergency card, and medicine reminders keep ringing. Only adding new records stops |
+| When a trial ends or a subscription lapses | People can still read, export, back up and delete their records and use the emergency card, and medicine reminders keep ringing. Only adding new records stops |
 | Discreet mode | Stays on by default, with neutral text plus Taken. `docs/security.md` says when Taken shows |
 | How the app addresses the user | By the sex asked in "About you". Text about a family member uses that member's sex |
 | Backup wording | Automatic backup goes to "a folder you choose". Don't promise Google Drive until tested on a real phone; Drive stays available manually through the share sheet |
@@ -251,8 +251,8 @@ Decided on 6 November 2026:
 | --- | --- |
 | Login | Required from the first saved record, once login is on. Changed on 7 November |
 | Founding members | First 5,000 accounts, one pool across all countries, free for life. How a seat is taken changed on 7 November |
-| Plans | 1-year pass (no auto-renewal) and Lifetime, both one payment; 14-day free trial; no monthly plan; store billing only (no card, Fawry or Paymob for unlocking the app) |
-| Prices | 1-year pass 499 EGP · 99.99 SAR · 11 JOD; Lifetime 1,249 EGP · 249.99 SAR · 37.99 JOD |
+| Plans | Monthly and Yearly (auto-renewing subscriptions) and Lifetime (one payment), one price for the whole family; 14-day free trial; store billing only (no card, Fawry or Paymob for unlocking the app). Changed on 14 November: Monthly added, and the non-renewing 1-year pass became the renewing Yearly subscription |
+| Prices | Monthly 59.99 EGP · 14.99 SAR · JOD to set; Yearly 499.99 EGP · 99.99 SAR · 11 JOD; Lifetime 1,249.99 EGP · 249.99 SAR · 37.99 JOD. Changed on 14 November |
 | Today | One person at a time; no all-family view. Replaced on 7 November: Home shows the family |
 | Beta | 31 December 2026, 50 families |
 | Target | 2,500 weekly active families three months after public launch |
@@ -276,7 +276,9 @@ Still open:
 - [ ] Dialect for Saudi Arabia and Jordan
 - [ ] Who reviews the Saudi and Jordan vaccine schedules
 - [ ] Whether Simple Mode keeps an emergency button
-- [ ] Lifetime price ratio in JOD: 3.45x the 1-year pass, against 2.5x in EGP and SAR
+- [ ] Lifetime price ratio in JOD: 3.45x the Yearly price, against 2.5x in EGP and SAR
+- [ ] Exact store price points for Monthly (59.99 EGP, 14.99 SAR) and a JOD Monthly price, checked in App Store Connect and Play Console
+- [ ] Founding members (5,000 free for life here, against the business plan's 3,000 with one free year of the family plan) and what the paywall locks (adding records, or two-parent sync): founder decisions still open
 - [ ] RevenueCat and iOS 16.3 for one-time code redemption, against the app's target of iOS 15.5
 - [ ] What happens to a seat when an account is deleted
 - [ ] Family link: give a family member their own copy on their phone, proposal awaiting the founder

@@ -224,7 +224,7 @@ No real family signs in until an Egyptian lawyer has answered the questions in
   - Android: `google_sign_in_android` adds the `INTERNET` permission to every release
     build, including builds with accounts off. It doesn't change what's sent, but don't
     answer that a build has no network permission.
-- **1-year pass and Lifetime (RevenueCat, store billing)**: Purchase history.
+- **Monthly and Yearly subscriptions and Lifetime (RevenueCat, store billing)**: Purchase history.
 
 ### v2 and later
 

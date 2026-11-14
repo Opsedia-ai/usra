@@ -12,7 +12,7 @@ All decisions as of 2 Nov 2026, kept as history. Details and sources are in the 
 | Pregnancy | Pregnancy Mode: due date, week-by-week checks, danger signs, baby profile at birth | User request |
 | Elderly | Simple Mode (Arabic, big buttons, voice), caregiver missed-dose alerts, elder tutorial | User request. **Partly replaced by the PRD:** three big buttons (F21), and caregiver alerts are v2 |
 | Doctors | Directory with phone numbers, call/WhatsApp, hospitals with emergency numbers | User request |
-| Business model | Free app. Later: clinic partnerships (sponsored listings, appointment reminders, doctor advice), AI Doctor credits + Usra Plus subscription | User changed from $1 one-time to free. **Replaced by the PRD:** founding members, then a 1-year pass or Lifetime |
+| Business model | Free app. Later: clinic partnerships (sponsored listings, appointment reminders, doctor advice), AI Doctor credits + Usra Plus subscription | User changed from $1 one-time to free. **Replaced by the PRD:** founding members, then Monthly, Yearly or Lifetime (14 Nov 2026) |
 | Ads | Only labelled, contextual sponsored listings (city + specialty). Never targeted using health data | Apple 5.1.3, Google Play user data policy |
 | First market | Egypt (57.2% out-of-pocket health spending, 2023), then KSA as a Sehhaty complement, then UAE | MENA research. **Replaced 7 Nov 2026:** Egypt, then Saudi Arabia and Jordan, UAE later (see below) |
 | Mobile framework | Flutter (Android + iOS from one codebase). React Native only if the founding developer is React/TS-first | Technical design comparison |
@@ -42,7 +42,8 @@ All decisions as of 2 Nov 2026, kept as history. Details and sources are in the 
 | Sync | No family sync in v1, and no photo sync. Backend sync work is paused | 1 GB of free files fills at about 170 users with 20 photos each |
 | AI | Dr. Usra AI is off in v1 and shown as coming soon | About 130 dollars a month at 5,000 users, on stated assumptions |
 | Cloud photo reading | Off in v1. On-device reading only | Costs per photo, and the photo would leave the phone |
-| Purchases | Nothing to buy in v1, so no RevenueCat | Only needed for AI credits. **Replaced:** 1-year pass and Lifetime through RevenueCat (`docs/prd-v1.md`, F24) |
+| Purchases | Nothing to buy in v1, so no RevenueCat | Only needed for AI credits. **Replaced:** Monthly and Yearly subscriptions and Lifetime through RevenueCat (`docs/prd-v1.md`, F24) |
+| Plans (14 Nov 2026) | Monthly 59.99 EGP and Yearly 499.99 EGP auto-renewing subscriptions, plus Lifetime 1,249.99 EGP; one price per family; 14-day trial | Founder approved. Monthly suits Egyptians who pay by phone bill or Google Play cards; Yearly is about 30% cheaper. Replaces the non-renewing 1-year pass |
 
 ## Founder decisions (7 Nov 2026)
 
@@ -55,7 +56,7 @@ These replace older rows above. `docs/prd-v1.md` holds them too, under "Decided 
 | Legal review | Egypt, Saudi Arabia, Jordan | Jordan research is in `reports/Jordan rules for Usra.md` in the founder's notes |
 | Markets | Beta and first public launch in Egypt only, then Saudi Arabia and Jordan. UAE later | Replaces "then KSA... then UAE" |
 | Seats | Taken when a signed-in user saves their first record, not at sign-up | Stops idle sign-ups taking seats |
-| Trial or pass ends | People can still read, export, back up and delete records and use the emergency card, and reminders keep ringing. Only adding new records stops | Nobody is locked out of their records |
+| Trial ends or subscription lapses | People can still read, export, back up and delete records and use the emergency card, and reminders keep ringing. Only adding new records stops | Nobody is locked out of their records |
 | Discreet mode | On by default, with neutral text plus Taken | `docs/security.md` says when Taken shows |
 | Addressing the user | By the sex asked in "About you". Text about a family member uses that member's sex | Covers Arabic wording |
 | Backup wording | Automatic backup goes to "a folder you choose". Drive stays available manually through the share sheet | Don't promise Drive until tested on a real phone |
@@ -63,7 +64,7 @@ These replace older rows above. `docs/prd-v1.md` holds them too, under "Decided 
 | Navigation | Bottom bar: Home, Medicines, Add, Records, More. Home shows the family, one person on their own page | **Changes the PRD:** replaces the person switcher and four tabs |
 | First run | Shorter: language and country, about you, then Home. The rest becomes optional cards on Home | **Changes the PRD** |
 | Sign-in | Google or Apple sign-in is required to save the first record, add family, back up, take a seat or pay. Before that, people can look around and read the guides. The rule only applies once login is on | **Changes the PRD:** sign-in was optional until the paywall. Apple 5.1.1(v) only allows a required login with significant account-based features, so this has some review risk: the account carries the seat, the pass and later AI payment across phones. If Apple objects, the fallback is the old optional sign-in |
-| Seats and paywall | With sign-in required, everyone who saves a record has an account, so there is no "saved first, signed in later" case. After seats run out, adding records needs sign-in plus the trial or pass | Closes both open seat questions |
+| Seats and paywall | With sign-in required, everyone who saves a record has an account, so there is no "saved first, signed in later" case. After seats run out, adding records needs sign-in plus the trial or a paid plan | Closes both open seat questions |
 | PIN | Turning on the PIN requires a backup first, not only a recovery key | A forgotten PIN with no backup loses everything |
 | App lock offer | An optional Home card after the first backup, and always in More | Follows the PIN rule |
 | Discreet Taken | Shown only when no other dose is due within an hour | Avoids marking the wrong person's dose |
@@ -121,7 +122,7 @@ The current list is in `docs/prd-v1.md`, under "Still open".
 
 - [ ] Founding developer: Flutter confirmed?
 - [ ] LLM provider and region for AI Doctor
-- [x] ~~AI credit and Usra Plus prices per market~~ Replaced by the 1-year pass and Lifetime prices in the PRD
+- [x] ~~AI credit and Usra Plus prices per market~~ Replaced by the Monthly, Yearly and Lifetime prices in the PRD
 - [ ] Cloud and region for self-hosted Supabase later
 - [ ] Source and licence of the Egyptian drug list
 - [ ] Trademark, store-name and domain checks for "Usra"
