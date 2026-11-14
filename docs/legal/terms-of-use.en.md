@@ -87,12 +87,17 @@ right to use its courts. [Legal review: KSA and Jordan users.]
   family's shared records.
 - **AI Doctor**: informational findings only, not a diagnosis; it may be unavailable
   in some countries.
-- **Founding members, 1-year pass and Lifetime**: the first 5,000 signed-in users to save
+- **Founding members and paid plans**: the first 5,000 signed-in users to save
   a record would use Usra free for life. After that, adding new records would need a
-  1-year pass or Lifetime, bought through Google Play or the App Store after a 14-day
-  free trial; refunds follow the store's rules and local law. When a trial or pass ends
-  you could still read, export, back up and delete your records and use the emergency
-  card, and medicine reminders would keep ringing; only adding new records would stop.
+  paid plan, one price for the whole family: a Monthly or Yearly subscription, or
+  Lifetime, bought through Google Play or the App Store after a 14-day free trial.
+  Monthly and Yearly renew automatically at the price shown, VAT included, until you
+  cancel. Cancel at least 24 hours before the renewal date in your Google Play or App
+  Store subscription settings; you keep the plan until the end of the period you paid
+  for. Lifetime is one payment. Refunds follow the store's rules and local law. When a
+  trial ends or a subscription lapses you could still read, export, back up and delete
+  your records and use the emergency card, and medicine reminders would keep ringing;
+  only adding new records would stop.
   [Legal review: wording of "free for life".]
 - **Cloud text reading**: only with your consent for each photo.
 

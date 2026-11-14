@@ -156,7 +156,7 @@ from the clipboard after a minute.
 - **Cloud text reading**: if on-phone reading fails (for example Arabic or
   handwriting), you could choose to send one photo for reading in the cloud. It would
   be deleted after reading.
-- **Purchases** of a 1-year pass or Lifetime through Google Play or the App Store. The
+- **Purchases** of a Monthly or Yearly subscription or Lifetime through Google Play or the App Store. The
   store handles the payment; we would keep the purchase status with your account,
   through RevenueCat.
 
